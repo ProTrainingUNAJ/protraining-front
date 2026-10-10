@@ -8,8 +8,10 @@ export default defineConfig({
     host: '127.0.0.1',
     proxy: {
       '/api': {
-        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:5000',
-        changeOrigin: true
+        // El gateway, sin el /api: /api/estructura/... -> http://127.0.0.1:8000/estructura/...
+        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   }
