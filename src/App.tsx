@@ -23,7 +23,7 @@ export const App: React.FC = () => {
   async function request(path = '', options: RequestInit = {}) {
     let response: Response;
     try {
-      response = await fetch(`/api/athletes${path}`, {
+      response = await fetch(`/api/estructura/api/athletes${path}`, {
         ...options,
         headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(15000),
