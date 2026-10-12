@@ -1,0 +1,40 @@
+:root {
+  color-scheme: light;
+
+  /* Marca */
+  --brand-navy: #023050;
+  --brand-blue: #0070C0;
+  --brand-gray-light: #E3E4E6;
+  --brand-gray-dark: #202429;
+
+  /* Gradientes de marca */
+  --grad-text: linear-gradient(90deg, #023050 0%, #0070C0 100%);
+  --grad-isotipo: linear-gradient(135deg, #22D3EE 0%, #6A5ACD 100%);
+
+  /* Superficies (modo claro) */
+  --bg-main: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #F1F3F6;
+
+  /* Texto */
+  --text-main: #023050;
+  --text-muted: #5B6470;
+
+  /* Bordes */
+  --border: #CDD1D6;
+
+  /* Roles semánticos */
+  --primary: var(--brand-navy);
+  --primary-hover: #03446E;
+  --primary-light: #E6EEF4;
+  --secondary: var(--brand-blue);
+  --success: #16A34A;
+  --warning: #D97706;
+  --danger: #DC2626;
+
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgb(2 48 80 / 0.08), 0 2px 4px -2px rgb(2 48 80 / 0.06);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
