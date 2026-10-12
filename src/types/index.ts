@@ -11,26 +11,31 @@ export interface Organization {
   id: string;
   name: string;
   description?: string;
-  categoriesCount: number;
+  categoriesCount?: number;
 }
 
 export interface Category {
   id: string;
   organizationId: string;
   name: string;
-  athletesCount: number;
+  description?: string;
+  athletesCount?: number;
 }
 
 export interface Athlete {
   id: string;
+  accountId?: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   email: string;
   phone: string;
-  medicalConditions?: string;
+  isMinor: boolean;
   emergencyContact?: string;
-  categoryNames: string[];
-  activeInjuriesCount: number;
+  medicalConditions?: string;
+  active: boolean;
+  allowsHabitsRecommendations?: boolean;
+  categories?: string[];
 }
 
 export interface TodayRoutine {
