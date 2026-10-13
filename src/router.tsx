@@ -2,6 +2,8 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { CoachLayout } from './layouts/CoachLayout';
 import { AthleteLayout } from './layouts/AthleteLayout';
 import { DashboardPage } from './pages/coach/DashboardPage';
+import { OrganizationsPage } from './pages/coach/OrganizationsPage';
+import { CategoriesPage } from './pages/coach/CategoriesPage';
 import { AthletesPage } from './pages/coach/AthletesPage';
 import { PlanningPage } from './pages/coach/PlanningPage';
 import { TrainingPage } from './pages/coach/TrainingPage';
@@ -47,6 +49,8 @@ export const router = createBrowserRouter([
         element: <CoachLayout />,
         children: [
           { index: true, element: <DashboardPage /> },
+          { path: 'organizations', element: <OrganizationsPage /> },
+          { path: 'categories', element: <CategoriesPage /> },
           { path: 'athletes', element: <AthletesPage /> },
           { path: 'planning', element: <PlanningPage /> },
           { path: 'training', element: <TrainingPage /> },

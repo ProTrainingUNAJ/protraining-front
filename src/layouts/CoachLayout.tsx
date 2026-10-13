@@ -3,6 +3,8 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Menu, X, LayoutDashboard } from 'lucide-react';
 import { Brand } from '../components/Brand';
 import { coachMenuItems, coachTabItems, coachUser, type CoachMenuItem } from './CoachMenu';
+import { TopBarControls } from '../components/shell/TopBarControls';
+import { useAuth } from '../context/AuthContext';
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   isActive ? 'coach-menu-item active' : 'coach-menu-item';
@@ -27,14 +29,25 @@ function MenuNav({ items, onNavigate }: { items: CoachMenuItem[]; onNavigate: ()
 }
 
 function UserBox() {
+  const { user } = useAuth();
+  const name = user?.fullName || coachUser.name;
+  const role = user?.role || coachUser.role;
+  const initials =
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('') || coachUser.initials;
+
   return (
     <div className="coach-user">
       <span className="coach-avatar" aria-hidden="true">
-        {coachUser.initials}
+        {initials}
       </span>
       <div className="coach-user-info">
-        <strong>{coachUser.name}</strong>
-        <small>{coachUser.role}</small>
+        <strong>{name}</strong>
+        <small>{role}</small>
       </div>
     </div>
   );
@@ -60,15 +73,22 @@ export function CoachLayout() {
       </aside>
 
       <header className="coach-topbar">
-        <button
-          type="button"
-          className="coach-icon-btn"
-          aria-label="Abrir menú"
-          onClick={() => setMenuOpen(true)}
-        >
-          <Menu size={24} aria-hidden="true" />
-        </button>
-        <Brand />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            type="button"
+            className="coach-icon-btn"
+            aria-label="Abrir menú"
+            onClick={() => setMenuOpen(true)}
+          >
+            <Menu size={24} aria-hidden="true" />
+          </button>
+          <Brand />
+        </div>
+        <TopBarControls />
+      </header>
+
+      <header className="coach-header-desktop">
+        <TopBarControls />
       </header>
 
       {menuOpen && (

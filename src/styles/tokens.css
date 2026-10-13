@@ -65,3 +65,26 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Superficies (modo oscuro) */
+  --bg-main: #14181e;
+  --bg-card: #1c222b;
+  --bg-subtle: #242c37;
+
+  /* Texto */
+  --text-main: #f1f3f6;
+  --text-muted: #9da8b5;
+
+  /* Bordes */
+  --border: #2e3846;
+
+  /* Roles semánticos en modo oscuro */
+  --primary-light: #032b45;
+  --info-bg: #032b45;
+  --info-text: #93c5fd;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+}

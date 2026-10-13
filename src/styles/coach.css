@@ -188,6 +188,168 @@
   color: var(--on-primary);
 }
 
+/* ── Controles superiores de la App Shell (Zona superior derecha) ── */
+.shell-topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shell-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.3rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.shell-theme-toggle:hover {
+  border-color: var(--secondary);
+}
+
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.theme-toggle-icon.active {
+  background: var(--secondary);
+  color: var(--on-primary);
+}
+
+.shell-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shell-icon-btn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.shell-notifications-wrap,
+.shell-user-menu-wrap {
+  position: relative;
+}
+
+.shell-user-avatar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.avatar-chevron {
+  color: var(--text-muted);
+}
+
+.shell-popover,
+.shell-user-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.shell-popover-header,
+.user-dropdown-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-dropdown-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.user-dropdown-name {
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.user-dropdown-role {
+  font-size: 0.75rem;
+  color: var(--secondary);
+  font-weight: 700;
+}
+
+.user-dropdown-email {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.shell-popover-body {
+  padding: 1rem;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.user-dropdown-item:hover {
+  background: var(--bg-subtle);
+}
+
+.user-dropdown-item.danger {
+  color: var(--danger);
+}
+
+.user-dropdown-item.danger:hover {
+  background: var(--danger-bg);
+}
+
+.coach-header-desktop {
+  display: none;
+}
+
 @media (min-width: 992px) {
   .coach-sidebar {
     display: flex;
@@ -200,6 +362,7 @@
     background: var(--brand-navy);
     z-index: 40;
   }
+
   .coach-sidebar > .brand {
     color: var(--on-primary);
   }
@@ -207,6 +370,19 @@
   .coach-topbar,
   .coach-tabbar {
     display: none;
+  }
+
+  .coach-header-desktop {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin-left: 260px;
+    padding: 0.85rem 2.5rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
   }
 
   .coach-content {
