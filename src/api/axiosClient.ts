@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { AuthSession, ProblemDetails } from '../types/auth';
 
 const STORAGE_KEY = 'protraining_session';
@@ -96,7 +96,7 @@ httpClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error),
+  (error: unknown) => Promise.reject(error),
 );
 
 /**
@@ -106,7 +106,7 @@ httpClient.interceptors.request.use(
  * - Handles token refresh attempt or graceful session termination.
  */
 httpClient.interceptors.response.use(
-  (response) => response,
+  (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as
       (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
@@ -183,8 +183,8 @@ async function attemptTokenRefresh(): Promise<boolean> {
  * Helper to extract ProblemDetails or human-friendly message from an error
  */
 export function extractErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as ProblemDetails | undefined;
+  if (axios.isAxiosError<ProblemDetails>(error)) {
+    const data = error.response?.data;
     if (data) {
       if (data.errors) {
         const errorList = Object.values(data.errors).flat();

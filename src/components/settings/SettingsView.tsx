@@ -523,3 +523,5 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     </div>
   );
 };
+
+export default SettingsView;
