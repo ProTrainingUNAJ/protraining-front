@@ -13,7 +13,6 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
   onPainChange,
   onClearAll,
 }) => {
-  const [activeView, setActiveView] = useState<'both' | 'front' | 'back'>('both');
   const [activeBrushLevel, setActiveBrushLevel] = useState<number>(3); // Nivel predeterminado para marcar
   const [selectedMuscleId, setSelectedMuscleId] = useState<string | null>(null);
   const [hoveredMuscleId, setHoveredMuscleId] = useState<string | null>(null);
@@ -36,22 +35,9 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
     }
   };
 
-  // Ajuste del viewBox SVG según la vista seleccionada para máxima legibilidad responsive
-  const getViewBox = () => {
-    switch (activeView) {
-      case 'front':
-        return '110 0 400 682';
-      case 'back':
-        return '530 0 400 682';
-      case 'both':
-      default:
-        return '0 0 1024 682';
-    }
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-      {/* 1. Barra de Controles Superiores: Toggle de Vistas y Contador */}
+      {/* 1. Barra de Controles Superiores: Título, Contador y Limpiar */}
       <div
         style={{
           display: 'flex',
@@ -88,34 +74,6 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {/* Toggle de vistas: Ambas / Frontal / Posterior */}
-          <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--bg-card)', padding: '0.2rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <button
-              type="button"
-              onClick={() => setActiveView('both')}
-              className={`btn ${activeView === 'both' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem', borderRadius: '6px' }}
-            >
-              Ambas Vistas
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('front')}
-              className={`btn ${activeView === 'front' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem', borderRadius: '6px' }}
-            >
-              Vista Frontal
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('back')}
-              className={`btn ${activeView === 'back' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem', borderRadius: '6px' }}
-            >
-              Vista Posterior
-            </button>
-          </div>
-
           {/* Botón de limpiar selección */}
           {totalMarked > 0 && onClearAll && (
             <button
@@ -147,7 +105,15 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
           gap: '0.65rem',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+          }}
+        >
           <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
             Selecciona la intensidad del dolor a asignar:
           </span>
@@ -177,9 +143,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   gap: '0.5rem',
                   padding: '0.55rem 0.75rem',
                   borderRadius: '8px',
-                  border: isSelectedBrush
-                    ? `2.5px solid ${item.color}`
-                    : '1px solid var(--border)',
+                  border: isSelectedBrush ? `2.5px solid ${item.color}` : '1px solid var(--border)',
                   background: isSelectedBrush ? 'var(--bg-subtle)' : 'var(--bg-card)',
                   color: 'var(--text-main)',
                   fontWeight: 700,
@@ -209,14 +173,31 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   {item.level}
                 </span>
 
-                <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', minWidth: 0 }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: isSelectedBrush ? item.color : 'var(--text-main)' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    textAlign: 'left',
+                    minWidth: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      color: isSelectedBrush ? item.color : 'var(--text-main)',
+                    }}
+                  >
                     {item.name}
                   </span>
                 </div>
 
                 {isSelectedBrush && (
-                  <Check size={14} style={{ color: item.color, marginLeft: 'auto' }} strokeWidth={3} />
+                  <Check
+                    size={14}
+                    style={{ color: item.color, marginLeft: 'auto' }}
+                    strokeWidth={3}
+                  />
                 )}
               </button>
             );
@@ -270,7 +251,10 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   borderRadius: '50%',
                   background: p.color,
                   color: '#ffffff',
-                  border: musclePains[selectedMuscle.id] === p.level ? '2.5px solid var(--text-main)' : '1px solid transparent',
+                  border:
+                    musclePains[selectedMuscle.id] === p.level
+                      ? '2.5px solid var(--text-main)'
+                      : '1px solid transparent',
                   cursor: 'pointer',
                   fontSize: '0.75rem',
                   fontWeight: 900,
@@ -331,42 +315,38 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
             pointerEvents: 'none',
           }}
         >
-          {(activeView === 'both' || activeView === 'front') && (
-            <span
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                color: 'var(--text-main)',
-                background: 'var(--bg-subtle)',
-                padding: '0.35rem 0.9rem',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-              }}
-            >
-              Vista Frontal (Anterior)
-            </span>
-          )}
-          {(activeView === 'both' || activeView === 'back') && (
-            <span
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                color: 'var(--text-main)',
-                background: 'var(--bg-subtle)',
-                padding: '0.35rem 0.9rem',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-              }}
-            >
-              Vista Posterior (Trasera)
-            </span>
-          )}
+          <span
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              color: 'var(--text-main)',
+              background: 'var(--bg-subtle)',
+              padding: '0.35rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+            }}
+          >
+            Vista Frontal (Anterior)
+          </span>
+          <span
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              color: 'var(--text-main)',
+              background: 'var(--bg-subtle)',
+              padding: '0.35rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+            }}
+          >
+            Vista Posterior (Trasera)
+          </span>
         </div>
 
         {/* Lámina de contraste anatómico: Fondo limpio claro que garantiza visualización médica perfecta tanto en claro como en oscuro */}
@@ -382,13 +362,12 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
           }}
         >
           <svg
-            viewBox={getViewBox()}
+            viewBox="0 0 1024 682"
             style={{
               width: '100%',
               maxHeight: '560px',
               userSelect: 'none',
               display: 'block',
-              transition: 'all 0.3s ease',
             }}
             aria-label="Mapa muscular anatómico de ProTraining con escala de dolor"
           >
@@ -466,8 +445,10 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   {/* Badges circulares con el número de dolor asignado (1 a 5) */}
                   {hasPain && (
                     <>
-                      {muscle.frontCenter && (activeView === 'both' || activeView === 'front') && (
-                        <g transform={`translate(${muscle.frontCenter.x}, ${muscle.frontCenter.y})`}>
+                      {muscle.frontCenter && (
+                        <g
+                          transform={`translate(${muscle.frontCenter.x}, ${muscle.frontCenter.y})`}
+                        >
                           <circle
                             r="11"
                             fill={painColor}
@@ -486,7 +467,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                           </text>
                         </g>
                       )}
-                      {muscle.backCenter && (activeView === 'both' || activeView === 'back') && (
+                      {muscle.backCenter && (
                         <g transform={`translate(${muscle.backCenter.x}, ${muscle.backCenter.y})`}>
                           <circle
                             r="11"
@@ -514,8 +495,17 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
           </svg>
         </div>
 
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.65rem', textAlign: 'center' }}>
-          Toca cualquier músculo para aplicar el nivel de dolor activo ({activeBrushLevel} - {PAIN_LEVELS.find((p) => p.level === activeBrushLevel)?.name}). Toca nuevamente para desmarcarlo.
+        <span
+          style={{
+            fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+            marginTop: '0.65rem',
+            textAlign: 'center',
+          }}
+        >
+          Toca cualquier músculo para aplicar el nivel de dolor activo ({activeBrushLevel} -{' '}
+          {PAIN_LEVELS.find((p) => p.level === activeBrushLevel)?.name}). Toca nuevamente para
+          desmarcarlo.
         </span>
       </div>
 
@@ -530,7 +520,9 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
           border: '1px solid var(--border)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.65rem' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.65rem' }}
+        >
           <Sparkles size={16} style={{ color: 'var(--secondary)' }} />
           <strong style={{ fontSize: '0.86rem', color: 'var(--text-main)' }}>
             Listado de Grupos Musculares (12 Zonas)
@@ -581,7 +573,13 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   </span>
                 ) : (
                   <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                    ({muscle.view === 'front' ? 'Frente' : muscle.view === 'back' ? 'Espalda' : 'Ambos'})
+                    (
+                    {muscle.view === 'front'
+                      ? 'Frente'
+                      : muscle.view === 'back'
+                        ? 'Espalda'
+                        : 'Ambos'}
+                    )
                   </span>
                 )}
               </button>

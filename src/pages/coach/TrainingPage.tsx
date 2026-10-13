@@ -159,10 +159,22 @@ export const TrainingPage: React.FC = () => {
         {filteredExercises.length === 0 ? (
           <div
             className="card"
-            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)', margin: 0 }}
+            style={{
+              textAlign: 'center',
+              padding: '3.5rem',
+              color: 'var(--text-muted)',
+              margin: 0,
+            }}
           >
             <Dumbbell size={44} style={{ margin: '0 auto 1rem', opacity: 0.35 }} />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--text-main)' }}>
+            <h3
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                margin: '0 0 0.5rem',
+                color: 'var(--text-main)',
+              }}
+            >
               No se encontraron ejercicios
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
@@ -199,12 +211,13 @@ export const TrainingPage: React.FC = () => {
                       marginBottom: '0.65rem',
                     }}
                   >
-                    <span className="badge badge-info" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span
+                      className="badge badge-info"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                    >
                       <Tag size={12} /> {ex.category}
                     </span>
-                    <span className="badge badge-primary">
-                      Intensidad {ex.intensityLevel}
-                    </span>
+                    <span className="badge badge-primary">Intensidad {ex.intensityLevel}</span>
                   </div>
 
                   <h3

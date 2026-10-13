@@ -11,11 +11,7 @@ interface AppSidebarProps {
   className?: string;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({
-  role,
-  onNavigate,
-  className = '',
-}) => {
+export const AppSidebar: React.FC<AppSidebarProps> = ({ role, onNavigate, className = '' }) => {
   const items = role === 'pf' ? coachMenuItems : athleteMenuItems;
   const rootPath = role === 'pf' ? '/pf' : '/athlete';
 
@@ -30,11 +26,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           aria-label="ProTraining Inicio"
           onClick={onNavigate}
         >
-          <img
-            src={officialLogo}
-            alt="ProTraining"
-            className="app-sidebar-logo-img"
-          />
+          <img src={officialLogo} alt="ProTraining" className="app-sidebar-logo-img" />
         </NavLink>
 
         {/* Lista vertical de opciones de menú */}

@@ -9,12 +9,18 @@ interface SettingsViewProps {
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'notifications' | 'roleOptions'>('profile');
+  const [activeTab, setActiveTab] = useState<
+    'profile' | 'appearance' | 'notifications' | 'roleOptions'
+  >('profile');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Form states
-  const [name, setName] = useState(user?.fullName || (role === 'pf' ? 'Julián Pérez' : 'Lucía Martínez'));
-  const [email, setEmail] = useState(user?.email || (role === 'pf' ? 'coach@protraining.com' : 'atleta@protraining.com'));
+  const [name, setName] = useState(
+    user?.fullName || (role === 'pf' ? 'Julián Pérez' : 'Lucía Martínez'),
+  );
+  const [email, setEmail] = useState(
+    user?.email || (role === 'pf' ? 'coach@protraining.com' : 'atleta@protraining.com'),
+  );
   const [phone, setPhone] = useState('+54 11 4567-8900');
   const [emergencyContact, setEmergencyContact] = useState('Dra. Laura Rossi (+54 11 9876-5432)');
 
@@ -125,10 +131,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
         <form onSubmit={handleSave}>
           {activeTab === 'profile' && (
             <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  marginBottom: '0.35rem',
+                  color: 'var(--text-main)',
+                }}
+              >
                 Información de la Cuenta
               </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              <p
+                style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}
+              >
                 Datos personales asociados a tu usuario en la plataforma.
               </p>
 
@@ -140,7 +155,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 }}
               >
                 <div>
-                  <label htmlFor="set-name" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  <label
+                    htmlFor="set-name"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     Nombre Completo
                   </label>
                   <input
@@ -153,7 +176,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 </div>
 
                 <div>
-                  <label htmlFor="set-email" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  <label
+                    htmlFor="set-email"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     Correo Electrónico
                   </label>
                   <input
@@ -166,7 +197,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 </div>
 
                 <div>
-                  <label htmlFor="set-phone" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  <label
+                    htmlFor="set-phone"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     Teléfono de Contacto
                   </label>
                   <input
@@ -178,13 +217,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 </div>
 
                 <div>
-                  <label htmlFor="set-role" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  <label
+                    htmlFor="set-role"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     Rol Asignado
                   </label>
                   <input
                     id="set-role"
                     type="text"
-                    value={role === 'pf' ? 'Preparador Físico (Staff Técnico)' : 'Atleta Registrado'}
+                    value={
+                      role === 'pf' ? 'Preparador Físico (Staff Técnico)' : 'Atleta Registrado'
+                    }
                     disabled
                     style={{ opacity: 0.75, cursor: 'not-allowed' }}
                   />
@@ -195,17 +244,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
 
           {activeTab === 'appearance' && (
             <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  marginBottom: '0.35rem',
+                  color: 'var(--text-main)',
+                }}
+              >
                 Apariencia e Interfaz
               </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              <p
+                style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}
+              >
                 Personaliza cómo visualizas la aplicación en tu dispositivo.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '520px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.25rem',
+                  maxWidth: '520px',
+                }}
+              >
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <div>
-                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}>
+                    <strong
+                      style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}
+                    >
                       Tema del Sistema
                     </strong>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -216,7 +285,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
-                  <label htmlFor="set-lang" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  <label
+                    htmlFor="set-lang"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginBottom: '0.35rem',
+                    }}
+                  >
                     Idioma de la Interfaz
                   </label>
                   <select
@@ -242,15 +319,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
 
           {activeTab === 'notifications' && (
             <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  marginBottom: '0.35rem',
+                  color: 'var(--text-main)',
+                }}
+              >
                 Ajustes de Notificaciones
               </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              <p
+                style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}
+              >
                 Selecciona qué avisos deseas recibir en tiempo real.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '540px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '540px' }}
+              >
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    cursor: 'pointer',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={notifySessions}
@@ -258,7 +353,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                     style={{ width: '18px', height: '18px', accentColor: 'var(--secondary)' }}
                   />
                   <div>
-                    <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)', display: 'block' }}>
+                    <strong
+                      style={{ fontSize: '0.9rem', color: 'var(--text-main)', display: 'block' }}
+                    >
                       Entrenamientos y Planificaciones
                     </strong>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -267,7 +364,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   </div>
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    cursor: 'pointer',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={notifyCheckIn}
@@ -275,7 +379,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                     style={{ width: '18px', height: '18px', accentColor: 'var(--secondary)' }}
                   />
                   <div>
-                    <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)', display: 'block' }}>
+                    <strong
+                      style={{ fontSize: '0.9rem', color: 'var(--text-main)', display: 'block' }}
+                    >
                       Recordatorio de Check-in Diario
                     </strong>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -285,7 +391,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 </label>
 
                 {role === 'pf' && (
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      cursor: 'pointer',
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={notifyReports}
@@ -293,7 +406,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       style={{ width: '18px', height: '18px', accentColor: 'var(--secondary)' }}
                     />
                     <div>
-                      <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)', display: 'block' }}>
+                      <strong
+                        style={{ fontSize: '0.9rem', color: 'var(--text-main)', display: 'block' }}
+                      >
                         Alertas de Carga y Sobreentrenamiento
                       </strong>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -308,19 +423,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
 
           {activeTab === 'roleOptions' && (
             <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  marginBottom: '0.35rem',
+                  color: 'var(--text-main)',
+                }}
+              >
                 {role === 'pf' ? 'Ajustes del Cuerpo Técnico' : 'Ficha y Contacto Médico'}
               </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              <p
+                style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}
+              >
                 {role === 'pf'
                   ? 'Configuración de permisos y organizaciones a tu cargo.'
                   : 'Datos de emergencia para el protocolo de seguridad médica deportiva.'}
               </p>
 
               {role === 'pf' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '520px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    maxWidth: '520px',
+                  }}
+                >
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        marginBottom: '0.35rem',
+                      }}
+                    >
                       Organización Predeterminada
                     </label>
                     <select
@@ -340,13 +478,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                     </select>
                   </div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Puedes gestionar más clubes desde la sección <strong>Organizaciones</strong> en la barra lateral.
+                    Puedes gestionar más clubes desde la sección <strong>Organizaciones</strong> en
+                    la barra lateral.
                   </p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '520px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    maxWidth: '520px',
+                  }}
+                >
                   <div>
-                    <label htmlFor="set-emerg" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <label
+                      htmlFor="set-emerg"
+                      style={{
+                        display: 'block',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        marginBottom: '0.35rem',
+                      }}
+                    >
                       Contacto de Emergencia
                     </label>
                     <input
@@ -357,7 +511,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                     />
                   </div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Esta información es visible para el cuerpo técnico en caso de requerir asistencia urgente.
+                    Esta información es visible para el cuerpo técnico en caso de requerir
+                    asistencia urgente.
                   </p>
                 </div>
               )}

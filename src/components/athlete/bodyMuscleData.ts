@@ -60,10 +60,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'front',
     category: 'Tren Superior',
     frontCenter: { x: 289, y: 232 },
-    polygons: [
-      '175,200 216,192 218,260 182,262',
-      '366,192 407,200 400,262 364,260',
-    ],
+    polygons: ['175,200 216,192 218,260 182,262', '366,192 407,200 400,262 364,260'],
   },
   {
     id: 'abdominales',
@@ -71,9 +68,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'front',
     category: 'Zona Media',
     frontCenter: { x: 292, y: 283 },
-    polygons: [
-      '230,208 352,208 358,285 335,358 247,358 224,285',
-    ],
+    polygons: ['230,208 352,208 358,285 335,358 247,358 224,285'],
   },
   {
     id: 'cuadriceps',
@@ -81,10 +76,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'front',
     category: 'Tren Inferior',
     frontCenter: { x: 292, y: 413 },
-    polygons: [
-      '214,338 288,338 276,468 222,465',
-      '294,338 368,338 360,465 306,468',
-    ],
+    polygons: ['214,338 288,338 276,468 222,465', '294,338 368,338 360,465 306,468'],
   },
   {
     id: 'espalda_alta',
@@ -92,9 +84,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'back',
     category: 'Tren Superior',
     backCenter: { x: 732, y: 157 },
-    polygons: [
-      '664,120 798,120 802,188 732,228 662,188',
-    ],
+    polygons: ['664,120 798,120 802,188 732,228 662,188'],
   },
   {
     id: 'espalda_media',
@@ -102,9 +92,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'back',
     category: 'Tren Superior',
     backCenter: { x: 732, y: 226 },
-    polygons: [
-      '663,190 732,225 801,190 798,260 732,260 665,260',
-    ],
+    polygons: ['663,190 732,225 801,190 798,260 732,260 665,260'],
   },
   {
     id: 'espalda_baja',
@@ -112,9 +100,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'back',
     category: 'Zona Media',
     backCenter: { x: 732, y: 292 },
-    polygons: [
-      '670,262 794,262 792,322 672,322',
-    ],
+    polygons: ['670,262 794,262 792,322 672,322'],
   },
   {
     id: 'triceps',
@@ -122,10 +108,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'back',
     category: 'Tren Superior',
     backCenter: { x: 732, y: 232 },
-    polygons: [
-      '615,192 658,192 654,264 620,264',
-      '804,192 847,192 842,264 808,264',
-    ],
+    polygons: ['615,192 658,192 654,264 620,264', '804,192 847,192 842,264 808,264'],
   },
   {
     id: 'gluteos',
@@ -133,9 +116,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'back',
     category: 'Tren Inferior',
     backCenter: { x: 733, y: 359 },
-    polygons: [
-      '665,322 798,322 795,392 732,392 668,392',
-    ],
+    polygons: ['665,322 798,322 795,392 732,392 668,392'],
   },
   {
     id: 'isquiotibiales',
@@ -143,10 +124,7 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
     view: 'back',
     category: 'Tren Inferior',
     backCenter: { x: 732, y: 448 },
-    polygons: [
-      '658,394 728,394 722,504 664,504',
-      '736,394 806,394 800,504 742,504',
-    ],
+    polygons: ['658,394 728,394 722,504 664,504', '736,394 806,394 800,504 742,504'],
   },
   {
     id: 'gemelos',

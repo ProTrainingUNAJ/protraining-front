@@ -251,499 +251,510 @@ export const AthletesPage: React.FC = () => {
       />
 
       <div className="app-page-body">
-
-      {/* Alertas */}
-      {successMessage && (
-        <div className="alert-banner success" role="alert" style={{ marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Check size={18} aria-hidden="true" />
-            <span>{successMessage}</span>
-          </div>
-          <button
-            type="button"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 600,
-              color: 'inherit',
-            }}
-            onClick={() => setSuccessMessage(null)}
-            aria-label="Cerrar aviso"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {error && (
-        <div className="alert-banner danger" role="alert" style={{ marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={18} aria-hidden="true" />
-            <span>{error}</span>
-          </div>
-          <button
-            type="button"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 600,
-              color: 'inherit',
-            }}
-            onClick={() => setError(null)}
-            aria-label="Cerrar error"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* Formulario de Alta de Atleta */}
-      {showForm && (
-        <div
-          className="card"
-          style={{
-            marginBottom: '1.5rem',
-            border: '1.5px solid var(--secondary)',
-            background: 'var(--bg-card)',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.15rem',
-              fontWeight: 700,
-              marginBottom: '0.25rem',
-              color: 'var(--primary)',
-            }}
-          >
-            Alta de Atleta en el Plantel
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-            Ingresa los datos personales y asigna las divisiones iniciales del deportista.
-          </p>
-
-          <form onSubmit={handleCreateAthlete}>
-            <div
+        {/* Alertas */}
+        {successMessage && (
+          <div className="alert-banner success" role="alert" style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Check size={18} aria-hidden="true" />
+              <span>{successMessage}</span>
+            </div>
+            <button
+              type="button"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '1rem',
-                marginBottom: '1rem',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                color: 'inherit',
               }}
+              onClick={() => setSuccessMessage(null)}
+              aria-label="Cerrar aviso"
             >
-              <div>
-                <label
-                  htmlFor="ath-first"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Nombre *
-                </label>
-                <input
-                  id="ath-first"
-                  type="text"
-                  required
-                  maxLength={60}
-                  placeholder="Ej. Lucas"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="ath-last"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Apellido *
-                </label>
-                <input
-                  id="ath-last"
-                  type="text"
-                  required
-                  maxLength={60}
-                  placeholder="Ej. Fernández"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="ath-email"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Correo Electrónico *
-                </label>
-                <input
-                  id="ath-email"
-                  type="email"
-                  required
-                  placeholder="atleta@correo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="ath-phone"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Teléfono
-                </label>
-                <input
-                  id="ath-phone"
-                  type="tel"
-                  placeholder="+54 11 1234-5678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '1rem',
-                marginBottom: '1.25rem',
-              }}
-            >
-              <div>
-                <label
-                  htmlFor="ath-emergency"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Contacto de Emergencia
-                </label>
-                <input
-                  id="ath-emergency"
-                  type="text"
-                  placeholder="Ej. Madre: 11-9876-5432"
-                  value={emergencyContact}
-                  onChange={(e) => setEmergencyContact(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="ath-medical"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Ficha Médica / Apto Físico
-                </label>
-                <input
-                  id="ath-medical"
-                  type="text"
-                  placeholder="Ej. Apto médico 2026 presentado"
-                  value={medicalConditions}
-                  onChange={(e) => setMedicalConditions(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-            </div>
-
-            {categories.length > 0 && (
-              <div style={{ marginBottom: '1.25rem' }}>
-                <span
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  Asignar a Categorías Iniciales
-                </span>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {categories.map((cat) => {
-                    const isSelected = selectedNewAthleteCategories.includes(cat.id);
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        style={{
-                          padding: '0.35rem 0.75rem',
-                          borderRadius: '20px',
-                          border: isSelected
-                            ? '1.5px solid var(--secondary)'
-                            : '1px solid var(--border)',
-                          background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
-                          color: isSelected ? 'var(--secondary)' : 'var(--text-main)',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => {
-                          setSelectedNewAthleteCategories((prev) =>
-                            isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
-                          );
-                        }}
-                      >
-                        {isSelected ? '✓ ' : '+ '}
-                        {cat.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setShowForm(false)}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
-              >
-                {saving ? 'Guardando…' : 'Registrar Atleta'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Barra de Filtros y Búsqueda */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '1rem',
-          alignItems: 'center',
-          marginBottom: '1.25rem',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-            }}
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            placeholder="Buscar por nombre, email o teléfono…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', margin: 0, paddingLeft: '2.25rem' }}
-          />
-        </div>
-
-        {categories.length > 0 && (
-          <select
-            style={{
-              width: 'auto',
-              minWidth: '200px',
-              margin: 0,
-              padding: '0.5rem 0.75rem',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-card)',
-              color: 'var(--text-main)',
-              fontWeight: 500,
-            }}
-            value={selectedCategoryId}
-            onChange={(e) => setSelectedCategoryId(e.target.value)}
-            aria-label="Filtrar por categoría"
-          >
-            <option value="">Todas las categorías</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      {/* Estados de Carga y Vacío */}
-      {loading ? (
-        <div
-          className="card"
-          style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
-        >
-          <p style={{ margin: 0, fontWeight: 500 }}>Cargando atletas del plantel…</p>
-        </div>
-      ) : filteredAthletes.length === 0 ? (
-        <div
-          className="card"
-          style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
-        >
-          <Users size={44} style={{ margin: '0 auto 1rem', opacity: 0.35 }} aria-hidden="true" />
-          <h2
-            style={{
-              fontWeight: 700,
-              fontSize: '1.2rem',
-              marginBottom: '0.5rem',
-              color: 'var(--text-main)',
-            }}
-          >
-            {searchTerm || selectedCategoryId
-              ? 'No se encontraron atletas con los filtros aplicados'
-              : 'No hay atletas registrados en el plantel'}
-          </h2>
-          <p
-            style={{
-              fontSize: '0.9rem',
-              marginBottom: '1.5rem',
-              maxWidth: '420px',
-              marginInline: 'auto',
-            }}
-          >
-            {searchTerm || selectedCategoryId
-              ? 'Prueba modificando el término de búsqueda o seleccionando otra división.'
-              : 'Comienza dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
-          </p>
-          {!searchTerm && !selectedCategoryId && (
-            <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
-              <Plus size={16} aria-hidden="true" />
-              <span>Registrar Primer Atleta</span>
+              ×
             </button>
-          )}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {filteredAthletes.map((athlete) => (
-            <div
-              key={athlete.id}
-              className="card"
+          </div>
+        )}
+
+        {error && (
+          <div className="alert-banner danger" role="alert" style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={18} aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+            <button
+              type="button"
               style={{
-                margin: 0,
-                padding: '1.25rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '1rem',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                color: 'inherit',
+              }}
+              onClick={() => setError(null)}
+              aria-label="Cerrar error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Formulario de Alta de Atleta */}
+        {showForm && (
+          <div
+            className="card"
+            style={{
+              marginBottom: '1.5rem',
+              border: '1.5px solid var(--secondary)',
+              background: 'var(--bg-card)',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                marginBottom: '0.25rem',
+                color: 'var(--primary)',
               }}
             >
-              <div>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}
-                >
-                  <h2
+              Alta de Atleta en el Plantel
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+              Ingresa los datos personales y asigna las divisiones iniciales del deportista.
+            </p>
+
+            <form onSubmit={handleCreateAthlete}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: '1rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                <div>
+                  <label
+                    htmlFor="ath-first"
                     style={{
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-                      color: 'var(--text-main)',
-                      margin: 0,
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.35rem',
                     }}
                   >
-                    {athlete.fullName}
-                  </h2>
-                  {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
-                  {athlete.active && <span className="badge badge-success">Activo</span>}
+                    Nombre *
+                  </label>
+                  <input
+                    id="ath-first"
+                    type="text"
+                    required
+                    maxLength={60}
+                    placeholder="Ej. Lucas"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={saving}
+                  />
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.85rem',
-                    marginTop: '0.35rem',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <span>{athlete.email}</span>
-                  {athlete.phone && <span>Tel: {athlete.phone}</span>}
-                  {athlete.emergencyContact && <span>Emergencia: {athlete.emergencyContact}</span>}
+                <div>
+                  <label
+                    htmlFor="ath-last"
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    Apellido *
+                  </label>
+                  <input
+                    id="ath-last"
+                    type="text"
+                    required
+                    maxLength={60}
+                    placeholder="Ej. Fernández"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={saving}
+                  />
                 </div>
 
-                {/* Categorías asignadas */}
-                <div
-                  style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}
-                >
-                  {athlete.categories && athlete.categories.length > 0 ? (
-                    athlete.categories.map((c) => (
-                      <span key={c.id} className="badge badge-info">
-                        {c.name}
-                      </span>
-                    ))
-                  ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
-                    athlete.categoryNames.map((name, i) => (
-                      <span key={i} className="badge badge-info">
-                        {name}
-                      </span>
-                    ))
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-muted)',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      Sin categorías asignadas
-                    </span>
-                  )}
+                <div>
+                  <label
+                    htmlFor="ath-email"
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    Correo Electrónico *
+                  </label>
+                  <input
+                    id="ath-email"
+                    type="email"
+                    required
+                    placeholder="atleta@correo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="ath-phone"
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    Teléfono
+                  </label>
+                  <input
+                    id="ath-phone"
+                    type="tel"
+                    placeholder="+54 11 1234-5678"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={saving}
+                  />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: '1rem',
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <div>
+                  <label
+                    htmlFor="ath-emergency"
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    Contacto de Emergencia
+                  </label>
+                  <input
+                    id="ath-emergency"
+                    type="text"
+                    placeholder="Ej. Madre: 11-9876-5432"
+                    value={emergencyContact}
+                    onChange={(e) => setEmergencyContact(e.target.value)}
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="ath-medical"
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    Ficha Médica / Apto Físico
+                  </label>
+                  <input
+                    id="ath-medical"
+                    type="text"
+                    placeholder="Ej. Apto médico 2026 presentado"
+                    value={medicalConditions}
+                    onChange={(e) => setMedicalConditions(e.target.value)}
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+
+              {categories.length > 0 && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    Asignar a Categorías Iniciales
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {categories.map((cat) => {
+                      const isSelected = selectedNewAthleteCategories.includes(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          style={{
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: '20px',
+                            border: isSelected
+                              ? '1.5px solid var(--secondary)'
+                              : '1px solid var(--border)',
+                            background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
+                            color: isSelected ? 'var(--secondary)' : 'var(--text-main)',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => {
+                            setSelectedNewAthleteCategories((prev) =>
+                              isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
+                            );
+                          }}
+                        >
+                          {isSelected ? '✓ ' : '+ '}
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                  onClick={() => setManagingAthlete(athlete)}
-                  title="Gestionar categorías asignadas (N:N)"
+                  onClick={() => setShowForm(false)}
+                  disabled={saving}
                 >
-                  <Tag size={15} aria-hidden="true" />
-                  <span>Categorías</span>
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
+                >
+                  {saving ? 'Guardando…' : 'Registrar Atleta'}
                 </button>
               </div>
-            </div>
-          ))}
+            </form>
+          </div>
+        )}
+
+        {/* Barra de Filtros y Búsqueda */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            alignItems: 'center',
+            marginBottom: '1.25rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
+            <Search
+              size={16}
+              style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--text-muted)',
+              }}
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              placeholder="Buscar por nombre, email o teléfono…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: '100%', margin: 0, paddingLeft: '2.25rem' }}
+            />
+          </div>
+
+          {categories.length > 0 && (
+            <select
+              style={{
+                width: 'auto',
+                minWidth: '200px',
+                margin: 0,
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-main)',
+                fontWeight: 500,
+              }}
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              aria-label="Filtrar por categoría"
+            >
+              <option value="">Todas las categorías</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
-      )}
+
+        {/* Estados de Carga y Vacío */}
+        {loading ? (
+          <div
+            className="card"
+            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
+          >
+            <p style={{ margin: 0, fontWeight: 500 }}>Cargando atletas del plantel…</p>
+          </div>
+        ) : filteredAthletes.length === 0 ? (
+          <div
+            className="card"
+            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
+          >
+            <Users size={44} style={{ margin: '0 auto 1rem', opacity: 0.35 }} aria-hidden="true" />
+            <h2
+              style={{
+                fontWeight: 700,
+                fontSize: '1.2rem',
+                marginBottom: '0.5rem',
+                color: 'var(--text-main)',
+              }}
+            >
+              {searchTerm || selectedCategoryId
+                ? 'No se encontraron atletas con los filtros aplicados'
+                : 'No hay atletas registrados en el plantel'}
+            </h2>
+            <p
+              style={{
+                fontSize: '0.9rem',
+                marginBottom: '1.5rem',
+                maxWidth: '420px',
+                marginInline: 'auto',
+              }}
+            >
+              {searchTerm || selectedCategoryId
+                ? 'Prueba modificando el término de búsqueda o seleccionando otra división.'
+                : 'Comienza dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
+            </p>
+            {!searchTerm && !selectedCategoryId && (
+              <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
+                <Plus size={16} aria-hidden="true" />
+                <span>Registrar Primer Atleta</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {filteredAthletes.map((athlete) => (
+              <div
+                key={athlete.id}
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <h2
+                      style={{
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
+                        color: 'var(--text-main)',
+                        margin: 0,
+                      }}
+                    >
+                      {athlete.fullName}
+                    </h2>
+                    {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
+                    {athlete.active && <span className="badge badge-success">Activo</span>}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '1rem',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.85rem',
+                      marginTop: '0.35rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span>{athlete.email}</span>
+                    {athlete.phone && <span>Tel: {athlete.phone}</span>}
+                    {athlete.emergencyContact && (
+                      <span>Emergencia: {athlete.emergencyContact}</span>
+                    )}
+                  </div>
+
+                  {/* Categorías asignadas */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.4rem',
+                      marginTop: '0.5rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {athlete.categories && athlete.categories.length > 0 ? (
+                      athlete.categories.map((c) => (
+                        <span key={c.id} className="badge badge-info">
+                          {c.name}
+                        </span>
+                      ))
+                    ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
+                      athlete.categoryNames.map((name, i) => (
+                        <span key={i} className="badge badge-info">
+                          {name}
+                        </span>
+                      ))
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--text-muted)',
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        Sin categorías asignadas
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setManagingAthlete(athlete)}
+                    title="Gestionar categorías asignadas (N:N)"
+                  >
+                    <Tag size={15} aria-hidden="true" />
+                    <span>Categorías</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modal de Asociación N:N de Categorías (CA3) */}

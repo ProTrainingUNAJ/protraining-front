@@ -340,7 +340,9 @@ export const DashboardPage: React.FC = () => {
                 lineHeight: 1.25,
               }}
             >
-              {isAthlete ? 'Mi Planificación y Rendimiento Físico' : 'Gestión Integral de Atletas y Clubes'}
+              {isAthlete
+                ? 'Mi Planificación y Rendimiento Físico'
+                : 'Gestión Integral de Atletas y Clubes'}
             </h3>
 
             <p

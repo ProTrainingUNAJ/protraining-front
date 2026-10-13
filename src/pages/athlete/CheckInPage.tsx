@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
-import { Moon, BatteryCharging, ShieldAlert, Smile, CheckCircle2, Send, Activity, MessageSquare } from 'lucide-react';
+import {
+  Moon,
+  BatteryCharging,
+  ShieldAlert,
+  Smile,
+  CheckCircle2,
+  Send,
+  Activity,
+  MessageSquare,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { BodyMuscleMap } from '../../components/athlete/BodyMuscleMap';
-import { PROTRAINING_MUSCLES, PAIN_LEVELS, getPainColor } from '../../components/athlete/bodyMuscleData';
+import {
+  PROTRAINING_MUSCLES,
+  PAIN_LEVELS,
+  getPainColor,
+} from '../../components/athlete/bodyMuscleData';
 
 export const CheckInPage: React.FC = () => {
   const [sleepScore, setSleepScore] = useState(4);
@@ -64,7 +77,14 @@ export const CheckInPage: React.FC = () => {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+          }}
+        >
           <span>1: {lowLabel}</span>
           <span>5: {highLabel}</span>
         </div>
@@ -87,13 +107,35 @@ export const CheckInPage: React.FC = () => {
 
       <div className="app-page-body">
         {submitted ? (
-          <div className="card" style={{ margin: 0, padding: '2.5rem 1.5rem', textAlign: 'center' }}>
-            <CheckCircle2 size={52} style={{ color: 'var(--success-text)', margin: '0 auto 1.25rem' }} />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.5rem', color: 'var(--text-main)' }}>
+          <div
+            className="card"
+            style={{ margin: 0, padding: '2.5rem 1.5rem', textAlign: 'center' }}
+          >
+            <CheckCircle2
+              size={52}
+              style={{ color: 'var(--success-text)', margin: '0 auto 1.25rem' }}
+            />
+            <h2
+              style={{
+                fontSize: '1.4rem',
+                fontWeight: 800,
+                margin: '0 0 0.5rem',
+                color: 'var(--text-main)',
+              }}
+            >
               ¡Check-in registrado con éxito!
             </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: 1.5 }}>
-              Tus respuestas y mapa de dolor ya están disponibles para el cuerpo técnico para ajustar las cargas de tu entrenamiento de hoy.
+            <p
+              style={{
+                color: 'var(--text-muted)',
+                fontSize: '0.9rem',
+                maxWidth: '520px',
+                margin: '0 auto 1.5rem',
+                lineHeight: 1.5,
+              }}
+            >
+              Tus respuestas y mapa de dolor ya están disponibles para el cuerpo técnico para
+              ajustar las cargas de tu entrenamiento de hoy.
             </p>
 
             {/* Resumen de reporte enviado */}
@@ -112,23 +154,66 @@ export const CheckInPage: React.FC = () => {
               }}
             >
               <div>
-                <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    color: 'var(--text-main)',
+                    marginBottom: '0.5rem',
+                  }}
+                >
                   Resumen de indicadores:
                 </strong>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
-                  <div style={{ background: 'var(--bg-card)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>Sueño</small>
                     <strong style={{ color: 'var(--text-main)' }}>{sleepScore} / 5</strong>
                   </div>
-                  <div style={{ background: 'var(--bg-card)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>Fatiga</small>
                     <strong style={{ color: 'var(--text-main)' }}>{fatigueScore} / 5</strong>
                   </div>
-                  <div style={{ background: 'var(--bg-card)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Dolor general</small>
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>
+                      Dolor general
+                    </small>
                     <strong style={{ color: 'var(--text-main)' }}>{sorenessScore} / 5</strong>
                   </div>
-                  <div style={{ background: 'var(--bg-card)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>Estrés</small>
                     <strong style={{ color: 'var(--text-main)' }}>{stressScore} / 5</strong>
                   </div>
@@ -136,7 +221,14 @@ export const CheckInPage: React.FC = () => {
               </div>
 
               <div>
-                <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    color: 'var(--text-main)',
+                    marginBottom: '0.5rem',
+                  }}
+                >
                   Dolores musculares reportados al profesor ({reportedCount}):
                 </strong>
                 {reportedCount === 0 ? (
@@ -165,7 +257,14 @@ export const CheckInPage: React.FC = () => {
                             gap: '0.4rem',
                           }}
                         >
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                          <span
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: color,
+                            }}
+                          />
                           <strong>{m?.name || mId}:</strong>
                           <span style={{ color, fontWeight: 800 }}>
                             Nivel {lvl} ({painInfo?.name})
@@ -179,26 +278,43 @@ export const CheckInPage: React.FC = () => {
 
               {notes.trim() && (
                 <div>
-                  <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '0.25rem' }}>
+                  <strong
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      color: 'var(--text-main)',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
                     Observaciones adicionales:
                   </strong>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', background: 'var(--bg-card)', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.82rem',
+                      color: 'var(--text-muted)',
+                      fontStyle: 'italic',
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
                     "{notes}"
                   </p>
                 </div>
               )}
             </div>
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setSubmitted(false)}
-            >
+            <button type="button" className="btn btn-secondary" onClick={() => setSubmitted(false)}>
               Editar respuestas
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+          >
             <div
               style={{
                 display: 'grid',
@@ -208,64 +324,148 @@ export const CheckInPage: React.FC = () => {
             >
               {/* 1. Calidad del Sueño */}
               <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                  }}
+                >
                   <Moon size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>Calidad del Sueño</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+                    Calidad del Sueño
+                  </strong>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                <p
+                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
+                >
                   ¿Cómo descansaste anoche?
                 </p>
-                {renderScaleButtons(sleepScore, setSleepScore, 'Muy mal / Insomnio', 'Excelente / Reparador')}
+                {renderScaleButtons(
+                  sleepScore,
+                  setSleepScore,
+                  'Muy mal / Insomnio',
+                  'Excelente / Reparador',
+                )}
               </div>
 
               {/* 2. Nivel de Fatiga */}
               <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                  }}
+                >
                   <BatteryCharging size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>Nivel de Fatiga</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+                    Nivel de Fatiga
+                  </strong>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                <p
+                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
+                >
                   ¿Cuánta energía física sientes al despertar?
                 </p>
-                {renderScaleButtons(fatigueScore, setFatigueScore, 'Mucha energía', 'Agotamiento extremo')}
+                {renderScaleButtons(
+                  fatigueScore,
+                  setFatigueScore,
+                  'Mucha energía',
+                  'Agotamiento extremo',
+                )}
               </div>
 
               {/* 3. Dolor Muscular */}
               <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                  }}
+                >
                   <ShieldAlert size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>Dolor Muscular / Agujetas</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+                    Dolor Muscular / Agujetas
+                  </strong>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                <p
+                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
+                >
                   Sensación de sobrecarga o molestias generales.
                 </p>
-                {renderScaleButtons(sorenessScore, setSorenessScore, 'Sin molestias', 'Dolor intenso')}
+                {renderScaleButtons(
+                  sorenessScore,
+                  setSorenessScore,
+                  'Sin molestias',
+                  'Dolor intenso',
+                )}
               </div>
 
               {/* 4. Estrés / Ánimo */}
               <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                  }}
+                >
                   <Smile size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>Estado de Ánimo / Estrés</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+                    Estado de Ánimo / Estrés
+                  </strong>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                <p
+                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
+                >
                   Nivel de concentración y tranquilidad mental.
                 </p>
-                {renderScaleButtons(stressScore, setStressScore, 'Relajado y motivado', 'Muy estresado')}
+                {renderScaleButtons(
+                  stressScore,
+                  setStressScore,
+                  'Relajado y motivado',
+                  'Muy estresado',
+                )}
               </div>
             </div>
 
             {/* Observaciones y molestias específicas con Mapa Muscular Anatómico */}
-            <div className="card" style={{ margin: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div
+              className="card"
+              style={{
+                margin: 0,
+                padding: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.25rem',
+              }}
+            >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.35rem',
+                  }}
+                >
                   <Activity size={18} style={{ color: 'var(--secondary)' }} />
-                  <label htmlFor="checkin-notes" style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  <label
+                    htmlFor="checkin-notes"
+                    style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}
+                  >
                     Observaciones y Molestias Específicas
                   </label>
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Marca en el mapa muscular frontal y posterior las zonas donde sientas dolor o sobrecarga para informarle al profesor y permitirle adecuar tu rutina de hoy.
+                  Marca en el mapa muscular frontal y posterior las zonas donde sientas dolor o
+                  sobrecarga para informarle al profesor y permitirle adecuar tu rutina de hoy.
                 </p>
               </div>
 
@@ -313,8 +513,19 @@ export const CheckInPage: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
-                <button type="submit" className="btn btn-primary" style={{ gap: '0.45rem', padding: '0.65rem 1.6rem', fontSize: '0.92rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  paddingTop: '0.5rem',
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ gap: '0.45rem', padding: '0.65rem 1.6rem', fontSize: '0.92rem' }}
+                >
                   <Send size={15} />
                   <span>Enviar Check-in al Profesor</span>
                 </button>

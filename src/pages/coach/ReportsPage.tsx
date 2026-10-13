@@ -61,7 +61,11 @@ export const ReportsPage: React.FC = () => {
         title="Informes"
         description="Reportes de rendimiento deportivo, evolución física y análisis de métricas."
         actions={
-          <button type="button" className="btn btn-primary" title="Generar nuevo reporte personalizado">
+          <button
+            type="button"
+            className="btn btn-primary"
+            title="Generar nuevo reporte personalizado"
+          >
             <BarChart3 size={16} aria-hidden="true" />
             <span>Generar Informe</span>
           </button>
@@ -108,7 +112,15 @@ export const ReportsPage: React.FC = () => {
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: 'var(--text-muted)',
+              fontSize: '0.85rem',
+            }}
+          >
             <Calendar size={15} />
             <span>Últimos 30 días</span>
           </div>
@@ -145,7 +157,9 @@ export const ReportsPage: React.FC = () => {
                   }}
                 >
                   <span className="badge badge-info">{rep.category}</span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{rep.dateGenerated}</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {rep.dateGenerated}
+                  </span>
                 </div>
 
                 <h3
@@ -159,7 +173,14 @@ export const ReportsPage: React.FC = () => {
                 >
                   {rep.title}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                <p
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--text-muted)',
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}
+                >
                   {rep.description}
                 </p>
               </div>

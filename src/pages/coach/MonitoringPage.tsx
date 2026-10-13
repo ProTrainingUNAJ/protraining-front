@@ -12,11 +12,46 @@ interface AthleteTracking {
 }
 
 const INITIAL_TRACKING: AthleteTracking[] = [
-  { id: 't-1', name: 'Lucas Fernández', status: 'Presente', rpeLoad: 8, minutes: 75, notes: 'Completó sesión completa' },
-  { id: 't-2', name: 'Martín Benítez', status: 'Presente', rpeLoad: 7, minutes: 75, notes: 'Buena respuesta neuromuscular' },
-  { id: 't-3', name: 'Joaquín Silva', status: 'Diferenciado', rpeLoad: 4, minutes: 40, notes: 'Molestia en isquiotibial derecho' },
-  { id: 't-4', name: 'Santiago Gómez', status: 'Ausente', rpeLoad: 0, minutes: 0, notes: 'Aviso por examen universitario' },
-  { id: 't-5', name: 'Facundo Rossi', status: 'Presente', rpeLoad: 9, minutes: 75, notes: 'Carga máxima completada' },
+  {
+    id: 't-1',
+    name: 'Lucas Fernández',
+    status: 'Presente',
+    rpeLoad: 8,
+    minutes: 75,
+    notes: 'Completó sesión completa',
+  },
+  {
+    id: 't-2',
+    name: 'Martín Benítez',
+    status: 'Presente',
+    rpeLoad: 7,
+    minutes: 75,
+    notes: 'Buena respuesta neuromuscular',
+  },
+  {
+    id: 't-3',
+    name: 'Joaquín Silva',
+    status: 'Diferenciado',
+    rpeLoad: 4,
+    minutes: 40,
+    notes: 'Molestia en isquiotibial derecho',
+  },
+  {
+    id: 't-4',
+    name: 'Santiago Gómez',
+    status: 'Ausente',
+    rpeLoad: 0,
+    minutes: 0,
+    notes: 'Aviso por examen universitario',
+  },
+  {
+    id: 't-5',
+    name: 'Facundo Rossi',
+    status: 'Presente',
+    rpeLoad: 9,
+    minutes: 75,
+    notes: 'Carga máxima completada',
+  },
 ];
 
 export const MonitoringPage: React.FC = () => {
@@ -31,7 +66,11 @@ export const MonitoringPage: React.FC = () => {
         title="Seguimiento"
         description="Monitoreo de asistencia, cargas de entrenamiento y respuestas físicas."
         actions={
-          <button type="button" className="btn btn-primary" title="Registrar asistencia del plantel">
+          <button
+            type="button"
+            className="btn btn-primary"
+            title="Registrar asistencia del plantel"
+          >
             <Plus size={16} aria-hidden="true" />
             <span>Registrar Asistencia</span>
           </button>
@@ -59,7 +98,10 @@ export const MonitoringPage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <label htmlFor="mon-div-select" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+            <label
+              htmlFor="mon-div-select"
+              style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}
+            >
               División:
             </label>
             <select
@@ -92,30 +134,60 @@ export const MonitoringPage: React.FC = () => {
           }}
         >
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', color: 'var(--success-text)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.35rem',
+                color: 'var(--success-text)',
+              }}
+            >
               <CheckCircle2 size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Presentes</span>
             </div>
             <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>3 / 5</strong>
-            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>60% del plantel</small>
+            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+              60% del plantel
+            </small>
           </div>
 
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', color: 'var(--secondary)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.35rem',
+                color: 'var(--secondary)',
+              }}
+            >
               <Activity size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Carga Promedio (RPE)</span>
             </div>
             <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>7.0 / 10</strong>
-            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Intensidad alta</small>
+            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+              Intensidad alta
+            </small>
           </div>
 
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', color: 'var(--warning-text, #eab308)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.35rem',
+                color: 'var(--warning-text, #eab308)',
+              }}
+            >
               <AlertTriangle size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Diferenciados</span>
             </div>
             <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>1</strong>
-            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>En recuperación física</small>
+            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+              En recuperación física
+            </small>
           </div>
         </div>
 
@@ -137,7 +209,14 @@ export const MonitoringPage: React.FC = () => {
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+                  <h3
+                    style={{
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--text-main)',
+                    }}
+                  >
                     {rec.name}
                   </h3>
                   <span
@@ -152,19 +231,39 @@ export const MonitoringPage: React.FC = () => {
                     {rec.status}
                   </span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.35rem 0 0' }}>
+                <p
+                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.35rem 0 0' }}
+                >
                   {rec.notes}
                 </p>
               </div>
 
               <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>RPE Percibido</span>
-                  <strong style={{ fontSize: '1.1rem', color: 'var(--secondary)' }}>{rec.rpeLoad > 0 ? `${rec.rpeLoad}/10` : '—'}</strong>
+                  <span
+                    style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}
+                  >
+                    RPE Percibido
+                  </span>
+                  <strong style={{ fontSize: '1.1rem', color: 'var(--secondary)' }}>
+                    {rec.rpeLoad > 0 ? `${rec.rpeLoad}/10` : '—'}
+                  </strong>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Tiempo</span>
-                  <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span
+                    style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}
+                  >
+                    Tiempo
+                  </span>
+                  <strong
+                    style={{
+                      fontSize: '1.1rem',
+                      color: 'var(--text-main)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                    }}
+                  >
                     <Clock size={14} /> {rec.minutes > 0 ? `${rec.minutes}m` : '0m'}
                   </strong>
                 </div>

@@ -28,7 +28,13 @@ const TODAY_ROUTINE: WorkoutBlock[] = [
     id: 'b-2',
     name: 'Bloque B — Trabajo Principal de Fuerza',
     exercises: [
-      { name: 'Back Squat (Sentadilla Trasera)', sets: '4', reps: '6 repeticiones @ RPE 8', rest: '120 seg', notes: 'Descenso controlado en 3 segundos' },
+      {
+        name: 'Back Squat (Sentadilla Trasera)',
+        sets: '4',
+        reps: '6 repeticiones @ RPE 8',
+        rest: '120 seg',
+        notes: 'Descenso controlado en 3 segundos',
+      },
       { name: 'Press Militar con Mancuernas', sets: '3', reps: '8 repeticiones', rest: '90 seg' },
       { name: 'Peso Muerto Rumano Unilateral', sets: '3', reps: '8 por pierna', rest: '90 seg' },
     ],
@@ -38,7 +44,12 @@ const TODAY_ROUTINE: WorkoutBlock[] = [
     name: 'Bloque C — Core y Prevención de Lesiones',
     exercises: [
       { name: 'Pallof Press con Banda', sets: '3', reps: '12 por lado', rest: '45 seg' },
-      { name: 'Plancha Lateral con Elevación de Pierna', sets: '3', reps: '30 seg por lado', rest: '45 seg' },
+      {
+        name: 'Plancha Lateral con Elevación de Pierna',
+        sets: '3',
+        reps: '30 seg por lado',
+        rest: '45 seg',
+      },
     ],
   },
 ];
@@ -98,11 +109,25 @@ export const RoutinePage: React.FC = () => {
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.35rem',
+              }}
+            >
               <span className="badge badge-info">Fuerza & Potencia</span>
               <span className="badge badge-warning">Microciclo 42</span>
             </div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 0.25rem', color: 'var(--text-main)' }}>
+            <h2
+              style={{
+                fontSize: '1.3rem',
+                fontWeight: 800,
+                margin: '0 0 0.25rem',
+                color: 'var(--text-main)',
+              }}
+            >
               Sesión 2: Fuerza Máxima y Estabilidad
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
@@ -111,11 +136,27 @@ export const RoutinePage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: 'var(--text-muted)',
+                fontSize: '0.85rem',
+              }}
+            >
               <Clock size={16} />
               <span>65 min</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: 'var(--text-muted)',
+                fontSize: '0.85rem',
+              }}
+            >
               <Flame size={16} />
               <span>RPE 7-8</span>
             </div>
@@ -155,7 +196,14 @@ export const RoutinePage: React.FC = () => {
                 }}
               >
                 <Dumbbell size={18} style={{ color: 'var(--secondary)' }} />
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+                <h3
+                  style={{
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                    margin: 0,
+                    color: 'var(--text-main)',
+                  }}
+                >
                   {block.name}
                 </h3>
               </div>
@@ -176,7 +224,9 @@ export const RoutinePage: React.FC = () => {
                     }}
                   >
                     <div>
-                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}>
+                      <strong
+                        style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}
+                      >
                         {exercise.name}
                       </strong>
                       {exercise.notes && (
@@ -186,7 +236,14 @@ export const RoutinePage: React.FC = () => {
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', fontSize: '0.85rem' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '1.25rem',
+                        alignItems: 'center',
+                        fontSize: '0.85rem',
+                      }}
+                    >
                       <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>
                         {exercise.sets} series × {exercise.reps}
                       </span>

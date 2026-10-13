@@ -12,10 +12,38 @@ interface EvaluationItem {
 }
 
 const HISTORY_EVALUATIONS: EvaluationItem[] = [
-  { id: 'ev-1', date: '08 Oct 2026', testName: 'Salto Vertical con Contramovimiento (CMJ)', result: '42.5 cm', delta: '+2.1 cm', category: 'Potencia' },
-  { id: 'ev-2', date: '25 Sep 2026', testName: '1RM Estimado en Sentadilla Trasera', result: '135 kg', delta: '+5.0 kg', category: 'Fuerza Máxima' },
-  { id: 'ev-3', date: '10 Sep 2026', testName: 'Sprint 30 metros (Fotocélulas)', result: '3.98 seg', delta: '-0.07 seg', category: 'Velocidad' },
-  { id: 'ev-4', date: '20 Ago 2026', testName: 'Test Yo-Yo de Recuperación Intermitente (Nivel 1)', result: '2.040 m', delta: '+160 m', category: 'Resistencia' },
+  {
+    id: 'ev-1',
+    date: '08 Oct 2026',
+    testName: 'Salto Vertical con Contramovimiento (CMJ)',
+    result: '42.5 cm',
+    delta: '+2.1 cm',
+    category: 'Potencia',
+  },
+  {
+    id: 'ev-2',
+    date: '25 Sep 2026',
+    testName: '1RM Estimado en Sentadilla Trasera',
+    result: '135 kg',
+    delta: '+5.0 kg',
+    category: 'Fuerza Máxima',
+  },
+  {
+    id: 'ev-3',
+    date: '10 Sep 2026',
+    testName: 'Sprint 30 metros (Fotocélulas)',
+    result: '3.98 seg',
+    delta: '-0.07 seg',
+    category: 'Velocidad',
+  },
+  {
+    id: 'ev-4',
+    date: '20 Ago 2026',
+    testName: 'Test Yo-Yo de Recuperación Intermitente (Nivel 1)',
+    result: '2.040 m',
+    delta: '+160 m',
+    category: 'Resistencia',
+  },
 ];
 
 export const ProgressPage: React.FC = () => {
@@ -61,18 +89,41 @@ export const ProgressPage: React.FC = () => {
           }}
         >
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary)', marginBottom: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--secondary)',
+                marginBottom: '0.35rem',
+              }}
+            >
               <TrendingUp size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Salto Vertical CMJ</span>
             </div>
             <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>42.5 cm</strong>
-            <small style={{ color: 'var(--success-text)', display: 'block', marginTop: '0.25rem', fontWeight: 600 }}>
+            <small
+              style={{
+                color: 'var(--success-text)',
+                display: 'block',
+                marginTop: '0.25rem',
+                fontWeight: 600,
+              }}
+            >
               +5.2% vs. inicio de temporada
             </small>
           </div>
 
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success-text)', marginBottom: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--success-text)',
+                marginBottom: '0.35rem',
+              }}
+            >
               <Award size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Asistencia a Sesiones</span>
             </div>
@@ -83,7 +134,15 @@ export const ProgressPage: React.FC = () => {
           </div>
 
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', marginBottom: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--primary)',
+                marginBottom: '0.35rem',
+              }}
+            >
               <Activity size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Carga RPE Promedio</span>
             </div>
@@ -94,12 +153,27 @@ export const ProgressPage: React.FC = () => {
           </div>
 
           <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--warning-text, #eab308)', marginBottom: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--warning-text, #eab308)',
+                marginBottom: '0.35rem',
+              }}
+            >
               <Zap size={18} />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Potencia Pico Relativa</span>
             </div>
             <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>54.2 W/kg</strong>
-            <small style={{ color: 'var(--success-text)', display: 'block', marginTop: '0.25rem', fontWeight: 600 }}>
+            <small
+              style={{
+                color: 'var(--success-text)',
+                display: 'block',
+                marginTop: '0.25rem',
+                fontWeight: 600,
+              }}
+            >
               Nivel de élite competitivo
             </small>
           </div>
@@ -107,7 +181,14 @@ export const ProgressPage: React.FC = () => {
 
         {/* Historial de Evaluaciones Físicas */}
         <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
+          <h2
+            style={{
+              fontSize: '1.15rem',
+              fontWeight: 700,
+              marginBottom: '0.35rem',
+              color: 'var(--text-main)',
+            }}
+          >
             Registro de Evaluaciones Físicas
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
@@ -130,9 +211,18 @@ export const ProgressPage: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
                     <span className="badge badge-info">{evalItem.category}</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{evalItem.date}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {evalItem.date}
+                    </span>
                   </div>
                   <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
                     {evalItem.testName}
@@ -141,8 +231,14 @@ export const ProgressPage: React.FC = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Resultado</span>
-                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>{evalItem.result}</strong>
+                    <span
+                      style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}
+                    >
+                      Resultado
+                    </span>
+                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>
+                      {evalItem.result}
+                    </strong>
                   </div>
                   <span className="badge badge-success" style={{ fontWeight: 700 }}>
                     {evalItem.delta}

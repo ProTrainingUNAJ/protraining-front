@@ -79,7 +79,10 @@ export const PlanningPage: React.FC = () => {
   };
 
   const filteredSessions = sessions.filter(
-    (s) => selectedCategory === 'Todas' || s.category === selectedCategory || s.category === 'Todas las divisiones',
+    (s) =>
+      selectedCategory === 'Todas' ||
+      s.category === selectedCategory ||
+      s.category === 'Todas las divisiones',
   );
 
   return (
@@ -90,11 +93,7 @@ export const PlanningPage: React.FC = () => {
         description="Planificación de microciclos, sesiones y calendario de entrenamiento deportivo."
         actions={
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              title="Filtrar planificación"
-            >
+            <button type="button" className="btn btn-secondary" title="Filtrar planificación">
               <Filter size={16} aria-hidden="true" />
               <span>Filtros</span>
             </button>
@@ -154,7 +153,10 @@ export const PlanningPage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <label htmlFor="plan-cat-select" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+            <label
+              htmlFor="plan-cat-select"
+              style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}
+            >
               División:
             </label>
             <select
@@ -250,8 +252,7 @@ export const PlanningPage: React.FC = () => {
                   {session.duration}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Dumbbell size={14} />
-                  4 bloques
+                  <Dumbbell size={14} />4 bloques
                 </span>
               </div>
             </div>
