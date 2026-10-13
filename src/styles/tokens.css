@@ -1,0 +1,67 @@
+:root {
+  color-scheme: light;
+
+  /* Marca */
+  --brand-navy: #023050;
+  --brand-blue: #0070c0;
+  --brand-gray-light: #e3e4e6;
+  --brand-gray-dark: #202429;
+
+  /* Gradientes de marca */
+  --grad-text: linear-gradient(90deg, #023050 0%, #0070c0 100%);
+  --grad-isotype: linear-gradient(135deg, #22d3ee 0%, #6a5acd 100%);
+
+  /* Superficies (modo claro) */
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f3f6;
+
+  /* Texto */
+  --text-main: #023050;
+  --text-muted: #5b6470;
+
+  /* Bordes */
+  --border: #cdd1d6;
+
+  /* Texto y superficies sobre el navy (menús laterales y drawer) */
+  --on-primary: #ffffff;
+  --on-primary-muted: rgb(255 255 255 / 0.82);
+  --on-primary-subtle: rgb(255 255 255 / 0.7);
+  --on-primary-border: rgb(255 255 255 / 0.35);
+  --on-primary-hover: rgb(255 255 255 / 0.08);
+  --on-primary-surface: rgb(255 255 255 / 0.06);
+
+  /* Roles semánticos */
+  --primary: var(--brand-navy);
+  --primary-hover: #03446e;
+  --primary-light: #e6eef4;
+  --secondary: var(--brand-blue);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+
+  /* Fondos, bordes y textos de badges y avisos */
+  --info-bg: #e1f0fa;
+  --info-text: var(--brand-navy);
+  --success-bg: #f0fdf4;
+  --success-bg-strong: #dcfce7;
+  --success-border: #bbf7d0;
+  --success-text: #166534;
+  --warning-bg-strong: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #fef2f2;
+  --danger-bg-strong: #fee2e2;
+  --danger-border: #fecaca;
+  --danger-text: #991b1b;
+
+  /* Fondo detrás de modales y del drawer */
+  --overlay: rgb(2 48 80 / 0.6);
+
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgb(2 48 80 / 0.08), 0 2px 4px -2px rgb(2 48 80 / 0.06);
+  --shadow-lg: 0 20px 25px -5px rgb(2 48 80 / 0.1);
+  --focus-ring: 0 0 0 3px rgb(0 112 192 / 0.18);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
