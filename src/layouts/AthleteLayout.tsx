@@ -8,7 +8,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 function MenuNav({ items }: { items: AthleteMenuItem[] }) {
   return (
     <nav className="ath-menu" aria-label="Navegación del atleta">
-      {items.map(item => (
+      {items.map((item) => (
         <NavLink key={item.to} to={item.to} end={item.to === '/athlete'} className={linkClass}>
           <item.icon size={20} aria-hidden="true" />
           <span>{item.label}</span>
@@ -21,7 +21,9 @@ function MenuNav({ items }: { items: AthleteMenuItem[] }) {
 function UserBox() {
   return (
     <div className="ath-user">
-      <span className="ath-avatar" aria-hidden="true">{athleteUser.initials}</span>
+      <span className="ath-avatar" aria-hidden="true">
+        {athleteUser.initials}
+      </span>
       <div className="ath-user-info">
         <strong>{athleteUser.name}</strong>
         <small>{athleteUser.role}</small>
@@ -42,7 +44,9 @@ export function AthleteLayout() {
       <header className="ath-topbar">
         <Brand />
         <div className="ath-topbar-actions">
-          <span className="ath-avatar ath-avatar--top" aria-hidden="true">{athleteUser.initials}</span>
+          <span className="ath-avatar ath-avatar--top" aria-hidden="true">
+            {athleteUser.initials}
+          </span>
         </div>
       </header>
 
@@ -51,7 +55,7 @@ export function AthleteLayout() {
       </main>
 
       <nav className="ath-tabbar" aria-label="Pestañas del atleta">
-        {athleteMenuItems.map(item => (
+        {athleteMenuItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

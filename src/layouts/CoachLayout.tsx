@@ -10,8 +10,14 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 function MenuNav({ items, onNavigate }: { items: CoachMenuItem[]; onNavigate: () => void }) {
   return (
     <nav className="coach-menu" aria-label="Navegación del preparador">
-      {items.map(item => (
-        <NavLink key={item.to} to={item.to} end={item.to === '/pf'} className={linkClass} onClick={onNavigate}>
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === '/pf'}
+          className={linkClass}
+          onClick={onNavigate}
+        >
           <item.icon size={20} aria-hidden="true" />
           <span>{item.label}</span>
         </NavLink>
@@ -23,7 +29,9 @@ function MenuNav({ items, onNavigate }: { items: CoachMenuItem[]; onNavigate: ()
 function UserBox() {
   return (
     <div className="coach-user">
-      <span className="coach-avatar" aria-hidden="true">{coachUser.initials}</span>
+      <span className="coach-avatar" aria-hidden="true">
+        {coachUser.initials}
+      </span>
       <div className="coach-user-info">
         <strong>{coachUser.name}</strong>
         <small>{coachUser.role}</small>
@@ -52,7 +60,12 @@ export function CoachLayout() {
       </aside>
 
       <header className="coach-topbar">
-        <button type="button" className="coach-icon-btn" aria-label="Abrir menú" onClick={() => setMenuOpen(true)}>
+        <button
+          type="button"
+          className="coach-icon-btn"
+          aria-label="Abrir menú"
+          onClick={() => setMenuOpen(true)}
+        >
           <Menu size={24} aria-hidden="true" />
         </button>
         <Brand />
@@ -60,10 +73,20 @@ export function CoachLayout() {
 
       {menuOpen && (
         <div className="coach-drawer-backdrop" onClick={closeMenus}>
-          <aside className="coach-drawer" onClick={e => e.stopPropagation()} role="dialog" aria-label="Menú">
+          <aside
+            className="coach-drawer"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-label="Menú"
+          >
             <div className="coach-drawer-header">
               <Brand />
-              <button type="button" className="coach-icon-btn coach-icon-btn--light" aria-label="Cerrar menú" onClick={closeMenus}>
+              <button
+                type="button"
+                className="coach-icon-btn coach-icon-btn--light"
+                aria-label="Cerrar menú"
+                onClick={closeMenus}
+              >
                 <X size={22} aria-hidden="true" />
               </button>
             </div>
@@ -78,7 +101,7 @@ export function CoachLayout() {
       </main>
 
       <nav className="coach-tabbar" aria-label="Pestañas del preparador">
-        {coachTabItems.map(item => (
+        {coachTabItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

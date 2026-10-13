@@ -23,11 +23,19 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Instalar dependencias
         run: npm ci
+
+      # ESLint para el código y Stylelint para el CSS (colores solo desde tokens.css).
+      - name: Lint
+        run: npm run lint
+
+      # Falla si algún archivo no tiene el formato de Prettier: se arregla con "npm run format".
+      - name: Formato
+        run: npm run format:check
 
       # "tsc && vite build": falla si hay errores de tipos de TypeScript.
       - name: Build

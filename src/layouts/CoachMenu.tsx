@@ -1,13 +1,5 @@
 import type { ComponentType } from 'react';
-import {
-  Home,
-  Users,
-  CalendarRange,
-  Dumbbell,
-  Activity,
-  BarChart3,
-  Settings,
-} from 'lucide-react';
+import { Home, Users, CalendarRange, Dumbbell, Activity, BarChart3, Settings } from 'lucide-react';
 
 export interface CoachMenuItem {
   label: string;
