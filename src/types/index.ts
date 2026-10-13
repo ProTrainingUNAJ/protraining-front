@@ -1,3 +1,6 @@
+export * from './auth';
+export * from './structure';
+
 export interface UserSession {
   token: string;
   fullName: string;
@@ -5,37 +8,6 @@ export interface UserSession {
   role: 'PF' | 'Athlete';
   accountId: string;
   athleteId?: string;
-}
-
-export interface Organization {
-  id: string;
-  name: string;
-  description?: string;
-  categoriesCount?: number;
-}
-
-export interface Category {
-  id: string;
-  organizationId: string;
-  name: string;
-  description?: string;
-  athletesCount?: number;
-}
-
-export interface Athlete {
-  id: string;
-  accountId?: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  isMinor: boolean;
-  emergencyContact?: string;
-  medicalConditions?: string;
-  active: boolean;
-  allowsHabitsRecommendations?: boolean;
-  categories?: string[];
 }
 
 export interface TodayRoutine {

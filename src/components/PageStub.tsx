@@ -1,14 +1,17 @@
+import React from 'react';
+import { PageHeader } from './shell/PageHeader';
+
 interface PageStubProps {
   title: string;
+  description?: string;
+  children?: React.ReactNode;
 }
 
-export function PageStub({ title }: PageStubProps) {
+export function PageStub({ title, description, children }: PageStubProps) {
   return (
-    <div className="content-page">
-      <section className="card page-stub">
-        <h1>{title}</h1>
-        <p>Pantalla de ejemplo.</p>
-      </section>
+    <div className="app-page-container">
+      <PageHeader title={title} description={description} />
+      <div className="app-page-body">{children}</div>
     </div>
   );
 }

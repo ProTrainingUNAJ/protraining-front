@@ -64,4 +64,74 @@
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* App Shell rediseñada */
+  --shell-bg: #e3e4e6;
+  --shell-panel-bg: #ffffff;
+  --shell-panel-border: #cdd1d6;
+  --shell-sidebar-bg: #023050;
+  --shell-active-item-bg: #0b4570;
+  --shell-active-item-color: #ffffff;
+  --shell-search-bg: #f0f2f5;
+  --shell-search-border: #cdd1d6;
+  --shell-search-placeholder: #7c8796;
+  --shell-pill-border: #0070c0;
+  --shell-pill-hover: #eef6fc;
+
+  /* Escala de dolor muscular ProTraining (1 a 5) */
+  --pain-level-1: #20c56b;
+  --pain-level-2: #84cc16;
+  --pain-level-3: #f4b400;
+  --pain-level-4: #ff781f;
+  --pain-level-5: #f04444;
+  --pain-level-1-bg: rgb(32 197 107 / 0.15);
+  --pain-level-2-bg: rgb(132 204 22 / 0.15);
+  --pain-level-3-bg: rgb(244 180 0 / 0.15);
+  --pain-level-4-bg: rgb(255 120 31 / 0.15);
+  --pain-level-5-bg: rgb(240 68 68 / 0.15);
+  --muscle-default-fill: #e2e8f0;
+  --muscle-default-stroke: #cbd5e1;
+  --muscle-hover-stroke: #0070c0;
+  --muscle-blue: #023050;
+  --muscle-red: #f04444;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Superficies (modo oscuro) */
+  --bg-main: #14181e;
+  --bg-card: #1c222b;
+  --bg-subtle: #242c37;
+
+  /* Texto */
+  --text-main: #f1f3f6;
+  --text-muted: #9da8b5;
+
+  /* Bordes */
+  --border: #2e3846;
+
+  /* Roles semánticos en modo oscuro */
+  --primary-light: #032b45;
+  --info-bg: #032b45;
+  --info-text: #93c5fd;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+
+  /* App Shell rediseñada (modo oscuro) */
+  --shell-bg: #0e1217;
+  --shell-panel-bg: #181e26;
+  --shell-panel-border: #2e3846;
+  --shell-sidebar-bg: #023050;
+  --shell-active-item-bg: #0e4c7b;
+  --shell-active-item-color: #ffffff;
+  --shell-search-bg: #202732;
+  --shell-search-border: #354050;
+  --shell-search-placeholder: #8b97a8;
+  --shell-pill-border: #38bdf8;
+  --shell-pill-hover: #032b45;
+
+  --muscle-default-fill: #1e293b;
+  --muscle-default-stroke: #334155;
+  --muscle-hover-stroke: #38bdf8;
 }

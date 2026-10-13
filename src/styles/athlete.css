@@ -136,6 +136,10 @@
   color: var(--primary);
 }
 
+.ath-header-desktop {
+  display: none;
+}
+
 @media (min-width: 992px) {
   .ath-sidebar {
     display: flex;
@@ -155,6 +159,19 @@
   .ath-topbar,
   .ath-tabbar {
     display: none;
+  }
+
+  .ath-header-desktop {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin-left: 260px;
+    padding: 0.85rem 2.5rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
   }
 
   .ath-content {
