@@ -13,6 +13,7 @@ import { RoutinePage } from './pages/athlete/RoutinePage';
 import { CheckInPage } from './pages/athlete/CheckInPage';
 import { ProgressPage } from './pages/athlete/ProgressPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { LoginPage } from './pages/LoginPage';
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +21,9 @@ export const router = createBrowserRouter([
     element: <Outlet />,
     children: [
       { index: true, element: <Navigate to="/pf" replace /> },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'login/atleta', element: <LoginPage /> },
+      { path: 'login/pf', element: <LoginPage /> },
       {
         path: 'pf',
         element: <CoachLayout />,

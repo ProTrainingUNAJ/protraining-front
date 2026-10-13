@@ -1,3 +1,5 @@
+export * from './auth';
+
 export interface UserSession {
   token: string;
   fullName: string;
