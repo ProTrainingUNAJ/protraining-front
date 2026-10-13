@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Trash2, Check, Sparkles, Activity } from 'lucide-react';
+import { RotateCcw, Check } from 'lucide-react';
 import { PROTRAINING_MUSCLES, PAIN_LEVELS, getPainColor } from './bodyMuscleData';
 
 export interface BodyMuscleMapProps {
@@ -19,7 +19,14 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
 
   const registeredPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
   const totalMarked = registeredPains.length;
-  const selectedMuscle = PROTRAINING_MUSCLES.find((m) => m.id === selectedMuscleId);
+
+  // Separar los 12 grupos simétricamente (6 de vista frontal a la izquierda, 6 de vista posterior a la derecha)
+  const frontMuscles = PROTRAINING_MUSCLES.filter(
+    (m) => m.view === 'front' || m.id === 'hombros' || m.id === 'gemelos',
+  );
+  const backMuscles = PROTRAINING_MUSCLES.filter(
+    (m) => m.view === 'back' && m.id !== 'gemelos' && m.id !== 'hombros',
+  );
 
   // Manejar clic en un músculo
   const handleMuscleClick = (id: string) => {
@@ -35,74 +42,89 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
     }
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-      {/* 1. Barra de Controles Superiores: Título, Contador y Limpiar */}
-      <div
+  const renderMuscleButton = (muscle: (typeof PROTRAINING_MUSCLES)[0]) => {
+    const level = musclePains[muscle.id] || 0;
+    const hasPain = level > 0;
+    const painColor = getPainColor(level);
+    const isHovered = hoveredMuscleId === muscle.id;
+    const isSelected = selectedMuscleId === muscle.id;
+
+    return (
+      <button
+        key={muscle.id}
+        type="button"
+        onClick={() => handleMuscleClick(muscle.id)}
+        onMouseEnter={() => setHoveredMuscleId(muscle.id)}
+        onMouseLeave={() => setHoveredMuscleId(null)}
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          background: 'var(--bg-subtle)',
-          padding: '0.75rem 1rem',
-          borderRadius: '10px',
-          border: '1px solid var(--border)',
+          justifyContent: 'space-between',
+          width: '100%',
+          padding: '0.45rem 0.65rem',
+          borderRadius: '8px',
+          border: hasPain
+            ? `1.5px solid ${painColor}`
+            : isSelected || isHovered
+              ? '1.5px solid var(--secondary)'
+              : '1px solid var(--border)',
+          background: hasPain ? painColor : isHovered ? 'var(--bg-subtle)' : '#023050',
+          color: '#ffffff',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+          boxShadow: hasPain ? `0 2px 6px ${painColor}44` : 'none',
+          textAlign: 'left',
         }}
+        title={`Toca para asignar Nivel ${activeBrushLevel} o desmarcar ${muscle.name}`}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <Activity size={18} style={{ color: 'var(--secondary)' }} />
-          <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
-            Mapa Corporal de Dolor Muscular
-          </strong>
-          {totalMarked > 0 && (
-            <span
-              style={{
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                padding: '0.2rem 0.65rem',
-                borderRadius: '12px',
-                background: getPainColor(activeBrushLevel),
-                color: '#ffffff',
-                transition: 'background 0.2s ease',
-              }}
-            >
-              {totalMarked} {totalMarked === 1 ? 'zona marcada' : 'zonas marcadas'}
-            </span>
-          )}
-        </div>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {muscle.name}
+        </span>
+        {hasPain ? (
+          <span
+            style={{
+              background: 'rgba(255,255,255,0.3)',
+              padding: '0.1rem 0.45rem',
+              borderRadius: '10px',
+              fontSize: '0.72rem',
+              fontWeight: 900,
+              color: '#ffffff',
+              marginLeft: '0.35rem',
+              flexShrink: 0,
+            }}
+          >
+            {level}
+          </span>
+        ) : (
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.25)',
+              marginLeft: '0.35rem',
+              flexShrink: 0,
+            }}
+          />
+        )}
+      </button>
+    );
+  };
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {/* Botón de limpiar selección */}
-          {totalMarked > 0 && onClearAll && (
-            <button
-              type="button"
-              onClick={onClearAll}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', gap: '0.3rem' }}
-              title="Limpiar todas las molestias registradas"
-            >
-              <RotateCcw size={13} />
-              <span>Limpiar todo</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 2. SELECTOR DE INTENSIDAD DE DOLOR (5 NIVELES CON CÍRCULOS DE COLOR) */}
-      {/* Siguiendo exactamente la escala de colores y nombres de referencia */}
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', width: '100%' }}>
+      {/* 1. SELECTOR ÚNICO DE INTENSIDAD DE DOLOR (5 NIVELES CON CÍRCULOS DE COLOR) */}
       <div
-        className="card"
         style={{
-          margin: 0,
-          padding: '1rem',
+          padding: '0.75rem 1rem',
           background: 'var(--bg-card)',
           borderRadius: '12px',
           border: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.65rem',
+          gap: '0.5rem',
         }}
       >
         <div
@@ -114,19 +136,50 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
             gap: '0.5rem',
           }}
         >
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            Selecciona la intensidad del dolor a asignar:
-          </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Haz clic en un nivel y luego toca el músculo para aplicarlo
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              Intensidad del dolor a asignar:
+            </span>
+            {totalMarked > 0 && (
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  padding: '0.15rem 0.55rem',
+                  borderRadius: '10px',
+                  background: getPainColor(activeBrushLevel),
+                  color: '#ffffff',
+                }}
+              >
+                {totalMarked} {totalMarked === 1 ? 'zona marcada' : 'zonas marcadas'}
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {totalMarked > 0 && onClearAll && (
+              <button
+                type="button"
+                onClick={onClearAll}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', gap: '0.25rem' }}
+                title="Limpiar todas las molestias registradas"
+              >
+                <RotateCcw size={12} />
+                <span>Limpiar todo</span>
+              </button>
+            )}
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Elige nivel y toca el músculo en el mapa o en los laterales
+            </span>
+          </div>
         </div>
 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '0.5rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+            gap: '0.4rem',
           }}
         >
           {PAIN_LEVELS.map((item) => {
@@ -140,61 +193,48 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.55rem 0.75rem',
+                  gap: '0.45rem',
+                  padding: '0.45rem 0.65rem',
                   borderRadius: '8px',
-                  border: isSelectedBrush ? `2.5px solid ${item.color}` : '1px solid var(--border)',
+                  border: isSelectedBrush ? `2px solid ${item.color}` : '1px solid var(--border)',
                   background: isSelectedBrush ? 'var(--bg-subtle)' : 'var(--bg-card)',
                   color: 'var(--text-main)',
                   fontWeight: 700,
-                  fontSize: '0.86rem',
+                  fontSize: '0.82rem',
                   cursor: 'pointer',
-                  transition: 'all 0.18s ease',
-                  boxShadow: isSelectedBrush ? `0 2px 8px ${item.color}33` : 'none',
+                  transition: 'all 0.15s ease',
+                  boxShadow: isSelectedBrush ? `0 2px 6px ${item.color}33` : 'none',
                 }}
               >
-                {/* Círculo de color exacto con el número dentro */}
                 <span
                   style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     background: item.color,
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '0.78rem',
+                    fontSize: '0.74rem',
                     fontWeight: 900,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                     flexShrink: 0,
                   }}
                 >
                   {item.level}
                 </span>
-
-                <div
+                <span
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    textAlign: 'left',
-                    minWidth: 0,
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    color: isSelectedBrush ? item.color : 'var(--text-main)',
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: '0.82rem',
-                      fontWeight: 800,
-                      color: isSelectedBrush ? item.color : 'var(--text-main)',
-                    }}
-                  >
-                    {item.name}
-                  </span>
-                </div>
-
+                  {item.name}
+                </span>
                 {isSelectedBrush && (
                   <Check
-                    size={14}
+                    size={13}
                     style={{ color: item.color, marginLeft: 'auto' }}
                     strokeWidth={3}
                   />
@@ -205,386 +245,281 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
         </div>
       </div>
 
-      {/* 3. Panel contextual de ajuste si se hizo clic en un músculo específico */}
-      {selectedMuscle && (
+      {/* 2. CUERPO EN 3 COLUMNAS: LATERAL IZQUIERDO (FRONTAL) - MAPA CENTRAL - LATERAL DERECHO (POSTERIOR) */}
+      <div className="muscle-interactive-container">
+        {/* Columna Izquierda: Vista Frontal */}
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
-            padding: '0.75rem 1rem',
-            background: 'var(--bg-subtle)',
-            borderRadius: '10px',
-            border: '1.5px solid var(--border)',
+            flexDirection: 'column',
+            gap: '0.35rem',
+            background: 'var(--bg-card)',
+            padding: '0.75rem',
+            borderRadius: '12px',
+            border: '1px solid var(--border)',
+            justifyContent: 'center',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div
+            style={{
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              color: 'var(--text-muted)',
+              marginBottom: '0.2rem',
+              letterSpacing: '0.5px',
+              textAlign: 'center',
+            }}
+          >
+            Vista Frontal
+          </div>
+          {frontMuscles.map(renderMuscleButton)}
+        </div>
+
+        {/* Columna Central: Lienzo Anatómico de Ambas Vistas */}
+        <div
+          className="muscle-interactive-center"
+          style={{
+            position: 'relative',
+            background: 'var(--bg-card)',
+            borderRadius: '14px',
+            border: '1px solid var(--border)',
+            padding: '0.75rem 0.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            boxShadow: 'var(--shadow)',
+          }}
+        >
+          {/* Rótulos de Vistas Anatómicas */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-around',
+              width: '100%',
+              maxWidth: '750px',
+              marginBottom: '0.5rem',
+              pointerEvents: 'none',
+            }}
+          >
             <span
               style={{
-                width: '12px',
-                height: '12px',
-                borderRadius: '50%',
-                background: getPainColor(musclePains[selectedMuscle.id]),
+                fontSize: '0.76rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                color: 'var(--text-main)',
+                background: 'var(--bg-subtle)',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
               }}
-            />
-            <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>
-              {selectedMuscle.name}:
-            </strong>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              {musclePains[selectedMuscle.id]
-                ? `Nivel ${musclePains[selectedMuscle.id]} (${PAIN_LEVELS.find((p) => p.level === musclePains[selectedMuscle.id])?.name})`
-                : 'Sin dolor registrado (Azul #023050)'}
+            >
+              Vista Frontal (Anterior)
+            </span>
+            <span
+              style={{
+                fontSize: '0.76rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                color: 'var(--text-main)',
+                background: 'var(--bg-subtle)',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+              }}
+            >
+              Vista Posterior (Trasera)
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            {PAIN_LEVELS.map((p) => (
-              <button
-                key={p.level}
-                type="button"
-                onClick={() => onPainChange(selectedMuscle.id, p.level)}
-                style={{
-                  width: '26px',
-                  height: '26px',
-                  borderRadius: '50%',
-                  background: p.color,
-                  color: '#ffffff',
-                  border:
-                    musclePains[selectedMuscle.id] === p.level
-                      ? '2.5px solid var(--text-main)'
-                      : '1px solid transparent',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
-                  fontWeight: 900,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                title={`Asignar Nivel ${p.level} (${p.name}) a ${selectedMuscle.name}`}
-              >
-                {p.level}
-              </button>
-            ))}
+          {/* Lámina de contraste anatómico */}
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '820px',
+              background: '#ffffff',
+              borderRadius: '10px',
+              padding: '0.35rem',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <svg
+              viewBox="0 0 1024 682"
+              style={{
+                width: '100%',
+                maxHeight: '440px',
+                userSelect: 'none',
+                display: 'block',
+              }}
+              aria-label="Mapa muscular anatómico de ProTraining con escala de dolor"
+            >
+              {/* 1. IMAGEN BASE AZUL (#023050) */}
+              <image
+                href="/assets/body-muscles-base.png"
+                x="0"
+                y="0"
+                width="1024"
+                height="682"
+                preserveAspectRatio="xMidYMid meet"
+              />
 
-            {musclePains[selectedMuscle.id] > 0 && (
-              <button
-                type="button"
-                onClick={() => onPainChange(selectedMuscle.id, 0)}
-                className="btn btn-secondary"
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.25rem 0.55rem',
-                  marginLeft: '0.25rem',
-                  color: 'var(--danger)',
-                  gap: '0.25rem',
-                }}
-                title="Quitar dolor de este músculo"
-              >
-                <Trash2 size={13} />
-                <span>Quitar</span>
-              </button>
-            )}
+              {/* 2. CAPAS DE DOLOR POR MÚSCULO: Teñidas con el nivel exacto (1 a 5) */}
+              {PROTRAINING_MUSCLES.map((muscle) => {
+                const level = musclePains[muscle.id];
+                if (!level || level < 1 || level > 5) return null;
+
+                return (
+                  <image
+                    key={`pain-layer-${muscle.id}-${level}`}
+                    href={`/assets/muscles/levels/${level}/${muscle.id}.png`}
+                    x="0"
+                    y="0"
+                    width="1024"
+                    height="682"
+                    preserveAspectRatio="xMidYMid meet"
+                    style={{
+                      pointerEvents: 'none',
+                      filter: 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.25))',
+                    }}
+                  />
+                );
+              })}
+
+              {/* 3. CAPA INTERACTIVA: Polígonos de clic y badges numéricos */}
+              {PROTRAINING_MUSCLES.map((muscle) => {
+                const level = musclePains[muscle.id] || 0;
+                const hasPain = level > 0;
+                const painColor = getPainColor(level);
+                const isHovered = hoveredMuscleId === muscle.id;
+                const isSelected = selectedMuscleId === muscle.id;
+
+                return (
+                  <g
+                    key={`interactive-${muscle.id}`}
+                    id={`muscle-target-${muscle.id}`}
+                    onClick={() => handleMuscleClick(muscle.id)}
+                    onMouseEnter={() => setHoveredMuscleId(muscle.id)}
+                    onMouseLeave={() => setHoveredMuscleId(null)}
+                    style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={hasPain}
+                    aria-label={`${muscle.name}${hasPain ? `, dolor nivel ${level}` : ', sin dolor'}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleMuscleClick(muscle.id);
+                      }
+                    }}
+                  >
+                    {muscle.polygons.map((pts, idx) => (
+                      <polygon
+                        key={idx}
+                        points={pts}
+                        fill={isHovered ? 'rgba(0, 112, 192, 0.22)' : 'transparent'}
+                        stroke={isSelected ? '#0070c0' : isHovered ? '#0070c0' : 'transparent'}
+                        strokeWidth={isSelected ? 2 : isHovered ? 1.5 : 0}
+                        style={{ transition: 'fill 0.15s ease, stroke 0.15s ease' }}
+                      />
+                    ))}
+
+                    {hasPain && (
+                      <>
+                        {muscle.frontCenter && (
+                          <g
+                            transform={`translate(${muscle.frontCenter.x}, ${muscle.frontCenter.y})`}
+                          >
+                            <circle
+                              r="11"
+                              fill={painColor}
+                              stroke="#ffffff"
+                              strokeWidth="2"
+                              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+                            />
+                            <text
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontSize="11"
+                              fontWeight="900"
+                              fill="#ffffff"
+                            >
+                              {level}
+                            </text>
+                          </g>
+                        )}
+                        {muscle.backCenter && (
+                          <g
+                            transform={`translate(${muscle.backCenter.x}, ${muscle.backCenter.y})`}
+                          >
+                            <circle
+                              r="11"
+                              fill={painColor}
+                              stroke="#ffffff"
+                              strokeWidth="2"
+                              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+                            />
+                            <text
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontSize="11"
+                              fontWeight="900"
+                              fill="#ffffff"
+                            >
+                              {level}
+                            </text>
+                          </g>
+                        )}
+                      </>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
           </div>
-        </div>
-      )}
 
-      {/* 4. CONTENEDOR DEL LIENZO ANATÓMICO (OPTIMIZADO PARA MODO OSCURO Y MODO CLARO) */}
-      <div
-        style={{
-          position: 'relative',
-          background: 'var(--bg-card)',
-          borderRadius: '14px',
-          border: '1px solid var(--border)',
-          padding: '1.25rem 1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          boxShadow: 'var(--shadow)',
-        }}
-      >
-        {/* Rótulos de Vistas Anatómicas con alto contraste adaptable */}
+          <span
+            style={{
+              fontSize: '0.72rem',
+              color: 'var(--text-muted)',
+              marginTop: '0.45rem',
+              textAlign: 'center',
+            }}
+          >
+            Toca cualquier músculo para aplicar el nivel {activeBrushLevel} (
+            {PAIN_LEVELS.find((p) => p.level === activeBrushLevel)?.name}). Toca nuevamente para
+            desmarcarlo.
+          </span>
+        </div>
+
+        {/* Columna Derecha: Vista Posterior */}
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-around',
-            width: '100%',
-            maxWidth: '900px',
-            marginBottom: '0.75rem',
-            pointerEvents: 'none',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '0.85rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              color: 'var(--text-main)',
-              background: 'var(--bg-subtle)',
-              padding: '0.35rem 0.9rem',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            }}
-          >
-            Vista Frontal (Anterior)
-          </span>
-          <span
-            style={{
-              fontSize: '0.85rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              color: 'var(--text-main)',
-              background: 'var(--bg-subtle)',
-              padding: '0.35rem 0.9rem',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            }}
-          >
-            Vista Posterior (Trasera)
-          </span>
-        </div>
-
-        {/* Lámina de contraste anatómico: Fondo limpio claro que garantiza visualización médica perfecta tanto en claro como en oscuro */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '960px',
-            background: '#ffffff',
+            flexDirection: 'column',
+            gap: '0.35rem',
+            background: 'var(--bg-card)',
+            padding: '0.75rem',
             borderRadius: '12px',
-            padding: '0.5rem',
             border: '1px solid var(--border)',
-            boxShadow: 'inset 0 0 8px rgba(2, 48, 80, 0.04)',
+            justifyContent: 'center',
           }}
         >
-          <svg
-            viewBox="0 0 1024 682"
+          <div
             style={{
-              width: '100%',
-              maxHeight: '560px',
-              userSelect: 'none',
-              display: 'block',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              color: 'var(--text-muted)',
+              marginBottom: '0.2rem',
+              letterSpacing: '0.5px',
+              textAlign: 'center',
             }}
-            aria-label="Mapa muscular anatómico de ProTraining con escala de dolor"
           >
-            {/* 1. IMAGEN BASE AZUL (#023050) - Permanece en azul para zonas no marcadas y no seleccionables */}
-            <image
-              href="/assets/body-muscles-base.png"
-              x="0"
-              y="0"
-              width="1024"
-              height="682"
-              preserveAspectRatio="xMidYMid meet"
-            />
-
-            {/* 2. CAPAS DE DOLOR POR MÚSCULO: Se tiñen exactamente con el color correspondiente (1 a 5) */}
-            {PROTRAINING_MUSCLES.map((muscle) => {
-              const level = musclePains[muscle.id];
-              if (!level || level < 1 || level > 5) return null;
-
-              return (
-                <image
-                  key={`pain-layer-${muscle.id}-${level}`}
-                  href={`/assets/muscles/levels/${level}/${muscle.id}.png`}
-                  x="0"
-                  y="0"
-                  width="1024"
-                  height="682"
-                  preserveAspectRatio="xMidYMid meet"
-                  style={{
-                    pointerEvents: 'none',
-                    filter: 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.25))',
-                  }}
-                />
-              );
-            })}
-
-            {/* 3. CAPA INTERACTIVA: Polígonos de clic, hover y badges de dolor */}
-            {PROTRAINING_MUSCLES.map((muscle) => {
-              const level = musclePains[muscle.id] || 0;
-              const hasPain = level > 0;
-              const painColor = getPainColor(level);
-              const isHovered = hoveredMuscleId === muscle.id;
-              const isSelected = selectedMuscleId === muscle.id;
-
-              return (
-                <g
-                  key={`interactive-${muscle.id}`}
-                  id={`muscle-target-${muscle.id}`}
-                  onClick={() => handleMuscleClick(muscle.id)}
-                  onMouseEnter={() => setHoveredMuscleId(muscle.id)}
-                  onMouseLeave={() => setHoveredMuscleId(null)}
-                  style={{ cursor: 'pointer' }}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={hasPain}
-                  aria-label={`${muscle.name}${hasPain ? `, dolor nivel ${level}` : ', sin dolor'}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleMuscleClick(muscle.id);
-                    }
-                  }}
-                >
-                  {/* Polígonos de detección táctil / cursor */}
-                  {muscle.polygons.map((pts, idx) => (
-                    <polygon
-                      key={idx}
-                      points={pts}
-                      fill={isHovered ? 'rgba(0, 112, 192, 0.22)' : 'transparent'}
-                      stroke={isSelected ? '#0070c0' : isHovered ? '#0070c0' : 'transparent'}
-                      strokeWidth={isSelected ? 2 : isHovered ? 1.5 : 0}
-                      style={{ transition: 'fill 0.15s ease, stroke 0.15s ease' }}
-                    />
-                  ))}
-
-                  {/* Badges circulares con el número de dolor asignado (1 a 5) */}
-                  {hasPain && (
-                    <>
-                      {muscle.frontCenter && (
-                        <g
-                          transform={`translate(${muscle.frontCenter.x}, ${muscle.frontCenter.y})`}
-                        >
-                          <circle
-                            r="11"
-                            fill={painColor}
-                            stroke="#ffffff"
-                            strokeWidth="2"
-                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
-                          />
-                          <text
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            fontSize="11"
-                            fontWeight="900"
-                            fill="#ffffff"
-                          >
-                            {level}
-                          </text>
-                        </g>
-                      )}
-                      {muscle.backCenter && (
-                        <g transform={`translate(${muscle.backCenter.x}, ${muscle.backCenter.y})`}>
-                          <circle
-                            r="11"
-                            fill={painColor}
-                            stroke="#ffffff"
-                            strokeWidth="2"
-                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
-                          />
-                          <text
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            fontSize="11"
-                            fontWeight="900"
-                            fill="#ffffff"
-                          >
-                            {level}
-                          </text>
-                        </g>
-                      )}
-                    </>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        <span
-          style={{
-            fontSize: '0.75rem',
-            color: 'var(--text-muted)',
-            marginTop: '0.65rem',
-            textAlign: 'center',
-          }}
-        >
-          Toca cualquier músculo para aplicar el nivel de dolor activo ({activeBrushLevel} -{' '}
-          {PAIN_LEVELS.find((p) => p.level === activeBrushLevel)?.name}). Toca nuevamente para
-          desmarcarlo.
-        </span>
-      </div>
-
-      {/* 5. Selector de Chips de Acceso Rápido (12 Músculos) con colores sincronizados */}
-      <div
-        className="card"
-        style={{
-          margin: 0,
-          padding: '1rem',
-          background: 'var(--bg-subtle)',
-          borderRadius: '12px',
-          border: '1px solid var(--border)',
-        }}
-      >
-        <div
-          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.65rem' }}
-        >
-          <Sparkles size={16} style={{ color: 'var(--secondary)' }} />
-          <strong style={{ fontSize: '0.86rem', color: 'var(--text-main)' }}>
-            Listado de Grupos Musculares (12 Zonas)
-          </strong>
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {PROTRAINING_MUSCLES.map((muscle) => {
-            const level = musclePains[muscle.id] || 0;
-            const hasPain = level > 0;
-            const painColor = getPainColor(level);
-
-            return (
-              <button
-                key={muscle.id}
-                type="button"
-                onClick={() => handleMuscleClick(muscle.id)}
-                onMouseEnter={() => setHoveredMuscleId(muscle.id)}
-                onMouseLeave={() => setHoveredMuscleId(null)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.45rem 0.85rem',
-                  borderRadius: '8px',
-                  border: hasPain ? `1.5px solid ${painColor}` : '1px solid var(--border)',
-                  background: hasPain ? painColor : '#023050',
-                  color: '#ffffff',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.18s ease',
-                  boxShadow: hasPain ? `0 2px 8px ${painColor}44` : 'none',
-                }}
-              >
-                <span>{muscle.name}</span>
-                {hasPain ? (
-                  <span
-                    style={{
-                      background: 'rgba(255,255,255,0.25)',
-                      padding: '0.1rem 0.4rem',
-                      borderRadius: '10px',
-                      fontSize: '0.72rem',
-                      fontWeight: 900,
-                    }}
-                  >
-                    Nivel {level}
-                  </span>
-                ) : (
-                  <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                    (
-                    {muscle.view === 'front'
-                      ? 'Frente'
-                      : muscle.view === 'back'
-                        ? 'Espalda'
-                        : 'Ambos'}
-                    )
-                  </span>
-                )}
-              </button>
-            );
-          })}
+            Vista Posterior
+          </div>
+          {backMuscles.map(renderMuscleButton)}
         </div>
       </div>
     </div>

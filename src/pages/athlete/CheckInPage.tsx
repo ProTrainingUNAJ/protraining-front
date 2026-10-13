@@ -435,15 +435,15 @@ export const CheckInPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Observaciones y molestias específicas con Mapa Muscular Anatómico */}
+            {/* Mapa Muscular Anatómico y Observaciones Unificado */}
             <div
               className="card"
               style={{
                 margin: 0,
-                padding: '1.5rem',
+                padding: '1.25rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '1.25rem',
+                gap: '1rem',
               }}
             >
               <div>
@@ -452,63 +452,62 @@ export const CheckInPage: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    marginBottom: '0.35rem',
+                    marginBottom: '0.25rem',
                   }}
                 >
                   <Activity size={18} style={{ color: 'var(--secondary)' }} />
-                  <label
-                    htmlFor="checkin-notes"
-                    style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}
-                  >
-                    Observaciones y Molestias Específicas
-                  </label>
+                  <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    Mapa Corporal de Dolor y Molestias Musculares
+                  </span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Marca en el mapa muscular frontal y posterior las zonas donde sientas dolor o
-                  sobrecarga para informarle al profesor y permitirle adecuar tu rutina de hoy.
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Marca en las siluetas frontal o posterior las zonas donde sientas dolor o
+                  sobrecarga para informarle al preparador físico.
                 </p>
               </div>
 
-              {/* Mapa Muscular Interactivo con Escala de Dolor Adaptada */}
+              {/* Mapa Muscular Interactivo con Escala de Dolor y Músculos Laterales */}
               <BodyMuscleMap
                 musclePains={musclePains}
                 onPainChange={handlePainChange}
                 onClearAll={handleClearPains}
               />
 
-              {/* Área de texto de comentarios opcionales */}
-              <div>
+              {/* Área compacta y optimizada de comentarios adicionales */}
+              <div style={{ marginTop: '0.25rem' }}>
                 <label
                   htmlFor="checkin-notes"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.4rem',
-                    fontSize: '0.85rem',
+                    gap: '0.35rem',
+                    fontSize: '0.8rem',
                     fontWeight: 700,
-                    marginBottom: '0.4rem',
+                    marginBottom: '0.25rem',
                     color: 'var(--text-main)',
                   }}
                 >
-                  <MessageSquare size={15} style={{ color: 'var(--secondary)' }} />
+                  <MessageSquare size={14} style={{ color: 'var(--secondary)' }} />
                   <span>Notas adicionales para el preparador físico (opcional)</span>
                 </label>
                 <textarea
                   id="checkin-notes"
-                  rows={3}
-                  placeholder="Ej. Siento una leve tirantez en el gemelo izquierdo al trotar o en el cuádriceps tras las pasadas de velocidad..."
+                  rows={2}
+                  placeholder="Ej. Siento una leve tirantez en el gemelo izquierdo al trotar..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
+                    padding: '0.5rem 0.75rem',
                     borderRadius: '8px',
                     border: '1px solid var(--border)',
                     background: 'var(--bg-card)',
                     color: 'var(--text-main)',
                     fontFamily: 'inherit',
                     boxSizing: 'border-box',
-                    fontSize: '0.88rem',
+                    fontSize: '0.82rem',
+                    resize: 'vertical',
+                    minHeight: '44px',
                   }}
                 />
               </div>

@@ -179,3 +179,21 @@
     padding: 2rem 2.5rem;
   }
 }
+
+.muscle-interactive-container {
+  display: grid;
+  grid-template-columns: minmax(130px, 175px) 1fr minmax(130px, 175px);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .muscle-interactive-container {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .muscle-interactive-center {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
