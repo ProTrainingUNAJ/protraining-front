@@ -14,13 +14,31 @@ import { CheckInPage } from './pages/athlete/CheckInPage';
 import { ProgressPage } from './pages/athlete/ProgressPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
+import { useAuth } from './context/AuthContext';
+
+// eslint-disable-next-line react-refresh/only-export-components
+function RootRedirect() {
+  const { isAuthenticated, user, isHydrating } = useAuth();
+
+  if (isHydrating) {
+    return null;
+  }
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const isPF =
+    user.role.toLowerCase().includes('pf') || user.role.toLowerCase().includes('preparador');
+  return <Navigate to={isPF ? '/pf' : '/athlete'} replace />;
+}
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <Outlet />,
     children: [
-      { index: true, element: <Navigate to="/pf" replace /> },
+      { index: true, element: <RootRedirect /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'login/atleta', element: <LoginPage /> },
       { path: 'login/pf', element: <LoginPage /> },

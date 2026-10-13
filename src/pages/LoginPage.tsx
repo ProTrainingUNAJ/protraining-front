@@ -1,5 +1,7 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { LoginForm } from '../components/auth/LoginForm';
 import { BentoShowcase } from '../components/auth/BentoShowcase';
 import avatar1 from '../assets/avatars/User (1).png';
@@ -7,6 +9,18 @@ import avatar2 from '../assets/avatars/User (2).png';
 import avatar3 from '../assets/avatars/User (3).png';
 
 export const LoginPage: React.FC = () => {
+  const { isAuthenticated, user, isHydrating } = useAuth();
+
+  if (isHydrating) {
+    return null;
+  }
+
+  if (isAuthenticated && user) {
+    const isPF =
+      user.role.toLowerCase().includes('pf') || user.role.toLowerCase().includes('preparador');
+    return <Navigate to={isPF ? '/pf' : '/athlete'} replace />;
+  }
+
   return (
     <main className="auth-page-root" id="login-container">
       <div className="auth-layout-grid">
