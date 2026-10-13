@@ -1,5 +1,5 @@
-import { PageStub } from '../../components/PageStub';
+import { DashboardPage } from '../coach/DashboardPage';
 
 export function HomePage() {
-  return <PageStub title="Inicio" />;
+  return <DashboardPage />;
 }
