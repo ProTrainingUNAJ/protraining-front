@@ -1,5 +1,5 @@
-import { PageStub } from '../../components/PageStub';
+import { SettingsView } from '../../components/settings/SettingsView';
 
 export function SettingsPage() {
-  return <PageStub title="Configuración" />;
+  return <SettingsView role="pf" />;
 }
