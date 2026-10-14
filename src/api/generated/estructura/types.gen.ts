@@ -445,6 +445,35 @@ export type GenerateAthleteInvitationResponses = {
 
 export type GenerateAthleteInvitationResponse = GenerateAthleteInvitationResponses[keyof GenerateAthleteInvitationResponses];
 
+export type ListMyCategoriesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/categories';
+};
+
+export type ListMyCategoriesErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ListMyCategoriesError = ListMyCategoriesErrors[keyof ListMyCategoriesErrors];
+
+export type ListMyCategoriesResponses = {
+    /**
+     * Categorías del atleta logueado.
+     */
+    200: Array<Category>;
+};
+
+export type ListMyCategoriesResponse = ListMyCategoriesResponses[keyof ListMyCategoriesResponses];
+
 export type ListOrganizationsData = {
     body?: never;
     path?: never;
