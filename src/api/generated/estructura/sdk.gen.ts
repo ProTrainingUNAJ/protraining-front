@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, HealthCheckData, HealthCheckResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses } from './types.gen';
+import type { ActualizarAtletaData, ActualizarAtletaErrors, ActualizarAtletaResponses, AgregarPartidoCategoriaData, AgregarPartidoCategoriaErrors, AgregarPartidoCategoriaResponses, AsignarAtletaCategoriaData, AsignarAtletaCategoriaErrors, AsignarAtletaCategoriaResponses, CrearAtletaData, CrearAtletaErrors, CrearAtletaResponses, CrearCategoriaData, CrearCategoriaErrors, CrearCategoriaResponses, CrearOrganizacionData, CrearOrganizacionErrors, CrearOrganizacionResponses, DesasignarAtletaCategoriaData, DesasignarAtletaCategoriaErrors, DesasignarAtletaCategoriaResponses, GenerarInvitacionAtletaData, GenerarInvitacionAtletaErrors, GenerarInvitacionAtletaResponses, HealthCheckData, HealthCheckResponses, ListarAtletasData, ListarAtletasErrors, ListarAtletasResponses, ListarCategoriasData, ListarCategoriasErrors, ListarCategoriasResponses, ListarOrganizacionesData, ListarOrganizacionesErrors, ListarOrganizacionesResponses, ListarPartidosCategoriaData, ListarPartidosCategoriaErrors, ListarPartidosCategoriaResponses, ObtenerAtletaData, ObtenerAtletaErrors, ObtenerAtletaResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,26 +19,26 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Listar atletas
+ * Listar organizaciones del preparador físico
  *
- * Retorna el plantel de atletas pertenecientes a las organizaciones del preparador físico.
+ * Devuelve los clubes u organizaciones administradas por el usuario autenticado.
  */
-export const listAthletes = <ThrowOnError extends boolean = false>(options?: Options<ListAthletesData, ThrowOnError>): RequestResult<ListAthletesResponses, ListAthletesErrors, ThrowOnError> => (options?.client ?? client).get<ListAthletesResponses, ListAthletesErrors, ThrowOnError>({
+export const listarOrganizaciones = <ThrowOnError extends boolean = false>(options?: Options<ListarOrganizacionesData, ThrowOnError>): RequestResult<ListarOrganizacionesResponses, ListarOrganizacionesErrors, ThrowOnError> => (options?.client ?? client).get<ListarOrganizacionesResponses, ListarOrganizacionesErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes',
+    url: '/api/v1/organizaciones',
     ...options
 });
 
 /**
- * Registrar nuevo atleta
+ * Crear una nueva organización / club
  *
- * Da de alta un deportista registrando sus datos personales, información médica y consentimiento parental si es menor.
+ * Da de alta un club asignado a la cuenta del preparador físico autenticado.
  */
-export const createAthlete = <ThrowOnError extends boolean = false>(options: Options<CreateAthleteData, ThrowOnError>): RequestResult<CreateAthleteResponses, CreateAthleteErrors, ThrowOnError> => (options.client ?? client).post<CreateAthleteResponses, CreateAthleteErrors, ThrowOnError>({
+export const crearOrganizacion = <ThrowOnError extends boolean = false>(options: Options<CrearOrganizacionData, ThrowOnError>): RequestResult<CrearOrganizacionResponses, CrearOrganizacionErrors, ThrowOnError> => (options.client ?? client).post<CrearOrganizacionResponses, CrearOrganizacionErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes',
+    url: '/api/v1/organizaciones',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -47,246 +47,26 @@ export const createAthlete = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Dar de baja lógica a un atleta
+ * Listar categorías de una organización
  *
- * Marca al deportista como eliminado (borrado lógico) preservando la integridad de datos históricos.
+ * Obtiene las divisiones deportivas registradas bajo una organización determinada.
  */
-export const deleteAthlete = <ThrowOnError extends boolean = false>(options: Options<DeleteAthleteData, ThrowOnError>): RequestResult<DeleteAthleteResponses, DeleteAthleteErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAthleteResponses, DeleteAthleteErrors, ThrowOnError>({
+export const listarCategorias = <ThrowOnError extends boolean = false>(options: Options<ListarCategoriasData, ThrowOnError>): RequestResult<ListarCategoriasResponses, ListarCategoriasErrors, ThrowOnError> => (options.client ?? client).get<ListarCategoriasResponses, ListarCategoriasErrors, ThrowOnError>({
+    responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}',
+    url: '/api/v1/organizaciones/{organizacionId}/categorias',
     ...options
 });
 
 /**
- * Obtener detalle de un atleta
+ * Crear una nueva categoría dentro de una organización
  *
- * Retorna la ficha completa del deportista, incluyendo datos de contacto y consentimiento de tutor si aplica.
+ * Agrega una categoría deportiva al club especificado.
  */
-export const getAthlete = <ThrowOnError extends boolean = false>(options: Options<GetAthleteData, ThrowOnError>): RequestResult<GetAthleteResponses, GetAthleteErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteResponses, GetAthleteErrors, ThrowOnError>({
+export const crearCategoria = <ThrowOnError extends boolean = false>(options: Options<CrearCategoriaData, ThrowOnError>): RequestResult<CrearCategoriaResponses, CrearCategoriaErrors, ThrowOnError> => (options.client ?? client).post<CrearCategoriaResponses, CrearCategoriaErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}',
-    ...options
-});
-
-/**
- * Actualizar ficha del atleta
- *
- * Actualiza los datos de contacto, contacto de emergencia o condiciones médicas del atleta.
- */
-export const updateAthlete = <ThrowOnError extends boolean = false>(options: Options<UpdateAthleteData, ThrowOnError>): RequestResult<UpdateAthleteResponses, UpdateAthleteErrors, ThrowOnError> => (options.client ?? client).put<UpdateAthleteResponses, UpdateAthleteErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Actualizar permiso de recomendaciones de hábitos
- *
- * Habilita o deshabilita la recepción de recomendaciones de hábitos y alimentación para el deportista.
- */
-export const updateHabitsPermission = <ThrowOnError extends boolean = false>(options: Options<UpdateHabitsPermissionData, ThrowOnError>): RequestResult<UpdateHabitsPermissionResponses, UpdateHabitsPermissionErrors, ThrowOnError> => (options.client ?? client).patch<UpdateHabitsPermissionResponses, UpdateHabitsPermissionErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/habits-permission',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Consultar consentimiento del tutor de un atleta
- *
- * Retorna el estado y los datos del consentimiento parental registrado para el deportista menor de edad.
- */
-export const getAthleteGuardianConsent = <ThrowOnError extends boolean = false>(options: Options<GetAthleteGuardianConsentData, ThrowOnError>): RequestResult<GetAthleteGuardianConsentResponses, GetAthleteGuardianConsentErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteGuardianConsentResponses, GetAthleteGuardianConsentErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/guardian-consent',
-    ...options
-});
-
-/**
- * Listar categorías de un atleta
- *
- * Retorna las divisiones deportivas a las que está asignado el atleta.
- */
-export const listCategoriesByAthlete = <ThrowOnError extends boolean = false>(options: Options<ListCategoriesByAthleteData, ThrowOnError>): RequestResult<ListCategoriesByAthleteResponses, ListCategoriesByAthleteErrors, ThrowOnError> => (options.client ?? client).get<ListCategoriesByAthleteResponses, ListCategoriesByAthleteErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/categories',
-    ...options
-});
-
-/**
- * Desvincular atleta de una categoría
- *
- * Quita la asignación del deportista en la categoría deportiva.
- */
-export const removeCategory = <ThrowOnError extends boolean = false>(options: Options<RemoveCategoryData, ThrowOnError>): RequestResult<RemoveCategoryResponses, RemoveCategoryErrors, ThrowOnError> => (options.client ?? client).delete<RemoveCategoryResponses, RemoveCategoryErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/categories/{categoryId}',
-    ...options
-});
-
-/**
- * Asignar atleta a una categoría
- *
- * Asocia al deportista al plantel de la categoría especificada.
- */
-export const assignCategory = <ThrowOnError extends boolean = false>(options: Options<AssignCategoryData, ThrowOnError>): RequestResult<AssignCategoryResponses, AssignCategoryErrors, ThrowOnError> => (options.client ?? client).post<AssignCategoryResponses, AssignCategoryErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/categories/{categoryId}',
-    ...options
-});
-
-/**
- * Generar enlace de invitación para el atleta
- *
- * Emite un enlace único para que el deportista configure su acceso a la PWA móvil.
- */
-export const generateAthleteInvitation = <ThrowOnError extends boolean = false>(options: Options<GenerateAthleteInvitationData, ThrowOnError>): RequestResult<GenerateAthleteInvitationResponses, GenerateAthleteInvitationErrors, ThrowOnError> => (options.client ?? client).get<GenerateAthleteInvitationResponses, GenerateAthleteInvitationErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/invitation',
-    ...options
-});
-
-/**
- * Listar organizaciones
- *
- * Obtiene los clubes u organizaciones deportivas gestionadas por el preparador físico autenticado.
- */
-export const listOrganizations = <ThrowOnError extends boolean = false>(options?: Options<ListOrganizationsData, ThrowOnError>): RequestResult<ListOrganizationsResponses, ListOrganizationsErrors, ThrowOnError> => (options?.client ?? client).get<ListOrganizationsResponses, ListOrganizationsErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/organizations',
-    ...options
-});
-
-/**
- * Crear organización
- *
- * Registra una nueva entidad o club deportivo para el preparador físico.
- */
-export const createOrganization = <ThrowOnError extends boolean = false>(options: Options<CreateOrganizationData, ThrowOnError>): RequestResult<CreateOrganizationResponses, CreateOrganizationErrors, ThrowOnError> => (options.client ?? client).post<CreateOrganizationResponses, CreateOrganizationErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/organizations',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Eliminar organización
- *
- * Realiza el borrado lógico de la organización y sus dependencias.
- */
-export const deleteOrganization = <ThrowOnError extends boolean = false>(options: Options<DeleteOrganizationData, ThrowOnError>): RequestResult<DeleteOrganizationResponses, DeleteOrganizationErrors, ThrowOnError> => (options.client ?? client).delete<DeleteOrganizationResponses, DeleteOrganizationErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/organizations/{id}',
-    ...options
-});
-
-/**
- * Obtener detalle de una organización
- *
- * Retorna la información de la organización deportiva.
- */
-export const getOrganization = <ThrowOnError extends boolean = false>(options: Options<GetOrganizationData, ThrowOnError>): RequestResult<GetOrganizationResponses, GetOrganizationErrors, ThrowOnError> => (options.client ?? client).get<GetOrganizationResponses, GetOrganizationErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/organizations/{id}',
-    ...options
-});
-
-/**
- * Actualizar organización
- *
- * Modifica el nombre o descripción de la organización.
- */
-export const updateOrganization = <ThrowOnError extends boolean = false>(options: Options<UpdateOrganizationData, ThrowOnError>): RequestResult<UpdateOrganizationResponses, UpdateOrganizationErrors, ThrowOnError> => (options.client ?? client).put<UpdateOrganizationResponses, UpdateOrganizationErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/organizations/{id}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Listar categorías
- *
- * Obtiene las divisiones deportivas registradas bajo una organización específica.
- */
-export const listCategories = <ThrowOnError extends boolean = false>(options: Options<ListCategoriesData, ThrowOnError>): RequestResult<ListCategoriesResponses, ListCategoriesErrors, ThrowOnError> => (options.client ?? client).get<ListCategoriesResponses, ListCategoriesErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories',
-    ...options
-});
-
-/**
- * Crear categoría
- *
- * Agrega una nueva división o plantel a la organización deportiva.
- */
-export const createCategory = <ThrowOnError extends boolean = false>(options: Options<CreateCategoryData, ThrowOnError>): RequestResult<CreateCategoryResponses, CreateCategoryErrors, ThrowOnError> => (options.client ?? client).post<CreateCategoryResponses, CreateCategoryErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Eliminar categoría
- *
- * Da de baja lógica una división deportiva.
- */
-export const deleteCategory = <ThrowOnError extends boolean = false>(options: Options<DeleteCategoryData, ThrowOnError>): RequestResult<DeleteCategoryResponses, DeleteCategoryErrors, ThrowOnError> => (options.client ?? client).delete<DeleteCategoryResponses, DeleteCategoryErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories/{id}',
-    ...options
-});
-
-/**
- * Obtener detalle de una categoría
- *
- * Retorna la información de una división deportiva específica.
- */
-export const getCategory = <ThrowOnError extends boolean = false>(options: Options<GetCategoryData, ThrowOnError>): RequestResult<GetCategoryResponses, GetCategoryErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryResponses, GetCategoryErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories/{id}',
-    ...options
-});
-
-/**
- * Actualizar categoría
- *
- * Modifica el nombre o descripción de la categoría.
- */
-export const updateCategory = <ThrowOnError extends boolean = false>(options: Options<UpdateCategoryData, ThrowOnError>): RequestResult<UpdateCategoryResponses, UpdateCategoryErrors, ThrowOnError> => (options.client ?? client).put<UpdateCategoryResponses, UpdateCategoryErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories/{id}',
+    url: '/api/v1/organizaciones/{organizacionId}/categorias',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -297,29 +77,120 @@ export const updateCategory = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Listar partidos de la temporada para una categoría
  *
- * Recupera el fixture de competencias de la división. Permite al Asistente anticipar alertas de sobrecarga.
+ * Recupera el fixture de competencias de la categoría. Es utilizado por el Asistente IA para anticipar alertas si hay un partido próximo.
  */
-export const listCategoryMatches = <ThrowOnError extends boolean = false>(options: Options<ListCategoryMatchesData, ThrowOnError>): RequestResult<ListCategoryMatchesResponses, ListCategoryMatchesErrors, ThrowOnError> => (options.client ?? client).get<ListCategoryMatchesResponses, ListCategoryMatchesErrors, ThrowOnError>({
+export const listarPartidosCategoria = <ThrowOnError extends boolean = false>(options: Options<ListarPartidosCategoriaData, ThrowOnError>): RequestResult<ListarPartidosCategoriaResponses, ListarPartidosCategoriaErrors, ThrowOnError> => (options.client ?? client).get<ListarPartidosCategoriaResponses, ListarPartidosCategoriaErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories/{id}/matches',
+    url: '/api/v1/categorias/{categoriaId}/partidos',
     ...options
 });
 
 /**
- * Programar partido en el fixture
+ * Programar un partido en el calendario
  *
- * Registra una nueva fecha competitiva para la división.
+ * Registra una nueva fecha competitiva (rival, fecha, localía).
  */
-export const createCategoryMatch = <ThrowOnError extends boolean = false>(options: Options<CreateCategoryMatchData, ThrowOnError>): RequestResult<CreateCategoryMatchResponses, CreateCategoryMatchErrors, ThrowOnError> => (options.client ?? client).post<CreateCategoryMatchResponses, CreateCategoryMatchErrors, ThrowOnError>({
+export const agregarPartidoCategoria = <ThrowOnError extends boolean = false>(options: Options<AgregarPartidoCategoriaData, ThrowOnError>): RequestResult<AgregarPartidoCategoriaResponses, AgregarPartidoCategoriaErrors, ThrowOnError> => (options.client ?? client).post<AgregarPartidoCategoriaResponses, AgregarPartidoCategoriaErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categories/{id}/matches',
+    url: '/api/v1/categorias/{categoriaId}/partidos',
     ...options,
     headers: {
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Listar atletas
+ *
+ * Retorna el plantel de atletas, permitiendo filtrar por categoría y estado de actividad.
+ */
+export const listarAtletas = <ThrowOnError extends boolean = false>(options?: Options<ListarAtletasData, ThrowOnError>): RequestResult<ListarAtletasResponses, ListarAtletasErrors, ThrowOnError> => (options?.client ?? client).get<ListarAtletasResponses, ListarAtletasErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas',
+    ...options
+});
+
+/**
+ * Dar de alta a un atleta
+ *
+ * Registra a un nuevo atleta con sus datos personales, información médica y categorías asignadas.
+ */
+export const crearAtleta = <ThrowOnError extends boolean = false>(options: Options<CrearAtletaData, ThrowOnError>): RequestResult<CrearAtletaResponses, CrearAtletaErrors, ThrowOnError> => (options.client ?? client).post<CrearAtletaResponses, CrearAtletaErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener detalle completo de un atleta
+ *
+ * Retorna los datos del atleta, categorías a las que pertenece, ficha médica y estado de consentimiento si es menor.
+ */
+export const obtenerAtleta = <ThrowOnError extends boolean = false>(options: Options<ObtenerAtletaData, ThrowOnError>): RequestResult<ObtenerAtletaResponses, ObtenerAtletaErrors, ThrowOnError> => (options.client ?? client).get<ObtenerAtletaResponses, ObtenerAtletaErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas/{atletaId}',
+    ...options
+});
+
+/**
+ * Actualizar ficha del atleta
+ *
+ * Modifica información médica, de contacto o datos personales del atleta.
+ */
+export const actualizarAtleta = <ThrowOnError extends boolean = false>(options: Options<ActualizarAtletaData, ThrowOnError>): RequestResult<ActualizarAtletaResponses, ActualizarAtletaErrors, ThrowOnError> => (options.client ?? client).put<ActualizarAtletaResponses, ActualizarAtletaErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas/{atletaId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Generar link de invitación para el atleta
+ *
+ * Genera un enlace único / código QR para que el deportista instale la PWA móvil e inicie sesión directamente.
+ */
+export const generarInvitacionAtleta = <ThrowOnError extends boolean = false>(options: Options<GenerarInvitacionAtletaData, ThrowOnError>): RequestResult<GenerarInvitacionAtletaResponses, GenerarInvitacionAtletaErrors, ThrowOnError> => (options.client ?? client).get<GenerarInvitacionAtletaResponses, GenerarInvitacionAtletaErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas/{atletaId}/invitacion',
+    ...options
+});
+
+/**
+ * Remover atleta de una categoría
+ *
+ * Quita la vinculación del atleta con la categoría deportiva especificada.
+ */
+export const desasignarAtletaCategoria = <ThrowOnError extends boolean = false>(options: Options<DesasignarAtletaCategoriaData, ThrowOnError>): RequestResult<DesasignarAtletaCategoriaResponses, DesasignarAtletaCategoriaErrors, ThrowOnError> => (options.client ?? client).delete<DesasignarAtletaCategoriaResponses, DesasignarAtletaCategoriaErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas/{atletaId}/categorias/{categoriaId}',
+    ...options
+});
+
+/**
+ * Asignar atleta a una categoría
+ *
+ * Incorpora al atleta en el plantel de una categoría (un atleta puede pertenecer a múltiples categorías simultáneas).
+ */
+export const asignarAtletaCategoria = <ThrowOnError extends boolean = false>(options: Options<AsignarAtletaCategoriaData, ThrowOnError>): RequestResult<AsignarAtletaCategoriaResponses, AsignarAtletaCategoriaErrors, ThrowOnError> => (options.client ?? client).post<AsignarAtletaCategoriaResponses, AsignarAtletaCategoriaErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/atletas/{atletaId}/categorias/{categoriaId}',
+    ...options
 });
 
 /**

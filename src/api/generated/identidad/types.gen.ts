@@ -4,70 +4,60 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8081' | 'http://identidad:8080' | (string & {});
 };
 
+export type RegistroRequest = {
+    nombreCompleto: string;
+    email: string;
+    contrasena: string;
+};
+
 export type LoginRequest = {
     email: string;
-    password: string;
-    /**
-     * Identificador del dispositivo cliente para vinculación de sesión y emisión de refresh token.
-     */
-    deviceId: string;
+    contrasena: string;
 };
 
 /**
- * Información del usuario autenticado.
+ * Objeto compartido de Sesión.
  */
-export type User = {
-    id: string;
+export type Sesion = {
+    token: string;
+    tipoToken: string;
+    expiraEn?: number;
+    cuentaId: string;
+    nombreCompleto: string;
     email: string;
-    fullName: string;
+    rol: 'PF' | 'Atleta';
     /**
-     * Rol asignado en el sistema (excepción de dominio en español).
+     * Si el rol es Atleta, contiene su ID.
      */
-    role: 'PreparadorFisico' | 'Atleta' | 'Tutor';
-    /**
-     * Identificador del preparador físico asignado (excepción de dominio en español).
-     */
-    pfId?: string | null;
+    atletaId?: string | null;
 };
 
-/**
- * Respuesta devuelta tras un inicio de sesión exitoso.
- */
-export type LoginResponse = {
-    /**
-     * Token de acceso JWT emitido.
-     */
-    accessToken: string;
-    /**
-     * Token de actualización para rotar la sesión sin reautenticar.
-     */
-    refreshToken: string;
-    /**
-     * Tipo de esquema del token de autenticación.
-     */
-    tokenType: string;
-    /**
-     * Segundos de vigencia del token de acceso.
-     */
-    expiresIn: number;
-    user: User;
+export type ConsentimientoTutorRequest = {
+    tutorNombre: string;
+    tutorEmail: string;
+    tutorTelefono: string;
+    habilitaPreparacionFisica: boolean;
+    habilitaRecomendacionesHabitos?: boolean;
 };
 
-export type RefreshRequest = {
-    refreshToken: string;
-    deviceId: string;
+export type ConsentimientoTutor = {
+    tutorNombre: string;
+    tutorEmail: string;
+    tutorTelefono: string;
+    habilitaPreparacionFisica: boolean;
+    habilitaRecomendacionesHabitos?: boolean;
+    fechaConsentimiento: string;
 };
 
-export type RefreshResponse = {
-    accessToken: string;
-    refreshToken: string;
-    tokenType: string;
-    expiresIn: number;
-};
-
-export type HealthStatus = {
-    status: string;
-    database?: string;
+export type PerfilUsuario = {
+    cuentaId: string;
+    nombreCompleto: string;
+    email: string;
+    rol: 'PF' | 'Atleta';
+    /**
+     * Si el rol es Atleta, contiene su ID.
+     */
+    atletaId?: string | null;
 };
 
 export type ProblemDetails = {
@@ -81,14 +71,43 @@ export type ProblemDetails = {
     };
 };
 
-export type LoginData = {
+export type RegistrarUsuarioData = {
+    body: RegistroRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/registro';
+};
+
+export type RegistrarUsuarioErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Ya existe una cuenta registrada con el correo especificado.
+     */
+    409: ProblemDetails;
+};
+
+export type RegistrarUsuarioError = RegistrarUsuarioErrors[keyof RegistrarUsuarioErrors];
+
+export type RegistrarUsuarioResponses = {
+    /**
+     * Cuenta registrada exitosamente y sesión iniciada.
+     */
+    201: Sesion;
+};
+
+export type RegistrarUsuarioResponse = RegistrarUsuarioResponses[keyof RegistrarUsuarioResponses];
+
+export type IniciarSesionData = {
     body: LoginRequest;
     path?: never;
     query?: never;
     url: '/api/v1/auth/login';
 };
 
-export type LoginErrors = {
+export type IniciarSesionErrors = {
     /**
      * Solicitud con datos inválidos o formato erróneo.
      */
@@ -99,45 +118,75 @@ export type LoginErrors = {
     401: ProblemDetails;
 };
 
-export type LoginError = LoginErrors[keyof LoginErrors];
+export type IniciarSesionError = IniciarSesionErrors[keyof IniciarSesionErrors];
 
-export type LoginResponses = {
+export type IniciarSesionResponses = {
     /**
-     * Credenciales válidas. Devuelve el token JWT y los datos del usuario.
+     * Credenciales válidas. Devuelve el token JWT y los datos de la sesión.
      */
-    200: LoginResponse;
+    200: Sesion;
 };
 
-export type LoginResponse2 = LoginResponses[keyof LoginResponses];
+export type IniciarSesionResponse = IniciarSesionResponses[keyof IniciarSesionResponses];
 
-export type RefreshTokenData = {
-    body: RefreshRequest;
+export type ObtenerUsuarioActualData = {
+    body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/refresh';
+    url: '/api/v1/auth/me';
 };
 
-export type RefreshTokenErrors = {
+export type ObtenerUsuarioActualErrors = {
+    /**
+     * No autenticado o token vencido / inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type ObtenerUsuarioActualError = ObtenerUsuarioActualErrors[keyof ObtenerUsuarioActualErrors];
+
+export type ObtenerUsuarioActualResponses = {
+    /**
+     * Datos del usuario autenticado.
+     */
+    200: PerfilUsuario;
+};
+
+export type ObtenerUsuarioActualResponse = ObtenerUsuarioActualResponses[keyof ObtenerUsuarioActualResponses];
+
+export type RegistrarConsentimientoTutorData = {
+    body: ConsentimientoTutorRequest;
+    path: {
+        atletaId: string;
+    };
+    query?: never;
+    url: '/api/v1/auth/atletas/{atletaId}/consentimiento-tutor';
+};
+
+export type RegistrarConsentimientoTutorErrors = {
     /**
      * Solicitud con datos inválidos o formato erróneo.
      */
     400: ProblemDetails;
     /**
-     * Refresh token inválido o expirado.
+     * Recurso no encontrado.
      */
-    401: ProblemDetails;
+    404: ProblemDetails;
 };
 
-export type RefreshTokenError = RefreshTokenErrors[keyof RefreshTokenErrors];
+export type RegistrarConsentimientoTutorError = RegistrarConsentimientoTutorErrors[keyof RegistrarConsentimientoTutorErrors];
 
-export type RefreshTokenResponses = {
+export type RegistrarConsentimientoTutorResponses = {
     /**
-     * Token renovado exitosamente.
+     * Consentimiento guardado correctamente.
      */
-    200: RefreshResponse;
+    200: {
+        mensaje?: string;
+        consentimiento?: ConsentimientoTutor;
+    };
 };
 
-export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
+export type RegistrarConsentimientoTutorResponse = RegistrarConsentimientoTutorResponses[keyof RegistrarConsentimientoTutorResponses];
 
 export type HealthCheckData = {
     body?: never;
@@ -159,7 +208,9 @@ export type HealthCheckResponses = {
     /**
      * Servicio saludable y base de datos conectada.
      */
-    200: HealthStatus;
+    200: {
+        status?: string;
+    };
 };
 
 export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];

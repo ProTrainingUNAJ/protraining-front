@@ -7,7 +7,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { AuthSession, LoginRequest, RoleType, UserDto } from '../types/auth';
-import { authService } from '../api/authService';
+import { login as apiLogin, logout as apiLogout, getValidSession } from '../api/auth';
 import { onAuthExpired } from '../api/axiosClient';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
@@ -50,8 +50,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Estado del sistema operativo (prefers-color-scheme)
   const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
     return (
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-color-scheme: dark)').matches
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
     );
   });
 
@@ -104,7 +103,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Hydrate session on initial load
   useEffect(() => {
     try {
-      const validSession = authService.getValidSession();
+      const validSession = getValidSession();
       if (validSession) {
         setSession(validSession);
         // Automatically align selectedRole with user role if known
@@ -127,7 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = useCallback(async (credentials: LoginRequest): Promise<AuthSession> => {
-    const newSession = await authService.login(credentials);
+    const newSession = await apiLogin(credentials);
     setSession(newSession);
     const isPF =
       newSession.user.role.toLowerCase().includes('pf') ||
@@ -137,7 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const logout = useCallback(() => {
-    authService.logout();
+    apiLogout();
     setSession(null);
   }, []);
 

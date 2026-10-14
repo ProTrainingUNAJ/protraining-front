@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Plus, RefreshCw, Check, AlertCircle, ArrowRight } from 'lucide-react';
-import { structureService } from '../../api/structureService';
+import { getOrganizations, createOrganization } from '../../api/organizations';
 import { Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 
@@ -21,8 +21,7 @@ export const OrganizationsPage: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
 
-    structureService
-      .getOrganizations()
+    getOrganizations()
       .then((data) => {
         if (!isMounted) return;
         setOrganizations(data);
@@ -43,7 +42,7 @@ export const OrganizationsPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await structureService.getOrganizations();
+      const data = await getOrganizations();
       setOrganizations(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar las organizaciones.');
@@ -65,7 +64,7 @@ export const OrganizationsPage: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      const newOrg = await structureService.createOrganization({
+      const newOrg = await createOrganization({
         name: cleanName,
         description: description.trim() || null,
       });

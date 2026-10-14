@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Users, Plus, RefreshCw, Check, AlertCircle, Tag, X, Search } from 'lucide-react';
-import { structureService } from '../../api/structureService';
+import {
+  getAthletes,
+  createAthlete,
+  assignAthleteCategory,
+  unassignAthleteCategory,
+} from '../../api/athletes';
+import { getOrganizations } from '../../api/organizations';
+import { getCategories } from '../../api/categories';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 
@@ -39,17 +46,14 @@ export const AthletesPage: React.FC = () => {
   useEffect(() => {
     let mounted = true;
 
-    Promise.all([
-      structureService.getAthletes(),
-      structureService.getOrganizations().catch(() => [] as Organization[]),
-    ])
+    Promise.all([getAthletes(), getOrganizations().catch(() => [] as Organization[])])
       .then(async ([athletesData, orgsData]) => {
         if (!mounted) return;
         setAthletes(athletesData);
 
         if (orgsData.length > 0) {
           const categoriesNested = await Promise.all(
-            orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
+            orgsData.map((o) => getCategories(o.id).catch(() => [] as Category[])),
           );
           if (!mounted) return;
           const allCategories = categoriesNested.flat();
@@ -73,15 +77,15 @@ export const AthletesPage: React.FC = () => {
     setError(null);
     try {
       const [athletesData, orgsData] = await Promise.all([
-        structureService.getAthletes(),
-        structureService.getOrganizations().catch(() => [] as Organization[]),
+        getAthletes(),
+        getOrganizations().catch(() => [] as Organization[]),
       ]);
 
       setAthletes(athletesData);
 
       if (orgsData.length > 0) {
         const categoriesNested = await Promise.all(
-          orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
+          orgsData.map((o) => getCategories(o.id).catch(() => [] as Category[])),
         );
         const allCategories = categoriesNested.flat();
         setCategories(allCategories);
@@ -114,7 +118,7 @@ export const AthletesPage: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      const created = await structureService.createAthlete({
+      const created = await createAthlete({
         firstName: cleanFirst,
         lastName: cleanLast,
         email: cleanEmail,
@@ -151,7 +155,7 @@ export const AthletesPage: React.FC = () => {
 
     try {
       if (isCurrentlyAssigned) {
-        await structureService.unassignAthleteCategory(managingAthlete.id, cat.id);
+        await unassignAthleteCategory(managingAthlete.id, cat.id);
         const updatedCategories = (managingAthlete.categories || []).filter((c) => c.id !== cat.id);
         const updatedCategoryNames = updatedCategories.map((c) => c.name);
 
@@ -164,7 +168,7 @@ export const AthletesPage: React.FC = () => {
         setManagingAthlete(updatedAthlete);
         setAthletes((prev) => prev.map((a) => (a.id === updatedAthlete.id ? updatedAthlete : a)));
       } else {
-        await structureService.assignAthleteCategory(managingAthlete.id, cat.id);
+        await assignAthleteCategory(managingAthlete.id, cat.id);
         const updatedCategories = [
           ...(managingAthlete.categories || []),
           { id: cat.id, name: cat.name },

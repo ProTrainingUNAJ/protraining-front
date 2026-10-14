@@ -387,7 +387,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       Tema del Sistema
                     </strong>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      Elegí tu modo predeterminado o sincronizalo automáticamente con tu dispositivo.
+                      Elegí tu modo predeterminado o sincronizalo automáticamente con tu
+                      dispositivo.
                     </span>
                   </div>
 
@@ -409,7 +410,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           themePreference === 'system' ? 'var(--secondary)' : 'var(--border)'
                         }`,
                         background:
-                          themePreference === 'system' ? 'var(--avatar-cyan-bg)' : 'var(--bg-subtle)',
+                          themePreference === 'system'
+                            ? 'var(--avatar-cyan-bg)'
+                            : 'var(--bg-subtle)',
                         color: 'var(--text-main)',
                         textAlign: 'left',
                         cursor: 'pointer',
@@ -433,9 +436,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             height: '32px',
                             borderRadius: '8px',
                             background:
-                              themePreference === 'system'
-                                ? 'var(--secondary)'
-                                : 'var(--bg-card)',
+                              themePreference === 'system' ? 'var(--secondary)' : 'var(--bg-card)',
                             color:
                               themePreference === 'system'
                                 ? 'var(--on-primary)'
@@ -463,9 +464,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         )}
                       </div>
                       <div>
-                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>
-                          Sistema
-                        </strong>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>Sistema</strong>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                           Predeterminado (Auto)
                         </span>
@@ -483,7 +482,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           themePreference === 'light' ? 'var(--secondary)' : 'var(--border)'
                         }`,
                         background:
-                          themePreference === 'light' ? 'var(--avatar-cyan-bg)' : 'var(--bg-subtle)',
+                          themePreference === 'light'
+                            ? 'var(--avatar-cyan-bg)'
+                            : 'var(--bg-subtle)',
                         color: 'var(--text-main)',
                         textAlign: 'left',
                         cursor: 'pointer',
@@ -507,9 +508,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             height: '32px',
                             borderRadius: '8px',
                             background:
-                              themePreference === 'light'
-                                ? 'var(--secondary)'
-                                : 'var(--bg-card)',
+                              themePreference === 'light' ? 'var(--secondary)' : 'var(--bg-card)',
                             color:
                               themePreference === 'light'
                                 ? 'var(--on-primary)'
@@ -537,9 +536,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         )}
                       </div>
                       <div>
-                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>
-                          Claro
-                        </strong>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>Claro</strong>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                           Contraste diurno
                         </span>
@@ -581,13 +578,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             height: '32px',
                             borderRadius: '8px',
                             background:
-                              themePreference === 'dark'
-                                ? 'var(--secondary)'
-                                : 'var(--bg-card)',
+                              themePreference === 'dark' ? 'var(--secondary)' : 'var(--bg-card)',
                             color:
-                              themePreference === 'dark'
-                                ? 'var(--on-primary)'
-                                : 'var(--text-main)',
+                              themePreference === 'dark' ? 'var(--on-primary)' : 'var(--text-main)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -611,9 +604,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         )}
                       </div>
                       <div>
-                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>
-                          Oscuro
-                        </strong>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>Oscuro</strong>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                           Descanso visual
                         </span>

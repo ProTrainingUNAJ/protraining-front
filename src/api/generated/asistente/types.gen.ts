@@ -4,67 +4,67 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8085' | 'http://asistente:8080' | (string & {});
 };
 
-export type PreventiveAlert = {
+export type AlertaPreventiva = {
     id: string;
-    athleteId: string;
-    athleteName: string;
-    generatedAt: string;
-    severity: 'Low' | 'Medium' | 'High';
-    reason: string;
-    suggestion: string;
-    reviewed: boolean;
+    atletaId: string;
+    nombreAtleta: string;
+    fechaGenerada: string;
+    severidad: 'Baja' | 'Media' | 'Alta';
+    motivo: string;
+    sugerencia: string;
+    revisada: boolean;
 };
 
-export type TodayAdjustmentRequest = {
-    athleteId: string;
-    reportedPainZones: string;
-    daysUntilNextMatch?: number | null;
+export type AjusteDiaRequest = {
+    atletaId: string;
+    zonasDolorReportadas: string;
+    diasHastaProximoPartido?: number | null;
 };
 
-export type TodayAdjustmentResponse = {
-    requiresAdjustment: boolean;
-    reason: string;
-    adjustmentSuggestion: string;
-    modifiedExercises?: Array<{
-        originalExercise?: string;
-        substituteExercise?: string;
+export type AjusteDiaResponse = {
+    requiereAjuste: boolean;
+    motivo: string;
+    sugerenciaAjuste: string;
+    ejerciciosModificados?: Array<{
+        ejercicioOriginal?: string;
+        ejercicioSustituto?: string;
     }>;
 };
 
-export type SuggestRoutineRequest = {
-    athleteId: string;
-    goal: string;
-    muscleGroupEmphasis?: Array<string>;
+export type SugerenciaRutinaRequest = {
+    atletaId: string;
+    objetivo: string;
+    enfasisGruposMusculares?: Array<string>;
 };
 
-export type SuggestRoutineResponse = {
-    athleteId: string;
-    proposedTitle: string;
-    justificationSummary: string;
-    exercises: Array<{
-        exerciseName: string;
-        sets: number;
-        reps: number;
-        suggestedPercentage: number;
+export type SugerenciaRutinaResponse = {
+    atletaId: string;
+    tituloPropuesto: string;
+    resumenJustificacion: string;
+    ejercicios: Array<{
+        ejercicioNombre: string;
+        series: number;
+        repeticiones: number;
+        porcentajeSugerido: number;
     }>;
     /**
-     * Proveedor de IA o motor que originó la propuesta (Ollama, Gemini o Rules).
+     * Proveedor de IA o motor que originó la propuesta (Ollama, Gemini o Reglas).
      */
-    aiProvider: 'Ollama' | 'Gemini' | 'Rules';
+    proveedorIa: 'Ollama' | 'Gemini' | 'Reglas';
 };
 
-export type HabitsRecommendationResponse = {
+export type RecomendacionHabitosResponse = {
     id: string;
-    athleteId: string;
-    athleticGoal: string;
+    atletaId: string;
+    objetivoDeportivo: string;
     /**
      * Calculado por regla determinística en g/kg de peso corporal.
      */
-    dailyProteinRequirementGrams: number;
-    suggestedPlateComposition: string;
-    hydrationAndSleepGuidelines: string;
-    legalDisclaimer: string;
-    approvedByPf: boolean;
+    requerimientoProteinaGramosDia: number;
+    composicionPlatoSugerida: string;
+    pautasHidratacionYSueño: string;
+    advertenciaLegal: string;
+    aprobadaPorPf: boolean;
 };
 
 export type ProblemDetails = {
@@ -78,106 +78,106 @@ export type ProblemDetails = {
     };
 };
 
-export type ListAlertsData = {
+export type ListarAlertasData = {
     body?: never;
     path?: never;
     query?: {
         /**
          * Si es true, retorna únicamente las alertas pendientes de acción por el PF.
          */
-        onlyUnreviewed?: boolean;
+        soloNoRevisadas?: boolean;
         /**
          * Filtrar por severidad de la alerta.
          */
-        severity?: 'Low' | 'Medium' | 'High';
+        severidad?: 'Baja' | 'Media' | 'Alta';
     };
-    url: '/api/v1/alerts';
+    url: '/api/v1/alertas';
 };
 
-export type ListAlertsErrors = {
+export type ListarAlertasErrors = {
     /**
      * No autenticado o credenciales inválidas.
      */
     401: ProblemDetails;
 };
 
-export type ListAlertsError = ListAlertsErrors[keyof ListAlertsErrors];
+export type ListarAlertasError = ListarAlertasErrors[keyof ListarAlertasErrors];
 
-export type ListAlertsResponses = {
+export type ListarAlertasResponses = {
     /**
      * Lista de alertas preventivas recuperadas.
      */
-    200: Array<PreventiveAlert>;
+    200: Array<AlertaPreventiva>;
 };
 
-export type ListAlertsResponse = ListAlertsResponses[keyof ListAlertsResponses];
+export type ListarAlertasResponse = ListarAlertasResponses[keyof ListarAlertasResponses];
 
-export type ReviewAlertData = {
+export type RevisarAlertaData = {
     body?: never;
     path: {
-        alertId: string;
+        alertaId: string;
     };
     query?: never;
-    url: '/api/v1/alerts/{alertId}/review';
+    url: '/api/v1/alertas/{alertaId}/revisar';
 };
 
-export type ReviewAlertErrors = {
+export type RevisarAlertaErrors = {
     /**
      * Recurso o alerta no encontrada.
      */
     404: ProblemDetails;
 };
 
-export type ReviewAlertError = ReviewAlertErrors[keyof ReviewAlertErrors];
+export type RevisarAlertaError = RevisarAlertaErrors[keyof RevisarAlertaErrors];
 
-export type ReviewAlertResponses = {
+export type RevisarAlertaResponses = {
     /**
      * Alerta actualizada como revisada.
      */
     200: {
-        message?: string;
-        alertId?: string;
+        mensaje?: string;
+        alertaId?: string;
     };
 };
 
-export type ReviewAlertResponse = ReviewAlertResponses[keyof ReviewAlertResponses];
+export type RevisarAlertaResponse = RevisarAlertaResponses[keyof RevisarAlertaResponses];
 
-export type TriggerPreventiveScanData = {
+export type EjecutarEscaneoPreventivoData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/alerts/scan';
+    url: '/api/v1/alertas/escanear';
 };
 
-export type TriggerPreventiveScanErrors = {
+export type EjecutarEscaneoPreventivoErrors = {
     /**
      * No autenticado o credenciales inválidas.
      */
     401: ProblemDetails;
 };
 
-export type TriggerPreventiveScanError = TriggerPreventiveScanErrors[keyof TriggerPreventiveScanErrors];
+export type EjecutarEscaneoPreventivoError = EjecutarEscaneoPreventivoErrors[keyof EjecutarEscaneoPreventivoErrors];
 
-export type TriggerPreventiveScanResponses = {
+export type EjecutarEscaneoPreventivoResponses = {
     /**
      * Análisis preventivo iniciado en segundo plano.
      */
     202: {
-        message?: string;
-        alertsGenerated?: number;
+        mensaje?: string;
+        alertasGeneradas?: number;
     };
 };
 
-export type TriggerPreventiveScanResponse = TriggerPreventiveScanResponses[keyof TriggerPreventiveScanResponses];
+export type EjecutarEscaneoPreventivoResponse = EjecutarEscaneoPreventivoResponses[keyof EjecutarEscaneoPreventivoResponses];
 
-export type SuggestTodayAdjustmentData = {
-    body: TodayAdjustmentRequest;
+export type ProponerAjusteDiaData = {
+    body: AjusteDiaRequest;
     path?: never;
     query?: never;
-    url: '/api/v1/assistant/today-adjustment';
+    url: '/api/v1/asistente/ajuste-dia';
 };
 
-export type SuggestTodayAdjustmentErrors = {
+export type ProponerAjusteDiaErrors = {
     /**
      * Parámetros inválidos.
      */
@@ -188,25 +188,25 @@ export type SuggestTodayAdjustmentErrors = {
     404: ProblemDetails;
 };
 
-export type SuggestTodayAdjustmentError = SuggestTodayAdjustmentErrors[keyof SuggestTodayAdjustmentErrors];
+export type ProponerAjusteDiaError = ProponerAjusteDiaErrors[keyof ProponerAjusteDiaErrors];
 
-export type SuggestTodayAdjustmentResponses = {
+export type ProponerAjusteDiaResponses = {
     /**
      * Propuesta de ajuste generada.
      */
-    200: TodayAdjustmentResponse;
+    200: AjusteDiaResponse;
 };
 
-export type SuggestTodayAdjustmentResponse = SuggestTodayAdjustmentResponses[keyof SuggestTodayAdjustmentResponses];
+export type ProponerAjusteDiaResponse = ProponerAjusteDiaResponses[keyof ProponerAjusteDiaResponses];
 
-export type SuggestRoutineWithAiData = {
-    body: SuggestRoutineRequest;
+export type SugerirRutinaIaData = {
+    body: SugerenciaRutinaRequest;
     path?: never;
     query?: never;
-    url: '/api/v1/assistant/suggest-routine';
+    url: '/api/v1/asistente/sugerir-rutina';
 };
 
-export type SuggestRoutineWithAiErrors = {
+export type SugerirRutinaIaErrors = {
     /**
      * Parámetros inválidos.
      */
@@ -217,72 +217,72 @@ export type SuggestRoutineWithAiErrors = {
     404: ProblemDetails;
 };
 
-export type SuggestRoutineWithAiError = SuggestRoutineWithAiErrors[keyof SuggestRoutineWithAiErrors];
+export type SugerirRutinaIaError = SugerirRutinaIaErrors[keyof SugerirRutinaIaErrors];
 
-export type SuggestRoutineWithAiResponses = {
+export type SugerirRutinaIaResponses = {
     /**
      * Propuesta de rutina generada en formato estructurado JSON.
      */
-    200: SuggestRoutineResponse;
+    200: SugerenciaRutinaResponse;
 };
 
-export type SuggestRoutineWithAiResponse = SuggestRoutineWithAiResponses[keyof SuggestRoutineWithAiResponses];
+export type SugerirRutinaIaResponse = SugerirRutinaIaResponses[keyof SugerirRutinaIaResponses];
 
-export type GetHabitsRecommendationData = {
+export type ObtenerRecomendacionHabitosData = {
     body?: never;
     path: {
-        athleteId: string;
+        atletaId: string;
     };
     query?: never;
-    url: '/api/v1/athletes/{athleteId}/habits-recommendation';
+    url: '/api/v1/atletas/{atletaId}/recomendacion-habitos';
 };
 
-export type GetHabitsRecommendationErrors = {
+export type ObtenerRecomendacionHabitosErrors = {
     /**
      * Recurso o alerta no encontrada.
      */
     404: ProblemDetails;
 };
 
-export type GetHabitsRecommendationError = GetHabitsRecommendationErrors[keyof GetHabitsRecommendationErrors];
+export type ObtenerRecomendacionHabitosError = ObtenerRecomendacionHabitosErrors[keyof ObtenerRecomendacionHabitosErrors];
 
-export type GetHabitsRecommendationResponses = {
+export type ObtenerRecomendacionHabitosResponses = {
     /**
      * Recomendación generada lista para validación del PF.
      */
-    200: HabitsRecommendationResponse;
+    200: RecomendacionHabitosResponse;
 };
 
-export type GetHabitsRecommendationResponse = GetHabitsRecommendationResponses[keyof GetHabitsRecommendationResponses];
+export type ObtenerRecomendacionHabitosResponse = ObtenerRecomendacionHabitosResponses[keyof ObtenerRecomendacionHabitosResponses];
 
-export type ApproveHabitsRecommendationData = {
+export type AprobarRecomendacionHabitosData = {
     body?: never;
     path: {
-        recommendationId: string;
+        recomendacionId: string;
     };
     query?: never;
-    url: '/api/v1/habits-recommendations/{recommendationId}/approve';
+    url: '/api/v1/recomendaciones-habitos/{recomendacionId}/aprobar';
 };
 
-export type ApproveHabitsRecommendationErrors = {
+export type AprobarRecomendacionHabitosErrors = {
     /**
      * Recurso o alerta no encontrada.
      */
     404: ProblemDetails;
 };
 
-export type ApproveHabitsRecommendationError = ApproveHabitsRecommendationErrors[keyof ApproveHabitsRecommendationErrors];
+export type AprobarRecomendacionHabitosError = AprobarRecomendacionHabitosErrors[keyof AprobarRecomendacionHabitosErrors];
 
-export type ApproveHabitsRecommendationResponses = {
+export type AprobarRecomendacionHabitosResponses = {
     /**
      * Recomendación aprobada y publicada para el atleta.
      */
     200: {
-        message?: string;
+        mensaje?: string;
     };
 };
 
-export type ApproveHabitsRecommendationResponse = ApproveHabitsRecommendationResponses[keyof ApproveHabitsRecommendationResponses];
+export type AprobarRecomendacionHabitosResponse = AprobarRecomendacionHabitosResponses[keyof AprobarRecomendacionHabitosResponses];
 
 export type HealthCheckData = {
     body?: never;

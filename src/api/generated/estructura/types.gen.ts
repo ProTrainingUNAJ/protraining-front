@@ -4,120 +4,87 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8082' | 'http://estructura:8080' | (string & {});
 };
 
-/**
- * Registro de consentimiento parental obligatorio para atletas menores.
- */
-export type GuardianConsent = {
-    isSigned: boolean;
-    consentDate: string;
-    isMinor: boolean;
-    guardianName?: string | null;
-    guardianEmail?: string | null;
-    guardianPhone?: string | null;
-    allowsPhysicalTraining: boolean;
-    allowsHabitsRecommendations: boolean;
+export type Organizacion = {
+    id: string;
+    nombre: string;
+    descripcion?: string | null;
+    categoriasCount: number;
+};
+
+export type CrearOrganizacionRequest = {
+    nombre: string;
+    descripcion?: string;
 };
 
 /**
- * Objeto de atleta en concordancia con el DTO implementado en el backend.
+ * Objeto compartido de Categoría.
  */
-export type Athlete = {
+export type Categoria = {
     id: string;
-    accountId?: string | null;
-    firstName: string;
-    lastName: string;
-    fullName: string;
+    organizacionId: string;
+    nombre: string;
+    descripcion?: string | null;
+    atletasCount: number;
+};
+
+export type CrearCategoriaRequest = {
+    nombre: string;
+    descripcion?: string;
+};
+
+export type PartidoTemporada = {
+    id: string;
+    categoriaId: string;
+    rival: string;
+    fecha: string;
+    condicion: 'Local' | 'Visitante' | 'Neutral';
+    observaciones?: string | null;
+};
+
+export type CrearPartidoRequest = {
+    rival: string;
+    fecha: string;
+    condicion: 'Local' | 'Visitante' | 'Neutral';
+    observaciones?: string;
+};
+
+/**
+ * Objeto compartido de Atleta.
+ */
+export type Atleta = {
+    id: string;
+    cuentaId?: string | null;
+    nombre: string;
+    apellido: string;
+    nombreCompleto?: string;
     email: string;
-    phone: string;
-    isMinor: boolean;
-    emergencyContact?: string | null;
-    medicalConditions?: string | null;
-    active: boolean;
-    allowsHabitsRecommendations: boolean;
-    /**
-     * Categorías o divisiones deportivas asignadas al deportista.
-     */
-    categories?: Array<{
-        id: string;
-        name: string;
-    }>;
-    guardianConsent?: GuardianConsent;
+    telefono: string;
+    esMenorDeEdad: boolean;
+    condicionesMedicas?: string | null;
+    contactoEmergencia?: string | null;
+    categorias: Array<string>;
+    lesionesActivasCount?: number;
+    activo: boolean;
 };
 
-export type CreateAthleteRequest = {
-    firstName: string;
-    lastName: string;
+export type CrearAtletaRequest = {
+    nombre: string;
+    apellido: string;
     email: string;
-    phone: string;
-    isMinor: boolean;
-    guardianName?: string | null;
-    guardianEmail?: string | null;
-    guardianPhone?: string | null;
-    allowsPhysicalTraining: boolean;
-    allowsHabitsRecommendations: boolean;
-    emergencyContact?: string | null;
-    medicalConditions?: string | null;
+    telefono: string;
+    esMenorDeEdad?: boolean;
+    categoriaIds?: Array<string>;
+    condicionesMedicas?: string;
+    contactoEmergencia?: string;
 };
 
-export type UpdateAthleteRequest = {
-    phone?: string;
-    emergencyContact?: string;
-    medicalConditions?: string;
-};
-
-export type UpdateHabitsPermissionRequest = {
-    allowsHabitsRecommendations: boolean;
-};
-
-export type Organization = {
-    id: string;
-    name: string;
-    description?: string | null;
-};
-
-export type CreateOrganizationRequest = {
-    name: string;
-    description?: string | null;
-};
-
-export type UpdateOrganizationRequest = {
-    name: string;
-    description?: string | null;
-};
-
-export type Category = {
-    id: string;
-    organizationId: string;
-    name: string;
-    description?: string | null;
-    athletesCount: number;
-};
-
-export type CreateCategoryRequest = {
-    organizationId: string;
-    name: string;
-    description?: string | null;
-};
-
-export type UpdateCategoryRequest = {
-    name: string;
-    description?: string | null;
-};
-
-export type Match = {
-    id: string;
-    categoryId: string;
-    opponent: string;
-    matchDate: string;
-    homeOrAway: 'Home' | 'Away' | 'Neutral';
-    notes?: string | null;
-};
-
-export type CreateMatchRequest = {
-    opponent: string;
-    matchDate: string;
-    homeOrAway: 'Home' | 'Away' | 'Neutral';
-    notes?: string | null;
+export type ActualizarAtletaRequest = {
+    nombre?: string;
+    apellido?: string;
+    telefono?: string;
+    condicionesMedicas?: string;
+    contactoEmergencia?: string;
+    activo?: boolean;
 };
 
 export type ProblemDetails = {
@@ -131,39 +98,39 @@ export type ProblemDetails = {
     };
 };
 
-export type ListAthletesData = {
+export type ListarOrganizacionesData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/athletes';
+    url: '/api/v1/organizaciones';
 };
 
-export type ListAthletesErrors = {
+export type ListarOrganizacionesErrors = {
     /**
      * Token JWT ausente, vencido o no válido.
      */
     401: ProblemDetails;
 };
 
-export type ListAthletesError = ListAthletesErrors[keyof ListAthletesErrors];
+export type ListarOrganizacionesError = ListarOrganizacionesErrors[keyof ListarOrganizacionesErrors];
 
-export type ListAthletesResponses = {
+export type ListarOrganizacionesResponses = {
     /**
-     * Lista de atletas obtenida exitosamente.
+     * Lista de organizaciones recuperada con éxito.
      */
-    200: Array<Athlete>;
+    200: Array<Organizacion>;
 };
 
-export type ListAthletesResponse = ListAthletesResponses[keyof ListAthletesResponses];
+export type ListarOrganizacionesResponse = ListarOrganizacionesResponses[keyof ListarOrganizacionesResponses];
 
-export type CreateAthleteData = {
-    body: CreateAthleteRequest;
+export type CrearOrganizacionData = {
+    body: CrearOrganizacionRequest;
     path?: never;
     query?: never;
-    url: '/api/v1/athletes';
+    url: '/api/v1/organizaciones';
 };
 
-export type CreateAthleteErrors = {
+export type CrearOrganizacionErrors = {
     /**
      * Solicitud con datos inválidos o formato erróneo.
      */
@@ -174,395 +141,57 @@ export type CreateAthleteErrors = {
     401: ProblemDetails;
 };
 
-export type CreateAthleteError = CreateAthleteErrors[keyof CreateAthleteErrors];
+export type CrearOrganizacionError = CrearOrganizacionErrors[keyof CrearOrganizacionErrors];
 
-export type CreateAthleteResponses = {
-    /**
-     * Atleta registrado exitosamente.
-     */
-    201: Athlete;
-};
-
-export type CreateAthleteResponse = CreateAthleteResponses[keyof CreateAthleteResponses];
-
-export type DeleteAthleteData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}';
-};
-
-export type DeleteAthleteErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type DeleteAthleteError = DeleteAthleteErrors[keyof DeleteAthleteErrors];
-
-export type DeleteAthleteResponses = {
-    /**
-     * Atleta eliminado correctamente.
-     */
-    204: void;
-};
-
-export type DeleteAthleteResponse = DeleteAthleteResponses[keyof DeleteAthleteResponses];
-
-export type GetAthleteData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}';
-};
-
-export type GetAthleteErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type GetAthleteError = GetAthleteErrors[keyof GetAthleteErrors];
-
-export type GetAthleteResponses = {
-    /**
-     * Atleta encontrado.
-     */
-    200: Athlete;
-};
-
-export type GetAthleteResponse = GetAthleteResponses[keyof GetAthleteResponses];
-
-export type UpdateAthleteData = {
-    body: UpdateAthleteRequest;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}';
-};
-
-export type UpdateAthleteErrors = {
-    /**
-     * Solicitud con datos inválidos o formato erróneo.
-     */
-    400: ProblemDetails;
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type UpdateAthleteError = UpdateAthleteErrors[keyof UpdateAthleteErrors];
-
-export type UpdateAthleteResponses = {
-    /**
-     * Ficha actualizada correctamente.
-     */
-    200: Athlete;
-};
-
-export type UpdateAthleteResponse = UpdateAthleteResponses[keyof UpdateAthleteResponses];
-
-export type UpdateHabitsPermissionData = {
-    body: UpdateHabitsPermissionRequest;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}/habits-permission';
-};
-
-export type UpdateHabitsPermissionErrors = {
-    /**
-     * Solicitud con datos inválidos o formato erróneo.
-     */
-    400: ProblemDetails;
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type UpdateHabitsPermissionError = UpdateHabitsPermissionErrors[keyof UpdateHabitsPermissionErrors];
-
-export type UpdateHabitsPermissionResponses = {
-    /**
-     * Permiso actualizado exitosamente.
-     */
-    200: Athlete;
-};
-
-export type UpdateHabitsPermissionResponse = UpdateHabitsPermissionResponses[keyof UpdateHabitsPermissionResponses];
-
-export type GetAthleteGuardianConsentData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}/guardian-consent';
-};
-
-export type GetAthleteGuardianConsentErrors = {
-    /**
-     * Token JWT ausente, vencido o no válido.
-     */
-    401: ProblemDetails;
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type GetAthleteGuardianConsentError = GetAthleteGuardianConsentErrors[keyof GetAthleteGuardianConsentErrors];
-
-export type GetAthleteGuardianConsentResponses = {
-    /**
-     * Consentimiento obtenido exitosamente.
-     */
-    200: GuardianConsent;
-};
-
-export type GetAthleteGuardianConsentResponse = GetAthleteGuardianConsentResponses[keyof GetAthleteGuardianConsentResponses];
-
-export type ListCategoriesByAthleteData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}/categories';
-};
-
-export type ListCategoriesByAthleteErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type ListCategoriesByAthleteError = ListCategoriesByAthleteErrors[keyof ListCategoriesByAthleteErrors];
-
-export type ListCategoriesByAthleteResponses = {
-    /**
-     * Lista de categorías obtenida.
-     */
-    200: Array<Category>;
-};
-
-export type ListCategoriesByAthleteResponse = ListCategoriesByAthleteResponses[keyof ListCategoriesByAthleteResponses];
-
-export type RemoveCategoryData = {
-    body?: never;
-    path: {
-        id: string;
-        categoryId: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}/categories/{categoryId}';
-};
-
-export type RemoveCategoryErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type RemoveCategoryError = RemoveCategoryErrors[keyof RemoveCategoryErrors];
-
-export type RemoveCategoryResponses = {
-    /**
-     * Desvinculación exitosa.
-     */
-    204: void;
-};
-
-export type RemoveCategoryResponse = RemoveCategoryResponses[keyof RemoveCategoryResponses];
-
-export type AssignCategoryData = {
-    body?: never;
-    path: {
-        id: string;
-        categoryId: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}/categories/{categoryId}';
-};
-
-export type AssignCategoryErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type AssignCategoryError = AssignCategoryErrors[keyof AssignCategoryErrors];
-
-export type AssignCategoryResponses = {
-    /**
-     * Asignación completada con éxito.
-     */
-    200: Category;
-};
-
-export type AssignCategoryResponse = AssignCategoryResponses[keyof AssignCategoryResponses];
-
-export type GenerateAthleteInvitationData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/athletes/{id}/invitation';
-};
-
-export type GenerateAthleteInvitationErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type GenerateAthleteInvitationError = GenerateAthleteInvitationErrors[keyof GenerateAthleteInvitationErrors];
-
-export type GenerateAthleteInvitationResponses = {
-    /**
-     * Enlace de invitación generado con éxito.
-     */
-    200: {
-        invitationUrl: string;
-        expiresAt: string;
-    };
-};
-
-export type GenerateAthleteInvitationResponse = GenerateAthleteInvitationResponses[keyof GenerateAthleteInvitationResponses];
-
-export type ListOrganizationsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/organizations';
-};
-
-export type ListOrganizationsErrors = {
-    /**
-     * Token JWT ausente, vencido o no válido.
-     */
-    401: ProblemDetails;
-};
-
-export type ListOrganizationsError = ListOrganizationsErrors[keyof ListOrganizationsErrors];
-
-export type ListOrganizationsResponses = {
-    /**
-     * Lista de organizaciones recuperada.
-     */
-    200: Array<Organization>;
-};
-
-export type ListOrganizationsResponse = ListOrganizationsResponses[keyof ListOrganizationsResponses];
-
-export type CreateOrganizationData = {
-    body: CreateOrganizationRequest;
-    path?: never;
-    query?: never;
-    url: '/api/v1/organizations';
-};
-
-export type CreateOrganizationErrors = {
-    /**
-     * Solicitud con datos inválidos o formato erróneo.
-     */
-    400: ProblemDetails;
-    /**
-     * Token JWT ausente, vencido o no válido.
-     */
-    401: ProblemDetails;
-};
-
-export type CreateOrganizationError = CreateOrganizationErrors[keyof CreateOrganizationErrors];
-
-export type CreateOrganizationResponses = {
+export type CrearOrganizacionResponses = {
     /**
      * Organización creada exitosamente.
      */
-    201: Organization;
+    201: Organizacion;
 };
 
-export type CreateOrganizationResponse = CreateOrganizationResponses[keyof CreateOrganizationResponses];
+export type CrearOrganizacionResponse = CrearOrganizacionResponses[keyof CrearOrganizacionResponses];
 
-export type DeleteOrganizationData = {
+export type ListarCategoriasData = {
     body?: never;
     path: {
-        id: string;
+        /**
+         * Identificador de la organización.
+         */
+        organizacionId: string;
     };
     query?: never;
-    url: '/api/v1/organizations/{id}';
+    url: '/api/v1/organizaciones/{organizacionId}/categorias';
 };
 
-export type DeleteOrganizationErrors = {
+export type ListarCategoriasErrors = {
     /**
      * El recurso solicitado no existe.
      */
     404: ProblemDetails;
 };
 
-export type DeleteOrganizationError = DeleteOrganizationErrors[keyof DeleteOrganizationErrors];
+export type ListarCategoriasError = ListarCategoriasErrors[keyof ListarCategoriasErrors];
 
-export type DeleteOrganizationResponses = {
+export type ListarCategoriasResponses = {
     /**
-     * Organización eliminada.
+     * Lista de categorías encontradas.
      */
-    204: void;
+    200: Array<Categoria>;
 };
 
-export type DeleteOrganizationResponse = DeleteOrganizationResponses[keyof DeleteOrganizationResponses];
+export type ListarCategoriasResponse = ListarCategoriasResponses[keyof ListarCategoriasResponses];
 
-export type GetOrganizationData = {
-    body?: never;
+export type CrearCategoriaData = {
+    body: CrearCategoriaRequest;
     path: {
-        id: string;
+        organizacionId: string;
     };
     query?: never;
-    url: '/api/v1/organizations/{id}';
+    url: '/api/v1/organizaciones/{organizacionId}/categorias';
 };
 
-export type GetOrganizationErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type GetOrganizationError = GetOrganizationErrors[keyof GetOrganizationErrors];
-
-export type GetOrganizationResponses = {
-    /**
-     * Organización encontrada.
-     */
-    200: Organization;
-};
-
-export type GetOrganizationResponse = GetOrganizationResponses[keyof GetOrganizationResponses];
-
-export type UpdateOrganizationData = {
-    body: UpdateOrganizationRequest;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/organizations/{id}';
-};
-
-export type UpdateOrganizationErrors = {
+export type CrearCategoriaErrors = {
     /**
      * Solicitud con datos inválidos o formato erróneo.
      */
@@ -573,55 +202,175 @@ export type UpdateOrganizationErrors = {
     404: ProblemDetails;
 };
 
-export type UpdateOrganizationError = UpdateOrganizationErrors[keyof UpdateOrganizationErrors];
+export type CrearCategoriaError = CrearCategoriaErrors[keyof CrearCategoriaErrors];
 
-export type UpdateOrganizationResponses = {
+export type CrearCategoriaResponses = {
     /**
-     * Organización actualizada.
+     * Categoría creada con éxito.
      */
-    200: Organization;
+    201: Categoria;
 };
 
-export type UpdateOrganizationResponse = UpdateOrganizationResponses[keyof UpdateOrganizationResponses];
+export type CrearCategoriaResponse = CrearCategoriaResponses[keyof CrearCategoriaResponses];
 
-export type ListCategoriesData = {
+export type ListarPartidosCategoriaData = {
+    body?: never;
+    path: {
+        categoriaId: string;
+    };
+    query?: never;
+    url: '/api/v1/categorias/{categoriaId}/partidos';
+};
+
+export type ListarPartidosCategoriaErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ListarPartidosCategoriaError = ListarPartidosCategoriaErrors[keyof ListarPartidosCategoriaErrors];
+
+export type ListarPartidosCategoriaResponses = {
+    /**
+     * Calendario de partidos obtenido con éxito.
+     */
+    200: Array<PartidoTemporada>;
+};
+
+export type ListarPartidosCategoriaResponse = ListarPartidosCategoriaResponses[keyof ListarPartidosCategoriaResponses];
+
+export type AgregarPartidoCategoriaData = {
+    body: CrearPartidoRequest;
+    path: {
+        categoriaId: string;
+    };
+    query?: never;
+    url: '/api/v1/categorias/{categoriaId}/partidos';
+};
+
+export type AgregarPartidoCategoriaErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type AgregarPartidoCategoriaError = AgregarPartidoCategoriaErrors[keyof AgregarPartidoCategoriaErrors];
+
+export type AgregarPartidoCategoriaResponses = {
+    /**
+     * Partido programado correctamente.
+     */
+    201: PartidoTemporada;
+};
+
+export type AgregarPartidoCategoriaResponse = AgregarPartidoCategoriaResponses[keyof AgregarPartidoCategoriaResponses];
+
+export type ListarAtletasData = {
     body?: never;
     path?: never;
-    query: {
+    query?: {
         /**
-         * Identificador de la organización para filtrar.
+         * Filtrar por identificador de categoría.
          */
-        organizationId: string;
+        categoriaId?: string;
+        /**
+         * Filtrar solo atletas habilitados administrativamente.
+         */
+        soloActivos?: boolean;
     };
-    url: '/api/v1/categories';
+    url: '/api/v1/atletas';
 };
 
-export type ListCategoriesErrors = {
+export type ListarAtletasErrors = {
     /**
      * Token JWT ausente, vencido o no válido.
      */
     401: ProblemDetails;
 };
 
-export type ListCategoriesError = ListCategoriesErrors[keyof ListCategoriesErrors];
+export type ListarAtletasError = ListarAtletasErrors[keyof ListarAtletasErrors];
 
-export type ListCategoriesResponses = {
+export type ListarAtletasResponses = {
     /**
-     * Lista de categorías obtenida.
+     * Lista de atletas obtenida exitosamente.
      */
-    200: Array<Category>;
+    200: Array<Atleta>;
 };
 
-export type ListCategoriesResponse = ListCategoriesResponses[keyof ListCategoriesResponses];
+export type ListarAtletasResponse = ListarAtletasResponses[keyof ListarAtletasResponses];
 
-export type CreateCategoryData = {
-    body: CreateCategoryRequest;
+export type CrearAtletaData = {
+    body: CrearAtletaRequest;
     path?: never;
     query?: never;
-    url: '/api/v1/categories';
+    url: '/api/v1/atletas';
 };
 
-export type CreateCategoryErrors = {
+export type CrearAtletaErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+};
+
+export type CrearAtletaError = CrearAtletaErrors[keyof CrearAtletaErrors];
+
+export type CrearAtletaResponses = {
+    /**
+     * Atleta registrado exitosamente.
+     */
+    201: Atleta;
+};
+
+export type CrearAtletaResponse = CrearAtletaResponses[keyof CrearAtletaResponses];
+
+export type ObtenerAtletaData = {
+    body?: never;
+    path: {
+        atletaId: string;
+    };
+    query?: never;
+    url: '/api/v1/atletas/{atletaId}';
+};
+
+export type ObtenerAtletaErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ObtenerAtletaError = ObtenerAtletaErrors[keyof ObtenerAtletaErrors];
+
+export type ObtenerAtletaResponses = {
+    /**
+     * Atleta encontrado.
+     */
+    200: Atleta;
+};
+
+export type ObtenerAtletaResponse = ObtenerAtletaResponses[keyof ObtenerAtletaResponses];
+
+export type ActualizarAtletaData = {
+    body: ActualizarAtletaRequest;
+    path: {
+        atletaId: string;
+    };
+    query?: never;
+    url: '/api/v1/atletas/{atletaId}';
+};
+
+export type ActualizarAtletaErrors = {
     /**
      * Solicitud con datos inválidos o formato erróneo.
      */
@@ -632,159 +381,104 @@ export type CreateCategoryErrors = {
     404: ProblemDetails;
 };
 
-export type CreateCategoryError = CreateCategoryErrors[keyof CreateCategoryErrors];
+export type ActualizarAtletaError = ActualizarAtletaErrors[keyof ActualizarAtletaErrors];
 
-export type CreateCategoryResponses = {
+export type ActualizarAtletaResponses = {
     /**
-     * Categoría creada con éxito.
+     * Ficha del atleta actualizada correctamente.
      */
-    201: Category;
+    200: Atleta;
 };
 
-export type CreateCategoryResponse = CreateCategoryResponses[keyof CreateCategoryResponses];
+export type ActualizarAtletaResponse = ActualizarAtletaResponses[keyof ActualizarAtletaResponses];
 
-export type DeleteCategoryData = {
+export type GenerarInvitacionAtletaData = {
     body?: never;
     path: {
-        id: string;
+        atletaId: string;
     };
     query?: never;
-    url: '/api/v1/categories/{id}';
+    url: '/api/v1/atletas/{atletaId}/invitacion';
 };
 
-export type DeleteCategoryErrors = {
+export type GenerarInvitacionAtletaErrors = {
     /**
      * El recurso solicitado no existe.
      */
     404: ProblemDetails;
 };
 
-export type DeleteCategoryError = DeleteCategoryErrors[keyof DeleteCategoryErrors];
+export type GenerarInvitacionAtletaError = GenerarInvitacionAtletaErrors[keyof GenerarInvitacionAtletaErrors];
 
-export type DeleteCategoryResponses = {
+export type GenerarInvitacionAtletaResponses = {
     /**
-     * Categoría eliminada con éxito.
+     * Enlace de invitación generado.
+     */
+    200: {
+        enlaceInvitacion?: string;
+        expiraEn?: string;
+    };
+};
+
+export type GenerarInvitacionAtletaResponse = GenerarInvitacionAtletaResponses[keyof GenerarInvitacionAtletaResponses];
+
+export type DesasignarAtletaCategoriaData = {
+    body?: never;
+    path: {
+        atletaId: string;
+        categoriaId: string;
+    };
+    query?: never;
+    url: '/api/v1/atletas/{atletaId}/categorias/{categoriaId}';
+};
+
+export type DesasignarAtletaCategoriaErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type DesasignarAtletaCategoriaError = DesasignarAtletaCategoriaErrors[keyof DesasignarAtletaCategoriaErrors];
+
+export type DesasignarAtletaCategoriaResponses = {
+    /**
+     * Atleta desvinculado de la categoría con éxito.
      */
     204: void;
 };
 
-export type DeleteCategoryResponse = DeleteCategoryResponses[keyof DeleteCategoryResponses];
+export type DesasignarAtletaCategoriaResponse = DesasignarAtletaCategoriaResponses[keyof DesasignarAtletaCategoriaResponses];
 
-export type GetCategoryData = {
+export type AsignarAtletaCategoriaData = {
     body?: never;
     path: {
-        id: string;
+        atletaId: string;
+        categoriaId: string;
     };
     query?: never;
-    url: '/api/v1/categories/{id}';
+    url: '/api/v1/atletas/{atletaId}/categorias/{categoriaId}';
 };
 
-export type GetCategoryErrors = {
+export type AsignarAtletaCategoriaErrors = {
     /**
      * El recurso solicitado no existe.
      */
     404: ProblemDetails;
 };
 
-export type GetCategoryError = GetCategoryErrors[keyof GetCategoryErrors];
+export type AsignarAtletaCategoriaError = AsignarAtletaCategoriaErrors[keyof AsignarAtletaCategoriaErrors];
 
-export type GetCategoryResponses = {
+export type AsignarAtletaCategoriaResponses = {
     /**
-     * Categoría encontrada.
+     * Asignación completada (idempotente si ya pertenecía).
      */
-    200: Category;
-};
-
-export type GetCategoryResponse = GetCategoryResponses[keyof GetCategoryResponses];
-
-export type UpdateCategoryData = {
-    body: UpdateCategoryRequest;
-    path: {
-        id: string;
+    200: {
+        mensaje?: string;
     };
-    query?: never;
-    url: '/api/v1/categories/{id}';
 };
 
-export type UpdateCategoryErrors = {
-    /**
-     * Solicitud con datos inválidos o formato erróneo.
-     */
-    400: ProblemDetails;
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type UpdateCategoryError = UpdateCategoryErrors[keyof UpdateCategoryErrors];
-
-export type UpdateCategoryResponses = {
-    /**
-     * Categoría actualizada.
-     */
-    200: Category;
-};
-
-export type UpdateCategoryResponse = UpdateCategoryResponses[keyof UpdateCategoryResponses];
-
-export type ListCategoryMatchesData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/categories/{id}/matches';
-};
-
-export type ListCategoryMatchesErrors = {
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type ListCategoryMatchesError = ListCategoryMatchesErrors[keyof ListCategoryMatchesErrors];
-
-export type ListCategoryMatchesResponses = {
-    /**
-     * Calendario de partidos obtenido con éxito.
-     */
-    200: Array<Match>;
-};
-
-export type ListCategoryMatchesResponse = ListCategoryMatchesResponses[keyof ListCategoryMatchesResponses];
-
-export type CreateCategoryMatchData = {
-    body: CreateMatchRequest;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/categories/{id}/matches';
-};
-
-export type CreateCategoryMatchErrors = {
-    /**
-     * Solicitud con datos inválidos o formato erróneo.
-     */
-    400: ProblemDetails;
-    /**
-     * El recurso solicitado no existe.
-     */
-    404: ProblemDetails;
-};
-
-export type CreateCategoryMatchError = CreateCategoryMatchErrors[keyof CreateCategoryMatchErrors];
-
-export type CreateCategoryMatchResponses = {
-    /**
-     * Partido programado con éxito.
-     */
-    201: Match;
-};
-
-export type CreateCategoryMatchResponse = CreateCategoryMatchResponses[keyof CreateCategoryMatchResponses];
+export type AsignarAtletaCategoriaResponse = AsignarAtletaCategoriaResponses[keyof AsignarAtletaCategoriaResponses];
 
 export type HealthCheckData = {
     body?: never;

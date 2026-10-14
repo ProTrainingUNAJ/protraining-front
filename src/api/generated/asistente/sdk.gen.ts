@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses } from './types.gen';
+import type { AprobarRecomendacionHabitosData, AprobarRecomendacionHabitosErrors, AprobarRecomendacionHabitosResponses, EjecutarEscaneoPreventivoData, EjecutarEscaneoPreventivoErrors, EjecutarEscaneoPreventivoResponses, HealthCheckData, HealthCheckResponses, ListarAlertasData, ListarAlertasErrors, ListarAlertasResponses, ObtenerRecomendacionHabitosData, ObtenerRecomendacionHabitosErrors, ObtenerRecomendacionHabitosResponses, ProponerAjusteDiaData, ProponerAjusteDiaErrors, ProponerAjusteDiaResponses, RevisarAlertaData, RevisarAlertaErrors, RevisarAlertaResponses, SugerirRutinaIaData, SugerirRutinaIaErrors, SugerirRutinaIaResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -23,10 +23,10 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  *
  * Devuelve las alertas calculadas por el motor analítico, permitiendo filtrar por estado de revisión o severidad.
  */
-export const listAlerts = <ThrowOnError extends boolean = false>(options?: Options<ListAlertsData, ThrowOnError>): RequestResult<ListAlertsResponses, ListAlertsErrors, ThrowOnError> => (options?.client ?? client).get<ListAlertsResponses, ListAlertsErrors, ThrowOnError>({
+export const listarAlertas = <ThrowOnError extends boolean = false>(options?: Options<ListarAlertasData, ThrowOnError>): RequestResult<ListarAlertasResponses, ListarAlertasErrors, ThrowOnError> => (options?.client ?? client).get<ListarAlertasResponses, ListarAlertasErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/alerts',
+    url: '/api/v1/alertas',
     ...options
 });
 
@@ -35,10 +35,10 @@ export const listAlerts = <ThrowOnError extends boolean = false>(options?: Optio
  *
  * Registra la intervención del preparador físico sobre la recomendación generada.
  */
-export const reviewAlert = <ThrowOnError extends boolean = false>(options: Options<ReviewAlertData, ThrowOnError>): RequestResult<ReviewAlertResponses, ReviewAlertErrors, ThrowOnError> => (options.client ?? client).patch<ReviewAlertResponses, ReviewAlertErrors, ThrowOnError>({
+export const revisarAlerta = <ThrowOnError extends boolean = false>(options: Options<RevisarAlertaData, ThrowOnError>): RequestResult<RevisarAlertaResponses, RevisarAlertaErrors, ThrowOnError> => (options.client ?? client).patch<RevisarAlertaResponses, RevisarAlertaErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/alerts/{alertId}/review',
+    url: '/api/v1/alertas/{alertaId}/revisar',
     ...options
 });
 
@@ -48,10 +48,10 @@ export const reviewAlert = <ThrowOnError extends boolean = false>(options: Optio
  * Ejecuta el ciclo de análisis heurístico y de IA sobre las sesiones, check-ins, partidos próximos del fixture y lesiones, alertando sobre situaciones críticas.
  *
  */
-export const triggerPreventiveScan = <ThrowOnError extends boolean = false>(options?: Options<TriggerPreventiveScanData, ThrowOnError>): RequestResult<TriggerPreventiveScanResponses, TriggerPreventiveScanErrors, ThrowOnError> => (options?.client ?? client).post<TriggerPreventiveScanResponses, TriggerPreventiveScanErrors, ThrowOnError>({
+export const ejecutarEscaneoPreventivo = <ThrowOnError extends boolean = false>(options?: Options<EjecutarEscaneoPreventivoData, ThrowOnError>): RequestResult<EjecutarEscaneoPreventivoResponses, EjecutarEscaneoPreventivoErrors, ThrowOnError> => (options?.client ?? client).post<EjecutarEscaneoPreventivoResponses, EjecutarEscaneoPreventivoErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/alerts/scan',
+    url: '/api/v1/alertas/escanear',
     ...options
 });
 
@@ -61,10 +61,10 @@ export const triggerPreventiveScan = <ThrowOnError extends boolean = false>(opti
  * Cruza la rutina planificada para hoy con el dolor o molestia reportado en el check-in. Si hay conflicto articular o muscular, sugiere sustituir o reducir ejercicios (ej. retirar saltos por dolor de rodilla). El PF valida y aprueba la adaptación en un solo clic.
  *
  */
-export const suggestTodayAdjustment = <ThrowOnError extends boolean = false>(options: Options<SuggestTodayAdjustmentData, ThrowOnError>): RequestResult<SuggestTodayAdjustmentResponses, SuggestTodayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<SuggestTodayAdjustmentResponses, SuggestTodayAdjustmentErrors, ThrowOnError>({
+export const proponerAjusteDia = <ThrowOnError extends boolean = false>(options: Options<ProponerAjusteDiaData, ThrowOnError>): RequestResult<ProponerAjusteDiaResponses, ProponerAjusteDiaErrors, ThrowOnError> => (options.client ?? client).post<ProponerAjusteDiaResponses, ProponerAjusteDiaErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/assistant/today-adjustment',
+    url: '/api/v1/asistente/ajuste-dia',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -78,10 +78,10 @@ export const suggestTodayAdjustment = <ThrowOnError extends boolean = false>(opt
  * Solicita al copiloto IA una recomendación de entrenamiento adaptada a un atleta o categoría, tomando en cuenta sus récords vigentes, check-ins recientes y antecedentes de lesión.
  *
  */
-export const suggestRoutineWithAi = <ThrowOnError extends boolean = false>(options: Options<SuggestRoutineWithAiData, ThrowOnError>): RequestResult<SuggestRoutineWithAiResponses, SuggestRoutineWithAiErrors, ThrowOnError> => (options.client ?? client).post<SuggestRoutineWithAiResponses, SuggestRoutineWithAiErrors, ThrowOnError>({
+export const sugerirRutinaIa = <ThrowOnError extends boolean = false>(options: Options<SugerirRutinaIaData, ThrowOnError>): RequestResult<SugerirRutinaIaResponses, SugerirRutinaIaErrors, ThrowOnError> => (options.client ?? client).post<SugerirRutinaIaResponses, SugerirRutinaIaErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/assistant/suggest-routine',
+    url: '/api/v1/asistente/sugerir-rutina',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -95,10 +95,10 @@ export const suggestRoutineWithAi = <ThrowOnError extends boolean = false>(optio
  * Genera consejos de descanso, hidratación y requerimiento proteico diario según el peso y objetivo del atleta (basado en reglas fijas; sin suplementos; si el atleta es menor requiere consentimiento del tutor).
  *
  */
-export const getHabitsRecommendation = <ThrowOnError extends boolean = false>(options: Options<GetHabitsRecommendationData, ThrowOnError>): RequestResult<GetHabitsRecommendationResponses, GetHabitsRecommendationErrors, ThrowOnError> => (options.client ?? client).get<GetHabitsRecommendationResponses, GetHabitsRecommendationErrors, ThrowOnError>({
+export const obtenerRecomendacionHabitos = <ThrowOnError extends boolean = false>(options: Options<ObtenerRecomendacionHabitosData, ThrowOnError>): RequestResult<ObtenerRecomendacionHabitosResponses, ObtenerRecomendacionHabitosErrors, ThrowOnError> => (options.client ?? client).get<ObtenerRecomendacionHabitosResponses, ObtenerRecomendacionHabitosErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{athleteId}/habits-recommendation',
+    url: '/api/v1/atletas/{atletaId}/recomendacion-habitos',
     ...options
 });
 
@@ -107,10 +107,10 @@ export const getHabitsRecommendation = <ThrowOnError extends boolean = false>(op
  *
  * El PF autoriza con un solo clic que la recomendación sea visible para el atleta en su PWA.
  */
-export const approveHabitsRecommendation = <ThrowOnError extends boolean = false>(options: Options<ApproveHabitsRecommendationData, ThrowOnError>): RequestResult<ApproveHabitsRecommendationResponses, ApproveHabitsRecommendationErrors, ThrowOnError> => (options.client ?? client).patch<ApproveHabitsRecommendationResponses, ApproveHabitsRecommendationErrors, ThrowOnError>({
+export const aprobarRecomendacionHabitos = <ThrowOnError extends boolean = false>(options: Options<AprobarRecomendacionHabitosData, ThrowOnError>): RequestResult<AprobarRecomendacionHabitosResponses, AprobarRecomendacionHabitosErrors, ThrowOnError> => (options.client ?? client).patch<AprobarRecomendacionHabitosResponses, AprobarRecomendacionHabitosErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/habits-recommendations/{recommendationId}/approve',
+    url: '/api/v1/recomendaciones-habitos/{recomendacionId}/aprobar',
     ...options
 });
 
