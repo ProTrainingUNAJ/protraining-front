@@ -23,6 +23,7 @@ Abre en `http://127.0.0.1:5173`. Las llamadas a `/api/...` van al gateway del ba
 | `npm run format`              | Le da formato a todo con Prettier.                                                |
 | `npm run format:check`        | Revisa el formato sin cambiar nada (es lo que corre el CI).                       |
 | `npm run generate-pwa-assets` | Vuelve a generar los íconos de la PWA desde `public/assets/isotype-gradient.png`. |
+| `npm run generate:api`        | Regenera los tipos y el cliente del front desde los contratos OpenAPI del back.   |
 
 El CI (`.github/workflows/ci.yml`) corre `lint`, `format:check` y `build` en cada PR. Antes de pushear, corré `npm run format` y `npm run lint`.
 
