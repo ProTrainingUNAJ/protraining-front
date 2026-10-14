@@ -291,49 +291,6 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
             boxShadow: 'var(--shadow)',
           }}
         >
-          {/* Rótulos de Vistas Anatómicas */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-around',
-              width: '100%',
-              maxWidth: '750px',
-              marginBottom: '0.5rem',
-              pointerEvents: 'none',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.76rem',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                color: 'var(--text-main)',
-                background: 'var(--bg-subtle)',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '6px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              Vista Frontal (Anterior)
-            </span>
-            <span
-              style={{
-                fontSize: '0.76rem',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                color: 'var(--text-main)',
-                background: 'var(--bg-subtle)',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '6px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              Vista Posterior (Trasera)
-            </span>
-          </div>
-
           {/* Lámina de contraste anatómico */}
           <div
             style={{
@@ -478,19 +435,6 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
               })}
             </svg>
           </div>
-
-          <span
-            style={{
-              fontSize: '0.72rem',
-              color: 'var(--text-muted)',
-              marginTop: '0.45rem',
-              textAlign: 'center',
-            }}
-          >
-            Toca cualquier músculo para aplicar el nivel {activeBrushLevel} (
-            {PAIN_LEVELS.find((p) => p.level === activeBrushLevel)?.name}). Toca nuevamente para
-            desmarcarlo.
-          </span>
         </div>
 
         {/* Columna Derecha: Vista Posterior */}

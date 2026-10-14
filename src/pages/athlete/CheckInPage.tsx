@@ -581,82 +581,98 @@ export const CheckInPage: React.FC = () => {
                 onClearAll={handleClearPains}
               />
 
-              {/* Área compacta y optimizada de comentarios adicionales */}
-              <div style={{ marginTop: '0.25rem' }}>
-                <label
-                  htmlFor="checkin-notes"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    marginBottom: '0.25rem',
-                    color: 'var(--text-main)',
-                  }}
-                >
-                  <MessageSquare size={14} style={{ color: 'var(--secondary)' }} />
-                  <span>Notas adicionales para el preparador físico (opcional)</span>
-                </label>
-                <textarea
-                  id="checkin-notes"
-                  rows={2}
-                  placeholder="Ej. Siento una leve tirantez en el gemelo izquierdo al trotar..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-main)',
-                    fontFamily: 'inherit',
-                    boxSizing: 'border-box',
-                    fontSize: '0.82rem',
-                    resize: 'vertical',
-                    minHeight: '44px',
-                  }}
-                />
-              </div>
-
+              {/* Área combinada: Notas adicionales a la izquierda y Botón de envío a la derecha */}
               <div
                 style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  gap: '1rem',
+                  marginTop: '0.5rem',
                   paddingTop: '0.75rem',
                   borderTop: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  gap: '1.25rem',
                   flexWrap: 'wrap',
                 }}
               >
-                {!isComplete && (
-                  <span
+                <div style={{ flex: 1, minWidth: '280px' }}>
+                  <label
+                    htmlFor="checkin-notes"
                     style={{
-                      fontSize: '0.82rem',
-                      color: 'var(--text-muted)',
-                      marginRight: 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      marginBottom: '0.35rem',
+                      color: 'var(--text-main)',
                     }}
                   >
-                    * Por favor califica los 4 indicadores superiores para enviar el check-in.
-                  </span>
-                )}
-                <button
-                  type="submit"
-                  disabled={!isComplete}
-                  className="btn btn-primary"
+                    <MessageSquare size={14} style={{ color: 'var(--secondary)' }} />
+                    <span>Notas adicionales para el preparador físico (opcional)</span>
+                  </label>
+                  <textarea
+                    id="checkin-notes"
+                    rows={2}
+                    placeholder="Ej. Siento una leve tirantez en el gemelo izquierdo al trotar..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-card)',
+                      color: 'var(--text-main)',
+                      fontFamily: 'inherit',
+                      boxSizing: 'border-box',
+                      fontSize: '0.82rem',
+                      resize: 'vertical',
+                      minHeight: '46px',
+                    }}
+                  />
+                </div>
+
+                <div
                   style={{
-                    gap: '0.45rem',
-                    padding: '0.65rem 1.6rem',
-                    fontSize: '0.92rem',
-                    opacity: isComplete ? 1 : 0.5,
-                    cursor: isComplete ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: '0.35rem',
+                    flexShrink: 0,
                   }}
                 >
-                  <Send size={15} />
-                  <span>Enviar Check-in al Profesor</span>
-                </button>
+                  {!isComplete && (
+                    <span
+                      style={{
+                        fontSize: '0.76rem',
+                        color: 'var(--text-muted)',
+                        textAlign: 'right',
+                        maxWidth: '260px',
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      * Califica los 4 indicadores para enviar el check-in.
+                    </span>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={!isComplete}
+                    className="btn btn-primary"
+                    style={{
+                      gap: '0.45rem',
+                      padding: '0.7rem 1.6rem',
+                      fontSize: '0.92rem',
+                      whiteSpace: 'nowrap',
+                      opacity: isComplete ? 1 : 0.5,
+                      cursor: isComplete ? 'pointer' : 'not-allowed',
+                      height: '46px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Send size={15} />
+                    <span>Enviar Check-in al Profesor</span>
+                  </button>
+                </div>
               </div>
             </div>
           </form>
