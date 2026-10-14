@@ -15,23 +15,31 @@ Abre en `http://127.0.0.1:5173`. Las llamadas a `/api/...` van al gateway del ba
 
 ## Scripts
 
-| Script                        | Qué hace                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| `npm run dev`                 | Levanta la app en modo desarrollo.                                                |
-| `npm run build`               | Revisa los tipos (`tsc`) y arma la app en `dist/`.                                |
-| `npm run lint`                | ESLint sobre el código y Stylelint sobre el CSS.                                  |
-| `npm run format`              | Le da formato a todo con Prettier.                                                |
-| `npm run format:check`        | Revisa el formato sin cambiar nada (es lo que corre el CI).                       |
-| `npm run generate-pwa-assets` | Vuelve a generar los íconos de la PWA desde `public/assets/isotype-gradient.png`. |
-| `npm run generate:api`        | Regenera los tipos y el cliente del front desde los contratos OpenAPI del back.   |
+| Script                        | Qué hace                                                                                                            |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                 | Levanta la app en modo desarrollo.                                                                                  |
+| `npm run build`               | Revisa los tipos (`tsc`) y arma la app en `dist/`.                                                                  |
+| `npm run lint`                | ESLint sobre el código y Stylelint sobre el CSS.                                                                    |
+| `npm run format`              | Le da formato a todo con Prettier.                                                                                  |
+| `npm run format:check`        | Revisa el formato sin cambiar nada (es lo que corre el CI).                                                         |
+| `npm run generate-pwa-assets` | Vuelve a generar los íconos de la PWA desde `public/assets/isotype-gradient.png`.                                   |
+| `npm run generate:api`        | Regenera los tipos y el cliente desde los contratos OpenAPI del back (necesita `protraining-back` clonado al lado). |
 
 El CI (`.github/workflows/ci.yml`) corre `lint`, `format:check` y `build` en cada PR. Antes de pushear, corré `npm run format` y `npm run lint`.
+
+`npm run generate:api` lee los contratos de `../protraining-back/contracts`. Si el back está en otra ruta, pasala por variable de entorno:
+
+```bash
+OPENAPI_CONTRACTS_PATH=/ruta/al/protraining-back/contracts npm run generate:api
+```
+
+En PowerShell (Windows), la variable se setea así: `$env:OPENAPI_CONTRACTS_PATH="C:\ruta\al\protraining-back\contracts"; npm run generate:api`
 
 ## Estructura
 
 ```
 src/
-  api/         ← la única parte que llama al back (client.ts y un archivo por módulo)
+  api/         ← la única parte que llama al back (axiosClient.ts, los SDK generados y un archivo por módulo)
   components/  ← componentes que se usan en más de una pantalla
   hooks/       ← hooks propios (useAlgo.ts)
   layouts/     ← armado de cada rol: CoachLayout (PF) y AthleteLayout (atleta)
@@ -71,11 +79,12 @@ Excepciones: `pf` (preparador físico), en la ruta `/pf` y en `PF`.
 
 ### Llamadas a la API
 
-- **Solo** desde `src/api/`, con `apiRequest` de `client.ts`. Una pantalla nunca hace `fetch` directo.
+- **Solo** desde `src/api/`. Una pantalla nunca hace `fetch` directo: usa `httpClient` (de `axiosClient.ts`) o los SDK generados.
 - Un archivo por módulo del back: `api/athletes.ts`, `api/checkIns.ts`.
 - Los tipos de lo que devuelve la API van en `types/` y usan los mismos nombres de campo que el contrato (`contracts/` del back).
-- Los errores llegan como `ApiError`, con el `detail` del ProblemDetails ya en español: se muestra ese mensaje, no uno inventado.
+- Los errores se muestran con `extractErrorMessage` de `axiosClient.ts`, que ya trae el `detail` del ProblemDetails en español: se muestra ese mensaje, no uno inventado.
 - Nada de `any`: si no sabés el tipo, `unknown`.
+- Los SDK de los 5 servicios se generan en `src/api/generated/<servicio>/` y ya vienen conectados al gateway (`/api/<servicio>`) y al `httpClient`, así que mandan el `Authorization` y renuevan el token igual que el resto. **No hay que armar URLs a mano.** El cableado está en `src/api/clients.ts` y se ejecuta al iniciar la app (`src/main.tsx`); el patrón de uso está en `src/api/organizations.ts`.
 
 ### Estilos y marca
 
