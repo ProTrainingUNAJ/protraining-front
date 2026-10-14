@@ -84,98 +84,355 @@ export const ProgressPage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
             gap: '1.25rem',
           }}
         >
-          <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
+          {/* 1. Salto Vertical CMJ */}
+          <div
+            className="card"
+            style={{
+              margin: 0,
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.65rem',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    background: 'var(--stat-cyan-bg)',
+                    color: 'var(--stat-cyan)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <TrendingUp size={18} strokeWidth={2.5} />
+                </div>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                  Salto Vertical CMJ
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                <strong
+                  style={{
+                    fontSize: '1.65rem',
+                    color: 'var(--text-main)',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  42.5
+                </strong>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                  cm
+                </span>
+              </div>
+            </div>
             <div
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--secondary)',
-                marginBottom: '0.35rem',
+                gap: '0.35rem',
+                marginTop: '0.65rem',
+                fontSize: '0.78rem',
               }}
             >
-              <TrendingUp size={18} />
-              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Salto Vertical CMJ</span>
+              <span
+                style={{
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  background: 'var(--stat-green-bg)',
+                  color: 'var(--stat-green)',
+                  fontWeight: 800,
+                }}
+              >
+                +5.2%
+              </span>
+              <span style={{ color: 'var(--text-muted)' }}>vs. inicio de temporada</span>
             </div>
-            <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>42.5 cm</strong>
-            <small
-              style={{
-                color: 'var(--success-text)',
-                display: 'block',
-                marginTop: '0.25rem',
-                fontWeight: 600,
-              }}
-            >
-              +5.2% vs. inicio de temporada
-            </small>
           </div>
 
-          <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
+          {/* 2. Asistencia a Sesiones */}
+          <div
+            className="card"
+            style={{
+              margin: 0,
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.65rem',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    background: 'var(--stat-green-bg)',
+                    color: 'var(--stat-green)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Award size={18} strokeWidth={2.5} />
+                </div>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                  Asistencia a Sesiones
+                </span>
+              </div>
+              <strong
+                style={{
+                  fontSize: '1.65rem',
+                  color: 'var(--text-main)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                96%
+              </strong>
+            </div>
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--success-text)',
-                marginBottom: '0.35rem',
+                gap: '0.35rem',
+                marginTop: '0.65rem',
+                fontSize: '0.78rem',
+                color: 'var(--text-muted)',
               }}
             >
-              <Award size={18} />
-              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Asistencia a Sesiones</span>
+              <span
+                style={{
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  background: 'var(--stat-green-bg)',
+                  color: 'var(--stat-green)',
+                  fontWeight: 800,
+                }}
+              >
+                24 / 25
+              </span>
+              <span>sesiones completadas</span>
             </div>
-            <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>96%</strong>
-            <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
-              24 de 25 sesiones completadas
-            </small>
           </div>
 
-          <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--primary)',
-                marginBottom: '0.35rem',
-              }}
-            >
-              <Activity size={18} />
-              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Carga RPE Promedio</span>
+          {/* 3. Carga RPE Promedio (Destacada con alto contraste) */}
+          <div
+            className="card"
+            style={{
+              margin: 0,
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              boxSizing: 'border-box',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '34px',
+                      height: '34px',
+                      borderRadius: '10px',
+                      background: 'var(--stat-purple-bg)',
+                      color: 'var(--stat-purple)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Activity size={18} strokeWidth={2.5} />
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                    Carga RPE Promedio
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: '6px',
+                    background: 'var(--stat-purple-bg)',
+                    color: 'var(--stat-purple)',
+                    border: '1px solid var(--stat-purple-border)',
+                  }}
+                >
+                  Borg CR10
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                <strong
+                  style={{
+                    fontSize: '1.65rem',
+                    color: 'var(--text-main)',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  7.2
+                </strong>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                  / 10
+                </span>
+              </div>
             </div>
-            <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>7.2 / 10</strong>
-            <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
-              Esfuerzo óptimo programado
-            </small>
+
+            {/* Barra de progreso de carga RPE */}
+            <div style={{ marginTop: '0.5rem' }}>
+              <div
+                style={{
+                  width: '100%',
+                  height: '6px',
+                  background: 'var(--bg-subtle)',
+                  borderRadius: '3px',
+                  overflow: 'hidden',
+                  marginBottom: '0.35rem',
+                }}
+              >
+                <div
+                  style={{
+                    width: '72%',
+                    height: '100%',
+                    background:
+                      'linear-gradient(90deg, var(--stat-cyan) 0%, var(--stat-purple) 100%)',
+                    borderRadius: '3px',
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.76rem',
+                }}
+              >
+                <span style={{ color: 'var(--text-muted)' }}>Esfuerzo programado</span>
+                <span style={{ color: 'var(--stat-purple)', fontWeight: 800 }}>
+                  Óptimo (Zona 4)
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="card" style={{ margin: 0, padding: '1.25rem' }}>
+          {/* 4. Potencia Pico Relativa */}
+          <div
+            className="card"
+            style={{
+              margin: 0,
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.65rem',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    background: 'var(--stat-amber-bg)',
+                    color: 'var(--stat-amber)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Zap size={18} strokeWidth={2.5} />
+                </div>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                  Potencia Pico Relativa
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                <strong
+                  style={{
+                    fontSize: '1.65rem',
+                    color: 'var(--text-main)',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  54.2
+                </strong>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                  W/kg
+                </span>
+              </div>
+            </div>
             <div
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--warning-text, #eab308)',
-                marginBottom: '0.35rem',
+                gap: '0.35rem',
+                marginTop: '0.65rem',
+                fontSize: '0.78rem',
               }}
             >
-              <Zap size={18} />
-              <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Potencia Pico Relativa</span>
+              <span
+                style={{
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  background: 'var(--stat-amber-bg)',
+                  color: 'var(--stat-amber)',
+                  fontWeight: 800,
+                }}
+              >
+                Élite
+              </span>
+              <span style={{ color: 'var(--text-muted)' }}>Nivel competitivo</span>
             </div>
-            <strong style={{ fontSize: '1.6rem', color: 'var(--text-main)' }}>54.2 W/kg</strong>
-            <small
-              style={{
-                color: 'var(--success-text)',
-                display: 'block',
-                marginTop: '0.25rem',
-                fontWeight: 600,
-              }}
-            >
-              Nivel de élite competitivo
-            </small>
           </div>
         </div>
 
@@ -205,9 +462,10 @@ export const ProgressPage: React.FC = () => {
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '0.75rem',
-                  padding: '1rem',
+                  padding: '1rem 1.15rem',
                   borderRadius: '10px',
                   background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
                 }}
               >
                 <div>
@@ -240,7 +498,16 @@ export const ProgressPage: React.FC = () => {
                       {evalItem.result}
                     </strong>
                   </div>
-                  <span className="badge badge-success" style={{ fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontWeight: 800,
+                      fontSize: '0.82rem',
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: '6px',
+                      background: 'var(--stat-green-bg)',
+                      color: 'var(--stat-green)',
+                    }}
+                  >
                     {evalItem.delta}
                   </span>
                 </div>
