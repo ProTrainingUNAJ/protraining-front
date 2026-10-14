@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 
-interface WireframeCardItem {
+export interface WireframeCardItem {
   id: string;
   name: string;
   colSpan: number; // 1 o 2 columnas en grid de 4
-  type: 'empty' | 'suite' | 'training-weather';
+  type: 'empty' | 'suite' | 'training-weather' | 'progress-chart';
+  chartMetric?: 'cmj' | 'squat' | 'sprint' | 'rpe' | 'yoyo';
 }
 
 const DEFAULT_ROW_1: WireframeCardItem[] = [
@@ -241,6 +243,16 @@ export const DashboardPage: React.FC = () => {
   const handleDragEnd = () => {
     setDragSource(null);
     setDragOverTarget(null);
+  };
+
+  const handleRemoveChart = (rowId: number, cardId: string) => {
+    const updater = (prev: WireframeCardItem[]) =>
+      prev.map((c) =>
+        c.id === cardId ? { ...c, type: 'empty' as const, chartMetric: undefined } : c,
+      );
+    if (rowId === 1) setRow1(updater);
+    else if (rowId === 2) setRow2(updater);
+    else if (rowId === 3) setRow3(updater);
   };
 
   // Renderizador de una tarjeta individual
@@ -669,7 +681,71 @@ export const DashboardPage: React.FC = () => {
       );
     }
 
-    // ── Caso C: Tarjeta Vacía Limpia (Fila 1, Fila 2, Fila 3 derecha) ──
+    // ── Caso C: Tarjeta de Gráfico de Progreso Exportado desde "Mi Progreso" ──
+    if (card.type === 'progress-chart') {
+      return (
+        <div
+          key={card.id}
+          draggable
+          onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
+          onDragOver={(e) => handleDragOver(rowId, index, e)}
+          onDragLeave={(e) => handleDragLeave(rowId, index, e)}
+          onDrop={(e) => handleDrop(rowId, index, e)}
+          onDragEnd={handleDragEnd}
+          className={`wireframe-card ${spanClass} ${isDragging ? 'is-dragging' : ''} ${
+            isDragOver ? 'is-drag-over' : ''
+          } ${isRecentlyMoved ? 'is-recently-moved' : ''} ${isForbidden ? 'is-forbidden' : ''}`}
+          style={{
+            padding: 0,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+          title="Arrastrá para intercambiar posición en esta fila"
+        >
+          {/* Barra de herramientas para reordenar en la fila */}
+          <div className="wireframe-card-toolbar">
+            {index > 0 && (
+              <button
+                type="button"
+                className="wireframe-control-btn"
+                onClick={(e) => moveLeft(rowId, index, e)}
+                title="Mover a la izquierda"
+                aria-label="Mover a la izquierda"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+            {index < totalInRow - 1 && (
+              <button
+                type="button"
+                className="wireframe-control-btn"
+                onClick={(e) => moveRight(rowId, index, e)}
+                title="Mover a la derecha"
+                aria-label="Mover a la derecha"
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+            <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
+              <GripVertical size={18} />
+            </span>
+          </div>
+
+          <EvolutionChartWidget
+            metricKey={card.chartMetric || 'cmj'}
+            variant="compact"
+            colSpan={card.colSpan}
+            onRemove={() => handleRemoveChart(rowId, card.id)}
+          />
+        </div>
+      );
+    }
+
+    // ── Caso D: Tarjeta Vacía Limpia (Fila 1, Fila 2, Fila 3 derecha) ──
     return (
       <div
         key={card.id}
