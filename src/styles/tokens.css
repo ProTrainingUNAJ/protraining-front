@@ -104,6 +104,11 @@
   --stat-amber: #d97706;
   --stat-amber-bg: rgb(217 119 6 / 0.1);
 
+  /* Avatar celeste para perfil de usuario */
+  --avatar-cyan-bg: #e0f2fe;
+  --avatar-cyan-border: #38bdf8;
+  --avatar-cyan-text: #0284c7;
+
   /* Rutina de Entrenamiento y visor de GIFs */
   --routine-card-hover-border: var(--secondary);
   --routine-gif-bg: rgb(2 48 80 / 0.08);
@@ -153,6 +158,11 @@
   --stat-purple-border: rgb(192 132 252 / 0.35);
   --stat-amber: #fbbf24;
   --stat-amber-bg: rgb(251 191 36 / 0.16);
+
+  /* Avatar celeste para perfil de usuario (modo oscuro) */
+  --avatar-cyan-bg: rgb(2 132 199 / 0.22);
+  --avatar-cyan-border: #38bdf8;
+  --avatar-cyan-text: #38bdf8;
 
   /* App Shell rediseñada (modo oscuro) */
   --shell-bg: #0e1217;

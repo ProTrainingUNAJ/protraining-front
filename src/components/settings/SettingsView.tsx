@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Bell, Palette, Shield, Check, Save } from 'lucide-react';
+import { User, Bell, Palette, Shield, Check, Save, Camera, Laptop, Sun, Moon } from 'lucide-react';
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,7 +8,7 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
-  const { user } = useAuth();
+  const { user, themePreference, setThemePreference } = useAuth();
   const [activeTab, setActiveTab] = useState<
     'profile' | 'appearance' | 'notifications' | 'roleOptions'
   >('profile');
@@ -147,6 +147,116 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                 Datos personales asociados a tu usuario en la plataforma.
               </p>
 
+              {/* ── Círculo celeste para foto de perfil ── */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1.25rem',
+                  padding: '1.15rem 1.25rem',
+                  marginBottom: '1.5rem',
+                  borderRadius: '12px',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  flexWrap: 'wrap',
+                }}
+              >
+                {/* Contenedor del círculo celeste */}
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div
+                    style={{
+                      width: '84px',
+                      height: '84px',
+                      borderRadius: '50%',
+                      background: 'var(--avatar-cyan-bg)',
+                      border: '3px solid var(--avatar-cyan-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--avatar-cyan-text)',
+                      fontWeight: 800,
+                      fontSize: '1.65rem',
+                      letterSpacing: '-0.02em',
+                      boxShadow: 'var(--shadow)',
+                      userSelect: 'none',
+                    }}
+                    title="Foto de perfil del usuario"
+                    aria-label="Círculo de avatar de perfil"
+                  >
+                    {name
+                      .trim()
+                      .split(/\s+/)
+                      .slice(0, 2)
+                      .map((p) => p[0])
+                      .join('')
+                      .toUpperCase() || 'PT'}
+                  </div>
+
+                  {/* Badge celeste de cámara para futura carga */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '0',
+                      right: '0',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: 'var(--secondary)',
+                      color: 'var(--on-primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid var(--bg-card)',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
+                    }}
+                    title="Espacio para cargar foto de perfil"
+                    aria-label="Cámara"
+                  >
+                    <Camera size={14} />
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <strong
+                    style={{
+                      fontSize: '0.95rem',
+                      color: 'var(--text-main)',
+                      display: 'block',
+                      marginBottom: '0.2rem',
+                    }}
+                  >
+                    Foto de Perfil
+                  </strong>
+                  <p
+                    style={{
+                      margin: '0 0 0.5rem',
+                      fontSize: '0.82rem',
+                      color: 'var(--text-muted)',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Círculo de avatar configurado. Próximamente vas a poder subir y personalizar tu
+                    foto de perfil directamente desde aquí.
+                  </p>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      color: 'var(--avatar-cyan-text)',
+                      background: 'var(--avatar-cyan-bg)',
+                      padding: '0.2rem 0.6rem',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <Camera size={12} />
+                    <span>Espacio preparado para imagen</span>
+                  </span>
+                </div>
+              </div>
+
               <div
                 style={{
                   display: 'grid',
@@ -268,20 +378,248 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   maxWidth: '520px',
                 }}
               >
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <div>
+                {/* Selector de tema predeterminado */}
+                <div>
+                  <div style={{ marginBottom: '0.85rem' }}>
                     <strong
                       style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}
                     >
                       Tema del Sistema
                     </strong>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      El modo se sincroniza en todos tus paneles y navegación.
+                      Elegí tu modo predeterminado o sincronizalo automáticamente con tu dispositivo.
                     </span>
                   </div>
-                  <span className="badge badge-primary">Controlable en Topbar</span>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                      gap: '0.85rem',
+                    }}
+                  >
+                    {/* Opción Sistema (Predeterminado) */}
+                    <button
+                      type="button"
+                      onClick={() => setThemePreference('system')}
+                      style={{
+                        padding: '0.9rem',
+                        borderRadius: '10px',
+                        border: `2px solid ${
+                          themePreference === 'system' ? 'var(--secondary)' : 'var(--border)'
+                        }`,
+                        background:
+                          themePreference === 'system' ? 'var(--avatar-cyan-bg)' : 'var(--bg-subtle)',
+                        color: 'var(--text-main)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background:
+                              themePreference === 'system'
+                                ? 'var(--secondary)'
+                                : 'var(--bg-card)',
+                            color:
+                              themePreference === 'system'
+                                ? 'var(--on-primary)'
+                                : 'var(--text-main)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Laptop size={18} />
+                        </div>
+                        {themePreference === 'system' && (
+                          <span
+                            style={{
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              color: 'var(--secondary)',
+                              background: 'var(--bg-card)',
+                              padding: '0.15rem 0.45rem',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            Activo
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>
+                          Sistema
+                        </strong>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          Predeterminado (Auto)
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Opción Claro */}
+                    <button
+                      type="button"
+                      onClick={() => setThemePreference('light')}
+                      style={{
+                        padding: '0.9rem',
+                        borderRadius: '10px',
+                        border: `2px solid ${
+                          themePreference === 'light' ? 'var(--secondary)' : 'var(--border)'
+                        }`,
+                        background:
+                          themePreference === 'light' ? 'var(--avatar-cyan-bg)' : 'var(--bg-subtle)',
+                        color: 'var(--text-main)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background:
+                              themePreference === 'light'
+                                ? 'var(--secondary)'
+                                : 'var(--bg-card)',
+                            color:
+                              themePreference === 'light'
+                                ? 'var(--on-primary)'
+                                : 'var(--text-main)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Sun size={18} />
+                        </div>
+                        {themePreference === 'light' && (
+                          <span
+                            style={{
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              color: 'var(--secondary)',
+                              background: 'var(--bg-card)',
+                              padding: '0.15rem 0.45rem',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            Activo
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>
+                          Claro
+                        </strong>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          Contraste diurno
+                        </span>
+                      </div>
+                    </button>
+
+                    {/* Opción Oscuro */}
+                    <button
+                      type="button"
+                      onClick={() => setThemePreference('dark')}
+                      style={{
+                        padding: '0.9rem',
+                        borderRadius: '10px',
+                        border: `2px solid ${
+                          themePreference === 'dark' ? 'var(--secondary)' : 'var(--border)'
+                        }`,
+                        background:
+                          themePreference === 'dark' ? 'var(--avatar-cyan-bg)' : 'var(--bg-subtle)',
+                        color: 'var(--text-main)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background:
+                              themePreference === 'dark'
+                                ? 'var(--secondary)'
+                                : 'var(--bg-card)',
+                            color:
+                              themePreference === 'dark'
+                                ? 'var(--on-primary)'
+                                : 'var(--text-main)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Moon size={18} />
+                        </div>
+                        {themePreference === 'dark' && (
+                          <span
+                            style={{
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              color: 'var(--secondary)',
+                              background: 'var(--bg-card)',
+                              padding: '0.15rem 0.45rem',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            Activo
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>
+                          Oscuro
+                        </strong>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          Descanso visual
+                        </span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
