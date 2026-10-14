@@ -18,16 +18,19 @@ import {
 } from '../../components/athlete/bodyMuscleData';
 
 export const CheckInPage: React.FC = () => {
-  const [sleepScore, setSleepScore] = useState(4);
-  const [fatigueScore, setFatigueScore] = useState(2);
-  const [sorenessScore, setSorenessScore] = useState(2);
-  const [stressScore, setStressScore] = useState(1);
+  const [sleepScore, setSleepScore] = useState<number | null>(null);
+  const [fatigueScore, setFatigueScore] = useState<number | null>(null);
+  const [sorenessScore, setSorenessScore] = useState<number | null>(null);
+  const [stressScore, setStressScore] = useState<number | null>(null);
   const [musclePains, setMusclePains] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const reportedPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
   const reportedCount = reportedPains.length;
+
+  const isComplete =
+    sleepScore !== null && fatigueScore !== null && sorenessScore !== null && stressScore !== null;
 
   const handlePainChange = (muscleId: string, level: number) => {
     setMusclePains((prev) => {
@@ -47,35 +50,49 @@ export const CheckInPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isComplete) return;
     setSubmitted(true);
   };
 
   const renderScaleButtons = (
-    currentValue: number,
-    setter: (val: number) => void,
+    currentValue: number | null,
+    setter: (val: number | null) => void,
     lowLabel: string,
     highLabel: string,
   ) => {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {[1, 2, 3, 4, 5].map((val) => (
-            <button
-              key={val}
-              type="button"
-              onClick={() => setter(val)}
-              className={`btn ${currentValue === val ? 'btn-primary' : 'btn-secondary'}`}
-              style={{
-                flex: 1,
-                padding: '0.65rem 0',
-                fontSize: '1rem',
-                fontWeight: 700,
-                borderRadius: '8px',
-              }}
-            >
-              {val}
-            </button>
-          ))}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.65rem',
+          marginTop: 'auto',
+          width: '100%',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '0.45rem' }}>
+          {[1, 2, 3, 4, 5].map((val) => {
+            const isSelected = currentValue === val;
+            return (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setter(isSelected ? null : val)}
+                className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                style={{
+                  flex: 1,
+                  padding: '0.65rem 0',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  transition: 'all 0.15s ease',
+                  border: isSelected ? undefined : '1px solid var(--border)',
+                }}
+              >
+                {val}
+              </button>
+            );
+          })}
         </div>
         <div
           style={{
@@ -83,10 +100,12 @@ export const CheckInPage: React.FC = () => {
             justifyContent: 'space-between',
             fontSize: '0.75rem',
             color: 'var(--text-muted)',
+            minHeight: '1.2rem',
+            alignItems: 'center',
           }}
         >
           <span>1: {lowLabel}</span>
-          <span>5: {highLabel}</span>
+          <span style={{ textAlign: 'right' }}>5: {highLabel}</span>
         </div>
       </div>
     );
@@ -202,7 +221,7 @@ export const CheckInPage: React.FC = () => {
                     }}
                   >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>
-                      Dolor general
+                      Dolor Muscular
                     </small>
                     <strong style={{ color: 'var(--text-main)' }}>{sorenessScore} / 5</strong>
                   </div>
@@ -214,7 +233,9 @@ export const CheckInPage: React.FC = () => {
                       border: '1px solid var(--border)',
                     }}
                   >
-                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Estrés</small>
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>
+                      Estado de Ánimo
+                    </small>
                     <strong style={{ color: 'var(--text-main)' }}>{stressScore} / 5</strong>
                   </div>
                 </div>
@@ -318,30 +339,51 @@ export const CheckInPage: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                 gap: '1.25rem',
               }}
             >
               {/* 1. Calidad del Sueño */}
-              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+              <div
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '1rem',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                    marginBottom: '1.25rem',
                   }}
                 >
-                  <Moon size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
-                    Calidad del Sueño
-                  </strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Moon size={18} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                    <strong
+                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
+                    >
+                      Calidad del Sueño
+                    </strong>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted)',
+                      margin: 0,
+                      minHeight: '2.4rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    ¿Cómo descansaste anoche?
+                  </p>
                 </div>
-                <p
-                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
-                >
-                  ¿Cómo descansaste anoche?
-                </p>
                 {renderScaleButtons(
                   sleepScore,
                   setSleepScore,
@@ -351,25 +393,49 @@ export const CheckInPage: React.FC = () => {
               </div>
 
               {/* 2. Nivel de Fatiga */}
-              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+              <div
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '1rem',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                    marginBottom: '1.25rem',
                   }}
                 >
-                  <BatteryCharging size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
-                    Nivel de Fatiga
-                  </strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <BatteryCharging
+                      size={18}
+                      style={{ color: 'var(--secondary)', flexShrink: 0 }}
+                    />
+                    <strong
+                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
+                    >
+                      Nivel de Fatiga
+                    </strong>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted)',
+                      margin: 0,
+                      minHeight: '2.4rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    ¿Cuánta energía física sientes al despertar?
+                  </p>
                 </div>
-                <p
-                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
-                >
-                  ¿Cuánta energía física sientes al despertar?
-                </p>
                 {renderScaleButtons(
                   fatigueScore,
                   setFatigueScore,
@@ -379,25 +445,46 @@ export const CheckInPage: React.FC = () => {
               </div>
 
               {/* 3. Dolor Muscular */}
-              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+              <div
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '1rem',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                    marginBottom: '1.25rem',
                   }}
                 >
-                  <ShieldAlert size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
-                    Dolor Muscular / Agujetas
-                  </strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ShieldAlert size={18} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                    <strong
+                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
+                    >
+                      Dolor Muscular
+                    </strong>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted)',
+                      margin: 0,
+                      minHeight: '2.4rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Sensación de sobrecarga o molestias generales.
+                  </p>
                 </div>
-                <p
-                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
-                >
-                  Sensación de sobrecarga o molestias generales.
-                </p>
                 {renderScaleButtons(
                   sorenessScore,
                   setSorenessScore,
@@ -406,26 +493,47 @@ export const CheckInPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 4. Estrés / Ánimo */}
-              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+              {/* 4. Estado de Ánimo */}
+              <div
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '1rem',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                    marginBottom: '1.25rem',
                   }}
                 >
-                  <Smile size={18} style={{ color: 'var(--secondary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
-                    Estado de Ánimo / Estrés
-                  </strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Smile size={18} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                    <strong
+                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
+                    >
+                      Estado de Ánimo
+                    </strong>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted)',
+                      margin: 0,
+                      minHeight: '2.4rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Nivel de concentración y tranquilidad mental.
+                  </p>
                 </div>
-                <p
-                  style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}
-                >
-                  Nivel de concentración y tranquilidad mental.
-                </p>
                 {renderScaleButtons(
                   stressScore,
                   setStressScore,
@@ -516,14 +624,35 @@ export const CheckInPage: React.FC = () => {
                 style={{
                   display: 'flex',
                   justifyContent: 'flex-end',
-                  paddingTop: '0.5rem',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  paddingTop: '0.75rem',
                   borderTop: '1px solid var(--border)',
+                  flexWrap: 'wrap',
                 }}
               >
+                {!isComplete && (
+                  <span
+                    style={{
+                      fontSize: '0.82rem',
+                      color: 'var(--text-muted)',
+                      marginRight: 'auto',
+                    }}
+                  >
+                    * Por favor califica los 4 indicadores superiores para enviar el check-in.
+                  </span>
+                )}
                 <button
                   type="submit"
+                  disabled={!isComplete}
                   className="btn btn-primary"
-                  style={{ gap: '0.45rem', padding: '0.65rem 1.6rem', fontSize: '0.92rem' }}
+                  style={{
+                    gap: '0.45rem',
+                    padding: '0.65rem 1.6rem',
+                    fontSize: '0.92rem',
+                    opacity: isComplete ? 1 : 0.5,
+                    cursor: isComplete ? 'pointer' : 'not-allowed',
+                  }}
                 >
                   <Send size={15} />
                   <span>Enviar Check-in al Profesor</span>
