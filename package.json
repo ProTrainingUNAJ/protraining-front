@@ -10,7 +10,8 @@
     "lint": "eslint . && stylelint \"src/**/*.css\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "generate-pwa-assets": "pwa-assets-generator"
+    "generate-pwa-assets": "pwa-assets-generator",
+    "generate:api": "openapi-ts"
   },
   "dependencies": {
     "@fontsource-variable/montserrat": "^5.3.0",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@hey-api/openapi-ts": "0.99.0",
     "@types/node": "^26.6.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
