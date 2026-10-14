@@ -796,6 +796,13 @@
   background-color: var(--on-primary-hover);
 }
 
+/* En pantallas de escritorio se oculta cualquier remanente del menú móvil */
+@media (min-width: 992px) {
+  .app-mobile-backdrop {
+    display: none;
+  }
+}
+
 /* ── Adaptación Responsive (Tablet y Móvil) ── */
 @media (max-width: 1200px) {
   .wireframe-row-2 {
