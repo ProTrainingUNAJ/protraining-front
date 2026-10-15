@@ -178,7 +178,7 @@ export const MonitoringPage: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.5rem',
                 marginBottom: '0.35rem',
-                color: 'var(--warning-text, #eab308)',
+                color: 'var(--warning-text)',
               }}
             >
               <AlertTriangle size={18} />

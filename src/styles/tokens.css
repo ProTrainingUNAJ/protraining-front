@@ -78,6 +78,37 @@
   --shell-pill-border: #0070c0;
   --shell-pill-hover: #eef6fc;
 
+  /* Colores base y utilitarios */
+  --white: #ffffff;
+  --black: #000000;
+  --cyan-accent: #38bdf8;
+  --navy-deep: #021e33;
+
+  /* Proveedores de autenticación */
+  --color-google-blue: #4285f4;
+  --color-google-green: #34a853;
+  --color-google-yellow: #fbbc05;
+  --color-google-red: #ea4335;
+
+  /* Inputs y controles de formulario */
+  --input-bg: #f8fafc;
+  --input-border: #e2e8f0;
+  --input-border-hover: #c8d0dc;
+  --input-border-subtle: #c8d0dc;
+  --input-border-subtle-hover: #a0aec0;
+  --input-bg-hover: #f3f6fa;
+  --input-border-focus: #a0aec0;
+  --input-text: #1a1a2e;
+  --input-text-dark: #e8edf4;
+  --input-placeholder: #94a3b8;
+
+  /* Estados y bordes complementarios */
+  --brand-blue-hover: #005999;
+  --bg-surface-subtle: #f4f5f7;
+  --color-text-subtle: #8e98a5;
+  --status-danger-border: #f87171;
+  --status-success-border: #86efac;
+
   /* Escala de dolor muscular ProTraining (1 a 5) */
   --pain-level-1: #20c56b;
   --pain-level-2: #84cc16;
@@ -117,6 +148,21 @@
   --info-text: #93c5fd;
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+
+  /* Inputs y estados en modo oscuro */
+  --bg-surface-subtle: #1c2025;
+  --color-text-subtle: #6d7784;
+  --input-bg: #1c2025;
+  --input-border: #2e3846;
+  --input-border-hover: #3d4a5c;
+  --input-bg-hover: #222831;
+  --input-border-focus: #38bdf8;
+  --input-text: #f1f3f5;
+  --input-placeholder: #6d7784;
+
+  --warning-text: #fcd34d;
+  --status-danger-text-dark: #fca5a5;
+  --status-success-text-dark: #86efac;
 
   /* App Shell rediseñada (modo oscuro) */
   --shell-bg: #0e1217;

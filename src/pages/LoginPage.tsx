@@ -4,9 +4,9 @@ import { ArrowUpRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { LoginForm } from '../components/auth/LoginForm';
 import { BentoShowcase } from '../components/auth/BentoShowcase';
-import avatar1 from '../assets/avatars/User (1).png';
-import avatar2 from '../assets/avatars/User (2).png';
-import avatar3 from '../assets/avatars/User (3).png';
+import avatar1 from '../assets/avatars/user-1.webp';
+import avatar2 from '../assets/avatars/user-2.webp';
+import avatar3 from '../assets/avatars/user-3.webp';
 
 export const LoginPage: React.FC = () => {
   const { isAuthenticated, user, isHydrating } = useAuth();

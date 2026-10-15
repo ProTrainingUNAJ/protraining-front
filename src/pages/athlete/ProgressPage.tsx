@@ -158,7 +158,7 @@ export const ProgressPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                color: 'var(--warning-text, #eab308)',
+                color: 'var(--warning-text)',
                 marginBottom: '0.35rem',
               }}
             >

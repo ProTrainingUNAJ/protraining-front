@@ -64,7 +64,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                 padding: '0.2rem 0.65rem',
                 borderRadius: '12px',
                 background: getPainColor(activeBrushLevel),
-                color: '#ffffff',
+                color: 'var(--on-primary)',
                 transition: 'background 0.2s ease',
               }}
             >
@@ -160,7 +160,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                     height: '22px',
                     borderRadius: '50%',
                     background: item.color,
-                    color: '#ffffff',
+                    color: 'var(--on-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -235,7 +235,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
             <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               {musclePains[selectedMuscle.id]
                 ? `Nivel ${musclePains[selectedMuscle.id]} (${PAIN_LEVELS.find((p) => p.level === musclePains[selectedMuscle.id])?.name})`
-                : 'Sin dolor registrado (Azul #023050)'}
+                : 'Sin dolor registrado'}
             </span>
           </div>
 
@@ -250,7 +250,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   height: '26px',
                   borderRadius: '50%',
                   background: p.color,
-                  color: '#ffffff',
+                  color: 'var(--on-primary)',
                   border:
                     musclePains[selectedMuscle.id] === p.level
                       ? '2.5px solid var(--text-main)'
@@ -354,7 +354,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
           style={{
             width: '100%',
             maxWidth: '960px',
-            background: '#ffffff',
+            background: 'var(--bg-card)',
             borderRadius: '12px',
             padding: '0.5rem',
             border: '1px solid var(--border)',
@@ -371,7 +371,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
             }}
             aria-label="Mapa muscular anatómico de ProTraining con escala de dolor"
           >
-            {/* 1. IMAGEN BASE AZUL (#023050) - Permanece en azul para zonas no marcadas y no seleccionables */}
+            {/* 1. IMAGEN BASE AZUL - Permanece en azul para zonas no marcadas y no seleccionables */}
             <image
               href="/assets/body-muscles-base.png"
               x="0"
@@ -436,7 +436,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                       key={idx}
                       points={pts}
                       fill={isHovered ? 'rgba(0, 112, 192, 0.22)' : 'transparent'}
-                      stroke={isSelected ? '#0070c0' : isHovered ? '#0070c0' : 'transparent'}
+                      stroke={isSelected || isHovered ? 'var(--brand-blue)' : 'transparent'}
                       strokeWidth={isSelected ? 2 : isHovered ? 1.5 : 0}
                       style={{ transition: 'fill 0.15s ease, stroke 0.15s ease' }}
                     />
@@ -452,7 +452,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                           <circle
                             r="11"
                             fill={painColor}
-                            stroke="#ffffff"
+                            stroke="var(--on-primary)"
                             strokeWidth="2"
                             style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
                           />
@@ -461,7 +461,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                             dominantBaseline="central"
                             fontSize="11"
                             fontWeight="900"
-                            fill="#ffffff"
+                            fill="var(--on-primary)"
                           >
                             {level}
                           </text>
@@ -472,7 +472,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                           <circle
                             r="11"
                             fill={painColor}
-                            stroke="#ffffff"
+                            stroke="var(--on-primary)"
                             strokeWidth="2"
                             style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
                           />
@@ -481,7 +481,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                             dominantBaseline="central"
                             fontSize="11"
                             fontWeight="900"
-                            fill="#ffffff"
+                            fill="var(--on-primary)"
                           >
                             {level}
                           </text>
@@ -549,8 +549,8 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   padding: '0.45rem 0.85rem',
                   borderRadius: '8px',
                   border: hasPain ? `1.5px solid ${painColor}` : '1px solid var(--border)',
-                  background: hasPain ? painColor : '#023050',
-                  color: '#ffffff',
+                  background: hasPain ? painColor : 'var(--brand-navy)',
+                  color: 'var(--on-primary)',
                   fontSize: '0.82rem',
                   fontWeight: 700,
                   cursor: 'pointer',

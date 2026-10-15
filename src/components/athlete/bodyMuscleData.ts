@@ -16,16 +16,41 @@ export interface PainLevelOption {
 }
 
 export const PAIN_LEVELS: PainLevelOption[] = [
-  { level: 1, name: 'Leve', color: '#20C56B', desc: 'Sensación leve / ligera tirantez' },
-  { level: 2, name: 'Molestia', color: '#84CC16', desc: 'Molestia perceptible al movimiento' },
-  { level: 3, name: 'Moderado', color: '#F4B400', desc: 'Dolor limitante pero tolerable' },
-  { level: 4, name: 'Fuerte', color: '#FF781F', desc: 'Dolor agudo que restringe la carga' },
-  { level: 5, name: 'Agudo', color: '#F04444', desc: 'Dolor severo / impedimento total' },
+  {
+    level: 1,
+    name: 'Leve',
+    color: 'var(--pain-level-1)',
+    desc: 'Sensación leve / ligera tirantez',
+  },
+  {
+    level: 2,
+    name: 'Molestia',
+    color: 'var(--pain-level-2)',
+    desc: 'Molestia perceptible al movimiento',
+  },
+  {
+    level: 3,
+    name: 'Moderado',
+    color: 'var(--pain-level-3)',
+    desc: 'Dolor limitante pero tolerable',
+  },
+  {
+    level: 4,
+    name: 'Fuerte',
+    color: 'var(--pain-level-4)',
+    desc: 'Dolor agudo que restringe la carga',
+  },
+  {
+    level: 5,
+    name: 'Agudo',
+    color: 'var(--pain-level-5)',
+    desc: 'Dolor severo / impedimento total',
+  },
 ];
 
 export const getPainColor = (level?: number): string => {
   const item = PAIN_LEVELS.find((p) => p.level === level);
-  return item ? item.color : '#023050';
+  return item ? item.color : 'var(--brand-navy)';
 };
 
 export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [

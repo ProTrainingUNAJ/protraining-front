@@ -336,7 +336,7 @@ export const DashboardPage: React.FC = () => {
                 fontSize: '1.25rem',
                 fontWeight: 800,
                 margin: '0 0 0.4rem',
-                color: '#ffffff',
+                color: 'var(--white)',
                 lineHeight: 1.25,
               }}
             >

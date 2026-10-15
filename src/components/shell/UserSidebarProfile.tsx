@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import coachAvatarImg from '../../assets/avatars/User (1).png';
-import athleteAvatarImg from '../../assets/avatars/User (2).png';
+import coachAvatarImg from '../../assets/avatars/user-1.webp';
+import athleteAvatarImg from '../../assets/avatars/user-2.webp';
 
 export const UserSidebarProfile: React.FC = () => {
   const { user, logout } = useAuth();
