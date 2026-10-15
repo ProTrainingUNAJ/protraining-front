@@ -18,6 +18,7 @@ import { SettingsPage as AthleteSettingsPage } from './pages/athlete/SettingsPag
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
+import { RequireAuth } from './components/auth/RequireAuth';
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootRedirect() {
@@ -31,9 +32,15 @@ function RootRedirect() {
     return <Navigate to="/login" replace />;
   }
 
-  const isPF =
-    user.role.toLowerCase().includes('pf') || user.role.toLowerCase().includes('preparador');
-  return <Navigate to={isPF ? '/pf' : '/athlete'} replace />;
+  if (user.role === 'PreparadorFisico') {
+    return <Navigate to="/pf" replace />;
+  }
+
+  if (user.role === 'Atleta') {
+    return <Navigate to="/athlete" replace />;
+  }
+
+  return <Navigate to="/login" replace />;
 }
 
 export const router = createBrowserRouter([
@@ -47,28 +54,38 @@ export const router = createBrowserRouter([
       { path: 'login/pf', element: <LoginPage /> },
       {
         path: 'pf',
-        element: <CoachLayout />,
+        element: <RequireAuth allowedRole="PreparadorFisico" />,
         children: [
-          { index: true, element: <DashboardPage /> },
-          { path: 'organizations', element: <OrganizationsPage /> },
-          { path: 'categories', element: <CategoriesPage /> },
-          { path: 'athletes', element: <AthletesPage /> },
-          { path: 'planning', element: <PlanningPage /> },
-          { path: 'training', element: <TrainingPage /> },
-          { path: 'monitoring', element: <MonitoringPage /> },
-          { path: 'reports', element: <ReportsPage /> },
-          { path: 'settings', element: <SettingsPage /> },
+          {
+            element: <CoachLayout />,
+            children: [
+              { index: true, element: <DashboardPage /> },
+              { path: 'organizations', element: <OrganizationsPage /> },
+              { path: 'categories', element: <CategoriesPage /> },
+              { path: 'athletes', element: <AthletesPage /> },
+              { path: 'planning', element: <PlanningPage /> },
+              { path: 'training', element: <TrainingPage /> },
+              { path: 'monitoring', element: <MonitoringPage /> },
+              { path: 'reports', element: <ReportsPage /> },
+              { path: 'settings', element: <SettingsPage /> },
+            ],
+          },
         ],
       },
       {
         path: 'athlete',
-        element: <AthleteLayout />,
+        element: <RequireAuth allowedRole="Atleta" />,
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'routine', element: <RoutinePage /> },
-          { path: 'check-in', element: <CheckInPage /> },
-          { path: 'progress', element: <ProgressPage /> },
-          { path: 'settings', element: <AthleteSettingsPage /> },
+          {
+            element: <AthleteLayout />,
+            children: [
+              { index: true, element: <HomePage /> },
+              { path: 'routine', element: <RoutinePage /> },
+              { path: 'check-in', element: <CheckInPage /> },
+              { path: 'progress', element: <ProgressPage /> },
+              { path: 'settings', element: <AthleteSettingsPage /> },
+            ],
+          },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
