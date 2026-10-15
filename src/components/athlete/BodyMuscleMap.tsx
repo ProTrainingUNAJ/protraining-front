@@ -166,7 +166,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                     justifyContent: 'center',
                     fontSize: '0.78rem',
                     fontWeight: 900,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    boxShadow: 'var(--shadow-sm)',
                     flexShrink: 0,
                   }}
                 >
@@ -326,7 +326,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
               padding: '0.35rem 0.9rem',
               borderRadius: '8px',
               border: '1px solid var(--border)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             Vista Frontal (Anterior)
@@ -342,7 +342,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
               padding: '0.35rem 0.9rem',
               borderRadius: '8px',
               border: '1px solid var(--border)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             Vista Posterior (Trasera)
@@ -358,7 +358,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
             borderRadius: '12px',
             padding: '0.5rem',
             border: '1px solid var(--border)',
-            boxShadow: 'inset 0 0 8px rgba(2, 48, 80, 0.04)',
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           <svg
@@ -397,7 +397,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   preserveAspectRatio="xMidYMid meet"
                   style={{
                     pointerEvents: 'none',
-                    filter: 'drop-shadow(0 0 2px rgba(0, 0, 0, 0.25))',
+                    filter: 'var(--shadow-glow-layer)',
                   }}
                 />
               );
@@ -435,7 +435,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                     <polygon
                       key={idx}
                       points={pts}
-                      fill={isHovered ? 'rgba(0, 112, 192, 0.22)' : 'transparent'}
+                      fill={isHovered ? 'var(--muscle-hover-fill)' : 'transparent'}
                       stroke={isSelected || isHovered ? 'var(--brand-blue)' : 'transparent'}
                       strokeWidth={isSelected ? 2 : isHovered ? 1.5 : 0}
                       style={{ transition: 'fill 0.15s ease, stroke 0.15s ease' }}
@@ -454,7 +454,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                             fill={painColor}
                             stroke="var(--on-primary)"
                             strokeWidth="2"
-                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+                            style={{ filter: 'var(--shadow-filter)' }}
                           />
                           <text
                             textAnchor="middle"
@@ -474,7 +474,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                             fill={painColor}
                             stroke="var(--on-primary)"
                             strokeWidth="2"
-                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+                            style={{ filter: 'var(--shadow-filter)' }}
                           />
                           <text
                             textAnchor="middle"
@@ -555,14 +555,14 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
                   fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all 0.18s ease',
-                  boxShadow: hasPain ? `0 2px 8px ${painColor}44` : 'none',
+                  boxShadow: hasPain ? 'var(--shadow-sm)' : 'none',
                 }}
               >
                 <span>{muscle.name}</span>
                 {hasPain ? (
                   <span
                     style={{
-                      background: 'rgba(255,255,255,0.25)',
+                      background: 'var(--muscle-badge-bg)',
                       padding: '0.1rem 0.4rem',
                       borderRadius: '10px',
                       fontSize: '0.72rem',

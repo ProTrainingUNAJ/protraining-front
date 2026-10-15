@@ -310,15 +310,14 @@ export const DashboardPage: React.FC = () => {
               position: 'relative',
               padding: '1.75rem',
               zIndex: 2,
-              background:
-                'linear-gradient(to top, rgba(2, 48, 80, 0.95) 0%, rgba(2, 48, 80, 0.4) 100%)',
+              background: 'var(--grad-suite-card)',
             }}
           >
             <div style={{ marginBottom: '0.65rem' }}>
               <span
                 style={{
                   display: 'inline-block',
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: 'var(--suite-badge-bg)',
                   padding: '0.28rem 0.75rem',
                   borderRadius: '9999px',
                   fontSize: '0.72rem',
@@ -348,7 +347,7 @@ export const DashboardPage: React.FC = () => {
             <p
               style={{
                 fontSize: '0.85rem',
-                color: 'rgba(255, 255, 255, 0.78)',
+                color: 'var(--suite-text-muted)',
                 margin: '0 0 1.15rem',
                 maxWidth: '480px',
                 lineHeight: 1.4,
@@ -372,7 +371,7 @@ export const DashboardPage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+                  boxShadow: 'var(--suite-button-shadow)',
                 }}
                 onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/athletes')}
               >

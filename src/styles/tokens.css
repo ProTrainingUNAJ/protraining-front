@@ -58,8 +58,11 @@
   --overlay: rgb(2 48 80 / 0.6);
 
   --radius: 12px;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.1);
   --shadow: 0 4px 6px -1px rgb(2 48 80 / 0.08), 0 2px 4px -2px rgb(2 48 80 / 0.06);
   --shadow-lg: 0 20px 25px -5px rgb(2 48 80 / 0.1);
+  --shadow-filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.4));
+  --shadow-glow-layer: drop-shadow(0 0 2px rgb(0 0 0 / 0.25));
   --focus-ring: 0 0 0 3px rgb(0 112 192 / 0.18);
 
   --safe-top: env(safe-area-inset-top, 0px);
@@ -123,8 +126,16 @@
   --muscle-default-fill: #e2e8f0;
   --muscle-default-stroke: #cbd5e1;
   --muscle-hover-stroke: #0070c0;
+  --muscle-hover-fill: rgb(0 112 192 / 0.22);
+  --muscle-badge-bg: rgb(255 255 255 / 0.25);
   --muscle-blue: #023050;
   --muscle-red: #f04444;
+
+  /* Banner y tarjeta Suite (Dashboard PF y Atleta) */
+  --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
+  --suite-badge-bg: rgb(255 255 255 / 0.15);
+  --suite-text-muted: rgb(255 255 255 / 0.78);
+  --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
 }
 
 [data-theme='dark'] {
@@ -180,4 +191,11 @@
   --muscle-default-fill: #1e293b;
   --muscle-default-stroke: #334155;
   --muscle-hover-stroke: #38bdf8;
+  --muscle-hover-fill: rgb(56 189 248 / 0.25);
+  --muscle-badge-bg: rgb(255 255 255 / 0.15);
+
+  --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
+  --suite-badge-bg: rgb(255 255 255 / 0.1);
+  --suite-text-muted: rgb(255 255 255 / 0.7);
+  --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
 }
