@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Layers, Plus, RefreshCw, Check, AlertCircle, Users } from 'lucide-react';
-import { getOrganizations } from '../../api/organizations';
-import { getCategories, createCategory } from '../../api/categories';
+import { structureService } from '../../api/structureService';
 import { Organization, Category } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 
@@ -31,7 +30,7 @@ export const CategoriesPage: React.FC = () => {
       setLoadingOrgs(true);
       setError(null);
       try {
-        const orgs = await getOrganizations();
+        const orgs = await structureService.getOrganizations();
         if (!mounted) return;
         setOrganizations(orgs);
 
@@ -62,7 +61,8 @@ export const CategoriesPage: React.FC = () => {
 
     let mounted = true;
 
-    getCategories(selectedOrgId)
+    structureService
+      .getCategories(selectedOrgId)
       .then((data) => {
         if (!mounted) return;
         setCategories(data);
@@ -91,7 +91,7 @@ export const CategoriesPage: React.FC = () => {
     setLoadingCategories(true);
     setError(null);
     try {
-      const data = await getCategories(orgId);
+      const data = await structureService.getCategories(orgId);
       setCategories(data);
     } catch (err: unknown) {
       setError(
@@ -131,7 +131,7 @@ export const CategoriesPage: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      const newCategory = await createCategory(selectedOrgId, {
+      const newCategory = await structureService.createCategory(selectedOrgId, {
         name: cleanName,
         description: description.trim() || null,
       });
