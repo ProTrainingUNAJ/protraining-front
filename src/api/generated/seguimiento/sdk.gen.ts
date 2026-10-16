@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ActualizarEstadoLesionData, ActualizarEstadoLesionErrors, ActualizarEstadoLesionResponses, CrearLesionData, CrearLesionErrors, CrearLesionResponses, HealthCheckData, HealthCheckResponses, ListarCheckInsAtletaData, ListarCheckInsAtletaErrors, ListarCheckInsAtletaResponses, ListarLesionesAtletaData, ListarLesionesAtletaErrors, ListarLesionesAtletaResponses, ObtenerAsistenciaCategoriaHoyData, ObtenerAsistenciaCategoriaHoyErrors, ObtenerAsistenciaCategoriaHoyResponses, ObtenerComparativaCategoriaData, ObtenerComparativaCategoriaErrors, ObtenerComparativaCategoriaResponses, RegistrarCargaDiariaData, RegistrarCargaDiariaErrors, RegistrarCargaDiariaResponses, RegistrarCheckInData, RegistrarCheckInErrors, RegistrarCheckInResponses } from './types.gen';
+import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,13 +21,13 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * Enviar o actualizar check-in diario del atleta
  *
- * Registra el reporte de bienestar en menos de 30 segundos. Evalúa las respuestas mediante umbrales y clasifica de inmediato al atleta en el semáforo tricolor (Verde, Amarillo o Rojo).
+ * Registra el reporte de bienestar en menos de 30 segundos. Evalúa las respuestas mediante umbrales y clasifica de inmediato al atleta en el semáforo tricolor (Green, Yellow o Red).
  *
  */
-export const registrarCheckIn = <ThrowOnError extends boolean = false>(options: Options<RegistrarCheckInData, ThrowOnError>): RequestResult<RegistrarCheckInResponses, RegistrarCheckInErrors, ThrowOnError> => (options.client ?? client).post<RegistrarCheckInResponses, RegistrarCheckInErrors, ThrowOnError>({
+export const submitCheckIn = <ThrowOnError extends boolean = false>(options: Options<SubmitCheckInData, ThrowOnError>): RequestResult<SubmitCheckInResponses, SubmitCheckInErrors, ThrowOnError> => (options.client ?? client).post<SubmitCheckInResponses, SubmitCheckInErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/check-in',
+    url: '/api/v1/athletes/{athleteId}/check-in',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -40,10 +40,10 @@ export const registrarCheckIn = <ThrowOnError extends boolean = false>(options: 
  *
  * Devuelve los registros de bienestar diarios del atleta (por defecto los últimos 14 registros).
  */
-export const listarCheckInsAtleta = <ThrowOnError extends boolean = false>(options: Options<ListarCheckInsAtletaData, ThrowOnError>): RequestResult<ListarCheckInsAtletaResponses, ListarCheckInsAtletaErrors, ThrowOnError> => (options.client ?? client).get<ListarCheckInsAtletaResponses, ListarCheckInsAtletaErrors, ThrowOnError>({
+export const listAthleteCheckIns = <ThrowOnError extends boolean = false>(options: Options<ListAthleteCheckInsData, ThrowOnError>): RequestResult<ListAthleteCheckInsResponses, ListAthleteCheckInsErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteCheckInsResponses, ListAthleteCheckInsErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/check-ins',
+    url: '/api/v1/athletes/{athleteId}/check-ins',
     ...options
 });
 
@@ -53,10 +53,10 @@ export const listarCheckInsAtleta = <ThrowOnError extends boolean = false>(optio
  * El atleta reporta los minutos dedicados a gimnasio, práctica de su deporte, partido o trabajo individual. De aquí se deducen el volumen diario y la asistencia automática sin tomar lista.
  *
  */
-export const registrarCargaDiaria = <ThrowOnError extends boolean = false>(options: Options<RegistrarCargaDiariaData, ThrowOnError>): RequestResult<RegistrarCargaDiariaResponses, RegistrarCargaDiariaErrors, ThrowOnError> => (options.client ?? client).post<RegistrarCargaDiariaResponses, RegistrarCargaDiariaErrors, ThrowOnError>({
+export const registerDailyLoad = <ThrowOnError extends boolean = false>(options: Options<RegisterDailyLoadData, ThrowOnError>): RequestResult<RegisterDailyLoadResponses, RegisterDailyLoadErrors, ThrowOnError> => (options.client ?? client).post<RegisterDailyLoadResponses, RegisterDailyLoadErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/carga-diaria',
+    url: '/api/v1/athletes/{athleteId}/daily-load',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -69,10 +69,23 @@ export const registrarCargaDiaria = <ThrowOnError extends boolean = false>(optio
  *
  * Consolida quiénes entrenaron hoy a partir de las cargas de entrenamiento cargadas por los propios atletas.
  */
-export const obtenerAsistenciaCategoriaHoy = <ThrowOnError extends boolean = false>(options: Options<ObtenerAsistenciaCategoriaHoyData, ThrowOnError>): RequestResult<ObtenerAsistenciaCategoriaHoyResponses, ObtenerAsistenciaCategoriaHoyErrors, ThrowOnError> => (options.client ?? client).get<ObtenerAsistenciaCategoriaHoyResponses, ObtenerAsistenciaCategoriaHoyErrors, ThrowOnError>({
+export const getCategoryAttendanceToday = <ThrowOnError extends boolean = false>(options: Options<GetCategoryAttendanceTodayData, ThrowOnError>): RequestResult<GetCategoryAttendanceTodayResponses, GetCategoryAttendanceTodayErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryAttendanceTodayResponses, GetCategoryAttendanceTodayErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/categorias/{categoriaId}/asistencia-hoy',
+    url: '/api/v1/categories/{categoryId}/attendance-today',
+    ...options
+});
+
+/**
+ * Consultar semáforo tricolor de hoy por categoría
+ *
+ * Pantalla central del preparador físico en el día a día. Consolida el estado tricolor de bienestar (Green, Yellow, Red) de cada atleta de la división para la jornada actual, permitiendo detectar rápidamente a quienes requieren atención o ajuste de cargas antes de iniciar la práctica.
+ *
+ */
+export const getCategoryTrafficLightToday = <ThrowOnError extends boolean = false>(options: Options<GetCategoryTrafficLightTodayData, ThrowOnError>): RequestResult<GetCategoryTrafficLightTodayResponses, GetCategoryTrafficLightTodayErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryTrafficLightTodayResponses, GetCategoryTrafficLightTodayErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/traffic-light-today',
     ...options
 });
 
@@ -82,10 +95,10 @@ export const obtenerAsistenciaCategoriaHoy = <ThrowOnError extends boolean = fal
  * Retorna la evolución del atleta comparada exclusivamente contra el promedio anónimo de su categoría (garantía de seguridad: ningún atleta ve los datos individuales de sus compañeros).
  *
  */
-export const obtenerComparativaCategoria = <ThrowOnError extends boolean = false>(options: Options<ObtenerComparativaCategoriaData, ThrowOnError>): RequestResult<ObtenerComparativaCategoriaResponses, ObtenerComparativaCategoriaErrors, ThrowOnError> => (options.client ?? client).get<ObtenerComparativaCategoriaResponses, ObtenerComparativaCategoriaErrors, ThrowOnError>({
+export const getGroupBenchmark = <ThrowOnError extends boolean = false>(options: Options<GetGroupBenchmarkData, ThrowOnError>): RequestResult<GetGroupBenchmarkResponses, GetGroupBenchmarkErrors, ThrowOnError> => (options.client ?? client).get<GetGroupBenchmarkResponses, GetGroupBenchmarkErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/comparativa-categoria',
+    url: '/api/v1/athletes/{athleteId}/group-benchmark',
     ...options
 });
 
@@ -94,22 +107,22 @@ export const obtenerComparativaCategoria = <ThrowOnError extends boolean = false
  *
  * Obtiene el historial de lesiones registradas para un atleta, permitiendo filtrar por su estado actual.
  */
-export const listarLesionesAtleta = <ThrowOnError extends boolean = false>(options: Options<ListarLesionesAtletaData, ThrowOnError>): RequestResult<ListarLesionesAtletaResponses, ListarLesionesAtletaErrors, ThrowOnError> => (options.client ?? client).get<ListarLesionesAtletaResponses, ListarLesionesAtletaErrors, ThrowOnError>({
+export const listAthleteInjuries = <ThrowOnError extends boolean = false>(options: Options<ListAthleteInjuriesData, ThrowOnError>): RequestResult<ListAthleteInjuriesResponses, ListAthleteInjuriesErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteInjuriesResponses, ListAthleteInjuriesErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/lesiones',
+    url: '/api/v1/athletes/{athleteId}/injuries',
     ...options
 });
 
 /**
  * Registrar una nueva lesión
  *
- * Da de alta una lesión para el atleta en estado inicial 'Activa'.
+ * Da de alta una lesión para el atleta en estado inicial 'Active'.
  */
-export const crearLesion = <ThrowOnError extends boolean = false>(options: Options<CrearLesionData, ThrowOnError>): RequestResult<CrearLesionResponses, CrearLesionErrors, ThrowOnError> => (options.client ?? client).post<CrearLesionResponses, CrearLesionErrors, ThrowOnError>({
+export const createInjury = <ThrowOnError extends boolean = false>(options: Options<CreateInjuryData, ThrowOnError>): RequestResult<CreateInjuryResponses, CreateInjuryErrors, ThrowOnError> => (options.client ?? client).post<CreateInjuryResponses, CreateInjuryErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/lesiones',
+    url: '/api/v1/athletes/{athleteId}/injuries',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -120,13 +133,13 @@ export const crearLesion = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * Actualizar estado de una lesión (Máquina de estados)
  *
- * Realiza la transición de estado de una lesión. Regla de negocio estricta: Una lesión 'Activa' no puede pasar directamente a 'Alta' sin haber transitado por 'EnRecuperacion'.
+ * Realiza la transición de estado de una lesión. Regla de negocio estricta: Una lesión 'Active' no puede pasar directamente a 'Cleared' sin haber transitado por 'InRecovery'.
  *
  */
-export const actualizarEstadoLesion = <ThrowOnError extends boolean = false>(options: Options<ActualizarEstadoLesionData, ThrowOnError>): RequestResult<ActualizarEstadoLesionResponses, ActualizarEstadoLesionErrors, ThrowOnError> => (options.client ?? client).patch<ActualizarEstadoLesionResponses, ActualizarEstadoLesionErrors, ThrowOnError>({
+export const updateInjuryStatus = <ThrowOnError extends boolean = false>(options: Options<UpdateInjuryStatusData, ThrowOnError>): RequestResult<UpdateInjuryStatusResponses, UpdateInjuryStatusErrors, ThrowOnError> => (options.client ?? client).patch<UpdateInjuryStatusResponses, UpdateInjuryStatusErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/lesiones/{lesionId}/estado',
+    url: '/api/v1/injuries/{injuryId}/status',
     ...options,
     headers: {
         'Content-Type': 'application/json',

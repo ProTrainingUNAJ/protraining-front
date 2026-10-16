@@ -4,11 +4,19 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8083' | 'http://entrenamiento:8080' | (string & {});
 };
 
-export type Ejercicio = {
+export type Exercise = {
     id: string;
-    nombre: string;
-    grupoMuscular: string;
-    descripcion?: string | null;
+    name: string;
+    muscleGroup: string;
+    /**
+     * Músculos secundarios involucrados en el movimiento.
+     */
+    secondaryMuscles?: Array<string>;
+    description?: string | null;
+    /**
+     * Equipamiento requerido para ejecutar el ejercicio.
+     */
+    equipment?: string | null;
     /**
      * Enlace al video explicativo de YouTube (reproducible embebido o externo).
      */
@@ -16,7 +24,41 @@ export type Ejercicio = {
     /**
      * URL del GIF/animación técnica del movimiento.
      */
-    animacionUrl?: string | null;
+    animationUrl?: string | null;
+    /**
+     * Fotografía de la postura inicial del ejercicio.
+     */
+    photoUrl1?: string | null;
+    /**
+     * Fotografía de la postura final o máxima flexión del ejercicio.
+     */
+    photoUrl2?: string | null;
+};
+
+/**
+ * Respuesta paginada del catálogo de ejercicios.
+ */
+export type PaginatedExerciseResponse = {
+    /**
+     * Lista de ejercicios devueltos en la página solicitada.
+     */
+    items: Array<Exercise>;
+    /**
+     * Número de página actual.
+     */
+    page: number;
+    /**
+     * Cantidad de ejercicios por página.
+     */
+    pageSize: number;
+    /**
+     * Total de ejercicios coincidentes con los filtros aplicados.
+     */
+    totalCount: number;
+    /**
+     * Total de páginas disponibles según el tamaño de página.
+     */
+    totalPages: number;
 };
 
 /**
@@ -24,102 +66,108 @@ export type Ejercicio = {
  */
 export type Record = {
     id: string;
-    atletaId: string;
-    ejercicioId: string;
-    ejercicioNombre: string;
-    peso1RmKg: number;
-    origen: 'TesteadoEnSesion' | 'Reportado' | 'EstimadoEpley';
-    fechaAlcanzado: string;
-    esVigente: boolean;
+    athleteId: string;
+    exerciseId: string;
+    exerciseName: string;
+    weightOneRepMaxKg: number;
+    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley';
+    achievedAt: string;
+    isCurrent: boolean;
 };
 
-export type GuardarRecordRequest = {
-    ejercicioId: string;
-    peso1RmKg: number;
-    origen: 'TesteadoEnSesion' | 'Reportado' | 'EstimadoEpley';
+export type SaveRecordRequest = {
+    exerciseId: string;
+    weightOneRepMaxKg: number;
+    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley';
 };
 
-export type ItemRutinaRequest = {
-    ejercicioId: string;
-    modalidad: 'CargaPorcentaje' | 'TiempoSegundos' | 'DistanciaMetros' | 'RepeticionesFijas';
-    series?: number;
-    repeticiones?: number;
+export type RoutineItemRequest = {
+    exerciseId: string;
+    modality: 'PercentageWeight' | 'TimeSeconds' | 'DistanceMeters' | 'FixedReps';
+    sets?: number;
+    reps?: number;
     /**
-     * Porcentaje del 1RM para calcular la carga (solo si modalidad es CargaPorcentaje).
+     * Porcentaje del 1RM para calcular la carga (solo si modalidad es PercentageWeight).
      */
-    porcentaje?: number;
+    percentage?: number;
     /**
      * Para trabajos por tiempo (ej. pasadas de 30 segundos).
      */
-    tiempoSegundosMeta?: number | null;
+    targetTimeSeconds?: number | null;
     /**
      * Para trabajos de fondo o pasadas (ej. 1000m).
      */
-    distanciaMetrosMeta?: number | null;
-    orden: number;
+    targetDistanceMeters?: number | null;
+    order: number;
 };
 
-export type CrearRutinaRequest = {
-    titulo: string;
-    categoriaId?: string | null;
-    atletaId?: string | null;
-    diaSemana: 'Lunes' | 'Martes' | 'Miercoles' | 'Jueves' | 'Viernes' | 'Sabado' | 'Domingo';
-    items: Array<ItemRutinaRequest>;
+export type CreateRoutineRequest = {
+    title: string;
+    categoryId?: string | null;
+    athleteId?: string | null;
+    dayOfWeek: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+    items: Array<RoutineItemRequest>;
 };
 
-export type PlantillaRutina = {
+export type RoutineTemplate = {
     id: string;
-    nombre: string;
-    objetivo: string;
-    cantidadEjercicios: number;
+    name: string;
+    goal: string;
+    exercisesCount: number;
 };
 
-export type CrearPlantillaRequest = {
-    nombre: string;
-    objetivo: string;
-    items: Array<ItemRutinaRequest>;
+export type CreateRoutineTemplateRequest = {
+    name: string;
+    goal: string;
+    items: Array<RoutineItemRequest>;
 };
 
-export type EjercicioRutinaHoy = {
-    ejercicioId?: string;
-    nombre: string;
-    grupoMuscular?: string;
+export type TodayRoutineExercise = {
+    exerciseId?: string;
+    name: string;
+    muscleGroup?: string;
     videoUrl?: string | null;
-    series: number;
-    repeticiones: number;
-    porcentaje?: number;
+    sets: number;
+    reps: number;
+    percentage?: number;
     /**
      * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg).
      */
-    pesoKg: number;
-    record1RmVigente?: number;
+    weightKg: number;
+    current1RmKg?: number;
 };
 
-export type RutinaHoyResponse = {
-    atletaId?: string;
-    nombreAtleta?: string;
-    fecha: string;
-    tieneLesionesActivas?: boolean;
+export type TodayRoutineResponse = {
+    athleteId?: string;
+    athleteName?: string;
+    date: string;
+    hasActiveInjuries?: boolean;
     /**
      * Indica si el copiloto adaptó ejercicios hoy debido a molestias o dolores marcados en el check-in.
      */
-    rutinaAdaptadaPorAjuste?: boolean;
-    ejercicios: Array<EjercicioRutinaHoy>;
+    routineAdapted?: boolean;
+    exercises: Array<TodayRoutineExercise>;
 };
 
-export type RegistrarEjecucionRequest = {
-    ejercicioId: string;
-    pesoUtilizadoKg: number;
-    repeticionesRealizadas: number;
+export type LogExecutionRequest = {
+    exerciseId: string;
+    weightUsedKg: number;
+    repsPerformed: number;
 };
 
-export type RegistrarEjecucionResponse = {
-    pesoUtilizadoKg: number;
-    repeticionesRealizadas: number;
-    estimado1RmEpley: number;
-    recordAnterior1Rm?: number;
-    recordActualizado: boolean;
-    mensaje: string;
+export type LogExecutionResponse = {
+    weightUsedKg: number;
+    repsPerformed: number;
+    /**
+     * Estimación teórica de 1RM aplicando fórmula de Epley.
+     */
+    estimated1RmEpley: number;
+    previous1Rm?: number;
+    /**
+     * True si la nueva marca superó el récord anterior y fue consolidada.
+     */
+    recordUpdated: boolean;
+    message: string;
 };
 
 export type ProblemDetails = {
@@ -133,48 +181,71 @@ export type ProblemDetails = {
     };
 };
 
-export type ListarEjerciciosData = {
+export type ListExercisesData = {
     body?: never;
     path?: never;
     query?: {
         /**
-         * Filtrar por grupo muscular (ej. Piernas, Pecho, Espalda, Core).
+         * Búsqueda por texto libre en el nombre o descripción del ejercicio.
          */
-        grupoMuscular?: string;
+        search?: string;
+        /**
+         * Filtrar por grupo muscular principal (ej. Piernas, Pecho, Espalda, Core).
+         */
+        muscleGroup?: string;
+        /**
+         * Filtrar por equipamiento requerido (ej. Barra Olímpica, Mancuerna, Máquina).
+         */
+        equipment?: string;
+        /**
+         * Número de página para paginación de resultados.
+         */
+        page?: number;
+        /**
+         * Cantidad de ejercicios por página.
+         */
+        pageSize?: number;
     };
-    url: '/api/v1/ejercicios';
+    url: '/api/v1/exercises';
 };
 
-export type ListarEjerciciosErrors = {
+export type ListExercisesErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
     /**
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
 };
 
-export type ListarEjerciciosError = ListarEjerciciosErrors[keyof ListarEjerciciosErrors];
+export type ListExercisesError = ListExercisesErrors[keyof ListExercisesErrors];
 
-export type ListarEjerciciosResponses = {
+export type ListExercisesResponses = {
     /**
-     * Catálogo obtenido exitosamente.
+     * Catálogo de ejercicios paginado obtenido exitosamente.
      */
-    200: Array<Ejercicio>;
+    200: PaginatedExerciseResponse;
 };
 
-export type ListarEjerciciosResponse = ListarEjerciciosResponses[keyof ListarEjerciciosResponses];
+export type ListExercisesResponse = ListExercisesResponses[keyof ListExercisesResponses];
 
-export type ObtenerRecordsAtletaData = {
+export type GetAthleteRecordsData = {
     body?: never;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: {
-        soloVigentes?: boolean;
+        /**
+         * Filtrar solo marcas vigentes activas.
+         */
+        currentOnly?: boolean;
     };
-    url: '/api/v1/atletas/{atletaId}/records';
+    url: '/api/v1/athletes/{athleteId}/records';
 };
 
-export type ObtenerRecordsAtletaErrors = {
+export type GetAthleteRecordsErrors = {
     /**
      * Token de autenticación ausente o inválido.
      */
@@ -185,27 +256,27 @@ export type ObtenerRecordsAtletaErrors = {
     404: ProblemDetails;
 };
 
-export type ObtenerRecordsAtletaError = ObtenerRecordsAtletaErrors[keyof ObtenerRecordsAtletaErrors];
+export type GetAthleteRecordsError = GetAthleteRecordsErrors[keyof GetAthleteRecordsErrors];
 
-export type ObtenerRecordsAtletaResponses = {
+export type GetAthleteRecordsResponses = {
     /**
      * Lista de récords personales obtenida con éxito.
      */
     200: Array<Record>;
 };
 
-export type ObtenerRecordsAtletaResponse = ObtenerRecordsAtletaResponses[keyof ObtenerRecordsAtletaResponses];
+export type GetAthleteRecordsResponse = GetAthleteRecordsResponses[keyof GetAthleteRecordsResponses];
 
-export type GuardarRecordData = {
-    body: GuardarRecordRequest;
+export type SaveRecordData = {
+    body: SaveRecordRequest;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/records';
+    url: '/api/v1/athletes/{athleteId}/records';
 };
 
-export type GuardarRecordErrors = {
+export type SaveRecordErrors = {
     /**
      * Solicitud con datos inválidos o reglas de negocio incumplidas.
      */
@@ -216,25 +287,25 @@ export type GuardarRecordErrors = {
     404: ProblemDetails;
 };
 
-export type GuardarRecordError = GuardarRecordErrors[keyof GuardarRecordErrors];
+export type SaveRecordError = SaveRecordErrors[keyof SaveRecordErrors];
 
-export type GuardarRecordResponses = {
+export type SaveRecordResponses = {
     /**
      * Récord guardado exitosamente.
      */
     200: Record;
 };
 
-export type GuardarRecordResponse = GuardarRecordResponses[keyof GuardarRecordResponses];
+export type SaveRecordResponse = SaveRecordResponses[keyof SaveRecordResponses];
 
-export type CrearRutinaData = {
-    body: CrearRutinaRequest;
+export type CreateRoutineData = {
+    body: CreateRoutineRequest;
     path?: never;
     query?: never;
-    url: '/api/v1/rutinas';
+    url: '/api/v1/routines';
 };
 
-export type CrearRutinaErrors = {
+export type CreateRoutineErrors = {
     /**
      * Solicitud con datos inválidos o reglas de negocio incumplidas.
      */
@@ -245,115 +316,115 @@ export type CrearRutinaErrors = {
     401: ProblemDetails;
 };
 
-export type CrearRutinaError = CrearRutinaErrors[keyof CrearRutinaErrors];
+export type CreateRoutineError = CreateRoutineErrors[keyof CreateRoutineErrors];
 
-export type CrearRutinaResponses = {
+export type CreateRoutineResponses = {
     /**
      * Rutina creada con éxito.
      */
     201: {
-        mensaje?: string;
-        rutinaId?: string;
+        message: string;
+        routineId: string;
     };
 };
 
-export type CrearRutinaResponse = CrearRutinaResponses[keyof CrearRutinaResponses];
+export type CreateRoutineResponse = CreateRoutineResponses[keyof CreateRoutineResponses];
 
-export type ListarPlantillasRutinaData = {
+export type ListRoutineTemplatesData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/plantillas-rutina';
+    url: '/api/v1/routine-templates';
 };
 
-export type ListarPlantillasRutinaErrors = {
+export type ListRoutineTemplatesErrors = {
     /**
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
 };
 
-export type ListarPlantillasRutinaError = ListarPlantillasRutinaErrors[keyof ListarPlantillasRutinaErrors];
+export type ListRoutineTemplatesError = ListRoutineTemplatesErrors[keyof ListRoutineTemplatesErrors];
 
-export type ListarPlantillasRutinaResponses = {
+export type ListRoutineTemplatesResponses = {
     /**
      * Lista de plantillas recuperadas.
      */
-    200: Array<PlantillaRutina>;
+    200: Array<RoutineTemplate>;
 };
 
-export type ListarPlantillasRutinaResponse = ListarPlantillasRutinaResponses[keyof ListarPlantillasRutinaResponses];
+export type ListRoutineTemplatesResponse = ListRoutineTemplatesResponses[keyof ListRoutineTemplatesResponses];
 
-export type CrearPlantillaRutinaData = {
-    body: CrearPlantillaRequest;
+export type CreateRoutineTemplateData = {
+    body: CreateRoutineTemplateRequest;
     path?: never;
     query?: never;
-    url: '/api/v1/plantillas-rutina';
+    url: '/api/v1/routine-templates';
 };
 
-export type CrearPlantillaRutinaErrors = {
+export type CreateRoutineTemplateErrors = {
     /**
      * Solicitud con datos inválidos o reglas de negocio incumplidas.
      */
     400: ProblemDetails;
 };
 
-export type CrearPlantillaRutinaError = CrearPlantillaRutinaErrors[keyof CrearPlantillaRutinaErrors];
+export type CreateRoutineTemplateError = CreateRoutineTemplateErrors[keyof CreateRoutineTemplateErrors];
 
-export type CrearPlantillaRutinaResponses = {
+export type CreateRoutineTemplateResponses = {
     /**
      * Plantilla creada exitosamente.
      */
-    201: PlantillaRutina;
+    201: RoutineTemplate;
 };
 
-export type CrearPlantillaRutinaResponse = CrearPlantillaRutinaResponses[keyof CrearPlantillaRutinaResponses];
+export type CreateRoutineTemplateResponse = CreateRoutineTemplateResponses[keyof CreateRoutineTemplateResponses];
 
-export type AplicarPlantillaRutinaData = {
+export type ApplyRoutineTemplateData = {
     body: {
-        categoriaId?: string;
+        categoryId?: string | null;
         /**
          * Opcional si se aplica a toda una categoría.
          */
-        atletaId?: string | null;
-        diaSemana: 'Lunes' | 'Martes' | 'Miercoles' | 'Jueves' | 'Viernes' | 'Sabado' | 'Domingo';
+        athleteId?: string | null;
+        dayOfWeek: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
     };
     path: {
-        plantillaId: string;
+        templateId: string;
     };
     query?: never;
-    url: '/api/v1/plantillas-rutina/{plantillaId}/aplicar';
+    url: '/api/v1/routine-templates/{templateId}/apply';
 };
 
-export type AplicarPlantillaRutinaErrors = {
+export type ApplyRoutineTemplateErrors = {
     /**
      * Recurso o atleta no encontrado.
      */
     404: ProblemDetails;
 };
 
-export type AplicarPlantillaRutinaError = AplicarPlantillaRutinaErrors[keyof AplicarPlantillaRutinaErrors];
+export type ApplyRoutineTemplateError = ApplyRoutineTemplateErrors[keyof ApplyRoutineTemplateErrors];
 
-export type AplicarPlantillaRutinaResponses = {
+export type ApplyRoutineTemplateResponses = {
     /**
      * Rutina asignada desde la plantilla con éxito.
      */
     201: unknown;
 };
 
-export type ObtenerRutinaHoyData = {
+export type GetTodayRoutineData = {
     body?: never;
     path: {
         /**
          * Identificador del atleta
          */
-        atletaId: string;
+        athleteId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/rutina-hoy';
+    url: '/api/v1/athletes/{athleteId}/today-routine';
 };
 
-export type ObtenerRutinaHoyErrors = {
+export type GetTodayRoutineErrors = {
     /**
      * Token de autenticación ausente o inválido.
      */
@@ -364,27 +435,27 @@ export type ObtenerRutinaHoyErrors = {
     404: ProblemDetails;
 };
 
-export type ObtenerRutinaHoyError = ObtenerRutinaHoyErrors[keyof ObtenerRutinaHoyErrors];
+export type GetTodayRoutineError = GetTodayRoutineErrors[keyof GetTodayRoutineErrors];
 
-export type ObtenerRutinaHoyResponses = {
+export type GetTodayRoutineResponses = {
     /**
      * OK
      */
-    200: RutinaHoyResponse;
+    200: TodayRoutineResponse;
 };
 
-export type ObtenerRutinaHoyResponse = ObtenerRutinaHoyResponses[keyof ObtenerRutinaHoyResponses];
+export type GetTodayRoutineResponse = GetTodayRoutineResponses[keyof GetTodayRoutineResponses];
 
-export type RegistrarEjecucionData = {
-    body: RegistrarEjecucionRequest;
+export type LogExecutionData = {
+    body: LogExecutionRequest;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/ejecuciones';
+    url: '/api/v1/athletes/{athleteId}/executions';
 };
 
-export type RegistrarEjecucionErrors = {
+export type LogExecutionErrors = {
     /**
      * Solicitud con datos inválidos o reglas de negocio incumplidas.
      */
@@ -395,16 +466,16 @@ export type RegistrarEjecucionErrors = {
     404: ProblemDetails;
 };
 
-export type RegistrarEjecucionError = RegistrarEjecucionErrors[keyof RegistrarEjecucionErrors];
+export type LogExecutionError = LogExecutionErrors[keyof LogExecutionErrors];
 
-export type RegistrarEjecucionResponses = {
+export type LogExecutionResponses = {
     /**
      * Ejecución registrada y evaluación de récord completada.
      */
-    200: RegistrarEjecucionResponse;
+    200: LogExecutionResponse;
 };
 
-export type RegistrarEjecucionResponse2 = RegistrarEjecucionResponses[keyof RegistrarEjecucionResponses];
+export type LogExecutionResponse2 = LogExecutionResponses[keyof LogExecutionResponses];
 
 export type HealthCheckData = {
     body?: never;

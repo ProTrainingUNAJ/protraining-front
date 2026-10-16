@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AplicarPlantillaRutinaData, AplicarPlantillaRutinaErrors, AplicarPlantillaRutinaResponses, CrearPlantillaRutinaData, CrearPlantillaRutinaErrors, CrearPlantillaRutinaResponses, CrearRutinaData, CrearRutinaErrors, CrearRutinaResponses, GuardarRecordData, GuardarRecordErrors, GuardarRecordResponses, HealthCheckData, HealthCheckResponses, ListarEjerciciosData, ListarEjerciciosErrors, ListarEjerciciosResponses, ListarPlantillasRutinaData, ListarPlantillasRutinaErrors, ListarPlantillasRutinaResponses, ObtenerRecordsAtletaData, ObtenerRecordsAtletaErrors, ObtenerRecordsAtletaResponses, ObtenerRutinaHoyData, ObtenerRutinaHoyErrors, ObtenerRutinaHoyResponses, RegistrarEjecucionData, RegistrarEjecucionErrors, RegistrarEjecucionResponses } from './types.gen';
+import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,14 +19,15 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Listar catálogo de ejercicios
+ * Buscar y listar ejercicios del catálogo
  *
- * Devuelve todos los ejercicios disponibles con sus animaciones y enlaces a videos instructivos de YouTube.
+ * Devuelve el catálogo de ejercicios con búsqueda por similitud trigram (pg_trgm), filtros facetados por grupo muscular y equipamiento, y paginación para la biblioteca interactiva del frontend.
+ *
  */
-export const listarEjercicios = <ThrowOnError extends boolean = false>(options?: Options<ListarEjerciciosData, ThrowOnError>): RequestResult<ListarEjerciciosResponses, ListarEjerciciosErrors, ThrowOnError> => (options?.client ?? client).get<ListarEjerciciosResponses, ListarEjerciciosErrors, ThrowOnError>({
+export const listExercises = <ThrowOnError extends boolean = false>(options?: Options<ListExercisesData, ThrowOnError>): RequestResult<ListExercisesResponses, ListExercisesErrors, ThrowOnError> => (options?.client ?? client).get<ListExercisesResponses, ListExercisesErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/ejercicios',
+    url: '/api/v1/exercises',
     ...options
 });
 
@@ -35,10 +36,10 @@ export const listarEjercicios = <ThrowOnError extends boolean = false>(options?:
  *
  * Lista las marcas máximas de fuerza del atleta, indicando su origen de trazabilidad (testeado, reportado o estimado).
  */
-export const obtenerRecordsAtleta = <ThrowOnError extends boolean = false>(options: Options<ObtenerRecordsAtletaData, ThrowOnError>): RequestResult<ObtenerRecordsAtletaResponses, ObtenerRecordsAtletaErrors, ThrowOnError> => (options.client ?? client).get<ObtenerRecordsAtletaResponses, ObtenerRecordsAtletaErrors, ThrowOnError>({
+export const getAthleteRecords = <ThrowOnError extends boolean = false>(options: Options<GetAthleteRecordsData, ThrowOnError>): RequestResult<GetAthleteRecordsResponses, GetAthleteRecordsErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteRecordsResponses, GetAthleteRecordsErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/records',
+    url: '/api/v1/athletes/{athleteId}/records',
     ...options
 });
 
@@ -47,10 +48,10 @@ export const obtenerRecordsAtleta = <ThrowOnError extends boolean = false>(optio
  *
  * Asigna una nueva marca máxima a un ejercicio con su origen de verificación.
  */
-export const guardarRecord = <ThrowOnError extends boolean = false>(options: Options<GuardarRecordData, ThrowOnError>): RequestResult<GuardarRecordResponses, GuardarRecordErrors, ThrowOnError> => (options.client ?? client).post<GuardarRecordResponses, GuardarRecordErrors, ThrowOnError>({
+export const saveRecord = <ThrowOnError extends boolean = false>(options: Options<SaveRecordData, ThrowOnError>): RequestResult<SaveRecordResponses, SaveRecordErrors, ThrowOnError> => (options.client ?? client).post<SaveRecordResponses, SaveRecordErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/records',
+    url: '/api/v1/athletes/{athleteId}/records',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -63,10 +64,10 @@ export const guardarRecord = <ThrowOnError extends boolean = false>(options: Opt
  *
  * Asigna una planificación estructurada a una categoría o a un atleta individual, permitiendo ejercicios con carga o por tiempo/distancia.
  */
-export const crearRutina = <ThrowOnError extends boolean = false>(options: Options<CrearRutinaData, ThrowOnError>): RequestResult<CrearRutinaResponses, CrearRutinaErrors, ThrowOnError> => (options.client ?? client).post<CrearRutinaResponses, CrearRutinaErrors, ThrowOnError>({
+export const createRoutine = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineData, ThrowOnError>): RequestResult<CreateRoutineResponses, CreateRoutineErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineResponses, CreateRoutineErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/rutinas',
+    url: '/api/v1/routines',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -79,10 +80,10 @@ export const crearRutina = <ThrowOnError extends boolean = false>(options: Optio
  *
  * Obtiene las planificaciones guardadas como plantillas maestras para reutilizar en otros grupos o temporadas.
  */
-export const listarPlantillasRutina = <ThrowOnError extends boolean = false>(options?: Options<ListarPlantillasRutinaData, ThrowOnError>): RequestResult<ListarPlantillasRutinaResponses, ListarPlantillasRutinaErrors, ThrowOnError> => (options?.client ?? client).get<ListarPlantillasRutinaResponses, ListarPlantillasRutinaErrors, ThrowOnError>({
+export const listRoutineTemplates = <ThrowOnError extends boolean = false>(options?: Options<ListRoutineTemplatesData, ThrowOnError>): RequestResult<ListRoutineTemplatesResponses, ListRoutineTemplatesErrors, ThrowOnError> => (options?.client ?? client).get<ListRoutineTemplatesResponses, ListRoutineTemplatesErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/plantillas-rutina',
+    url: '/api/v1/routine-templates',
     ...options
 });
 
@@ -91,10 +92,10 @@ export const listarPlantillasRutina = <ThrowOnError extends boolean = false>(opt
  *
  * Permite guardar una estructura de entrenamiento como plantilla maestra.
  */
-export const crearPlantillaRutina = <ThrowOnError extends boolean = false>(options: Options<CrearPlantillaRutinaData, ThrowOnError>): RequestResult<CrearPlantillaRutinaResponses, CrearPlantillaRutinaErrors, ThrowOnError> => (options.client ?? client).post<CrearPlantillaRutinaResponses, CrearPlantillaRutinaErrors, ThrowOnError>({
+export const createRoutineTemplate = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineTemplateData, ThrowOnError>): RequestResult<CreateRoutineTemplateResponses, CreateRoutineTemplateErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineTemplateResponses, CreateRoutineTemplateErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/plantillas-rutina',
+    url: '/api/v1/routine-templates',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -107,9 +108,9 @@ export const crearPlantillaRutina = <ThrowOnError extends boolean = false>(optio
  *
  * Clona y asigna la planificación de la plantilla a la categoría o deportista indicado.
  */
-export const aplicarPlantillaRutina = <ThrowOnError extends boolean = false>(options: Options<AplicarPlantillaRutinaData, ThrowOnError>): RequestResult<AplicarPlantillaRutinaResponses, AplicarPlantillaRutinaErrors, ThrowOnError> => (options.client ?? client).post<AplicarPlantillaRutinaResponses, AplicarPlantillaRutinaErrors, ThrowOnError>({
+export const applyRoutineTemplate = <ThrowOnError extends boolean = false>(options: Options<ApplyRoutineTemplateData, ThrowOnError>): RequestResult<ApplyRoutineTemplateResponses, ApplyRoutineTemplateErrors, ThrowOnError> => (options.client ?? client).post<ApplyRoutineTemplateResponses, ApplyRoutineTemplateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/plantillas-rutina/{plantillaId}/aplicar',
+    url: '/api/v1/routine-templates/{templateId}/apply',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -120,13 +121,13 @@ export const aplicarPlantillaRutina = <ThrowOnError extends boolean = false>(opt
 /**
  * Rutina de hoy con el peso resuelto
  *
- * Devuelve la planificación del día del atleta con el peso exacto a cargar en kg, resuelto en función de su récord 1RM vigente y redondeado al múltiplo de 2.5 kg más cercano. Si el atleta presenta lesiones activas, incluye una advertencia preventiva.
+ * Devuelve la planificación del día del atleta con el peso exacto a cargar en kg, resuelto en función de su récord 1RM vigente y redondeado al múltiplo de 2.5 kg más cercano. Si el atleta presenta lesiones activas o adaptaciones por dolor, incluye una advertencia.
  *
  */
-export const obtenerRutinaHoy = <ThrowOnError extends boolean = false>(options: Options<ObtenerRutinaHoyData, ThrowOnError>): RequestResult<ObtenerRutinaHoyResponses, ObtenerRutinaHoyErrors, ThrowOnError> => (options.client ?? client).get<ObtenerRutinaHoyResponses, ObtenerRutinaHoyErrors, ThrowOnError>({
+export const getTodayRoutine = <ThrowOnError extends boolean = false>(options: Options<GetTodayRoutineData, ThrowOnError>): RequestResult<GetTodayRoutineResponses, GetTodayRoutineErrors, ThrowOnError> => (options.client ?? client).get<GetTodayRoutineResponses, GetTodayRoutineErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/rutina-hoy',
+    url: '/api/v1/athletes/{athleteId}/today-routine',
     ...options
 });
 
@@ -136,10 +137,10 @@ export const obtenerRutinaHoy = <ThrowOnError extends boolean = false>(options: 
  * Registra el peso levantado y las repeticiones completadas por el atleta. Aplica la fórmula de Epley: `1RM_estimado = peso * (1 + repeticiones / 30)`. Si la estimación supera el récord vigente, actualiza automáticamente la marca del atleta.
  *
  */
-export const registrarEjecucion = <ThrowOnError extends boolean = false>(options: Options<RegistrarEjecucionData, ThrowOnError>): RequestResult<RegistrarEjecucionResponses, RegistrarEjecucionErrors, ThrowOnError> => (options.client ?? client).post<RegistrarEjecucionResponses, RegistrarEjecucionErrors, ThrowOnError>({
+export const logExecution = <ThrowOnError extends boolean = false>(options: Options<LogExecutionData, ThrowOnError>): RequestResult<LogExecutionResponses, LogExecutionErrors, ThrowOnError> => (options.client ?? client).post<LogExecutionResponses, LogExecutionErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/atletas/{atletaId}/ejecuciones',
+    url: '/api/v1/athletes/{athleteId}/executions',
     ...options,
     headers: {
         'Content-Type': 'application/json',

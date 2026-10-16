@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { HealthCheckData, HealthCheckErrors, HealthCheckResponses, IniciarSesionData, IniciarSesionErrors, IniciarSesionResponses, ObtenerUsuarioActualData, ObtenerUsuarioActualErrors, ObtenerUsuarioActualResponses, RegistrarConsentimientoTutorData, RegistrarConsentimientoTutorErrors, RegistrarConsentimientoTutorResponses, RegistrarUsuarioData, RegistrarUsuarioErrors, RegistrarUsuarioResponses } from './types.gen';
+import type { HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,26 +19,11 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Registrar un nuevo preparador físico (PF)
- *
- * Permite dar de alta una nueva cuenta con rol de preparador físico y emite automáticamente un token JWT inicial.
- */
-export const registrarUsuario = <ThrowOnError extends boolean = false>(options: Options<RegistrarUsuarioData, ThrowOnError>): RequestResult<RegistrarUsuarioResponses, RegistrarUsuarioErrors, ThrowOnError> => (options.client ?? client).post<RegistrarUsuarioResponses, RegistrarUsuarioErrors, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/v1/auth/registro',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * Iniciar sesión en el sistema
  *
- * Valida credenciales de email y contraseña y emite un token JWT con los claims correspondientes (AccountId, Rol y AtletaId si aplica).
+ * Valida credenciales de email y contraseña y emite un token JWT con la información del usuario autenticado.
  */
-export const iniciarSesion = <ThrowOnError extends boolean = false>(options: Options<IniciarSesionData, ThrowOnError>): RequestResult<IniciarSesionResponses, IniciarSesionErrors, ThrowOnError> => (options.client ?? client).post<IniciarSesionResponses, IniciarSesionErrors, ThrowOnError>({
+export const login = <ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>): RequestResult<LoginResponses, LoginErrors, ThrowOnError> => (options.client ?? client).post<LoginResponses, LoginErrors, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/auth/login',
     ...options,
@@ -49,27 +34,13 @@ export const iniciarSesion = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Consultar datos del usuario autenticado
+ * Renovar token de acceso
  *
- * Obtiene la información del perfil del usuario asociado al token JWT actual.
+ * Renueva el access token rotando el refresh token para el dispositivo indicado.
  */
-export const obtenerUsuarioActual = <ThrowOnError extends boolean = false>(options?: Options<ObtenerUsuarioActualData, ThrowOnError>): RequestResult<ObtenerUsuarioActualResponses, ObtenerUsuarioActualErrors, ThrowOnError> => (options?.client ?? client).get<ObtenerUsuarioActualResponses, ObtenerUsuarioActualErrors, ThrowOnError>({
+export const refreshToken = <ThrowOnError extends boolean = false>(options: Options<RefreshTokenData, ThrowOnError>): RequestResult<RefreshTokenResponses, RefreshTokenErrors, ThrowOnError> => (options.client ?? client).post<RefreshTokenResponses, RefreshTokenErrors, ThrowOnError>({
     responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/auth/me',
-    ...options
-});
-
-/**
- * Registrar o actualizar consentimiento de tutor
- *
- * Guarda la autorización del tutor legal para un atleta menor de 18 años, especificando si habilita la preparación física y/o las recomendaciones de hábitos.
- *
- */
-export const registrarConsentimientoTutor = <ThrowOnError extends boolean = false>(options: Options<RegistrarConsentimientoTutorData, ThrowOnError>): RequestResult<RegistrarConsentimientoTutorResponses, RegistrarConsentimientoTutorErrors, ThrowOnError> => (options.client ?? client).post<RegistrarConsentimientoTutorResponses, RegistrarConsentimientoTutorErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/auth/atletas/{atletaId}/consentimiento-tutor',
+    url: '/api/v1/auth/refresh',
     ...options,
     headers: {
         'Content-Type': 'application/json',

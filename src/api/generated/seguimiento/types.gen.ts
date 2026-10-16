@@ -5,27 +5,27 @@ export type ClientOptions = {
 };
 
 export type CheckInRequest = {
-    horasSueno: number;
+    sleepHours: number;
     /**
      * Calidad de descanso de 1 (pésima) a 5 (óptima).
      */
-    calidadSueno: number;
+    sleepQuality: number;
     /**
      * Nivel de dolor muscular/articular (1 = ninguno, 5 = dolor severo).
      */
-    dolorMuscular: number;
-    nivelFatiga: number;
-    estadoAnimo: number;
-    nivelEstres: number;
-    nivelEsfuerzoRpeAnterior?: number | null;
-    estaEnfermo?: boolean;
-    zonasDolor?: string | null;
+    muscleSoreness: number;
+    fatigueLevel: number;
+    moodRate: number;
+    stressLevel: number;
+    effortRate?: number | null;
+    isSick?: boolean;
+    painZones?: string | null;
 };
 
 export type CheckInResponse = {
-    mensaje: string;
-    colorSemaforo: 'Verde' | 'Amarillo' | 'Rojo';
-    motivoSemaforo?: string | null;
+    message: string;
+    trafficLight: 'Green' | 'Yellow' | 'Red';
+    trafficLightReason?: string | null;
     checkIn: CheckIn;
 };
 
@@ -34,65 +34,77 @@ export type CheckInResponse = {
  */
 export type CheckIn = {
     id: string;
-    atletaId: string;
-    fecha: string;
-    colorSemaforo: 'Verde' | 'Amarillo' | 'Rojo';
-    motivoSemaforo?: string | null;
-    horasSueno: number;
-    calidadSueno?: number;
-    dolorMuscular: number;
-    nivelFatiga: number;
-    estadoAnimo: number;
-    nivelEstres: number;
-    nivelEsfuerzo?: number;
-    estaEnfermo: boolean;
-    zonasDolor?: string | null;
+    athleteId: string;
+    date: string;
+    trafficLight: 'Green' | 'Yellow' | 'Red';
+    trafficLightReason?: string | null;
+    sleepHours: number;
+    sleepQuality?: number;
+    muscleSoreness: number;
+    fatigueLevel: number;
+    moodRate: number;
+    stressLevel: number;
+    effortRate?: number;
+    isSick: boolean;
+    painZones?: string | null;
 };
 
-export type CargaDiariaRequest = {
-    minutosGimnasio: number;
-    minutosEntrenamientoDeporte?: number;
-    minutosPartido?: number;
-    minutosTrabajoIndividual?: number;
+export type DailyLoadRequest = {
+    gymMinutes: number;
+    sportTrainingMinutes?: number;
+    matchMinutes?: number;
+    individualWorkMinutes?: number;
 };
 
-export type ResumenAsistenciaCategoria = {
-    categoriaId: string;
-    fecha: string;
-    totalPlantel: number;
-    presentesCount: number;
-    porcentajeAsistencia?: number;
+export type CategoryAttendanceSummary = {
+    categoryId: string;
+    date: string;
+    totalRoster: number;
+    presentCount: number;
+    attendancePercentage?: number;
 };
 
-export type ComparativaCategoriaResponse = {
-    atletaId: string;
-    categoriaId: string;
-    metricas: Array<{
+/**
+ * Estado de bienestar diario del atleta para el semáforo consolidado de la categoría.
+ */
+export type AthleteTrafficLightSummary = {
+    athleteId: string;
+    athleteName: string;
+    trafficLight: 'Green' | 'Yellow' | 'Red';
+    trafficLightReason?: string | null;
+    hasReportedToday: boolean;
+    reportedAt?: string | null;
+};
+
+export type GroupBenchmarkResponse = {
+    athleteId: string;
+    categoryId: string;
+    metrics: Array<{
         dimension: string;
-        valorAtleta: number;
-        promedioGrupo: number;
-        tendencia?: string;
+        athleteValue: number;
+        groupAverage: number;
+        trend?: string;
     }>;
 };
 
-export type CrearLesionRequest = {
-    zonaCuerpo: string;
-    notas: string;
+export type CreateInjuryRequest = {
+    bodyZone: string;
+    notes: string;
 };
 
-export type TransicionEstadoLesionRequest = {
-    nuevoEstado: 'Activa' | 'EnRecuperacion' | 'Alta';
-    notaTransicion: string;
+export type UpdateInjuryStatusRequest = {
+    newStatus: 'Active' | 'InRecovery' | 'Cleared';
+    transitionNotes: string;
 };
 
-export type Lesion = {
+export type Injury = {
     id: string;
-    atletaId: string;
-    zonaCuerpo: string;
-    notas: string;
-    estado: 'Activa' | 'EnRecuperacion' | 'Alta';
-    fechaCreacion: string;
-    fechaActualizacion?: string;
+    athleteId: string;
+    bodyZone: string;
+    notes: string;
+    status: 'Active' | 'InRecovery' | 'Cleared';
+    createdAt: string;
+    updatedAt?: string;
 };
 
 export type ProblemDetails = {
@@ -106,16 +118,16 @@ export type ProblemDetails = {
     };
 };
 
-export type RegistrarCheckInData = {
+export type SubmitCheckInData = {
     body: CheckInRequest;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/check-in';
+    url: '/api/v1/athletes/{athleteId}/check-in';
 };
 
-export type RegistrarCheckInErrors = {
+export type SubmitCheckInErrors = {
     /**
      * Parámetros inválidos o violación de reglas de validación.
      */
@@ -130,29 +142,29 @@ export type RegistrarCheckInErrors = {
     404: ProblemDetails;
 };
 
-export type RegistrarCheckInError = RegistrarCheckInErrors[keyof RegistrarCheckInErrors];
+export type SubmitCheckInError = SubmitCheckInErrors[keyof SubmitCheckInErrors];
 
-export type RegistrarCheckInResponses = {
+export type SubmitCheckInResponses = {
     /**
      * Check-in registrado exitosamente y semáforo calculado.
      */
     200: CheckInResponse;
 };
 
-export type RegistrarCheckInResponse = RegistrarCheckInResponses[keyof RegistrarCheckInResponses];
+export type SubmitCheckInResponse = SubmitCheckInResponses[keyof SubmitCheckInResponses];
 
-export type ListarCheckInsAtletaData = {
+export type ListAthleteCheckInsData = {
     body?: never;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: {
-        limite?: number;
+        limit?: number;
     };
-    url: '/api/v1/atletas/{atletaId}/check-ins';
+    url: '/api/v1/athletes/{athleteId}/check-ins';
 };
 
-export type ListarCheckInsAtletaErrors = {
+export type ListAthleteCheckInsErrors = {
     /**
      * Token de autenticación ausente o inválido.
      */
@@ -163,27 +175,27 @@ export type ListarCheckInsAtletaErrors = {
     404: ProblemDetails;
 };
 
-export type ListarCheckInsAtletaError = ListarCheckInsAtletaErrors[keyof ListarCheckInsAtletaErrors];
+export type ListAthleteCheckInsError = ListAthleteCheckInsErrors[keyof ListAthleteCheckInsErrors];
 
-export type ListarCheckInsAtletaResponses = {
+export type ListAthleteCheckInsResponses = {
     /**
      * Historial de check-ins obtenido.
      */
     200: Array<CheckIn>;
 };
 
-export type ListarCheckInsAtletaResponse = ListarCheckInsAtletaResponses[keyof ListarCheckInsAtletaResponses];
+export type ListAthleteCheckInsResponse = ListAthleteCheckInsResponses[keyof ListAthleteCheckInsResponses];
 
-export type RegistrarCargaDiariaData = {
-    body: CargaDiariaRequest;
+export type RegisterDailyLoadData = {
+    body: DailyLoadRequest;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/carga-diaria';
+    url: '/api/v1/athletes/{athleteId}/daily-load';
 };
 
-export type RegistrarCargaDiariaErrors = {
+export type RegisterDailyLoadErrors = {
     /**
      * Parámetros inválidos o violación de reglas de validación.
      */
@@ -194,86 +206,57 @@ export type RegistrarCargaDiariaErrors = {
     404: ProblemDetails;
 };
 
-export type RegistrarCargaDiariaError = RegistrarCargaDiariaErrors[keyof RegistrarCargaDiariaErrors];
+export type RegisterDailyLoadError = RegisterDailyLoadErrors[keyof RegisterDailyLoadErrors];
 
-export type RegistrarCargaDiariaResponses = {
+export type RegisterDailyLoadResponses = {
     /**
      * Carga y asistencia registradas con éxito.
      */
     200: {
-        mensaje?: string;
-        minutosTotales?: number;
+        message?: string;
+        totalMinutes?: number;
     };
 };
 
-export type RegistrarCargaDiariaResponse = RegistrarCargaDiariaResponses[keyof RegistrarCargaDiariaResponses];
+export type RegisterDailyLoadResponse = RegisterDailyLoadResponses[keyof RegisterDailyLoadResponses];
 
-export type ObtenerAsistenciaCategoriaHoyData = {
+export type GetCategoryAttendanceTodayData = {
     body?: never;
     path: {
-        categoriaId: string;
+        categoryId: string;
     };
     query?: never;
-    url: '/api/v1/categorias/{categoriaId}/asistencia-hoy';
+    url: '/api/v1/categories/{categoryId}/attendance-today';
 };
 
-export type ObtenerAsistenciaCategoriaHoyErrors = {
+export type GetCategoryAttendanceTodayErrors = {
     /**
      * Atleta o lesión no encontrados.
      */
     404: ProblemDetails;
 };
 
-export type ObtenerAsistenciaCategoriaHoyError = ObtenerAsistenciaCategoriaHoyErrors[keyof ObtenerAsistenciaCategoriaHoyErrors];
+export type GetCategoryAttendanceTodayError = GetCategoryAttendanceTodayErrors[keyof GetCategoryAttendanceTodayErrors];
 
-export type ObtenerAsistenciaCategoriaHoyResponses = {
+export type GetCategoryAttendanceTodayResponses = {
     /**
      * Resumen de asistencia de la categoría.
      */
-    200: ResumenAsistenciaCategoria;
+    200: CategoryAttendanceSummary;
 };
 
-export type ObtenerAsistenciaCategoriaHoyResponse = ObtenerAsistenciaCategoriaHoyResponses[keyof ObtenerAsistenciaCategoriaHoyResponses];
+export type GetCategoryAttendanceTodayResponse = GetCategoryAttendanceTodayResponses[keyof GetCategoryAttendanceTodayResponses];
 
-export type ObtenerComparativaCategoriaData = {
+export type GetCategoryTrafficLightTodayData = {
     body?: never;
     path: {
-        atletaId: string;
+        categoryId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/comparativa-categoria';
+    url: '/api/v1/categories/{categoryId}/traffic-light-today';
 };
 
-export type ObtenerComparativaCategoriaErrors = {
-    /**
-     * Atleta o lesión no encontrados.
-     */
-    404: ProblemDetails;
-};
-
-export type ObtenerComparativaCategoriaError = ObtenerComparativaCategoriaErrors[keyof ObtenerComparativaCategoriaErrors];
-
-export type ObtenerComparativaCategoriaResponses = {
-    /**
-     * Métricas comparativas obtenidas.
-     */
-    200: ComparativaCategoriaResponse;
-};
-
-export type ObtenerComparativaCategoriaResponse = ObtenerComparativaCategoriaResponses[keyof ObtenerComparativaCategoriaResponses];
-
-export type ListarLesionesAtletaData = {
-    body?: never;
-    path: {
-        atletaId: string;
-    };
-    query?: {
-        estado?: 'Activa' | 'EnRecuperacion' | 'Alta';
-    };
-    url: '/api/v1/atletas/{atletaId}/lesiones';
-};
-
-export type ListarLesionesAtletaErrors = {
+export type GetCategoryTrafficLightTodayErrors = {
     /**
      * Token de autenticación ausente o inválido.
      */
@@ -284,27 +267,87 @@ export type ListarLesionesAtletaErrors = {
     404: ProblemDetails;
 };
 
-export type ListarLesionesAtletaError = ListarLesionesAtletaErrors[keyof ListarLesionesAtletaErrors];
+export type GetCategoryTrafficLightTodayError = GetCategoryTrafficLightTodayErrors[keyof GetCategoryTrafficLightTodayErrors];
 
-export type ListarLesionesAtletaResponses = {
+export type GetCategoryTrafficLightTodayResponses = {
+    /**
+     * Semáforo de la categoría para el día de hoy obtenido exitosamente.
+     */
+    200: Array<AthleteTrafficLightSummary>;
+};
+
+export type GetCategoryTrafficLightTodayResponse = GetCategoryTrafficLightTodayResponses[keyof GetCategoryTrafficLightTodayResponses];
+
+export type GetGroupBenchmarkData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/group-benchmark';
+};
+
+export type GetGroupBenchmarkErrors = {
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetGroupBenchmarkError = GetGroupBenchmarkErrors[keyof GetGroupBenchmarkErrors];
+
+export type GetGroupBenchmarkResponses = {
+    /**
+     * Métricas comparativas obtenidas.
+     */
+    200: GroupBenchmarkResponse;
+};
+
+export type GetGroupBenchmarkResponse = GetGroupBenchmarkResponses[keyof GetGroupBenchmarkResponses];
+
+export type ListAthleteInjuriesData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: {
+        status?: 'Active' | 'InRecovery' | 'Cleared';
+    };
+    url: '/api/v1/athletes/{athleteId}/injuries';
+};
+
+export type ListAthleteInjuriesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type ListAthleteInjuriesError = ListAthleteInjuriesErrors[keyof ListAthleteInjuriesErrors];
+
+export type ListAthleteInjuriesResponses = {
     /**
      * Lista de lesiones obtenida con éxito.
      */
-    200: Array<Lesion>;
+    200: Array<Injury>;
 };
 
-export type ListarLesionesAtletaResponse = ListarLesionesAtletaResponses[keyof ListarLesionesAtletaResponses];
+export type ListAthleteInjuriesResponse = ListAthleteInjuriesResponses[keyof ListAthleteInjuriesResponses];
 
-export type CrearLesionData = {
-    body: CrearLesionRequest;
+export type CreateInjuryData = {
+    body: CreateInjuryRequest;
     path: {
-        atletaId: string;
+        athleteId: string;
     };
     query?: never;
-    url: '/api/v1/atletas/{atletaId}/lesiones';
+    url: '/api/v1/athletes/{athleteId}/injuries';
 };
 
-export type CrearLesionErrors = {
+export type CreateInjuryErrors = {
     /**
      * Parámetros inválidos o violación de reglas de validación.
      */
@@ -315,29 +358,29 @@ export type CrearLesionErrors = {
     404: ProblemDetails;
 };
 
-export type CrearLesionError = CrearLesionErrors[keyof CrearLesionErrors];
+export type CreateInjuryError = CreateInjuryErrors[keyof CreateInjuryErrors];
 
-export type CrearLesionResponses = {
+export type CreateInjuryResponses = {
     /**
      * Lesión registrada con éxito.
      */
-    201: Lesion;
+    201: Injury;
 };
 
-export type CrearLesionResponse = CrearLesionResponses[keyof CrearLesionResponses];
+export type CreateInjuryResponse = CreateInjuryResponses[keyof CreateInjuryResponses];
 
-export type ActualizarEstadoLesionData = {
-    body: TransicionEstadoLesionRequest;
+export type UpdateInjuryStatusData = {
+    body: UpdateInjuryStatusRequest;
     path: {
-        lesionId: string;
+        injuryId: string;
     };
     query?: never;
-    url: '/api/v1/lesiones/{lesionId}/estado';
+    url: '/api/v1/injuries/{injuryId}/status';
 };
 
-export type ActualizarEstadoLesionErrors = {
+export type UpdateInjuryStatusErrors = {
     /**
-     * Transición inválida (ej. intentar pasar de Activa a Alta directamente).
+     * Transición inválida (ej. intentar pasar de Active a Cleared directamente).
      */
     400: ProblemDetails;
     /**
@@ -346,16 +389,16 @@ export type ActualizarEstadoLesionErrors = {
     404: ProblemDetails;
 };
 
-export type ActualizarEstadoLesionError = ActualizarEstadoLesionErrors[keyof ActualizarEstadoLesionErrors];
+export type UpdateInjuryStatusError = UpdateInjuryStatusErrors[keyof UpdateInjuryStatusErrors];
 
-export type ActualizarEstadoLesionResponses = {
+export type UpdateInjuryStatusResponses = {
     /**
      * Transición de estado aplicada correctamente.
      */
-    200: Lesion;
+    200: Injury;
 };
 
-export type ActualizarEstadoLesionResponse = ActualizarEstadoLesionResponses[keyof ActualizarEstadoLesionResponses];
+export type UpdateInjuryStatusResponse = UpdateInjuryStatusResponses[keyof UpdateInjuryStatusResponses];
 
 export type HealthCheckData = {
     body?: never;
