@@ -45,7 +45,6 @@ export default defineConfig({
         // Excluimos del precache inicial imágenes pesadas no esenciales en el arranque
         globIgnores: [
           'assets/isotype-gradient.png',
-          'assets/muscles/**',
           'assets/body-muscles-base.png',
         ],
       },

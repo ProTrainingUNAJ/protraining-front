@@ -131,6 +131,17 @@
   --muscle-blue: #023050;
   --muscle-red: #f04444;
 
+  /* Paleta Anatómica Interactiva ProTraining (Colores configurables) */
+  --muscle-color-white: #ffffff;
+  --muscle-color-dark-green: #006b45;
+  --muscle-color-light-green: #55b83f;
+  --muscle-color-yellow: #ffd600;
+  --muscle-color-orange: #ff7900;
+  --muscle-color-red: #e50914;
+  --muscle-border-color: #ffffff;
+  --muscle-outline-selected: #0070c0;
+  --muscle-silhouette-fill: #e8ecf2;
+
   /* Banner y tarjeta Suite (Dashboard PF y Atleta) */
   --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.15);
@@ -193,6 +204,9 @@
   --muscle-hover-stroke: #38bdf8;
   --muscle-hover-fill: rgb(56 189 248 / 0.25);
   --muscle-badge-bg: rgb(255 255 255 / 0.15);
+  --muscle-border-color: #272c33;
+  --muscle-outline-selected: #38bdf8;
+  --muscle-silhouette-fill: #1c222b;
 
   --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.1);
