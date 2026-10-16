@@ -292,7 +292,6 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
             );
           })}
         </g>
-
       </svg>
     </div>
   );

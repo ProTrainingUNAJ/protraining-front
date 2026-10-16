@@ -301,7 +301,10 @@ export const CheckInPage: React.FC = () => {
         }
       />
 
-      <div className="app-page-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div
+        className="app-page-body"
+        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+      >
         {/* Sync feedback notification */}
         {syncFeedback && (
           <div
@@ -350,10 +353,7 @@ export const CheckInPage: React.FC = () => {
             className="card"
             style={{ margin: 0, padding: '2.5rem 1.5rem', textAlign: 'center' }}
           >
-            <CheckCircle2
-              size={54}
-              style={{ color: 'var(--success)', margin: '0 auto 1.25rem' }}
-            />
+            <CheckCircle2 size={54} style={{ color: 'var(--success)', margin: '0 auto 1.25rem' }} />
             <h2
               style={{
                 fontSize: '1.45rem',
@@ -754,7 +754,9 @@ export const CheckInPage: React.FC = () => {
                   type="scale"
                   scaleValue={sleepQuality}
                   onScaleChange={setSleepQuality}
-                  badgeVariant={sleepQuality >= 4 ? 'success' : sleepQuality <= 2 ? 'warning' : 'default'}
+                  badgeVariant={
+                    sleepQuality >= 4 ? 'success' : sleepQuality <= 2 ? 'warning' : 'default'
+                  }
                   scaleDescription="1: Pésima · 5: Excelente"
                 />
 
@@ -767,7 +769,9 @@ export const CheckInPage: React.FC = () => {
                   type="scale"
                   scaleValue={fatigueLevel}
                   onScaleChange={setFatigueLevel}
-                  badgeVariant={fatigueLevel <= 2 ? 'success' : fatigueLevel >= 4 ? 'danger' : 'warning'}
+                  badgeVariant={
+                    fatigueLevel <= 2 ? 'success' : fatigueLevel >= 4 ? 'danger' : 'warning'
+                  }
                   scaleDescription="1: Enérgico · 5: Agotado"
                 />
 
@@ -780,7 +784,9 @@ export const CheckInPage: React.FC = () => {
                   type="scale"
                   scaleValue={muscleSoreness}
                   onScaleChange={setMuscleSoreness}
-                  badgeVariant={muscleSoreness === 1 ? 'success' : muscleSoreness >= 4 ? 'danger' : 'warning'}
+                  badgeVariant={
+                    muscleSoreness === 1 ? 'success' : muscleSoreness >= 4 ? 'danger' : 'warning'
+                  }
                   scaleDescription="1: Sin dolor · 5: Dolor severo"
                 />
 
@@ -905,10 +911,7 @@ export const CheckInPage: React.FC = () => {
                     }}
                   >
                     {isSubmitting ? (
-                      <RefreshCw
-                        size={17}
-                        style={{ animation: 'spin 1s linear infinite' }}
-                      />
+                      <RefreshCw size={17} style={{ animation: 'spin 1s linear infinite' }} />
                     ) : (
                       <Send size={17} />
                     )}

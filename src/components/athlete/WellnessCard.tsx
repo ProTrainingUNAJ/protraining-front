@@ -178,9 +178,7 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
                     fontSize: '0.88rem',
                     fontWeight: 700,
                     borderRadius: '6px',
-                    border: isSelected
-                      ? '2px solid var(--secondary)'
-                      : '1px solid var(--border)',
+                    border: isSelected ? '2px solid var(--secondary)' : '1px solid var(--border)',
                     background: isSelected ? 'var(--primary-light)' : 'var(--bg-subtle)',
                     color: isSelected ? 'var(--primary)' : 'var(--text-main)',
                     cursor: 'pointer',
