@@ -1,6 +1,6 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
-const contracts = '../protraining-back/contracts';
+const contracts = process.env.OPENAPI_CONTRACTS_PATH ?? '../protraining-back/contracts';
 
 export default defineConfig({
   input: [
