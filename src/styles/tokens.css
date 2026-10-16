@@ -81,19 +81,19 @@
   --shell-pill-border: #0070c0;
   --shell-pill-hover: #eef6fc;
 
-  /* Colores base y utilitarios */
+  /* Base and utility colors */
   --white: #ffffff;
   --black: #000000;
   --cyan-accent: #38bdf8;
   --navy-deep: #021e33;
 
-  /* Proveedores de autenticación */
+  /* Authentication providers */
   --color-google-blue: #4285f4;
   --color-google-green: #34a853;
   --color-google-yellow: #fbbc05;
   --color-google-red: #ea4335;
 
-  /* Inputs y controles de formulario */
+  /* Inputs and form controls */
   --input-bg: #f8fafc;
   --input-border: #e2e8f0;
   --input-border-hover: #c8d0dc;
@@ -105,14 +105,14 @@
   --input-text-dark: #e8edf4;
   --input-placeholder: #94a3b8;
 
-  /* Estados y bordes complementarios */
+  /* Complementary states and borders */
   --brand-blue-hover: #005999;
   --bg-surface-subtle: #f4f5f7;
   --color-text-subtle: #8e98a5;
   --status-danger-border: #f87171;
   --status-success-border: #86efac;
 
-  /* Escala de dolor muscular ProTraining (1 a 5) */
+  /* ProTraining muscle pain scale (1 to 5) */
   --pain-level-1: #20c56b;
   --pain-level-2: #84cc16;
   --pain-level-3: #f4b400;
@@ -131,7 +131,7 @@
   --muscle-blue: #023050;
   --muscle-red: #f04444;
 
-  /* Paleta Anatómica Interactiva ProTraining (Colores configurables) */
+  /* ProTraining Interactive Anatomical Palette (Configurable colors) */
   --muscle-color-white: #ffffff;
   --muscle-color-dark-green: #006b45;
   --muscle-color-light-green: #55b83f;
@@ -142,7 +142,7 @@
   --muscle-outline-selected: #0070c0;
   --muscle-silhouette-fill: #e8ecf2;
 
-  /* Banner y tarjeta Suite (Dashboard PF y Atleta) */
+  /* Suite banner and card (Coach & Athlete Dashboard) */
   --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.15);
   --suite-text-muted: rgb(255 255 255 / 0.78);
@@ -171,7 +171,7 @@
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
 
-  /* Inputs y estados en modo oscuro */
+  /* Inputs and states in dark mode */
   --bg-surface-subtle: #1c2025;
   --color-text-subtle: #6d7784;
   --input-bg: #1c2025;

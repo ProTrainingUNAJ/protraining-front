@@ -1,7 +1,7 @@
 /**
- * ProTraining — Tipos del Mapa Anatómico Vectorial SVG Interactivo
- * Define los 12 grupos musculares oficiales, las 8 regiones articulares,
- * el sistema de colores y los contratos de componentes.
+ * ProTraining — Interactive SVG Vector Anatomical Map Types
+ * Defines the 12 official muscle groups, 8 joint regions,
+ * color system, and component contracts.
  */
 
 export type BilateralMuscleId =
@@ -64,7 +64,7 @@ export type AnatomicalRegionId = OfficialMuscleId | JointId;
 export type ViewMode = 'front' | 'back' | 'both';
 
 /**
- * Paleta centralizada oficial de colores para el mapa muscular (Sección 8)
+ * Centralized official color palette for the muscle map (Section 8)
  */
 export const MUSCLE_COLORS = {
   white: '#FFFFFF',
@@ -109,28 +109,28 @@ export interface JointRegion {
 }
 
 export interface InteractiveMuscleMapProps {
-  /** Registro de dolor por grupo muscular o articulación (1 a 5) */
+  /** Pain registry per muscle group or joint (1 to 5) */
   musclePains?: Record<string, number>;
-  /** Colores personalizados directos asignados a cada región */
+  /** Direct custom colors assigned to each region */
   muscleColors?: Record<string, string>;
-  /** Regiones seleccionadas actualmente */
+  /** Currently selected regions */
   selectedMuscles?: string[];
-  /** Callback al cambiar la selección activa */
+  /** Callback triggered when active selection changes */
   onSelectionChange?: (selectedIds: string[]) => void;
-  /** Callback al asignar nivel de dolor individual */
+  /** Callback to assign pain level to an individual region */
   onPainChange?: (regionId: string, level: number) => void;
-  /** Callback para asignar color o nivel a múltiples regiones */
+  /** Callback to batch assign pain level or color to multiple regions */
   onBatchPainChange?: (regionIds: string[], level: number) => void;
-  /** Callback al cambiar color directo */
+  /** Callback triggered when direct color changes */
   onColorChange?: (regionId: string, color: string) => void;
-  /** Limpiar todos los dolores y colores */
+  /** Clear all pains and custom colors */
   onClearAll?: () => void;
-  /** Limpiar solo la selección */
+  /** Clear active selection only */
   onClearSelection?: () => void;
-  /** Vista predeterminada */
+  /** Default view mode */
   initialView?: ViewMode;
-  /** Modo solo lectura */
+  /** Read-only mode flag */
   readOnly?: boolean;
-  /** Clase CSS adicional */
+  /** Additional CSS class name */
   className?: string;
 }
