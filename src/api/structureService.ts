@@ -121,7 +121,7 @@ export const structureService = {
       const response = await httpClient.get<RawOrganization[]>('/estructura/api/v1/organizations');
       return (response.data || []).map(mapOrganization);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -136,7 +136,7 @@ export const structureService = {
       );
       return mapOrganization(response.data);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -150,7 +150,7 @@ export const structureService = {
       );
       return (response.data || []).map(mapCategory);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -168,7 +168,7 @@ export const structureService = {
       );
       return mapCategory(response.data);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -182,7 +182,7 @@ export const structureService = {
       });
       return (response.data || []).map(mapAthlete);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -198,7 +198,7 @@ export const structureService = {
       });
       return mapAthlete(response.data);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -206,7 +206,7 @@ export const structureService = {
     try {
       await httpClient.post(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
@@ -214,7 +214,7 @@ export const structureService = {
     try {
       await httpClient.delete(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);
     } catch (err: unknown) {
-      throw new Error(extractErrorMessage(err));
+      throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 };
