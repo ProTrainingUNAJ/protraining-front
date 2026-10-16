@@ -118,93 +118,63 @@ function mapAthlete(raw: RawAthlete): Athlete {
 export const structureService = {
   async getOrganizations(): Promise<Organization[]> {
     try {
-      const response = await httpClient.get<RawOrganization[]>('/estructura/api/v1/organizaciones');
+      const response = await httpClient.get<RawOrganization[]>('/estructura/api/v1/organizations');
       return (response.data || []).map(mapOrganization);
     } catch (err: unknown) {
-      try {
-        const fallback = await httpClient.get<RawOrganization[]>('/estructura/api/organizations');
-        return (fallback.data || []).map(mapOrganization);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async createOrganization(req: CreateOrganizationRequest): Promise<Organization> {
-    const payload = {
-      nombre: req.name.trim(),
-      name: req.name.trim(),
-      descripcion: req.description?.trim() || null,
-      description: req.description?.trim() || null,
-    };
-
     try {
       const response = await httpClient.post<RawOrganization>(
-        '/estructura/api/v1/organizaciones',
-        payload,
+        '/estructura/api/v1/organizations',
+        {
+          name: req.name.trim(),
+          description: req.description?.trim() || null,
+        },
       );
       return mapOrganization(response.data);
     } catch (err: unknown) {
-      try {
-        const fallback = await httpClient.post<RawOrganization>(
-          '/estructura/api/organizations',
-          payload,
-        );
-        return mapOrganization(fallback.data);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async getCategories(organizationId: string): Promise<Category[]> {
     try {
       const response = await httpClient.get<RawCategory[]>(
-        `/estructura/api/v1/organizaciones/${organizationId}/categorias`,
+        '/estructura/api/v1/categories',
+        {
+          params: { organizationId },
+        },
       );
       return (response.data || []).map(mapCategory);
     } catch (err: unknown) {
-      try {
-        const fallback = await httpClient.get<RawCategory[]>(
-          `/estructura/api/categories?organizationId=${organizationId}`,
-        );
-        return (fallback.data || []).map(mapCategory);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async createCategory(organizationId: string, req: CreateCategoryRequest): Promise<Category> {
-    const payload = {
-      nombre: req.name.trim(),
-      name: req.name.trim(),
-      descripcion: req.description?.trim() || null,
-      description: req.description?.trim() || null,
-    };
-
     try {
       const response = await httpClient.post<RawCategory>(
-        `/estructura/api/v1/organizaciones/${organizationId}/categorias`,
-        payload,
+        '/estructura/api/v1/categories',
+        {
+          name: req.name.trim(),
+          description: req.description?.trim() || null,
+        },
+        {
+          params: { organizationId },
+        },
       );
       return mapCategory(response.data);
     } catch (err: unknown) {
-      try {
-        const fallback = await httpClient.post<RawCategory>(
-          `/estructura/api/categories?organizationId=${organizationId}`,
-          payload,
-        );
-        return mapCategory(fallback.data);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async getAthletes(params?: { categoriaId?: string; soloActivos?: boolean }): Promise<Athlete[]> {
     try {
-      const response = await httpClient.get<RawAthlete[]>('/estructura/api/v1/atletas', {
+      const response = await httpClient.get<RawAthlete[]>('/estructura/api/v1/athletes', {
         params: {
           categoriaId: params?.categoriaId,
           soloActivos: params?.soloActivos ?? true,
@@ -212,66 +182,40 @@ export const structureService = {
       });
       return (response.data || []).map(mapAthlete);
     } catch (err: unknown) {
-      try {
-        const fallback = await httpClient.get<RawAthlete[]>('/estructura/api/athletes');
-        return (fallback.data || []).map(mapAthlete);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async createAthlete(req: CreateAthleteRequest): Promise<Athlete> {
-    const payload = {
-      nombre: req.firstName.trim(),
-      firstName: req.firstName.trim(),
-      apellido: req.lastName.trim(),
-      lastName: req.lastName.trim(),
-      email: req.email.trim(),
-      telefono: req.phone.trim(),
-      phone: req.phone.trim(),
-      categorias: req.categoryIds || [],
-      categoryIds: req.categoryIds || [],
-      contactoEmergencia: req.emergencyContact?.trim() || null,
-      emergencyContact: req.emergencyContact?.trim() || null,
-      condicionesMedicas: req.medicalConditions?.trim() || null,
-      medicalConditions: req.medicalConditions?.trim() || null,
-    };
-
     try {
-      const response = await httpClient.post<RawAthlete>('/estructura/api/v1/atletas', payload);
+      const response = await httpClient.post<RawAthlete>('/estructura/api/v1/athletes', {
+        firstName: req.firstName.trim(),
+        lastName: req.lastName.trim(),
+        email: req.email.trim(),
+        phone: req.phone.trim(),
+        emergencyContact: req.emergencyContact?.trim() || null,
+        medicalConditions: req.medicalConditions?.trim() || null,
+      });
       return mapAthlete(response.data);
     } catch (err: unknown) {
-      try {
-        const fallback = await httpClient.post<RawAthlete>('/estructura/api/athletes', payload);
-        return mapAthlete(fallback.data);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async assignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
     try {
-      await httpClient.post(`/estructura/api/v1/atletas/${athleteId}/categorias/${categoryId}`);
+      await httpClient.post(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);
     } catch (err: unknown) {
-      try {
-        await httpClient.post(`/estructura/api/athletes/${athleteId}/categories/${categoryId}`);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 
   async unassignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
     try {
-      await httpClient.delete(`/estructura/api/v1/atletas/${athleteId}/categorias/${categoryId}`);
+      await httpClient.delete(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);
     } catch (err: unknown) {
-      try {
-        await httpClient.delete(`/estructura/api/athletes/${athleteId}/categories/${categoryId}`);
-      } catch {
-        throw new Error(extractErrorMessage(err));
-      }
+      throw new Error(extractErrorMessage(err));
     }
   },
 };
+
