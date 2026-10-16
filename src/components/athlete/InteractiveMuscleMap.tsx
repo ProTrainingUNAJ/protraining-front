@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { RotateCcw, Eye, Info, Sliders } from 'lucide-react';
 import { MuscleMapFront } from './MuscleMapFront';
 import { MuscleMapBack } from './MuscleMapBack';
-import { OFFICIAL_MUSCLE_GROUPS, OFFICIAL_JOINTS, OFFICIAL_PALETTE_ITEMS } from './muscleMap.config';
+import {
+  OFFICIAL_MUSCLE_GROUPS,
+  OFFICIAL_JOINTS,
+  OFFICIAL_PALETTE_ITEMS,
+} from './muscleMap.config';
 import { InteractiveMuscleMapProps, OfficialMuscleGroup, ViewMode } from './muscleMap.types';
 
 export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
@@ -23,7 +27,11 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
   const selectedList = controlledSelected !== undefined ? controlledSelected : internalSelected;
 
   const [activeView, setActiveView] = useState<ViewMode>(initialView);
-  const [hoveredRegion, setHoveredRegion] = useState<{ name: string; category?: string; view: string } | null>(null);
+  const [hoveredRegion, setHoveredRegion] = useState<{
+    name: string;
+    category?: string;
+    view: string;
+  } | null>(null);
   const [showPerspectiveGuide, setShowPerspectiveGuide] = useState(false);
 
   const ALL_ANATOMICAL_ITEMS = [...OFFICIAL_MUSCLE_GROUPS, ...OFFICIAL_JOINTS];
@@ -413,7 +421,6 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
             )}
           </span>
         </div>
-
 
         <button
           type="button"

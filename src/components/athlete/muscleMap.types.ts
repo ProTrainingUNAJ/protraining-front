@@ -31,11 +31,7 @@ export type BilateralMuscleId =
   | 'pie_izquierdo';
 
 export type CentralMuscleId =
-  | 'abdominales'
-  | 'espalda_alta'
-  | 'espalda_media'
-  | 'espalda_baja'
-  | 'cuello_trapecios';
+  'abdominales' | 'espalda_alta' | 'espalda_media' | 'espalda_baja' | 'cuello_trapecios';
 
 export type LegacyMuscleId =
   | 'pecho'

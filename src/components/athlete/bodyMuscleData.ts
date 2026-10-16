@@ -109,4 +109,3 @@ export const PROTRAINING_MUSCLES: MuscleGroupItem[] = [
   ...JOINT_ITEMS,
   ...LEGACY_GROUPS,
 ];
-

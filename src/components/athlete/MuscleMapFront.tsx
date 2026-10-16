@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import lineartUrl from '../../assets/front-anatomy-lineart.png';
 import silhouetteUrl from '../../assets/front-body-silhouette.png';
-import {
-  FRONT_OFFICIAL_MUSCLES,
-  FRONT_JOINTS,
-  getColorByPainLevel,
-} from './muscleMap.config';
+import { FRONT_OFFICIAL_MUSCLES, FRONT_JOINTS, getColorByPainLevel } from './muscleMap.config';
 import { OfficialMuscleGroup, JointRegion } from './muscleMap.types';
 
 export interface MuscleMapFrontProps {

@@ -43,10 +43,7 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Excluimos del precache inicial imágenes pesadas no esenciales en el arranque
-        globIgnores: [
-          'assets/isotype-gradient.png',
-          'assets/body-muscles-base.png',
-        ],
+        globIgnores: ['assets/isotype-gradient.png', 'assets/body-muscles-base.png'],
       },
       devOptions: { enabled: false },
     }),

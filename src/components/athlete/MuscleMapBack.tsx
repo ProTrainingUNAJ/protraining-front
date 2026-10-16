@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import lineartUrl from '../../assets/back-anatomy-lineart.png';
 import silhouetteUrl from '../../assets/back-body-silhouette.png';
-import {
-  BACK_OFFICIAL_MUSCLES,
-  BACK_JOINTS,
-  getColorByPainLevel,
-} from './muscleMap.config';
+import { BACK_OFFICIAL_MUSCLES, BACK_JOINTS, getColorByPainLevel } from './muscleMap.config';
 import { OfficialMuscleGroup, JointRegion } from './muscleMap.types';
 
 export interface MuscleMapBackProps {
