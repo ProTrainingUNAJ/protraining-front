@@ -293,68 +293,6 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
           })}
         </g>
 
-        {/* 5. Numeric pain badges (1 to 5) at anatomical centers */}
-        <g id="front-pain-badges" style={{ pointerEvents: 'none' }}>
-          {FRONT_OFFICIAL_MUSCLES.map((muscle) => {
-            const painLevel = musclePains[muscle.id] || 0;
-            if (painLevel <= 0 || !muscle.frontCenter) return null;
-
-            return (
-              <g
-                key={`front-badge-${muscle.id}`}
-                transform={`translate(${muscle.frontCenter.x}, ${muscle.frontCenter.y})`}
-              >
-                <circle
-                  r="11"
-                  fill={getColorByPainLevel(painLevel)}
-                  stroke="var(--white)"
-                  strokeWidth="2"
-                  filter="drop-shadow(0 2px 4px rgba(0,0,0,0.35))"
-                />
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill="#ffffff"
-                  fontSize="11"
-                  fontWeight="800"
-                  fontFamily="inherit"
-                >
-                  {painLevel}
-                </text>
-              </g>
-            );
-          })}
-
-          {FRONT_JOINTS.map((joint) => {
-            const painLevel = musclePains[joint.id] || 0;
-            if (painLevel <= 0 || !joint.frontCenter) return null;
-
-            return (
-              <g
-                key={`front-joint-badge-${joint.id}`}
-                transform={`translate(${joint.frontCenter.x}, ${joint.frontCenter.y})`}
-              >
-                <circle
-                  r="10"
-                  fill={getColorByPainLevel(painLevel)}
-                  stroke="var(--white)"
-                  strokeWidth="2"
-                  filter="drop-shadow(0 2px 4px rgba(0,0,0,0.35))"
-                />
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill="#ffffff"
-                  fontSize="10"
-                  fontWeight="800"
-                  fontFamily="inherit"
-                >
-                  {painLevel}
-                </text>
-              </g>
-            );
-          })}
-        </g>
       </svg>
     </div>
   );
