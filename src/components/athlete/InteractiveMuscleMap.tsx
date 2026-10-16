@@ -84,6 +84,10 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
     if (onColorChange) {
       selectedList.forEach((id) => onColorChange(id, hex));
     }
+
+    // Automatically deselect region after marking color/pain
+    updateSelection([]);
+    onClearSelection?.();
   };
 
   const activePainsCount = Object.values(musclePains).filter((lvl) => lvl > 0).length;
