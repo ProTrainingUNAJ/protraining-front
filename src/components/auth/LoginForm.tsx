@@ -78,10 +78,7 @@ export const LoginForm: React.FC = () => {
 
     try {
       const session = await login({ email: email.trim(), password });
-      const isPF =
-        session.user.role.toLowerCase().includes('pf') ||
-        session.user.role.toLowerCase().includes('preparador');
-      navigate(isPF ? '/pf' : '/athlete');
+      navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
     } catch (err: unknown) {
       const msg = extractErrorMessage(err);
       setErrorMessage(msg);

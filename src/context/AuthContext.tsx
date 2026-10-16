@@ -10,6 +10,8 @@ import { AuthSession, LoginRequest, RoleType, UserDto } from '../types/auth';
 import { authService } from '../api/authService';
 import { onAuthExpired } from '../api/axiosClient';
 
+export type ThemePreference = 'system' | 'light' | 'dark';
+
 interface AuthContextType {
   session: AuthSession | null;
   user: UserDto | null;
@@ -20,6 +22,8 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<AuthSession>;
   logout: () => void;
   theme: 'light' | 'dark';
+  themePreference: ThemePreference;
+  setThemePreference: (preference: ThemePreference) => void;
   toggleTheme: () => void;
 }
 
@@ -29,21 +33,72 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
   const [selectedRole, setSelectedRole] = useState<RoleType>('PF');
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem('protraining_theme');
-    if (saved === 'dark' || saved === 'light') return saved;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  // User preference: 'system' (default), 'light' or 'dark'
+  const [themePreference, setThemePreferenceState] = useState<ThemePreference>(() => {
+    const savedPref = localStorage.getItem('protraining_theme_preference');
+    if (savedPref === 'system' || savedPref === 'light' || savedPref === 'dark') {
+      return savedPref;
+    }
+    const legacySaved = localStorage.getItem('protraining_theme');
+    if (legacySaved === 'light' || legacySaved === 'dark') {
+      return legacySaved;
+    }
+    return 'system';
   });
 
-  // Apply theme to document element
+  // OS color scheme status (prefers-color-scheme)
+  const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
+    return (
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    );
+  });
+
+  // Listen to OS color scheme changes in real time
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = (e: MediaQueryListEvent) => {
+      setSystemIsDark(e.matches);
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemChange);
+    } else {
+      mediaQuery.addListener(handleSystemChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleSystemChange);
+      } else {
+        mediaQuery.removeListener(handleSystemChange);
+      }
+    };
+  }, []);
+
+  // Resolved effective theme applied to document.documentElement
+  const theme: 'light' | 'dark' =
+    themePreference === 'system' ? (systemIsDark ? 'dark' : 'light') : themePreference;
+
+  // Apply theme on data-theme attribute and synchronize storage
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('protraining_theme', theme);
-  }, [theme]);
+    localStorage.setItem('protraining_theme_preference', themePreference);
+  }, [theme, themePreference]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+  const setThemePreference = useCallback((pref: ThemePreference) => {
+    setThemePreferenceState(pref);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemePreferenceState((prev) => {
+      if (prev === 'system') {
+        return systemIsDark ? 'light' : 'dark';
+      }
+      return prev === 'light' ? 'dark' : 'light';
+    });
+  }, [systemIsDark]);
 
   // Hydrate session on initial load
   useEffect(() => {
@@ -52,10 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (validSession) {
         setSession(validSession);
         // Automatically align selectedRole with user role if known
-        const isPF =
-          validSession.user.role.toLowerCase().includes('pf') ||
-          validSession.user.role.toLowerCase().includes('preparador');
-        setSelectedRole(isPF ? 'PF' : 'Atleta');
+        setSelectedRole(validSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
       }
     } finally {
       setIsHydrating(false);
@@ -73,10 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = useCallback(async (credentials: LoginRequest): Promise<AuthSession> => {
     const newSession = await authService.login(credentials);
     setSession(newSession);
-    const isPF =
-      newSession.user.role.toLowerCase().includes('pf') ||
-      newSession.user.role.toLowerCase().includes('preparador');
-    setSelectedRole(isPF ? 'PF' : 'Atleta');
+    setSelectedRole(newSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
     return newSession;
   }, []);
 
@@ -97,6 +146,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         logout,
         theme,
+        themePreference,
+        setThemePreference,
         toggleTheme,
       }}
     >

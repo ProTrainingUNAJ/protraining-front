@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GripVertical, ChevronLeft, ChevronRight, ArrowRight, RotateCcw } from 'lucide-react';
+import {
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  RotateCcw,
+  Clock,
+  MapPin,
+  CloudSun,
+  Wind,
+  Droplets,
+} from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 
-interface WireframeCardItem {
+export interface WireframeCardItem {
   id: string;
   name: string;
   colSpan: number; // 1 o 2 columnas en grid de 4
-  type: 'empty' | 'suite';
+  type: 'empty' | 'suite' | 'training-weather' | 'progress-chart';
+  chartMetric?: 'cmj' | 'squat' | 'sprint' | 'rpe' | 'yoyo';
 }
 
 const DEFAULT_ROW_1: WireframeCardItem[] = [
   { id: 'r1-c1', name: 'Módulo 1-A', colSpan: 1, type: 'empty' },
   { id: 'r1-c2', name: 'Módulo 1-B', colSpan: 1, type: 'empty' },
   { id: 'r1-c3', name: 'Módulo 1-C', colSpan: 1, type: 'empty' },
-  { id: 'r1-c4', name: 'Módulo 1-D', colSpan: 1, type: 'empty' },
+  { id: 'r1-c4', name: 'Horario y Clima', colSpan: 1, type: 'training-weather' },
 ];
 
 const DEFAULT_ROW_2: WireframeCardItem[] = [
@@ -37,8 +50,8 @@ export const DashboardPage: React.FC = () => {
   const location = useLocation();
   const isAthlete = location.pathname.startsWith('/athlete');
   const storageKey = isAthlete
-    ? 'protraining_wireframe_bento_athlete_v3'
-    : 'protraining_wireframe_bento_coach_v3';
+    ? 'protraining_wireframe_bento_athlete_v4'
+    : 'protraining_wireframe_bento_coach_v4';
 
   // Estados de cada fila por separado para aislamiento estricto
   const [row1, setRow1] = useState<WireframeCardItem[]>(() => {
@@ -46,7 +59,14 @@ export const DashboardPage: React.FC = () => {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.row1) && parsed.row1.length === 4) return parsed.row1;
+        if (Array.isArray(parsed.row1) && parsed.row1.length === 4) {
+          // Migrate r1-c4 to training-weather if stored as empty
+          return parsed.row1.map((item: WireframeCardItem) =>
+            item.id === 'r1-c4' && item.type === 'empty'
+              ? { ...item, type: 'training-weather', name: 'Horario y Clima' }
+              : item,
+          );
+        }
       }
     } catch {
       // Ignorar fallback
@@ -225,6 +245,16 @@ export const DashboardPage: React.FC = () => {
     setDragOverTarget(null);
   };
 
+  const handleRemoveChart = (rowId: number, cardId: string) => {
+    const updater = (prev: WireframeCardItem[]) =>
+      prev.map((c) =>
+        c.id === cardId ? { ...c, type: 'empty' as const, chartMetric: undefined } : c,
+      );
+    if (rowId === 1) setRow1(updater);
+    else if (rowId === 2) setRow2(updater);
+    else if (rowId === 3) setRow3(updater);
+  };
+
   // Renderizador de una tarjeta individual
   const renderCard = (
     card: WireframeCardItem,
@@ -384,7 +414,337 @@ export const DashboardPage: React.FC = () => {
       );
     }
 
-    // ── Caso B: Tarjeta Vacía Limpia (Fila 1, Fila 2, Fila 3 derecha) ──
+    // ── Case B: Training Schedule, Location and Weather Card (Row 1 Card 4) ──
+    if (card.type === 'training-weather') {
+      return (
+        <div
+          key={card.id}
+          draggable
+          onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
+          onDragOver={(e) => handleDragOver(rowId, index, e)}
+          onDragLeave={(e) => handleDragLeave(rowId, index, e)}
+          onDrop={(e) => handleDrop(rowId, index, e)}
+          onDragEnd={handleDragEnd}
+          className={`wireframe-card ${spanClass} ${isDragging ? 'is-dragging' : ''} ${
+            isDragOver ? 'is-drag-over' : ''
+          } ${isRecentlyMoved ? 'is-recently-moved' : ''} ${isForbidden ? 'is-forbidden' : ''}`}
+          style={{
+            padding: '0.85rem 1.15rem',
+            background: 'linear-gradient(135deg, var(--bg-card) 45%, var(--bg-subtle) 100%)',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+          title="Arrastrá para intercambiar posición en esta fila"
+        >
+          {/* Barra de herramientas para mover en hover / drag */}
+          <div className="wireframe-card-toolbar">
+            {index > 0 && (
+              <button
+                type="button"
+                className="wireframe-control-btn"
+                onClick={(e) => moveLeft(rowId, index, e)}
+                title="Mover a la izquierda"
+                aria-label="Mover a la izquierda"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+            {index < totalInRow - 1 && (
+              <button
+                type="button"
+                className="wireframe-control-btn"
+                onClick={(e) => moveRight(rowId, index, e)}
+                title="Mover a la derecha"
+                aria-label="Mover a la derecha"
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+            <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
+              <GripVertical size={18} />
+            </span>
+          </div>
+
+          {/* Cabecera del Widget: Badge en vivo y Turno */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '0.45rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                background: 'var(--stat-green-bg)',
+                color: 'var(--stat-green)',
+                padding: '0.2rem 0.55rem',
+                borderRadius: '9999px',
+                fontSize: '0.7rem',
+                fontWeight: 800,
+                letterSpacing: '0.03em',
+                textTransform: 'uppercase',
+                border: '1px solid var(--border)',
+              }}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: 'var(--stat-green)',
+                  boxShadow: '0 0 6px var(--stat-green)',
+                }}
+              />
+              <span>{isAthlete ? 'Tu Entrenamiento' : 'Sesión de Hoy'}</span>
+            </div>
+
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                color: 'var(--text-muted)',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Turno Tarde
+            </span>
+          </div>
+
+          {/* Cuerpo del Widget: Horario & Ubicación a la izquierda, Clima a la derecha */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+            }}
+          >
+            {/* Lado Izquierdo: Horario y Lugar */}
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                <div
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '8px',
+                    background: 'var(--stat-cyan-bg)',
+                    color: 'var(--stat-cyan)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Clock size={15} strokeWidth={2.5} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
+                  <span
+                    style={{
+                      fontSize: '1.05rem',
+                      fontWeight: 900,
+                      color: 'var(--text-main)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    17:30
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    - 19:15 hs
+                  </span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  fontSize: '0.76rem',
+                  color: 'var(--text-muted)',
+                  marginTop: '0.1rem',
+                }}
+              >
+                <MapPin size={13} style={{ color: '#ea580c', flexShrink: 0 }} strokeWidth={2.5} />
+                <span
+                  style={{
+                    fontWeight: 700,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    color: 'var(--text-main)',
+                  }}
+                >
+                  Predio UNAJ · Campo 1
+                </span>
+              </div>
+            </div>
+
+            {/* Lado Derecho: Clima y Temperatura */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: 'var(--bg-card)',
+                padding: '0.4rem 0.65rem',
+                borderRadius: '14px',
+                border: '1px solid var(--border)',
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.35)',
+                  flexShrink: 0,
+                }}
+              >
+                <CloudSun size={19} strokeWidth={2.2} />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                  <span
+                    style={{
+                      fontSize: '1.15rem',
+                      fontWeight: 900,
+                      color: 'var(--text-main)',
+                      lineHeight: 1,
+                    }}
+                  >
+                    22°
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    Despejado
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    marginTop: '0.2rem',
+                    fontSize: '0.68rem',
+                    color: 'var(--text-muted)',
+                    fontWeight: 600,
+                  }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <Wind size={11} style={{ color: 'var(--stat-cyan)' }} /> 12 km/h
+                  </span>
+                  <span>•</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <Droplets size={11} style={{ color: 'var(--secondary)' }} /> 54%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Case C: Progress Chart Card Exported from "Progress" View ──
+    if (card.type === 'progress-chart') {
+      return (
+        <div
+          key={card.id}
+          draggable
+          onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
+          onDragOver={(e) => handleDragOver(rowId, index, e)}
+          onDragLeave={(e) => handleDragLeave(rowId, index, e)}
+          onDrop={(e) => handleDrop(rowId, index, e)}
+          onDragEnd={handleDragEnd}
+          className={`wireframe-card ${spanClass} ${isDragging ? 'is-dragging' : ''} ${
+            isDragOver ? 'is-drag-over' : ''
+          } ${isRecentlyMoved ? 'is-recently-moved' : ''} ${isForbidden ? 'is-forbidden' : ''}`}
+          style={{
+            padding: 0,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+          title="Arrastrá para intercambiar posición en esta fila"
+        >
+          {/* Barra de herramientas para reordenar en la fila */}
+          <div className="wireframe-card-toolbar">
+            {index > 0 && (
+              <button
+                type="button"
+                className="wireframe-control-btn"
+                onClick={(e) => moveLeft(rowId, index, e)}
+                title="Mover a la izquierda"
+                aria-label="Mover a la izquierda"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+            {index < totalInRow - 1 && (
+              <button
+                type="button"
+                className="wireframe-control-btn"
+                onClick={(e) => moveRight(rowId, index, e)}
+                title="Mover a la derecha"
+                aria-label="Mover a la derecha"
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+            <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
+              <GripVertical size={18} />
+            </span>
+          </div>
+
+          <EvolutionChartWidget
+            metricKey={card.chartMetric || 'cmj'}
+            variant="compact"
+            colSpan={card.colSpan}
+            onRemove={() => handleRemoveChart(rowId, card.id)}
+          />
+        </div>
+      );
+    }
+
+    // ── Case D: Clean Empty Card (Row 1, Row 2, Row 3 right) ──
     return (
       <div
         key={card.id}

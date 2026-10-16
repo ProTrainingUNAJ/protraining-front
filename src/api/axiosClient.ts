@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { AuthSession, ProblemDetails } from '../types/auth';
+import { AuthSession, ProblemDetails, RefreshResponse } from '../types/auth';
+import { getDeviceId } from '../utils/deviceId';
 
 const STORAGE_KEY = 'protraining_session';
 const LEGACY_TOKEN_KEY = 'protraining_token';
@@ -116,10 +117,12 @@ httpClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const isLoginEndpoint = originalRequest.url?.includes('/auth/login');
+    const isAuthEndpoint =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/refresh');
 
-    // 401 on login endpoint is an invalid credentials error: DO NOT attempt refresh!
-    if (error.response.status === 401 && isLoginEndpoint) {
+    // 401 on login or refresh endpoint is an authentication error: DO NOT attempt refresh!
+    if (error.response.status === 401 && isAuthEndpoint) {
       return Promise.reject(error);
     }
 
@@ -132,25 +135,27 @@ httpClient.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => httpClient(originalRequest))
+          .then(() => {
+            const currentSession = getStoredSession();
+            if (currentSession?.accessToken) {
+              originalRequest.headers['Authorization'] = `Bearer ${currentSession.accessToken}`;
+            }
+            return httpClient(originalRequest);
+          })
           .catch((err) => Promise.reject(err));
       }
 
       isRefreshing = true;
 
       try {
-        /**
-         * NOTA KAN-302 / REFRESH TOKEN DEPENDENCY:
-         * El backend actual de ProTraining (Identidad) emite JWT con expiración pero
-         * no tiene implementado un endpoint de refresh token (/api/v1/auth/refresh).
-         * Por ende, si una solicitud protegida devuelve 401, procedemos a expirar
-         * la sesión de manera segura, limpiar almacenamiento y notificar a la aplicación
-         * para solicitar nuevo inicio de sesión sin bucles infinitos.
-         */
         const refreshed = await attemptTokenRefresh();
 
         if (refreshed) {
           processQueue(null);
+          const currentSession = getStoredSession();
+          if (currentSession?.accessToken) {
+            originalRequest.headers['Authorization'] = `Bearer ${currentSession.accessToken}`;
+          }
           return httpClient(originalRequest);
         } else {
           throw new Error('Sesión expirada');
@@ -171,12 +176,50 @@ httpClient.interceptors.response.use(
 
 /**
  * Pluggable token refresh handler.
+ * Rotates accessToken and refreshToken via POST /api/identidad/api/v1/auth/refresh.
  * Returns true if refresh succeeded, false otherwise.
  */
 async function attemptTokenRefresh(): Promise<boolean> {
-  // Pending backend support in KAN-302 (no refresh endpoint exists yet).
-  // Once backend supports refresh, execute POST /api/identidad/api/v1/auth/refresh here.
-  return false;
+  const session = getStoredSession();
+  const deviceId = getDeviceId();
+
+  if (!session?.refreshToken || !deviceId) {
+    return false;
+  }
+
+  try {
+    const response = await axios.post<RefreshResponse>(
+      '/api/identidad/api/v1/auth/refresh',
+      {
+        refreshToken: session.refreshToken,
+        deviceId,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      },
+    );
+
+    const data = response.data;
+    if (!data.accessToken || !data.refreshToken) {
+      return false;
+    }
+
+    const updatedSession: AuthSession = {
+      ...session,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      tokenType: data.tokenType || 'Bearer',
+      expiresAt: Date.now() + (data.expiresIn || 3600) * 1000,
+    };
+
+    saveStoredSession(updatedSession);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

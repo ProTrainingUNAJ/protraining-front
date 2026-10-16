@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { AppSidebar } from './AppSidebar';
 import { SearchBar } from './SearchBar';
@@ -14,10 +14,43 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ role }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
+
+  // React pattern: synchronize state during render on route transition
+  const [prevPath, setPrevPath] = useState(location.pathname);
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname);
+    setMobileMenuOpen(false);
+  }
+
+  // Close mobile drawer when window expands to desktop breakpoint (>= 992px)
+  // to prevent displaying duplicate active sidebars
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 992px)');
+    const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaChange);
+    } else {
+      mediaQuery.addListener(handleMediaChange);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaChange);
+      } else {
+        mediaQuery.removeListener(handleMediaChange);
+      }
+    };
+  }, []);
 
   return (
     <div className="app-shell-viewport">
