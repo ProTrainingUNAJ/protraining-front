@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Moon,
   BatteryCharging,
@@ -8,29 +8,106 @@ import {
   Send,
   Activity,
   MessageSquare,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  AlertTriangle,
+  HeartPulse,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { BodyMuscleMap } from '../../components/athlete/BodyMuscleMap';
+import { WellnessCard } from '../../components/athlete/WellnessCard';
 import {
   PROTRAINING_MUSCLES,
   PAIN_LEVELS,
   getPainColor,
 } from '../../components/athlete/bodyMuscleData';
+import {
+  submitCheckIn,
+  syncPendingCheckIns,
+  countPendingCheckIns,
+  CheckInSubmitResponse,
+} from '../../api/seguimientoService';
 
 export const CheckInPage: React.FC = () => {
-  const [sleepScore, setSleepScore] = useState<number | null>(null);
-  const [fatigueScore, setFatigueScore] = useState<number | null>(null);
-  const [sorenessScore, setSorenessScore] = useState<number | null>(null);
-  const [stressScore, setStressScore] = useState<number | null>(null);
+  const { user } = useAuth();
+  const athleteId = user?.id || '99eedc58-65dd-4417-a087-e3cc03f01043';
+
+  // Check-in metrics state
+  const [sleepHours, setSleepHours] = useState<number>(8);
+  const [sleepQuality, setSleepQuality] = useState<number>(4);
+  const [fatigueLevel, setFatigueLevel] = useState<number>(2);
+  const [muscleSoreness, setMuscleSoreness] = useState<number>(1);
+  const [moodRate, setMoodRate] = useState<number>(4);
+  const [isSick, setIsSick] = useState<boolean>(false);
   const [musclePains, setMusclePains] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+
+  // Submission & Offline State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<CheckInSubmitResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(
+    typeof navigator !== 'undefined' ? navigator.onLine : true,
+  );
+  const [pendingOfflineCount, setPendingOfflineCount] = useState<number>(0);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  // Synchronize pending records from IndexedDB
+  const handleSyncPending = useCallback(async () => {
+    if (!isOnline || isSyncing) return;
+    setIsSyncing(true);
+    setSyncFeedback(null);
+    try {
+      const count = await syncPendingCheckIns(athleteId);
+      const remaining = await countPendingCheckIns(athleteId);
+      setPendingOfflineCount(remaining);
+      if (count > 0) {
+        setSyncFeedback(`Se sincronizaron con éxito ${count} reporte(s) pendiente(s).`);
+      }
+    } catch {
+      setSyncFeedback('No se pudo completar la sincronización. Se reintentará al reconectar.');
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [athleteId, isOnline, isSyncing]);
+
+  // Listen for online/offline browser events
+  useEffect(() => {
+    let mounted = true;
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      void handleSyncPending();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    countPendingCheckIns(athleteId)
+      .then((count) => {
+        if (!mounted) return;
+        setPendingOfflineCount(count);
+      })
+      .catch(() => {
+        // Ignored
+      });
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [athleteId, handleSyncPending]);
 
   const reportedPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
   const reportedCount = reportedPains.length;
-
-  const isComplete =
-    sleepScore !== null && fatigueScore !== null && sorenessScore !== null && stressScore !== null;
 
   const handlePainChange = (muscleId: string, level: number) => {
     setMusclePains((prev) => {
@@ -48,119 +125,315 @@ export const CheckInPage: React.FC = () => {
     setMusclePains({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isComplete) return;
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    // Format pain zones: "Quadriceps:2,Hamstrings:1"
+    const painZones =
+      reportedPains.length > 0
+        ? reportedPains.map(([mId, lvl]) => `${mId}:${lvl}`).join(',')
+        : null;
+
+    // Severe pain (>= 4) is flagged as active injury in domain model
+    const hasActiveInjury = reportedPains.some(([, lvl]) => lvl >= 4);
+
+    // Stress level is inverse of mood rate (1 to 5)
+    const stressLevel = Math.max(1, Math.min(5, 6 - moodRate));
+
+    try {
+      const response = await submitCheckIn(athleteId, {
+        sleepHours,
+        sleepQuality,
+        muscleSoreness,
+        fatigueLevel,
+        moodRate,
+        stressLevel,
+        isSick,
+        painZones,
+        hasActiveInjury,
+      });
+
+      setSubmissionResult(response);
+      const remaining = await countPendingCheckIns(athleteId);
+      setPendingOfflineCount(remaining);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al enviar el check-in';
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const renderScaleButtons = (
-    currentValue: number | null,
-    setter: (val: number | null) => void,
-    lowLabel: string,
-    highLabel: string,
-  ) => {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.65rem',
-          marginTop: 'auto',
-          width: '100%',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '0.45rem' }}>
-          {[1, 2, 3, 4, 5].map((val) => {
-            const isSelected = currentValue === val;
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setter(isSelected ? null : val)}
-                className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
-                style={{
-                  flex: 1,
-                  padding: '0.65rem 0',
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  borderRadius: '8px',
-                  transition: 'all 0.15s ease',
-                  border: isSelected ? undefined : '1px solid var(--border)',
-                }}
-              >
-                {val}
-              </button>
-            );
-          })}
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '0.75rem',
-            color: 'var(--text-muted)',
-            minHeight: '1.2rem',
-            alignItems: 'center',
-          }}
-        >
-          <span>1: {lowLabel}</span>
-          <span style={{ textAlign: 'right' }}>5: {highLabel}</span>
-        </div>
-      </div>
-    );
+  // Human-readable labels for badges
+  const getSleepQualityLabel = (val: number) => {
+    const map: Record<number, string> = {
+      1: 'Pésima',
+      2: 'Mala',
+      3: 'Regular',
+      4: 'Buena',
+      5: 'Excelente',
+    };
+    return map[val] || `${val}`;
+  };
+
+  const getFatigueLabel = (val: number) => {
+    const map: Record<number, string> = {
+      1: 'Enérgico',
+      2: 'Fresco',
+      3: 'Moderada',
+      4: 'Alta',
+      5: 'Agotado',
+    };
+    return map[val] || `${val}`;
+  };
+
+  const getSorenessLabel = (val: number) => {
+    const map: Record<number, string> = {
+      1: 'Sin dolor',
+      2: 'Leve',
+      3: 'Molestia',
+      4: 'Fuerte',
+      5: 'Severo',
+    };
+    return map[val] || `${val}`;
+  };
+
+  const getMoodLabel = (val: number) => {
+    const map: Record<number, string> = {
+      1: 'Desanimado',
+      2: 'Regular',
+      3: 'Normal',
+      4: 'Motivado',
+      5: 'Excelente',
+    };
+    return map[val] || `${val}`;
+  };
+
+  const getTrafficLightBadge = (light?: 'Green' | 'Yellow' | 'Red') => {
+    switch (light) {
+      case 'Green':
+        return {
+          label: 'Semáforo Verde · Apto completo',
+          bg: 'var(--success-bg-strong)',
+          color: 'var(--success-text)',
+          border: 'var(--success)',
+        };
+      case 'Yellow':
+        return {
+          label: 'Semáforo Amarillo · Atención / Carga moderada',
+          bg: 'var(--warning-bg-strong)',
+          color: 'var(--warning-text)',
+          border: 'var(--warning)',
+        };
+      case 'Red':
+        return {
+          label: 'Semáforo Rojo · Cuidado / Alerta técnica',
+          bg: 'var(--danger-bg-strong)',
+          color: 'var(--danger-text)',
+          border: 'var(--danger)',
+        };
+      default:
+        return {
+          label: 'Registrado con éxito',
+          bg: 'var(--info-bg)',
+          color: 'var(--info-text)',
+          border: 'var(--border)',
+        };
+    }
   };
 
   return (
     <div className="app-page-container">
-      {/* Encabezado Estandarizado */}
+      {/* ── SECCIÓN A: ENCABEZADO COMPACTO ── */}
       <PageHeader
         title="Check-in Diario"
-        description="Registro de estado físico, recuperación, sueño y nivel de energía."
+        description="Registrá cómo te sentís hoy y señalá tus molestias."
         actions={
-          <span className={`badge ${submitted ? 'badge-success' : 'badge-warning'}`}>
-            {submitted ? 'Check-in Completado' : 'Pendiente de hoy'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+            <span
+              className="badge"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                background: isOnline ? 'var(--success-bg-strong)' : 'var(--warning-bg-strong)',
+                color: isOnline ? 'var(--success-text)' : 'var(--warning-text)',
+                border: '1px solid var(--border)',
+                fontSize: '0.75rem',
+              }}
+            >
+              {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
+              <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
+            </span>
+
+            {pendingOfflineCount > 0 && (
+              <button
+                type="button"
+                onClick={handleSyncPending}
+                disabled={!isOnline || isSyncing}
+                className="badge"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  background: 'var(--info-bg)',
+                  color: 'var(--info-text)',
+                  border: '1px solid var(--secondary)',
+                  cursor: isOnline ? 'pointer' : 'default',
+                  fontSize: '0.75rem',
+                }}
+                title="Presiona para sincronizar con el servidor"
+              >
+                <RefreshCw
+                  size={11}
+                  style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }}
+                />
+                <span>{pendingOfflineCount} en cola</span>
+              </button>
+            )}
+
+            <span className={`badge ${submissionResult ? 'badge-success' : 'badge-warning'}`}>
+              {submissionResult ? 'Completado' : 'Pendiente de hoy'}
+            </span>
+          </div>
         }
       />
 
-      <div className="app-page-body">
-        {submitted ? (
+      <div className="app-page-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* Sync feedback notification */}
+        {syncFeedback && (
+          <div
+            style={{
+              background: 'var(--success-bg-strong)',
+              color: 'var(--success-text)',
+              border: '1px solid var(--success-border)',
+              borderRadius: '8px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+            }}
+          >
+            <CheckCircle2 size={16} />
+            <span>{syncFeedback}</span>
+          </div>
+        )}
+
+        {/* Error notification */}
+        {errorMessage && (
+          <div
+            style={{
+              background: 'var(--danger-bg-strong)',
+              color: 'var(--danger-text)',
+              border: '1px solid var(--danger)',
+              borderRadius: '8px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+            }}
+          >
+            <AlertTriangle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {submissionResult ? (
+          /* ── PANTALLA DE CONFIRMACIÓN ── */
           <div
             className="card"
             style={{ margin: 0, padding: '2.5rem 1.5rem', textAlign: 'center' }}
           >
             <CheckCircle2
-              size={52}
-              style={{ color: 'var(--success-text)', margin: '0 auto 1.25rem' }}
+              size={54}
+              style={{ color: 'var(--success)', margin: '0 auto 1.25rem' }}
             />
             <h2
               style={{
-                fontSize: '1.4rem',
+                fontSize: '1.45rem',
                 fontWeight: 800,
                 margin: '0 0 0.5rem',
                 color: 'var(--text-main)',
               }}
             >
-              ¡Check-in registrado con éxito!
+              ¡Check-in completado con éxito!
             </h2>
+
+            {/* Traffic light badge from backend engine */}
+            {(() => {
+              const badge = getTrafficLightBadge(submissionResult.trafficLight);
+              return (
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.45rem 1.1rem',
+                    borderRadius: '9999px',
+                    background: badge.bg,
+                    color: badge.color,
+                    border: `1.5px solid ${badge.border}`,
+                    fontWeight: 800,
+                    fontSize: '0.92rem',
+                    margin: '0.5rem auto 1.25rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: badge.color,
+                    }}
+                  />
+                  <span>{badge.label}</span>
+                </div>
+              );
+            })()}
+
             <p
               style={{
                 color: 'var(--text-muted)',
                 fontSize: '0.9rem',
-                maxWidth: '520px',
+                maxWidth: '540px',
                 margin: '0 auto 1.5rem',
                 lineHeight: 1.5,
               }}
             >
-              Tus respuestas y mapa de dolor ya están disponibles para el cuerpo técnico para
-              ajustar las cargas de tu entrenamiento de hoy.
+              {submissionResult.isOffline
+                ? 'Tu check-in se guardó en el almacenamiento local de tu dispositivo. Se transmitirá automáticamente al cuerpo técnico cuando recuperes conectividad.'
+                : 'Tus respuestas y mapa de dolor ya están disponibles para el cuerpo técnico para calibrar las cargas del entrenamiento de hoy.'}
             </p>
 
-            {/* Resumen de reporte enviado */}
+            {submissionResult.trafficLightReason && (
+              <div
+                style={{
+                  maxWidth: '540px',
+                  margin: '0 auto 1.5rem',
+                  padding: '0.65rem 1rem',
+                  borderRadius: '8px',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  fontSize: '0.85rem',
+                  color: 'var(--text-main)',
+                  textAlign: 'left',
+                }}
+              >
+                <strong>Diagnóstico de carga: </strong>
+                <span>{submissionResult.trafficLightReason}</span>
+              </div>
+            )}
+
+            {/* Summary card */}
             <div
               style={{
-                maxWidth: '620px',
+                maxWidth: '640px',
                 margin: '0 auto 1.75rem',
                 textAlign: 'left',
                 background: 'var(--bg-subtle)',
@@ -181,12 +454,12 @@ export const CheckInPage: React.FC = () => {
                     marginBottom: '0.5rem',
                   }}
                 >
-                  Resumen de indicadores:
+                  Resumen de métricas enviadas:
                 </strong>
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
                     gap: '0.5rem',
                   }}
                 >
@@ -199,7 +472,9 @@ export const CheckInPage: React.FC = () => {
                     }}
                   >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>Sueño</small>
-                    <strong style={{ color: 'var(--text-main)' }}>{sleepScore} / 5</strong>
+                    <strong style={{ color: 'var(--text-main)' }}>
+                      {sleepHours}h ({sleepQuality}/5)
+                    </strong>
                   </div>
                   <div
                     style={{
@@ -210,7 +485,7 @@ export const CheckInPage: React.FC = () => {
                     }}
                   >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>Fatiga</small>
-                    <strong style={{ color: 'var(--text-main)' }}>{fatigueScore} / 5</strong>
+                    <strong style={{ color: 'var(--text-main)' }}>{fatigueLevel} / 5</strong>
                   </div>
                   <div
                     style={{
@@ -220,10 +495,8 @@ export const CheckInPage: React.FC = () => {
                       border: '1px solid var(--border)',
                     }}
                   >
-                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>
-                      Dolor Muscular
-                    </small>
-                    <strong style={{ color: 'var(--text-main)' }}>{sorenessScore} / 5</strong>
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Dolor</small>
+                    <strong style={{ color: 'var(--text-main)' }}>{muscleSoreness} / 5</strong>
                   </div>
                   <div
                     style={{
@@ -233,10 +506,25 @@ export const CheckInPage: React.FC = () => {
                       border: '1px solid var(--border)',
                     }}
                   >
-                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>
-                      Estado de Ánimo
-                    </small>
-                    <strong style={{ color: 'var(--text-main)' }}>{stressScore} / 5</strong>
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Ánimo</small>
+                    <strong style={{ color: 'var(--text-main)' }}>{moodRate} / 5</strong>
+                  </div>
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Salud</small>
+                    <strong
+                      style={{
+                        color: isSick ? 'var(--danger-text)' : 'var(--success-text)',
+                      }}
+                    >
+                      {isSick ? 'Con síntomas' : 'Sin síntomas'}
+                    </strong>
                   </div>
                 </div>
               </div>
@@ -250,7 +538,7 @@ export const CheckInPage: React.FC = () => {
                     marginBottom: '0.5rem',
                   }}
                 >
-                  Dolores musculares reportados al profesor ({reportedCount}):
+                  Molestias musculares reportadas ({reportedCount}):
                 </strong>
                 {reportedCount === 0 ? (
                   <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -327,223 +615,21 @@ export const CheckInPage: React.FC = () => {
               )}
             </div>
 
-            <button type="button" className="btn btn-secondary" onClick={() => setSubmitted(false)}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setSubmissionResult(null)}
+            >
               Editar respuestas
             </button>
           </div>
         ) : (
+          /* ── FORMULARIO PRINCIPAL REORGANIZADO ── */
           <form
             onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
           >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: '1.25rem',
-              }}
-            >
-              {/* 1. Calidad del Sueño */}
-              <div
-                className="card"
-                style={{
-                  margin: 0,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.35rem',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Moon size={18} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                    <strong
-                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
-                    >
-                      Calidad del Sueño
-                    </strong>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted)',
-                      margin: 0,
-                      minHeight: '2.4rem',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    ¿Cómo descansaste anoche?
-                  </p>
-                </div>
-                {renderScaleButtons(
-                  sleepScore,
-                  setSleepScore,
-                  'Muy mal / Insomnio',
-                  'Excelente / Reparador',
-                )}
-              </div>
-
-              {/* 2. Nivel de Fatiga */}
-              <div
-                className="card"
-                style={{
-                  margin: 0,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.35rem',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <BatteryCharging
-                      size={18}
-                      style={{ color: 'var(--secondary)', flexShrink: 0 }}
-                    />
-                    <strong
-                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
-                    >
-                      Nivel de Fatiga
-                    </strong>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted)',
-                      margin: 0,
-                      minHeight: '2.4rem',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    ¿Cuánta energía física sientes al despertar?
-                  </p>
-                </div>
-                {renderScaleButtons(
-                  fatigueScore,
-                  setFatigueScore,
-                  'Mucha energía',
-                  'Agotamiento extremo',
-                )}
-              </div>
-
-              {/* 3. Dolor Muscular */}
-              <div
-                className="card"
-                style={{
-                  margin: 0,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.35rem',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <ShieldAlert size={18} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                    <strong
-                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
-                    >
-                      Dolor Muscular
-                    </strong>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted)',
-                      margin: 0,
-                      minHeight: '2.4rem',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    Sensación de sobrecarga o molestias generales.
-                  </p>
-                </div>
-                {renderScaleButtons(
-                  sorenessScore,
-                  setSorenessScore,
-                  'Sin molestias',
-                  'Dolor intenso',
-                )}
-              </div>
-
-              {/* 4. Estado de Ánimo */}
-              <div
-                className="card"
-                style={{
-                  margin: 0,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.35rem',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Smile size={18} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                    <strong
-                      style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.2 }}
-                    >
-                      Estado de Ánimo
-                    </strong>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted)',
-                      margin: 0,
-                      minHeight: '2.4rem',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    Nivel de concentración y tranquilidad mental.
-                  </p>
-                </div>
-                {renderScaleButtons(
-                  stressScore,
-                  setStressScore,
-                  'Relajado y motivado',
-                  'Muy estresado',
-                )}
-              </div>
-            </div>
-
-            {/* Mapa Muscular Anatómico y Observaciones Unificado */}
+            {/* ── SECCIÓN B: MAPA CORPORAL DE MOLESTIAS (PRIMERA SECCIÓN PRINCIPAL) ── */}
             <div
               className="card"
               style={{
@@ -552,62 +638,216 @@ export const CheckInPage: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-card)',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  <Activity size={18} style={{ color: 'var(--secondary)' }} />
-                  <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    Mapa Corporal de Dolor y Molestias Musculares
-                  </span>
+              {/* 1. Título compacto y descripción breve */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Activity size={20} style={{ color: 'var(--secondary)' }} />
+                    <h2
+                      style={{
+                        fontSize: '1.15rem',
+                        fontWeight: 800,
+                        color: 'var(--text-main)',
+                        margin: 0,
+                      }}
+                    >
+                      Molestias musculares
+                    </h2>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '0.84rem',
+                      color: 'var(--text-muted)',
+                      margin: '0.2rem 0 0',
+                    }}
+                  >
+                    Seleccioná las zonas donde sentís molestias y asignales un nivel de dolor.
+                  </p>
                 </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Marca en las siluetas frontal o posterior las zonas donde sientas dolor o
-                  sobrecarga para informarle al preparador físico.
-                </p>
+
+                {reportedCount > 0 && (
+                  <span
+                    style={{
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      padding: '0.2rem 0.6rem',
+                      borderRadius: '9999px',
+                      background: 'var(--primary-light)',
+                      color: 'var(--primary)',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    {reportedCount} zona(s) señalada(s)
+                  </span>
+                )}
               </div>
 
-              {/* Mapa Muscular Interactivo con Escala de Dolor y Músculos Laterales */}
+              {/* 2 al 6: Selector de vista, Filtros rápidos, Leyenda, Siluetas e Indicador de ayuda */}
               <BodyMuscleMap
                 musclePains={musclePains}
                 onPainChange={handlePainChange}
                 onClearAll={handleClearPains}
               />
+            </div>
 
-              {/* Área combinada: Notas adicionales a la izquierda y Botón de envío a la derecha */}
+            {/* ── SECCIÓN C: INDICADORES DE BIENESTAR (SEGUNDA SECCIÓN) ── */}
+            <div>
+              <div style={{ marginBottom: '0.65rem' }}>
+                <h3
+                  style={{
+                    fontSize: '1.05rem',
+                    fontWeight: 800,
+                    color: 'var(--text-main)',
+                    margin: '0 0 0.15rem 0',
+                  }}
+                >
+                  Indicadores de bienestar
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Ajustá los valores según cómo te sentís hoy antes de entrenar.
+                </p>
+              </div>
+
+              {/* Cuadrícula responsive de 6 tarjetas pequeñas y consistentes */}
               <div
                 style={{
-                  marginTop: '0.5rem',
-                  paddingTop: '0.75rem',
-                  borderTop: '1px solid var(--border)',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: '0.85rem',
+                }}
+              >
+                {/* 1. Horas de sueño: control deslizante de 4 a 12 horas */}
+                <WellnessCard
+                  id="wellness-sleep-hours"
+                  name="Horas de sueño"
+                  icon={<Moon size={16} />}
+                  valueDisplay={`${sleepHours} hs`}
+                  type="slider"
+                  sliderValue={sleepHours}
+                  sliderMin={4}
+                  sliderMax={12}
+                  sliderStep={0.5}
+                  onSliderChange={setSleepHours}
+                  scaleDescription="4 hs mín · 12 hs máx"
+                />
+
+                {/* 2. Calidad del sueño: escala del 1 al 5 */}
+                <WellnessCard
+                  id="wellness-sleep-quality"
+                  name="Calidad del sueño"
+                  icon={<Moon size={16} />}
+                  valueDisplay={`${sleepQuality}/5 · ${getSleepQualityLabel(sleepQuality)}`}
+                  type="scale"
+                  scaleValue={sleepQuality}
+                  onScaleChange={setSleepQuality}
+                  badgeVariant={sleepQuality >= 4 ? 'success' : sleepQuality <= 2 ? 'warning' : 'default'}
+                  scaleDescription="1: Pésima · 5: Excelente"
+                />
+
+                {/* 3. Nivel de fatiga: escala del 1 al 5 */}
+                <WellnessCard
+                  id="wellness-fatigue"
+                  name="Nivel de fatiga"
+                  icon={<BatteryCharging size={16} />}
+                  valueDisplay={`${fatigueLevel}/5 · ${getFatigueLabel(fatigueLevel)}`}
+                  type="scale"
+                  scaleValue={fatigueLevel}
+                  onScaleChange={setFatigueLevel}
+                  badgeVariant={fatigueLevel <= 2 ? 'success' : fatigueLevel >= 4 ? 'danger' : 'warning'}
+                  scaleDescription="1: Enérgico · 5: Agotado"
+                />
+
+                {/* 4. Estado muscular general: escala del 1 al 5 */}
+                <WellnessCard
+                  id="wellness-soreness"
+                  name="Estado muscular general"
+                  icon={<ShieldAlert size={16} />}
+                  valueDisplay={`${muscleSoreness}/5 · ${getSorenessLabel(muscleSoreness)}`}
+                  type="scale"
+                  scaleValue={muscleSoreness}
+                  onScaleChange={setMuscleSoreness}
+                  badgeVariant={muscleSoreness === 1 ? 'success' : muscleSoreness >= 4 ? 'danger' : 'warning'}
+                  scaleDescription="1: Sin dolor · 5: Dolor severo"
+                />
+
+                {/* 5. Estado de ánimo: escala del 1 al 5 */}
+                <WellnessCard
+                  id="wellness-mood"
+                  name="Estado de ánimo"
+                  icon={<Smile size={16} />}
+                  valueDisplay={`${moodRate}/5 · ${getMoodLabel(moodRate)}`}
+                  type="scale"
+                  scaleValue={moodRate}
+                  onScaleChange={setMoodRate}
+                  badgeVariant={moodRate >= 4 ? 'success' : moodRate <= 2 ? 'warning' : 'default'}
+                  scaleDescription="1: Desanimado · 5: Muy positivo"
+                />
+
+                {/* 6. Estado de salud: opciones «Sin síntomas» y «Con síntomas» */}
+                <WellnessCard
+                  id="wellness-health"
+                  name="Estado de salud"
+                  icon={<HeartPulse size={16} />}
+                  valueDisplay={isSick ? 'Con síntomas' : 'Sin síntomas'}
+                  type="toggle"
+                  toggleValue={isSick}
+                  onToggleChange={setIsSick}
+                  badgeVariant={isSick ? 'danger' : 'success'}
+                  scaleDescription="Fiebre, resfrío o indisposición"
+                />
+              </div>
+            </div>
+
+            {/* ── SECCIÓN D: ACCIÓN FINAL (OBSERVACIONES + BOTÓN GUARDAR Y ENVIAR) ── */}
+            <div
+              className="card"
+              style={{
+                margin: 0,
+                padding: '1.25rem',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-card)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <div
+                style={{
                   display: 'flex',
                   alignItems: 'flex-end',
                   gap: '1.25rem',
                   flexWrap: 'wrap',
                 }}
               >
+                {/* 7. Campo opcional de observaciones */}
                 <div style={{ flex: 1, minWidth: '280px' }}>
                   <label
                     htmlFor="checkin-notes"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.35rem',
-                      fontSize: '0.8rem',
+                      gap: '0.4rem',
+                      fontSize: '0.84rem',
                       fontWeight: 700,
-                      marginBottom: '0.35rem',
+                      marginBottom: '0.4rem',
                       color: 'var(--text-main)',
                     }}
                   >
-                    <MessageSquare size={14} style={{ color: 'var(--secondary)' }} />
-                    <span>Notas adicionales para el preparador físico (opcional)</span>
+                    <MessageSquare size={15} style={{ color: 'var(--secondary)' }} />
+                    <span>Observaciones (opcional)</span>
                   </label>
                   <textarea
                     id="checkin-notes"
@@ -617,20 +857,21 @@ export const CheckInPage: React.FC = () => {
                     onChange={(e) => setNotes(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.55rem 0.75rem',
                       borderRadius: '8px',
                       border: '1px solid var(--border)',
                       background: 'var(--bg-card)',
                       color: 'var(--text-main)',
                       fontFamily: 'inherit',
                       boxSizing: 'border-box',
-                      fontSize: '0.82rem',
+                      fontSize: '0.83rem',
                       resize: 'vertical',
-                      minHeight: '46px',
+                      minHeight: '44px',
                     }}
                   />
                 </div>
 
+                {/* 8. Botón principal: Guardar y enviar check-in */}
                 <div
                   style={{
                     display: 'flex',
@@ -638,39 +879,40 @@ export const CheckInPage: React.FC = () => {
                     alignItems: 'flex-end',
                     gap: '0.35rem',
                     flexShrink: 0,
+                    width: 'auto',
                   }}
                 >
-                  {!isComplete && (
-                    <span
-                      style={{
-                        fontSize: '0.76rem',
-                        color: 'var(--text-muted)',
-                        textAlign: 'right',
-                        maxWidth: '260px',
-                        lineHeight: 1.25,
-                      }}
-                    >
-                      * Califica los 4 indicadores para enviar el check-in.
-                    </span>
-                  )}
                   <button
                     type="submit"
-                    disabled={!isComplete}
+                    disabled={isSubmitting}
                     className="btn btn-primary"
                     style={{
-                      gap: '0.45rem',
-                      padding: '0.7rem 1.6rem',
-                      fontSize: '0.92rem',
+                      gap: '0.5rem',
+                      padding: '0.8rem 2.2rem',
+                      fontSize: '0.96rem',
+                      fontWeight: 800,
                       whiteSpace: 'nowrap',
-                      opacity: isComplete ? 1 : 0.5,
-                      cursor: isComplete ? 'pointer' : 'not-allowed',
-                      height: '46px',
+                      background: 'var(--primary)',
+                      color: 'var(--on-primary)',
+                      opacity: isSubmitting ? 0.7 : 1,
+                      cursor: isSubmitting ? 'wait' : 'pointer',
+                      height: '48px',
                       display: 'inline-flex',
                       alignItems: 'center',
+                      borderRadius: '8px',
+                      boxShadow: 'var(--shadow-sm)',
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    <Send size={15} />
-                    <span>Enviar Check-in al Profesor</span>
+                    {isSubmitting ? (
+                      <RefreshCw
+                        size={17}
+                        style={{ animation: 'spin 1s linear infinite' }}
+                      />
+                    ) : (
+                      <Send size={17} />
+                    )}
+                    <span>{isSubmitting ? 'Enviando...' : 'Guardar y enviar check-in'}</span>
                   </button>
                 </div>
               </div>
