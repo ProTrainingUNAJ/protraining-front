@@ -1,12 +1,14 @@
 /**
- * Authentication contract types based on KAN-302 / Identidad microservice
+ * Authentication contract types based on KAN-302 / KAN-306 / Identidad microservice
  */
 
 export interface LoginRequest {
   email: string;
   password: string;
-  deviceId?: string; // nuevo campo opcional
+  deviceId?: string;
 }
+
+export type UserRole = 'PreparadorFisico' | 'Atleta' | 'Tutor';
 
 export interface UserDto {
   id: string;
@@ -20,8 +22,20 @@ export interface LoginResponse {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
-  refreshToken: string; // nuevo token de refresco (30 días)
+  refreshToken: string;
   user: UserDto;
+}
+
+export interface RefreshRequest {
+  refreshToken: string;
+  deviceId: string;
+}
+
+export interface RefreshResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
 }
 
 export interface ProblemDetails {
@@ -39,6 +53,6 @@ export interface AuthSession {
   accessToken: string;
   tokenType: string;
   expiresAt: number; // timestamp in ms when token expires
-  refreshToken: string; // nuevo token de refresco
+  refreshToken: string;
   user: UserDto;
 }

@@ -16,9 +16,7 @@ export const LoginPage: React.FC = () => {
   }
 
   if (isAuthenticated && user) {
-    const isPF =
-      user.role.toLowerCase().includes('pf') || user.role.toLowerCase().includes('preparador');
-    return <Navigate to={isPF ? '/pf' : '/athlete'} replace />;
+    return <Navigate to={user.role === 'PreparadorFisico' ? '/pf' : '/athlete'} replace />;
   }
 
   return (
