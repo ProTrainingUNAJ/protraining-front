@@ -9,10 +9,16 @@ export type BilateralMuscleId =
   | 'pecho_izquierdo'
   | 'hombro_derecho'
   | 'hombro_izquierdo'
+  | 'cuello_trapecio_derecho'
+  | 'cuello_trapecio_izquierdo'
   | 'biceps_derecho'
   | 'biceps_izquierdo'
   | 'triceps_derecho'
   | 'triceps_izquierdo'
+  | 'antebrazo_derecho'
+  | 'antebrazo_izquierdo'
+  | 'mano_derecha'
+  | 'mano_izquierda'
   | 'cuadriceps_derecho'
   | 'cuadriceps_izquierdo'
   | 'gluteo_derecho'
@@ -20,13 +26,16 @@ export type BilateralMuscleId =
   | 'isquiotibial_derecho'
   | 'isquiotibial_izquierdo'
   | 'gemelo_derecho'
-  | 'gemelo_izquierdo';
+  | 'gemelo_izquierdo'
+  | 'pie_derecho'
+  | 'pie_izquierdo';
 
 export type CentralMuscleId =
   | 'abdominales'
   | 'espalda_alta'
   | 'espalda_media'
-  | 'espalda_baja';
+  | 'espalda_baja'
+  | 'cuello_trapecios';
 
 export type LegacyMuscleId =
   | 'pecho'
@@ -36,7 +45,11 @@ export type LegacyMuscleId =
   | 'gemelos'
   | 'triceps'
   | 'gluteos'
-  | 'isquiotibiales';
+  | 'isquiotibiales'
+  | 'antebrazos'
+  | 'manos'
+  | 'pies'
+  | 'trapecios';
 
 export type OfficialMuscleId = BilateralMuscleId | CentralMuscleId | LegacyMuscleId;
 
