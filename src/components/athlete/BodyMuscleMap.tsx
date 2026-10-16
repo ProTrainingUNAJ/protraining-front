@@ -20,7 +20,7 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
   const registeredPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
   const totalMarked = registeredPains.length;
 
-  // Separar los 12 grupos simétricamente (6 de vista frontal a la izquierda, 6 de vista posterior a la derecha)
+  // Symmetrically separate the 12 muscle groups (6 anterior on left, 6 posterior on right)
   const frontMuscles = PROTRAINING_MUSCLES.filter(
     (m) => m.view === 'front' || m.id === 'hombros' || m.id === 'gemelos',
   );

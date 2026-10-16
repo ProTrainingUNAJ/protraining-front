@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isHydrating, setIsHydrating] = useState(true);
   const [selectedRole, setSelectedRole] = useState<RoleType>('PF');
 
-  // Preferencia del usuario: 'system' (por defecto), 'light' o 'dark'
+  // User preference: 'system' (default), 'light' or 'dark'
   const [themePreference, setThemePreferenceState] = useState<ThemePreference>(() => {
     const savedPref = localStorage.getItem('protraining_theme_preference');
     if (savedPref === 'system' || savedPref === 'light' || savedPref === 'dark') {
@@ -47,14 +47,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return 'system';
   });
 
-  // Estado del sistema operativo (prefers-color-scheme)
+  // OS color scheme status (prefers-color-scheme)
   const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
     return (
       typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
     );
   });
 
-  // Escuchar cambios en la preferencia del sistema operativo en tiempo real
+  // Listen to OS color scheme changes in real time
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleSystemChange = (e: MediaQueryListEvent) => {
@@ -76,11 +76,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  // Tema resuelto efectivo que se aplica a document.documentElement
+  // Resolved effective theme applied to document.documentElement
   const theme: 'light' | 'dark' =
     themePreference === 'system' ? (systemIsDark ? 'dark' : 'light') : themePreference;
 
-  // Aplicar tema en data-theme y sincronizar storage
+  // Apply theme on data-theme attribute and synchronize storage
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('protraining_theme', theme);

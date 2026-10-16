@@ -60,7 +60,7 @@ export const DashboardPage: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed.row1) && parsed.row1.length === 4) {
-          // Migrar r1-c4 a training-weather si estaba como empty
+          // Migrate r1-c4 to training-weather if stored as empty
           return parsed.row1.map((item: WireframeCardItem) =>
             item.id === 'r1-c4' && item.type === 'empty'
               ? { ...item, type: 'training-weather', name: 'Horario y Clima' }
@@ -415,7 +415,7 @@ export const DashboardPage: React.FC = () => {
       );
     }
 
-    // ── Caso B: Tarjeta Horario de Entrenamiento y Ubicación / Clima (4ta Burbuja Fila 1) ──
+    // ── Case B: Training Schedule, Location and Weather Card (Row 1 Card 4) ──
     if (card.type === 'training-weather') {
       return (
         <div
@@ -681,7 +681,7 @@ export const DashboardPage: React.FC = () => {
       );
     }
 
-    // ── Caso C: Tarjeta de Gráfico de Progreso Exportado desde "Mi Progreso" ──
+    // ── Case C: Progress Chart Card Exported from "Progress" View ──
     if (card.type === 'progress-chart') {
       return (
         <div
@@ -745,7 +745,7 @@ export const DashboardPage: React.FC = () => {
       );
     }
 
-    // ── Caso D: Tarjeta Vacía Limpia (Fila 1, Fila 2, Fila 3 derecha) ──
+    // ── Case D: Clean Empty Card (Row 1, Row 2, Row 3 right) ──
     return (
       <div
         key={card.id}

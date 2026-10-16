@@ -81,7 +81,7 @@ const readExportedState = (): Record<string, string> => {
       return mapping;
     }
   } catch {
-    // Ignorar fallback
+    // Ignore fallback
   }
   return {};
 };
@@ -93,15 +93,15 @@ export const ProgressPage: React.FC = () => {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Registro de qué métricas ya están exportadas en Inicio (inicializado desde localStorage)
+  // Track which metrics are already exported to Home/Dashboard (initialized from localStorage)
   const [exportedMetrics, setExportedMetrics] = useState<Record<string, string>>(readExportedState);
 
-  // Actualizar estado tras exportar
+  // Update state after exporting
   const refreshExportedState = () => {
     setExportedMetrics(readExportedState());
   };
 
-  // Función para obtener burbujas vacías disponibles en Inicio
+  // Retrieve available empty slots from Dashboard
   const getAvailableSlots = () => {
     try {
       const athleteKey = 'protraining_wireframe_bento_athlete_v4';
@@ -142,7 +142,7 @@ export const ProgressPage: React.FC = () => {
       // Fallback
     }
 
-    // Default slots si aún no había nada guardado
+    // Default slots if no custom layout is stored yet
     return [
       { rowId: 1, cardId: 'r1-c1', name: 'Módulo 1-A (Fila 1)', colSpan: 1 },
       { rowId: 1, cardId: 'r1-c2', name: 'Módulo 1-B (Fila 1)', colSpan: 1 },
@@ -151,7 +151,7 @@ export const ProgressPage: React.FC = () => {
     ];
   };
 
-  // Exportar métrica a una burbuja elegida de Inicio
+  // Export selected metric to chosen Dashboard slot
   const handleExportToDashboard = (targetCardId?: string) => {
     try {
       const athleteKey = 'protraining_wireframe_bento_athlete_v4';

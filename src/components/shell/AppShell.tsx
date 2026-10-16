@@ -20,15 +20,15 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
     setMobileMenuOpen(false);
   };
 
-  // Patrón oficial de React: ajustar estado durante el render si cambia la ruta
+  // React pattern: synchronize state during render on route transition
   const [prevPath, setPrevPath] = useState(location.pathname);
   if (prevPath !== location.pathname) {
     setPrevPath(location.pathname);
     setMobileMenuOpen(false);
   }
 
-  // Si la ventana se agranda a tamaño escritorio (>= 992px), cierra el menú móvil
-  // para evitar que queden dos barras laterales activas al mismo tiempo
+  // Close mobile drawer when window expands to desktop breakpoint (>= 992px)
+  // to prevent displaying duplicate active sidebars
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 992px)');
     const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {

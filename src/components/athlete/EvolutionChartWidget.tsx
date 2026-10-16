@@ -48,7 +48,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
   const metric: MetricDefinition = EVOLUTION_METRICS[metricKey] || EVOLUTION_METRICS.cmj;
   const isCompact = variant === 'compact' && colSpan === 1;
 
-  // Render para burbuja compacta del Dashboard (colSpan: 1)
+  // Compact dashboard card render (colSpan: 1)
   if (isCompact) {
     return (
       <div
@@ -244,7 +244,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
     );
   }
 
-  // Render para versión Extendida / Completa (en ProgressPage o burbuja amplia colSpan >= 2)
+  // Extended / full card render (on ProgressPage or wide card colSpan >= 2)
   return (
     <div
       style={{

@@ -360,7 +360,7 @@ export const RoutinePage: React.FC = () => {
 
   const currentRoutine = ROUTINE_DATA[selectedDay];
 
-  // Contar ejercicios totales del día seleccionado
+  // Count total exercises for the selected day
   const allExercises = currentRoutine.blocks.flatMap((b) => b.exercises);
   const totalCount = allExercises.length;
   const completedCount = allExercises.filter((ex) => completedExercises[ex.id]).length;
@@ -370,7 +370,7 @@ export const RoutinePage: React.FC = () => {
     if (e) e.stopPropagation();
     setCompletedExercises((prev) => {
       const next = { ...prev, [exerciseId]: !prev[exerciseId] };
-      // Si todos los ejercicios están completados, sugerir sesión completa
+      // If all exercises are checked as completed, suggest full session completion
       const isAllDone = allExercises.every((ex) =>
         ex.id === exerciseId ? !prev[ex.id] : prev[ex.id],
       );
