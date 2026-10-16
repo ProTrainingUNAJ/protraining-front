@@ -58,8 +58,11 @@
   --overlay: rgb(2 48 80 / 0.6);
 
   --radius: 12px;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.1);
   --shadow: 0 4px 6px -1px rgb(2 48 80 / 0.08), 0 2px 4px -2px rgb(2 48 80 / 0.06);
   --shadow-lg: 0 20px 25px -5px rgb(2 48 80 / 0.1);
+  --shadow-filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.4));
+  --shadow-glow-layer: drop-shadow(0 0 2px rgb(0 0 0 / 0.25));
   --focus-ring: 0 0 0 3px rgb(0 112 192 / 0.18);
 
   --safe-top: env(safe-area-inset-top, 0px);
@@ -78,7 +81,38 @@
   --shell-pill-border: #0070c0;
   --shell-pill-hover: #eef6fc;
 
-  /* Escala de dolor muscular ProTraining (1 a 5) */
+  /* Base and utility colors */
+  --white: #ffffff;
+  --black: #000000;
+  --cyan-accent: #38bdf8;
+  --navy-deep: #021e33;
+
+  /* Authentication providers */
+  --color-google-blue: #4285f4;
+  --color-google-green: #34a853;
+  --color-google-yellow: #fbbc05;
+  --color-google-red: #ea4335;
+
+  /* Inputs and form controls */
+  --input-bg: #f8fafc;
+  --input-border: #e2e8f0;
+  --input-border-hover: #c8d0dc;
+  --input-border-subtle: #c8d0dc;
+  --input-border-subtle-hover: #a0aec0;
+  --input-bg-hover: #f3f6fa;
+  --input-border-focus: #a0aec0;
+  --input-text: #1a1a2e;
+  --input-text-dark: #e8edf4;
+  --input-placeholder: #94a3b8;
+
+  /* Complementary states and borders */
+  --brand-blue-hover: #005999;
+  --bg-surface-subtle: #f4f5f7;
+  --color-text-subtle: #8e98a5;
+  --status-danger-border: #f87171;
+  --status-success-border: #86efac;
+
+  /* ProTraining muscle pain scale (1 to 5) */
   --pain-level-1: #20c56b;
   --pain-level-2: #84cc16;
   --pain-level-3: #f4b400;
@@ -92,8 +126,29 @@
   --muscle-default-fill: #e2e8f0;
   --muscle-default-stroke: #cbd5e1;
   --muscle-hover-stroke: #0070c0;
+  --muscle-hover-fill: rgb(0 112 192 / 0.22);
+  --muscle-badge-bg: rgb(255 255 255 / 0.25);
   --muscle-blue: #023050;
-  /* Indicadores y Métricas de Rendimiento (Modo Claro) */
+  --muscle-red: #f04444;
+
+  /* ProTraining Interactive Anatomical Palette (Configurable colors) */
+  --muscle-color-white: #ffffff;
+  --muscle-color-dark-green: #006b45;
+  --muscle-color-light-green: #55b83f;
+  --muscle-color-yellow: #ffd600;
+  --muscle-color-orange: #ff7900;
+  --muscle-color-red: #e50914;
+  --muscle-border-color: #ffffff;
+  --muscle-outline-selected: #0070c0;
+  --muscle-silhouette-fill: #e8ecf2;
+
+  /* Suite banner and card (Coach & Athlete Dashboard) */
+  --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
+  --suite-badge-bg: rgb(255 255 255 / 0.15);
+  --suite-text-muted: rgb(255 255 255 / 0.78);
+  --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+
+  /* Performance metrics and indicators (Light Mode) */
   --stat-cyan: #0284c7;
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
   --stat-green: #16a34a;
@@ -104,12 +159,12 @@
   --stat-amber: #d97706;
   --stat-amber-bg: rgb(217 119 6 / 0.1);
 
-  /* Avatar celeste para perfil de usuario */
+  /* Cyan avatar for user profile */
   --avatar-cyan-bg: #e0f2fe;
   --avatar-cyan-border: #38bdf8;
   --avatar-cyan-text: #0284c7;
 
-  /* Rutina de Entrenamiento y visor de GIFs */
+  /* Training routine and GIF viewer */
   --routine-card-hover-border: var(--secondary);
   --routine-gif-bg: rgb(2 48 80 / 0.08);
   --routine-gif-bg-hover: rgb(0 119 182 / 0.14);
@@ -148,7 +203,22 @@
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
 
-  /* Indicadores y Métricas de Rendimiento (Modo Oscuro) */
+  /* Inputs and states in dark mode */
+  --bg-surface-subtle: #1c2025;
+  --color-text-subtle: #6d7784;
+  --input-bg: #1c2025;
+  --input-border: #2e3846;
+  --input-border-hover: #3d4a5c;
+  --input-bg-hover: #222831;
+  --input-border-focus: #38bdf8;
+  --input-text: #f1f3f5;
+  --input-placeholder: #6d7784;
+
+  --warning-text: #fcd34d;
+  --status-danger-text-dark: #fca5a5;
+  --status-success-text-dark: #86efac;
+
+  /* Performance metrics and indicators (Dark Mode) */
   --stat-cyan: #38bdf8;
   --stat-cyan-bg: rgb(56 189 248 / 0.16);
   --stat-green: #4ade80;
@@ -159,7 +229,7 @@
   --stat-amber: #fbbf24;
   --stat-amber-bg: rgb(251 191 36 / 0.16);
 
-  /* Avatar celeste para perfil de usuario (modo oscuro) */
+  /* Cyan avatar for user profile (dark mode) */
   --avatar-cyan-bg: rgb(2 132 199 / 0.22);
   --avatar-cyan-border: #38bdf8;
   --avatar-cyan-text: #38bdf8;
@@ -180,8 +250,18 @@
   --muscle-default-fill: #1e293b;
   --muscle-default-stroke: #334155;
   --muscle-hover-stroke: #38bdf8;
+  --muscle-hover-fill: rgb(56 189 248 / 0.25);
+  --muscle-badge-bg: rgb(255 255 255 / 0.15);
+  --muscle-border-color: #272c33;
+  --muscle-outline-selected: #38bdf8;
+  --muscle-silhouette-fill: #1c222b;
 
-  /* Rutina de Entrenamiento y visor de GIFs (modo oscuro) */
+  --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
+  --suite-badge-bg: rgb(255 255 255 / 0.1);
+  --suite-text-muted: rgb(255 255 255 / 0.7);
+  --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
+
+  /* Training routine and GIF viewer (dark mode) */
   --routine-card-hover-border: var(--secondary);
   --routine-gif-bg: rgb(255 255 255 / 0.05);
   --routine-gif-bg-hover: rgb(56 189 248 / 0.15);

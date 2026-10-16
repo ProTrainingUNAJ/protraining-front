@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-import coachAvatarImg from '../../assets/avatars/User (1).png';
+import coachAvatarImg from '../../assets/avatars/user-1.webp';
 
 export const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();

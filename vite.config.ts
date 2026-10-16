@@ -42,8 +42,8 @@ export default defineConfig({
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Es solo la imagen de origen de los íconos: no hace falta descargarla.
-        globIgnores: ['assets/isotype-gradient.png'],
+        // Exclude non-essential heavy images from initial PWA precache
+        globIgnores: ['assets/isotype-gradient.png', 'assets/body-muscles-base.png'],
       },
       devOptions: { enabled: false },
     }),
