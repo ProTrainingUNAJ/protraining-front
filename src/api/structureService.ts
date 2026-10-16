@@ -127,13 +127,10 @@ export const structureService = {
 
   async createOrganization(req: CreateOrganizationRequest): Promise<Organization> {
     try {
-      const response = await httpClient.post<RawOrganization>(
-        '/estructura/api/v1/organizations',
-        {
-          name: req.name.trim(),
-          description: req.description?.trim() || null,
-        },
-      );
+      const response = await httpClient.post<RawOrganization>('/estructura/api/v1/organizations', {
+        name: req.name.trim(),
+        description: req.description?.trim() || null,
+      });
       return mapOrganization(response.data);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
@@ -142,12 +139,9 @@ export const structureService = {
 
   async getCategories(organizationId: string): Promise<Category[]> {
     try {
-      const response = await httpClient.get<RawCategory[]>(
-        '/estructura/api/v1/categories',
-        {
-          params: { organizationId },
-        },
-      );
+      const response = await httpClient.get<RawCategory[]>('/estructura/api/v1/categories', {
+        params: { organizationId },
+      });
       return (response.data || []).map(mapCategory);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
@@ -218,4 +212,3 @@ export const structureService = {
     }
   },
 };
-
