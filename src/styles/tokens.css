@@ -93,7 +93,31 @@
   --muscle-default-stroke: #cbd5e1;
   --muscle-hover-stroke: #0070c0;
   --muscle-blue: #023050;
-  --muscle-red: #f04444;
+  /* Indicadores y Métricas de Rendimiento (Modo Claro) */
+  --stat-cyan: #0284c7;
+  --stat-cyan-bg: rgb(2 132 199 / 0.1);
+  --stat-green: #16a34a;
+  --stat-green-bg: rgb(22 163 74 / 0.1);
+  --stat-purple: #7c3aed;
+  --stat-purple-bg: rgb(124 58 237 / 0.1);
+  --stat-purple-border: rgb(124 58 237 / 0.25);
+  --stat-amber: #d97706;
+  --stat-amber-bg: rgb(217 119 6 / 0.1);
+
+  /* Avatar celeste para perfil de usuario */
+  --avatar-cyan-bg: #e0f2fe;
+  --avatar-cyan-border: #38bdf8;
+  --avatar-cyan-text: #0284c7;
+
+  /* Rutina de Entrenamiento y visor de GIFs */
+  --routine-card-hover-border: var(--secondary);
+  --routine-gif-bg: rgb(2 48 80 / 0.08);
+  --routine-gif-bg-hover: rgb(0 119 182 / 0.14);
+  --routine-gif-play-bg: rgb(2 48 80 / 0.55);
+  --routine-badge-bg: rgb(2 48 80 / 0.88);
+  --routine-completed-bg: rgb(34 197 94 / 0.04);
+  --routine-completed-border: rgb(34 197 94 / 0.35);
+  --routine-modal-overlay: rgb(2 48 80 / 0.65);
 }
 
 [data-theme='dark'] {
@@ -115,8 +139,30 @@
   --primary-light: #032b45;
   --info-bg: #032b45;
   --info-text: #93c5fd;
+  --success-text: #4ade80;
+  --success-bg-strong: rgb(34 197 94 / 0.2);
+  --warning-text: #fbbf24;
+  --warning-bg-strong: rgb(245 158 11 / 0.2);
+  --danger-text: #f87171;
+  --danger-bg-strong: rgb(239 68 68 / 0.2);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+
+  /* Indicadores y Métricas de Rendimiento (Modo Oscuro) */
+  --stat-cyan: #38bdf8;
+  --stat-cyan-bg: rgb(56 189 248 / 0.16);
+  --stat-green: #4ade80;
+  --stat-green-bg: rgb(74 222 128 / 0.16);
+  --stat-purple: #c084fc;
+  --stat-purple-bg: rgb(192 132 252 / 0.18);
+  --stat-purple-border: rgb(192 132 252 / 0.35);
+  --stat-amber: #fbbf24;
+  --stat-amber-bg: rgb(251 191 36 / 0.16);
+
+  /* Avatar celeste para perfil de usuario (modo oscuro) */
+  --avatar-cyan-bg: rgb(2 132 199 / 0.22);
+  --avatar-cyan-border: #38bdf8;
+  --avatar-cyan-text: #38bdf8;
 
   /* App Shell rediseñada (modo oscuro) */
   --shell-bg: #0e1217;
@@ -134,4 +180,14 @@
   --muscle-default-fill: #1e293b;
   --muscle-default-stroke: #334155;
   --muscle-hover-stroke: #38bdf8;
+
+  /* Rutina de Entrenamiento y visor de GIFs (modo oscuro) */
+  --routine-card-hover-border: var(--secondary);
+  --routine-gif-bg: rgb(255 255 255 / 0.05);
+  --routine-gif-bg-hover: rgb(56 189 248 / 0.15);
+  --routine-gif-play-bg: rgb(0 0 0 / 0.65);
+  --routine-badge-bg: rgb(14 18 23 / 0.88);
+  --routine-completed-bg: rgb(74 222 128 / 0.08);
+  --routine-completed-border: rgb(74 222 128 / 0.35);
+  --routine-modal-overlay: rgb(0 0 0 / 0.75);
 }

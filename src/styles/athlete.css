@@ -179,3 +179,475 @@
     padding: 2rem 2.5rem;
   }
 }
+
+.muscle-interactive-container {
+  display: grid;
+  grid-template-columns: minmax(130px, 175px) 1fr minmax(130px, 175px);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .muscle-interactive-container {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .muscle-interactive-center {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
+/* ── Rutina de Entrenamiento: Tarjetas de Ejercicio y Slot de GIF ── */
+.routine-block-card {
+  margin: 0;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.routine-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.routine-block-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.routine-block-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--stat-cyan-bg);
+  color: var(--stat-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.routine-block-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.routine-block-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  background: var(--bg-subtle);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
+
+.routine-exercises-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* Tarjeta individual de ejercicio */
+.routine-exercise-card {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 14px;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.routine-exercise-card:hover {
+  background: var(--bg-card);
+  border-color: var(--routine-card-hover-border);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.routine-exercise-card.completed {
+  border-color: var(--routine-completed-border);
+  background: var(--routine-completed-bg);
+}
+
+/* Checkbox interactivo de ejercicio completado */
+.routine-check-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.routine-check-btn:hover {
+  border-color: var(--stat-green);
+  color: var(--stat-green);
+  transform: scale(1.08);
+}
+
+.routine-check-btn.completed {
+  background: var(--stat-green);
+  border-color: var(--stat-green);
+  color: var(--on-primary);
+  box-shadow: var(--shadow);
+}
+
+/* Cuadrado para vincular con librería de GIFs */
+.routine-gif-thumb {
+  width: 82px;
+  height: 82px;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  background: linear-gradient(135deg, var(--routine-gif-bg) 0%, var(--routine-gif-bg-hover) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.routine-gif-thumb:hover {
+  border-color: var(--secondary);
+  transform: scale(1.03);
+  box-shadow: var(--shadow);
+}
+
+.routine-gif-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.routine-gif-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--secondary);
+  width: 100%;
+  height: 100%;
+  padding: 0.25rem;
+  text-align: center;
+}
+
+.routine-gif-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: var(--routine-badge-bg);
+  color: var(--on-primary);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+.routine-gif-play-hint {
+  position: absolute;
+  inset: 0;
+  background: var(--routine-gif-play-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-primary);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  backdrop-filter: blur(2px);
+}
+
+.routine-gif-thumb:hover .routine-gif-play-hint {
+  opacity: 1;
+}
+
+/* Info del ejercicio en tarjeta */
+.routine-exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.routine-exercise-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.routine-exercise-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.routine-exercise-name:hover {
+  color: var(--secondary);
+}
+
+.routine-exercise-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.routine-tag-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.routine-exercise-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Métricas del ejercicio */
+.routine-exercise-metrics {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.routine-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.routine-detail-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.routine-detail-trigger-btn:hover {
+  background: var(--secondary);
+  color: var(--on-primary);
+  border-color: var(--secondary);
+}
+
+/* ── Modal de Detalle y GIF del Ejercicio ── */
+.routine-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--routine-modal-overlay);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.routine-modal-card {
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.routine-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.routine-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.routine-modal-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.routine-modal-close-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-main);
+  transform: rotate(90deg);
+}
+
+.routine-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Área visual del GIF en Modal */
+.routine-modal-gif-showcase {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 320px;
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  background: linear-gradient(135deg, var(--routine-gif-bg) 0%, var(--routine-gif-bg-hover) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.routine-modal-gif-content {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.routine-modal-gif-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.routine-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+@media (max-width: 900px) {
+  .routine-exercise-card {
+    grid-template-columns: auto auto 1fr;
+    gap: 0.75rem;
+  }
+
+  .routine-exercise-metrics {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 600px) {
+  .routine-gif-thumb {
+    width: 68px;
+    height: 68px;
+  }
+
+  .routine-exercise-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .routine-check-btn {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .routine-gif-thumb {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .routine-exercise-info {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
