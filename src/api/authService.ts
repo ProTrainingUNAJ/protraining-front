@@ -9,7 +9,7 @@ export const authService = {
    * Executes login against Identidad microservice through Gateway
    */
   async login(credentials: LoginRequest): Promise<AuthSession> {
-    const deviceId = credentials.deviceId ?? (await getDeviceId());
+    const deviceId = credentials.deviceId ?? getDeviceId();
     const response = await httpClient.post<LoginResponse>(LOGIN_ENDPOINT, {
       email: credentials.email.trim(),
       password: credentials.password,
@@ -53,8 +53,8 @@ export const authService = {
     const session = getStoredSession();
     if (!session) return null;
 
-    // If session has expired, clear it
-    if (Date.now() >= session.expiresAt) {
+    // If there is no refresh token and the access token has expired, clear it
+    if (!session.refreshToken && Date.now() >= session.expiresAt) {
       clearStoredSession();
       return null;
     }

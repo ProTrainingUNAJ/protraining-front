@@ -107,10 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (validSession) {
         setSession(validSession);
         // Automatically align selectedRole with user role if known
-        const isPF =
-          validSession.user.role.toLowerCase().includes('pf') ||
-          validSession.user.role.toLowerCase().includes('preparador');
-        setSelectedRole(isPF ? 'PF' : 'Atleta');
+        setSelectedRole(validSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
       }
     } finally {
       setIsHydrating(false);
@@ -128,10 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = useCallback(async (credentials: LoginRequest): Promise<AuthSession> => {
     const newSession = await authService.login(credentials);
     setSession(newSession);
-    const isPF =
-      newSession.user.role.toLowerCase().includes('pf') ||
-      newSession.user.role.toLowerCase().includes('preparador');
-    setSelectedRole(isPF ? 'PF' : 'Atleta');
+    setSelectedRole(newSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
     return newSession;
   }, []);
 
