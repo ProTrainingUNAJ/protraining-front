@@ -32,7 +32,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  */
 export async function getVapidPublicKey(): Promise<string> {
   const response = await httpClient.get<VapidPublicKeyResponse>(
-    '/api/estructura/api/v1/push-subscriptions/public-key'
+    '/api/estructura/api/v1/push-subscriptions/public-key',
   );
   return response.data.publicKey;
 }
@@ -41,7 +41,7 @@ export async function getVapidPublicKey(): Promise<string> {
  * Registra una suscripción Web Push en el backend.
  */
 export async function registerPushSubscription(
-  payload: RegisterPushSubscriptionPayload
+  payload: RegisterPushSubscriptionPayload,
 ): Promise<void> {
   await httpClient.post('/api/estructura/api/v1/push-subscriptions', payload);
 }
@@ -84,7 +84,7 @@ export async function subscribeUserToPush(): Promise<PushSubscription | null> {
   if (!subscription) {
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: convertedKey,
+      applicationServerKey: convertedKey as unknown as BufferSource,
     });
   }
 
