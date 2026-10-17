@@ -42,6 +42,7 @@
 
   /* Fondos, bordes y textos de badges y avisos */
   --info-bg: #e1f0fa;
+  --info-border: rgb(0 112 192 / 0.25);
   --info-text: var(--brand-navy);
   --success-bg: #f0fdf4;
   --success-bg-strong: #dcfce7;
@@ -141,6 +142,9 @@
   --muscle-border-color: #ffffff;
   --muscle-outline-selected: #0070c0;
   --muscle-silhouette-fill: #e8ecf2;
+  --muscle-pain-shadow-sm: 0 2px 4px rgb(0 0 0 / 0.03);
+  --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.08);
+  --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.12);
 
   /* Suite banner and card (Coach & Athlete Dashboard) */
   --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
@@ -191,9 +195,14 @@
   --border: #2e3846;
 
   /* Roles semánticos en modo oscuro */
-  --primary-light: #032b45;
-  --info-bg: #032b45;
-  --info-text: #93c5fd;
+  --primary: var(--brand-blue);
+  --primary-hover: #0ea5e9;
+  --primary-light: rgb(56 189 248 / 0.16);
+  --secondary: #38bdf8;
+  --secondary-hover: #0ea5e9;
+  --info-bg: rgb(56 189 248 / 0.16);
+  --info-border: rgb(56 189 248 / 0.35);
+  --info-text: #7dd3fc;
   --success-text: #4ade80;
   --success-bg-strong: rgb(34 197 94 / 0.2);
   --warning-text: #fbbf24;
@@ -255,6 +264,9 @@
   --muscle-border-color: #272c33;
   --muscle-outline-selected: #38bdf8;
   --muscle-silhouette-fill: #1c222b;
+  --muscle-pain-shadow-sm: 0 2px 4px rgb(0 0 0 / 0.2);
+  --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.35);
+  --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.4);
 
   --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.1);

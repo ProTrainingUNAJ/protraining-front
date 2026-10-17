@@ -8,8 +8,6 @@ import {
   Send,
   Activity,
   MessageSquare,
-  Wifi,
-  WifiOff,
   RefreshCw,
   AlertTriangle,
   HeartPulse,
@@ -17,6 +15,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { BodyMuscleMap } from '../../components/athlete/BodyMuscleMap';
+import { MuscleMapFront } from '../../components/athlete/MuscleMapFront';
+import { MuscleMapBack } from '../../components/athlete/MuscleMapBack';
 import { WellnessCard } from '../../components/athlete/WellnessCard';
 import {
   PROTRAINING_MUSCLES,
@@ -251,23 +251,7 @@ export const CheckInPage: React.FC = () => {
         title="Check-in Diario"
         description="Registrá cómo te sentís hoy y señalá tus molestias."
         actions={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-            <span
-              className="badge"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                background: isOnline ? 'var(--success-bg-strong)' : 'var(--warning-bg-strong)',
-                color: isOnline ? 'var(--success-text)' : 'var(--warning-text)',
-                border: '1px solid var(--border)',
-                fontSize: '0.75rem',
-              }}
-            >
-              {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
-              <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
-            </span>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             {pendingOfflineCount > 0 && (
               <button
                 type="button"
@@ -294,7 +278,14 @@ export const CheckInPage: React.FC = () => {
               </button>
             )}
 
-            <span className={`badge ${submissionResult ? 'badge-success' : 'badge-warning'}`}>
+            <span
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                margin: 0,
+              }}
+            >
               {submissionResult ? 'Completado' : 'Pendiente de hoy'}
             </span>
           </div>
@@ -410,6 +401,55 @@ export const CheckInPage: React.FC = () => {
                 ? 'Tu check-in se guardó en el almacenamiento local de tu dispositivo. Se transmitirá automáticamente al cuerpo técnico cuando recuperes conectividad.'
                 : 'Tus respuestas y mapa de dolor ya están disponibles para el cuerpo técnico para calibrar las cargas del entrenamiento de hoy.'}
             </p>
+
+            {/* Mapa corporal del dolor registrado (vistas frontal y posterior) */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '1.5rem',
+                flexWrap: 'wrap',
+                maxWidth: '640px',
+                margin: '0 auto 1.75rem',
+                padding: '1.25rem 1rem',
+                background: 'var(--bg-card)',
+                borderRadius: '16px',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <div
+                style={{
+                  flex: '1 1 240px',
+                  maxWidth: '280px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
+                <MuscleMapFront
+                  selectedMuscles={[]}
+                  musclePains={musclePains}
+                  readOnly={true}
+                  hideHeader={true}
+                />
+              </div>
+              <div
+                style={{
+                  flex: '1 1 240px',
+                  maxWidth: '280px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
+                <MuscleMapBack
+                  selectedMuscles={[]}
+                  musclePains={musclePains}
+                  readOnly={true}
+                  hideHeader={true}
+                />
+              </div>
+            </div>
 
             {submissionResult.trafficLightReason && (
               <div
@@ -730,7 +770,7 @@ export const CheckInPage: React.FC = () => {
                   gap: '0.85rem',
                 }}
               >
-                {/* 1. Horas de sueño: control deslizante de 4 a 12 horas */}
+                {/* 1. Horas de sueño: control deslizante de 0 a 24 horas */}
                 <WellnessCard
                   id="wellness-sleep-hours"
                   name="Horas de sueño"
@@ -738,11 +778,11 @@ export const CheckInPage: React.FC = () => {
                   valueDisplay={`${sleepHours} hs`}
                   type="slider"
                   sliderValue={sleepHours}
-                  sliderMin={4}
-                  sliderMax={12}
+                  sliderMin={0}
+                  sliderMax={24}
                   sliderStep={0.5}
                   onSliderChange={setSleepHours}
-                  scaleDescription="4 hs mín · 12 hs máx"
+                  scaleDescription="0 hs mín · 24 hs máx"
                 />
 
                 {/* 2. Calidad del sueño: escala del 1 al 5 */}
@@ -750,7 +790,7 @@ export const CheckInPage: React.FC = () => {
                   id="wellness-sleep-quality"
                   name="Calidad del sueño"
                   icon={<Moon size={16} />}
-                  valueDisplay={`${sleepQuality}/5 · ${getSleepQualityLabel(sleepQuality)}`}
+                  valueDisplay={getSleepQualityLabel(sleepQuality)}
                   type="scale"
                   scaleValue={sleepQuality}
                   onScaleChange={setSleepQuality}
@@ -765,7 +805,7 @@ export const CheckInPage: React.FC = () => {
                   id="wellness-fatigue"
                   name="Nivel de fatiga"
                   icon={<BatteryCharging size={16} />}
-                  valueDisplay={`${fatigueLevel}/5 · ${getFatigueLabel(fatigueLevel)}`}
+                  valueDisplay={getFatigueLabel(fatigueLevel)}
                   type="scale"
                   scaleValue={fatigueLevel}
                   onScaleChange={setFatigueLevel}
@@ -780,7 +820,7 @@ export const CheckInPage: React.FC = () => {
                   id="wellness-soreness"
                   name="Estado muscular general"
                   icon={<ShieldAlert size={16} />}
-                  valueDisplay={`${muscleSoreness}/5 · ${getSorenessLabel(muscleSoreness)}`}
+                  valueDisplay={getSorenessLabel(muscleSoreness)}
                   type="scale"
                   scaleValue={muscleSoreness}
                   onScaleChange={setMuscleSoreness}
@@ -795,7 +835,7 @@ export const CheckInPage: React.FC = () => {
                   id="wellness-mood"
                   name="Estado de ánimo"
                   icon={<Smile size={16} />}
-                  valueDisplay={`${moodRate}/5 · ${getMoodLabel(moodRate)}`}
+                  valueDisplay={getMoodLabel(moodRate)}
                   type="scale"
                   scaleValue={moodRate}
                   onScaleChange={setMoodRate}
@@ -830,71 +870,64 @@ export const CheckInPage: React.FC = () => {
                 boxShadow: 'var(--shadow-sm)',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  gap: '1.25rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                {/* 7. Campo opcional de observaciones */}
-                <div style={{ flex: 1, minWidth: '280px' }}>
-                  <label
-                    htmlFor="checkin-notes"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      fontSize: '0.84rem',
-                      fontWeight: 700,
-                      marginBottom: '0.4rem',
-                      color: 'var(--text-main)',
-                    }}
-                  >
-                    <MessageSquare size={15} style={{ color: 'var(--secondary)' }} />
-                    <span>Observaciones (opcional)</span>
-                  </label>
+              <div>
+                <label
+                  htmlFor="checkin-notes"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    marginBottom: '0.45rem',
+                    color: 'var(--text-main)',
+                  }}
+                >
+                  <MessageSquare size={15} style={{ color: 'var(--secondary)' }} />
+                  <span>Observaciones (opcional)</span>
+                </label>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {/* 7. Campo opcional de observaciones */}
                   <textarea
                     id="checkin-notes"
-                    rows={2}
+                    rows={1}
                     placeholder="Ej. Siento una leve tirantez en el gemelo izquierdo al trotar..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     style={{
-                      width: '100%',
-                      padding: '0.55rem 0.75rem',
+                      flex: 1,
+                      minWidth: '280px',
+                      padding: '0.75rem 0.85rem',
                       borderRadius: '8px',
                       border: '1px solid var(--border)',
                       background: 'var(--bg-card)',
                       color: 'var(--text-main)',
                       fontFamily: 'inherit',
                       boxSizing: 'border-box',
-                      fontSize: '0.83rem',
-                      resize: 'vertical',
-                      minHeight: '44px',
+                      fontSize: '0.88rem',
+                      resize: 'none',
+                      height: '48px',
+                      minHeight: '48px',
+                      margin: 0,
                     }}
                   />
-                </div>
 
-                {/* 8. Botón principal: Guardar y enviar check-in */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: '0.35rem',
-                    flexShrink: 0,
-                    width: 'auto',
-                  }}
-                >
+                  {/* 8. Botón principal: Guardar y enviar check-in */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="btn btn-primary"
                     style={{
                       gap: '0.5rem',
-                      padding: '0.8rem 2.2rem',
+                      padding: '0 2.2rem',
                       fontSize: '0.96rem',
                       fontWeight: 800,
                       whiteSpace: 'nowrap',
@@ -905,9 +938,12 @@ export const CheckInPage: React.FC = () => {
                       height: '48px',
                       display: 'inline-flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       borderRadius: '8px',
                       boxShadow: 'var(--shadow-sm)',
                       transition: 'all 0.15s ease',
+                      flexShrink: 0,
+                      margin: 0,
                     }}
                   >
                     {isSubmitting ? (

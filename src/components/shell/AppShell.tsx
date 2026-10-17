@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { AppSidebar } from './AppSidebar';
 import { SearchBar } from './SearchBar';
-import { RoleSwitchButton } from './RoleSwitchButton';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationsButton } from './NotificationsButton';
 import { CalendarButton } from './CalendarButton';
@@ -78,18 +77,15 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
               <SearchBar placeholder="Buscar..." />
             </div>
 
-            {/* B, C, D, E. Acciones globales persistentes */}
+            {/* Acciones globales persistentes */}
             <div className="app-header-actions" aria-label="Controles globales">
-              {/* B. Cambio de modo */}
-              <RoleSwitchButton />
-
-              {/* C. Selector de tema claro / oscuro */}
+              {/* Selector de tema claro / oscuro */}
               <ThemeToggle />
 
-              {/* D. Botón de notificaciones */}
+              {/* Botón de notificaciones */}
               <NotificationsButton />
 
-              {/* E. Botón de calendario */}
+              {/* Botón de calendario */}
               <CalendarButton />
             </div>
           </header>

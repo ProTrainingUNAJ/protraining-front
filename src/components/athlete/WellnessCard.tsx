@@ -37,8 +37,8 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
   scaleDescription,
   type,
   sliderValue = 8,
-  sliderMin = 4,
-  sliderMax = 12,
+  sliderMin = 0,
+  sliderMax = 24,
   sliderStep = 0.5,
   onSliderChange,
   scaleValue = 3,
@@ -68,9 +68,9 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
         };
       default:
         return {
-          bg: 'var(--primary-light)',
-          color: 'var(--primary)',
-          border: 'var(--border)',
+          bg: 'var(--info-bg)',
+          color: 'var(--info-text)',
+          border: 'var(--info-border)',
         };
     }
   };
@@ -179,8 +179,8 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
                     fontWeight: 700,
                     borderRadius: '6px',
                     border: isSelected ? '2px solid var(--secondary)' : '1px solid var(--border)',
-                    background: isSelected ? 'var(--primary-light)' : 'var(--bg-subtle)',
-                    color: isSelected ? 'var(--primary)' : 'var(--text-main)',
+                    background: isSelected ? 'var(--info-bg)' : 'var(--bg-subtle)',
+                    color: isSelected ? 'var(--info-text)' : 'var(--text-main)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}

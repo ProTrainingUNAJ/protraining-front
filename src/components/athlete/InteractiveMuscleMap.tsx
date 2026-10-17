@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { RotateCcw, Eye, Info, Sliders } from 'lucide-react';
+import { RotateCcw, Eye, Info } from 'lucide-react';
 import { MuscleMapFront } from './MuscleMapFront';
 import { MuscleMapBack } from './MuscleMapBack';
-import {
-  OFFICIAL_MUSCLE_GROUPS,
-  OFFICIAL_JOINTS,
-  OFFICIAL_PALETTE_ITEMS,
-} from './muscleMap.config';
+import { PainColorSelector } from './PainColorSelector';
+import { OFFICIAL_MUSCLE_GROUPS, OFFICIAL_JOINTS } from './muscleMap.config';
 import { InteractiveMuscleMapProps, OfficialMuscleGroup, ViewMode } from './muscleMap.types';
 
 export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
@@ -27,14 +24,13 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
   const selectedList = controlledSelected !== undefined ? controlledSelected : internalSelected;
 
   const [activeView, setActiveView] = useState<ViewMode>(initialView);
+  const [lastInteractionView, setLastInteractionView] = useState<'front' | 'back'>('front');
   const [hoveredRegion, setHoveredRegion] = useState<{
     name: string;
     category?: string;
     view: string;
   } | null>(null);
   const [showPerspectiveGuide, setShowPerspectiveGuide] = useState(false);
-
-  const ALL_ANATOMICAL_ITEMS = [...OFFICIAL_MUSCLE_GROUPS, ...OFFICIAL_JOINTS];
 
   const updateSelection = (newSelection: string[]) => {
     if (controlledSelected === undefined) {
@@ -50,6 +46,16 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
     } else {
       updateSelection([...selectedList, muscleId]);
     }
+  };
+
+  const handleFrontMuscleClick = (muscleId: string) => {
+    setLastInteractionView('front');
+    handleMuscleClick(muscleId);
+  };
+
+  const handleBackMuscleClick = (muscleId: string) => {
+    setLastInteractionView('back');
+    handleMuscleClick(muscleId);
   };
 
   const handleSelectCategory = (
@@ -85,13 +91,20 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
       selectedList.forEach((id) => onColorChange(id, hex));
     }
 
-    // Automatically deselect region after marking color/pain
+    // Deseleccionar automáticamente para ocultar el selector
     updateSelection([]);
     onClearSelection?.();
   };
 
   const activePainsCount = Object.values(musclePains).filter((lvl) => lvl > 0).length;
-  const selectedMuscleObjects = ALL_ANATOMICAL_ITEMS.filter((m) => selectedList.includes(m.id));
+
+  const hasSelection = !readOnly && selectedList.length > 0;
+  const showFrontSelector =
+    hasSelection && (lastInteractionView === 'front' || activeView === 'front');
+  const showBackSelector =
+    hasSelection && (lastInteractionView === 'back' || activeView === 'back') && !showFrontSelector;
+
+  const colorSelectorElement = <PainColorSelector onSelectColor={handleApplyColorOrPain} />;
 
   return (
     <div
@@ -150,7 +163,7 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
           </div>
         </div>
 
-        {/* Quick selection by muscle group category */}
+        {/* Quick selection and global actions */}
         {!readOnly && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>
@@ -211,171 +224,42 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
                 Deseleccionar ({selectedList.length})
               </button>
             )}
-          </div>
-        )}
-      </div>
-
-      {/* ── COLOR AND PAIN ASSIGNMENT PANEL (6 OFFICIAL PALETTE COLORS) ── */}
-      {!readOnly && (
-        <div
-          style={{
-            background: 'var(--bg-card)',
-            padding: '1rem 1.25rem',
-            borderRadius: '12px',
-            border: '1.5px solid var(--border)',
-            boxShadow: 'var(--shadow-sm)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '0.5rem',
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontSize: '0.9rem',
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  color: 'var(--text-main)',
-                }}
-              >
-                <Sliders size={16} style={{ color: 'var(--secondary)' }} />
-                <span>Colorear / Asignar Nivel de Dolor</span>
-              </span>
-              <span
-                style={{
-                  fontSize: '0.78rem',
-                  color: 'var(--text-muted)',
-                  display: 'block',
-                  marginTop: '0.15rem',
-                }}
-              >
-                {selectedList.length === 0 ? (
-                  'Toca o haz clic en uno o más músculos o articulaciones en el mapa anatómico y luego presiona un color.'
-                ) : (
-                  <>
-                    <strong>{selectedList.length} región(es) seleccionada(s):</strong>{' '}
-                    {selectedMuscleObjects.map((m) => m.name).join(', ')}
-                  </>
-                )}
-              </span>
-            </div>
-
             {activePainsCount > 0 && onClearAll && (
               <button
                 type="button"
                 onClick={onClearAll}
                 className="btn btn-secondary"
                 style={{
-                  fontSize: '0.78rem',
-                  padding: '0.35rem 0.75rem',
+                  fontSize: '0.75rem',
+                  padding: '0.28rem 0.6rem',
+                  borderRadius: '6px',
                   color: 'var(--danger)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                   gap: '0.35rem',
                 }}
                 title="Limpiar todos los dolores y colores asignados"
               >
-                <RotateCcw size={13} />
+                <RotateCcw size={12} />
                 <span>Limpiar todo ({activePainsCount})</span>
               </button>
             )}
           </div>
-
-          {/* Official palette buttons */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))',
-              gap: '0.5rem',
-            }}
-          >
-            {OFFICIAL_PALETTE_ITEMS.map((item) => {
-              const isDisabled = selectedList.length === 0;
-
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  disabled={isDisabled}
-                  onClick={() => handleApplyColorOrPain(item.level, item.hex)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.55rem',
-                    padding: '0.5rem 0.65rem',
-                    borderRadius: '8px',
-                    border: '1.5px solid var(--border)',
-                    background: 'var(--bg-subtle)',
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    opacity: isDisabled ? 0.45 : 1,
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                  }}
-                  title={item.description}
-                >
-                  <span
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      background: item.colorVar,
-                      border: '1.5px solid var(--border)',
-                      flexShrink: 0,
-                      display: 'inline-block',
-                      boxShadow: 'var(--shadow-sm)',
-                    }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <strong
-                      style={{ fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: 1.2 }}
-                    >
-                      {item.level === 0 ? 'Blanco (Base)' : `Nivel ${item.level}`}
-                    </strong>
-                    <small style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                      {item.name}
-                    </small>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── ANATOMICAL VECTOR MAPS CONTAINER (FRONT AND BACK) ── */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns:
-            activeView === 'both' ? 'repeat(auto-fit, minmax(300px, 1fr))' : '1fr',
-          gap: '1.5rem',
-          background: 'var(--bg-card)',
-          padding: '1.5rem 1rem',
-          borderRadius: '16px',
-          border: '1px solid var(--border)',
-          boxShadow: 'var(--shadow-sm)',
-          alignItems: 'start',
-          justifyContent: 'center',
-        }}
-      >
+      <div className="muscle-map-views-container">
         {/* Frontal view */}
         {(activeView === 'front' || activeView === 'both') && (
           <MuscleMapFront
             selectedMuscles={selectedList}
             musclePains={musclePains}
             muscleColors={muscleColors}
-            onMuscleClick={handleMuscleClick}
+            onMuscleClick={handleFrontMuscleClick}
             onMuscleHover={setHoveredRegion}
             readOnly={readOnly}
+            sideContent={showFrontSelector ? colorSelectorElement : undefined}
           />
         )}
 
@@ -385,9 +269,10 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
             selectedMuscles={selectedList}
             musclePains={musclePains}
             muscleColors={muscleColors}
-            onMuscleClick={handleMuscleClick}
+            onMuscleClick={handleBackMuscleClick}
             onMuscleHover={setHoveredRegion}
             readOnly={readOnly}
+            sideContent={showBackSelector ? colorSelectorElement : undefined}
           />
         )}
       </div>
