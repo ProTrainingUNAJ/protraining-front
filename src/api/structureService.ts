@@ -150,16 +150,11 @@ export const structureService = {
 
   async createCategory(organizationId: string, req: CreateCategoryRequest): Promise<Category> {
     try {
-      const response = await httpClient.post<RawCategory>(
-        '/estructura/api/v1/categories',
-        {
-          name: req.name.trim(),
-          description: req.description?.trim() || null,
-        },
-        {
-          params: { organizationId },
-        },
-      );
+      const response = await httpClient.post<RawCategory>('/estructura/api/v1/categories', {
+        organizationId,
+        name: req.name.trim(),
+        description: req.description?.trim() || null,
+      });
       return mapCategory(response.data);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });

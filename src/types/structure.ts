@@ -19,6 +19,7 @@ export interface Category {
 }
 
 export interface CreateCategoryRequest {
+  organizationId?: string;
   name: string;
   description?: string | null;
 }
