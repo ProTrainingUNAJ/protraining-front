@@ -12,6 +12,8 @@ export interface MuscleMapBackProps {
   onMuscleHover?: (region: OfficialMuscleGroup | JointRegion | null) => void;
   readOnly?: boolean;
   className?: string;
+  sideContent?: React.ReactNode;
+  hideHeader?: boolean;
 }
 
 export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
@@ -22,6 +24,8 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
   onMuscleHover,
   readOnly = false,
   className = '',
+  sideContent,
+  hideHeader = false,
 }) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -46,316 +50,222 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        width: '100%',
-        maxWidth: '380px',
-        margin: '0 auto',
-      }}
-    >
+    <div className="muscle-map-view-column">
       {/* Anatomical view and perspective header */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          marginBottom: '0.65rem',
-          textAlign: 'center',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            color: 'var(--text-main)',
-            background: 'var(--bg-subtle)',
-            padding: '0.25rem 0.85rem',
-            borderRadius: '9999px',
-            border: '1px solid var(--border)',
-          }}
-        >
-          Vista Posterior (Trasera)
-        </span>
-        <span
-          style={{
-            fontSize: '0.72rem',
-            color: 'var(--text-muted)',
-            marginTop: '0.25rem',
-            fontWeight: 600,
-          }}
-        >
-          ← Lado Izq. del atleta | Lado Der. del atleta →
-        </span>
-      </div>
+      {!hideHeader && (
+        <div className="muscle-map-view-header">
+          <span className="muscle-map-view-pill">Vista Posterior (Trasera)</span>
+          <span className="muscle-map-view-sub">
+            ← Lado Izq. del atleta | Lado Der. del atleta →
+          </span>
+        </div>
+      )}
 
-      <svg
-        viewBox="0 0 380 680"
-        className={`muscle-map-back-svg ${className}`}
-        style={{
-          width: '100%',
-          height: 'auto',
-          maxHeight: '560px',
-          display: 'block',
-          userSelect: 'none',
-          overflow: 'visible',
-          background: 'transparent',
-        }}
-        aria-label="Mapa anatómico muscular y articular en vista posterior"
-      >
-        <defs>
-          <filter id="muscle-glow-back" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow
-              dx="0"
-              dy="0"
-              stdDeviation="3"
-              floodColor="var(--muscle-outline-selected)"
-              floodOpacity="0.8"
+      <div className="muscle-map-view-row">
+        <div className="muscle-map-svg-wrapper">
+          <svg
+            viewBox="0 0 380 680"
+            className={`muscle-map-back-svg ${className}`}
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '560px',
+              display: 'block',
+              userSelect: 'none',
+              overflow: 'visible',
+              background: 'transparent',
+            }}
+            aria-label="Mapa anatómico muscular y articular en vista posterior"
+          >
+            <defs>
+              <filter id="muscle-glow-back" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  stdDeviation="3"
+                  floodColor="var(--muscle-outline-selected)"
+                  floodOpacity="0.8"
+                />
+              </filter>
+            </defs>
+
+            {/* 1. Base skin silhouette (white body, 100% transparent exterior) */}
+            <image
+              href={silhouetteUrl}
+              x="0"
+              y="0"
+              width="380"
+              height="680"
+              style={{
+                pointerEvents: 'none',
+                userSelect: 'none',
+              }}
+              aria-hidden="true"
             />
-          </filter>
-        </defs>
 
-        {/* 1. Base skin silhouette (white body, 100% transparent exterior) */}
-        <image
-          href={silhouetteUrl}
-          x="0"
-          y="0"
-          width="380"
-          height="680"
-          style={{
-            pointerEvents: 'none',
-            userSelect: 'none',
-          }}
-          aria-hidden="true"
-        />
+            {/* 2. Interactive posterior SVG vector muscle regions */}
+            <g id="back-interactive-muscles">
+              {BACK_OFFICIAL_MUSCLES.map((muscle) => {
+                if (!muscle.backPath) return null;
 
-        {/* 2. Interactive posterior SVG vector muscle regions */}
-        <g id="back-interactive-muscles">
-          {BACK_OFFICIAL_MUSCLES.map((muscle) => {
-            if (!muscle.backPath) return null;
+                const isSelected = selectedMuscles.includes(muscle.id);
+                const isHovered = hoveredId === muscle.id;
+                const painLevel = musclePains[muscle.id] || 0;
+                const hasPain = painLevel > 0;
 
-            const isSelected = selectedMuscles.includes(muscle.id);
-            const isHovered = hoveredId === muscle.id;
-            const painLevel = musclePains[muscle.id] || 0;
-            const hasPain = painLevel > 0;
+                let fillColor = 'rgba(255, 255, 255, 0.001)';
+                if (hasPain) {
+                  fillColor = getColorByPainLevel(painLevel);
+                } else if (muscleColors[muscle.id]) {
+                  fillColor = muscleColors[muscle.id];
+                } else if (isHovered && !readOnly) {
+                  fillColor = 'var(--muscle-hover-fill)';
+                }
 
-            let fillColor = 'rgba(255, 255, 255, 0.001)';
-            if (hasPain) {
-              fillColor = getColorByPainLevel(painLevel);
-            } else if (muscleColors[muscle.id]) {
-              fillColor = muscleColors[muscle.id];
-            } else if (isHovered && !readOnly) {
-              fillColor = 'var(--muscle-hover-fill)';
-            }
+                const strokeColor = isSelected
+                  ? 'var(--muscle-outline-selected)'
+                  : isHovered
+                    ? 'var(--muscle-outline-selected)'
+                    : 'transparent';
+                const strokeWidth = isSelected ? 3 : isHovered ? 2 : 0;
 
-            const strokeColor = isSelected
-              ? 'var(--muscle-outline-selected)'
-              : isHovered
-                ? 'var(--muscle-outline-selected)'
-                : 'transparent';
-            const strokeWidth = isSelected ? 3 : isHovered ? 2 : 0;
+                return (
+                  <path
+                    key={`back-muscle-${muscle.id}`}
+                    id={`back-muscle-${muscle.id}`}
+                    d={muscle.backPath}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    role="button"
+                    tabIndex={readOnly ? -1 : 0}
+                    aria-label={`${muscle.name}. ${
+                      hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
+                    } Vista posterior.`}
+                    aria-pressed={isSelected}
+                    filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
+                    style={{
+                      cursor: readOnly ? 'default' : 'pointer',
+                      transition: 'fill 0.18s ease, stroke 0.18s ease',
+                      outline: 'none',
+                    }}
+                    onClick={() => !readOnly && onMuscleClick?.(muscle.id)}
+                    onMouseEnter={() => handleMouseEnter(muscle)}
+                    onMouseLeave={handleMouseLeave}
+                    onFocus={() => handleMouseEnter(muscle)}
+                    onBlur={handleMouseLeave}
+                    onKeyDown={(e) => handleKeyDown(e, muscle.id)}
+                  />
+                );
+              })}
+            </g>
 
-            return (
-              <path
-                key={`back-muscle-${muscle.id}`}
-                id={`back-muscle-${muscle.id}`}
-                d={muscle.backPath}
-                fill={fillColor}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                role="button"
-                tabIndex={readOnly ? -1 : 0}
-                aria-label={`${muscle.name}. ${
-                  hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                } Vista posterior.`}
-                aria-pressed={isSelected}
-                filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
-                style={{
-                  cursor: readOnly ? 'default' : 'pointer',
-                  transition: 'fill 0.18s ease, stroke 0.18s ease',
-                  outline: 'none',
-                }}
-                onClick={() => !readOnly && onMuscleClick?.(muscle.id)}
-                onMouseEnter={() => handleMouseEnter(muscle)}
-                onMouseLeave={handleMouseLeave}
-                onFocus={() => handleMouseEnter(muscle)}
-                onBlur={handleMouseLeave}
-                onKeyDown={(e) => handleKeyDown(e, muscle.id)}
-              />
-            );
-          })}
-        </g>
+            {/* 3. Interactive joint regions (Sección 6) */}
+            <g id="back-interactive-joints">
+              {BACK_JOINTS.map((joint) => {
+                if (!joint.backPath) return null;
 
-        {/* 3. Interactive joint regions (Sección 6) */}
-        <g id="back-interactive-joints">
-          {BACK_JOINTS.map((joint) => {
-            if (!joint.backPath) return null;
+                const isSelected = selectedMuscles.includes(joint.id);
+                const isHovered = hoveredId === joint.id;
+                const painLevel = musclePains[joint.id] || 0;
+                const hasPain = painLevel > 0;
 
-            const isSelected = selectedMuscles.includes(joint.id);
-            const isHovered = hoveredId === joint.id;
-            const painLevel = musclePains[joint.id] || 0;
-            const hasPain = painLevel > 0;
+                let fillColor = 'rgba(255, 255, 255, 0.001)';
+                if (hasPain) {
+                  fillColor = getColorByPainLevel(painLevel);
+                } else if (muscleColors[joint.id]) {
+                  fillColor = muscleColors[joint.id];
+                } else if (isHovered && !readOnly) {
+                  fillColor = 'var(--muscle-hover-fill)';
+                }
 
-            let fillColor = 'rgba(255, 255, 255, 0.001)';
-            if (hasPain) {
-              fillColor = getColorByPainLevel(painLevel);
-            } else if (muscleColors[joint.id]) {
-              fillColor = muscleColors[joint.id];
-            } else if (isHovered && !readOnly) {
-              fillColor = 'var(--muscle-hover-fill)';
-            }
+                const strokeColor = isSelected
+                  ? 'var(--muscle-outline-selected)'
+                  : isHovered
+                    ? 'var(--muscle-outline-selected)'
+                    : 'transparent';
+                const strokeWidth = isSelected ? 3 : isHovered ? 2 : 0;
 
-            const strokeColor = isSelected
-              ? 'var(--muscle-outline-selected)'
-              : isHovered
-                ? 'var(--muscle-outline-selected)'
-                : 'transparent';
-            const strokeWidth = isSelected ? 3 : isHovered ? 2 : 0;
+                return (
+                  <path
+                    key={`back-joint-${joint.id}`}
+                    id={`back-joint-${joint.id}`}
+                    d={joint.backPath}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    role="button"
+                    tabIndex={readOnly ? -1 : 0}
+                    aria-label={`Articulación: ${joint.name}. ${
+                      hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
+                    } Vista posterior.`}
+                    aria-pressed={isSelected}
+                    filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
+                    style={{
+                      cursor: readOnly ? 'default' : 'pointer',
+                      transition: 'fill 0.18s ease, stroke 0.18s ease',
+                      outline: 'none',
+                    }}
+                    onClick={() => !readOnly && onMuscleClick?.(joint.id)}
+                    onMouseEnter={() => handleMouseEnter(joint)}
+                    onMouseLeave={handleMouseLeave}
+                    onFocus={() => handleMouseEnter(joint)}
+                    onBlur={handleMouseLeave}
+                    onKeyDown={(e) => handleKeyDown(e, joint.id)}
+                  />
+                );
+              })}
+            </g>
 
-            return (
-              <path
-                key={`back-joint-${joint.id}`}
-                id={`back-joint-${joint.id}`}
-                d={joint.backPath}
-                fill={fillColor}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                role="button"
-                tabIndex={readOnly ? -1 : 0}
-                aria-label={`Articulación: ${joint.name}. ${
-                  hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                } Vista posterior.`}
-                aria-pressed={isSelected}
-                filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
-                style={{
-                  cursor: readOnly ? 'default' : 'pointer',
-                  transition: 'fill 0.18s ease, stroke 0.18s ease',
-                  outline: 'none',
-                }}
-                onClick={() => !readOnly && onMuscleClick?.(joint.id)}
-                onMouseEnter={() => handleMouseEnter(joint)}
-                onMouseLeave={handleMouseLeave}
-                onFocus={() => handleMouseEnter(joint)}
-                onBlur={handleMouseLeave}
-                onKeyDown={(e) => handleKeyDown(e, joint.id)}
-              />
-            );
-          })}
-        </g>
+            {/* 4. Reference anatomical contour lineart layer (#023050 ink, transparent background) */}
+            <image
+              href={lineartUrl}
+              x="0"
+              y="0"
+              width="380"
+              height="680"
+              style={{
+                pointerEvents: 'none',
+                userSelect: 'none',
+                opacity: 1,
+              }}
+              aria-hidden="true"
+            />
 
-        {/* 4. Reference anatomical contour lineart layer (#023050 ink, transparent background) */}
-        <image
-          href={lineartUrl}
-          x="0"
-          y="0"
-          width="380"
-          height="680"
-          style={{
-            pointerEvents: 'none',
-            userSelect: 'none',
-            opacity: 1,
-          }}
-          aria-hidden="true"
-        />
-
-        {/* 5. Círculos armónicos integrados al vector de líneas para articulaciones en vista posterior */}
-        <g id="back-joint-lineart-circles" style={{ pointerEvents: 'none' }}>
-          {BACK_JOINTS.map((joint) => {
-            if (!joint.backCenter) return null;
-            const r = joint.id.startsWith('rodilla')
-              ? 12
-              : joint.id.startsWith('codo')
-                ? 11
-                : joint.id.startsWith('tobillo')
-                  ? 9
-                  : 8;
-            return (
-              <circle
-                key={`back-lineart-circle-${joint.id}`}
-                cx={joint.backCenter.x}
-                cy={joint.backCenter.y}
-                r={r}
-                fill="none"
-                stroke="#023050"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            );
-          })}
-        </g>
-
-        {/* 5. Numeric pain badges (1 to 5) at posterior anatomical centers */}
-        <g id="back-pain-badges" style={{ pointerEvents: 'none' }}>
-          {BACK_OFFICIAL_MUSCLES.map((muscle) => {
-            const painLevel = musclePains[muscle.id] || 0;
-            if (painLevel <= 0 || !muscle.backCenter) return null;
-
-            return (
-              <g
-                key={`back-badge-${muscle.id}`}
-                transform={`translate(${muscle.backCenter.x}, ${muscle.backCenter.y})`}
-              >
-                <circle
-                  r="11"
-                  fill={getColorByPainLevel(painLevel)}
-                  stroke="var(--white)"
-                  strokeWidth="2"
-                  filter="drop-shadow(0 2px 4px rgba(0,0,0,0.35))"
-                />
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill="#ffffff"
-                  fontSize="11"
-                  fontWeight="800"
-                  fontFamily="inherit"
-                >
-                  {painLevel}
-                </text>
-              </g>
-            );
-          })}
-
-          {BACK_JOINTS.map((joint) => {
-            const painLevel = musclePains[joint.id] || 0;
-            if (painLevel <= 0 || !joint.backCenter) return null;
-
-            return (
-              <g
-                key={`back-joint-badge-${joint.id}`}
-                transform={`translate(${joint.backCenter.x}, ${joint.backCenter.y})`}
-              >
-                <circle
-                  r="10"
-                  fill={getColorByPainLevel(painLevel)}
-                  stroke="var(--white)"
-                  strokeWidth="2"
-                  filter="drop-shadow(0 2px 4px rgba(0,0,0,0.35))"
-                />
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill="#ffffff"
-                  fontSize="10"
-                  fontWeight="800"
-                  fontFamily="inherit"
-                >
-                  {painLevel}
-                </text>
-              </g>
-            );
-          })}
-        </g>
-      </svg>
+            {/* 5. Círculos armónicos integrados al vector de líneas para articulaciones en vista posterior */}
+            <g id="back-joint-lineart-circles" style={{ pointerEvents: 'none' }}>
+              {BACK_JOINTS.map((joint) => {
+                if (!joint.backCenter) return null;
+                const r = joint.id.startsWith('rodilla')
+                  ? 12
+                  : joint.id.startsWith('codo')
+                    ? 11
+                    : joint.id.startsWith('tobillo')
+                      ? 9
+                      : 8;
+                return (
+                  <circle
+                    key={`back-lineart-circle-${joint.id}`}
+                    cx={joint.backCenter.x}
+                    cy={joint.backCenter.y}
+                    r={r}
+                    fill="none"
+                    stroke="#023050"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                );
+              })}
+            </g>
+          </svg>
+        </div>
+        {sideContent}
+      </div>
     </div>
   );
 };
