@@ -67,12 +67,12 @@ export type ViewMode = 'front' | 'back' | 'both';
  * Centralized official color palette for the muscle map (Section 8)
  */
 export const MUSCLE_COLORS = {
-  white: '#FFFFFF',
-  darkGreen: '#006B45',
-  lightGreen: '#55B83F',
-  yellow: '#FFD600',
-  orange: '#FF7900',
-  red: '#E50914',
+  white: 'var(--muscle-color-white)',
+  darkGreen: 'var(--muscle-color-dark-green)',
+  lightGreen: 'var(--muscle-color-light-green)',
+  yellow: 'var(--muscle-color-yellow)',
+  orange: 'var(--muscle-color-orange)',
+  red: 'var(--muscle-color-red)',
 } as const;
 
 export type MuscleColorKey = keyof typeof MUSCLE_COLORS;

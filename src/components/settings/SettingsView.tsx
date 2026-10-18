@@ -207,7 +207,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       border: '2px solid var(--bg-card)',
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
+                      boxShadow: 'var(--shadow-sm)',
                     }}
                     title="Espacio para cargar foto de perfil"
                     aria-label="Cámara"

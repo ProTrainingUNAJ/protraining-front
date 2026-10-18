@@ -291,7 +291,7 @@ export const ProgressPage: React.FC = () => {
               justifyContent: 'space-between',
               gap: '1rem',
               background: 'var(--brand-navy)',
-              color: '#ffffff',
+              color: 'var(--on-primary)',
               padding: '0.75rem 1.25rem',
               borderRadius: '12px',
               boxShadow: 'var(--shadow-lg)',
@@ -324,7 +324,7 @@ export const ProgressPage: React.FC = () => {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: 'var(--on-primary-subtle)',
                   cursor: 'pointer',
                   padding: '2px',
                 }}
@@ -773,7 +773,7 @@ export const ProgressPage: React.FC = () => {
                         ? '1.5px solid var(--secondary)'
                         : '1px solid var(--border)',
                       background: isSelected ? 'var(--secondary)' : 'var(--bg-subtle)',
-                      color: isSelected ? '#ffffff' : 'var(--text-main)',
+                      color: isSelected ? 'var(--on-primary)' : 'var(--text-main)',
                       transition: 'all 0.15s ease',
                     }}
                   >
@@ -785,7 +785,7 @@ export const ProgressPage: React.FC = () => {
                           width: '6px',
                           height: '6px',
                           borderRadius: '50%',
-                          background: isSelected ? '#ffffff' : 'var(--stat-green)',
+                          background: isSelected ? 'var(--on-primary)' : 'var(--stat-green)',
                         }}
                         title="Fijado en Inicio"
                       />

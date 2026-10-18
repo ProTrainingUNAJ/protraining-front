@@ -586,7 +586,11 @@ export const DashboardPage: React.FC = () => {
                   marginTop: '0.1rem',
                 }}
               >
-                <MapPin size={13} style={{ color: '#ea580c', flexShrink: 0 }} strokeWidth={2.5} />
+                <MapPin
+                  size={13}
+                  style={{ color: 'var(--pain-level-4)', flexShrink: 0 }}
+                  strokeWidth={2.5}
+                />
                 <span
                   style={{
                     fontWeight: 700,
@@ -612,7 +616,7 @@ export const DashboardPage: React.FC = () => {
                 borderRadius: '14px',
                 border: '1px solid var(--border)',
                 flexShrink: 0,
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
               <div
@@ -620,12 +624,12 @@ export const DashboardPage: React.FC = () => {
                   width: '32px',
                   height: '32px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                  color: '#ffffff',
+                  background: 'var(--grad-weather)',
+                  color: 'var(--on-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.35)',
+                  boxShadow: 'var(--shadow-sm)',
                   flexShrink: 0,
                 }}
               >
