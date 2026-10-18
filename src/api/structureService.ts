@@ -57,8 +57,6 @@ interface RawAthlete {
   categoryNames?: string[];
   contactoEmergencia?: string | null;
   emergencyContact?: string | null;
-  condicionesMedicas?: string | null;
-  medicalConditions?: string | null;
   activeInjuriesCount?: number;
 }
 
@@ -111,7 +109,6 @@ function mapAthlete(raw: RawAthlete): Athlete {
     categories,
     categoryNames,
     emergencyContact: raw.contactoEmergencia ?? raw.emergencyContact ?? null,
-    medicalConditions: raw.condicionesMedicas ?? raw.medicalConditions ?? null,
     activeInjuriesCount: raw.activeInjuriesCount ?? 0,
   };
 }
@@ -184,7 +181,6 @@ export const structureService = {
         email: req.email.trim(),
         phone: req.phone.trim(),
         emergencyContact: req.emergencyContact?.trim() || null,
-        medicalConditions: req.medicalConditions?.trim() || null,
       });
       return mapAthlete(response.data);
     } catch (err: unknown) {

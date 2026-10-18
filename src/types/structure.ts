@@ -35,7 +35,6 @@ export interface Athlete {
   active?: boolean;
   categoryNames?: string[];
   categories?: Array<{ id: string; name: string }>;
-  medicalConditions?: string | null;
   emergencyContact?: string | null;
   activeInjuriesCount?: number;
 }
@@ -48,7 +47,6 @@ export interface CreateAthleteRequest {
   birthDate?: string;
   categoryIds?: string[];
   emergencyContact?: string | null;
-  medicalConditions?: string | null;
 }
 
 export interface AthleteMe {
