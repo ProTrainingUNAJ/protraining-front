@@ -85,6 +85,7 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
 
       {/* Contenedor de los 2 Stickies (Rojo y Amarillo con movimiento independiente) */}
       <div
+        className="pain-alerts-stickies-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',

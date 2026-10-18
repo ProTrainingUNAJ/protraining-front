@@ -903,7 +903,8 @@
 
   .wireframe-row-1,
   .wireframe-row-2,
-  .wireframe-row-3 {
+  .wireframe-row-3,
+  .wireframe-row-4 {
     grid-template-columns: 1fr;
   }
 }

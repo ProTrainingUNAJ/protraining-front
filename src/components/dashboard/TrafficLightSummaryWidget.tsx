@@ -201,6 +201,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
 
       {/* Grid de 4 donas radiales del semáforo KAN-366 según referencia del usuario */}
       <div
+        className="traffic-light-summary-donuts"
         style={{
           display: 'flex',
           alignItems: 'center',
