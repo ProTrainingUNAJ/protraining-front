@@ -315,7 +315,6 @@ export const OrganizationsPage: React.FC = () => {
                   justifyContent: 'space-between',
                   padding: '1.25rem',
                   margin: 0,
-                  transition: 'border-color 0.15s ease',
                 }}
               >
                 <div>

@@ -200,7 +200,6 @@ export const PlanningPage: React.FC = () => {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 gap: '1rem',
-                transition: 'border-color 0.2s ease, transform 0.2s ease',
               }}
             >
               <div>
