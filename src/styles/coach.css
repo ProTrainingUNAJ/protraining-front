@@ -1079,12 +1079,12 @@
 
 .pain-sticky-red:hover {
   transform: translateY(-6px) !important;
-  box-shadow: 0 14px 26px rgba(220, 38, 38, 0.42) !important;
+  box-shadow: var(--pain-sticky-red-shadow) !important;
 }
 
 .pain-sticky-yellow:hover {
   transform: translateY(-6px) !important;
-  box-shadow: 0 14px 26px rgba(234, 179, 8, 0.42) !important;
+  box-shadow: var(--pain-sticky-yellow-shadow) !important;
 }
 
 /* ── Círculos individuales del Semáforo del Día (Microinteracción hover agrandado) ── */
@@ -1095,12 +1095,12 @@
 
 .donut-metric-item:hover {
   transform: scale(1.14) !important;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.16)) !important;
+  filter: var(--donut-hover-shadow) !important;
   z-index: 5;
 }
 
 .sticky-routine-btn {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--sticky-btn-bg);
   border: none;
   border-radius: 8px;
   padding: 0.35rem 0.75rem;
@@ -1108,16 +1108,16 @@
   align-items: center;
   gap: 0.4rem;
   cursor: pointer;
-  color: #111827;
+  color: var(--sticky-btn-text);
   font-size: 0.76rem;
   font-weight: 800;
   transition: all 0.18s ease;
 }
 
 .sticky-routine-btn:hover {
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--sticky-btn-hover-bg);
   transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--sticky-btn-shadow);
 }
 
 /* ── Optimizaciones Finas para Widgets en Pantallas Móviles ── */

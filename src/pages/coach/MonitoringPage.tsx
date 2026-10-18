@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Activity, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -14,41 +14,41 @@ type FilterColor = 'all' | TrafficLightStatus;
 
 export const MonitoringPage: React.FC = () => {
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<'traffic-light' | 'attendance'>('traffic-light');
   const [selectedDivision, setSelectedDivision] = useState('Primera División');
 
-  // Initialize filter according to query param (?filter=red) or state ({ filter: 'red' })
-  const getInitialColorFilter = (): FilterColor => {
-    const query = searchParams.get('filter') || searchParams.get('status');
-    if (query === 'red' || query === 'yellow' || query === 'green' || query === 'gray') {
-      return query;
-    }
-    const stateFilter = (location.state as { filter?: FilterColor })?.filter;
-    if (stateFilter === 'red' || stateFilter === 'yellow' || stateFilter === 'green' || stateFilter === 'gray') {
-      return stateFilter;
-    }
-    return 'all';
+  // Derive active color filter directly from URL query parameters or navigation state
+  const queryParam = searchParams.get('filter') || searchParams.get('status');
+  const stateFilter = (location.state as { filter?: FilterColor })?.filter;
+
+  const colorFilter: FilterColor =
+    queryParam === 'red' || queryParam === 'yellow' || queryParam === 'green' || queryParam === 'gray'
+      ? queryParam
+      : stateFilter === 'red' || stateFilter === 'yellow' || stateFilter === 'green' || stateFilter === 'gray'
+        ? stateFilter
+        : 'all';
+
+  const setColorFilter = (filter: FilterColor) => {
+    setSearchParams(
+      (prev: URLSearchParams) => {
+        const next = new URLSearchParams(prev);
+        if (filter === 'all') {
+          next.delete('filter');
+          next.delete('status');
+        } else {
+          next.set('filter', filter);
+        }
+        return next;
+      },
+      { replace: true }
+    );
   };
 
-  const [colorFilter, setColorFilter] = useState<FilterColor>(getInitialColorFilter);
   const [searchTerm, setSearchTerm] = useState('');
   const [athletes, setAthletes] = useState<AthleteTrafficLightItem[]>(INITIAL_TRAFFIC_LIGHT_DATA);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
-
-  // Synchronize when query parameter or navigation state changes
-  useEffect(() => {
-    const query = searchParams.get('filter') || searchParams.get('status');
-    if (query === 'red' || query === 'yellow' || query === 'green' || query === 'gray') {
-      setColorFilter(query);
-    } else {
-      const stateFilter = (location.state as { filter?: FilterColor })?.filter;
-      if (stateFilter === 'red' || stateFilter === 'yellow' || stateFilter === 'green' || stateFilter === 'gray') {
-        setColorFilter(stateFilter);
-      }
-    }
-  }, [searchParams, location.state]);
 
   // Counters for Segmented Color Chips (KAN-366)
   const counts = useMemo(() => {

@@ -173,6 +173,15 @@
   --traffic-gray-border: #9ca3af;
   --traffic-gray-text: #4b5563;
 
+  /* Sticky pain alert interactions */
+  --pain-sticky-red-shadow: 0 14px 26px rgb(220 38 38 / 0.42);
+  --pain-sticky-yellow-shadow: 0 14px 26px rgb(234 179 8 / 0.42);
+  --donut-hover-shadow: drop-shadow(0 6px 14px rgb(0 0 0 / 0.16));
+  --sticky-btn-bg: rgb(0 0 0 / 0.08);
+  --sticky-btn-hover-bg: rgb(0 0 0 / 0.18);
+  --sticky-btn-text: #111827;
+  --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+
   /* Backward compatibility aliases */
   --warning-border: #f59e0b;
   --warning-bg: rgb(245 158 11 / 0.14);
@@ -423,4 +432,13 @@
   --traffic-gray-bg: rgb(156 163 175 / 0.2);
   --traffic-gray-border: #6b7280;
   --traffic-gray-text: #d1d5db;
+
+  /* Sticky pain alert interactions */
+  --pain-sticky-red-shadow: 0 14px 26px rgb(220 38 38 / 0.5);
+  --pain-sticky-yellow-shadow: 0 14px 26px rgb(234 179 8 / 0.5);
+  --donut-hover-shadow: drop-shadow(0 6px 14px rgb(0 0 0 / 0.35));
+  --sticky-btn-bg: rgb(0 0 0 / 0.15);
+  --sticky-btn-hover-bg: rgb(0 0 0 / 0.28);
+  --sticky-btn-text: #111827;
+  --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
 }
