@@ -698,7 +698,7 @@
 }
 
 .wireframe-row-1 {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   min-height: 140px;
 }
 .wireframe-row-1 .wireframe-card {
@@ -707,16 +707,16 @@
 }
 
 .wireframe-row-2 {
-  grid-template-columns: repeat(5, 1fr);
-  min-height: 220px;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 200px;
 }
 .wireframe-row-2 .wireframe-card {
   grid-column: span 1;
-  min-height: 220px;
+  min-height: 200px;
 }
 
 .wireframe-row-3 {
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   min-height: 220px;
 }
 .wireframe-row-3 .wireframe-card {

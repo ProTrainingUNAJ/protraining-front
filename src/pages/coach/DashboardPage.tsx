@@ -4,45 +4,117 @@ import {
   GripVertical,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   ArrowRight,
   RotateCcw,
-  Clock,
-  MapPin,
-  CloudSun,
-  Wind,
-  Droplets,
 } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
+import { LiveClockWidget } from '../../components/dashboard/LiveClockWidget';
+import { LiveWeatherWidget } from '../../components/dashboard/LiveWeatherWidget';
+import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
+import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
+import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
+import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
+import { WeeklyLoadSparklineWidget } from '../../components/dashboard/WeeklyLoadSparklineWidget';
+
+export type DashboardCardType =
+  | 'empty'
+  | 'suite'
+  | 'live-clock'
+  | 'live-weather'
+  | 'training-session'
+  | 'traffic-light-summary'
+  | 'checkin-progress'
+  | 'pain-alerts'
+  | 'weekly-load'
+  | 'progress-chart';
 
 export interface WireframeCardItem {
   id: string;
   name: string;
-  colSpan: number; // 1 o 2 columnas en grid de 4
-  type: 'empty' | 'suite' | 'training-weather' | 'progress-chart';
+  colSpan: number;
+  type: DashboardCardType;
   chartMetric?: 'cmj' | 'squat' | 'sprint' | 'rpe' | 'yoyo';
 }
 
-const DEFAULT_ROW_1: WireframeCardItem[] = [
-  { id: 'r1-c1', name: 'Módulo 1-A', colSpan: 1, type: 'empty' },
-  { id: 'r1-c2', name: 'Módulo 1-B', colSpan: 1, type: 'empty' },
-  { id: 'r1-c3', name: 'Módulo 1-C', colSpan: 1, type: 'empty' },
-  { id: 'r1-c4', name: 'Horario y Clima', colSpan: 1, type: 'training-weather' },
+export interface DashboardRow {
+  id: string;
+  name: string;
+  className: string;
+  cards: WireframeCardItem[];
+}
+
+const DEFAULT_COACH_ROWS: DashboardRow[] = [
+  {
+    id: 'row-1',
+    name: 'Fila 1 · Indicadores en Vivo',
+    className: 'wireframe-row-1',
+    cards: [
+      { id: 'w-clock', name: 'Hora y Turno', colSpan: 1, type: 'live-clock' },
+      { id: 'w-weather', name: 'Clima en Cancha', colSpan: 1, type: 'live-weather' },
+      { id: 'w-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+    ],
+  },
+  {
+    id: 'row-2',
+    name: 'Fila 2 · Semáforo y Alertas del Plantel',
+    className: 'wireframe-row-2',
+    cards: [
+      { id: 'w-traffic', name: 'Semáforo del Día', colSpan: 1, type: 'traffic-light-summary' },
+      { id: 'w-checkin', name: 'Progreso de Check-in', colSpan: 1, type: 'checkin-progress' },
+      { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
+    ],
+  },
+  {
+    id: 'row-3',
+    name: 'Fila 3 · Suite y Carga Acumulada',
+    className: 'wireframe-row-3',
+    cards: [
+      { id: 'w-suite', name: 'ProTraining Suite', colSpan: 1, type: 'suite' },
+      { id: 'w-load', name: 'Carga Semanal RPE', colSpan: 1, type: 'weekly-load' },
+    ],
+  },
 ];
 
-const DEFAULT_ROW_2: WireframeCardItem[] = [
-  { id: 'r2-c1', name: 'Módulo 2-A', colSpan: 1, type: 'empty' },
-  { id: 'r2-c2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
-  { id: 'r2-c3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
-  { id: 'r2-c4', name: 'Módulo 2-D', colSpan: 1, type: 'empty' },
-  { id: 'r2-c5', name: 'Módulo 2-E', colSpan: 1, type: 'empty' },
-];
-
-const DEFAULT_ROW_3: WireframeCardItem[] = [
-  { id: 'r3-suite', name: 'ProTraining Suite', colSpan: 2, type: 'suite' },
-  { id: 'r3-empty-1', name: 'Módulo 3-B', colSpan: 1, type: 'empty' },
-  { id: 'r3-empty-2', name: 'Módulo 3-C', colSpan: 1, type: 'empty' },
+const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
+  {
+    id: 'row-1',
+    name: 'Fila 1 · Indicadores en Vivo',
+    className: 'wireframe-row-1',
+    cards: [
+      { id: 'a-clock', name: 'Hora y Turno', colSpan: 1, type: 'live-clock' },
+      { id: 'a-weather', name: 'Clima en Cancha', colSpan: 1, type: 'live-weather' },
+      { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+    ],
+  },
+  {
+    id: 'row-2',
+    name: 'Fila 2 · Mi Estado y Rutina',
+    className: 'wireframe-row-2',
+    cards: [
+      { id: 'a-r2-1', name: 'Módulo 2-A', colSpan: 1, type: 'empty' },
+      { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
+      { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
+    ],
+  },
+  {
+    id: 'row-3',
+    name: 'Fila 3 · Suite y Evolución',
+    className: 'wireframe-row-3',
+    cards: [
+      { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
+      {
+        id: 'a-chart-cmj',
+        name: 'Evolución Salto CMJ',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'cmj',
+      },
+    ],
+  },
 ];
 
 export const DashboardPage: React.FC = () => {
@@ -50,192 +122,146 @@ export const DashboardPage: React.FC = () => {
   const location = useLocation();
   const isAthlete = location.pathname.startsWith('/athlete');
   const storageKey = isAthlete
-    ? 'protraining_wireframe_bento_athlete_v4'
-    : 'protraining_wireframe_bento_coach_v4';
+    ? 'protraining_bento_rows_athlete_v5'
+    : 'protraining_bento_rows_coach_v5';
 
-  // Estados de cada fila por separado para aislamiento estricto
-  const [row1, setRow1] = useState<WireframeCardItem[]>(() => {
+  const defaultRows = isAthlete ? DEFAULT_ATHLETE_ROWS : DEFAULT_COACH_ROWS;
+
+  const [rows, setRows] = useState<DashboardRow[]>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.row1) && parsed.row1.length === 4) {
-          // Migrate r1-c4 to training-weather if stored as empty
-          return parsed.row1.map((item: WireframeCardItem) =>
-            item.id === 'r1-c4' && item.type === 'empty'
-              ? { ...item, type: 'training-weather', name: 'Horario y Clima' }
-              : item,
-          );
+        if (Array.isArray(parsed) && parsed.length === 3) {
+          return parsed;
         }
       }
     } catch {
-      // Ignorar fallback
+      // Fallback
     }
-    return DEFAULT_ROW_1;
+    return defaultRows;
   });
 
-  const [row2, setRow2] = useState<WireframeCardItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.row2) && parsed.row2.length === 5) return parsed.row2;
-      }
-    } catch {
-      // Ignorar fallback
-    }
-    return DEFAULT_ROW_2;
-  });
-
-  const [row3, setRow3] = useState<WireframeCardItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.row3) && parsed.row3.length === 3) return parsed.row3;
-      }
-    } catch {
-      // Ignorar fallback
-    }
-    return DEFAULT_ROW_3;
-  });
-
-  // Guardar en localStorage cada vez que cambien las filas
+  // Persist rows and widgets layout to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ row1, row2, row3 }));
+      localStorage.setItem(storageKey, JSON.stringify(rows));
     } catch {
-      // Ignorar quota errors
+      // Ignore quota errors
     }
-  }, [row1, row2, row3, storageKey]);
+  }, [rows, storageKey]);
 
-  // Estado del Drag & Drop
+  // Inter-row drag and drop state
   const [dragSource, setDragSource] = useState<{
-    rowId: number;
-    index: number;
+    rowId: string;
+    cardIndex: number;
     cardId: string;
   } | null>(null);
 
   const [dragOverTarget, setDragOverTarget] = useState<{
-    rowId: number;
-    index: number;
+    rowId: string;
+    cardIndex: number;
   } | null>(null);
 
   const [recentlySwappedId, setRecentlySwappedId] = useState<string | null>(null);
 
-  // Función utilitaria para intercambiar elementos dentro de un array
-  const swapElements = <T,>(arr: T[], idxA: number, idxB: number): T[] => {
-    if (idxA === idxB || idxA < 0 || idxB < 0 || idxA >= arr.length || idxB >= arr.length) {
-      return arr;
-    }
-    const copy = [...arr];
-    const temp = copy[idxA];
-    copy[idxA] = copy[idxB];
-    copy[idxB] = temp;
-    return copy;
-  };
+  // Free widget swapping between any row or inside the same row
+  const swapCards = (
+    srcRowId: string,
+    srcIndex: number,
+    targetRowId: string,
+    targetIndex: number,
+  ) => {
+    if (srcRowId === targetRowId && srcIndex === targetIndex) return;
 
-  // Intercambio por fila (aislamiento estricto)
-  const swapInRow = (rowId: number, fromIdx: number, toIdx: number) => {
-    if (fromIdx === toIdx) return;
+    setRows((prevRows) => {
+      const updated = prevRows.map((row) => ({
+        ...row,
+        cards: [...row.cards],
+      }));
 
-    if (rowId === 1) {
-      setRow1((prev) => {
-        const updated = swapElements(prev, fromIdx, toIdx);
-        setRecentlySwappedId(updated[toIdx].id);
-        return updated;
-      });
-    } else if (rowId === 2) {
-      setRow2((prev) => {
-        const updated = swapElements(prev, fromIdx, toIdx);
-        setRecentlySwappedId(updated[toIdx].id);
-        return updated;
-      });
-    } else if (rowId === 3) {
-      setRow3((prev) => {
-        const updated = swapElements(prev, fromIdx, toIdx);
-        setRecentlySwappedId(updated[toIdx].id);
-        return updated;
-      });
-    }
+      const sourceRow = updated.find((r) => r.id === srcRowId);
+      const targetRow = updated.find((r) => r.id === targetRowId);
+
+      if (!sourceRow || !targetRow) return prevRows;
+
+      const sourceCard = sourceRow.cards[srcIndex];
+      const targetCard = targetRow.cards[targetIndex];
+
+      if (!sourceCard || !targetCard) return prevRows;
+
+      // Swap positions
+      sourceRow.cards[srcIndex] = targetCard;
+      targetRow.cards[targetIndex] = sourceCard;
+
+      setRecentlySwappedId(sourceCard.id);
+      return updated;
+    });
 
     setTimeout(() => {
       setRecentlySwappedId(null);
     }, 900);
   };
 
-  // Mover a la izquierda con un click
-  const moveLeft = (rowId: number, index: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (index > 0) {
-      swapInRow(rowId, index, index - 1);
-    }
+  // Move widget horizontally within its row
+  const moveCardHorizontal = (rowId: string, currentIndex: number, direction: 'left' | 'right') => {
+    const targetIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
+    swapCards(rowId, currentIndex, rowId, targetIndex);
   };
 
-  // Mover a la derecha con un click
-  const moveRight = (rowId: number, index: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const maxIndex =
-      rowId === 1 ? row1.length - 1 : rowId === 2 ? row2.length - 1 : row3.length - 1;
-    if (index < maxIndex) {
-      swapInRow(rowId, index, index + 1);
-    }
+  // Move entire row order up or down
+  const moveRowOrder = (rowIndex: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? rowIndex - 1 : rowIndex + 1;
+    if (targetIndex < 0 || targetIndex >= rows.length) return;
+
+    setRows((prev) => {
+      const copy = [...prev];
+      const temp = copy[rowIndex];
+      copy[rowIndex] = copy[targetIndex];
+      copy[targetIndex] = temp;
+      return copy;
+    });
   };
 
-  // Restablecer el orden original
+  // Reset to default layout
   const resetLayout = () => {
-    setRow1(DEFAULT_ROW_1);
-    setRow2(DEFAULT_ROW_2);
-    setRow3(DEFAULT_ROW_3);
+    setRows(defaultRows);
     try {
       localStorage.removeItem(storageKey);
     } catch {
-      // Ignorar
+      // Ignore
     }
   };
 
-  // Manejo de eventos de Drag & Drop
-  const handleDragStart = (rowId: number, index: number, cardId: string, e: React.DragEvent) => {
-    e.dataTransfer.setData('text/plain', JSON.stringify({ rowId, index, cardId }));
+  // Drag & drop handlers
+  const handleDragStart = (
+    rowId: string,
+    cardIndex: number,
+    cardId: string,
+    e: React.DragEvent,
+  ) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ rowId, cardIndex, cardId }));
     e.dataTransfer.effectAllowed = 'move';
-    setDragSource({ rowId, index, cardId });
+    setDragSource({ rowId, cardIndex, cardId });
   };
 
-  const handleDragOver = (rowId: number, index: number, e: React.DragEvent) => {
+  const handleDragOver = (rowId: string, cardIndex: number, e: React.DragEvent) => {
     e.preventDefault();
-    // REGLA ESTRICTA: Solo permitir drop si pertenece a la misma fila
-    if (dragSource && dragSource.rowId === rowId) {
-      e.dataTransfer.dropEffect = 'move';
-      if (!dragOverTarget || dragOverTarget.rowId !== rowId || dragOverTarget.index !== index) {
-        setDragOverTarget({ rowId, index });
-      }
-    } else {
-      // Bloquear drop entre filas distintas
-      e.dataTransfer.dropEffect = 'none';
-    }
-  };
-
-  const handleDragLeave = (rowId: number, index: number, e: React.DragEvent) => {
-    e.preventDefault();
-    if (dragOverTarget && dragOverTarget.rowId === rowId && dragOverTarget.index === index) {
-      setDragOverTarget(null);
+    e.dataTransfer.dropEffect = 'move';
+    if (
+      !dragOverTarget ||
+      dragOverTarget.rowId !== rowId ||
+      dragOverTarget.cardIndex !== cardIndex
+    ) {
+      setDragOverTarget({ rowId, cardIndex });
     }
   };
 
-  const handleDrop = (rowId: number, targetIndex: number, e: React.DragEvent) => {
+  const handleDrop = (targetRowId: string, targetCardIndex: number, e: React.DragEvent) => {
     e.preventDefault();
+    if (!dragSource) return;
 
-    // Validar que provenga de la misma fila
-    if (!dragSource || dragSource.rowId !== rowId) {
-      setDragSource(null);
-      setDragOverTarget(null);
-      return;
-    }
-
-    if (dragSource.index !== targetIndex) {
-      swapInRow(rowId, dragSource.index, targetIndex);
-    }
-
+    swapCards(dragSource.rowId, dragSource.cardIndex, targetRowId, targetCardIndex);
     setDragSource(null);
     setDragOverTarget(null);
   };
@@ -245,559 +271,149 @@ export const DashboardPage: React.FC = () => {
     setDragOverTarget(null);
   };
 
-  const handleRemoveChart = (rowId: number, cardId: string) => {
-    const updater = (prev: WireframeCardItem[]) =>
-      prev.map((c) =>
-        c.id === cardId ? { ...c, type: 'empty' as const, chartMetric: undefined } : c,
-      );
-    if (rowId === 1) setRow1(updater);
-    else if (rowId === 2) setRow2(updater);
-    else if (rowId === 3) setRow3(updater);
-  };
-
-  // Renderizador de una tarjeta individual
-  const renderCard = (
-    card: WireframeCardItem,
-    rowId: number,
-    index: number,
-    totalInRow: number,
-  ) => {
-    const isDragging = dragSource?.cardId === card.id;
-    const isDragOver =
-      dragOverTarget?.rowId === rowId &&
-      dragOverTarget?.index === index &&
-      dragSource?.cardId !== card.id;
-    const isRecentlyMoved = recentlySwappedId === card.id;
-    const isForbidden = dragSource !== null && dragSource.rowId !== rowId;
-
-    const spanClass = card.colSpan === 2 ? 'wireframe-col-2' : 'wireframe-col-1';
-
-    // ── Caso A: Tarjeta PROTRAINING SUITE (Fila 3) ──
-    if (card.type === 'suite') {
-      return (
-        <div
-          key={card.id}
-          draggable
-          onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
-          onDragOver={(e) => handleDragOver(rowId, index, e)}
-          onDragLeave={(e) => handleDragLeave(rowId, index, e)}
-          onDrop={(e) => handleDrop(rowId, index, e)}
-          onDragEnd={handleDragEnd}
-          className={`wireframe-card wireframe-suite-card ${spanClass} ${
-            isDragging ? 'is-dragging' : ''
-          } ${isDragOver ? 'is-drag-over' : ''} ${isRecentlyMoved ? 'is-recently-moved' : ''} ${
-            isForbidden ? 'is-forbidden' : ''
-          }`}
-          title="Arrastrá para intercambiar posición en esta fila"
-        >
-          {/* Imagen de fondo del corredor 3D */}
-          <img
-            src={runnerImg}
-            alt="Corredor 3D ProTraining"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              opacity: 0.32,
-              pointerEvents: 'none',
-            }}
+  // Renderizador del contenido interno de cada tarjeta
+  const renderCardContent = (card: WireframeCardItem) => {
+    switch (card.type) {
+      case 'live-clock':
+        return <LiveClockWidget />;
+      case 'live-weather':
+        return <LiveWeatherWidget />;
+      case 'training-session':
+        return <TrainingSessionWidget />;
+      case 'traffic-light-summary':
+        return <TrafficLightSummaryWidget />;
+      case 'checkin-progress':
+        return <CheckInProgressWidget />;
+      case 'pain-alerts':
+        return <PainAlertsWidget />;
+      case 'weekly-load':
+        return <WeeklyLoadSparklineWidget />;
+      case 'progress-chart':
+        return (
+          <EvolutionChartWidget
+            metricKey={card.chartMetric || 'cmj'}
+            onRemove={() => {}}
+            variant="compact"
           />
-
-          {/* Barra de herramientas para mover en hover / drag */}
-          <div className="wireframe-card-toolbar">
-            {index > 0 && (
-              <button
-                type="button"
-                className="wireframe-control-btn"
-                onClick={(e) => moveLeft(rowId, index, e)}
-                title="Mover a la izquierda"
-                aria-label="Mover a la izquierda"
-              >
-                <ChevronLeft size={16} />
-              </button>
-            )}
-            {index < totalInRow - 1 && (
-              <button
-                type="button"
-                className="wireframe-control-btn"
-                onClick={(e) => moveRight(rowId, index, e)}
-                title="Mover a la derecha"
-                aria-label="Mover a la derecha"
-              >
-                <ChevronRight size={16} />
-              </button>
-            )}
-            <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
-              <GripVertical size={18} />
-            </span>
-          </div>
-
-          {/* Contenido textual del banner */}
+        );
+      case 'suite':
+        return (
           <div
             style={{
               position: 'relative',
-              padding: '1.75rem',
-              zIndex: 2,
-              background: 'var(--grad-suite-card)',
+              height: '100%',
+              minHeight: '200px',
+              overflow: 'hidden',
+              borderRadius: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
             }}
           >
-            <div style={{ marginBottom: '0.65rem' }}>
+            <img
+              src={runnerImg}
+              alt="Corredor 3D ProTraining"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 0.32,
+                pointerEvents: 'none',
+              }}
+            />
+            <div
+              style={{
+                position: 'relative',
+                padding: '1.5rem',
+                zIndex: 2,
+                background: 'var(--grad-suite-card)',
+              }}
+            >
               <span
                 style={{
                   display: 'inline-block',
                   background: 'var(--suite-badge-bg)',
-                  padding: '0.28rem 0.75rem',
+                  padding: '0.25rem 0.65rem',
                   borderRadius: '9999px',
-                  fontSize: '0.72rem',
+                  fontSize: '0.7rem',
                   fontWeight: 800,
                   letterSpacing: '0.04em',
                   textTransform: 'uppercase',
+                  marginBottom: '0.45rem',
                 }}
               >
                 {isAthlete ? 'PROTRAINING ATLETA' : 'PROTRAINING SUITE'}
               </span>
-            </div>
-
-            <h3
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 800,
-                margin: '0 0 0.4rem',
-                color: 'var(--white)',
-                lineHeight: 1.25,
-              }}
-            >
-              {isAthlete
-                ? 'Mi Planificación y Rendimiento Físico'
-                : 'Gestión Integral de Atletas y Clubes'}
-            </h3>
-
-            <p
-              style={{
-                fontSize: '0.85rem',
-                color: 'var(--suite-text-muted)',
-                margin: '0 0 1.15rem',
-                maxWidth: '480px',
-                lineHeight: 1.4,
-              }}
-            >
-              {isAthlete
-                ? 'Accedé a tus rutinas asignadas, calendario de entrenamientos y evolución física.'
-                : 'Administrá tus organizaciones, categorías y fichas médicas con precisión científica.'}
-            </p>
-
-            <div>
+              <h3
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 800,
+                  margin: '0 0 0.35rem',
+                  color: 'var(--white)',
+                  lineHeight: 1.2,
+                }}
+              >
+                {isAthlete ? 'Mi Planificación y Rendimiento' : 'Gestión Integral de Atletas'}
+              </h3>
+              <p
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--suite-text-muted)',
+                  margin: '0 0 0.85rem',
+                  lineHeight: 1.35,
+                }}
+              >
+                {isAthlete
+                  ? 'Accedé a tus rutinas asignadas y seguimiento físico.'
+                  : 'Monitoreá el semáforo de tu plantel y planificá cargas con precisión.'}
+              </p>
               <button
                 type="button"
                 className="btn btn-primary"
                 style={{
                   background: 'var(--secondary)',
                   borderRadius: '9999px',
-                  padding: '0.5rem 1.2rem',
-                  fontSize: '0.85rem',
+                  padding: '0.45rem 1rem',
+                  fontSize: '0.8rem',
                   fontWeight: 700,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
+                  gap: '0.4rem',
                   boxShadow: 'var(--suite-button-shadow)',
                 }}
-                onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/athletes')}
+                onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/monitoring')}
               >
-                <span>{isAthlete ? 'Ver Rutina' : 'Ver Atletas'}</span>
-                <ArrowRight size={15} aria-hidden="true" />
+                <span>{isAthlete ? 'Ver Rutina' : 'Ver Semáforo'}</span>
+                <ArrowRight size={14} />
               </button>
             </div>
           </div>
-        </div>
-      );
-    }
-
-    // ── Case B: Training Schedule, Location and Weather Card (Row 1 Card 4) ──
-    if (card.type === 'training-weather') {
-      return (
-        <div
-          key={card.id}
-          draggable
-          onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
-          onDragOver={(e) => handleDragOver(rowId, index, e)}
-          onDragLeave={(e) => handleDragLeave(rowId, index, e)}
-          onDrop={(e) => handleDrop(rowId, index, e)}
-          onDragEnd={handleDragEnd}
-          className={`wireframe-card ${spanClass} ${isDragging ? 'is-dragging' : ''} ${
-            isDragOver ? 'is-drag-over' : ''
-          } ${isRecentlyMoved ? 'is-recently-moved' : ''} ${isForbidden ? 'is-forbidden' : ''}`}
-          style={{
-            padding: '0.85rem 1.15rem',
-            background: 'linear-gradient(135deg, var(--bg-card) 45%, var(--bg-subtle) 100%)',
-            border: '1px solid var(--border)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-          title="Arrastrá para intercambiar posición en esta fila"
-        >
-          {/* Barra de herramientas para mover en hover / drag */}
-          <div className="wireframe-card-toolbar">
-            {index > 0 && (
-              <button
-                type="button"
-                className="wireframe-control-btn"
-                onClick={(e) => moveLeft(rowId, index, e)}
-                title="Mover a la izquierda"
-                aria-label="Mover a la izquierda"
-              >
-                <ChevronLeft size={16} />
-              </button>
-            )}
-            {index < totalInRow - 1 && (
-              <button
-                type="button"
-                className="wireframe-control-btn"
-                onClick={(e) => moveRight(rowId, index, e)}
-                title="Mover a la derecha"
-                aria-label="Mover a la derecha"
-              >
-                <ChevronRight size={16} />
-              </button>
-            )}
-            <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
-              <GripVertical size={18} />
-            </span>
-          </div>
-
-          {/* Cabecera del Widget: Badge en vivo y Turno */}
+        );
+      case 'empty':
+      default:
+        return (
           <div
             style={{
+              height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '0.45rem',
+              justifyContent: 'center',
+              color: 'var(--text-muted)',
+              fontSize: '0.82rem',
+              fontWeight: 600,
             }}
           >
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                background: 'var(--stat-green-bg)',
-                color: 'var(--stat-green)',
-                padding: '0.2rem 0.55rem',
-                borderRadius: '9999px',
-                fontSize: '0.7rem',
-                fontWeight: 800,
-                letterSpacing: '0.03em',
-                textTransform: 'uppercase',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <span
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: 'var(--stat-green)',
-                  boxShadow: '0 0 6px var(--stat-green)',
-                }}
-              />
-              <span>{isAthlete ? 'Tu Entrenamiento' : 'Sesión de Hoy'}</span>
-            </div>
-
-            <span
-              style={{
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                letterSpacing: '0.02em',
-              }}
-            >
-              Turno Tarde
-            </span>
+            {card.name}
           </div>
-
-          {/* Cuerpo del Widget: Horario & Ubicación a la izquierda, Clima a la derecha */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-            }}
-          >
-            {/* Lado Izquierdo: Horario y Lugar */}
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                <div
-                  style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '8px',
-                    background: 'var(--stat-cyan-bg)',
-                    color: 'var(--stat-cyan)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Clock size={15} strokeWidth={2.5} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
-                  <span
-                    style={{
-                      fontSize: '1.05rem',
-                      fontWeight: 900,
-                      color: 'var(--text-main)',
-                      letterSpacing: '-0.02em',
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    17:30
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    - 19:15 hs
-                  </span>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  fontSize: '0.76rem',
-                  color: 'var(--text-muted)',
-                  marginTop: '0.1rem',
-                }}
-              >
-                <MapPin
-                  size={13}
-                  style={{ color: 'var(--pain-level-4)', flexShrink: 0 }}
-                  strokeWidth={2.5}
-                />
-                <span
-                  style={{
-                    fontWeight: 700,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    color: 'var(--text-main)',
-                  }}
-                >
-                  Predio UNAJ · Campo 1
-                </span>
-              </div>
-            </div>
-
-            {/* Lado Derecho: Clima y Temperatura */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                background: 'var(--bg-card)',
-                padding: '0.4rem 0.65rem',
-                borderRadius: '14px',
-                border: '1px solid var(--border)',
-                flexShrink: 0,
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '10px',
-                  background: 'var(--grad-weather)',
-                  color: 'var(--on-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: 'var(--shadow-sm)',
-                  flexShrink: 0,
-                }}
-              >
-                <CloudSun size={19} strokeWidth={2.2} />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                  <span
-                    style={{
-                      fontSize: '1.15rem',
-                      fontWeight: 900,
-                      color: 'var(--text-main)',
-                      lineHeight: 1,
-                    }}
-                  >
-                    22°
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    Despejado
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    marginTop: '0.2rem',
-                    fontSize: '0.68rem',
-                    color: 'var(--text-muted)',
-                    fontWeight: 600,
-                  }}
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                    <Wind size={11} style={{ color: 'var(--stat-cyan)' }} /> 12 km/h
-                  </span>
-                  <span>•</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                    <Droplets size={11} style={{ color: 'var(--secondary)' }} /> 54%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+        );
     }
-
-    // ── Case C: Progress Chart Card Exported from "Progress" View ──
-    if (card.type === 'progress-chart') {
-      return (
-        <div
-          key={card.id}
-          draggable
-          onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
-          onDragOver={(e) => handleDragOver(rowId, index, e)}
-          onDragLeave={(e) => handleDragLeave(rowId, index, e)}
-          onDrop={(e) => handleDrop(rowId, index, e)}
-          onDragEnd={handleDragEnd}
-          className={`wireframe-card ${spanClass} ${isDragging ? 'is-dragging' : ''} ${
-            isDragOver ? 'is-drag-over' : ''
-          } ${isRecentlyMoved ? 'is-recently-moved' : ''} ${isForbidden ? 'is-forbidden' : ''}`}
-          style={{
-            padding: 0,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            position: 'relative',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-          title="Arrastrá para intercambiar posición en esta fila"
-        >
-          {/* Barra de herramientas para reordenar en la fila */}
-          <div className="wireframe-card-toolbar">
-            {index > 0 && (
-              <button
-                type="button"
-                className="wireframe-control-btn"
-                onClick={(e) => moveLeft(rowId, index, e)}
-                title="Mover a la izquierda"
-                aria-label="Mover a la izquierda"
-              >
-                <ChevronLeft size={16} />
-              </button>
-            )}
-            {index < totalInRow - 1 && (
-              <button
-                type="button"
-                className="wireframe-control-btn"
-                onClick={(e) => moveRight(rowId, index, e)}
-                title="Mover a la derecha"
-                aria-label="Mover a la derecha"
-              >
-                <ChevronRight size={16} />
-              </button>
-            )}
-            <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
-              <GripVertical size={18} />
-            </span>
-          </div>
-
-          <EvolutionChartWidget
-            metricKey={card.chartMetric || 'cmj'}
-            variant="compact"
-            colSpan={card.colSpan}
-            onRemove={() => handleRemoveChart(rowId, card.id)}
-          />
-        </div>
-      );
-    }
-
-    // ── Case D: Clean Empty Card (Row 1, Row 2, Row 3 right) ──
-    return (
-      <div
-        key={card.id}
-        draggable
-        onDragStart={(e) => handleDragStart(rowId, index, card.id, e)}
-        onDragOver={(e) => handleDragOver(rowId, index, e)}
-        onDragLeave={(e) => handleDragLeave(rowId, index, e)}
-        onDrop={(e) => handleDrop(rowId, index, e)}
-        onDragEnd={handleDragEnd}
-        className={`wireframe-card ${spanClass} ${isDragging ? 'is-dragging' : ''} ${
-          isDragOver ? 'is-drag-over' : ''
-        } ${isRecentlyMoved ? 'is-recently-moved' : ''} ${isForbidden ? 'is-forbidden' : ''}`}
-        title="Arrastrá para intercambiar posición en esta fila"
-      >
-        {/* Barra de herramientas que aparece al hover para reordenar */}
-        <div className="wireframe-card-toolbar">
-          {index > 0 && (
-            <button
-              type="button"
-              className="wireframe-control-btn"
-              onClick={(e) => moveLeft(rowId, index, e)}
-              title="Mover a la izquierda"
-              aria-label="Mover a la izquierda"
-            >
-              <ChevronLeft size={16} />
-            </button>
-          )}
-          {index < totalInRow - 1 && (
-            <button
-              type="button"
-              className="wireframe-control-btn"
-              onClick={(e) => moveRight(rowId, index, e)}
-              title="Mover a la derecha"
-              aria-label="Mover a la derecha"
-            >
-              <ChevronRight size={16} />
-            </button>
-          )}
-          <span className="wireframe-drag-handle" title="Arrastrar para mover por fila">
-            <GripVertical size={18} />
-          </span>
-        </div>
-      </div>
-    );
   };
 
   return (
     <div className="app-page-container">
-      {/* Encabezado estandarizado con título Inicio y botón de restablecer diseño */}
+      {/* Page Header with reset button */}
       <PageHeader
         title="Inicio"
         description={
@@ -819,7 +435,6 @@ export const DashboardPage: React.FC = () => {
               alignItems: 'center',
               gap: '0.4rem',
               opacity: 0.85,
-              transition: 'opacity 0.15s ease',
             }}
             title="Restablecer orden predeterminado de los módulos"
           >
@@ -829,21 +444,162 @@ export const DashboardPage: React.FC = () => {
         }
       />
 
-      <div className="app-page-body wireframe-dashboard-container">
-        {/* ── Fila 1: 4 campos vacíos (span 1 cada uno) ── */}
-        <div className="wireframe-row wireframe-row-1" aria-label="Fila 1 de módulos">
-          {row1.map((card, idx) => renderCard(card, 1, idx, row1.length))}
-        </div>
+      <div
+        className="app-page-body wireframe-dashboard-container"
+        style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+      >
+        {rows.map((row, rowIndex) => (
+          <div
+            key={row.id}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.65rem',
+              background: 'var(--bg-surface)',
+              padding: '1rem',
+              borderRadius: '24px',
+              border: '1px solid var(--border)',
+            }}
+          >
+            {/* Row header with whole-row reordering controls */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 0.35rem',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                {row.name} ({row.cards.length} módulos)
+              </span>
 
-        {/* ── Fila 2: 3 campos vacíos (1 col, 2 cols, 1 col) ── */}
-        <div className="wireframe-row wireframe-row-2" aria-label="Fila 2 de módulos">
-          {row2.map((card, idx) => renderCard(card, 2, idx, row2.length))}
-        </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                {rowIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => moveRowOrder(rowIndex, 'up')}
+                    className="wireframe-control-btn"
+                    style={{
+                      width: '26px',
+                      height: '26px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      cursor: 'pointer',
+                    }}
+                    title={`Mover ${row.name} hacia arriba`}
+                    aria-label={`Mover ${row.name} hacia arriba`}
+                  >
+                    <ChevronUp size={15} />
+                  </button>
+                )}
 
-        {/* ── Fila 3: Tarjeta Suite (2 cols) y Campo vacío (2 cols) ── */}
-        <div className="wireframe-row wireframe-row-3" aria-label="Fila 3 de módulos">
-          {row3.map((card, idx) => renderCard(card, 3, idx, row3.length))}
-        </div>
+                {rowIndex < rows.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={() => moveRowOrder(rowIndex, 'down')}
+                    className="wireframe-control-btn"
+                    style={{
+                      width: '26px',
+                      height: '26px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      cursor: 'pointer',
+                    }}
+                    title={`Mover ${row.name} hacia abajo`}
+                    aria-label={`Mover ${row.name} hacia abajo`}
+                  >
+                    <ChevronDown size={15} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Cards grid for the current row */}
+            <div className={`wireframe-row ${row.className}`}>
+              {row.cards.map((card, cardIndex) => {
+                const isDragging = dragSource?.cardId === card.id;
+                const isDragOver =
+                  dragOverTarget?.rowId === row.id && dragOverTarget?.cardIndex === cardIndex;
+                const isRecentlyMoved = recentlySwappedId === card.id;
+
+                return (
+                  <div
+                    key={card.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(row.id, cardIndex, card.id, e)}
+                    onDragOver={(e) => handleDragOver(row.id, cardIndex, e)}
+                    onDrop={(e) => handleDrop(row.id, cardIndex, e)}
+                    onDragEnd={handleDragEnd}
+                    className={`wireframe-card ${isDragging ? 'is-dragging' : ''} ${
+                      isDragOver ? 'is-drag-over' : ''
+                    } ${isRecentlyMoved ? 'is-recently-moved' : ''}`}
+                    title="Arrastrá para mover a cualquier posición o fila"
+                  >
+                    {/* Toolbar for intra-row card movement */}
+                    <div className="wireframe-card-toolbar">
+                      {cardIndex > 0 && (
+                        <button
+                          type="button"
+                          className="wireframe-control-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveCardHorizontal(row.id, cardIndex, 'left');
+                          }}
+                          title="Mover a la izquierda"
+                          aria-label="Mover a la izquierda"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                      )}
+
+                      {cardIndex < row.cards.length - 1 && (
+                        <button
+                          type="button"
+                          className="wireframe-control-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveCardHorizontal(row.id, cardIndex, 'right');
+                          }}
+                          title="Mover a la derecha"
+                          aria-label="Mover a la derecha"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      )}
+
+                      <span
+                        className="wireframe-drag-handle"
+                        title="Arrastrar a cualquier fila o posición"
+                      >
+                        <GripVertical size={18} />
+                      </span>
+                    </div>
+
+                    {/* Rendered widget content */}
+                    {renderCardContent(card)}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
