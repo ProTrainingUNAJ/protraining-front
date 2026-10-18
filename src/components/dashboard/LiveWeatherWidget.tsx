@@ -68,7 +68,7 @@ function interpretWeather(code: number, hour: number = new Date().getHours()): W
     return {
       description: 'Parcialmente nublado',
       condition: 'cloud-sun',
-      // Gradiente azul celeste fresco acorde a la situación de 14°C
+      // Fresh sky-blue gradient aligned with the 14°C weather situation
       bgGradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
       shadowColor: 'rgba(2, 132, 199, 0.35)',
     };
@@ -113,16 +113,16 @@ function interpretWeather(code: number, hour: number = new Date().getHours()): W
   };
 }
 
-/** Icono Meteorológico Realista con Colores y Relieve SVG */
+/** Realistic Weather Icon with SVG Colors and Relief */
 const WeatherVisualIcon: React.FC<{ condition: WeatherCondition; size?: number }> = ({
   condition,
   size = 24,
 }) => {
   if (condition === 'cloud-sun') {
-    // Parcialmente nublado: Sol dorado brillante + Nube blanca con relieve sobre cielo azul
+    // Partly cloudy: Bright golden sun + Embossed white cloud over blue sky
     return (
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
-        {/* Sol dorado radiante en la esquina superior derecha */}
+        {/* Radiant golden sun on top right corner */}
         <circle cx="21" cy="11" r="5" fill="#facc15" />
         <g stroke="#facc15" strokeWidth="1.5" strokeLinecap="round">
           <line x1="21" y1="3" x2="21" y2="4.5" />
@@ -134,7 +134,7 @@ const WeatherVisualIcon: React.FC<{ condition: WeatherCondition; size?: number }
           <line x1="15.34" y1="16.66" x2="16.4" y2="15.6" />
           <line x1="25.6" y1="6.4" x2="26.66" y2="5.34" />
         </g>
-        {/* Nube blanca en primer plano */}
+        {/* Foreground white cloud */}
         <path
           d="M9 25h12a5 5 0 0 0 1.2-9.85A7 7 0 0 0 8.5 13.5 5 5 0 0 0 9 25z"
           fill="#ffffff"
@@ -235,7 +235,7 @@ export const LiveWeatherWidget: React.FC<{ className?: string }> = ({ className 
     async function fetchWeather() {
       setIsLoading(true);
       try {
-        // Coordenadas aproximadas Predio UNAJ (Florencio Varela, Buenos Aires)
+        // Approximate coordinates for UNAJ Campus (Florencio Varela, Buenos Aires)
         const res = await fetch(
           'https://api.open-meteo.com/v1/forecast?latitude=-34.79&longitude=-58.27&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto',
         );
@@ -326,7 +326,7 @@ export const LiveWeatherWidget: React.FC<{ className?: string }> = ({ className 
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* Badge del clima con gradiente acorde a la situación actual y sombra suave */}
+          {/* Weather badge with adaptive gradient and subtle shadow */}
           <div
             style={{
               width: '44px',

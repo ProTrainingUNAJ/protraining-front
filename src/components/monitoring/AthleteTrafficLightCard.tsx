@@ -46,7 +46,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
   const maxPainLevel =
     athlete.pains && athlete.pains.length > 0 ? Math.max(...athlete.pains.map((p) => p.level)) : 0;
 
-  // Badge label: si es verde o gris queda igual; si es rojo o amarillo muestra el músculo o zona afectada
+  // Badge label: keeps default for green/gray; shows affected muscle or area for red/yellow
   const badgeLabel =
     athlete.status === 'green'
       ? 'Óptimos'

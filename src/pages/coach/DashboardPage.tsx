@@ -306,7 +306,7 @@ export const DashboardPage: React.FC = () => {
     setDragOverTarget(null);
   };
 
-  // Renderizador del contenido interno de cada tarjeta
+  // Card inner content renderer
   const renderCardContent = (card: WireframeCardItem) => {
     switch (card.type) {
       case 'live-clock':

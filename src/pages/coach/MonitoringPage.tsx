@@ -19,7 +19,7 @@ export const MonitoringPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'traffic-light' | 'attendance'>('traffic-light');
   const [selectedDivision, setSelectedDivision] = useState('Primera División');
 
-  // Inicializar filtro según query param (?filter=red) o state ({ filter: 'red' })
+  // Initialize filter according to query param (?filter=red) or state ({ filter: 'red' })
   const getInitialColorFilter = (): FilterColor => {
     const query = searchParams.get('filter') || searchParams.get('status');
     if (query === 'red' || query === 'yellow' || query === 'green' || query === 'gray') {
@@ -37,7 +37,7 @@ export const MonitoringPage: React.FC = () => {
   const [athletes, setAthletes] = useState<AthleteTrafficLightItem[]>(INITIAL_TRAFFIC_LIGHT_DATA);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
 
-  // Sincronizar si cambia el query param en la URL o el estado de navegación
+  // Synchronize when query parameter or navigation state changes
   useEffect(() => {
     const query = searchParams.get('filter') || searchParams.get('status');
     if (query === 'red' || query === 'yellow' || query === 'green' || query === 'gray') {
