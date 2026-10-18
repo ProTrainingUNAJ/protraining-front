@@ -6,6 +6,7 @@ import {
   CreateCategoryRequest,
   Athlete,
   CreateAthleteRequest,
+  AthleteMe,
 } from '../types/structure';
 
 interface RawOrganization {
@@ -202,6 +203,19 @@ export const structureService = {
   async unassignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
     try {
       await httpClient.delete(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Retrieves the currently logged-in athlete identity from Structure microservice.
+   * Resolves the token account id into the actual athleteId and category memberships (KAN-329).
+   */
+  async getMe(): Promise<AthleteMe> {
+    try {
+      const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
+      return response.data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
