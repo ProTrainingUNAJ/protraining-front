@@ -28,7 +28,6 @@ export const AthletesPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
-  const [medicalConditions, setMedicalConditions] = useState('');
   const [selectedNewAthleteCategories, setSelectedNewAthleteCategories] = useState<string[]>([]);
 
   // Modal de asignación N:N de categorías (CA3)
@@ -121,7 +120,6 @@ export const AthletesPage: React.FC = () => {
         phone: phone.trim(),
         categoryIds: selectedNewAthleteCategories,
         emergencyContact: emergencyContact.trim() || null,
-        medicalConditions: medicalConditions.trim() || null,
       });
 
       setSuccessMessage('El atleta fue registrado exitosamente.');
@@ -130,7 +128,6 @@ export const AthletesPage: React.FC = () => {
       setEmail('');
       setPhone('');
       setEmergencyContact('');
-      setMedicalConditions('');
       setSelectedNewAthleteCategories([]);
       setShowForm(false);
       setAthletes((prev) => [created, ...prev]);
@@ -425,57 +422,26 @@ export const AthletesPage: React.FC = () => {
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <div>
-                  <label
-                    htmlFor="ath-emergency"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
-                    Contacto de Emergencia
-                  </label>
-                  <input
-                    id="ath-emergency"
-                    type="text"
-                    placeholder="Ej. Madre: 11-9876-5432"
-                    value={emergencyContact}
-                    onChange={(e) => setEmergencyContact(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="ath-medical"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
-                    Ficha Médica / Apto Físico
-                  </label>
-                  <input
-                    id="ath-medical"
-                    type="text"
-                    placeholder="Ej. Apto médico 2026 presentado"
-                    value={medicalConditions}
-                    onChange={(e) => setMedicalConditions(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label
+                  htmlFor="ath-emergency"
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    display: 'block',
+                    marginBottom: '0.35rem',
+                  }}
+                >
+                  Contacto de Emergencia
+                </label>
+                <input
+                  id="ath-emergency"
+                  type="text"
+                  placeholder="Ej. Madre: 11-9876-5432"
+                  value={emergencyContact}
+                  onChange={(e) => setEmergencyContact(e.target.value)}
+                  disabled={saving}
+                />
               </div>
 
               {categories.length > 0 && (
