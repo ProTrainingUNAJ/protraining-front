@@ -613,8 +613,8 @@ export const MonitoringPage: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '0.85rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                gap: '1rem',
               }}
             >
               {filteredAthletes.map((athlete) => (

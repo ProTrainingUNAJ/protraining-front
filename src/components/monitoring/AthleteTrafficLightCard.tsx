@@ -57,17 +57,18 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       className={`card athlete-traffic-light-card ${className}`}
       style={{
         margin: 0,
-        padding: '1rem',
+        padding: '1.2rem 1.25rem',
         cursor: 'pointer',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column',
         justifyContent: 'space-between',
+        gap: '0.85rem',
+        minHeight: '175px',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
         border: '1px solid var(--border)',
         borderRadius: '16px',
         background: 'var(--bg-card)',
         position: 'relative',
-        overflow: 'hidden',
       }}
       role="button"
       tabIndex={0}
@@ -79,9 +80,17 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       }}
       aria-label={`Ver ficha rápida de ${athlete.name}, estado ${athlete.statusLabel}`}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
+      {/* 1. Sección superior: Avatar, Nombre completo, Posición · División y Chevron */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.9rem',
+          width: '100%',
+        }}
+      >
         {/* Anillo de color concéntrico SVG alrededor del avatar */}
-        <div style={{ position: 'relative', width: '50px', height: '50px', flexShrink: 0 }}>
+        <div style={{ position: 'relative', width: '50px', height: '50px', flexShrink: 0, marginTop: '2px' }}>
           <svg width="50" height="50" viewBox="0 0 50 50" style={{ transform: 'rotate(-90deg)' }}>
             <circle cx="25" cy="25" r="22" fill="none" stroke="var(--border)" strokeWidth="2.5" />
             <circle
@@ -125,62 +134,72 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           </div>
         </div>
 
-        {/* Nombre, posición y recomendación */}
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+        {/* Datos principales: Nombre y Posición · División */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
             <h4
               style={{
                 margin: 0,
-                fontSize: '0.98rem',
-                fontWeight: 700,
+                fontSize: '1.05rem',
+                fontWeight: 800,
                 color: 'var(--text-main)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                lineHeight: 1.25,
               }}
             >
               {athlete.name}
             </h4>
-            <span
-              className="badge"
-              style={{
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                background: colors.bg,
-                color: colors.text,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '9999px',
-                padding: '0.15rem 0.5rem',
-              }}
-            >
-              {athlete.statusLabel}
-            </span>
+            <ChevronRight size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           </div>
 
           <p
             style={{
-              margin: '0.2rem 0 0',
-              fontSize: '0.78rem',
+              margin: '0.25rem 0 0',
+              fontSize: '0.84rem',
+              fontWeight: 600,
               color: 'var(--text-muted)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              lineHeight: 1.3,
             }}
           >
-            {athlete.position} · {athlete.recommendation}
+            {athlete.position} · {athlete.category || 'Primera División'}
           </p>
         </div>
       </div>
 
-      {/* Indicadores rápidos a la derecha */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+      {/* 2. Sección intermedia: Badge de estado y Métricas rápidas (Dolor, Sueño, RPE) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+          flexWrap: 'wrap',
+          paddingTop: '0.1rem',
+        }}
+      >
+        <span
+          className="badge"
+          style={{
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            background: colors.bg,
+            color: colors.text,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '9999px',
+            padding: '0.2rem 0.6rem',
+            letterSpacing: '0.01em',
+          }}
+        >
+          {athlete.statusLabel}
+        </span>
+
+        {/* Indicadores rápidos de métricas */}
         {athlete.status !== 'gray' ? (
           <div
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '0.65rem',
-              fontSize: '0.75rem',
+              fontSize: '0.78rem',
               color: 'var(--text-secondary)',
             }}
           >
@@ -195,7 +214,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                 }}
                 title={`Dolor máximo nivel ${maxPainLevel}/5`}
               >
-                <AlertCircle size={13} /> {maxPainLevel}/5
+                <AlertCircle size={14} /> {maxPainLevel}/5
               </span>
             )}
 
@@ -206,10 +225,11 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   alignItems: 'center',
                   gap: '0.2rem',
                   color: 'var(--text-muted)',
+                  fontWeight: 600,
                 }}
                 title={`${athlete.sleepHours} hs de sueño`}
               >
-                <Moon size={13} /> {athlete.sleepHours}h
+                <Moon size={14} /> {athlete.sleepHours}h
               </span>
             )}
 
@@ -219,22 +239,63 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.2rem',
-                  color: 'var(--stat-cyan)',
-                  fontWeight: 600,
+                  fontWeight: 700,
+                  color: athlete.rpe >= 8 ? 'var(--pain-level-5)' : 'var(--cyan-accent)',
                 }}
-                title={`RPE ${athlete.rpe}/10`}
+                title={`RPE de la última sesión: ${athlete.rpe}`}
               >
-                <Activity size={13} /> {athlete.rpe}
+                <Activity size={14} /> {athlete.rpe}
               </span>
             )}
           </div>
         ) : (
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 600 }}>
             Pendiente
           </span>
         )}
+      </div>
 
-        <ChevronRight size={18} style={{ color: 'var(--text-muted)' }} />
+      {/* 3. Sección inferior: Estado con separación en color rojo / amarillo / verde */}
+      <div
+        style={{
+          borderTop: '1px solid var(--border)',
+          paddingTop: '0.65rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.65rem',
+          background: 'rgba(0, 0, 0, 0.015)',
+          borderRadius: '8px',
+          padding: '0.5rem 0.65rem',
+          marginTop: '0.1rem',
+        }}
+      >
+        {/* Barra vertical de separación en color rojo / amarillo / verde */}
+        <div
+          style={{
+            width: '4px',
+            borderRadius: '4px',
+            backgroundColor: colors.ring,
+            alignSelf: 'stretch',
+            minHeight: '1.25rem',
+            flexShrink: 0,
+          }}
+        />
+
+        {/* Texto del estado / recomendación visible completo */}
+        <p
+          style={{
+            margin: 0,
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            color: 'var(--text-main)',
+            lineHeight: 1.4,
+          }}
+        >
+          {athlete.recommendation ||
+            (athlete.status === 'gray'
+              ? 'Sin check-in completado el día de hoy.'
+              : 'Apto para completar el 100% de la carga planificada.')}
+        </p>
       </div>
     </div>
   );
