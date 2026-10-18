@@ -17,17 +17,213 @@ const DEFAULT_WEATHER: WeatherData = {
   description: 'Despejado',
 };
 
-function interpretWeatherCode(code: number): {
+type WeatherCondition =
+  | 'sun'
+  | 'cloud-sun'
+  | 'cloud'
+  | 'rain'
+  | 'storm'
+  | 'fog'
+  | 'night'
+  | 'cloud-night';
+
+interface WeatherInterpretation {
   description: string;
-  icon: 'sun' | 'cloud-sun' | 'cloud' | 'rain';
-} {
-  if (code === 0) return { description: 'Cielo limpio', icon: 'sun' };
-  if (code === 1 || code === 2) return { description: 'Parcialmente nublado', icon: 'cloud-sun' };
-  if (code === 3) return { description: 'Nublado', icon: 'cloud' };
-  if (code >= 51 && code <= 67) return { description: 'Lluvia ligera', icon: 'rain' };
-  if (code >= 80 && code <= 99) return { description: 'Chubascos / Tormenta', icon: 'rain' };
-  return { description: 'Templado', icon: 'cloud-sun' };
+  condition: WeatherCondition;
+  bgGradient: string;
+  shadowColor: string;
 }
+
+function interpretWeather(code: number, hour: number = new Date().getHours()): WeatherInterpretation {
+  const isNight = hour >= 20 || hour < 6;
+
+  if (isNight) {
+    if (code === 0) {
+      return {
+        description: 'Noche despejada',
+        condition: 'night',
+        bgGradient: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+        shadowColor: 'rgba(30, 27, 75, 0.35)',
+      };
+    }
+    if (code === 1 || code === 2 || code === 3) {
+      return {
+        description: 'Noche nubosa',
+        condition: 'cloud-night',
+        bgGradient: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 100%)',
+        shadowColor: 'rgba(49, 46, 129, 0.35)',
+      };
+    }
+  }
+
+  if (code === 0) {
+    return {
+      description: 'Cielo limpio',
+      condition: 'sun',
+      bgGradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+      shadowColor: 'rgba(245, 158, 11, 0.35)',
+    };
+  }
+  if (code === 1 || code === 2) {
+    return {
+      description: 'Parcialmente nublado',
+      condition: 'cloud-sun',
+      // Gradiente azul celeste fresco acorde a la situación de 14°C
+      bgGradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+      shadowColor: 'rgba(2, 132, 199, 0.35)',
+    };
+  }
+  if (code === 3) {
+    return {
+      description: 'Nublado',
+      condition: 'cloud',
+      bgGradient: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+      shadowColor: 'rgba(100, 116, 139, 0.35)',
+    };
+  }
+  if (code === 45 || code === 48) {
+    return {
+      description: 'Neblina en cancha',
+      condition: 'fog',
+      bgGradient: 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)',
+      shadowColor: 'rgba(148, 163, 184, 0.35)',
+    };
+  }
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+    return {
+      description: 'Lluvia en cancha',
+      condition: 'rain',
+      bgGradient: 'linear-gradient(135deg, #0284c7 0%, #075985 100%)',
+      shadowColor: 'rgba(2, 132, 199, 0.4)',
+    };
+  }
+  if (code >= 95 && code <= 99) {
+    return {
+      description: 'Tormenta eléctrica',
+      condition: 'storm',
+      bgGradient: 'linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%)',
+      shadowColor: 'rgba(67, 56, 202, 0.4)',
+    };
+  }
+  return {
+    description: 'Templado',
+    condition: 'cloud-sun',
+    bgGradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+    shadowColor: 'rgba(2, 132, 199, 0.35)',
+  };
+}
+
+/** Icono Meteorológico Realista con Colores y Relieve SVG */
+const WeatherVisualIcon: React.FC<{ condition: WeatherCondition; size?: number }> = ({
+  condition,
+  size = 24,
+}) => {
+  if (condition === 'cloud-sun') {
+    // Parcialmente nublado: Sol dorado brillante + Nube blanca con relieve sobre cielo azul
+    return (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+        {/* Sol dorado radiante en la esquina superior derecha */}
+        <circle cx="21" cy="11" r="5" fill="#facc15" />
+        <g stroke="#facc15" strokeWidth="1.5" strokeLinecap="round">
+          <line x1="21" y1="3" x2="21" y2="4.5" />
+          <line x1="21" y1="17.5" x2="21" y2="19" />
+          <line x1="13" y1="11" x2="14.5" y2="11" />
+          <line x1="27.5" y1="11" x2="29" y2="11" />
+          <line x1="15.34" y1="5.34" x2="16.4" y2="6.4" />
+          <line x1="25.6" y1="15.6" x2="26.66" y2="16.66" />
+          <line x1="15.34" y1="16.66" x2="16.4" y2="15.6" />
+          <line x1="25.6" y1="6.4" x2="26.66" y2="5.34" />
+        </g>
+        {/* Nube blanca en primer plano */}
+        <path
+          d="M9 25h12a5 5 0 0 0 1.2-9.85A7 7 0 0 0 8.5 13.5 5 5 0 0 0 9 25z"
+          fill="#ffffff"
+          style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.22))' }}
+        />
+      </svg>
+    );
+  }
+
+  if (condition === 'sun') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+        <circle cx="16" cy="16" r="6.5" fill="#ffffff" />
+        <g stroke="#ffffff" strokeWidth="2" strokeLinecap="round">
+          <line x1="16" y1="3" x2="16" y2="6" />
+          <line x1="16" y1="26" x2="16" y2="29" />
+          <line x1="3" y1="16" x2="6" y2="16" />
+          <line x1="26" y1="16" x2="29" y2="16" />
+          <line x1="6.8" y1="6.8" x2="8.9" y2="8.9" />
+          <line x1="23.1" y1="23.1" x2="25.2" y2="25.2" />
+          <line x1="6.8" y1="25.2" x2="8.9" y2="23.1" />
+          <line x1="23.1" y1="8.9" x2="25.2" y2="6.8" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (condition === 'cloud') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+        <path
+          d="M8 23h15a5 5 0 0 0 1-9.9A7 7 0 0 0 10.5 11 5.5 5.5 0 0 0 8 23z"
+          fill="#ffffff"
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+        />
+      </svg>
+    );
+  }
+
+  if (condition === 'rain') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+        <path
+          d="M8 20h14a4.5 4.5 0 0 0 1-8.9A6.5 6.5 0 0 0 10 9a5 5 0 0 0-2 11z"
+          fill="#ffffff"
+          style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}
+        />
+        <line x1="11" y1="23" x2="9.5" y2="27" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" />
+        <line x1="16" y1="23" x2="14.5" y2="27" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" />
+        <line x1="21" y1="23" x2="19.5" y2="27" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (condition === 'storm') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+        <path
+          d="M7 19h15a4.5 4.5 0 0 0 1-8.9A6.5 6.5 0 0 0 9.5 8 5 5 0 0 0 7 19z"
+          fill="#cbd5e1"
+        />
+        <polygon points="15,19 12,25 16,25 14,31 20,23 16,23" fill="#facc15" />
+      </svg>
+    );
+  }
+
+  if (condition === 'night' || condition === 'cloud-night') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+        <path
+          d="M21 16.5A7.5 7.5 0 0 1 12 7.5a8 8 0 1 0 9 9z"
+          fill="#fef08a"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(254, 240, 138, 0.45))' }}
+        />
+        <circle cx="23" cy="8" r="1" fill="#ffffff" />
+        <circle cx="26" cy="13" r="0.75" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
+      <path
+        d="M8 23h15a5 5 0 0 0 1-9.9A7 7 0 0 0 10.5 11 5.5 5.5 0 0 0 8 23z"
+        fill="#ffffff"
+      />
+    </svg>
+  );
+};
 
 export const LiveWeatherWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [weather, setWeather] = useState<WeatherData>(DEFAULT_WEATHER);
@@ -49,7 +245,7 @@ export const LiveWeatherWidget: React.FC<{ className?: string }> = ({ className 
 
         const current = data.current;
         if (current) {
-          const { description } = interpretWeatherCode(current.weather_code);
+          const { description } = interpretWeather(current.weather_code);
           setWeather({
             temperature: Math.round(current.temperature_2m),
             humidity: Math.round(current.relative_humidity_2m),
@@ -74,7 +270,7 @@ export const LiveWeatherWidget: React.FC<{ className?: string }> = ({ className 
     };
   }, []);
 
-  const { icon } = interpretWeatherCode(weather.weatherCode);
+  const info = interpretWeather(weather.weatherCode);
 
   return (
     <div
@@ -129,25 +325,24 @@ export const LiveWeatherWidget: React.FC<{ className?: string }> = ({ className 
           gap: '0.75rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Badge del clima con gradiente acorde a la situación actual y sombra suave */}
           <div
             style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'var(--grad-weather)',
-              color: 'var(--on-primary)',
+              width: '44px',
+              height: '44px',
+              borderRadius: '14px',
+              background: info.bgGradient,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: 'var(--shadow-sm)',
+              boxShadow: `0 4px 14px ${info.shadowColor}`,
               flexShrink: 0,
+              transition: 'all 0.3s ease',
             }}
+            title={info.description}
           >
-            {icon === 'sun' && <Sun size={22} />}
-            {icon === 'cloud-sun' && <CloudSun size={22} />}
-            {icon === 'cloud' && <Cloud size={22} />}
-            {icon === 'rain' && <CloudRain size={22} />}
+            <WeatherVisualIcon condition={info.condition} size={26} />
           </div>
           <div>
             <div
