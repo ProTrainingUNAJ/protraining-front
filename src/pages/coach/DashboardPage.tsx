@@ -4,8 +4,6 @@ import {
   GripVertical,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
-  ChevronDown,
   ArrowRight,
   RotateCcw,
 } from 'lucide-react';
@@ -209,19 +207,7 @@ export const DashboardPage: React.FC = () => {
     swapCards(rowId, currentIndex, rowId, targetIndex);
   };
 
-  // Move entire row order up or down
-  const moveRowOrder = (rowIndex: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? rowIndex - 1 : rowIndex + 1;
-    if (targetIndex < 0 || targetIndex >= rows.length) return;
 
-    setRows((prev) => {
-      const copy = [...prev];
-      const temp = copy[rowIndex];
-      copy[rowIndex] = copy[targetIndex];
-      copy[targetIndex] = temp;
-      return copy;
-    });
-  };
 
   // Reset to default layout
   const resetLayout = () => {
@@ -448,156 +434,72 @@ export const DashboardPage: React.FC = () => {
         className="app-page-body wireframe-dashboard-container"
         style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
       >
-        {rows.map((row, rowIndex) => (
-          <div
-            key={row.id}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.65rem',
-              background: 'var(--bg-surface)',
-              padding: '1rem',
-              borderRadius: '24px',
-              border: '1px solid var(--border)',
-            }}
-          >
-            {/* Row header with whole-row reordering controls */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 0.35rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                {row.name} ({row.cards.length} módulos)
-              </span>
+        {rows.map((row) => (
+          <div key={row.id} className={`wireframe-row ${row.className}`}>
+            {row.cards.map((card, cardIndex) => {
+              const isDragging = dragSource?.cardId === card.id;
+              const isDragOver =
+                dragOverTarget?.rowId === row.id && dragOverTarget?.cardIndex === cardIndex;
+              const isRecentlyMoved = recentlySwappedId === card.id;
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                {rowIndex > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => moveRowOrder(rowIndex, 'up')}
-                    className="wireframe-control-btn"
-                    style={{
-                      width: '26px',
-                      height: '26px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '8px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      cursor: 'pointer',
-                    }}
-                    title={`Mover ${row.name} hacia arriba`}
-                    aria-label={`Mover ${row.name} hacia arriba`}
-                  >
-                    <ChevronUp size={15} />
-                  </button>
-                )}
-
-                {rowIndex < rows.length - 1 && (
-                  <button
-                    type="button"
-                    onClick={() => moveRowOrder(rowIndex, 'down')}
-                    className="wireframe-control-btn"
-                    style={{
-                      width: '26px',
-                      height: '26px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '8px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      cursor: 'pointer',
-                    }}
-                    title={`Mover ${row.name} hacia abajo`}
-                    aria-label={`Mover ${row.name} hacia abajo`}
-                  >
-                    <ChevronDown size={15} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Cards grid for the current row */}
-            <div className={`wireframe-row ${row.className}`}>
-              {row.cards.map((card, cardIndex) => {
-                const isDragging = dragSource?.cardId === card.id;
-                const isDragOver =
-                  dragOverTarget?.rowId === row.id && dragOverTarget?.cardIndex === cardIndex;
-                const isRecentlyMoved = recentlySwappedId === card.id;
-
-                return (
-                  <div
-                    key={card.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(row.id, cardIndex, card.id, e)}
-                    onDragOver={(e) => handleDragOver(row.id, cardIndex, e)}
-                    onDrop={(e) => handleDrop(row.id, cardIndex, e)}
-                    onDragEnd={handleDragEnd}
-                    className={`wireframe-card ${isDragging ? 'is-dragging' : ''} ${
-                      isDragOver ? 'is-drag-over' : ''
-                    } ${isRecentlyMoved ? 'is-recently-moved' : ''}`}
-                    title="Arrastrá para mover a cualquier posición o fila"
-                  >
-                    {/* Toolbar for intra-row card movement */}
-                    <div className="wireframe-card-toolbar">
-                      {cardIndex > 0 && (
-                        <button
-                          type="button"
-                          className="wireframe-control-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveCardHorizontal(row.id, cardIndex, 'left');
-                          }}
-                          title="Mover a la izquierda"
-                          aria-label="Mover a la izquierda"
-                        >
-                          <ChevronLeft size={16} />
-                        </button>
-                      )}
-
-                      {cardIndex < row.cards.length - 1 && (
-                        <button
-                          type="button"
-                          className="wireframe-control-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveCardHorizontal(row.id, cardIndex, 'right');
-                          }}
-                          title="Mover a la derecha"
-                          aria-label="Mover a la derecha"
-                        >
-                          <ChevronRight size={16} />
-                        </button>
-                      )}
-
-                      <span
-                        className="wireframe-drag-handle"
-                        title="Arrastrar a cualquier fila o posición"
+              return (
+                <div
+                  key={card.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(row.id, cardIndex, card.id, e)}
+                  onDragOver={(e) => handleDragOver(row.id, cardIndex, e)}
+                  onDrop={(e) => handleDrop(row.id, cardIndex, e)}
+                  onDragEnd={handleDragEnd}
+                  className={`wireframe-card ${isDragging ? 'is-dragging' : ''} ${
+                    isDragOver ? 'is-drag-over' : ''
+                  } ${isRecentlyMoved ? 'is-recently-moved' : ''}`}
+                  title="Arrastrá para mover a cualquier posición o fila"
+                >
+                  {/* Toolbar for intra-row card movement */}
+                  <div className="wireframe-card-toolbar">
+                    {cardIndex > 0 && (
+                      <button
+                        type="button"
+                        className="wireframe-control-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          moveCardHorizontal(row.id, cardIndex, 'left');
+                        }}
+                        title="Mover a la izquierda"
+                        aria-label="Mover a la izquierda"
                       >
-                        <GripVertical size={18} />
-                      </span>
-                    </div>
+                        <ChevronLeft size={16} />
+                      </button>
+                    )}
 
-                    {/* Rendered widget content */}
-                    {renderCardContent(card)}
+                    {cardIndex < row.cards.length - 1 && (
+                      <button
+                        type="button"
+                        className="wireframe-control-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          moveCardHorizontal(row.id, cardIndex, 'right');
+                        }}
+                        title="Mover a la derecha"
+                        aria-label="Mover a la derecha"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    )}
+
+                    <span
+                      className="wireframe-drag-handle"
+                      title="Arrastrar a cualquier fila o posición"
+                    >
+                      <GripVertical size={18} />
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Rendered widget content */}
+                  {renderCardContent(card)}
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>
