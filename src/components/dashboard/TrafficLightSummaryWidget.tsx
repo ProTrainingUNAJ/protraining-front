@@ -27,6 +27,7 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
   label,
   onClick,
 }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
   const radius = 42;
   const strokeWidth = 7;
   const circumference = 2 * Math.PI * radius; // ~263.89
@@ -36,8 +37,11 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
   return (
     <div
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      className="donut-metric-item"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -47,7 +51,10 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
         flex: 1,
         minWidth: 0,
         outline: 'none',
-        transition: 'transform 0.15s ease',
+        transform: isHovered ? 'scale(1.14)' : 'scale(1)',
+        transition: 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease',
+        filter: isHovered ? 'drop-shadow(0 6px 14px rgba(0, 0, 0, 0.16))' : 'none',
+        zIndex: isHovered ? 5 : 1,
       }}
       title={`${label}: ${count} de ${total} (${percentage}%)`}
     >
@@ -209,7 +216,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           total={total}
           color="var(--traffic-red)"
           label="Atención Crítica"
-          onClick={handleNavigate}
+          onClick={() => navigate('/pf/monitoring?filter=red', { state: { filter: 'red' } })}
         />
 
         {/* 2. Amarillo - Precaución */}
@@ -219,7 +226,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           total={total}
           color="var(--traffic-yellow)"
           label="Precaución"
-          onClick={handleNavigate}
+          onClick={() => navigate('/pf/monitoring?filter=yellow', { state: { filter: 'yellow' } })}
         />
 
         {/* 3. Verde - Óptimos */}
@@ -229,7 +236,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           total={total}
           color="var(--traffic-green)"
           label="Óptimos"
-          onClick={handleNavigate}
+          onClick={() => navigate('/pf/monitoring?filter=green', { state: { filter: 'green' } })}
         />
 
         {/* 4. Gris - Sin Check-in */}
@@ -239,7 +246,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           total={total}
           color="var(--traffic-gray)"
           label="Sin Check-in"
-          onClick={handleNavigate}
+          onClick={() => navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })}
         />
       </div>
 

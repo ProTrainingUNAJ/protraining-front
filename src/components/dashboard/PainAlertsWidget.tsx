@@ -22,13 +22,13 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
   const yellowAthletes = YELLOW_TRAFFIC_LIGHT_ATHLETES;
   const totalCount = redAthletes.length + yellowAthletes.length;
 
-  const handleOpenMonitoring = (filter?: 'red' | 'yellow') => {
-    navigate('/pf/monitoring', { state: { filter } });
+  const handleOpenMonitoring = (filter: 'red' | 'yellow') => {
+    navigate(`/pf/monitoring?filter=${filter}`, { state: { filter } });
   };
 
-  const handleModifyRoutine = (e: React.MouseEvent) => {
+  const handleModifyRoutine = (e: React.MouseEvent, filter: 'red' | 'yellow') => {
     e.stopPropagation();
-    navigate('/pf/planning');
+    navigate(`/pf/monitoring?filter=${filter}`, { state: { filter } });
   };
 
   return (
@@ -161,10 +161,10 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
           >
             <button
               type="button"
-              onClick={handleModifyRoutine}
+              onClick={(e) => handleModifyRoutine(e, 'red')}
               className="sticky-routine-btn"
-              title="Modificar rutina del atleta"
-              aria-label="Modificar rutina"
+              title="Modificar rutina de atletas con Atención Crítica"
+              aria-label="Modificar rutina con Atención Crítica"
             >
               <NotebookPen size={15} />
               <span>Modificar rutina</span>
@@ -240,10 +240,10 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
           >
             <button
               type="button"
-              onClick={handleModifyRoutine}
+              onClick={(e) => handleModifyRoutine(e, 'yellow')}
               className="sticky-routine-btn"
-              title="Modificar rutina del atleta"
-              aria-label="Modificar rutina"
+              title="Modificar rutina de atletas con Precaución"
+              aria-label="Modificar rutina con Precaución"
             >
               <NotebookPen size={15} />
               <span>Modificar rutina</span>

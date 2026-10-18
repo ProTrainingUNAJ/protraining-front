@@ -908,11 +908,5 @@
   }
 }
 
-/* ── Pain Alerts Stickies: Individual Hover Movement & Routine Action ── */
-.wireframe-card.wireframe-card-nested-hover:hover,
-.wireframe-card:has(.pain-alerts-widget):hover {
-  transform: none !important;
-  box-shadow: var(--shadow-sm) !important;
-  border-color: var(--border) !important;
-}
+
 

@@ -1021,13 +1021,6 @@
 }
 
 /* ── Pain Alerts Stickies: Individual Hover Movement & Routine Action ── */
-.wireframe-card.wireframe-card-nested-hover:hover,
-.wireframe-card:has(.pain-alerts-widget):hover {
-  transform: none !important;
-  box-shadow: var(--shadow-sm) !important;
-  border-color: var(--border) !important;
-}
-
 .pain-sticky-item {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease !important;
   cursor: pointer;
@@ -1042,6 +1035,18 @@
 .pain-sticky-yellow:hover {
   transform: translateY(-6px) !important;
   box-shadow: 0 14px 26px rgba(234, 179, 8, 0.42) !important;
+}
+
+/* ── Círculos individuales del Semáforo del Día (Microinteracción hover agrandado) ── */
+.donut-metric-item {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease !important;
+  cursor: pointer;
+}
+
+.donut-metric-item:hover {
+  transform: scale(1.14) !important;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.16)) !important;
+  z-index: 5;
 }
 
 .sticky-routine-btn {

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Activity, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
@@ -12,12 +13,42 @@ import { INITIAL_TRAFFIC_LIGHT_DATA } from '../../components/monitoring/trafficL
 type FilterColor = 'all' | TrafficLightStatus;
 
 export const MonitoringPage: React.FC = () => {
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
   const [activeTab, setActiveTab] = useState<'traffic-light' | 'attendance'>('traffic-light');
   const [selectedDivision, setSelectedDivision] = useState('Primera División');
-  const [colorFilter, setColorFilter] = useState<FilterColor>('all');
+
+  // Inicializar filtro según query param (?filter=red) o state ({ filter: 'red' })
+  const getInitialColorFilter = (): FilterColor => {
+    const query = searchParams.get('filter') || searchParams.get('status');
+    if (query === 'red' || query === 'yellow' || query === 'green' || query === 'gray') {
+      return query;
+    }
+    const stateFilter = (location.state as { filter?: FilterColor })?.filter;
+    if (stateFilter === 'red' || stateFilter === 'yellow' || stateFilter === 'green' || stateFilter === 'gray') {
+      return stateFilter;
+    }
+    return 'all';
+  };
+
+  const [colorFilter, setColorFilter] = useState<FilterColor>(getInitialColorFilter);
   const [searchTerm, setSearchTerm] = useState('');
   const [athletes, setAthletes] = useState<AthleteTrafficLightItem[]>(INITIAL_TRAFFIC_LIGHT_DATA);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
+
+  // Sincronizar si cambia el query param en la URL o el estado de navegación
+  useEffect(() => {
+    const query = searchParams.get('filter') || searchParams.get('status');
+    if (query === 'red' || query === 'yellow' || query === 'green' || query === 'gray') {
+      setColorFilter(query);
+    } else {
+      const stateFilter = (location.state as { filter?: FilterColor })?.filter;
+      if (stateFilter === 'red' || stateFilter === 'yellow' || stateFilter === 'green' || stateFilter === 'gray') {
+        setColorFilter(stateFilter);
+      }
+    }
+  }, [searchParams, location.state]);
 
   // Counters for Segmented Color Chips (KAN-366)
   const counts = useMemo(() => {
