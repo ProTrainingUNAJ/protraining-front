@@ -507,7 +507,7 @@ export const RoutinePage: React.FC = () => {
                   border: '1px solid var(--border)',
                 }}
               >
-                <Flame size={16} style={{ color: '#f59e0b' }} />
+                <Flame size={16} style={{ color: 'var(--warning)' }} />
                 <span>{currentRoutine.targetRpe}</span>
               </div>
 
@@ -675,7 +675,7 @@ export const RoutinePage: React.FC = () => {
 
                           {/* Overlay de hover con icono de reproducción */}
                           <div className="routine-gif-play-hint">
-                            <Play size={22} fill="#ffffff" color="#ffffff" />
+                            <Play size={22} fill="var(--white)" color="var(--white)" />
                           </div>
                         </div>
 
@@ -709,7 +709,10 @@ export const RoutinePage: React.FC = () => {
 
                           {exercise.notes && (
                             <div className="routine-exercise-note">
-                              <Sparkles size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                              <Sparkles
+                                size={12}
+                                style={{ color: 'var(--warning)', flexShrink: 0 }}
+                              />
                               <span>{exercise.notes}</span>
                             </div>
                           )}
@@ -731,7 +734,7 @@ export const RoutinePage: React.FC = () => {
 
                           {exercise.rpe && (
                             <div className="routine-metric-chip" title="Intensidad">
-                              <Flame size={14} style={{ color: '#ea580c' }} />
+                              <Flame size={14} style={{ color: 'var(--pain-level-4)' }} />
                               <span>{exercise.rpe}</span>
                             </div>
                           )}
@@ -827,12 +830,12 @@ export const RoutinePage: React.FC = () => {
                         width: '64px',
                         height: '64px',
                         borderRadius: '16px',
-                        background: 'rgba(255, 255, 255, 0.9)',
+                        background: 'var(--bg-card)',
                         color: 'var(--secondary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
+                        boxShadow: 'var(--shadow)',
                       }}
                     >
                       <Film size={34} strokeWidth={2} />
@@ -987,7 +990,7 @@ export const RoutinePage: React.FC = () => {
                   <strong
                     style={{
                       fontSize: '1.25rem',
-                      color: '#ea580c',
+                      color: 'var(--pain-level-4)',
                       display: 'block',
                       marginTop: '0.15rem',
                     }}
@@ -1056,7 +1059,7 @@ export const RoutinePage: React.FC = () => {
                         color: 'var(--primary)',
                         fontSize: '0.78rem',
                         fontWeight: 700,
-                        border: '1px solid rgba(0, 119, 182, 0.2)',
+                        border: '1px solid var(--info-border)',
                       }}
                     >
                       {muscle}
@@ -1113,22 +1116,22 @@ export const RoutinePage: React.FC = () => {
                   style={{
                     display: 'flex',
                     gap: '0.75rem',
-                    background: 'rgba(245, 158, 11, 0.08)',
+                    background: 'var(--stat-amber-bg)',
                     padding: '0.9rem 1.1rem',
                     borderRadius: '12px',
-                    border: '1.5px solid rgba(245, 158, 11, 0.25)',
+                    border: '1.5px solid var(--stat-amber)',
                     alignItems: 'flex-start',
                   }}
                 >
                   <AlertCircle
                     size={20}
-                    style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }}
+                    style={{ color: 'var(--warning)', flexShrink: 0, marginTop: '2px' }}
                   />
                   <div>
                     <strong
                       style={{
                         fontSize: '0.85rem',
-                        color: '#b45309',
+                        color: 'var(--warning-text)',
                         display: 'block',
                         marginBottom: '0.2rem',
                       }}

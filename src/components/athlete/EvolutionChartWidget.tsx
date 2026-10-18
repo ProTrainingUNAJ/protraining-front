@@ -213,7 +213,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                           border: '1px solid var(--border)',
                           padding: '0.25rem 0.55rem',
                           borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                          boxShadow: 'var(--shadow)',
                           fontSize: '0.72rem',
                           fontWeight: 700,
                           color: 'var(--text-main)',
@@ -425,7 +425,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                         border: '1.5px solid var(--border)',
                         padding: '0.5rem 0.85rem',
                         borderRadius: '10px',
-                        boxShadow: '0 6px 16px rgba(0, 0, 0, 0.12)',
+                        boxShadow: 'var(--shadow-lg)',
                         color: 'var(--text-main)',
                       }}
                     >

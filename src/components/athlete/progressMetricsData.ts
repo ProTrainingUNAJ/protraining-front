@@ -36,7 +36,7 @@ export const EVOLUTION_METRICS: Record<
     deltaPercent: '+11.2%',
     deltaAbsolute: '+4.3 cm',
     isPositiveImprovement: true,
-    color: '#0284c7', // var(--stat-cyan)
+    color: 'var(--stat-cyan)',
     gradientId: 'grad-cmj',
     description: 'Capacidad de salto vertical y producción de potencia rápida en tren inferior.',
     data: [
@@ -58,7 +58,7 @@ export const EVOLUTION_METRICS: Record<
     deltaPercent: '+17.4%',
     deltaAbsolute: '+20.0 kg',
     isPositiveImprovement: true,
-    color: '#7c3aed', // var(--stat-purple)
+    color: 'var(--stat-purple)',
     gradientId: 'grad-squat',
     description:
       'Nivel de fuerza máxima estructural en miembros inferiores calculada a 1 repetición.',
@@ -81,7 +81,7 @@ export const EVOLUTION_METRICS: Record<
     deltaPercent: '-4.1%',
     deltaAbsolute: '-0.17 seg',
     isPositiveImprovement: true,
-    color: '#ea580c', // Naranja deportivo
+    color: 'var(--pain-level-4)',
     gradientId: 'grad-sprint',
     description: 'Tiempo cronometrado con fotocélulas en aceleración y velocidad lanzada a 30m.',
     data: [
@@ -103,7 +103,7 @@ export const EVOLUTION_METRICS: Record<
     deltaPercent: '+12.5%',
     deltaAbsolute: '+0.8 pts',
     isPositiveImprovement: true,
-    color: '#0070c0', // var(--secondary)
+    color: 'var(--secondary)',
     gradientId: 'grad-rpe',
     description: 'Percepción de esfuerzo acumulado semanal para prevenir picos lesivos.',
     data: [
@@ -125,7 +125,7 @@ export const EVOLUTION_METRICS: Record<
     deltaPercent: '+21.4%',
     deltaAbsolute: '+360 m',
     isPositiveImprovement: true,
-    color: '#16a34a', // var(--stat-green)
+    color: 'var(--stat-green)',
     gradientId: 'grad-yoyo',
     description: 'Distancia total recorrida en test intermitente de máxima exigencia aeróbica.',
     data: [

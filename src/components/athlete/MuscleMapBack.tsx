@@ -113,7 +113,7 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                 const painLevel = musclePains[muscle.id] || 0;
                 const hasPain = painLevel > 0;
 
-                let fillColor = 'rgba(255, 255, 255, 0.001)';
+                let fillColor = 'var(--muscle-hit-transparent)';
                 if (hasPain) {
                   fillColor = getColorByPainLevel(painLevel);
                 } else if (muscleColors[muscle.id]) {
@@ -172,7 +172,7 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                 const painLevel = musclePains[joint.id] || 0;
                 const hasPain = painLevel > 0;
 
-                let fillColor = 'rgba(255, 255, 255, 0.001)';
+                let fillColor = 'var(--muscle-hit-transparent)';
                 if (hasPain) {
                   fillColor = getColorByPainLevel(painLevel);
                 } else if (muscleColors[joint.id]) {
@@ -221,7 +221,7 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
               })}
             </g>
 
-            {/* 4. Reference anatomical contour lineart layer (#023050 ink, transparent background) */}
+            {/* 4. Reference anatomical contour lineart layer (Navy ink, transparent background) */}
             <image
               href={lineartUrl}
               x="0"
@@ -254,7 +254,7 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                     cy={joint.backCenter.y}
                     r={r}
                     fill="none"
-                    stroke="#023050"
+                    stroke="var(--brand-navy)"
                     strokeWidth="1.6"
                     strokeLinecap="round"
                     strokeLinejoin="round"
