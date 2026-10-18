@@ -9,6 +9,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { AthleteTrafficLightItem } from './trafficLight.types';
+import { AthleteBodyPainMap } from './AthleteBodyPainMap';
 
 interface AthleteQuickSheetProps {
   athlete: AthleteTrafficLightItem | null;
@@ -89,7 +90,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
         style={{
           margin: 0,
           width: '100%',
-          maxWidth: '560px',
+          maxWidth: '640px',
           maxHeight: '90vh',
           borderTopLeftRadius: '24px',
           borderTopRightRadius: '24px',
@@ -229,96 +230,8 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
         {/* Desglose de Parámetros de Check-in */}
         {athlete.status !== 'gray' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {/* Dolor reportado */}
-            <div>
-              <strong
-                style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
-                  textTransform: 'uppercase',
-                  color: 'var(--text-muted)',
-                  marginBottom: '0.45rem',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Mapa de Molestias y Dolor (Escala EVA):
-              </strong>
-
-              {athlete.pains && athlete.pains.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  {athlete.pains.map((pain, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.5rem 0.75rem',
-                        background: 'var(--bg-subtle)',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border)',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          color: 'var(--text-main)',
-                        }}
-                      >
-                        {pain.zone}
-                      </span>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div
-                          style={{
-                            width: '60px',
-                            height: '6px',
-                            background: 'var(--border)',
-                            borderRadius: '9999px',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${(pain.level / 5) * 100}%`,
-                              height: '100%',
-                              background:
-                                pain.level >= 4
-                                  ? 'var(--pain-level-5)'
-                                  : pain.level >= 3
-                                    ? 'var(--warning-text)'
-                                    : 'var(--stat-green)',
-                            }}
-                          />
-                        </div>
-                        <span
-                          style={{
-                            fontSize: '0.78rem',
-                            fontWeight: 800,
-                            color:
-                              pain.level >= 4 ? 'var(--pain-level-5)' : 'var(--text-secondary)',
-                          }}
-                        >
-                          Nivel {pain.level}/5
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '0.85rem',
-                    color: 'var(--stat-green)',
-                    fontWeight: 600,
-                  }}
-                >
-                  ✓ Sin dolores ni molestias reportadas
-                </p>
-              )}
-            </div>
+            {/* Visual Anatomical Human Body Map (inherited from athlete check-in) */}
+            <AthleteBodyPainMap pains={athlete.pains} athleteName={athlete.name} />
 
             {/* Sueño y RPE */}
             <div

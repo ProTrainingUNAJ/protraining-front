@@ -2,6 +2,7 @@ export type TrafficLightStatus = 'red' | 'yellow' | 'green' | 'gray';
 
 export interface PainZoneReport {
   zone: string;
+  muscleId?: string;
   level: number; // 1 to 5
 }
 

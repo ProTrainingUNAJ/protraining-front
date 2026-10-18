@@ -23,8 +23,8 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     submittedAt: '08:15 hs',
     notes: 'Amanecí con la rodilla izquierda muy hinchada tras el choque del viernes.',
     pains: [
-      { zone: 'Rodilla izquierda (Menisco/Tendón)', level: 5 },
-      { zone: 'Zona Lumbar', level: 3 },
+      { zone: 'Rodilla izquierda (Menisco/Tendón)', muscleId: 'rodilla_izquierda', level: 5 },
+      { zone: 'Zona Lumbar', muscleId: 'espalda_baja', level: 3 },
     ],
   },
   {
@@ -40,7 +40,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     rpe: 8.5,
     submittedAt: '08:30 hs',
     notes: 'Sentí un pinchazo agudo en el isquiotibial derecho al frenar en el último ejercicio.',
-    pains: [{ zone: 'Isquiotibial derecho', level: 4 }],
+    pains: [{ zone: 'Isquiotibial derecho', muscleId: 'isquiotibial_derecho', level: 4 }],
   },
   {
     id: 'ath-3',
@@ -55,7 +55,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     rpe: 7.5,
     submittedAt: '09:05 hs',
     notes: 'Sobrecarga en los gemelos después del doble turno del jueves.',
-    pains: [{ zone: 'Gemelo izquierdo', level: 3 }],
+    pains: [{ zone: 'Gemelo izquierdo', muscleId: 'gemelo_izquierdo', level: 3 }],
   },
   {
     id: 'ath-4',
@@ -70,7 +70,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     rpe: 7.0,
     submittedAt: '08:45 hs',
     notes: 'Leve molestia lumbar al hacer bisagra de cadera.',
-    pains: [{ zone: 'Erectores lumbares', level: 2 }],
+    pains: [{ zone: 'Erectores lumbares', muscleId: 'espalda_baja', level: 2 }],
   },
   {
     id: 'ath-5',
@@ -84,7 +84,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     sleepQuality: 'Regular',
     rpe: 6.5,
     submittedAt: '09:12 hs',
-    pains: [{ zone: 'Cuádriceps derecho', level: 2 }],
+    pains: [{ zone: 'Cuádriceps derecho', muscleId: 'cuadriceps_derecho', level: 2 }],
   },
   {
     id: 'ath-6',
@@ -98,7 +98,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     sleepQuality: 'Buena',
     rpe: 6.0,
     submittedAt: '09:20 hs',
-    pains: [{ zone: 'Aductor izquierdo', level: 2 }],
+    pains: [{ zone: 'Aductor izquierdo', muscleId: 'aductor_izquierdo', level: 2 }],
   },
   {
     id: 'ath-7',
