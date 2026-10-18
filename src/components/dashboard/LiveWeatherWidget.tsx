@@ -18,14 +18,7 @@ const DEFAULT_WEATHER: WeatherData = {
 };
 
 type WeatherCondition =
-  | 'sun'
-  | 'cloud-sun'
-  | 'cloud'
-  | 'rain'
-  | 'storm'
-  | 'fog'
-  | 'night'
-  | 'cloud-night';
+  'sun' | 'cloud-sun' | 'cloud' | 'rain' | 'storm' | 'fog' | 'night' | 'cloud-night';
 
 interface WeatherInterpretation {
   description: string;
@@ -34,7 +27,10 @@ interface WeatherInterpretation {
   shadowColor: string;
 }
 
-function interpretWeather(code: number, hour: number = new Date().getHours()): WeatherInterpretation {
+function interpretWeather(
+  code: number,
+  hour: number = new Date().getHours(),
+): WeatherInterpretation {
   const isNight = hour >= 20 || hour < 6;
 
   if (isNight) {
@@ -182,9 +178,33 @@ const WeatherVisualIcon: React.FC<{ condition: WeatherCondition; size?: number }
           fill="#ffffff"
           style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}
         />
-        <line x1="11" y1="23" x2="9.5" y2="27" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" />
-        <line x1="16" y1="23" x2="14.5" y2="27" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" />
-        <line x1="21" y1="23" x2="19.5" y2="27" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" />
+        <line
+          x1="11"
+          y1="23"
+          x2="9.5"
+          y2="27"
+          stroke="#7dd3fc"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <line
+          x1="16"
+          y1="23"
+          x2="14.5"
+          y2="27"
+          stroke="#7dd3fc"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <line
+          x1="21"
+          y1="23"
+          x2="19.5"
+          y2="27"
+          stroke="#7dd3fc"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
       </svg>
     );
   }
@@ -192,10 +212,7 @@ const WeatherVisualIcon: React.FC<{ condition: WeatherCondition; size?: number }
   if (condition === 'storm') {
     return (
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
-        <path
-          d="M7 19h15a4.5 4.5 0 0 0 1-8.9A6.5 6.5 0 0 0 9.5 8 5 5 0 0 0 7 19z"
-          fill="#cbd5e1"
-        />
+        <path d="M7 19h15a4.5 4.5 0 0 0 1-8.9A6.5 6.5 0 0 0 9.5 8 5 5 0 0 0 7 19z" fill="#cbd5e1" />
         <polygon points="15,19 12,25 16,25 14,31 20,23 16,23" fill="#facc15" />
       </svg>
     );
@@ -217,10 +234,7 @@ const WeatherVisualIcon: React.FC<{ condition: WeatherCondition; size?: number }
 
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ display: 'block' }}>
-      <path
-        d="M8 23h15a5 5 0 0 0 1-9.9A7 7 0 0 0 10.5 11 5.5 5.5 0 0 0 8 23z"
-        fill="#ffffff"
-      />
+      <path d="M8 23h15a5 5 0 0 0 1-9.9A7 7 0 0 0 10.5 11 5.5 5.5 0 0 0 8 23z" fill="#ffffff" />
     </svg>
   );
 };

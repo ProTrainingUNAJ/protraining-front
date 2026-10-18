@@ -14,19 +14,27 @@ interface AthleteBodyPainMapProps {
 const resolveMuscleId = (zone: string, providedId?: string): string => {
   if (providedId) return providedId;
   const s = zone.toLowerCase();
-  if (s.includes('isquio')) return s.includes('izq') ? 'isquiotibial_izquierdo' : 'isquiotibial_derecho';
-  if (s.includes('cuad') || s.includes('cuád')) return s.includes('izq') ? 'cuadriceps_izquierdo' : 'cuadriceps_derecho';
-  if (s.includes('gemelo') || s.includes('pantorr')) return s.includes('izq') ? 'gemelo_izquierdo' : 'gemelo_derecho';
+  if (s.includes('isquio'))
+    return s.includes('izq') ? 'isquiotibial_izquierdo' : 'isquiotibial_derecho';
+  if (s.includes('cuad') || s.includes('cuád'))
+    return s.includes('izq') ? 'cuadriceps_izquierdo' : 'cuadriceps_derecho';
+  if (s.includes('gemelo') || s.includes('pantorr'))
+    return s.includes('izq') ? 'gemelo_izquierdo' : 'gemelo_derecho';
   if (s.includes('lumbar') || s.includes('erector')) return 'espalda_baja';
   if (s.includes('dorsal') || s.includes('espalda media')) return 'espalda_media';
-  if (s.includes('espalda alta') || s.includes('trapecio')) return s.includes('der') ? 'cuello_trapecio_derecho' : 'cuello_trapecio_izquierdo';
-  if (s.includes('aductor') || s.includes('ingle')) return s.includes('der') ? 'aductor_derecho' : 'aductor_izquierdo';
+  if (s.includes('espalda alta') || s.includes('trapecio'))
+    return s.includes('der') ? 'cuello_trapecio_derecho' : 'cuello_trapecio_izquierdo';
+  if (s.includes('aductor') || s.includes('ingle'))
+    return s.includes('der') ? 'aductor_derecho' : 'aductor_izquierdo';
   if (s.includes('rodilla')) return s.includes('der') ? 'rodilla_derecha' : 'rodilla_izquierda';
   if (s.includes('tobillo')) return s.includes('der') ? 'tobillo_derecho' : 'tobillo_izquierdo';
   if (s.includes('hombro')) return s.includes('der') ? 'hombro_derecho' : 'hombro_izquierdo';
-  if (s.includes('bicep') || s.includes('bícep')) return s.includes('der') ? 'biceps_derecho' : 'biceps_izquierdo';
-  if (s.includes('tricep') || s.includes('trícep')) return s.includes('der') ? 'triceps_derecho' : 'triceps_izquierdo';
-  if (s.includes('gluteo') || s.includes('glúteo')) return s.includes('der') ? 'gluteo_derecho' : 'gluteo_izquierdo';
+  if (s.includes('bicep') || s.includes('bícep'))
+    return s.includes('der') ? 'biceps_derecho' : 'biceps_izquierdo';
+  if (s.includes('tricep') || s.includes('trícep'))
+    return s.includes('der') ? 'triceps_derecho' : 'triceps_izquierdo';
+  if (s.includes('gluteo') || s.includes('glúteo'))
+    return s.includes('der') ? 'gluteo_derecho' : 'gluteo_izquierdo';
   if (s.includes('abdom')) return 'abdominales';
   return '';
 };
@@ -103,7 +111,10 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <Activity size={15} style={{ color: maxPainLevel >= 4 ? 'var(--traffic-red)' : 'var(--traffic-yellow)' }} />
+          <Activity
+            size={15}
+            style={{ color: maxPainLevel >= 4 ? 'var(--traffic-red)' : 'var(--traffic-yellow)' }}
+          />
           <strong
             style={{
               fontSize: '0.82rem',
@@ -223,11 +234,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
               Vista Frontal (Anterior)
             </span>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <MuscleMapFront
-                musclePains={musclePains}
-                readOnly={true}
-                hideHeader={true}
-              />
+              <MuscleMapFront musclePains={musclePains} readOnly={true} hideHeader={true} />
             </div>
           </div>
         )}
@@ -260,11 +267,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
               Vista Dorsal (Posterior)
             </span>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <MuscleMapBack
-                musclePains={musclePains}
-                readOnly={true}
-                hideHeader={true}
-              />
+              <MuscleMapBack musclePains={musclePains} readOnly={true} hideHeader={true} />
             </div>
           </div>
         )}
@@ -290,7 +293,10 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
         <span style={{ color: 'var(--text-main)', fontSize: '0.7rem' }}>Escala EVA:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           {OFFICIAL_PALETTE_ITEMS.filter((i) => i.level > 0).map((item) => (
-            <div key={item.level} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div
+              key={item.level}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+            >
               <span
                 style={{
                   width: '9px',
@@ -310,7 +316,9 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
 
       {/* Reported zones details list */}
       {pains.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.15rem' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.15rem' }}
+        >
           {pains.map((p, idx) => {
             const paletteItem = OFFICIAL_PALETTE_ITEMS.find((it) => it.level === p.level);
             const color = paletteItem ? paletteItem.hex : 'var(--traffic-red)';

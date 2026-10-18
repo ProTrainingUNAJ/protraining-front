@@ -84,7 +84,7 @@
 
 /* Mantener estabilidad visual en formularios y elementos estaticos */
 .card:has(form):hover,
-.card:has(input:not([type="checkbox"]):not([type="radio"])):hover,
+.card:has(input:not([type='checkbox']):not([type='radio'])):hover,
 .card:has(textarea):hover,
 .card.card-static:hover {
   transform: none;

@@ -9,7 +9,10 @@ interface AthleteTrafficLightCardProps {
   className?: string;
 }
 
-const STATUS_COLORS: Record<TrafficLightStatus, { ring: string; bg: string; text: string; border: string }> = {
+const STATUS_COLORS: Record<
+  TrafficLightStatus,
+  { ring: string; bg: string; text: string; border: string }
+> = {
   red: {
     ring: 'var(--traffic-red)',
     bg: 'var(--traffic-red-bg)',
@@ -52,7 +55,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       ? 'Óptimos'
       : athlete.status === 'gray'
         ? 'Sin Check-in'
-        : (athlete.affectedMuscle || athlete.statusLabel);
+        : athlete.affectedMuscle || athlete.statusLabel;
 
   return (
     <div
@@ -108,7 +111,14 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
         {/* Datos principales: Nombre y Posición · División */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.5rem',
+            }}
+          >
             <h4
               style={{
                 margin: 0,
@@ -230,7 +240,14 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             )}
           </div>
         ) : (
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 600 }}>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
+              fontStyle: 'italic',
+              fontWeight: 600,
+            }}
+          >
             Pendiente
           </span>
         )}

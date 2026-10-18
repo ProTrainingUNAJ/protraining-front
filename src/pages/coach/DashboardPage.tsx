@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  GripVertical,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-  RotateCcw,
-  Plus,
-} from 'lucide-react';
+import { GripVertical, ChevronLeft, ChevronRight, ArrowRight, RotateCcw, Plus } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
@@ -255,8 +248,6 @@ export const DashboardPage: React.FC = () => {
     const targetIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
     swapCards(rowId, currentIndex, rowId, targetIndex);
   };
-
-
 
   // Reset to default layout
   const resetLayout = () => {

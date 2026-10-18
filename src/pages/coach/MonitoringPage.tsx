@@ -24,9 +24,15 @@ export const MonitoringPage: React.FC = () => {
   const stateFilter = (location.state as { filter?: FilterColor })?.filter;
 
   const colorFilter: FilterColor =
-    queryParam === 'red' || queryParam === 'yellow' || queryParam === 'green' || queryParam === 'gray'
+    queryParam === 'red' ||
+    queryParam === 'yellow' ||
+    queryParam === 'green' ||
+    queryParam === 'gray'
       ? queryParam
-      : stateFilter === 'red' || stateFilter === 'yellow' || stateFilter === 'green' || stateFilter === 'gray'
+      : stateFilter === 'red' ||
+          stateFilter === 'yellow' ||
+          stateFilter === 'green' ||
+          stateFilter === 'gray'
         ? stateFilter
         : 'all';
 
@@ -42,7 +48,7 @@ export const MonitoringPage: React.FC = () => {
         }
         return next;
       },
-      { replace: true }
+      { replace: true },
     );
   };
 
@@ -285,7 +291,8 @@ export const MonitoringPage: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.4rem',
                   border: `1px solid ${colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-border)'}`,
-                  background: colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-bg)',
+                  background:
+                    colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-bg)',
                   color: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -328,7 +335,8 @@ export const MonitoringPage: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.4rem',
                   border: `1px solid ${colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-border)'}`,
-                  background: colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-bg)',
+                  background:
+                    colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-bg)',
                   color: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -371,7 +379,8 @@ export const MonitoringPage: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.4rem',
                   border: `1px solid ${colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-border)'}`,
-                  background: colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-bg)',
+                  background:
+                    colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-bg)',
                   color: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -414,7 +423,8 @@ export const MonitoringPage: React.FC = () => {
                   alignItems: 'center',
                   gap: '0.4rem',
                   border: `1px solid ${colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-border)'}`,
-                  background: colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-bg)',
+                  background:
+                    colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-bg)',
                   color: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',

@@ -1072,7 +1072,9 @@
 
 /* ── Pain Alerts Stickies: Individual Hover Movement & Routine Action ── */
 .pain-sticky-item {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease !important;
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.22s ease !important;
   cursor: pointer;
   will-change: transform, box-shadow;
 }
@@ -1089,7 +1091,9 @@
 
 /* ── Círculos individuales del Semáforo del Día (Microinteracción hover agrandado) ── */
 .donut-metric-item {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease !important;
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.22s ease !important;
   cursor: pointer;
 }
 
@@ -1131,4 +1135,3 @@
     gap: 0.25rem !important;
   }
 }
-
