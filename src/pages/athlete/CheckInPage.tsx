@@ -29,10 +29,62 @@ import {
   countPendingCheckIns,
   CheckInSubmitResponse,
 } from '../../api/seguimientoService';
+import { structureService } from '../../api/structureService';
+
+const getCachedAthleteId = (userId?: string): string | null => {
+  if (!userId) return null;
+  try {
+    return localStorage.getItem(`protraining_athlete_me_${userId}`);
+  } catch {
+    return null;
+  }
+};
+
+const setCachedAthleteId = (userId: string, id: string) => {
+  try {
+    localStorage.setItem(`protraining_athlete_me_${userId}`, id);
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
 
 export const CheckInPage: React.FC = () => {
   const { user } = useAuth();
-  const athleteId = user?.id || '99eedc58-65dd-4417-a087-e3cc03f01043';
+  const [athleteId, setAthleteId] = useState<string>(() => {
+    return (
+      (user?.id ? getCachedAthleteId(user.id) : null) || '99eedc58-65dd-4417-a087-e3cc03f01043'
+    );
+  });
+  const [athleteResolutionError, setAthleteResolutionError] = useState<string | null>(null);
+
+  // Synchronize athlete id from Structure microservice GET /api/v1/me (KAN-329)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const cachedId = getCachedAthleteId(user.id);
+
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      structureService
+        .getMe()
+        .then((me) => {
+          if (me?.athleteId) {
+            setAthleteId(me.athleteId);
+            setCachedAthleteId(user.id, me.athleteId);
+            setAthleteResolutionError(null);
+          }
+        })
+        .catch((err: unknown) => {
+          // If no cached ID and request fails, advise the user
+          if (!cachedId) {
+            const msg =
+              err instanceof Error
+                ? err.message
+                : 'No se pudo obtener el identificador del atleta vinculado a la cuenta.';
+            setAthleteResolutionError(msg);
+          }
+        });
+    }
+  }, [user?.id]);
 
   // Check-in metrics state
   const [sleepHours, setSleepHours] = useState<number>(8);
@@ -129,6 +181,12 @@ export const CheckInPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage(null);
+
+    if (athleteResolutionError) {
+      setErrorMessage(`No se puede registrar el check-in: ${athleteResolutionError}`);
+      setIsSubmitting(false);
+      return;
+    }
 
     // Format pain zones: "Quadriceps:2,Hamstrings:1"
     const painZones =
@@ -335,6 +393,27 @@ export const CheckInPage: React.FC = () => {
           >
             <AlertTriangle size={16} />
             <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Athlete resolution error (KAN-329) */}
+        {athleteResolutionError && !errorMessage && (
+          <div
+            style={{
+              background: 'var(--danger-bg-strong)',
+              color: 'var(--danger-text)',
+              border: '1px solid var(--danger)',
+              borderRadius: '8px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+            }}
+          >
+            <AlertTriangle size={16} />
+            <span>{athleteResolutionError}</span>
           </div>
         )}
 

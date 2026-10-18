@@ -50,3 +50,12 @@ export interface CreateAthleteRequest {
   emergencyContact?: string | null;
   medicalConditions?: string | null;
 }
+
+export interface AthleteMe {
+  athleteId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  active: boolean;
+  categories: Category[];
+}
