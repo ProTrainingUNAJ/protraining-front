@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
 
 export interface ExerciseItem {
   id: string;
@@ -1034,7 +1035,7 @@ export const RoutinePage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Músculos Involucrados */}
+              {/* Músculos Involucrados con Silueta Anatómica (KAN-320) */}
               <div>
                 <strong
                   style={{
@@ -1046,9 +1047,16 @@ export const RoutinePage: React.FC = () => {
                     letterSpacing: '0.04em',
                   }}
                 >
-                  Músculos Principales:
+                  Músculos Involucrados:
                 </strong>
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '0.4rem',
+                    flexWrap: 'wrap',
+                    marginBottom: '0.85rem',
+                  }}
+                >
                   {modalExercise.muscles.map((muscle, idx) => (
                     <span
                       key={idx}
@@ -1066,6 +1074,13 @@ export const RoutinePage: React.FC = () => {
                     </span>
                   ))}
                 </div>
+
+                {/* Silueta anatómica interactiva destacando los músculos trabajados */}
+                <ExerciseMuscleMap
+                  primaryMuscles={modalExercise.muscles}
+                  showLegend={true}
+                  showViewToggle={true}
+                />
               </div>
 
               {/* Pasos de Ejecución Técnica */}
