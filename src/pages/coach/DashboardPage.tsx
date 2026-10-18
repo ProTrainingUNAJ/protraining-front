@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ArrowRight,
   RotateCcw,
+  Plus,
 } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -77,30 +78,12 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
   },
   {
     id: 'row-4',
-    name: 'Fila 4 · Rendimiento y Métricas',
+    name: 'Fila 4 · Módulos Disponibles',
     className: 'wireframe-row-4',
     cards: [
-      {
-        id: 'w-chart-cmj',
-        name: 'Evolución Salto CMJ',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'cmj',
-      },
-      {
-        id: 'w-chart-squat',
-        name: 'Sentadilla 1RM',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'squat',
-      },
-      {
-        id: 'w-chart-sprint',
-        name: 'Sprint 30m',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'sprint',
-      },
+      { id: 'w-r4-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-r4-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
   },
 ];
@@ -176,8 +159,8 @@ export const DashboardPage: React.FC = () => {
   const location = useLocation();
   const isAthlete = location.pathname.startsWith('/athlete');
   const storageKey = isAthlete
-    ? 'protraining_bento_rows_athlete_v6'
-    : 'protraining_bento_rows_coach_v6';
+    ? 'protraining_bento_rows_athlete_v8'
+    : 'protraining_bento_rows_coach_v8';
 
   const defaultRows = isAthlete ? DEFAULT_ATHLETE_ROWS : DEFAULT_COACH_ROWS;
 
@@ -187,6 +170,16 @@ export const DashboardPage: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length === 4) {
+          if (!isAthlete) {
+            const row4 = parsed.find((r: DashboardRow) => r.id === 'row-4');
+            if (row4 && row4.cards.some((c: WireframeCardItem) => c.type === 'progress-chart')) {
+              row4.cards = [
+                { id: 'w-r4-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+                { id: 'w-r4-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+                { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+              ];
+            }
+          }
           return parsed;
         }
       }
@@ -439,15 +432,35 @@ export const DashboardPage: React.FC = () => {
           <div
             style={{
               height: '100%',
+              minHeight: '160px',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
+              gap: '0.5rem',
               color: 'var(--text-muted)',
-              fontSize: '0.82rem',
-              fontWeight: 600,
+              padding: '1.5rem',
+              userSelect: 'none',
             }}
           >
-            {card.name}
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                border: '1.5px dashed var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)',
+                opacity: 0.6,
+              }}
+            >
+              <Plus size={16} />
+            </div>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.65 }}>
+              Espacio disponible
+            </span>
           </div>
         );
     }
