@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
+import { AthleteAvatar } from './AthleteAvatar';
 
 interface AthleteQuickSheetProps {
   athlete: AthleteTrafficLightItem | null;
@@ -32,13 +33,6 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
   }, [onClose]);
 
   if (!athlete) return null;
-
-  const initials = athlete.name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   const isRed = athlete.status === 'red';
   const isYellow = athlete.status === 'yellow';
@@ -119,25 +113,15 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {/* Avatar con anillo */}
-            <div
-              style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '50%',
-                border: `3px solid ${statusBorderColor}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 800,
-                fontSize: '0.9rem',
-                color: 'var(--text-main)',
-                background: 'var(--bg-subtle)',
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </div>
+            {/* Avatar con anillo y soporte para foto de perfil */}
+            <AthleteAvatar
+              name={athlete.name}
+              avatarUrl={athlete.avatarUrl}
+              status={athlete.status}
+              ringColor={statusBorderColor}
+              size={48}
+              showRing={true}
+            />
 
             <div>
               <h3

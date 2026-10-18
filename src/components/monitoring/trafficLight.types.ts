@@ -19,6 +19,7 @@ export interface AthleteTrafficLightItem {
   rpe?: number;
   pains?: PainZoneReport[];
   notes?: string;
+  /** URL de la foto de perfil del atleta. Si está presente se renderiza en la tarjeta y ficha rápida; si no, hace fallback a las iniciales (ej. 'SG') */
   avatarUrl?: string;
   submittedAt?: string;
   affectedMuscle?: string;

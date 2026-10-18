@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, AlertCircle, Moon, Activity } from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
+import { AthleteAvatar } from './AthleteAvatar';
 
 interface AthleteTrafficLightCardProps {
   athlete: AthleteTrafficLightItem;
@@ -41,12 +42,6 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
   className = '',
 }) => {
   const colors = STATUS_COLORS[athlete.status];
-  const initials = athlete.name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   const maxPainLevel =
     athlete.pains && athlete.pains.length > 0 ? Math.max(...athlete.pains.map((p) => p.level)) : 0;
@@ -90,7 +85,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       }}
       aria-label={`Ver ficha rápida de ${athlete.name}, estado ${badgeLabel}`}
     >
-      {/* 1. Sección superior: Avatar, Nombre completo, Posición · División y Chevron (Altura fija de cabecera) */}
+      {/* 1. Sección superior: Avatar (foto o iniciales), Nombre, Posición · División y Chevron */}
       <div
         style={{
           display: 'flex',
@@ -101,50 +96,15 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           boxSizing: 'border-box',
         }}
       >
-        {/* Anillo de color concéntrico SVG alrededor del avatar */}
-        <div style={{ position: 'relative', width: '48px', height: '48px', flexShrink: 0 }}>
-          <svg width="48" height="48" viewBox="0 0 50 50" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="25" cy="25" r="22" fill="none" stroke="var(--border)" strokeWidth="2.5" />
-            <circle
-              cx="25"
-              cy="25"
-              r="22"
-              fill="none"
-              stroke={colors.ring}
-              strokeWidth="3.5"
-              strokeDasharray="138"
-              strokeDashoffset={athlete.status === 'gray' ? '69' : '0'}
-              strokeLinecap="round"
-            />
-          </svg>
-
-          {/* Avatar interior */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: '5px',
-              borderRadius: '50%',
-              background: 'var(--bg-subtle)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              color: 'var(--text-main)',
-              overflow: 'hidden',
-            }}
-          >
-            {athlete.avatarUrl ? (
-              <img
-                src={athlete.avatarUrl}
-                alt={athlete.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <span>{initials}</span>
-            )}
-          </div>
-        </div>
+        {/* Componente preparado para foto de perfil con fallback a iniciales */}
+        <AthleteAvatar
+          name={athlete.name}
+          avatarUrl={athlete.avatarUrl}
+          status={athlete.status}
+          ringColor={colors.ring}
+          size={48}
+          showRing={true}
+        />
 
         {/* Datos principales: Nombre y Posición · División */}
         <div style={{ flex: 1, minWidth: 0 }}>
