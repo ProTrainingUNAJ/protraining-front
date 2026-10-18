@@ -10,6 +10,134 @@ interface TrafficLightSummaryProps {
   className?: string;
 }
 
+interface DonutMetricProps {
+  percentage: number;
+  count: number;
+  total: number;
+  color: string;
+  label: string;
+  onClick?: () => void;
+}
+
+const DonutMetric: React.FC<DonutMetricProps> = ({
+  percentage,
+  count,
+  total,
+  color,
+  label,
+  onClick,
+}) => {
+  const radius = 42;
+  const strokeWidth = 7;
+  const circumference = 2 * Math.PI * radius; // ~263.89
+  const arcLength = (percentage / 100) * circumference;
+  const strokeDashoffset = circumference - arcLength;
+
+  return (
+    <div
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.45rem',
+        cursor: onClick ? 'pointer' : 'default',
+        flex: 1,
+        minWidth: 0,
+        outline: 'none',
+        transition: 'transform 0.15s ease',
+      }}
+      title={`${label}: ${count} de ${total} (${percentage}%)`}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '86px',
+          aspectRatio: '1 / 1',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <svg
+          viewBox="0 0 100 100"
+          style={{
+            width: '100%',
+            height: '100%',
+            transform: 'rotate(-90deg)',
+          }}
+        >
+          {/* Track de fondo gris circular */}
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke="var(--border)"
+            strokeWidth={strokeWidth}
+          />
+          {/* Arco de progreso de color del semáforo */}
+          {percentage > 0 && (
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="none"
+              stroke={color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="butt"
+              style={{
+                transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            />
+          )}
+        </svg>
+
+        {/* Tipografía central: porcentaje grande arriba, ratio abajo */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '1.35rem',
+              fontWeight: 800,
+              lineHeight: 1,
+              color: 'var(--text-main)',
+              letterSpacing: '-0.03em',
+            }}
+          >
+            {percentage}%
+          </span>
+          <span
+            style={{
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: 'var(--text-muted)',
+              marginTop: '0.22rem',
+              lineHeight: 1,
+            }}
+          >
+            {count} / {total}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
   redCount = 2,
   yellowCount = 4,
@@ -18,6 +146,16 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
   className = '',
 }) => {
   const navigate = useNavigate();
+
+  const total = redCount + yellowCount + greenCount + grayCount || 24;
+  const redPct = Math.round((redCount / total) * 100);
+  const yellowPct = Math.round((yellowCount / total) * 100);
+  const greenPct = Math.round((greenCount / total) * 100);
+  const grayPct = Math.round((grayCount / total) * 100);
+
+  const handleNavigate = () => {
+    navigate('/pf/monitoring');
+  };
 
   return (
     <div
@@ -64,116 +202,60 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
         </span>
       </div>
 
-      {/* Grid de contadores del semáforo KAN-366 */}
+      {/* Grid de 4 donas radiales del semáforo KAN-366 según referencia del usuario */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '0.4rem',
-          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
           margin: '0.35rem 0 0.85rem',
         }}
       >
-        {/* Rojo - Atención Crítica */}
-        <div
-          style={{
-            background: 'var(--traffic-red-bg)',
-            border: '1px solid var(--traffic-red-border)',
-            borderRadius: '12px',
-            padding: '0.55rem 0.25rem',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '1.35rem',
-              fontWeight: 900,
-              color: 'var(--traffic-red-text)',
-              lineHeight: 1,
-            }}
-          >
-            {redCount}
-          </div>
-          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-red-text)' }}>
-            Atención Crítica
-          </span>
-        </div>
+        {/* 1. Rojo - Atención Crítica */}
+        <DonutMetric
+          percentage={redPct}
+          count={redCount}
+          total={total}
+          color="var(--traffic-red)"
+          label="Atención Crítica"
+          onClick={handleNavigate}
+        />
 
-        {/* Amarillo - Precaución */}
-        <div
-          style={{
-            background: 'var(--traffic-yellow-bg)',
-            border: '1px solid var(--traffic-yellow-border)',
-            borderRadius: '12px',
-            padding: '0.55rem 0.25rem',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '1.35rem',
-              fontWeight: 900,
-              color: 'var(--traffic-yellow-text)',
-              lineHeight: 1,
-            }}
-          >
-            {yellowCount}
-          </div>
-          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-yellow-text)' }}>
-            Precaución
-          </span>
-        </div>
+        {/* 2. Amarillo - Precaución */}
+        <DonutMetric
+          percentage={yellowPct}
+          count={yellowCount}
+          total={total}
+          color="var(--traffic-yellow)"
+          label="Precaución"
+          onClick={handleNavigate}
+        />
 
-        {/* Verde - Óptimos */}
-        <div
-          style={{
-            background: 'var(--traffic-green-bg)',
-            border: '1px solid var(--traffic-green-border)',
-            borderRadius: '12px',
-            padding: '0.55rem 0.25rem',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '1.35rem',
-              fontWeight: 900,
-              color: 'var(--traffic-green-text)',
-              lineHeight: 1,
-            }}
-          >
-            {greenCount}
-          </div>
-          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-green-text)' }}>
-            Óptimos
-          </span>
-        </div>
+        {/* 3. Verde - Óptimos */}
+        <DonutMetric
+          percentage={greenPct}
+          count={greenCount}
+          total={total}
+          color="var(--traffic-green)"
+          label="Óptimos"
+          onClick={handleNavigate}
+        />
 
-        {/* Gris - Sin Check-in */}
-        <div
-          style={{
-            background: 'var(--traffic-gray-bg)',
-            border: '1px solid var(--traffic-gray-border)',
-            borderRadius: '12px',
-            padding: '0.55rem 0.25rem',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '1.35rem',
-              fontWeight: 900,
-              color: 'var(--traffic-gray-text)',
-              lineHeight: 1,
-            }}
-          >
-            {grayCount}
-          </div>
-          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-gray-text)' }}>
-            Sin Check-in
-          </span>
-        </div>
+        {/* 4. Gris - Sin Check-in */}
+        <DonutMetric
+          percentage={grayPct}
+          count={grayCount}
+          total={total}
+          color="var(--traffic-gray)"
+          label="Sin Check-in"
+          onClick={handleNavigate}
+        />
       </div>
 
       <button
         type="button"
-        onClick={() => navigate('/pf/monitoring')}
+        onClick={handleNavigate}
         className="btn btn-secondary"
         style={{
           width: '100%',
