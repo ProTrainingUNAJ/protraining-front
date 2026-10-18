@@ -58,21 +58,49 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
   },
   {
     id: 'row-2',
-    name: 'Fila 2 · Semáforo y Alertas del Plantel',
+    name: 'Fila 2 · Semáforo y Estado',
     className: 'wireframe-row-2',
     cards: [
       { id: 'w-traffic', name: 'Semáforo del Día', colSpan: 1, type: 'traffic-light-summary' },
       { id: 'w-checkin', name: 'Progreso de Check-in', colSpan: 1, type: 'checkin-progress' },
-      { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
+      { id: 'w-suite', name: 'ProTraining Suite', colSpan: 1, type: 'suite' },
     ],
   },
   {
     id: 'row-3',
-    name: 'Fila 3 · Suite y Carga Acumulada',
+    name: 'Fila 3 · Alertas y Carga',
     className: 'wireframe-row-3',
     cards: [
-      { id: 'w-suite', name: 'ProTraining Suite', colSpan: 1, type: 'suite' },
+      { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
       { id: 'w-load', name: 'Carga Semanal RPE', colSpan: 1, type: 'weekly-load' },
+    ],
+  },
+  {
+    id: 'row-4',
+    name: 'Fila 4 · Rendimiento y Métricas',
+    className: 'wireframe-row-4',
+    cards: [
+      {
+        id: 'w-chart-cmj',
+        name: 'Evolución Salto CMJ',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'cmj',
+      },
+      {
+        id: 'w-chart-squat',
+        name: 'Sentadilla 1RM',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'squat',
+      },
+      {
+        id: 'w-chart-sprint',
+        name: 'Sprint 30m',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'sprint',
+      },
     ],
   },
 ];
@@ -100,7 +128,7 @@ const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
   },
   {
     id: 'row-3',
-    name: 'Fila 3 · Suite y Evolución',
+    name: 'Fila 3 · Suite y Carga',
     className: 'wireframe-row-3',
     cards: [
       { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
@@ -113,6 +141,34 @@ const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
       },
     ],
   },
+  {
+    id: 'row-4',
+    name: 'Fila 4 · Rendimiento y Métricas',
+    className: 'wireframe-row-4',
+    cards: [
+      {
+        id: 'a-chart-squat',
+        name: 'Sentadilla 1RM',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'squat',
+      },
+      {
+        id: 'a-chart-sprint',
+        name: 'Sprint 30m',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'sprint',
+      },
+      {
+        id: 'a-chart-yoyo',
+        name: 'Test Yo-Yo',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'yoyo',
+      },
+    ],
+  },
 ];
 
 export const DashboardPage: React.FC = () => {
@@ -120,8 +176,8 @@ export const DashboardPage: React.FC = () => {
   const location = useLocation();
   const isAthlete = location.pathname.startsWith('/athlete');
   const storageKey = isAthlete
-    ? 'protraining_bento_rows_athlete_v5'
-    : 'protraining_bento_rows_coach_v5';
+    ? 'protraining_bento_rows_athlete_v6'
+    : 'protraining_bento_rows_coach_v6';
 
   const defaultRows = isAthlete ? DEFAULT_ATHLETE_ROWS : DEFAULT_COACH_ROWS;
 
@@ -130,7 +186,7 @@ export const DashboardPage: React.FC = () => {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 3) {
+        if (Array.isArray(parsed) && parsed.length === 4) {
           return parsed;
         }
       }

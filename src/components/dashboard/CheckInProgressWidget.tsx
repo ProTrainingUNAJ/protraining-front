@@ -101,11 +101,11 @@ export const CheckInProgressWidget: React.FC<CheckInProgressProps> = ({
           </span>
         </div>
 
-        {/* Barra de progreso */}
+        {/* Barra de progreso activa */}
         <div
           style={{
             width: '100%',
-            height: '8px',
+            height: '10px',
             background: 'var(--bg-subtle)',
             borderRadius: '9999px',
             overflow: 'hidden',
@@ -116,9 +116,10 @@ export const CheckInProgressWidget: React.FC<CheckInProgressProps> = ({
             style={{
               width: `${percentage}%`,
               height: '100%',
-              background: 'var(--grad-suite)',
+              background: 'linear-gradient(90deg, #10b981 0%, #22c55e 100%)',
               borderRadius: '9999px',
               transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: '0 0 10px rgba(34, 197, 94, 0.35)',
             }}
           />
         </div>

@@ -98,13 +98,12 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
           )}
         </svg>
 
-        {/* Tipografía central: porcentaje grande arriba, ratio abajo */}
+        {/* Tipografía central: porcentaje perfectamente centrado */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             pointerEvents: 'none',
@@ -112,25 +111,15 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
         >
           <span
             style={{
-              fontSize: '1.35rem',
+              fontSize: '1.45rem',
               fontWeight: 800,
               lineHeight: 1,
               color: 'var(--text-main)',
-              letterSpacing: '-0.03em',
+              letterSpacing: '-0.02em',
+              textAlign: 'center',
             }}
           >
             {percentage}%
-          </span>
-          <span
-            style={{
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              color: 'var(--text-muted)',
-              marginTop: '0.22rem',
-              lineHeight: 1,
-            }}
-          >
-            {count} / {total}
           </span>
         </div>
       </div>

@@ -1,21 +1,22 @@
 import React from 'react';
-import { AlertTriangle, ChevronRight } from 'lucide-react';
+import { AlertTriangle, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface PainAlertItem {
-  id: string;
-  athleteName: string;
-  zone: string;
-  level: number; // 1-5
-}
-
-const MOCK_PAIN_ALERTS: PainAlertItem[] = [
-  { id: 'p-1', athleteName: 'Joaquín Silva', zone: 'Isquiotibial der.', level: 4 },
-  { id: 'p-2', athleteName: 'Santiago Gómez', zone: 'Rodilla izq.', level: 5 },
-];
+const MedicalCrossIcon: React.FC<{ size?: number; color?: string }> = ({
+  size = 22,
+  color = '#ffffff',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3z" />
+  </svg>
+);
 
 export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
   const navigate = useNavigate();
+
+  const handleOpenMonitoring = () => {
+    navigate('/pf/monitoring');
+  };
 
   return (
     <div
@@ -28,12 +29,14 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
         padding: '1.15rem',
       }}
     >
+      {/* Encabezado del Widget */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '0.5rem',
+          marginBottom: '0.65rem',
+          paddingRight: '4rem',
         }}
       >
         <span
@@ -63,65 +66,160 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
             border: '1px solid var(--border)',
           }}
         >
-          {MOCK_PAIN_ALERTS.length} Críticos
+          4 Atletas
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-        {MOCK_PAIN_ALERTS.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => navigate('/pf/monitoring')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0.45rem 0.65rem',
-              borderRadius: '10px',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              cursor: 'pointer',
-              transition: 'background 0.15s ease',
-            }}
-          >
-            <div>
-              <strong style={{ fontSize: '0.82rem', color: 'var(--text-main)', display: 'block' }}>
-                {item.athleteName}
-              </strong>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.zone}</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 800,
-                  color: item.level === 5 ? 'var(--pain-level-5)' : 'var(--pain-level-4)',
-                  background:
-                    item.level === 5 ? 'var(--pain-level-5-bg)' : 'var(--pain-level-4-bg)',
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                Nivel {item.level}
-              </span>
-              <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <small
+      {/* Contenedor de los 2 Stickies (Rojo y Amarillo) */}
+      <div
         style={{
-          display: 'block',
-          color: 'var(--text-muted)',
-          fontSize: '0.7rem',
-          marginTop: '0.35rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '0.75rem',
+          flex: 1,
+          alignItems: 'stretch',
         }}
       >
-        Revisar antes de asignar cargas de velocidad y saltos
-      </small>
+        {/* 1. Sticky ROJO · Molestia Crítica */}
+        <div
+          onClick={handleOpenMonitoring}
+          role="button"
+          tabIndex={0}
+          title="Ver atletas con Molestia Crítica en el monitoreo"
+          style={{
+            background: '#dc2626',
+            borderRadius: '14px',
+            padding: '0.85rem 0.95rem 0.65rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.28)',
+            cursor: 'pointer',
+            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            minHeight: '175px',
+          }}
+        >
+          <div>
+            {/* Cruz médica blanca superior */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <MedicalCrossIcon size={24} color="#ffffff" />
+            </div>
+
+            {/* Título en negrita oscura */}
+            <h4
+              style={{
+                fontSize: '1.05rem',
+                fontWeight: 900,
+                color: '#111827',
+                margin: '0 0 0.55rem',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Molestia Crítica
+            </h4>
+
+            {/* Lista de nombres */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.2rem',
+                fontSize: '1rem',
+                fontWeight: 800,
+                color: '#111827',
+                lineHeight: 1.25,
+              }}
+            >
+              <span>Julián Antunes</span>
+              <span>Damaris Morán</span>
+            </div>
+          </div>
+
+          {/* Línea divisoria e icono de chat */}
+          <div
+            style={{
+              borderTop: '1px solid rgba(0, 0, 0, 0.18)',
+              marginTop: '0.65rem',
+              paddingTop: '0.45rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MessageSquare size={17} color="rgba(0, 0, 0, 0.3)" fill="rgba(0, 0, 0, 0.3)" />
+          </div>
+        </div>
+
+        {/* 2. Sticky AMARILLO · Precaución */}
+        <div
+          onClick={handleOpenMonitoring}
+          role="button"
+          tabIndex={0}
+          title="Ver atletas con Precaución en el monitoreo"
+          style={{
+            background: '#facc15',
+            borderRadius: '14px',
+            padding: '0.85rem 0.95rem 0.65rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 12px rgba(250, 204, 21, 0.28)',
+            cursor: 'pointer',
+            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            minHeight: '175px',
+          }}
+        >
+          <div>
+            {/* Triángulo de advertencia blanco superior */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <AlertTriangle size={24} color="#ffffff" fill="#ffffff" />
+            </div>
+
+            {/* Título en negrita oscura */}
+            <h4
+              style={{
+                fontSize: '1.05rem',
+                fontWeight: 900,
+                color: '#111827',
+                margin: '0 0 0.55rem',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Precaución
+            </h4>
+
+            {/* Lista de nombres */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.2rem',
+                fontSize: '1rem',
+                fontWeight: 800,
+                color: '#111827',
+                lineHeight: 1.25,
+              }}
+            >
+              <span>Valentina Ruiz</span>
+              <span>Mateo Silva</span>
+            </div>
+          </div>
+
+          {/* Línea divisoria e icono de chat */}
+          <div
+            style={{
+              borderTop: '1px solid rgba(0, 0, 0, 0.18)',
+              marginTop: '0.65rem',
+              paddingTop: '0.45rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MessageSquare size={17} color="rgba(0, 0, 0, 0.3)" fill="rgba(0, 0, 0, 0.3)" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -724,6 +724,15 @@
   min-height: 220px;
 }
 
+.wireframe-row-4 {
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 200px;
+}
+.wireframe-row-4 .wireframe-card {
+  grid-column: span 1;
+  min-height: 200px;
+}
+
 /* Tarjeta wireframe redondeada */
 .wireframe-card {
   background-color: var(--bg-card);
