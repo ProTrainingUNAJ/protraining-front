@@ -48,7 +48,7 @@ export const CheckInProgressWidget: React.FC<CheckInProgressProps> = ({
           }}
         >
           <CheckCircle2 size={14} style={{ color: 'var(--stat-green)' }} />
-          Check-in Matutino
+          Check-in
         </span>
         <span
           style={{
