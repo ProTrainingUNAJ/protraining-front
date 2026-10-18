@@ -497,6 +497,7 @@ export const DashboardPage: React.FC = () => {
               const isDragOver =
                 dragOverTarget?.rowId === row.id && dragOverTarget?.cardIndex === cardIndex;
               const isRecentlyMoved = recentlySwappedId === card.id;
+              const isPainAlerts = card.type === 'pain-alerts';
 
               return (
                 <div
@@ -506,9 +507,9 @@ export const DashboardPage: React.FC = () => {
                   onDragOver={(e) => handleDragOver(row.id, cardIndex, e)}
                   onDrop={(e) => handleDrop(row.id, cardIndex, e)}
                   onDragEnd={handleDragEnd}
-                  className={`wireframe-card ${isDragging ? 'is-dragging' : ''} ${
-                    isDragOver ? 'is-drag-over' : ''
-                  } ${isRecentlyMoved ? 'is-recently-moved' : ''}`}
+                  className={`wireframe-card ${isPainAlerts ? 'wireframe-card-nested-hover' : ''} ${
+                    isDragging ? 'is-dragging' : ''
+                  } ${isDragOver ? 'is-drag-over' : ''} ${isRecentlyMoved ? 'is-recently-moved' : ''}`}
                   title="Arrastrá para mover a cualquier posición o fila"
                 >
                   {/* Toolbar for intra-row card movement */}
