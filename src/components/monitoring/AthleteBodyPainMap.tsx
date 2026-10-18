@@ -181,19 +181,18 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
         </div>
       </div>
 
-      {/* Anatomical Silhouettes Display */}
+      {/* Anatomical Silhouettes Display (Full body from head to feet) */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
           gap: '1rem',
-          padding: '0.5rem 0',
+          padding: '1rem 0.5rem',
           background: 'var(--bg-card)',
           borderRadius: '12px',
           border: '1px solid var(--border)',
-          overflow: 'hidden',
-          minHeight: '260px',
+          flexWrap: activeView === 'both' ? 'nowrap' : 'wrap',
         }}
       >
         {(activeView === 'front' || activeView === 'both') && (
@@ -202,23 +201,28 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              width: activeView === 'both' ? '150px' : '220px',
-              maxWidth: '100%',
-              transition: 'width 0.2s ease',
+              flex: '1 1 0',
+              maxWidth: activeView === 'both' ? '240px' : '300px',
+              width: '100%',
             }}
           >
             <span
               style={{
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                marginBottom: '0.25rem',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border)',
+                borderRadius: '9999px',
+                padding: '0.2rem 0.65rem',
+                marginBottom: '0.5rem',
                 textTransform: 'uppercase',
+                letterSpacing: '0.03em',
               }}
             >
-              Vista Frontal
+              Vista Frontal (Anterior)
             </span>
-            <div style={{ width: '100%', maxHeight: '250px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <MuscleMapFront
                 musclePains={musclePains}
                 readOnly={true}
@@ -234,23 +238,28 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              width: activeView === 'both' ? '150px' : '220px',
-              maxWidth: '100%',
-              transition: 'width 0.2s ease',
+              flex: '1 1 0',
+              maxWidth: activeView === 'both' ? '240px' : '300px',
+              width: '100%',
             }}
           >
             <span
               style={{
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                marginBottom: '0.25rem',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border)',
+                borderRadius: '9999px',
+                padding: '0.2rem 0.65rem',
+                marginBottom: '0.5rem',
                 textTransform: 'uppercase',
+                letterSpacing: '0.03em',
               }}
             >
-              Vista Dorsal
+              Vista Dorsal (Posterior)
             </span>
-            <div style={{ width: '100%', maxHeight: '250px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <MuscleMapBack
                 musclePains={musclePains}
                 readOnly={true}
