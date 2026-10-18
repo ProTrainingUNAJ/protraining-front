@@ -417,8 +417,9 @@ export const MonitoringPage: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
                 gap: '1rem',
+                alignItems: 'stretch',
               }}
             >
               {filteredAthletes.map((athlete) => (

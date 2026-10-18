@@ -21,4 +21,5 @@ export interface AthleteTrafficLightItem {
   notes?: string;
   avatarUrl?: string;
   submittedAt?: string;
+  affectedMuscle?: string;
 }
