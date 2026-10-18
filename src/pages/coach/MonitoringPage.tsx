@@ -106,7 +106,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     position: 'Mediocampista',
     category: 'Primera División',
     status: 'green',
-    statusLabel: 'Óptimo',
+    statusLabel: 'Óptimos',
     recommendation: 'Apto para completar el 100% de la carga planificada del día.',
     sleepHours: 8.0,
     sleepQuality: 'Muy Buena',
@@ -121,7 +121,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     position: 'Defensor Lateral',
     category: 'Primera División',
     status: 'green',
-    statusLabel: 'Óptimo',
+    statusLabel: 'Óptimos',
     recommendation: 'Apto sesión completa.',
     sleepHours: 8.0,
     sleepQuality: 'Muy Buena',
@@ -135,7 +135,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     position: 'Arquero',
     category: 'Primera División',
     status: 'green',
-    statusLabel: 'Óptimo',
+    statusLabel: 'Óptimos',
     recommendation: 'Apto para trabajos específicos de arco y potencia.',
     sleepHours: 8.5,
     sleepQuality: 'Excelente',
@@ -149,7 +149,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     position: 'Defensor Central',
     category: 'Primera División',
     status: 'green',
-    statusLabel: 'Óptimo',
+    statusLabel: 'Óptimos',
     recommendation: 'Apto sesión completa.',
     sleepHours: 7.5,
     sleepQuality: 'Buena',
@@ -163,7 +163,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     position: 'Volante Mixto',
     category: 'Primera División',
     status: 'green',
-    statusLabel: 'Óptimo',
+    statusLabel: 'Óptimos',
     recommendation: 'Apto sesión completa.',
     sleepHours: 7.5,
     sleepQuality: 'Buena',
@@ -177,7 +177,7 @@ const INITIAL_TRAFFIC_LIGHT_DATA: AthleteTrafficLightItem[] = [
     position: 'Extremo Izquierdo',
     category: 'Primera División',
     status: 'green',
-    statusLabel: 'Óptimo',
+    statusLabel: 'Óptimos',
     recommendation: 'Apto sesión completa.',
     sleepHours: 8.0,
     sleepQuality: 'Muy Buena',
@@ -253,7 +253,7 @@ export const MonitoringPage: React.FC = () => {
           ? {
               ...a,
               status: 'yellow',
-              statusLabel: 'Diferenciado',
+              statusLabel: 'Precaución',
               recommendation: 'Asignado a plan de rehabilitación y descarga muscular.',
             }
           : a,
@@ -449,10 +449,11 @@ export const MonitoringPage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  border: '1px solid var(--border)',
-                  background: colorFilter === 'red' ? 'var(--pain-level-5)' : 'var(--bg-card)',
-                  color: colorFilter === 'red' ? '#ffffff' : 'var(--pain-level-5)',
+                  border: `1px solid ${colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-border)'}`,
+                  background: colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-bg)',
+                  color: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red-text)',
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <span
@@ -460,17 +461,18 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'red' ? '#ffffff' : 'var(--pain-level-5)',
+                    background: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red)',
                   }}
                 />
                 <span>Atención Crítica</span>
                 <span
                   style={{
-                    background:
-                      colorFilter === 'red' ? 'rgba(0,0,0,0.2)' : 'var(--pain-level-5-bg)',
+                    background: colorFilter === 'red' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
+                    color: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
+                    fontWeight: 800,
                   }}
                 >
                   {counts.red}
@@ -490,10 +492,11 @@ export const MonitoringPage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  border: '1px solid var(--border)',
-                  background: colorFilter === 'yellow' ? 'var(--warning-text)' : 'var(--bg-card)',
-                  color: colorFilter === 'yellow' ? '#ffffff' : 'var(--warning-text)',
+                  border: `1px solid ${colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-border)'}`,
+                  background: colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-bg)',
+                  color: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow-text)',
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <span
@@ -501,16 +504,18 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'yellow' ? '#ffffff' : 'var(--warning-text)',
+                    background: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow)',
                   }}
                 />
                 <span>Precaución</span>
                 <span
                   style={{
-                    background: colorFilter === 'yellow' ? 'rgba(0,0,0,0.2)' : 'var(--warning-bg)',
+                    background: colorFilter === 'yellow' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
+                    color: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
+                    fontWeight: 800,
                   }}
                 >
                   {counts.yellow}
@@ -530,10 +535,11 @@ export const MonitoringPage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  border: '1px solid var(--border)',
-                  background: colorFilter === 'green' ? 'var(--stat-green)' : 'var(--bg-card)',
-                  color: colorFilter === 'green' ? '#ffffff' : 'var(--stat-green)',
+                  border: `1px solid ${colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-border)'}`,
+                  background: colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-bg)',
+                  color: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green-text)',
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <span
@@ -541,17 +547,18 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'green' ? '#ffffff' : 'var(--stat-green)',
+                    background: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green)',
                   }}
                 />
                 <span>Óptimos</span>
                 <span
                   style={{
-                    background:
-                      colorFilter === 'green' ? 'rgba(0,0,0,0.2)' : 'var(--stat-green-bg)',
+                    background: colorFilter === 'green' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
+                    color: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
+                    fontWeight: 800,
                   }}
                 >
                   {counts.green}
@@ -571,10 +578,11 @@ export const MonitoringPage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  border: '1px solid var(--border)',
-                  background: colorFilter === 'gray' ? 'var(--text-muted)' : 'var(--bg-card)',
-                  color: colorFilter === 'gray' ? '#ffffff' : 'var(--text-muted)',
+                  border: `1px solid ${colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-border)'}`,
+                  background: colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-bg)',
+                  color: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray-text)',
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <span
@@ -582,16 +590,18 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'gray' ? '#ffffff' : 'var(--text-muted)',
+                    background: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray)',
                   }}
                 />
                 <span>Sin Check-in</span>
                 <span
                   style={{
-                    background: colorFilter === 'gray' ? 'rgba(0,0,0,0.2)' : 'var(--bg-subtle)',
+                    background: colorFilter === 'gray' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
+                    color: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
+                    fontWeight: 800,
                   }}
                 >
                   {counts.gray}

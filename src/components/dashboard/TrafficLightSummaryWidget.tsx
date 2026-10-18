@@ -74,11 +74,11 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           margin: '0.35rem 0 0.85rem',
         }}
       >
-        {/* Rojo */}
+        {/* Rojo - Atención Crítica */}
         <div
           style={{
-            background: 'var(--pain-level-5-bg)',
-            border: '1px solid var(--border)',
+            background: 'var(--traffic-red-bg)',
+            border: '1px solid var(--traffic-red-border)',
             borderRadius: '12px',
             padding: '0.55rem 0.25rem',
           }}
@@ -87,22 +87,22 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
             style={{
               fontSize: '1.35rem',
               fontWeight: 900,
-              color: 'var(--pain-level-5)',
+              color: 'var(--traffic-red-text)',
               lineHeight: 1,
             }}
           >
             {redCount}
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--pain-level-5)' }}>
-            Riesgo
+          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-red-text)' }}>
+            Atención Crítica
           </span>
         </div>
 
-        {/* Amarillo */}
+        {/* Amarillo - Precaución */}
         <div
           style={{
-            background: 'var(--warning-bg)',
-            border: '1px solid var(--border)',
+            background: 'var(--traffic-yellow-bg)',
+            border: '1px solid var(--traffic-yellow-border)',
             borderRadius: '12px',
             padding: '0.55rem 0.25rem',
           }}
@@ -111,22 +111,22 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
             style={{
               fontSize: '1.35rem',
               fontWeight: 900,
-              color: 'var(--warning-text)',
+              color: 'var(--traffic-yellow-text)',
               lineHeight: 1,
             }}
           >
             {yellowCount}
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--warning-text)' }}>
-            Alerta
+          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-yellow-text)' }}>
+            Precaución
           </span>
         </div>
 
-        {/* Verde */}
+        {/* Verde - Óptimos */}
         <div
           style={{
-            background: 'var(--stat-green-bg)',
-            border: '1px solid var(--border)',
+            background: 'var(--traffic-green-bg)',
+            border: '1px solid var(--traffic-green-border)',
             borderRadius: '12px',
             padding: '0.55rem 0.25rem',
           }}
@@ -135,22 +135,22 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
             style={{
               fontSize: '1.35rem',
               fontWeight: 900,
-              color: 'var(--stat-green)',
+              color: 'var(--traffic-green-text)',
               lineHeight: 1,
             }}
           >
             {greenCount}
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--stat-green)' }}>
-            Aptos
+          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-green-text)' }}>
+            Óptimos
           </span>
         </div>
 
-        {/* Gris / Sin responder */}
+        {/* Gris - Sin Check-in */}
         <div
           style={{
-            background: 'var(--bg-subtle)',
-            border: '1px solid var(--border)',
+            background: 'var(--traffic-gray-bg)',
+            border: '1px solid var(--traffic-gray-border)',
             borderRadius: '12px',
             padding: '0.55rem 0.25rem',
           }}
@@ -159,14 +159,14 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
             style={{
               fontSize: '1.35rem',
               fontWeight: 900,
-              color: 'var(--text-muted)',
+              color: 'var(--traffic-gray-text)',
               lineHeight: 1,
             }}
           >
             {grayCount}
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-            Sin dato
+          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--traffic-gray-text)' }}>
+            Sin Check-in
           </span>
         </div>
       </div>

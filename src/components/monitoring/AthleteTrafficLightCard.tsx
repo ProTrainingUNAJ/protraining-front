@@ -8,26 +8,30 @@ interface AthleteTrafficLightCardProps {
   className?: string;
 }
 
-const STATUS_COLORS: Record<TrafficLightStatus, { ring: string; bg: string; text: string }> = {
+const STATUS_COLORS: Record<TrafficLightStatus, { ring: string; bg: string; text: string; border: string }> = {
   red: {
-    ring: 'var(--pain-level-5)',
-    bg: 'var(--pain-level-5-bg)',
-    text: 'var(--pain-level-5)',
+    ring: 'var(--traffic-red)',
+    bg: 'var(--traffic-red-bg)',
+    text: 'var(--traffic-red-text)',
+    border: 'var(--traffic-red-border)',
   },
   yellow: {
-    ring: 'var(--warning-border)',
-    bg: 'var(--warning-bg)',
-    text: 'var(--warning-text)',
+    ring: 'var(--traffic-yellow)',
+    bg: 'var(--traffic-yellow-bg)',
+    text: 'var(--traffic-yellow-text)',
+    border: 'var(--traffic-yellow-border)',
   },
   green: {
-    ring: 'var(--stat-green)',
-    bg: 'var(--stat-green-bg)',
-    text: 'var(--stat-green)',
+    ring: 'var(--traffic-green)',
+    bg: 'var(--traffic-green-bg)',
+    text: 'var(--traffic-green-text)',
+    border: 'var(--traffic-green-border)',
   },
   gray: {
-    ring: 'var(--border)',
-    bg: 'var(--bg-subtle)',
-    text: 'var(--text-muted)',
+    ring: 'var(--traffic-gray)',
+    bg: 'var(--traffic-gray-bg)',
+    text: 'var(--traffic-gray-text)',
+    border: 'var(--traffic-gray-border)',
   },
 };
 
@@ -144,7 +148,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                 fontWeight: 700,
                 background: colors.bg,
                 color: colors.text,
-                border: '1px solid var(--border)',
+                border: `1px solid ${colors.border}`,
                 borderRadius: '9999px',
                 padding: '0.15rem 0.5rem',
               }}

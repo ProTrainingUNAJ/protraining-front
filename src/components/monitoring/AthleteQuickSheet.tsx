@@ -44,28 +44,28 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
   const isGreen = athlete.status === 'green';
 
   const statusBorderColor = isRed
-    ? 'var(--pain-level-5)'
+    ? 'var(--traffic-red-border)'
     : isYellow
-      ? 'var(--warning-border)'
+      ? 'var(--traffic-yellow-border)'
       : isGreen
-        ? 'var(--stat-green)'
-        : 'var(--border)';
+        ? 'var(--traffic-green-border)'
+        : 'var(--traffic-gray-border)';
 
   const statusBgColor = isRed
-    ? 'var(--pain-level-5-bg)'
+    ? 'var(--traffic-red-bg)'
     : isYellow
-      ? 'var(--warning-bg)'
+      ? 'var(--traffic-yellow-bg)'
       : isGreen
-        ? 'var(--stat-green-bg)'
-        : 'var(--bg-subtle)';
+        ? 'var(--traffic-green-bg)'
+        : 'var(--traffic-gray-bg)';
 
   const statusTextColor = isRed
-    ? 'var(--pain-level-5)'
+    ? 'var(--traffic-red-text)'
     : isYellow
-      ? 'var(--warning-text)'
+      ? 'var(--traffic-yellow-text)'
       : isGreen
-        ? 'var(--stat-green)'
-        : 'var(--text-muted)';
+        ? 'var(--traffic-green-text)'
+        : 'var(--traffic-gray-text)';
 
   return (
     <div
