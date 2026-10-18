@@ -278,9 +278,9 @@
 
 .routine-exercise-card:hover {
   background: var(--bg-card);
-  border-color: var(--routine-card-hover-border);
-  box-shadow: var(--shadow);
-  transform: translateY(-1px);
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .routine-exercise-card.completed {
@@ -757,9 +757,9 @@
 
 .muscle-pain-card-btn:hover {
   transform: translateY(-2px);
-  border-color: var(--primary);
+  border-color: var(--secondary);
   background: var(--bg-card);
-  box-shadow: var(--muscle-pain-shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .muscle-pain-card-btn:active {

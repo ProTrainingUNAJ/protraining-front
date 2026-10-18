@@ -158,6 +158,40 @@
   --suite-text-muted: rgb(255 255 255 / 0.78);
   --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
 
+  /* Daily Traffic Light System (KAN-366) */
+  --traffic-red: #ef4444;
+  --traffic-red-bg: rgb(239 68 68 / 0.12);
+  --traffic-red-border: #f87171;
+  --traffic-red-text: #b91c1c;
+
+  --traffic-yellow: #f59e0b;
+  --traffic-yellow-bg: rgb(245 158 11 / 0.14);
+  --traffic-yellow-border: #fbbf24;
+  --traffic-yellow-text: #b45309;
+
+  --traffic-green: #10b981;
+  --traffic-green-bg: rgb(16 185 129 / 0.12);
+  --traffic-green-border: #34d399;
+  --traffic-green-text: #047857;
+
+  --traffic-gray: #6b7280;
+  --traffic-gray-bg: rgb(107 114 128 / 0.12);
+  --traffic-gray-border: #9ca3af;
+  --traffic-gray-text: #4b5563;
+
+  /* Sticky pain alert interactions */
+  --pain-sticky-red-shadow: 0 14px 26px rgb(220 38 38 / 0.42);
+  --pain-sticky-yellow-shadow: 0 14px 26px rgb(234 179 8 / 0.42);
+  --donut-hover-shadow: drop-shadow(0 6px 14px rgb(0 0 0 / 0.16));
+  --sticky-btn-bg: rgb(0 0 0 / 0.08);
+  --sticky-btn-hover-bg: rgb(0 0 0 / 0.18);
+  --sticky-btn-text: #111827;
+  --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+
+  /* Backward compatibility aliases */
+  --warning-border: #f59e0b;
+  --warning-bg: rgb(245 158 11 / 0.14);
+
   /* Performance metrics and indicators (Light Mode) */
   --stat-cyan: #0284c7;
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
@@ -389,4 +423,34 @@
   --status-danger-border: rgb(248 113 113 / 0.4);
   --status-success-bg: rgb(22 101 52 / 0.25);
   --status-success-border: rgb(134 239 172 / 0.4);
+
+  /* Daily Traffic Light System (KAN-366 - dark mode) */
+  --traffic-red: #f87171;
+  --traffic-red-bg: rgb(239 68 68 / 0.22);
+  --traffic-red-border: #ef4444;
+  --traffic-red-text: #fca5a5;
+
+  --traffic-yellow: #fbbf24;
+  --traffic-yellow-bg: rgb(245 158 11 / 0.22);
+  --traffic-yellow-border: #f59e0b;
+  --traffic-yellow-text: #fde68a;
+
+  --traffic-green: #34d399;
+  --traffic-green-bg: rgb(16 185 129 / 0.22);
+  --traffic-green-border: #10b981;
+  --traffic-green-text: #a7f3d0;
+
+  --traffic-gray: #9ca3af;
+  --traffic-gray-bg: rgb(156 163 175 / 0.2);
+  --traffic-gray-border: #6b7280;
+  --traffic-gray-text: #d1d5db;
+
+  /* Sticky pain alert interactions */
+  --pain-sticky-red-shadow: 0 14px 26px rgb(220 38 38 / 0.5);
+  --pain-sticky-yellow-shadow: 0 14px 26px rgb(234 179 8 / 0.5);
+  --donut-hover-shadow: drop-shadow(0 6px 14px rgb(0 0 0 / 0.35));
+  --sticky-btn-bg: rgb(0 0 0 / 0.15);
+  --sticky-btn-hover-bg: rgb(0 0 0 / 0.28);
+  --sticky-btn-text: #111827;
+  --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
 }

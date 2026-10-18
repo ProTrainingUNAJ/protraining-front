@@ -70,6 +70,26 @@
   padding: 1.5rem;
   box-shadow: var(--shadow);
   margin-bottom: 1.5rem;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Mantener estabilidad visual en formularios y elementos estaticos */
+.card:has(form):hover,
+.card:has(input:not([type='checkbox']):not([type='radio'])):hover,
+.card:has(textarea):hover,
+.card.card-static:hover {
+  transform: none;
+  border-color: var(--border);
+  box-shadow: var(--shadow);
 }
 .card-header {
   display: flex;

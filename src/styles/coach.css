@@ -693,35 +693,95 @@
   }
 }
 
-/* Alturas y columnas específicas por fila */
-.wireframe-row-1 {
-  grid-template-columns: repeat(4, 1fr);
-  min-height: 130px;
+/* Estructura responsiva de filas para el Dashboard */
+@media (min-width: 1101px) {
+  .wireframe-row-1 {
+    grid-template-columns: repeat(3, 1fr);
+    min-height: 140px;
+  }
+  .wireframe-row-1 .wireframe-card {
+    min-height: 140px;
+  }
+
+  .wireframe-row-2 {
+    grid-template-columns: repeat(3, 1fr);
+    min-height: 250px;
+  }
+  .wireframe-row-2 .wireframe-card {
+    min-height: 250px;
+  }
+
+  .wireframe-row-3 {
+    grid-template-columns: repeat(2, 1fr);
+    min-height: 220px;
+  }
+  .wireframe-row-3 .wireframe-card {
+    min-height: 220px;
+  }
+
+  .wireframe-row-4 {
+    grid-template-columns: repeat(3, 1fr);
+    min-height: 200px;
+  }
+  .wireframe-row-4 .wireframe-card {
+    min-height: 200px;
+  }
 }
 
-.wireframe-row-1 .wireframe-card {
-  grid-column: span 1;
-  min-height: 130px;
+@media (max-width: 1100px) and (min-width: 769px) {
+  .wireframe-row-1 {
+    grid-template-columns: repeat(2, 1fr);
+    min-height: auto;
+  }
+  .wireframe-row-2 {
+    grid-template-columns: repeat(2, 1fr);
+    min-height: auto;
+  }
+  .wireframe-row-3 {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .wireframe-row-4 {
+    grid-template-columns: repeat(2, 1fr);
+    min-height: auto;
+  }
+  .wireframe-card {
+    min-height: auto !important;
+  }
 }
 
-.wireframe-row-2 {
-  grid-template-columns: repeat(5, 1fr);
-  min-height: 220px;
-}
+@media (max-width: 768px) {
+  .wireframe-dashboard-container {
+    gap: 1rem !important;
+  }
 
-.wireframe-row-2 .wireframe-card {
-  grid-column: span 1;
-  min-height: 220px;
-}
+  .wireframe-row,
+  .wireframe-row-1,
+  .wireframe-row-2,
+  .wireframe-row-3,
+  .wireframe-row-4 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    min-height: auto !important;
+  }
 
-.wireframe-row-3 {
-  grid-template-columns: 2fr 1fr 1fr;
-  min-height: 220px;
-}
+  .wireframe-row-1 .wireframe-card,
+  .wireframe-row-2 .wireframe-card,
+  .wireframe-row-3 .wireframe-card,
+  .wireframe-row-4 .wireframe-card,
+  .wireframe-card {
+    grid-column: span 1 !important;
+    min-height: auto !important;
+  }
 
-.wireframe-row-3 .wireframe-card {
-  grid-column: span 1;
-  min-height: 220px;
+  /* Ocultar barra de arrastre y controles en móviles para evitar interferencia con el scroll táctil */
+  .wireframe-card-toolbar {
+    display: none !important;
+  }
+
+  .wireframe-card {
+    cursor: default !important;
+  }
 }
 
 /* Tarjeta vacía redondeada */
@@ -983,4 +1043,95 @@
   font-weight: 700;
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
+}
+
+/* ── KAN-366: Daily Traffic Light & Quick Sheet ── */
+.athlete-traffic-light-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 681px) {
+  .athlete-quick-sheet-card {
+    border-radius: 24px !important;
+    max-height: 85vh !important;
+  }
+}
+
+/* ── Pain Alerts Stickies: Individual Hover Movement & Routine Action ── */
+.pain-sticky-item {
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.22s ease !important;
+  cursor: pointer;
+  will-change: transform, box-shadow;
+}
+
+.pain-sticky-red:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: var(--pain-sticky-red-shadow) !important;
+}
+
+.pain-sticky-yellow:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: var(--pain-sticky-yellow-shadow) !important;
+}
+
+/* ── Círculos individuales del Semáforo del Día (Microinteracción hover agrandado) ── */
+.donut-metric-item {
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.22s ease !important;
+  cursor: pointer;
+}
+
+.donut-metric-item:hover {
+  transform: scale(1.14) !important;
+  filter: var(--donut-hover-shadow) !important;
+  z-index: 5;
+}
+
+.sticky-routine-btn {
+  background: var(--sticky-btn-bg);
+  border: none;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: var(--sticky-btn-text);
+  font-size: 0.76rem;
+  font-weight: 800;
+  transition: all 0.18s ease;
+}
+
+.sticky-routine-btn:hover {
+  background: var(--sticky-btn-hover-bg);
+  transform: scale(1.05);
+  box-shadow: var(--sticky-btn-shadow);
+}
+
+/* ── Optimizaciones Finas para Widgets en Pantallas Móviles ── */
+@media (max-width: 520px) {
+  .pain-alerts-stickies-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .traffic-light-summary-donuts {
+    gap: 0.25rem !important;
+  }
 }
