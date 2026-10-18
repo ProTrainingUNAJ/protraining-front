@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Dumbbell, Tag, Activity, Loader2 } from 'lucide-react';
+import { Plus, Search, Dumbbell, Tag, Activity, Loader2, X } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
+import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
 import { listExercises, Exercise } from '../../api/generated/entrenamiento';
 
 interface ExerciseItem {
@@ -12,6 +13,8 @@ interface ExerciseItem {
   equipment: string;
   intensityLevel: 'Alta' | 'Media' | 'Baja';
   images?: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
 }
 
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
@@ -27,6 +30,8 @@ const INITIAL_EXERCISES: ExerciseItem[] = [
     equipment: 'Barra olímpica y discos',
     intensityLevel: 'Alta',
     images: ['Barbell_Squat/0.jpg', 'Barbell_Squat/1.jpg'],
+    primaryMuscles: ['quadriceps', 'glutes'],
+    secondaryMuscles: ['hamstrings', 'calves', 'lower back'],
   },
   {
     id: 'ex-2',
@@ -36,6 +41,8 @@ const INITIAL_EXERCISES: ExerciseItem[] = [
     equipment: 'Barra olímpica',
     intensityLevel: 'Alta',
     images: ['Romanian_Deadlift/0.jpg', 'Romanian_Deadlift/1.jpg'],
+    primaryMuscles: ['hamstrings', 'glutes'],
+    secondaryMuscles: ['lower back', 'traps'],
   },
   {
     id: 'ex-3',
@@ -45,24 +52,30 @@ const INITIAL_EXERCISES: ExerciseItem[] = [
     equipment: 'Banco plano y barra',
     intensityLevel: 'Media',
     images: ['Barbell_Bench_Press_-_Medium_Grip/0.jpg', 'Barbell_Bench_Press_-_Medium_Grip/1.jpg'],
+    primaryMuscles: ['chest'],
+    secondaryMuscles: ['triceps', 'shoulders'],
   },
   {
     id: 'ex-4',
+    name: 'Curl de Bíceps con Mancuerna',
+    category: 'Hipertrofia',
+    muscleGroup: 'Brazos',
+    equipment: 'Mancuernas',
+    intensityLevel: 'Media',
+    images: ['Bicep_Curl/0.jpg', 'Bicep_Curl/1.jpg'],
+    primaryMuscles: ['biceps'],
+    secondaryMuscles: ['forearms'],
+  },
+  {
+    id: 'ex-5',
     name: 'Saltos Pliométricos a Cajón (Box Jumps)',
     category: 'Potencia',
     muscleGroup: 'Piernas',
     equipment: 'Cajón pliométrico 60cm',
     intensityLevel: 'Alta',
-    images: [], // <-- Sin fotos para probar el criterio
-  },
-  {
-    id: 'ex-5',
-    name: 'Pase de Aceleración con Trineo',
-    category: 'Velocidad / Aceleración',
-    muscleGroup: 'Piernas',
-    equipment: 'Trineo de arrastre con carga',
-    intensityLevel: 'Alta',
     images: [],
+    primaryMuscles: ['quadriceps', 'calves'],
+    secondaryMuscles: ['glutes', 'hamstrings'],
   },
   {
     id: 'ex-6',
@@ -72,6 +85,19 @@ const INITIAL_EXERCISES: ExerciseItem[] = [
     equipment: 'Fitball o colchoneta',
     intensityLevel: 'Baja',
     images: [],
+    primaryMuscles: ['abdominals'],
+    secondaryMuscles: ['shoulders', 'lower back'],
+  },
+  {
+    id: 'ex-7',
+    name: 'Movilidad y Respiración Diafragmática',
+    category: 'Regenerativo',
+    muscleGroup: 'General',
+    equipment: 'Colchoneta',
+    intensityLevel: 'Baja',
+    images: [],
+    primaryMuscles: [],
+    secondaryMuscles: [],
   },
 ];
 
@@ -84,6 +110,8 @@ interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id'> {
   images?: string[];
   photoUrl1?: string | null;
   photoUrl2?: string | null;
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
 }
 
 const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
@@ -100,6 +128,8 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     equipment: item.equipment || 'Sin equipamiento',
     intensityLevel: 'Media',
     images,
+    primaryMuscles: item.primaryMuscles ?? (item.muscleGroup ? [item.muscleGroup] : []),
+    secondaryMuscles: item.secondaryMuscles ?? [],
   };
 };
 
@@ -126,6 +156,7 @@ export const TrainingPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
 
   // Llamada al backend para traer los ejercicios reales de exercises.json
   useEffect(() => {
@@ -425,6 +456,7 @@ export const TrainingPage: React.FC = () => {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'space-between',
                       gap: '0.4rem',
                       fontSize: '0.8rem',
                       color: 'var(--text-muted)',
@@ -432,8 +464,24 @@ export const TrainingPage: React.FC = () => {
                       borderTop: '1px solid var(--border)',
                     }}
                   >
-                    <Activity size={14} />
-                    <span>Equipo: {ex.equipment}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <Activity size={14} />
+                      <span>{ex.equipment}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setModalExercise(ex)}
+                      style={{
+                        padding: '0.2rem 0.6rem',
+                        fontSize: '0.75rem',
+                        minHeight: '28px',
+                        borderRadius: 'var(--radius)',
+                      }}
+                      title="Ver mapa anatómico y detalles"
+                    >
+                      Anatomía
+                    </button>
                   </div>
                 </div>
               ))}
@@ -466,6 +514,145 @@ export const TrainingPage: React.FC = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* Modal de Detalle Anatómico del Ejercicio (KAN-320) */}
+        {modalExercise && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'var(--routine-modal-overlay)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '1rem',
+            }}
+            onClick={() => setModalExercise(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Detalle anatómico de ${modalExercise.name}`}
+          >
+            <div
+              className="card"
+              style={{
+                margin: 0,
+                padding: '1.5rem',
+                maxWidth: '650px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.25rem',
+                background: 'var(--bg-card)',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-lg)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: '1rem',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                    <span className="badge badge-info">{modalExercise.category}</span>
+                    <span className="badge badge-primary">
+                      Intensidad {modalExercise.intensityLevel}
+                    </span>
+                  </div>
+                  <h2
+                    style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--text-main)',
+                    }}
+                  >
+                    {modalExercise.name}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalExercise(null)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    padding: '0.25rem',
+                  }}
+                  aria-label="Cerrar ventana"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Animación GIF si está disponible */}
+              {modalExercise.images && modalExercise.images.length > 0 && (
+                <div
+                  style={{
+                    borderRadius: 'var(--radius)',
+                    overflow: 'hidden',
+                    maxHeight: '220px',
+                  }}
+                >
+                  <ExerciseGifImage images={modalExercise.images} name={modalExercise.name} />
+                </div>
+              )}
+
+              {/* Información de músculos y mapa anatómico KAN-320 */}
+              <div>
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    color: 'var(--text-main)',
+                    marginBottom: '0.5rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  Músculos Involucrados:
+                </strong>
+
+                {/* Mapa muscular anatómico con dos intensidades y Smart View */}
+                <ExerciseMuscleMap
+                  primaryMuscles={modalExercise.primaryMuscles}
+                  secondaryMuscles={modalExercise.secondaryMuscles}
+                  showLegend={true}
+                  showViewToggle={true}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  paddingTop: '0.75rem',
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setModalExercise(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
