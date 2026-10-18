@@ -174,6 +174,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           marginBottom: '0.65rem',
+          paddingRight: '4rem',
         }}
       >
         <span
