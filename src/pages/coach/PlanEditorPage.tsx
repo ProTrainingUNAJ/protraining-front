@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Check, Loader2, Plus, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Loader2, Plus, Save, UserPlus } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { WeekSection } from '../../components/planning/WeekSection';
 import { ExercisePickerModal } from '../../components/planning/ExercisePickerModal';
+import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
 import { trainingPlansService } from '../../api/trainingPlans';
 import { CatalogExercise, DraftSession, DraftWeek, PlanDraft } from '../../types/trainingPlans';
 import {
@@ -31,6 +32,7 @@ export function PlanEditorPage() {
   const [error, setError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
+  const [showAssign, setShowAssign] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -130,6 +132,13 @@ export function PlanEditorPage() {
   };
 
   const closePicker = useCallback(() => setPickerTarget(null), []);
+  const closeAssign = useCallback(() => setShowAssign(false), []);
+
+  const handleAssigned = (message: string) => {
+    setShowAssign(false);
+    setError(null);
+    setSavedMessage(message);
+  };
 
   const save = async () => {
     if (!draft) return;
@@ -203,6 +212,20 @@ export function PlanEditorPage() {
         actions={
           <>
             {backLink}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowAssign(true)}
+              disabled={saving || dirty}
+              title={
+                dirty
+                  ? 'Guardá los cambios antes de asignar'
+                  : 'Asignar a una categoría o a un atleta'
+              }
+            >
+              <UserPlus size={16} aria-hidden="true" />
+              <span>Asignar</span>
+            </button>
             <button
               type="button"
               className="btn btn-primary"
@@ -301,6 +324,15 @@ export function PlanEditorPage() {
       </div>
 
       {pickerTarget && <ExercisePickerModal onClose={closePicker} onSelect={addExercise} />}
+
+      {showAssign && (
+        <AssignPlanModal
+          planId={draft.id}
+          planName={draft.name}
+          onClose={closeAssign}
+          onAssigned={handleAssigned}
+        />
+      )}
     </div>
   );
 }
