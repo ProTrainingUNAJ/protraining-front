@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Dumbbell, Tag, Activity, Loader2, X } from 'lucide-react';
+import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
@@ -11,7 +11,6 @@ interface ExerciseItem {
   category: string;
   muscleGroup: string;
   equipment: string;
-  intensityLevel: 'Alta' | 'Media' | 'Baja';
   images?: string[];
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
@@ -20,86 +19,6 @@ interface ExerciseItem {
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
 
 const CHIP_CATEGORIES = ['Todos', 'Piernas', 'Pecho', 'Espalda', 'Hombros', 'Brazos', 'Core'];
-
-const INITIAL_EXERCISES: ExerciseItem[] = [
-  {
-    id: 'ex-1',
-    name: 'Sentadilla Trasera con Barra (Back Squat)',
-    category: 'Fuerza Máxima',
-    muscleGroup: 'Piernas',
-    equipment: 'Barra olímpica y discos',
-    intensityLevel: 'Alta',
-    images: ['Barbell_Squat/0.jpg', 'Barbell_Squat/1.jpg'],
-    primaryMuscles: ['quadriceps', 'glutes'],
-    secondaryMuscles: ['hamstrings', 'calves', 'lower back'],
-  },
-  {
-    id: 'ex-2',
-    name: 'Peso Muerto Rumano (RDL)',
-    category: 'Fuerza',
-    muscleGroup: 'Piernas',
-    equipment: 'Barra olímpica',
-    intensityLevel: 'Alta',
-    images: ['Romanian_Deadlift/0.jpg', 'Romanian_Deadlift/1.jpg'],
-    primaryMuscles: ['hamstrings', 'glutes'],
-    secondaryMuscles: ['lower back', 'traps'],
-  },
-  {
-    id: 'ex-3',
-    name: 'Press Banca Plano',
-    category: 'Fuerza Tren Superior',
-    muscleGroup: 'Pecho',
-    equipment: 'Banco plano y barra',
-    intensityLevel: 'Media',
-    images: ['Barbell_Bench_Press_-_Medium_Grip/0.jpg', 'Barbell_Bench_Press_-_Medium_Grip/1.jpg'],
-    primaryMuscles: ['chest'],
-    secondaryMuscles: ['triceps', 'shoulders'],
-  },
-  {
-    id: 'ex-4',
-    name: 'Curl de Bíceps con Mancuerna',
-    category: 'Hipertrofia',
-    muscleGroup: 'Brazos',
-    equipment: 'Mancuernas',
-    intensityLevel: 'Media',
-    images: ['Bicep_Curl/0.jpg', 'Bicep_Curl/1.jpg'],
-    primaryMuscles: ['biceps'],
-    secondaryMuscles: ['forearms'],
-  },
-  {
-    id: 'ex-5',
-    name: 'Saltos Pliométricos a Cajón (Box Jumps)',
-    category: 'Potencia',
-    muscleGroup: 'Piernas',
-    equipment: 'Cajón pliométrico 60cm',
-    intensityLevel: 'Alta',
-    images: [],
-    primaryMuscles: ['quadriceps', 'calves'],
-    secondaryMuscles: ['glutes', 'hamstrings'],
-  },
-  {
-    id: 'ex-6',
-    name: 'Plank con Desestabilización',
-    category: 'Core y Estabilidad',
-    muscleGroup: 'Core',
-    equipment: 'Fitball o colchoneta',
-    intensityLevel: 'Baja',
-    images: [],
-    primaryMuscles: ['abdominals'],
-    secondaryMuscles: ['shoulders', 'lower back'],
-  },
-  {
-    id: 'ex-7',
-    name: 'Movilidad y Respiración Diafragmática',
-    category: 'Regenerativo',
-    muscleGroup: 'General',
-    equipment: 'Colchoneta',
-    intensityLevel: 'Baja',
-    images: [],
-    primaryMuscles: [],
-    secondaryMuscles: [],
-  },
-];
 
 interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id'> {
   id?: string | number;
@@ -126,7 +45,6 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     category: item.category || 'General',
     muscleGroup: item.muscleGroup || 'Cuerpo Completo',
     equipment: item.equipment || 'Sin equipamiento',
-    intensityLevel: 'Media',
     images,
     primaryMuscles: item.primaryMuscles ?? (item.muscleGroup ? [item.muscleGroup] : []),
     secondaryMuscles: item.secondaryMuscles ?? [],
@@ -151,64 +69,85 @@ function extractExerciseList(data: unknown): ExerciseApiResponse[] {
 export const TrainingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [exercises, setExercises] = useState<ExerciseItem[]>(INITIAL_EXERCISES);
-  const [isLoading, setIsLoading] = useState(false);
+  const [exercises, setExercises] = useState<ExerciseItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
 
-  // Llamada al backend para traer los ejercicios reales de exercises.json
+  // Carga inicial y filtros por Chip o Buscador directamente al Backend
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchExercises() {
+    // Si escribe texto espera 350ms; si tocó un chip, pide al instante (0ms)
+    const debounceDelay = searchTerm.trim() ? 350 : 0;
+
+    const timer = setTimeout(async () => {
       setIsLoading(true);
+      setError(null);
+
       try {
         const response = await listExercises({
-          query: { page: 1, pageSize: PAGE_SIZE },
+          query: {
+            page: 1,
+            pageSize: PAGE_SIZE,
+            search: searchTerm.trim() || undefined,
+            muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+          },
         });
 
         if (!isMounted) return;
 
         const rawList = extractExerciseList(response.data);
+        const mapped = rawList.map(mapExerciseToItem);
 
-        if (rawList.length > 0) {
-          const mapped: ExerciseItem[] = rawList.map(mapExerciseToItem);
-          setExercises(mapped);
-          setPage(1);
-          setHasMore(rawList.length === PAGE_SIZE);
-        } else {
-          setHasMore(false);
+        setExercises(mapped);
+        setPage(1);
+        setHasMore(rawList.length >= PAGE_SIZE);
+        if (response.data && 'totalCount' in response.data) {
+          setTotalCount(response.data.totalCount);
+          setHasMore(response.data.page < response.data.totalPages);
         }
       } catch (err) {
-        console.warn('No se pudo conectar al backend de ejercicios. Usando catálogo inicial.', err);
-        setHasMore(false); // Si falló el backend, no mostramos "cargar más"
+        if (!isMounted) return;
+        console.error('Error al cargar ejercicios del backend:', err);
+        setError('No se pudo cargar la biblioteca');
+        setExercises([]);
+        setHasMore(false);
       } finally {
         if (isMounted) setIsLoading(false);
       }
-    }
-
-    fetchExercises();
+    }, debounceDelay);
 
     return () => {
       isMounted = false;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [searchTerm, selectedCategory, retryCount]);
 
-  // Función para cargar la siguiente página (Página 2, 3, etc.)
+  // Función para pedir la siguiente página manteniendo los filtros
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
     const nextPage = page + 1;
+
     try {
       const response = await listExercises({
-        query: { page: nextPage, pageSize: PAGE_SIZE },
+        query: {
+          page: nextPage,
+          pageSize: PAGE_SIZE,
+          search: searchTerm.trim() || undefined,
+          muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+        },
       });
+
       const rawList = extractExerciseList(response.data);
       if (rawList.length > 0) {
-        const mapped: ExerciseItem[] = rawList.map(mapExerciseToItem);
-        // Sumar los nuevos sin duplicar IDs
+        const mapped = rawList.map(mapExerciseToItem);
         setExercises((prev) => {
           const existingIds = new Set(prev.map((e) => e.id));
           const newItems = mapped.filter((e) => !existingIds.has(e.id));
@@ -216,69 +155,19 @@ export const TrainingPage: React.FC = () => {
         });
         setPage(nextPage);
         setHasMore(rawList.length >= PAGE_SIZE);
+        if (response.data && 'totalPages' in response.data) {
+          setHasMore(nextPage < response.data.totalPages);
+        }
       } else {
         setHasMore(false);
       }
     } catch (err) {
-      console.warn('Error al cargar más ejercicios:', err);
+      console.error('Error al cargar más ejercicios:', err);
       setHasMore(false);
     } finally {
       setIsLoadingMore(false);
     }
   };
-
-  // Búsqueda en el backend con debounce (350ms) y tolerancia a errores ortográficos (pg_trgm)
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      setIsLoading(true);
-      try {
-        const response = await listExercises({
-          query: {
-            search: searchTerm.trim() || undefined,
-            page: 1,
-            pageSize: PAGE_SIZE,
-          },
-        });
-
-        const rawList = extractExerciseList(response.data);
-
-        if (rawList.length > 0) {
-          const mapped: ExerciseItem[] = rawList.map(mapExerciseToItem);
-          setExercises(mapped);
-          setPage(1);
-          setHasMore(rawList.length >= PAGE_SIZE);
-        } else if (searchTerm.trim()) {
-          // Si buscó algo que no tuvo ninguna coincidencia ni con tolerancia
-          setExercises([]);
-          setHasMore(false);
-        }
-      } catch (err) {
-        console.warn('Error en búsqueda del backend:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 350); // Espera 350ms a que el usuario termine de escribir
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const filteredExercises = exercises.filter((ex) => {
-    const matchesCat =
-      selectedCategory === 'Todos' ||
-      ex.muscleGroup.toLowerCase() === selectedCategory.toLowerCase();
-
-    // Si esta el backend apagado, usa includes
-    if (exercises === INITIAL_EXERCISES) {
-      const matchesSearch =
-        !searchTerm.trim() ||
-        ex.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ex.muscleGroup.toLowerCase().includes(searchTerm.toLowerCase());
-
-      return matchesSearch && (matchesCat || exercises !== INITIAL_EXERCISES);
-    }
-
-    return matchesCat;
-  });
 
   return (
     <div className="app-page-container">
@@ -286,12 +175,6 @@ export const TrainingPage: React.FC = () => {
       <PageHeader
         title="Ejercicios"
         description="Banco de ejercicios, intensidades y metodologías de entrenamiento."
-        actions={
-          <button type="button" className="btn btn-primary" title="Registrar nuevo ejercicio">
-            <Plus size={16} aria-hidden="true" />
-            <span>Nuevo Ejercicio</span>
-          </button>
-        }
       />
 
       <div className="app-page-body">
@@ -368,8 +251,42 @@ export const TrainingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Catálogo de Ejercicios */}
-        {filteredExercises.length === 0 ? (
+        {/* Estado de Error si el backend falla */}
+        {error && !isLoading ? (
+          <div
+            className="card"
+            style={{
+              textAlign: 'center',
+              padding: '3.5rem',
+              margin: 0,
+            }}
+          >
+            <AlertCircle size={44} style={{ margin: '0 auto 1rem', color: 'var(--danger)' }} />
+            <h3
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                margin: '0 0 0.5rem',
+                color: 'var(--text-main)',
+              }}
+            >
+              {error}
+            </h3>
+            <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              Ocurrió un inconveniente al conectar con el servidor. Verifica tu conexión o intenta
+              nuevamente.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setRetryCount((prev) => prev + 1)}
+              style={{ minHeight: '40px', padding: '0.5rem 1.5rem' }}
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : !isLoading && exercises.length === 0 ? (
+          /* Estado vacío si no hay coincidencias */
           <div
             className="card"
             style={{
@@ -391,11 +308,29 @@ export const TrainingPage: React.FC = () => {
               No se encontraron ejercicios
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
-              Prueba modificando el término de búsqueda o cambiando la categoría.
+              Prueba modificando el término de búsqueda o seleccionando otra categoría.
             </p>
           </div>
         ) : (
+          /* Lista de tarjetas y botón Cargar más */
           <>
+            {/* Contador de ejercicios encontrados */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0 0.25rem',
+                marginBottom: '-0.25rem',
+                fontSize: '0.85rem',
+                color: 'var(--text-muted)',
+                fontWeight: 600,
+              }}
+            >
+              <span>
+                Mostrando {exercises.length} de {totalCount} ejercicios
+              </span>
+            </div>
             <div
               style={{
                 display: 'grid',
@@ -403,7 +338,7 @@ export const TrainingPage: React.FC = () => {
                 gap: '1.25rem',
               }}
             >
-              {filteredExercises.map((ex) => (
+              {exercises.map((ex) => (
                 <div
                   key={ex.id}
                   className="card"
@@ -417,8 +352,8 @@ export const TrainingPage: React.FC = () => {
                   }}
                 >
                   <div>
-                    {/* Animación GIF de las 2 fotos */}
                     <ExerciseGifImage images={ex.images} name={ex.name} />
+
                     <div
                       style={{
                         display: 'flex',
@@ -433,7 +368,7 @@ export const TrainingPage: React.FC = () => {
                       >
                         <Tag size={12} /> {ex.category}
                       </span>
-                      <span className="badge badge-primary">Intensidad {ex.intensityLevel}</span>
+                      {/* Eliminado el badge de intensidad inventada */}
                     </div>
 
                     <h3
@@ -488,7 +423,7 @@ export const TrainingPage: React.FC = () => {
             </div>
 
             {/* Botón Cargar Más Ejercicios */}
-            {hasMore && filteredExercises.length > 0 && (
+            {hasMore && exercises.length > 0 && (
               <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
                 <button
                   type="button"
@@ -567,9 +502,6 @@ export const TrainingPage: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem' }}>
                     <span className="badge badge-info">{modalExercise.category}</span>
-                    <span className="badge badge-primary">
-                      Intensidad {modalExercise.intensityLevel}
-                    </span>
                   </div>
                   <h2
                     style={{
