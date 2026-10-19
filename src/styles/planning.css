@@ -346,3 +346,37 @@
   font-size: 0.85rem;
   color: var(--text-muted);
 }
+
+/* Modal de asignación */
+.plan-assign-type {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.plan-assign-type legend {
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.plan-assign-type label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.plan-assign-type input {
+  width: auto;
+  margin: 0;
+}
+
+.plan-picker .plan-field select {
+  margin-bottom: 0;
+}

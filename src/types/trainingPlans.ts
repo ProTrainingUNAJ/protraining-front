@@ -8,6 +8,11 @@ export interface PlanListItem {
   objective: string | null;
 }
 
+export interface PlanAssignmentTarget {
+  type: 'category' | 'athlete';
+  id: string;
+}
+
 export interface CatalogExercise {
   id: string;
   name: string;
