@@ -1,7 +1,29 @@
-import React, { useState } from 'react';
-import { User, Bell, Palette, Shield, Check, Save, Camera, Laptop, Sun, Moon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  User,
+  Bell,
+  Palette,
+  Shield,
+  Check,
+  Save,
+  Camera,
+  Laptop,
+  Sun,
+  Moon,
+  BellRing,
+  BellOff,
+  RefreshCw,
+  AlertTriangle,
+} from 'lucide-react';
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
+import {
+  subscribeUserToPush,
+  unsubscribeUserFromPush,
+  isPushSupported,
+  isUserSubscribed,
+  getNotificationPermission,
+} from '../../api/pushNotifications';
 
 interface SettingsViewProps {
   role: 'pf' | 'athlete';
@@ -28,6 +50,76 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const [notifySessions, setNotifySessions] = useState(true);
   const [notifyCheckIn, setNotifyCheckIn] = useState(true);
   const [notifyReports, setNotifyReports] = useState(role === 'pf');
+
+  // Web Push device subscription state
+  const [pushSupported] = useState<boolean>(() => isPushSupported());
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | 'unsupported'>(() =>
+    getNotificationPermission(),
+  );
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushFeedback, setPushFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isPushSupported()) {
+      isUserSubscribed().then((subscribed) => {
+        if (isMounted) {
+          setPushSubscribed(subscribed);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleTogglePush = async () => {
+    setPushLoading(true);
+    setPushFeedback(null);
+    try {
+      if (pushSubscribed) {
+        const ok = await unsubscribeUserFromPush();
+        if (ok) {
+          setPushSubscribed(false);
+          setPushFeedback({
+            type: 'success',
+            message: 'Notificaciones desactivadas para este navegador.',
+          });
+        } else {
+          setPushFeedback({
+            type: 'error',
+            message: 'No se pudo desactivar la suscripción Web Push.',
+          });
+        }
+      } else {
+        const sub = await subscribeUserToPush();
+        const currentPerm = getNotificationPermission();
+        setPushPermission(currentPerm);
+        if (sub) {
+          setPushSubscribed(true);
+          setPushFeedback({
+            type: 'success',
+            message: '¡Notificaciones push activadas! Recibirás avisos en tu dispositivo.',
+          });
+        } else if (currentPerm === 'denied') {
+          setPushFeedback({
+            type: 'error',
+            message:
+              'El permiso de notificaciones fue bloqueado en este navegador. Habilitalo en los permisos del sitio.',
+          });
+        }
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al configurar notificaciones';
+      setPushFeedback({ type: 'error', message: msg });
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -745,6 +837,176 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       </span>
                     </div>
                   </label>
+                )}
+              </div>
+
+              {/* ── Sección de Notificaciones Web Push del Dispositivo ── */}
+              <div
+                style={{
+                  marginTop: '1.75rem',
+                  paddingTop: '1.5rem',
+                  borderTop: '1px solid var(--border)',
+                  maxWidth: '540px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: '240px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                        Notificaciones Push en este Dispositivo
+                      </strong>
+                      {pushSubscribed ? (
+                        <span
+                          className="badge"
+                          style={{
+                            background: 'var(--success-bg-strong)',
+                            color: 'var(--success-text)',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Activadas
+                        </span>
+                      ) : pushPermission === 'denied' ? (
+                        <span
+                          className="badge"
+                          style={{
+                            background: 'var(--danger-bg-strong)',
+                            color: 'var(--danger-text)',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Bloqueadas
+                        </span>
+                      ) : (
+                        <span
+                          className="badge"
+                          style={{
+                            background: 'var(--bg-subtle)',
+                            color: 'var(--text-muted)',
+                            border: '1px solid var(--border)',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Inactivas
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--text-muted)',
+                        margin: 0,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {role === 'athlete'
+                        ? 'Recibí recordatorios matutinos de tu check-in diario y avisos de nuevas rutinas aunque no tengas la app abierta.'
+                        : 'Recibí alertas inmediatas de sobrecarga o dolor de tus atletas directamente en el sistema operativo.'}
+                    </p>
+                  </div>
+
+                  {pushSupported ? (
+                    <button
+                      type="button"
+                      onClick={handleTogglePush}
+                      disabled={pushLoading || pushPermission === 'denied'}
+                      className={`btn ${pushSubscribed ? 'btn-secondary' : 'btn-primary'}`}
+                      style={{
+                        padding: '0.55rem 1rem',
+                        fontSize: '0.82rem',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={
+                        pushPermission === 'denied'
+                          ? 'Permiso bloqueado en el navegador'
+                          : pushSubscribed
+                            ? 'Desactivar notificaciones en este dispositivo'
+                            : 'Activar recordatorios y notificaciones push'
+                      }
+                    >
+                      {pushLoading ? (
+                        <>
+                          <RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                          <span>Procesando...</span>
+                        </>
+                      ) : pushSubscribed ? (
+                        <>
+                          <BellOff size={15} />
+                          <span>Desactivar Push</span>
+                        </>
+                      ) : (
+                        <>
+                          <BellRing size={15} />
+                          <span>Activar Recordatorios</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: '0.78rem',
+                        color: 'var(--text-muted)',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      Web Push no compatible en este navegador.
+                    </span>
+                  )}
+                </div>
+
+                {pushFeedback && (
+                  <div
+                    style={{
+                      marginTop: '0.85rem',
+                      padding: '0.55rem 0.85rem',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      background:
+                        pushFeedback.type === 'success'
+                          ? 'var(--success-bg-strong)'
+                          : 'var(--danger-bg-strong)',
+                      color:
+                        pushFeedback.type === 'success'
+                          ? 'var(--success-text)'
+                          : 'var(--danger-text)',
+                      border: `1px solid ${
+                        pushFeedback.type === 'success' ? 'var(--success)' : 'var(--danger)'
+                      }`,
+                    }}
+                  >
+                    {pushFeedback.type === 'success' ? (
+                      <Check size={15} />
+                    ) : (
+                      <AlertTriangle size={15} />
+                    )}
+                    <span>{pushFeedback.message}</span>
+                  </div>
                 )}
               </div>
             </div>
