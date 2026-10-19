@@ -11,6 +11,8 @@ import {
   RefreshCw,
   AlertTriangle,
   HeartPulse,
+  Brain,
+  Bandage,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -92,7 +94,9 @@ export const CheckInPage: React.FC = () => {
   const [fatigueLevel, setFatigueLevel] = useState<number>(2);
   const [muscleSoreness, setMuscleSoreness] = useState<number>(1);
   const [moodRate, setMoodRate] = useState<number>(4);
+  const [stressLevel, setStressLevel] = useState<number>(2);
   const [isSick, setIsSick] = useState<boolean>(false);
+  const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(false);
   const [musclePains, setMusclePains] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
 
@@ -194,12 +198,6 @@ export const CheckInPage: React.FC = () => {
         ? reportedPains.map(([mId, lvl]) => `${mId}:${lvl}`).join(',')
         : null;
 
-    // Severe pain (>= 4) is flagged as active injury in domain model
-    const hasActiveInjury = reportedPains.some(([, lvl]) => lvl >= 4);
-
-    // Stress level is inverse of mood rate (1 to 5)
-    const stressLevel = Math.max(1, Math.min(5, 6 - moodRate));
-
     try {
       const response = await submitCheckIn(athleteId, {
         sleepHours,
@@ -265,6 +263,17 @@ export const CheckInPage: React.FC = () => {
       3: 'Normal',
       4: 'Motivado',
       5: 'Excelente',
+    };
+    return map[val] || `${val}`;
+  };
+
+  const getStressLabel = (val: number) => {
+    const map: Record<number, string> = {
+      1: 'Muy bajo',
+      2: 'Bajo',
+      3: 'Moderado',
+      4: 'Alto',
+      5: 'Muy alto',
     };
     return map[val] || `${val}`;
   };
@@ -636,6 +645,19 @@ export const CheckInPage: React.FC = () => {
                       border: '1px solid var(--border)',
                     }}
                   >
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Estrés</small>
+                    <strong style={{ color: 'var(--text-main)' }}>
+                      {stressLevel} / 5 ({getStressLabel(stressLevel)})
+                    </strong>
+                  </div>
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
                     <small style={{ color: 'var(--text-muted)', display: 'block' }}>Salud</small>
                     <strong
                       style={{
@@ -643,6 +665,23 @@ export const CheckInPage: React.FC = () => {
                       }}
                     >
                       {isSick ? 'Con síntomas' : 'Sin síntomas'}
+                    </strong>
+                  </div>
+                  <div
+                    style={{
+                      background: 'var(--bg-card)',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <small style={{ color: 'var(--text-muted)', display: 'block' }}>Lesión</small>
+                    <strong
+                      style={{
+                        color: hasActiveInjury ? 'var(--danger-text)' : 'var(--success-text)',
+                      }}
+                    >
+                      {hasActiveInjury ? 'Con lesión activa' : 'Sin lesión'}
                     </strong>
                   </div>
                 </div>
@@ -841,14 +880,8 @@ export const CheckInPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Cuadrícula responsive de 6 tarjetas pequeñas y consistentes */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '0.85rem',
-                }}
-              >
+              {/* Cuadrícula responsive de 8 tarjetas (4 arriba y 4 abajo) */}
+              <div className="checkin-wellness-grid">
                 {/* 1. Horas de sueño: control deslizante de 0 a 24 horas */}
                 <WellnessCard
                   id="wellness-sleep-hours"
@@ -922,7 +955,22 @@ export const CheckInPage: React.FC = () => {
                   scaleDescription="1: Desanimado · 5: Muy positivo"
                 />
 
-                {/* 6. Estado de salud: opciones «Sin síntomas» y «Con síntomas» */}
+                {/* 6. Nivel de estrés: escala del 1 al 5 */}
+                <WellnessCard
+                  id="wellness-stress"
+                  name="Nivel de estrés"
+                  icon={<Brain size={16} />}
+                  valueDisplay={getStressLabel(stressLevel)}
+                  type="scale"
+                  scaleValue={stressLevel}
+                  onScaleChange={setStressLevel}
+                  badgeVariant={
+                    stressLevel <= 2 ? 'success' : stressLevel === 3 ? 'warning' : 'danger'
+                  }
+                  scaleDescription="1: Muy bajo · 5: Muy alto"
+                />
+
+                {/* 7. Estado de salud: opciones «Sin síntomas» y «Con síntomas» */}
                 <WellnessCard
                   id="wellness-health"
                   name="Estado de salud"
@@ -931,10 +979,65 @@ export const CheckInPage: React.FC = () => {
                   type="toggle"
                   toggleValue={isSick}
                   onToggleChange={setIsSick}
+                  toggleLabels={{ falseLabel: 'Sin síntomas', trueLabel: 'Con síntomas' }}
                   badgeVariant={isSick ? 'danger' : 'success'}
                   scaleDescription="Fiebre, resfrío o indisposición"
                 />
+
+                {/* 8. Lesión activa: interruptor explícito */}
+                <WellnessCard
+                  id="wellness-active-injury"
+                  name="Lesión activa"
+                  icon={<Bandage size={16} />}
+                  valueDisplay={hasActiveInjury ? 'Con lesión activa' : 'Sin lesión'}
+                  type="toggle"
+                  toggleValue={hasActiveInjury}
+                  onToggleChange={setHasActiveInjury}
+                  toggleLabels={{ falseLabel: 'Sin lesión', trueLabel: 'Tengo lesión' }}
+                  badgeVariant={hasActiveInjury ? 'danger' : 'success'}
+                  scaleDescription="Informa lesión diagnosticada (Semáforo Rojo)"
+                />
               </div>
+
+              {/* Dynamic alert notice if athlete marks an active injury */}
+              {hasActiveInjury && (
+                <div
+                  style={{
+                    marginTop: '0.9rem',
+                    background: 'var(--danger-bg-strong)',
+                    border: '1.5px solid var(--danger)',
+                    borderRadius: '10px',
+                    padding: '0.85rem 1.15rem',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                    color: 'var(--danger-text)',
+                    animation: 'fadeIn 0.25s ease-in-out',
+                    boxShadow: 'var(--shadow-sm)',
+                  }}
+                >
+                  <ShieldAlert
+                    size={20}
+                    style={{ flexShrink: 0, marginTop: '2px', color: 'var(--danger)' }}
+                  />
+                  <div style={{ fontSize: '0.84rem', lineHeight: 1.45 }}>
+                    <strong
+                      style={{
+                        display: 'block',
+                        marginBottom: '0.2rem',
+                        color: 'var(--danger-text)',
+                      }}
+                    >
+                      Aviso de Semáforo Rojo por lesión activa
+                    </strong>
+                    <span>
+                      Al marcar que tenés una lesión activa, el sistema colocará tu semáforo de hoy
+                      en <strong>Rojo</strong> para que el cuerpo técnico priorice tu cuidado y
+                      adapte o suspenda la carga de entrenamiento.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ── SECCIÓN D: ACCIÓN FINAL (OBSERVACIONES + BOTÓN GUARDAR Y ENVIAR) ── */}
