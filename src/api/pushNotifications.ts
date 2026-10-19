@@ -28,11 +28,47 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /**
+ * Comprueba si Web Push y Notification están soportados en el entorno actual.
+ */
+export function isPushSupported(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+  );
+}
+
+/**
+ * Retorna el estado actual de permisos de notificación.
+ */
+export function getNotificationPermission(): NotificationPermission | 'unsupported' {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'unsupported';
+  }
+  return Notification.permission;
+}
+
+/**
+ * Verifica si el navegador actual ya cuenta con una suscripción Web Push activa.
+ */
+export async function isUserSubscribed(): Promise<boolean> {
+  if (!isPushSupported()) return false;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    return subscription !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Obtiene la clave pública VAPID desde el backend (Estructura a través del Gateway).
  */
 export async function getVapidPublicKey(): Promise<string> {
   const response = await httpClient.get<VapidPublicKeyResponse>(
-    '/api/estructura/api/v1/push-subscriptions/public-key',
+    '/estructura/api/v1/push-subscriptions/public-key',
   );
   return response.data.publicKey;
 }
@@ -43,16 +79,37 @@ export async function getVapidPublicKey(): Promise<string> {
 export async function registerPushSubscription(
   payload: RegisterPushSubscriptionPayload,
 ): Promise<void> {
-  await httpClient.post('/api/estructura/api/v1/push-subscriptions', payload);
+  await httpClient.post('/estructura/api/v1/push-subscriptions', payload);
 }
 
 /**
  * Revoca una suscripción Web Push en el backend.
+ * Envía el endpoint tanto por query params como en el cuerpo para compatibilidad con proxies.
  */
 export async function unregisterPushSubscription(endpoint: string): Promise<void> {
-  await httpClient.delete('/api/estructura/api/v1/push-subscriptions', {
+  await httpClient.delete('/estructura/api/v1/push-subscriptions', {
+    params: { endpoint },
     data: { endpoint },
   });
+}
+
+/**
+ * Desuscribe al usuario de las notificaciones Web Push y revoca el registro en el backend.
+ */
+export async function unsubscribeUserFromPush(): Promise<boolean> {
+  if (!isPushSupported()) return false;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      await unregisterPushSubscription(subscription.endpoint);
+      return await subscription.unsubscribe();
+    }
+    return true;
+  } catch (error) {
+    console.error('Error al desuscribir de notificaciones Web Push:', error);
+    return false;
+  }
 }
 
 /**

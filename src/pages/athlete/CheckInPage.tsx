@@ -13,6 +13,8 @@ import {
   HeartPulse,
   Brain,
   Bandage,
+  Bell,
+  BellRing,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -32,6 +34,11 @@ import {
   CheckInSubmitResponse,
 } from '../../api/seguimientoService';
 import { structureService } from '../../api/structureService';
+import {
+  subscribeUserToPush,
+  isPushSupported,
+  isUserSubscribed,
+} from '../../api/pushNotifications';
 
 const getCachedAthleteId = (userId?: string): string | null => {
   if (!userId) return null;
@@ -110,6 +117,44 @@ export const CheckInPage: React.FC = () => {
   const [pendingOfflineCount, setPendingOfflineCount] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  // Web Push reminder subscription state
+  const [pushSupported] = useState<boolean>(() => isPushSupported());
+  const [pushSubscribed, setPushSubscribed] = useState<boolean>(false);
+  const [pushLoading, setPushLoading] = useState<boolean>(false);
+  const [pushFeedback, setPushFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isPushSupported()) {
+      isUserSubscribed().then((subscribed) => {
+        if (isMounted) {
+          setPushSubscribed(subscribed);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleActivatePush = async () => {
+    setPushLoading(true);
+    setPushFeedback(null);
+    try {
+      const sub = await subscribeUserToPush();
+      if (sub) {
+        setPushSubscribed(true);
+        setPushFeedback('¡Recordatorios diarios activados en este dispositivo!');
+      } else {
+        setPushFeedback('Permiso no concedido para notificaciones en el navegador.');
+      }
+    } catch {
+      setPushFeedback('No se pudo completar el registro de notificaciones.');
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   // Synchronize pending records from IndexedDB
   const handleSyncPending = useCallback(async () => {
@@ -772,6 +817,99 @@ export const CheckInPage: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* ── Promoción de recordatorios Web Push para el atleta ── */}
+            {pushSupported && (
+              <div
+                style={{
+                  maxWidth: '640px',
+                  margin: '0 auto 1.75rem',
+                  padding: '1.25rem',
+                  borderRadius: '12px',
+                  background: 'var(--bg-card)',
+                  border: pushSubscribed
+                    ? '1.5px solid var(--success-border)'
+                    : '1.5px solid var(--secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  flexWrap: 'wrap',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    <BellRing
+                      size={18}
+                      style={{
+                        color: pushSubscribed ? 'var(--success)' : 'var(--secondary)',
+                      }}
+                    />
+                    <strong style={{ fontSize: '0.92rem', color: 'var(--text-main)' }}>
+                      {pushSubscribed
+                        ? 'Recordatorios diarios activos'
+                        : '¿Querés recibir recordatorios de tu Check-in?'}
+                    </strong>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {pushSubscribed
+                      ? 'Recibirás avisos matutinos en este dispositivo para registrar tu recuperación y alertar a tu PF.'
+                      : 'Activá las notificaciones push para no olvidarte de registrar tu estado cada mañana antes de entrenar.'}
+                  </p>
+                  {pushFeedback && (
+                    <span
+                      style={{
+                        display: 'block',
+                        marginTop: '0.35rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: pushSubscribed ? 'var(--success-text)' : 'var(--danger-text)',
+                      }}
+                    >
+                      {pushFeedback}
+                    </span>
+                  )}
+                </div>
+
+                {!pushSubscribed && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleActivatePush}
+                    disabled={pushLoading}
+                    style={{
+                      padding: '0.55rem 1.1rem',
+                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {pushLoading ? (
+                      <>
+                        <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                        <span>Activando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Bell size={14} />
+                        <span>Activar recordatorios</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
 
             <button
               type="button"
