@@ -262,11 +262,19 @@ export const TrainingPage: React.FC = () => {
             }}
           >
             <AlertCircle size={44} style={{ margin: '0 auto 1rem', color: 'var(--danger)' }} />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--text-main)' }}>
+            <h3
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                margin: '0 0 0.5rem',
+                color: 'var(--text-main)',
+              }}
+            >
               {error}
             </h3>
             <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Ocurrió un inconveniente al conectar con el servidor. Verifica tu conexión o intenta nuevamente.
+              Ocurrió un inconveniente al conectar con el servidor. Verifica tu conexión o intenta
+              nuevamente.
             </p>
             <button
               type="button"
@@ -289,7 +297,14 @@ export const TrainingPage: React.FC = () => {
             }}
           >
             <Dumbbell size={44} style={{ margin: '0 auto 1rem', opacity: 0.35 }} />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--text-main)' }}>
+            <h3
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                margin: '0 0 0.5rem',
+                color: 'var(--text-main)',
+              }}
+            >
               No se encontraron ejercicios
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
@@ -435,7 +450,6 @@ export const TrainingPage: React.FC = () => {
             )}
           </>
         )}
-
 
         {/* Modal de Detalle Anatómico del Ejercicio (KAN-320) */}
         {modalExercise && (
