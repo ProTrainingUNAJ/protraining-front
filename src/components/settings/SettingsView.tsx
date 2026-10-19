@@ -54,8 +54,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   // Web Push device subscription state
   const [pushSupported] = useState<boolean>(() => isPushSupported());
   const [pushSubscribed, setPushSubscribed] = useState(false);
-  const [pushPermission, setPushPermission] = useState<NotificationPermission | 'unsupported'>(
-    () => getNotificationPermission(),
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | 'unsupported'>(() =>
+    getNotificationPermission(),
   );
   const [pushLoading, setPushLoading] = useState(false);
   const [pushFeedback, setPushFeedback] = useState<{
