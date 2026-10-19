@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, HealthCheckData, HealthCheckResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListMyCategoriesData, ListMyCategoriesErrors, ListMyCategoriesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses } from './types.gen';
+import type { AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, ExportStructureCsvData, ExportStructureCsvErrors, ExportStructureCsvResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetMeData, GetMeErrors, GetMeResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, HealthCheckData, HealthCheckResponses, ListAthletesByCategoryData, ListAthletesByCategoryErrors, ListAthletesByCategoryResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListMyCategoriesData, ListMyCategoriesErrors, ListMyCategoriesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -161,6 +161,18 @@ export const generateAthleteInvitation = <ThrowOnError extends boolean = false>(
 });
 
 /**
+ * Obtener el atleta logueado
+ *
+ * Solo para el rol Atleta. Busca al atleta vinculado a la cuenta del token (claim `sub`) y devuelve su id de atleta, su nombre y sus categorías. Si está dado de baja, las categorías vienen vacías. Lo usan Seguimiento (check-in) y Entrenamiento (rutina de hoy) para saber qué atleta es el usuario, llamándolo con el mismo token.
+ */
+export const getMe = <ThrowOnError extends boolean = false>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, GetMeErrors, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, GetMeErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/me',
+    ...options
+});
+
+/**
  * Listar las categorías del atleta logueado
  *
  * Solo para el rol Atleta. Busca al atleta vinculado a la cuenta del token (claim `sub`) y devuelve las categorías a las que pertenece. Si el atleta está dado de baja, la lista viene vacía. Lo usa Entrenamiento para resolver la rutina de hoy.
@@ -307,6 +319,18 @@ export const updateCategory = <ThrowOnError extends boolean = false>(options: Op
 });
 
 /**
+ * Listar atletas de una categoría
+ *
+ * Retorna la lista de atletas asignados a la división deportiva especificada.
+ */
+export const listAthletesByCategory = <ThrowOnError extends boolean = false>(options: Options<ListAthletesByCategoryData, ThrowOnError>): RequestResult<ListAthletesByCategoryResponses, ListAthletesByCategoryErrors, ThrowOnError> => (options.client ?? client).get<ListAthletesByCategoryResponses, ListAthletesByCategoryErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{id}/athletes',
+    ...options
+});
+
+/**
  * Listar partidos de la temporada para una categoría
  *
  * Recupera el fixture de competencias de la división. Permite al Asistente anticipar alertas de sobrecarga.
@@ -332,6 +356,19 @@ export const createCategoryMatch = <ThrowOnError extends boolean = false>(option
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Exportar datos completos de estructura a CSV
+ *
+ * Genera y descarga un archivo CSV con todas las organizaciones, categorías y atletas registrados por el preparador físico autenticado. Requiere rol PreparadorFisico.
+ *
+ */
+export const exportStructureCsv = <ThrowOnError extends boolean = false>(options?: Options<ExportStructureCsvData, ThrowOnError>): RequestResult<ExportStructureCsvResponses, ExportStructureCsvErrors, ThrowOnError> => (options?.client ?? client).get<ExportStructureCsvResponses, ExportStructureCsvErrors, ThrowOnError>({
+    responseType: 'text',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/export/csv',
+    ...options
 });
 
 /**

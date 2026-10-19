@@ -6,6 +6,7 @@ import { OrganizationsPage } from './pages/coach/OrganizationsPage';
 import { CategoriesPage } from './pages/coach/CategoriesPage';
 import { AthletesPage } from './pages/coach/AthletesPage';
 import { PlanningPage } from './pages/coach/PlanningPage';
+import { PlanEditorPage } from './pages/coach/PlanEditorPage';
 import { TrainingPage } from './pages/coach/TrainingPage';
 import { MonitoringPage } from './pages/coach/MonitoringPage';
 import { ReportsPage } from './pages/coach/ReportsPage';
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
               { path: 'categories', element: <CategoriesPage /> },
               { path: 'athletes', element: <AthletesPage /> },
               { path: 'planning', element: <PlanningPage /> },
+              { path: 'planning/:planId', element: <PlanEditorPage /> },
               { path: 'training', element: <TrainingPage /> },
               { path: 'monitoring', element: <MonitoringPage /> },
               { path: 'reports', element: <ReportsPage /> },

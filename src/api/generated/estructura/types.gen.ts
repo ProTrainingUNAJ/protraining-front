@@ -85,6 +85,31 @@ export type UpdateOrganizationRequest = {
     description?: string | null;
 };
 
+/**
+ * El atleta logueado, resuelto a partir del token.
+ */
+export type Me = {
+    /**
+     * Id del atleta en Estructura (no es el id de la cuenta).
+     */
+    athleteId: string;
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    active: boolean;
+    /**
+     * Categorías a las que pertenece. Vacía si el atleta está dado de baja.
+     */
+    categories: Array<MeCategory>;
+};
+
+export type MeCategory = {
+    id: string;
+    organizationId: string;
+    name: string;
+    description?: string | null;
+};
+
 export type Category = {
     id: string;
     organizationId: string;
@@ -445,6 +470,39 @@ export type GenerateAthleteInvitationResponses = {
 
 export type GenerateAthleteInvitationResponse = GenerateAthleteInvitationResponses[keyof GenerateAthleteInvitationResponses];
 
+export type GetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me';
+};
+
+export type GetMeErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El token no es de un atleta.
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type GetMeError = GetMeErrors[keyof GetMeErrors];
+
+export type GetMeResponses = {
+    /**
+     * Atleta logueado.
+     */
+    200: Me;
+};
+
+export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
 export type ListMyCategoriesData = {
     body?: never;
     path?: never;
@@ -469,7 +527,7 @@ export type ListMyCategoriesResponses = {
     /**
      * Categorías del atleta logueado.
      */
-    200: Array<Category>;
+    200: Array<MeCategory>;
 };
 
 export type ListMyCategoriesResponse = ListMyCategoriesResponses[keyof ListMyCategoriesResponses];
@@ -757,6 +815,37 @@ export type UpdateCategoryResponses = {
 
 export type UpdateCategoryResponse = UpdateCategoryResponses[keyof UpdateCategoryResponses];
 
+export type ListAthletesByCategoryData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{id}/athletes';
+};
+
+export type ListAthletesByCategoryErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ListAthletesByCategoryError = ListAthletesByCategoryErrors[keyof ListAthletesByCategoryErrors];
+
+export type ListAthletesByCategoryResponses = {
+    /**
+     * Lista de atletas de la categoría obtenida exitosamente.
+     */
+    200: Array<Athlete>;
+};
+
+export type ListAthletesByCategoryResponse = ListAthletesByCategoryResponses[keyof ListAthletesByCategoryResponses];
+
 export type ListCategoryMatchesData = {
     body?: never;
     path: {
@@ -814,6 +903,35 @@ export type CreateCategoryMatchResponses = {
 };
 
 export type CreateCategoryMatchResponse = CreateCategoryMatchResponses[keyof CreateCategoryMatchResponses];
+
+export type ExportStructureCsvData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/export/csv';
+};
+
+export type ExportStructureCsvErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ExportStructureCsvError = ExportStructureCsvErrors[keyof ExportStructureCsvErrors];
+
+export type ExportStructureCsvResponses = {
+    /**
+     * Archivo CSV generado exitosamente.
+     */
+    200: Blob | File;
+};
+
+export type ExportStructureCsvResponse = ExportStructureCsvResponses[keyof ExportStructureCsvResponses];
 
 export type HealthCheckData = {
     body?: never;
