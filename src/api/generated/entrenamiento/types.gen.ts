@@ -9,7 +9,11 @@ export type Exercise = {
     name: string;
     muscleGroup: string;
     /**
-     * Músculos secundarios involucrados en el movimiento.
+     * Grupos musculares principales involucrados en la ejecución.
+     */
+    primaryMuscles?: Array<string>;
+    /**
+     * Músculos secundarios o estabilizadores involucrados.
      */
     secondaryMuscles?: Array<string>;
     description?: string | null;
@@ -26,13 +30,9 @@ export type Exercise = {
      */
     animationUrl?: string | null;
     /**
-     * Fotografía de la postura inicial del ejercicio.
+     * URLs de las 2 fotografías técnicas del ejercicio (postura inicial y postura final).
      */
-    photoUrl1?: string | null;
-    /**
-     * Fotografía de la postura final o máxima flexión del ejercicio.
-     */
-    photoUrl2?: string | null;
+    images?: Array<string>;
 };
 
 /**
@@ -131,10 +131,17 @@ export type TodayRoutineExercise = {
     reps: number;
     percentage?: number;
     /**
-     * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg).
+     * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg). Es null en series de referencia sin récord previo.
      */
-    weightKg: number;
-    current1RmKg?: number;
+    weightKg?: number | null;
+    /**
+     * Marca 1RM vigente tomada como referencia para el cálculo. Es null si el atleta no tiene récord.
+     */
+    current1RmKg?: number | null;
+    /**
+     * True si el ejercicio no tiene récord previo y la serie se prescribe como de referencia para probar y registrar.
+     */
+    isReference: boolean;
 };
 
 export type TodayRoutineResponse = {
@@ -146,6 +153,10 @@ export type TodayRoutineResponse = {
      * Indica si el copiloto adaptó ejercicios hoy debido a molestias o dolores marcados en el check-in.
      */
     routineAdapted?: boolean;
+    /**
+     * Indicaciones o notas del preparador físico asociadas a la sesión.
+     */
+    coachNotes?: string | null;
     exercises: Array<TodayRoutineExercise>;
 };
 
@@ -179,6 +190,117 @@ export type ProblemDetails = {
     errors?: {
         [key: string]: Array<string>;
     };
+};
+
+export type AssignPlanRequest = {
+    trainingPlanId: string;
+    startDate: string;
+    categoryId?: string | null;
+    athleteId?: string | null;
+};
+
+export type AssignPlanResponse = {
+    assignmentId: string;
+    message: string;
+};
+
+export type TrainingSession = {
+    id: string;
+    trainingWeekId: string;
+    name: string;
+    order: number;
+    /**
+     * Dia de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sabado).
+     */
+    dayOfWeek: number;
+    coachNotes?: string | null;
+};
+
+export type UpdateCoachNotesRequest = {
+    coachNotes?: string | null;
+};
+
+export type PrescribedExerciseRequest = {
+    /**
+     * Identificador del ejercicio prescripto existente (opcional). Si no se envia, se empareja por posicion (order).
+     */
+    id?: string | null;
+    exerciseId: string;
+    order: number;
+    sets: number;
+    reps: number;
+    targetPercentage?: number | null;
+};
+
+export type TrainingSessionRequest = {
+    /**
+     * Identificador de la sesion existente (opcional). Si no se envia, se empareja por posicion (order).
+     */
+    id?: string | null;
+    name: string;
+    order: number;
+    /**
+     * Dia de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sabado).
+     */
+    dayOfWeek: number;
+    coachNotes?: string | null;
+    exercises?: Array<PrescribedExerciseRequest>;
+};
+
+export type TrainingWeekRequest = {
+    /**
+     * Identificador de la semana existente (opcional). Si no se envia, se empareja por weekNumber.
+     */
+    id?: string | null;
+    weekNumber: number;
+    sessions?: Array<TrainingSessionRequest>;
+};
+
+export type SaveTrainingPlanRequest = {
+    name: string;
+    objective?: string | null;
+    weeks?: Array<TrainingWeekRequest>;
+};
+
+export type PrescribedExerciseDetail = {
+    id: string;
+    exerciseId: string;
+    /**
+     * Nombre del ejercicio en el catálogo, para mostrarlo en el editor sin pedir el catálogo completo.
+     */
+    exerciseName: string;
+    order: number;
+    sets: number;
+    reps: number;
+    targetPercentage?: number | null;
+};
+
+export type TrainingSessionDetail = {
+    id: string;
+    name: string;
+    order: number;
+    dayOfWeek: number;
+    coachNotes?: string | null;
+    exercises: Array<PrescribedExerciseDetail>;
+};
+
+export type TrainingWeekDetail = {
+    id: string;
+    weekNumber: number;
+    sessions: Array<TrainingSessionDetail>;
+};
+
+export type TrainingPlanDetail = {
+    id: string;
+    name: string;
+    objective?: string | null;
+    weeks: Array<TrainingWeekDetail>;
+};
+
+export type TrainingPlanSummary = {
+    id: string;
+    name: string;
+    objective?: string | null;
 };
 
 export type ListExercisesData = {
@@ -412,6 +534,39 @@ export type ApplyRoutineTemplateResponses = {
     201: unknown;
 };
 
+export type GetMyTodayRoutineData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/today-routine';
+};
+
+export type GetMyTodayRoutineErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * La cuenta no tiene un perfil de atleta vinculado
+     */
+    404: ProblemDetails;
+};
+
+export type GetMyTodayRoutineError = GetMyTodayRoutineErrors[keyof GetMyTodayRoutineErrors];
+
+export type GetMyTodayRoutineResponses = {
+    /**
+     * OK
+     */
+    200: TodayRoutineResponse;
+};
+
+export type GetMyTodayRoutineResponse = GetMyTodayRoutineResponses[keyof GetMyTodayRoutineResponses];
+
 export type GetTodayRoutineData = {
     body?: never;
     path: {
@@ -429,6 +584,10 @@ export type GetTodayRoutineErrors = {
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
     /**
      * El atleta no existe o no es tuyo
      */
@@ -476,6 +635,265 @@ export type LogExecutionResponses = {
 };
 
 export type LogExecutionResponse2 = LogExecutionResponses[keyof LogExecutionResponses];
+
+export type ListTrainingPlansData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/training-plans';
+};
+
+export type ListTrainingPlansErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ListTrainingPlansError = ListTrainingPlansErrors[keyof ListTrainingPlansErrors];
+
+export type ListTrainingPlansResponses = {
+    /**
+     * Lista de planes obtenida exitosamente.
+     */
+    200: Array<TrainingPlanSummary>;
+};
+
+export type ListTrainingPlansResponse = ListTrainingPlansResponses[keyof ListTrainingPlansResponses];
+
+export type CreateTrainingPlanData = {
+    body: SaveTrainingPlanRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/training-plans';
+};
+
+export type CreateTrainingPlanErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type CreateTrainingPlanError = CreateTrainingPlanErrors[keyof CreateTrainingPlanErrors];
+
+export type CreateTrainingPlanResponses = {
+    /**
+     * Plan creado exitosamente con sus identificadores generados.
+     */
+    201: TrainingPlanDetail;
+};
+
+export type CreateTrainingPlanResponse = CreateTrainingPlanResponses[keyof CreateTrainingPlanResponses];
+
+export type GetTrainingPlanData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la planificacion.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/{id}';
+};
+
+export type GetTrainingPlanErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetTrainingPlanError = GetTrainingPlanErrors[keyof GetTrainingPlanErrors];
+
+export type GetTrainingPlanResponses = {
+    /**
+     * Planificacion encontrada.
+     */
+    200: TrainingPlanDetail;
+};
+
+export type GetTrainingPlanResponse = GetTrainingPlanResponses[keyof GetTrainingPlanResponses];
+
+export type UpdateTrainingPlanData = {
+    body: SaveTrainingPlanRequest;
+    path: {
+        /**
+         * Identificador de la planificacion.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/{id}';
+};
+
+export type UpdateTrainingPlanErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateTrainingPlanError = UpdateTrainingPlanErrors[keyof UpdateTrainingPlanErrors];
+
+export type UpdateTrainingPlanResponses = {
+    /**
+     * Planificacion actualizada exitosamente.
+     */
+    200: TrainingPlanDetail;
+};
+
+export type UpdateTrainingPlanResponse = UpdateTrainingPlanResponses[keyof UpdateTrainingPlanResponses];
+
+export type AssignTrainingPlanData = {
+    body: AssignPlanRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/training-plans/assignments';
+};
+
+export type AssignTrainingPlanErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type AssignTrainingPlanError = AssignTrainingPlanErrors[keyof AssignTrainingPlanErrors];
+
+export type AssignTrainingPlanResponses = {
+    /**
+     * Plan asignado exitosamente.
+     */
+    201: AssignPlanResponse;
+};
+
+export type AssignTrainingPlanResponse = AssignTrainingPlanResponses[keyof AssignTrainingPlanResponses];
+
+export type GetTrainingSessionData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la sesion de entrenamiento.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-sessions/{id}';
+};
+
+export type GetTrainingSessionErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetTrainingSessionError = GetTrainingSessionErrors[keyof GetTrainingSessionErrors];
+
+export type GetTrainingSessionResponses = {
+    /**
+     * Sesion de entrenamiento encontrada.
+     */
+    200: TrainingSession;
+};
+
+export type GetTrainingSessionResponse = GetTrainingSessionResponses[keyof GetTrainingSessionResponses];
+
+export type UpdateTrainingSessionNotesData = {
+    body: UpdateCoachNotesRequest;
+    path: {
+        /**
+         * Identificador de la sesion de entrenamiento.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-sessions/{id}/notes';
+};
+
+export type UpdateTrainingSessionNotesErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateTrainingSessionNotesError = UpdateTrainingSessionNotesErrors[keyof UpdateTrainingSessionNotesErrors];
+
+export type UpdateTrainingSessionNotesResponses = {
+    /**
+     * Nota actualizada exitosamente.
+     */
+    204: void;
+};
+
+export type UpdateTrainingSessionNotesResponse = UpdateTrainingSessionNotesResponses[keyof UpdateTrainingSessionNotesResponses];
 
 export type HealthCheckData = {
     body?: never;

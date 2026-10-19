@@ -20,6 +20,10 @@ export type CheckInRequest = {
     effortRate?: number | null;
     isSick?: boolean;
     painZones?: string | null;
+    /**
+     * Lesión activa marcada por el atleta; el semáforo del día queda en Rojo.
+     */
+    hasActiveInjury?: boolean;
 };
 
 export type CheckInResponse = {
@@ -47,6 +51,7 @@ export type CheckIn = {
     effortRate?: number;
     isSick: boolean;
     painZones?: string | null;
+    hasActiveInjury?: boolean;
 };
 
 export type DailyLoadRequest = {
@@ -107,6 +112,29 @@ export type Injury = {
     updatedAt?: string;
 };
 
+export type FitnessTest = {
+    id: string;
+    name: string;
+    motorCapacity: MotorCapacity;
+    /**
+     * Unidad de medida del resultado del test.
+     */
+    measurementUnit: string;
+    /**
+     * Nivel de dificultad del test (1 a 5).
+     */
+    difficultyLevel: number;
+    /**
+     * Estado activo del test. El catálogo solo expone tests activos.
+     */
+    active: boolean;
+};
+
+/**
+ * Capacidades motoras estándar del catálogo de tests físicos.
+ */
+export type MotorCapacity = 'Strength' | 'Velocity' | 'Endurance' | 'Power' | 'Flexibility' | 'Agility' | 'Coordination';
+
 export type ProblemDetails = {
     type?: string;
     title: string;
@@ -137,7 +165,11 @@ export type SubmitCheckInErrors = {
      */
     401: ProblemDetails;
     /**
-     * Atleta o lesión no encontrados.
+     * Acceso denegado: el token no corresponde al atleta de la ruta.
+     */
+    403: ProblemDetails;
+    /**
+     * La cuenta no tiene un atleta vinculado.
      */
     404: ProblemDetails;
 };
@@ -146,9 +178,13 @@ export type SubmitCheckInError = SubmitCheckInErrors[keyof SubmitCheckInErrors];
 
 export type SubmitCheckInResponses = {
     /**
-     * Check-in registrado exitosamente y semáforo calculado.
+     * Check-in actualizado para el mismo día y semáforo recalculado.
      */
     200: CheckInResponse;
+    /**
+     * Check-in registrado exitosamente y semáforo calculado.
+     */
+    201: CheckInResponse;
 };
 
 export type SubmitCheckInResponse = SubmitCheckInResponses[keyof SubmitCheckInResponses];
@@ -399,6 +435,40 @@ export type UpdateInjuryStatusResponses = {
 };
 
 export type UpdateInjuryStatusResponse = UpdateInjuryStatusResponses[keyof UpdateInjuryStatusResponses];
+
+export type ListFitnessTestsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Capacidad motora por la cual filtrar el catálogo.
+         */
+        motorCapacity?: MotorCapacity;
+    };
+    url: '/api/v1/fitness-tests';
+};
+
+export type ListFitnessTestsErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type ListFitnessTestsError = ListFitnessTestsErrors[keyof ListFitnessTestsErrors];
+
+export type ListFitnessTestsResponses = {
+    /**
+     * Catálogo de tests obtenido (lista vacía si el filtro no tiene resultados).
+     */
+    200: Array<FitnessTest>;
+};
+
+export type ListFitnessTestsResponse = ListFitnessTestsResponses[keyof ListFitnessTestsResponses];
 
 export type HealthCheckData = {
     body?: never;

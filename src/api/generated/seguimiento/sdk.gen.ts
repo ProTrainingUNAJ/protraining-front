@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -145,6 +145,19 @@ export const updateInjuryStatus = <ThrowOnError extends boolean = false>(options
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Catálogo de tests físicos por capacidad motora
+ *
+ * Devuelve el catálogo de tests de evaluación física activos (los tests desactivados no se exponen). Con el parámetro opcional motorCapacity filtra por tipo de capacidad motora (ej. Power devuelve Salto Vertical CMJ y Salto Abalakov); sin parámetro devuelve todos los tests activos.
+ *
+ */
+export const listFitnessTests = <ThrowOnError extends boolean = false>(options?: Options<ListFitnessTestsData, ThrowOnError>): RequestResult<ListFitnessTestsResponses, ListFitnessTestsErrors, ThrowOnError> => (options?.client ?? client).get<ListFitnessTestsResponses, ListFitnessTestsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/fitness-tests',
+    ...options
 });
 
 /**
