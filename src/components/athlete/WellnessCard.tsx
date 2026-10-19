@@ -26,6 +26,10 @@ export interface WellnessCardProps {
   // Props for type === 'toggle'
   toggleValue?: boolean;
   onToggleChange?: (val: boolean) => void;
+  toggleLabels?: {
+    falseLabel: string;
+    trueLabel: string;
+  };
 }
 
 export const WellnessCard: React.FC<WellnessCardProps> = ({
@@ -45,6 +49,7 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
   onScaleChange,
   toggleValue = false,
   onToggleChange,
+  toggleLabels = { falseLabel: 'Sin síntomas', trueLabel: 'Con síntomas' },
 }) => {
   const getBadgeColors = () => {
     switch (badgeVariant) {
@@ -182,7 +187,9 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
                     background: isSelected ? 'var(--info-bg)' : 'var(--bg-subtle)',
                     color: isSelected ? 'var(--info-text)' : 'var(--text-main)',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                    boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
                   }}
                   aria-pressed={isSelected}
                   aria-label={`${name} nivel ${val}`}
@@ -210,11 +217,13 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
                 background: !toggleValue ? 'var(--success-bg-strong)' : 'var(--bg-subtle)',
                 color: !toggleValue ? 'var(--success-text)' : 'var(--text-main)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: !toggleValue ? 'scale(1.02)' : 'scale(1)',
+                boxShadow: !toggleValue ? 'var(--shadow-sm)' : 'none',
               }}
               aria-pressed={!toggleValue}
             >
-              Sin síntomas
+              {toggleLabels.falseLabel}
             </button>
             <button
               type="button"
@@ -230,11 +239,13 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
                 background: toggleValue ? 'var(--danger-bg-strong)' : 'var(--bg-subtle)',
                 color: toggleValue ? 'var(--danger-text)' : 'var(--text-main)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: toggleValue ? 'scale(1.02)' : 'scale(1)',
+                boxShadow: toggleValue ? 'var(--shadow-sm)' : 'none',
               }}
               aria-pressed={toggleValue}
             >
-              Con síntomas
+              {toggleLabels.trueLabel}
             </button>
           </div>
         )}
