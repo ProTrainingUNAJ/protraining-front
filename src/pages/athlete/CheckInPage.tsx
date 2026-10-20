@@ -995,7 +995,7 @@ export const CheckInPage: React.FC = () => {
                   onToggleChange={setHasActiveInjury}
                   toggleLabels={{ falseLabel: 'Sin lesión', trueLabel: 'Tengo lesión' }}
                   badgeVariant={hasActiveInjury ? 'danger' : 'success'}
-                  scaleDescription="Informa lesión diagnosticada (Semáforo Rojo)"
+                  scaleDescription="Marcalo si tenés una lesión diagnosticada"
                 />
               </div>
 

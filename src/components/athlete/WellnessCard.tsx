@@ -84,7 +84,7 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
 
   return (
     <div
-      className="card"
+      className="card checkin-wellness-card"
       style={{
         margin: 0,
         padding: '0.9rem 1rem',
@@ -107,6 +107,7 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
           justifyContent: 'space-between',
           gap: '0.4rem',
           marginBottom: '0.6rem',
+          flexWrap: 'wrap',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -209,8 +210,9 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
               style={{
                 flex: 1,
                 minHeight: '36px',
-                padding: '0.3rem 0.5rem',
-                fontSize: '0.82rem',
+                padding: '0.3rem 0.25rem',
+                fontSize: '0.78rem',
+                lineHeight: 1.15,
                 fontWeight: 700,
                 borderRadius: '6px',
                 border: !toggleValue ? '2px solid var(--success)' : '1px solid var(--border)',
@@ -231,8 +233,9 @@ export const WellnessCard: React.FC<WellnessCardProps> = ({
               style={{
                 flex: 1,
                 minHeight: '36px',
-                padding: '0.3rem 0.5rem',
-                fontSize: '0.82rem',
+                padding: '0.3rem 0.25rem',
+                fontSize: '0.78rem',
+                lineHeight: 1.15,
                 fontWeight: 700,
                 borderRadius: '6px',
                 border: toggleValue ? '2px solid var(--danger)' : '1px solid var(--border)',
