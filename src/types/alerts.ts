@@ -23,9 +23,12 @@ export interface NoticeItem {
   canApplyWithOneClick: boolean;
   actionType?: 'routine_adjustment' | 'load_reduction' | 'habits_approval';
   actionLabel?: string;
+  isDemo?: boolean;
+  painZones?: string;
 }
 
 export interface ApplyNoticeResult {
   success: boolean;
   message: string;
+  pendingArchiving?: boolean;
 }

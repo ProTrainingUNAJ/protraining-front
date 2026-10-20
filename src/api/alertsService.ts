@@ -18,7 +18,8 @@ const DEFAULT_DEMO_NOTICES: NoticeItem[] = [
     reviewed: false,
     canApplyWithOneClick: true,
     actionType: 'load_reduction',
-    actionLabel: 'Aplicar Descarga y Kinesiología',
+    actionLabel: 'Simular Descarga y Kinesiología',
+    isDemo: true,
   },
   {
     id: 'notice-alert-02',
@@ -31,7 +32,8 @@ const DEFAULT_DEMO_NOTICES: NoticeItem[] = [
     reviewed: false,
     canApplyWithOneClick: true,
     actionType: 'routine_adjustment',
-    actionLabel: 'Aplicar Ajuste a Tren Superior',
+    actionLabel: 'Simular Ajuste a Tren Superior',
+    isDemo: true,
   },
   {
     id: 'notice-alert-03',
@@ -44,7 +46,8 @@ const DEFAULT_DEMO_NOTICES: NoticeItem[] = [
     reviewed: false,
     canApplyWithOneClick: true,
     actionType: 'load_reduction',
-    actionLabel: 'Aplicar Reducción de Volumen (25%)',
+    actionLabel: 'Simular Reducción de Volumen',
+    isDemo: true,
   },
 ];
 
@@ -72,10 +75,10 @@ export const alertsService = {
   async getPendingAlerts(): Promise<NoticeItem[]> {
     try {
       const response = await httpClient.get<PreventiveAlert[]>('/asistente/api/v1/alerts', {
-        params: { pendingOnly: true },
+        params: { onlyUnreviewed: true },
       });
 
-      if (Array.isArray(response.data) && response.data.length > 0) {
+      if (Array.isArray(response.data)) {
         return response.data
           .filter((a) => !a.reviewed && !archivedNoticeIds.has(a.id))
           .map((a) => ({
@@ -93,6 +96,7 @@ export const alertsService = {
             canApplyWithOneClick: true,
             actionType: 'routine_adjustment',
             actionLabel: 'Aplicar Ajuste Recomendado',
+            isDemo: false,
           }));
       }
     } catch {
@@ -105,36 +109,59 @@ export const alertsService = {
 
   /**
    * Aplica la acción recomendada de un aviso («Aplicar con 1 Clic»).
+   * Diferencia estrictamente avisos de demostración de avisos reales con persistencia.
    */
   async applyNoticeAction(notice: NoticeItem): Promise<ApplyNoticeResult> {
-    try {
-      // Intenta enviar la operación real al microservicio correspondiente
-      if (notice.actionType === 'routine_adjustment') {
-        await httpClient.post('/asistente/api/v1/assistant/today-adjustment', {
-          athleteId: notice.athleteId,
-          reportedPainZones: notice.reason,
-        });
-      } else {
-        await httpClient.patch(`/asistente/api/v1/alerts/${notice.id}/review`);
-      }
-    } catch {
-      // Si el microservicio externo no responde (bloqueo inter-squad),
-      // se asegura la ejecución determinística para la experiencia de usuario
+    // 1. Avisos simulados / de demostración: no enviar peticiones HTTP ni IDs ficticios al backend
+    if (
+      notice.isDemo ||
+      notice.athleteId.startsWith('ath-') ||
+      notice.id.startsWith('notice-alert-')
+    ) {
+      await this.archiveAlert(notice.id, true);
+      return {
+        success: true,
+        message: 'Ajuste simulado correctamente (Demostración)',
+      };
     }
 
-    // Persiste el archivado del aviso
-    await this.archiveAlert(notice.id);
+    // 2. Avisos reales: validación estricta de contrato antes de disparar la operación
+    if (notice.actionType === 'routine_adjustment') {
+      if (!notice.painZones || notice.painZones.trim() === '') {
+        throw new Error(
+          'No se puede ejecutar la adaptación automática: faltan zonas de dolor estructuradas en el aviso. Consulte al Squad D.',
+        );
+      }
+
+      await httpClient.post('/asistente/api/v1/assistant/today-adjustment', {
+        athleteId: notice.athleteId,
+        reportedPainZones: notice.painZones,
+      });
+    } else {
+      await httpClient.patch(`/asistente/api/v1/alerts/${notice.id}/review`);
+    }
+
+    // 3. Archivado persistente tras éxito del ajuste
+    let pendingArchiving = false;
+    try {
+      await this.archiveAlert(notice.id, false);
+    } catch {
+      pendingArchiving = true;
+    }
 
     return {
       success: true,
-      message: 'Ajuste aplicado correctamente',
+      message: pendingArchiving
+        ? 'Ajuste aplicado; archivado en backend pendiente de sincronización'
+        : 'Ajuste aplicado correctamente',
+      pendingArchiving,
     };
   },
 
   /**
-   * Archiva un aviso de forma persistente.
+   * Archiva un aviso de forma persistente en sesión y en backend si corresponde.
    */
-  async archiveAlert(alertId: string): Promise<void> {
+  async archiveAlert(alertId: string, isDemo = false): Promise<void> {
     archivedNoticeIds.add(alertId);
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -147,10 +174,9 @@ export const alertsService = {
       // Silently ignore storage quota or permission errors
     }
 
-    try {
+    // No llamar al backend para avisos de demostración
+    if (!isDemo && !alertId.startsWith('notice-alert-')) {
       await httpClient.patch(`/asistente/api/v1/alerts/${alertId}/review`);
-    } catch {
-      // Si el endpoint no existe en backend, queda registrado en memoria de sesión
     }
   },
 };
