@@ -92,6 +92,7 @@ export const TrainingPage: React.FC = () => {
 
       try {
         const response = await listExercises({
+          throwOnError: true,
           query: {
             page: 1,
             pageSize: PAGE_SIZE,
@@ -137,6 +138,7 @@ export const TrainingPage: React.FC = () => {
 
     try {
       const response = await listExercises({
+        throwOnError: true,
         query: {
           page: nextPage,
           pageSize: PAGE_SIZE,
