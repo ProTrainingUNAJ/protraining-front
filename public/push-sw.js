@@ -4,7 +4,7 @@
 self.addEventListener('push', function (event) {
   let data = {
     title: 'ProTraining',
-    body: 'Tienes una nueva notificación.',
+    body: 'Tenés una nueva notificación.',
     url: '/pf',
     tag: 'protraining-notification',
   };
@@ -28,7 +28,7 @@ self.addEventListener('push', function (event) {
   }
 
   const options = {
-    body: data.body || 'Nuevo aviso de entrenamiento disponible.',
+    body: data.body || 'Revisá tu Centro de Avisos.',
     icon: '/assets/pwa-192x192.png',
     badge: '/assets/pwa-64x64.png',
     tag: data.tag || 'protraining-notification',

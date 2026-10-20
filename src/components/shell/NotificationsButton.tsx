@@ -2,18 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { alertsService } from '../../api/alertsService';
 import { NoticeItem } from '../../types/alerts';
+import { useAuth } from '../../context/AuthContext';
 
 export const NotificationsButton: React.FC = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [alerts, setAlerts] = useState<NoticeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const [confirmedInfo, setConfirmedInfo] = useState<{ id: string; message: string } | null>(null);
+  const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Cargar avisos iniciales desde alertsService
+  // Cargar avisos iniciales desde alertsService solo si el rol es PreparadorFisico
   useEffect(() => {
+    if (user?.role !== 'PreparadorFisico') {
+      return;
+    }
+
     let isMounted = true;
     alertsService
       .getPendingAlerts()
@@ -32,7 +39,7 @@ export const NotificationsButton: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [user?.role]);
 
   // Cerrar al hacer clic fuera del componente
   useEffect(() => {
@@ -49,11 +56,21 @@ export const NotificationsButton: React.FC = () => {
     };
   }, [open]);
 
+  // Si no está autenticado como PF, no renderiza nada (aislamiento total en UI)
+  if (user?.role !== 'PreparadorFisico') {
+    return null;
+  }
+
   // Manejo de la acción «Aplicar con 1 Clic» con háptica, confirmación visual verde y archivado persistente
   const handleApplyOneClick = async (notice: NoticeItem) => {
-    if (processingId || confirmedId) return;
+    if (processingId || confirmedInfo) return;
 
     setProcessingId(notice.id);
+    setErrorMap((prev) => {
+      const copy = { ...prev };
+      delete copy[notice.id];
+      return copy;
+    });
 
     // Feedback háptico (50 ms) en dispositivos táctiles / móviles compatibles
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -65,23 +82,36 @@ export const NotificationsButton: React.FC = () => {
     }
 
     try {
-      await alertsService.applyNoticeAction(notice);
-    } catch {
-      // Bloqueo tolerante a fallos
+      const result = await alertsService.applyNoticeAction(notice);
+
+      // Activar estado de confirmación visual verde únicamente tras éxito comprobado
+      setProcessingId(null);
+      const message = notice.isDemo
+        ? 'Ajuste simulado (Demo)'
+        : result.pendingArchiving
+          ? 'Ajuste aplicado (archivado pendiente)'
+          : 'Ajuste aplicado correctamente';
+
+      setConfirmedInfo({ id: notice.id, message });
+
+      // Mantener la confirmación visual durante 1.5s antes de archivar de la vista
+      setTimeout(() => {
+        setAlerts((prev) => prev.filter((item) => item.id !== notice.id));
+        setConfirmedInfo((curr) => (curr?.id === notice.id ? null : curr));
+      }, 1500);
+    } catch (err: unknown) {
+      // Ante error del backend: NO confirmación verde, NO archivar, NO eliminar de la lista
+      setProcessingId(null);
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'No se pudo aplicar el ajuste. Verificá la conexión y reintentá.';
+      setErrorMap((prev) => ({ ...prev, [notice.id]: message }));
     }
-
-    // Activar estado de confirmación visual verde
-    setProcessingId(null);
-    setConfirmedId(notice.id);
-
-    // Mantener la confirmación visual durante 1.5s antes de archivar de la vista
-    setTimeout(() => {
-      setAlerts((prev) => prev.filter((item) => item.id !== notice.id));
-      setConfirmedId((curr) => (curr === notice.id ? null : curr));
-    }, 1500);
   };
 
   const pendingCount = alerts.length;
+  const hasDemoNotices = alerts.some((a) => a.isDemo);
 
   return (
     <div className="shell-notifications-wrap" ref={containerRef}>
@@ -114,6 +144,14 @@ export const NotificationsButton: React.FC = () => {
               <h3 className="notice-center-title">Centro de Avisos</h3>
               {pendingCount > 0 && <span className="notice-center-count-pill">{pendingCount}</span>}
             </div>
+            {hasDemoNotices && (
+              <span
+                className="notice-severity-badge notice-severity-low"
+                title="Avisos de demostración visual (no impactan persistencia real)"
+              >
+                Avisos de ejemplo
+              </span>
+            )}
           </div>
 
           <div className="notice-center-body">
@@ -133,7 +171,8 @@ export const NotificationsButton: React.FC = () => {
             ) : (
               alerts.map((notice) => {
                 const isProcessing = processingId === notice.id;
-                const isConfirmed = confirmedId === notice.id;
+                const isConfirmed = confirmedInfo?.id === notice.id;
+                const noticeError = errorMap[notice.id];
 
                 return (
                   <article
@@ -180,28 +219,55 @@ export const NotificationsButton: React.FC = () => {
                           aria-live="polite"
                         >
                           <CheckCircle2 size={16} aria-hidden="true" />
-                          <span>Ajuste aplicado correctamente</span>
+                          <span>{confirmedInfo?.message}</span>
                         </button>
                       ) : (
-                        <button
-                          type="button"
-                          className={`btn-one-click${isProcessing ? ' loading' : ''}`}
-                          onClick={() => handleApplyOneClick(notice)}
-                          disabled={isProcessing || Boolean(processingId) || Boolean(confirmedId)}
-                          aria-label={`Aplicar con 1 Clic para ${notice.athleteName}`}
-                        >
-                          {isProcessing ? (
-                            <>
-                              <Loader2 size={15} className="notice-spin" aria-hidden="true" />
-                              <span>Aplicando ajuste...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Zap size={15} aria-hidden="true" />
-                              <span>{notice.actionLabel || 'Aplicar con 1 Clic'}</span>
-                            </>
+                        <>
+                          <button
+                            type="button"
+                            className={`btn-one-click${isProcessing ? ' loading' : ''}`}
+                            onClick={() => handleApplyOneClick(notice)}
+                            disabled={
+                              isProcessing || Boolean(processingId) || Boolean(confirmedInfo)
+                            }
+                            aria-label={`Aplicar con 1 Clic para ${notice.athleteName}`}
+                          >
+                            {isProcessing ? (
+                              <>
+                                <Loader2 size={15} className="notice-spin" aria-hidden="true" />
+                                <span>
+                                  {notice.isDemo ? 'Simulando ajuste...' : 'Aplicando ajuste...'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Zap size={15} aria-hidden="true" />
+                                <span>
+                                  {notice.isDemo
+                                    ? notice.actionLabel || 'Simular ajuste (Demo)'
+                                    : notice.actionLabel || 'Aplicar con 1 Clic'}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                          {noticeError && (
+                            <div
+                              className="notice-card-error-msg"
+                              role="alert"
+                              style={{
+                                color: 'var(--danger)',
+                                fontSize: '0.75rem',
+                                marginTop: '0.35rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                              }}
+                            >
+                              <AlertTriangle size={13} aria-hidden="true" />
+                              <span>{noticeError}</span>
+                            </div>
                           )}
-                        </button>
+                        </>
                       )}
                     </div>
                   </article>

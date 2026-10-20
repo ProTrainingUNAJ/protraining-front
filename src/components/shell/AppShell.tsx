@@ -82,8 +82,8 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
               {/* Selector de tema claro / oscuro */}
               <ThemeToggle />
 
-              {/* Botón de notificaciones */}
-              <NotificationsButton />
+              {/* Botón de notificaciones (Centro de Avisos exclusivo para PF) */}
+              {role === 'pf' && <NotificationsButton />}
 
               {/* Botón de calendario */}
               <CalendarButton />
