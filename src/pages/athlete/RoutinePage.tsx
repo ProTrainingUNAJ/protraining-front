@@ -20,67 +20,7 @@ import {
   type TodayRoutineResponse,
   type TodayRoutineExercise,
 } from '../../api/generated/entrenamiento';
-
-// Rutina fallback realista en caso de que el backend esté desconectado o en desarrollo sin Docker
-const FALLBACK_TODAY_ROUTINE: TodayRoutineResponse = {
-  athleteId: '00000000-0000-0000-0000-000000000001',
-  athleteName: 'Lucas Fernández',
-  date: new Date().toISOString().split('T')[0],
-  hasActiveInjuries: false,
-  routineAdapted: false,
-  coachNotes:
-    'Controlar técnica en descenso y mantener pausa de 1 segundo en la máxima flexión. No arquear la zona lumbar.',
-  exercises: [
-    {
-      exerciseId: 'b501d51c-4b53-4dc9-985f-8646f9037cfa',
-      name: 'Back Squat (Sentadilla Trasera)',
-      muscleGroup: 'Piernas',
-      videoUrl: 'https://www.youtube.com/watch?v=aclHkVaku9U',
-      sets: 4,
-      reps: 6,
-      percentage: 80,
-      weightKg: 82.5,
-      current1RmKg: 102.5,
-      isReference: false,
-    },
-    {
-      exerciseId: 'b501d51c-4b53-4dc9-985f-8646f9037cfb',
-      name: 'Press Militar con Barra',
-      muscleGroup: 'Hombros',
-      videoUrl: 'https://www.youtube.com/watch?v=2yjwXTZQDDI',
-      sets: 3,
-      reps: 8,
-      percentage: 75,
-      weightKg: 52.5,
-      current1RmKg: 70.0,
-      isReference: false,
-    },
-    {
-      exerciseId: 'b501d51c-4b53-4dc9-985f-8646f9037cfc',
-      name: 'Peso Muerto Rumano Unilateral',
-      muscleGroup: 'Cadena Posterior',
-      videoUrl: null,
-      sets: 3,
-      reps: 8,
-      percentage: 70,
-      weightKg: 32.5,
-      current1RmKg: 47.5,
-      isReference: false,
-    },
-    {
-      exerciseId: 'b501d51c-4b53-4dc9-985f-8646f9037cfd',
-      name: 'Pallof Press con Banda',
-      muscleGroup: 'Core',
-      videoUrl: null,
-      sets: 3,
-      reps: 12,
-      percentage: 0,
-      weightKg: null,
-      current1RmKg: null,
-      isReference: true,
-    },
-  ],
-};
+import { extractErrorMessage } from '../../api/axiosClient';
 
 function formatSpanishDate(dateString: string): string {
   try {
@@ -107,10 +47,11 @@ function formatSpanishDate(dateString: string): string {
   }
 }
 
-function getStorageKey(date?: string, athleteId?: string): string {
-  const safeDate = date || new Date().toISOString().split('T')[0];
-  const safeAthlete = athleteId || 'current';
-  return `protraining_sets_${safeDate}_${safeAthlete}`;
+function getStorageKey(date?: string, athleteId?: string): string | null {
+  if (date === undefined || athleteId === undefined) {
+    return null;
+  }
+  return `protraining_sets_${date}_${athleteId}`;
 }
 
 export const RoutinePage: React.FC = () => {
@@ -121,85 +62,53 @@ export const RoutinePage: React.FC = () => {
     useState<TodayRoutineExercise | null>(null);
 
   // Estado de series completadas (almacenado en localStorage para persistencia en el gimnasio)
-  const [completedSets, setCompletedSets] = useState<Record<string, boolean>>(() => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const saved = localStorage.getItem(`protraining_sets_${today}_current`);
-      if (saved) {
-        return JSON.parse(saved) as Record<string, boolean>;
-      }
-      const generic = localStorage.getItem(`protraining_sets_${today}`);
-      return generic ? (JSON.parse(generic) as Record<string, boolean>) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [completedSets, setCompletedSets] = useState<Record<string, boolean>>({});
 
   // Carga de la rutina del atleta autenticado
   const fetchRoutine = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getMyTodayRoutine();
-      const loadedRoutine = response.data || FALLBACK_TODAY_ROUTINE;
+      const response = await getMyTodayRoutine({ throwOnError: true });
+      const loadedRoutine = response.data ?? null;
       setRoutine(loadedRoutine);
 
-      // Cargar series guardadas para esta rutina específica
-      try {
-        const key = getStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
-        const saved = localStorage.getItem(key);
-        if (saved) {
-          setCompletedSets(JSON.parse(saved));
+      // Cargar series guardadas si tenemos atletas y fecha identificados
+      if (loadedRoutine?.date && loadedRoutine?.athleteId) {
+        try {
+          const key = getStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
+          if (key) {
+            const saved = localStorage.getItem(key);
+            setCompletedSets(saved ? JSON.parse(saved) : {});
+          }
+        } catch {
+          // Ignorar error de acceso a localStorage
         }
-      } catch {
-        // Ignorar error de acceso a localStorage
+      } else {
+        setCompletedSets({});
       }
     } catch (err) {
-      console.warn('Aviso: usando rutina de demostración offline para la sesión de hoy.', err);
-      setRoutine(FALLBACK_TODAY_ROUTINE);
+      setError(extractErrorMessage(err));
+      setRoutine(null);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  // Carga inicial al montar la pagina
   useEffect(() => {
     let isMounted = true;
-
-    async function loadInitial() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await getMyTodayRoutine();
-        if (!isMounted) return;
-        const loadedRoutine = response.data || FALLBACK_TODAY_ROUTINE;
-        setRoutine(loadedRoutine);
-
-        try {
-          const key = getStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
-          const saved = localStorage.getItem(key);
-          if (saved && isMounted) {
-            setCompletedSets(JSON.parse(saved));
-          }
-        } catch {
-          // Ignorar error de acceso a localStorage
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        console.warn('Aviso: usando rutina de demostración offline para la sesión de hoy.', err);
-        setRoutine(FALLBACK_TODAY_ROUTINE);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    const timer = setTimeout(() => {
+      if (isMounted) {
+        void fetchRoutine();
       }
-    }
-
-    void loadInitial();
+    }, 0);
 
     return () => {
       isMounted = false;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [fetchRoutine]);
 
   // Cerrar modal con tecla Escape
   useEffect(() => {
@@ -222,9 +131,8 @@ export const RoutinePage: React.FC = () => {
         const next = { ...prev, [key]: !prev[key] };
         try {
           const storageKey = getStorageKey(routine?.date, routine?.athleteId);
-          localStorage.setItem(storageKey, JSON.stringify(next));
-          if (routine?.date) {
-            localStorage.setItem(`protraining_sets_${routine.date}`, JSON.stringify(next));
+          if (storageKey) {
+            localStorage.setItem(storageKey, JSON.stringify(next));
           }
         } catch {
           // Ignorar errores de guardado local
@@ -445,7 +353,7 @@ export const RoutinePage: React.FC = () => {
                   <div className="routine-progress-celebration">
                     <Trophy size={20} style={{ color: 'var(--stat-green)', flexShrink: 0 }} />
                     <span>
-                      ¡Excelente trabajo! Has completado todas las series planificadas para hoy.
+                      ¡Excelente trabajo! Completaste todas las series planificadas para hoy.
                     </span>
                   </div>
                 )}
