@@ -188,6 +188,11 @@
   --sticky-btn-text: #111827;
   --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
 
+  /* Filter chips (Monitoring) — compartidos en claro/oscuro (heredan de :root).
+     KAN-366: usados por los chips segmentados de MonitoringPage. */
+  --chip-active-count-bg: rgb(0 0 0 / 0.2);
+  --chip-primary-count-bg: rgb(255 255 255 / 0.2);
+
   /* Backward compatibility aliases */
   --warning-border: #f59e0b;
   --warning-bg: rgb(245 158 11 / 0.14);
@@ -197,6 +202,8 @@
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
   --stat-green: #16a34a;
   --stat-green-bg: rgb(22 163 74 / 0.1);
+  /* Glow de la barra del Check-in del dashboard (KAN-366); variante en :root. */
+  --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
   --stat-purple: #7c3aed;
   --stat-purple-bg: rgb(124 58 237 / 0.1);
   --stat-purple-border: rgb(124 58 237 / 0.25);
@@ -341,6 +348,8 @@
   --stat-cyan-bg: rgb(56 189 248 / 0.16);
   --stat-green: #4ade80;
   --stat-green-bg: rgb(74 222 128 / 0.16);
+  /* Glow de la barra del Check-in del dashboard (KAN-366); variante oscura. */
+  --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
   --stat-purple: #c084fc;
   --stat-purple-bg: rgb(192 132 252 / 0.18);
   --stat-purple-border: rgb(192 132 252 / 0.35);

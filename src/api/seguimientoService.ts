@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { httpClient, extractErrorMessage } from './axiosClient';
 import {
   saveOfflineCheckIn,
@@ -137,7 +138,12 @@ export { countPendingCheckIns, getPendingCheckIns } from '../services/checkInOff
 export type { OfflineCheckInPayload };
 
 // ---------------------------------------------------------------------------
-// Semáforo del día por categoría (KAN-365)
+// Semáforo del día por categoría (KAN-365 / KAN-366)
+//
+// Fuente única de verdad del semáforo de la PWA: consume el microservicio de
+// seguimiento por `httpClient` (axios, patrón de todos los servicios del front)
+// y adapta el DTO del backend a los tipos de UI de las tarjetas y widgets.
+// No existen mocks: el archivo `trafficLightData.ts` fue eliminado en KAN-366.
 // ---------------------------------------------------------------------------
 
 export interface TrafficLightIndicatorsDto {
@@ -174,6 +180,11 @@ const TRAFFIC_STATUS_LABELS: Record<TrafficLightStatus, string> = {
   green: 'Óptimos',
   gray: 'Sin Check-in',
 };
+
+// Fallbacks KAN-366: si la estructura cae y llegan nombres vacíos, la UI
+// muestra estos textos en lugar de labels en blanco.
+export const CATEGORY_NAME_FALLBACK = 'Categoría sin nombre';
+export const ATHLETE_NAME_FALLBACK = 'Atleta sin nombre';
 
 // hasReportedToday=false siempre se presenta como gris "pendiente" en la PWA,
 // aunque el motor devuelva Amarillo por seguridad operativa (decisión KAN-365).
@@ -221,7 +232,16 @@ function formatReportedAt(reportedAt?: string | null): string | undefined {
   }
 }
 
-// Mapea el resumen del backend al tipo de UI de las cards del semáforo.
+/**
+ * Mapea el resumen del backend (DTO del endpoint traffic-light-today) al tipo
+ * de UI de las tarjetas del semáforo. Reglas KAN-365/KAN-366:
+ * - `hasReportedToday === false` → estado gris "Sin Check-in" (aunque el motor
+ *   devuelva Amarillo por seguridad operativa).
+ * - Nombres vacíos por caída de estructura → fallbacks exportados
+ *   (`CATEGORY_NAME_FALLBACK` / `ATHLETE_NAME_FALLBACK`) en lugar de labels en blanco.
+ * - `painZones` ("muscleId:nivel,...") se parsea a `PainZoneReport` con la paleta
+ *   muscular oficial.
+ */
 export function mapTrafficLightSummaryToItem(
   summary: AthleteTrafficLightSummary,
   categoryName: string,
@@ -236,9 +256,9 @@ export function mapTrafficLightSummaryToItem(
 
   return {
     id: summary.athleteId,
-    name: summary.athleteName,
+    name: summary.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
     position: '',
-    category: categoryName,
+    category: categoryName.trim() || CATEGORY_NAME_FALLBACK,
     status,
     statusLabel: TRAFFIC_STATUS_LABELS[status],
     recommendation: status === 'gray' ? '' : summary.trafficLightReason || '',
@@ -254,7 +274,11 @@ export function mapTrafficLightSummaryToItem(
 }
 
 /**
- * Consulta el semáforo tricolor de hoy para una categoría (GET traffic-light-today).
+ * Consulta el semáforo tricolor de hoy de una categoría.
+ * GET `/seguimiento/api/v1/categories/{id}/traffic-light-today` (gateway →
+ * microservicio Seguimiento). Devuelve vacío si la respuesta es nula.
+ * Errores (KAN-366): 404 → mensaje específico y en español de categoría
+ * inexistente; el resto se traduce con `extractErrorMessage` (ProblemDetails).
  */
 export async function getCategoryTrafficLightToday(
   categoryId: string,
@@ -265,13 +289,20 @@ export async function getCategoryTrafficLightToday(
     );
     return response.data ?? [];
   } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('La categoría solicitada no existe o fue eliminada.', { cause: err });
+    }
     throw new Error(extractErrorMessage(err), { cause: err });
   }
 }
 
 /**
  * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
- * (dashboard y alertas de dolor). Categorías o semáforos que fallen se omiten.
+ * (dashboard: donas, alertas de dolor y progreso de check-in). Alimenta también
+ * la deduplicación de atletas que pertenecen a más de una categoría.
+ * Modo degradado (KAN-366): si la estructura de organizaciones/categorías cae o
+ * una categoría responde error, esa categoría se omite silenciosamente y el
+ * resto del plantel se sigue mostrando; nunca rompe el dashboard completo.
  */
 export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLightItem[]> {
   const organizations = await structureService.getOrganizations().catch(() => []);
@@ -305,6 +336,11 @@ export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLi
   return unique;
 }
 
+/**
+ * Conteo por color del plantel (KAN-365/KAN-366): alimenta las donas del
+ * dashboard y los chips de filtro de MonitoringPage. `gray` equivale a
+ * "sin check-in hoy", base del progreso del widget CheckInProgressWidget.
+ */
 export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): TrafficLightCounts {
   return {
     all: items.length,

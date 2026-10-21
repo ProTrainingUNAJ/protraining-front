@@ -12,6 +12,13 @@ import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
 import { AthleteAvatar } from './AthleteAvatar';
 
+/**
+ * Ficha rápida del atleta (KAN-365/KAN-366): se abre desde las tarjetas de
+ * MonitoringPage con el item real del semáforo del día (sin mocks) y muestra
+ * los indicadores del check-in, el mapa de dolor y la acción de asignación
+ * diferenciada. Bordes y estados con tokens `--traffic-*` de `tokens.css`
+ * (soporte claro/oscuro); cero literales rgba/hex (KAN-366).
+ */
 interface AthleteQuickSheetProps {
   athlete: AthleteTrafficLightItem | null;
   onClose: () => void;

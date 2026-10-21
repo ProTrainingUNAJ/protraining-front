@@ -4,13 +4,10 @@ import { GripVertical, ChevronLeft, ChevronRight, ArrowRight, RotateCcw, Plus } 
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
-import { LiveClockWidget } from '../../components/dashboard/LiveClockWidget';
-import { LiveWeatherWidget } from '../../components/dashboard/LiveWeatherWidget';
 import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
-import { WeeklyLoadSparklineWidget } from '../../components/dashboard/WeeklyLoadSparklineWidget';
 import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
 import {
   fetchAllCategoriesTrafficLight,
@@ -20,13 +17,10 @@ import {
 export type DashboardCardType =
   | 'empty'
   | 'suite'
-  | 'live-clock'
-  | 'live-weather'
   | 'training-session'
   | 'traffic-light-summary'
   | 'checkin-progress'
   | 'pain-alerts'
-  | 'weekly-load'
   | 'progress-chart';
 
 export interface WireframeCardItem {
@@ -50,9 +44,9 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
     name: 'Fila 1 · Indicadores en Vivo',
     className: 'wireframe-row-1',
     cards: [
-      { id: 'w-clock', name: 'Hora y Turno', colSpan: 1, type: 'live-clock' },
-      { id: 'w-weather', name: 'Clima en Cancha', colSpan: 1, type: 'live-weather' },
       { id: 'w-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+      { id: 'w-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
   },
   {
@@ -71,7 +65,7 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
     className: 'wireframe-row-3',
     cards: [
       { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
-      { id: 'w-load', name: 'Carga Semanal RPE', colSpan: 1, type: 'weekly-load' },
+      { id: 'w-r3-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
   },
   {
@@ -92,9 +86,9 @@ const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
     name: 'Fila 1 · Indicadores en Vivo',
     className: 'wireframe-row-1',
     cards: [
-      { id: 'a-clock', name: 'Hora y Turno', colSpan: 1, type: 'live-clock' },
-      { id: 'a-weather', name: 'Clima en Cancha', colSpan: 1, type: 'live-weather' },
       { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+      { id: 'a-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
   },
   {
@@ -156,6 +150,10 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAthlete = location.pathname.startsWith('/athlete');
+  // Layout del bento guardado en localStorage. KAN-366 simplificó el dashboard:
+  // se retiraron los widgets ficticios de clima (Open-Meteo), reloj y carga
+  // semanal de prueba; los layouts guardados con esos tipos degradan al slot
+  // "Módulo Disponible" (case default del switch de render), sin migración.
   const storageKey = isAthlete
     ? 'protraining_bento_rows_athlete_v8'
     : 'protraining_bento_rows_coach_v8';
@@ -187,8 +185,9 @@ export const DashboardPage: React.FC = () => {
     return defaultRows;
   });
 
-  // Semáforo real de todas las categorías del PF: alimenta las donas y las
-  // alertas de dolor del dashboard (KAN-365). Error o vacío → conteos en cero.
+  // Semáforo real de todas las categorías del PF (KAN-365/KAN-366): alimenta
+  // las donas, las alertas de dolor y el progreso de check-in del dashboard.
+  // Error o vacío → conteos en cero (modo degradado, nunca rompe la grilla).
   const [trafficLightItems, setTrafficLightItems] = useState<AthleteTrafficLightItem[]>([]);
   const [trafficLightLoading, setTrafficLightLoading] = useState(true);
 
@@ -215,6 +214,15 @@ export const DashboardPage: React.FC = () => {
     () => summarizeTrafficLightCounts(trafficLightItems),
     [trafficLightItems],
   );
+
+  // Progreso real del check-in del día: `gray` ⇔ hasReportedToday === false
+  // (ver resolveStatus en seguimientoService), por lo tanto los reportados son
+  // el total menos los pendientes. Sin datos → 0/0 (widget en vacío).
+  const checkInProgress = React.useMemo(() => {
+    const total = trafficLightCounts.all;
+    const completed = total - trafficLightCounts.gray;
+    return { completed, total };
+  }, [trafficLightCounts]);
 
   // Persist rows and widgets layout to localStorage
   useEffect(() => {
@@ -334,10 +342,6 @@ export const DashboardPage: React.FC = () => {
   // Card inner content renderer
   const renderCardContent = (card: WireframeCardItem) => {
     switch (card.type) {
-      case 'live-clock':
-        return <LiveClockWidget />;
-      case 'live-weather':
-        return <LiveWeatherWidget />;
       case 'training-session':
         return <TrainingSessionWidget />;
       case 'traffic-light-summary':
@@ -345,11 +349,15 @@ export const DashboardPage: React.FC = () => {
           <TrafficLightSummaryWidget counts={trafficLightCounts} loading={trafficLightLoading} />
         );
       case 'checkin-progress':
-        return <CheckInProgressWidget />;
+        return (
+          <CheckInProgressWidget
+            completed={checkInProgress.completed}
+            total={checkInProgress.total}
+            loading={trafficLightLoading}
+          />
+        );
       case 'pain-alerts':
         return <PainAlertsWidget athletes={trafficLightItems} />;
-      case 'weekly-load':
-        return <WeeklyLoadSparklineWidget />;
       case 'progress-chart':
         return (
           <EvolutionChartWidget
