@@ -23,4 +23,7 @@ export interface AthleteTrafficLightItem {
   avatarUrl?: string;
   submittedAt?: string;
   affectedMuscle?: string;
+  /** Señales del check-in del día (KAN-365): true solo si el atleta reportó hoy. */
+  isSick?: boolean;
+  hasActiveInjury?: boolean;
 }

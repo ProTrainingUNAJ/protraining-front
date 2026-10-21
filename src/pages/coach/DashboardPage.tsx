@@ -11,6 +11,11 @@ import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLig
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
 import { WeeklyLoadSparklineWidget } from '../../components/dashboard/WeeklyLoadSparklineWidget';
+import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
+import {
+  fetchAllCategoriesTrafficLight,
+  summarizeTrafficLightCounts,
+} from '../../api/seguimientoService';
 
 export type DashboardCardType =
   | 'empty'
@@ -182,6 +187,35 @@ export const DashboardPage: React.FC = () => {
     return defaultRows;
   });
 
+  // Semáforo real de todas las categorías del PF: alimenta las donas y las
+  // alertas de dolor del dashboard (KAN-365). Error o vacío → conteos en cero.
+  const [trafficLightItems, setTrafficLightItems] = useState<AthleteTrafficLightItem[]>([]);
+  const [trafficLightLoading, setTrafficLightLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchAllCategoriesTrafficLight()
+      .then((items) => {
+        if (active) setTrafficLightItems(items);
+      })
+      .catch(() => {
+        if (active) setTrafficLightItems([]);
+      })
+      .finally(() => {
+        if (active) setTrafficLightLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const trafficLightCounts = React.useMemo(
+    () => summarizeTrafficLightCounts(trafficLightItems),
+    [trafficLightItems],
+  );
+
   // Persist rows and widgets layout to localStorage
   useEffect(() => {
     try {
@@ -307,11 +341,13 @@ export const DashboardPage: React.FC = () => {
       case 'training-session':
         return <TrainingSessionWidget />;
       case 'traffic-light-summary':
-        return <TrafficLightSummaryWidget />;
+        return (
+          <TrafficLightSummaryWidget counts={trafficLightCounts} loading={trafficLightLoading} />
+        );
       case 'checkin-progress':
         return <CheckInProgressWidget />;
       case 'pain-alerts':
-        return <PainAlertsWidget />;
+        return <PainAlertsWidget athletes={trafficLightItems} />;
       case 'weekly-load':
         return <WeeklyLoadSparklineWidget />;
       case 'progress-chart':

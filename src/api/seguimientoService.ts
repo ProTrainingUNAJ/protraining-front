@@ -5,6 +5,14 @@ import {
   deletePendingCheckIn,
   OfflineCheckInPayload,
 } from '../services/checkInOfflineService';
+import { structureService } from './structureService';
+import {
+  AthleteTrafficLightItem,
+  PainZoneReport,
+  TrafficLightStatus,
+} from '../components/monitoring/trafficLight.types';
+import { PROTRAINING_MUSCLES } from '../components/athlete/bodyMuscleData';
+import { Category } from '../types/structure';
 
 export interface CheckInSubmitRequest {
   sleepHours: number;
@@ -127,3 +135,182 @@ export async function syncPendingCheckIns(athleteId: string): Promise<number> {
  */
 export { countPendingCheckIns, getPendingCheckIns } from '../services/checkInOfflineService';
 export type { OfflineCheckInPayload };
+
+// ---------------------------------------------------------------------------
+// Semáforo del día por categoría (KAN-365)
+// ---------------------------------------------------------------------------
+
+export interface TrafficLightIndicatorsDto {
+  sleepHours: number;
+  sleepQuality: number;
+  effortRate?: number | null;
+  isSick: boolean;
+  hasActiveInjury: boolean;
+  painZones?: string | null;
+}
+
+export interface AthleteTrafficLightSummary {
+  athleteId: string;
+  athleteName: string;
+  trafficLight: 'Green' | 'Yellow' | 'Red';
+  trafficLightReason?: string | null;
+  hasReportedToday: boolean;
+  reportedAt?: string | null;
+  resultValue: 20 | 50 | 90;
+  indicators?: TrafficLightIndicatorsDto | null;
+}
+
+export interface TrafficLightCounts {
+  all: number;
+  red: number;
+  yellow: number;
+  green: number;
+  gray: number;
+}
+
+const TRAFFIC_STATUS_LABELS: Record<TrafficLightStatus, string> = {
+  red: 'Atención Crítica',
+  yellow: 'Precaución',
+  green: 'Óptimos',
+  gray: 'Sin Check-in',
+};
+
+// hasReportedToday=false siempre se presenta como gris "pendiente" en la PWA,
+// aunque el motor devuelva Amarillo por seguridad operativa (decisión KAN-365).
+function resolveStatus(summary: AthleteTrafficLightSummary): TrafficLightStatus {
+  if (!summary.hasReportedToday) return 'gray';
+  if (summary.trafficLight === 'Red') return 'red';
+  if (summary.trafficLight === 'Yellow') return 'yellow';
+  return 'green';
+}
+
+// painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3").
+function parsePainZones(raw?: string | null): PainZoneReport[] {
+  if (!raw?.trim()) return [];
+
+  return raw.split(',').flatMap((entry): PainZoneReport[] => {
+    const [muscleId, levelRaw] = entry.split(':').map((part) => part.trim());
+    const level = Number(levelRaw);
+    if (!muscleId || !Number.isFinite(level) || level <= 0) return [];
+
+    const muscle = PROTRAINING_MUSCLES.find((item) => item.id === muscleId);
+    return [{ zone: muscle?.name ?? muscleId, muscleId, level: Math.min(5, level) }];
+  });
+}
+
+function formatSleepQuality(sleepQuality?: number): string | undefined {
+  if (sleepQuality === undefined) return undefined;
+  if (sleepQuality >= 4) return 'Buena';
+  if (sleepQuality === 3) return 'Regular';
+  return 'Mala';
+}
+
+// reportedAt (ISO UTC) → "08:15 hs" en hora Argentina.
+function formatReportedAt(reportedAt?: string | null): string | undefined {
+  if (!reportedAt) return undefined;
+  try {
+    const time = new Intl.DateTimeFormat('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'America/Argentina/Buenos_Aires',
+    }).format(new Date(reportedAt));
+    return `${time} hs`;
+  } catch {
+    return undefined;
+  }
+}
+
+// Mapea el resumen del backend al tipo de UI de las cards del semáforo.
+export function mapTrafficLightSummaryToItem(
+  summary: AthleteTrafficLightSummary,
+  categoryName: string,
+): AthleteTrafficLightItem {
+  const status = resolveStatus(summary);
+  const indicators = summary.indicators ?? undefined;
+  const pains = parsePainZones(indicators?.painZones);
+  const worstPain =
+    pains.length > 0
+      ? pains.reduce((worst, pain) => (pain.level > worst.level ? pain : worst))
+      : undefined;
+
+  return {
+    id: summary.athleteId,
+    name: summary.athleteName,
+    position: '',
+    category: categoryName,
+    status,
+    statusLabel: TRAFFIC_STATUS_LABELS[status],
+    recommendation: status === 'gray' ? '' : summary.trafficLightReason || '',
+    sleepHours: indicators?.sleepHours,
+    sleepQuality: formatSleepQuality(indicators?.sleepQuality),
+    rpe: indicators?.effortRate ?? undefined,
+    pains: pains.length > 0 ? pains : undefined,
+    submittedAt: formatReportedAt(summary.reportedAt),
+    affectedMuscle: worstPain?.zone,
+    isSick: indicators?.isSick,
+    hasActiveInjury: indicators?.hasActiveInjury,
+  };
+}
+
+/**
+ * Consulta el semáforo tricolor de hoy para una categoría (GET traffic-light-today).
+ */
+export async function getCategoryTrafficLightToday(
+  categoryId: string,
+): Promise<AthleteTrafficLightSummary[]> {
+  try {
+    const response = await httpClient.get<AthleteTrafficLightSummary[]>(
+      `/seguimiento/api/v1/categories/${categoryId}/traffic-light-today`,
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
+ * (dashboard y alertas de dolor). Categorías o semáforos que fallen se omiten.
+ */
+export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLightItem[]> {
+  const organizations = await structureService.getOrganizations().catch(() => []);
+  const categoriesByOrg = await Promise.all(
+    organizations.map((organization) =>
+      structureService.getCategories(organization.id).catch(() => [] as Category[]),
+    ),
+  );
+  const categories = categoriesByOrg.flat();
+  if (categories.length === 0) return [];
+
+  const results = await Promise.all(
+    categories.map(async (category) => {
+      try {
+        const summaries = await getCategoryTrafficLightToday(category.id);
+        return summaries.map((summary) => mapTrafficLightSummaryToItem(summary, category.name));
+      } catch {
+        return [] as AthleteTrafficLightItem[];
+      }
+    }),
+  );
+
+  // Un atleta puede pertenecer a más de una categoría: se deduplica por id.
+  const seen = new Set<string>();
+  const unique: AthleteTrafficLightItem[] = [];
+  for (const item of results.flat()) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    unique.push(item);
+  }
+  return unique;
+}
+
+export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): TrafficLightCounts {
+  return {
+    all: items.length,
+    red: items.filter((item) => item.status === 'red').length,
+    yellow: items.filter((item) => item.status === 'yellow').length,
+    green: items.filter((item) => item.status === 'green').length,
+    gray: items.filter((item) => item.status === 'gray').length,
+  };
+}

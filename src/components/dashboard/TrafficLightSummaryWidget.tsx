@@ -1,12 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, ArrowRight } from 'lucide-react';
+import { TrafficLightCounts } from '../../api/seguimientoService';
 
 interface TrafficLightSummaryProps {
-  redCount?: number;
-  yellowCount?: number;
-  greenCount?: number;
-  grayCount?: number;
+  /** Conteos reales del semáforo del día (KAN-365); en 0 mientras carga. */
+  counts?: TrafficLightCounts;
+  loading?: boolean;
+  /** Texto del encabezado derecho (plantel/resumen representado). */
+  subtitle?: string;
   className?: string;
 }
 
@@ -135,19 +137,23 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
 };
 
 export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
-  redCount = 2,
-  yellowCount = 4,
-  greenCount = 16,
-  grayCount = 2,
+  counts,
+  loading = false,
+  subtitle = 'Todos los planteles',
   className = '',
 }) => {
   const navigate = useNavigate();
 
-  const total = redCount + yellowCount + greenCount + grayCount || 24;
-  const redPct = Math.round((redCount / total) * 100);
-  const yellowPct = Math.round((yellowCount / total) * 100);
-  const greenPct = Math.round((greenCount / total) * 100);
-  const grayPct = Math.round((grayCount / total) * 100);
+  const redCount = counts?.red ?? 0;
+  const yellowCount = counts?.yellow ?? 0;
+  const greenCount = counts?.green ?? 0;
+  const grayCount = counts?.gray ?? 0;
+
+  const total = counts?.all ?? redCount + yellowCount + greenCount + grayCount;
+  const redPct = total > 0 ? Math.round((redCount / total) * 100) : 0;
+  const yellowPct = total > 0 ? Math.round((yellowCount / total) * 100) : 0;
+  const greenPct = total > 0 ? Math.round((greenCount / total) * 100) : 0;
+  const grayPct = total > 0 ? Math.round((grayCount / total) * 100) : 0;
 
   const handleNavigate = () => {
     navigate('/pf/monitoring');
@@ -195,7 +201,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
             color: 'var(--text-muted)',
           }}
         >
-          Plantel Primera
+          {loading ? 'Cargando…' : subtitle}
         </span>
       </div>
 
@@ -210,45 +216,64 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
           margin: '0.35rem 0 0.85rem',
         }}
       >
-        {/* 1. Rojo - Atención Crítica */}
-        <DonutMetric
-          percentage={redPct}
-          count={redCount}
-          total={total}
-          color="var(--traffic-red)"
-          label="Atención Crítica"
-          onClick={() => navigate('/pf/monitoring?filter=red', { state: { filter: 'red' } })}
-        />
+        {loading ? (
+          <p
+            style={{
+              margin: '0 auto',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+            }}
+          >
+            Consultando el semáforo del día…
+          </p>
+        ) : (
+          <>
+            {/* 1. Rojo - Atención Crítica */}
+            <DonutMetric
+              percentage={redPct}
+              count={redCount}
+              total={total}
+              color="var(--traffic-red)"
+              label="Atención Crítica"
+              onClick={() => navigate('/pf/monitoring?filter=red', { state: { filter: 'red' } })}
+            />
 
-        {/* 2. Amarillo - Precaución */}
-        <DonutMetric
-          percentage={yellowPct}
-          count={yellowCount}
-          total={total}
-          color="var(--traffic-yellow)"
-          label="Precaución"
-          onClick={() => navigate('/pf/monitoring?filter=yellow', { state: { filter: 'yellow' } })}
-        />
+            {/* 2. Amarillo - Precaución */}
+            <DonutMetric
+              percentage={yellowPct}
+              count={yellowCount}
+              total={total}
+              color="var(--traffic-yellow)"
+              label="Precaución"
+              onClick={() =>
+                navigate('/pf/monitoring?filter=yellow', { state: { filter: 'yellow' } })
+              }
+            />
 
-        {/* 3. Verde - Óptimos */}
-        <DonutMetric
-          percentage={greenPct}
-          count={greenCount}
-          total={total}
-          color="var(--traffic-green)"
-          label="Óptimos"
-          onClick={() => navigate('/pf/monitoring?filter=green', { state: { filter: 'green' } })}
-        />
+            {/* 3. Verde - Óptimos */}
+            <DonutMetric
+              percentage={greenPct}
+              count={greenCount}
+              total={total}
+              color="var(--traffic-green)"
+              label="Óptimos"
+              onClick={() =>
+                navigate('/pf/monitoring?filter=green', { state: { filter: 'green' } })
+              }
+            />
 
-        {/* 4. Gris - Sin Check-in */}
-        <DonutMetric
-          percentage={grayPct}
-          count={grayCount}
-          total={total}
-          color="var(--traffic-gray)"
-          label="Sin Check-in"
-          onClick={() => navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })}
-        />
+            {/* 4. Gris - Sin Check-in */}
+            <DonutMetric
+              percentage={grayPct}
+              count={grayCount}
+              total={total}
+              color="var(--traffic-gray)"
+              label="Sin Check-in"
+              onClick={() => navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })}
+            />
+          </>
+        )}
       </div>
 
       <button

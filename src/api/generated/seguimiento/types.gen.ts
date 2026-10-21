@@ -70,7 +70,8 @@ export type CategoryAttendanceSummary = {
 };
 
 /**
- * Estado de bienestar diario del atleta para el semáforo consolidado de la categoría.
+ * Estado de bienestar diario del atleta para el semáforo consolidado de la categoría, con el desglose de indicadores del check-in para la visualización en la PWA (KAN-365).
+ *
  */
 export type AthleteTrafficLightSummary = {
     athleteId: string;
@@ -79,6 +80,27 @@ export type AthleteTrafficLightSummary = {
     trafficLightReason?: string | null;
     hasReportedToday: boolean;
     reportedAt?: string | null;
+    /**
+     * Escala de severidad del motor del semáforo (Rojo 20, Amarillo 50, Verde 90).
+     */
+    resultValue: 20 | 50 | 90;
+    indicators?: TrafficLightIndicators;
+};
+
+/**
+ * Valores crudos del check-in de hoy que alimentan los indicadores individuales (sueño, esfuerzo, dolor, enfermedad, lesión) dentro de la card del semáforo. Ausente (null) cuando el atleta no reportó hoy.
+ *
+ */
+export type TrafficLightIndicators = {
+    sleepHours: number;
+    sleepQuality: number;
+    effortRate?: number | null;
+    isSick: boolean;
+    hasActiveInjury: boolean;
+    /**
+     * Zonas de dolor reportadas (JSON serializado por el front).
+     */
+    painZones?: string | null;
 };
 
 export type GroupBenchmarkResponse = {
@@ -297,6 +319,10 @@ export type GetCategoryTrafficLightTodayErrors = {
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta.
+     */
+    403: ProblemDetails;
     /**
      * Atleta o lesión no encontrados.
      */

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, Search, Users } from 'lucide-react';
+import { Activity, Loader2, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
@@ -8,7 +8,12 @@ import {
   AthleteTrafficLightItem,
   TrafficLightStatus,
 } from '../../components/monitoring/trafficLight.types';
-import { INITIAL_TRAFFIC_LIGHT_DATA } from '../../components/monitoring/trafficLightData';
+import { structureService } from '../../api/structureService';
+import {
+  getCategoryTrafficLightToday,
+  mapTrafficLightSummaryToItem,
+} from '../../api/seguimientoService';
+import { Category } from '../../types/structure';
 
 type FilterColor = 'all' | TrafficLightStatus;
 
@@ -17,7 +22,12 @@ export const MonitoringPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<'traffic-light' | 'attendance'>('traffic-light');
-  const [selectedDivision, setSelectedDivision] = useState('Primera División');
+
+  // Plantel (categorías reales del PF) y semáforo del día cargados por API (KAN-365)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
 
   // Derive active color filter directly from URL query parameters or navigation state
   const queryParam = searchParams.get('filter') || searchParams.get('status');
@@ -53,8 +63,96 @@ export const MonitoringPage: React.FC = () => {
   };
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [athletes, setAthletes] = useState<AthleteTrafficLightItem[]>(INITIAL_TRAFFIC_LIGHT_DATA);
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
+
+  // 1. Cargar las categorías del preparador físico (orgs → categorías)
+  useEffect(() => {
+    let active = true;
+
+    structureService
+      .getOrganizations()
+      .catch(() => [])
+      .then(async (organizations) => {
+        const categoriesByOrg = await Promise.all(
+          organizations.map((organization) =>
+            structureService.getCategories(organization.id).catch(() => [] as Category[]),
+          ),
+        );
+        if (!active) return;
+
+        const allCategories = categoriesByOrg.flat();
+        setCategories(allCategories);
+        setSelectedCategoryId((current) => current || allCategories[0]?.id || '');
+        setCategoriesLoading(false);
+        if (allCategories.length === 0) {
+          setCategoriesError('No se encontraron planteles disponibles para tu cuenta.');
+        }
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        setCategoriesError(
+          err instanceof Error ? err.message : 'No se pudieron cargar las categorías.',
+        );
+        setCategoriesLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedCategoryName = useMemo(
+    () => categories.find((category) => category.id === selectedCategoryId)?.name ?? '',
+    [categories, selectedCategoryId],
+  );
+
+  // 2. Cargar el semáforo del día de la categoría seleccionada (sin setState síncrono en el effect)
+  const [athletesResult, setAthletesResult] = useState<{
+    categoryId: string;
+    athletes: AthleteTrafficLightItem[];
+    error: string | null;
+  } | null>(null);
+  const [statusOverrides, setStatusOverrides] = useState<
+    Record<string, Partial<AthleteTrafficLightItem>>
+  >({});
+
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    let active = true;
+
+    getCategoryTrafficLightToday(selectedCategoryId)
+      .then((summaries) => {
+        if (!active) return;
+        setAthletesResult({
+          categoryId: selectedCategoryId,
+          athletes: summaries.map((summary) =>
+            mapTrafficLightSummaryToItem(summary, selectedCategoryName),
+          ),
+          error: null,
+        });
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        setAthletesResult({
+          categoryId: selectedCategoryId,
+          athletes: [],
+          error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedCategoryId, selectedCategoryName]);
+
+  const athletesLoading =
+    selectedCategoryId !== '' &&
+    (athletesResult === null || athletesResult.categoryId !== selectedCategoryId);
+  const currentResult = athletesResult?.categoryId === selectedCategoryId ? athletesResult : null;
+  const athletes = (currentResult?.athletes ?? []).map((athlete) =>
+    statusOverrides[athlete.id] ? { ...athlete, ...statusOverrides[athlete.id] } : athlete,
+  );
+  const athletesError = currentResult?.error ?? null;
 
   // Counters for Segmented Color Chips (KAN-366)
   const counts = useMemo(() => {
@@ -88,18 +186,14 @@ export const MonitoringPage: React.FC = () => {
 
   // Assign differentiated training regimen directly from quick sheet
   const handleAssignDifferentiated = (athleteId: string) => {
-    setAthletes((prev) =>
-      prev.map((a) =>
-        a.id === athleteId
-          ? {
-              ...a,
-              status: 'yellow',
-              statusLabel: 'Precaución',
-              recommendation: 'Asignado a plan de rehabilitación y descarga muscular.',
-            }
-          : a,
-      ),
-    );
+    setStatusOverrides((prev) => ({
+      ...prev,
+      [athleteId]: {
+        status: 'yellow',
+        statusLabel: 'Precaución',
+        recommendation: 'Asignado a plan de rehabilitación y descarga muscular.',
+      },
+    }));
   };
 
   return (
@@ -176,8 +270,9 @@ export const MonitoringPage: React.FC = () => {
             </label>
             <select
               id="category-select"
-              value={selectedDivision}
-              onChange={(e) => setSelectedDivision(e.target.value)}
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              disabled={categoriesLoading || categories.length === 0}
               style={{
                 padding: '0.4rem 0.85rem',
                 borderRadius: '10px',
@@ -188,10 +283,18 @@ export const MonitoringPage: React.FC = () => {
                 fontSize: '0.85rem',
               }}
             >
-              <option value="Primera División">Primera División</option>
-              <option value="Reserva">Reserva</option>
-              <option value="Sub-20">Sub-20</option>
+              {categories.length === 0 && <option value="">Sin plantel disponible</option>}
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
+            {categoriesError && (
+              <span style={{ fontSize: '0.78rem', color: 'var(--pain-level-5)' }}>
+                {categoriesError}
+              </span>
+            )}
           </div>
 
           {/* Athlete Search Input */}
@@ -471,7 +574,7 @@ export const MonitoringPage: React.FC = () => {
                 />
               ))}
 
-              {filteredAthletes.length === 0 && (
+              {athletesLoading && (
                 <div
                   style={{
                     gridColumn: '1 / -1',
@@ -480,13 +583,55 @@ export const MonitoringPage: React.FC = () => {
                     background: 'var(--bg-card)',
                     borderRadius: '16px',
                     border: '1px dashed var(--border)',
+                    color: 'var(--text-muted)',
                   }}
                 >
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                    No se encontraron atletas con los filtros seleccionados.
+                  <Loader2
+                    size={24}
+                    style={{ animation: 'spin 1s linear infinite', marginBottom: '0.5rem' }}
+                  />
+                  <p style={{ margin: 0, fontSize: '0.9rem' }}>Consultando el semáforo del día…</p>
+                </div>
+              )}
+
+              {!athletesLoading && (athletesError || categoriesError) && (
+                <div
+                  style={{
+                    gridColumn: '1 / -1',
+                    padding: '3rem 1.5rem',
+                    textAlign: 'center',
+                    background: 'var(--traffic-red-bg)',
+                    borderRadius: '16px',
+                    border: '1px solid var(--traffic-red-border)',
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--traffic-red-text)' }}>
+                    {athletesError || categoriesError}
                   </p>
                 </div>
               )}
+
+              {!athletesLoading &&
+                !athletesError &&
+                !categoriesError &&
+                filteredAthletes.length === 0 && (
+                  <div
+                    style={{
+                      gridColumn: '1 / -1',
+                      padding: '3rem 1.5rem',
+                      textAlign: 'center',
+                      background: 'var(--bg-card)',
+                      borderRadius: '16px',
+                      border: '1px dashed var(--border)',
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      {selectedCategoryId
+                        ? 'No se encontraron atletas con los filtros seleccionados.'
+                        : 'Selecciona un plantel para ver el semáforo del día.'}
+                    </p>
+                  </div>
+                )}
             </div>
 
             {/* Accessible Quick Sheet (Bottom Sheet on Mobile, Modal on Desktop) */}
