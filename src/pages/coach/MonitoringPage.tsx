@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, Loader2, Search, Users } from 'lucide-react';
+import { Activity, AlertTriangle, Loader2, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
@@ -10,6 +10,7 @@ import {
 } from '../../components/monitoring/trafficLight.types';
 import { structureService } from '../../api/structureService';
 import {
+  ATHLETE_NAME_FALLBACK,
   CATEGORY_NAME_FALLBACK,
   getCategoryTrafficLightToday,
   mapTrafficLightSummaryToItem,
@@ -17,6 +18,18 @@ import {
 import { Category } from '../../types/structure';
 
 type FilterColor = 'all' | TrafficLightStatus;
+
+// KAN-365: orden visual del semáforo. El backend ordena por severidad
+// (rojo → amarillo → verde), pero los atletas sin check-in (gris) pueden
+// quedar intercalados. El frontend reordena con prioridad visual
+// rojo(0) → amarillo(1) → gris(2) → verde(3). `sort` es estable (ES2019):
+// preserva el orden original (apellido) dentro de cada color.
+const STATUS_ORDER: Record<TrafficLightStatus, number> = {
+  red: 0,
+  yellow: 1,
+  gray: 2,
+  green: 3,
+};
 
 export const MonitoringPage: React.FC = () => {
   const location = useLocation();
@@ -154,10 +167,20 @@ export const MonitoringPage: React.FC = () => {
     selectedCategoryId !== '' &&
     (athletesResult === null || athletesResult.categoryId !== selectedCategoryId);
   const currentResult = athletesResult?.categoryId === selectedCategoryId ? athletesResult : null;
-  const athletes = (currentResult?.athletes ?? []).map((athlete) =>
-    statusOverrides[athlete.id] ? { ...athlete, ...statusOverrides[athlete.id] } : athlete,
+  const athletes = useMemo(
+    () =>
+      (currentResult?.athletes ?? [])
+        .map((athlete) =>
+          statusOverrides[athlete.id] ? { ...athlete, ...statusOverrides[athlete.id] } : athlete,
+        )
+        .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]),
+    [currentResult, statusOverrides],
   );
   const athletesError = currentResult?.error ?? null;
+
+  // KAN-366: modo degradado — si Estructura no responde, los nombres de atleta
+  // llegan vacíos y el mapper los reemplaza por ATHLETE_NAME_FALLBACK.
+  const hasDegradedAthletes = athletes.some((athlete) => athlete.name === ATHLETE_NAME_FALLBACK);
 
   // Contadores de los chips segmentados por color (KAN-366). Colores vía
   // tokens (--traffic-*, --white, --chip-*-count-bg) con soporte claro/oscuro;
@@ -567,6 +590,37 @@ export const MonitoringPage: React.FC = () => {
                 </span>
               </button>
             </div>
+
+            {/* KAN-366: aviso de modo degradado cuando Estructura no respondió
+                y algún atleta llegó sin nombre (ATHLETE_NAME_FALLBACK). */}
+            {hasDegradedAthletes && !athletesLoading && (
+              <div
+                role="alert"
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.65rem',
+                  padding: '0.85rem 1.1rem',
+                  borderRadius: '12px',
+                  background: 'var(--warning-bg-strong)',
+                  border: '1px solid var(--warning-border)',
+                  color: 'var(--warning-text)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  lineHeight: 1.4,
+                }}
+              >
+                <AlertTriangle
+                  size={17}
+                  style={{ flexShrink: 0, marginTop: '1px' }}
+                  aria-hidden="true"
+                />
+                <span>
+                  No se pudo cargar la lista completa de la categoría. Se muestran solo los atletas
+                  que ya hicieron el check-in hoy.
+                </span>
+              </div>
+            )}
 
             {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366): datos reales
                 del endpoint traffic-light-today; sin trafficLightData.ts. */}
