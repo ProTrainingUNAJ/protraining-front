@@ -5,6 +5,13 @@ import { OFFICIAL_PALETTE_ITEMS } from '../athlete/muscleMap.config';
 import { PainZoneReport } from './trafficLight.types';
 import { Activity, CheckCircle2 } from 'lucide-react';
 
+/**
+ * Mapa corporal de dolor de la ficha rápida (KAN-365/KAN-366): renderiza las
+ * zonas reportadas en el check-in real del atleta. Controles de vista y bordes
+ * usan tokens de `tokens.css` (--white, --primary, --border; claro/oscuro);
+ * cero literales rgba/hex en estilos (KAN-366). La escala de nivel de dolor
+ * proviene de la paleta oficial `OFFICIAL_PALETTE_ITEMS` (data de negocio).
+ */
 interface AthleteBodyPainMapProps {
   pains?: PainZoneReport[];
   athleteName?: string;
@@ -144,7 +151,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
             style={{
               border: 'none',
               background: activeView === 'front' ? 'var(--primary)' : 'transparent',
-              color: activeView === 'front' ? '#ffffff' : 'var(--text-muted)',
+              color: activeView === 'front' ? 'var(--white)' : 'var(--text-muted)',
               padding: '0.2rem 0.6rem',
               borderRadius: '9999px',
               fontSize: '0.72rem',
@@ -161,7 +168,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
             style={{
               border: 'none',
               background: activeView === 'back' ? 'var(--primary)' : 'transparent',
-              color: activeView === 'back' ? '#ffffff' : 'var(--text-muted)',
+              color: activeView === 'back' ? 'var(--white)' : 'var(--text-muted)',
               padding: '0.2rem 0.6rem',
               borderRadius: '9999px',
               fontSize: '0.72rem',
@@ -178,7 +185,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
             style={{
               border: 'none',
               background: activeView === 'both' ? 'var(--primary)' : 'transparent',
-              color: activeView === 'both' ? '#ffffff' : 'var(--text-muted)',
+              color: activeView === 'both' ? 'var(--white)' : 'var(--text-muted)',
               padding: '0.2rem 0.6rem',
               borderRadius: '9999px',
               fontSize: '0.72rem',
@@ -303,7 +310,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                   height: '9px',
                   borderRadius: '50%',
                   background: item.hex,
-                  border: '1px solid rgba(0,0,0,0.1)',
+                  border: '1px solid var(--border)',
                 }}
               />
               <span>

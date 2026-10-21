@@ -10,6 +10,7 @@ import {
 } from '../../components/monitoring/trafficLight.types';
 import { structureService } from '../../api/structureService';
 import {
+  CATEGORY_NAME_FALLBACK,
   getCategoryTrafficLightToday,
   mapTrafficLightSummaryToItem,
 } from '../../api/seguimientoService';
@@ -23,7 +24,8 @@ export const MonitoringPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'traffic-light' | 'attendance'>('traffic-light');
 
-  // Plantel (categorías reales del PF) y semáforo del día cargados por API (KAN-365)
+  // Plantel (categorías reales del PF) y semáforo del día cargados por API
+  // (KAN-365/KAN-366). Sin mocks: el archivo trafficLightData.ts fue eliminado.
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
@@ -101,8 +103,11 @@ export const MonitoringPage: React.FC = () => {
     };
   }, []);
 
+  // Modo degradado KAN-366: estructura caída → nombre de categoría vacío.
   const selectedCategoryName = useMemo(
-    () => categories.find((category) => category.id === selectedCategoryId)?.name ?? '',
+    () =>
+      categories.find((category) => category.id === selectedCategoryId)?.name?.trim() ||
+      CATEGORY_NAME_FALLBACK,
     [categories, selectedCategoryId],
   );
 
@@ -154,7 +159,9 @@ export const MonitoringPage: React.FC = () => {
   );
   const athletesError = currentResult?.error ?? null;
 
-  // Counters for Segmented Color Chips (KAN-366)
+  // Contadores de los chips segmentados por color (KAN-366). Colores vía
+  // tokens (--traffic-*, --white, --chip-*-count-bg) con soporte claro/oscuro;
+  // cero literales rgba/hex (validado con grep y stylelint).
   const counts = useMemo(() => {
     return {
       all: athletes.length,
@@ -286,7 +293,7 @@ export const MonitoringPage: React.FC = () => {
               {categories.length === 0 && <option value="">Sin plantel disponible</option>}
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.name}
+                  {category.name?.trim() || CATEGORY_NAME_FALLBACK}
                 </option>
               ))}
             </select>
@@ -370,7 +377,7 @@ export const MonitoringPage: React.FC = () => {
                 <span
                   style={{
                     background:
-                      colorFilter === 'all' ? 'rgba(255,255,255,0.2)' : 'var(--bg-subtle)',
+                      colorFilter === 'all' ? 'var(--chip-primary-count-bg)' : 'var(--bg-subtle)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
@@ -396,7 +403,7 @@ export const MonitoringPage: React.FC = () => {
                   border: `1px solid ${colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-border)'}`,
                   background:
                     colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-bg)',
-                  color: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red-text)',
+                  color: colorFilter === 'red' ? 'var(--white)' : 'var(--traffic-red-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -406,14 +413,15 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red)',
+                    background: colorFilter === 'red' ? 'var(--white)' : 'var(--traffic-red)',
                   }}
                 />
                 <span>Atención Crítica</span>
                 <span
                   style={{
-                    background: colorFilter === 'red' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
-                    color: colorFilter === 'red' ? '#ffffff' : 'var(--traffic-red-text)',
+                    background:
+                      colorFilter === 'red' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
+                    color: colorFilter === 'red' ? 'var(--white)' : 'var(--traffic-red-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
@@ -440,7 +448,7 @@ export const MonitoringPage: React.FC = () => {
                   border: `1px solid ${colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-border)'}`,
                   background:
                     colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-bg)',
-                  color: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow-text)',
+                  color: colorFilter === 'yellow' ? 'var(--white)' : 'var(--traffic-yellow-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -450,14 +458,15 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow)',
+                    background: colorFilter === 'yellow' ? 'var(--white)' : 'var(--traffic-yellow)',
                   }}
                 />
                 <span>Precaución</span>
                 <span
                   style={{
-                    background: colorFilter === 'yellow' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
-                    color: colorFilter === 'yellow' ? '#ffffff' : 'var(--traffic-yellow-text)',
+                    background:
+                      colorFilter === 'yellow' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
+                    color: colorFilter === 'yellow' ? 'var(--white)' : 'var(--traffic-yellow-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
@@ -484,7 +493,7 @@ export const MonitoringPage: React.FC = () => {
                   border: `1px solid ${colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-border)'}`,
                   background:
                     colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-bg)',
-                  color: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green-text)',
+                  color: colorFilter === 'green' ? 'var(--white)' : 'var(--traffic-green-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -494,14 +503,15 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green)',
+                    background: colorFilter === 'green' ? 'var(--white)' : 'var(--traffic-green)',
                   }}
                 />
                 <span>Óptimos</span>
                 <span
                   style={{
-                    background: colorFilter === 'green' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
-                    color: colorFilter === 'green' ? '#ffffff' : 'var(--traffic-green-text)',
+                    background:
+                      colorFilter === 'green' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
+                    color: colorFilter === 'green' ? 'var(--white)' : 'var(--traffic-green-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
@@ -528,7 +538,7 @@ export const MonitoringPage: React.FC = () => {
                   border: `1px solid ${colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-border)'}`,
                   background:
                     colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-bg)',
-                  color: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray-text)',
+                  color: colorFilter === 'gray' ? 'var(--white)' : 'var(--traffic-gray-text)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -538,14 +548,15 @@ export const MonitoringPage: React.FC = () => {
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    background: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray)',
+                    background: colorFilter === 'gray' ? 'var(--white)' : 'var(--traffic-gray)',
                   }}
                 />
                 <span>Sin Check-in</span>
                 <span
                   style={{
-                    background: colorFilter === 'gray' ? 'rgba(0,0,0,0.2)' : 'var(--bg-card)',
-                    color: colorFilter === 'gray' ? '#ffffff' : 'var(--traffic-gray-text)',
+                    background:
+                      colorFilter === 'gray' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
+                    color: colorFilter === 'gray' ? 'var(--white)' : 'var(--traffic-gray-text)',
                     padding: '0.1rem 0.45rem',
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
@@ -557,7 +568,8 @@ export const MonitoringPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Athlete Traffic Light Grid (KAN-366) */}
+            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366): datos reales
+                del endpoint traffic-light-today; sin trafficLightData.ts. */}
             <div
               style={{
                 display: 'grid',

@@ -3,11 +3,19 @@ import { AlertTriangle, NotebookPen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
 
+/**
+ * Alertas de dolor del dashboard (KAN-365/KAN-366): sin datos ficticios;
+ * recibe los atletas reales del semáforo del día y filtra rojos/amarillos.
+ * Colores de los stickies y textos vía tokens de `tokens.css`
+ * (--traffic-red/yellow, --pain-sticky-*, --sticky-btn-text, --border, --white),
+ * con soporte claro/oscuro; cero literales rgba/hex (KAN-366).
+ */
+
 const MedicalCrossIcon: React.FC<{ size?: number; color?: string }> = ({
   size = 22,
-  color = '#ffffff',
+  color = 'var(--white)',
 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{ color }}>
     <path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3z" />
   </svg>
 );
@@ -114,20 +122,20 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
           title="Ver atletas con Molestia Crítica en el semáforo"
           className="pain-sticky-item pain-sticky-red"
           style={{
-            background: '#dc2626',
+            background: 'var(--traffic-red)',
             borderRadius: '14px',
             padding: '0.85rem 0.95rem 0.65rem',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 14px rgba(220, 38, 38, 0.28)',
+            boxShadow: 'var(--pain-sticky-red-shadow)',
             minHeight: '185px',
           }}
         >
           <div>
             {/* Cruz médica blanca superior */}
             <div style={{ marginBottom: '0.45rem' }}>
-              <MedicalCrossIcon size={24} color="#ffffff" />
+              <MedicalCrossIcon size={24} />
             </div>
 
             {/* Título en negrita oscura */}
@@ -135,7 +143,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 900,
-                color: '#111827',
+                color: 'var(--sticky-btn-text)',
                 margin: '0 0 0.55rem',
                 letterSpacing: '-0.01em',
               }}
@@ -151,7 +159,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
                 gap: '0.25rem',
                 fontSize: '0.98rem',
                 fontWeight: 800,
-                color: '#111827',
+                color: 'var(--sticky-btn-text)',
                 lineHeight: 1.25,
               }}
             >
@@ -168,7 +176,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
           {/* Línea divisoria y logo de apunte para modificar la rutina */}
           <div
             style={{
-              borderTop: '1px solid rgba(0, 0, 0, 0.18)',
+              borderTop: '1px solid var(--border)',
               marginTop: '0.65rem',
               paddingTop: '0.45rem',
               display: 'flex',
@@ -197,20 +205,20 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
           title="Ver atletas con Precaución en el semáforo"
           className="pain-sticky-item pain-sticky-yellow"
           style={{
-            background: '#facc15',
+            background: 'var(--traffic-yellow)',
             borderRadius: '14px',
             padding: '0.85rem 0.95rem 0.65rem',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 14px rgba(250, 204, 21, 0.28)',
+            boxShadow: 'var(--pain-sticky-yellow-shadow)',
             minHeight: '185px',
           }}
         >
           <div>
             {/* Triángulo de advertencia blanco superior */}
             <div style={{ marginBottom: '0.45rem' }}>
-              <AlertTriangle size={24} color="#ffffff" fill="#ffffff" />
+              <AlertTriangle size={24} style={{ color: 'var(--white)', fill: 'var(--white)' }} />
             </div>
 
             {/* Título en negrita oscura */}
@@ -218,7 +226,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 900,
-                color: '#111827',
+                color: 'var(--sticky-btn-text)',
                 margin: '0 0 0.5rem',
                 letterSpacing: '-0.01em',
               }}
@@ -234,7 +242,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
                 gap: '0.2rem',
                 fontSize: '0.9rem',
                 fontWeight: 800,
-                color: '#111827',
+                color: 'var(--sticky-btn-text)',
                 lineHeight: 1.25,
               }}
             >
@@ -251,7 +259,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
           {/* Línea divisoria y logo de apunte para modificar la rutina */}
           <div
             style={{
-              borderTop: '1px solid rgba(0, 0, 0, 0.18)',
+              borderTop: '1px solid var(--border)',
               marginTop: '0.65rem',
               paddingTop: '0.45rem',
               display: 'flex',

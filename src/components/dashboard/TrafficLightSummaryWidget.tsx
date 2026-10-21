@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Activity, ArrowRight } from 'lucide-react';
 import { TrafficLightCounts } from '../../api/seguimientoService';
 
+/**
+ * Resumen del semáforo del día en 4 donas (KAN-365/KAN-366): recibe los
+ * conteos reales calculados por `summarizeTrafficLightCounts` (sin mocks) y
+ * navega a MonitoringPage con el filtro por color. Colores de donas y hover
+ * vía tokens (--traffic-*, --donut-hover-shadow) con soporte claro/oscuro;
+ * cero literales rgba/hex (KAN-366).
+ */
 interface TrafficLightSummaryProps {
   /** Conteos reales del semáforo del día (KAN-365); en 0 mientras carga. */
   counts?: TrafficLightCounts;
@@ -55,7 +62,7 @@ const DonutMetric: React.FC<DonutMetricProps> = ({
         outline: 'none',
         transform: isHovered ? 'scale(1.14)' : 'scale(1)',
         transition: 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease',
-        filter: isHovered ? 'drop-shadow(0 6px 14px rgba(0, 0, 0, 0.16))' : 'none',
+        filter: isHovered ? 'var(--donut-hover-shadow)' : 'none',
         zIndex: isHovered ? 5 : 1,
       }}
       title={`${label}: ${count} de ${total} (${percentage}%)`}

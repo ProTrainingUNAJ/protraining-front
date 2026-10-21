@@ -3,6 +3,14 @@ import { ChevronRight, AlertCircle, Moon, Activity, Siren, Thermometer } from 'l
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 
+/**
+ * Tarjeta del atleta en MonitoringPage (KAN-365/KAN-366): adaptada al DTO real
+ * del endpoint traffic-light-today vía `mapTrafficLightSummaryToItem` (sin
+ * mocks: `trafficLightData.ts` eliminado). Los anillos e indicadores (sueño,
+ * RPE, dolor, enfermedad, lesión) se pintan solo cuando el atleta reportó hoy.
+ * Paleta por estado 100% con tokens `--traffic-*` (ring/bg/text/border) de
+ * `tokens.css`, con soporte claro/oscuro; cero literales rgba/hex (KAN-366).
+ */
 interface AthleteTrafficLightCardProps {
   athlete: AthleteTrafficLightItem;
   onClick: () => void;
@@ -306,7 +314,6 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           display: 'flex',
           alignItems: 'center',
           gap: '0.65rem',
-          background: 'rgba(0, 0, 0, 0.015)',
           borderRadius: '8px',
           padding: '0.5rem 0.65rem',
           height: '54px',
