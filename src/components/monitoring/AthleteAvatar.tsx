@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TrafficLightStatus } from './trafficLight.types';
+import { TrafficRing } from './TrafficRing';
 
 interface AthleteAvatarProps {
   name: string;
@@ -44,28 +45,17 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
       }}
       title={name}
     >
-      {/* 1. Anillo concéntrico SVG del semáforo de dolor/readiness */}
+      {/* 1. Anillo concéntrico SVG del semáforo de dolor/readiness (KAN-365) */}
       {showRing && (
-        <svg
-          width={size}
-          height={size}
-          viewBox="0 0 50 50"
-          style={{ transform: 'rotate(-90deg)', display: 'block' }}
-          aria-hidden="true"
-        >
-          <circle cx="25" cy="25" r="22" fill="none" stroke="var(--border)" strokeWidth="2.5" />
-          <circle
-            cx="25"
-            cy="25"
-            r="22"
-            fill="none"
-            stroke={ringColor}
-            strokeWidth="3.5"
-            strokeDasharray="138"
-            strokeDashoffset={status === 'gray' ? '69' : '0'}
-            strokeLinecap="round"
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <TrafficRing
+            status={status}
+            size={size}
+            strokeWidth={3.5}
+            progress={status === 'gray' ? 50 : 100}
+            color={ringColor}
           />
-        </svg>
+        </div>
       )}
 
       {/* 2. Círculo interior: Foto de perfil del usuario o Iniciales como fallback */}

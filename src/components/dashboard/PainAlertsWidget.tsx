@@ -1,10 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AlertTriangle, NotebookPen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import {
-  RED_TRAFFIC_LIGHT_ATHLETES,
-  YELLOW_TRAFFIC_LIGHT_ATHLETES,
-} from '../monitoring/trafficLightData';
+import { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
 
 const MedicalCrossIcon: React.FC<{ size?: number; color?: string }> = ({
   size = 22,
@@ -15,11 +12,26 @@ const MedicalCrossIcon: React.FC<{ size?: number; color?: string }> = ({
   </svg>
 );
 
-export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
+interface PainAlertsWidgetProps {
+  /** Atletas del semáforo del día (todas las categorías); se filtran rojos y amarillos. */
+  athletes?: AthleteTrafficLightItem[];
+  className?: string;
+}
+
+export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
+  athletes = [],
+  className = '',
+}) => {
   const navigate = useNavigate();
 
-  const redAthletes = RED_TRAFFIC_LIGHT_ATHLETES;
-  const yellowAthletes = YELLOW_TRAFFIC_LIGHT_ATHLETES;
+  const redAthletes = useMemo(
+    () => athletes.filter((athlete) => athlete.status === 'red'),
+    [athletes],
+  );
+  const yellowAthletes = useMemo(
+    () => athletes.filter((athlete) => athlete.status === 'yellow'),
+    [athletes],
+  );
   const totalCount = redAthletes.length + yellowAthletes.length;
 
   const handleOpenMonitoring = (filter: 'red' | 'yellow') => {
@@ -143,9 +155,13 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
                 lineHeight: 1.25,
               }}
             >
-              {redAthletes.map((athlete) => (
-                <span key={athlete.id}>{athlete.name}</span>
-              ))}
+              {redAthletes.length > 0 ? (
+                redAthletes.map((athlete) => <span key={athlete.id}>{athlete.name}</span>)
+              ) : (
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.75 }}>
+                  Sin alertas críticas hoy
+                </span>
+              )}
             </div>
           </div>
 
@@ -222,9 +238,13 @@ export const PainAlertsWidget: React.FC<{ className?: string }> = ({ className =
                 lineHeight: 1.25,
               }}
             >
-              {yellowAthletes.map((athlete) => (
-                <span key={athlete.id}>{athlete.name}</span>
-              ))}
+              {yellowAthletes.length > 0 ? (
+                yellowAthletes.map((athlete) => <span key={athlete.id}>{athlete.name}</span>)
+              ) : (
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.75 }}>
+                  Sin precauciones hoy
+                </span>
+              )}
             </div>
           </div>
 

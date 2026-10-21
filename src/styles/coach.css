@@ -1052,6 +1052,18 @@
   box-shadow: var(--shadow-lg);
 }
 
+/* ── KAN-365: Semáforo del Día — anillo de color con transición de estado ── */
+.traffic-ring circle {
+  transition:
+    stroke-dashoffset 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    stroke 0.3s ease;
+}
+
+/* ── KAN-365: indicadores de la card (lesión/enfermedad/métricas) sin corte abrupto ── */
+.athlete-traffic-light-card .badge {
+  flex-shrink: 0;
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(100%);

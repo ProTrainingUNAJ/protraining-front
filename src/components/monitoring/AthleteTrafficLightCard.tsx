@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, AlertCircle, Moon, Activity } from 'lucide-react';
+import { ChevronRight, AlertCircle, Moon, Activity, Siren, Thermometer } from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 
@@ -56,6 +56,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       : athlete.status === 'gray'
         ? 'Sin Check-in'
         : athlete.affectedMuscle || athlete.statusLabel;
+
+  // Sin posición disponible (el semáforo del día no la trae), se muestra solo el plantel.
+  const subtitle = [athlete.position, athlete.category].filter(Boolean).join(' · ') || 'Plantel';
 
   return (
     <div
@@ -148,9 +151,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
-            title={`${athlete.position} · ${athlete.category || 'Primera División'}`}
+            title={subtitle}
           >
-            {athlete.position} · {athlete.category || 'Primera División'}
+            {subtitle}
           </p>
         </div>
       </div>
@@ -189,11 +192,48 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'flex-end',
               gap: '0.65rem',
               fontSize: '0.78rem',
               color: 'var(--text-secondary)',
+              overflow: 'hidden',
+              minWidth: 0,
             }}
           >
+            {athlete.hasActiveInjury && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                  fontWeight: 700,
+                  color: 'var(--traffic-red-text)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+                title="Lesión activa reportada en el check-in de hoy"
+              >
+                <Siren size={14} /> Lesión
+              </span>
+            )}
+
+            {athlete.isSick && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                  fontWeight: 700,
+                  color: 'var(--warning-text)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+                title="Reportó enfermedad en el check-in de hoy"
+              >
+                <Thermometer size={14} /> Enfermo
+              </span>
+            )}
+
             {maxPainLevel > 0 && (
               <span
                 style={{
@@ -202,6 +242,8 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   gap: '0.2rem',
                   fontWeight: 700,
                   color: maxPainLevel >= 4 ? 'var(--pain-level-5)' : 'var(--warning-text)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
                 title={`Dolor máximo nivel ${maxPainLevel}/5`}
               >
@@ -217,6 +259,8 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   gap: '0.2rem',
                   color: 'var(--text-muted)',
                   fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
                 title={`${athlete.sleepHours} hs de sueño`}
               >
@@ -232,6 +276,8 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   gap: '0.2rem',
                   fontWeight: 700,
                   color: athlete.rpe >= 8 ? 'var(--pain-level-5)' : 'var(--cyan-accent)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
                 title={`RPE de la última sesión: ${athlete.rpe}`}
               >
