@@ -1,0 +1,76 @@
+/* ── Récords (1RM) del atleta (KAN-537) ── */
+
+.records-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 35vh;
+  overflow-y: auto;
+}
+
+.records-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.1rem 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.records-item-name {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.records-item-weight {
+  grid-row: span 2;
+  align-self: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.records-item-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.records-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.records-form h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.records-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.records-form .plan-field input,
+.records-form .plan-field select {
+  margin-bottom: 0;
+}
+
+.records-exercise-btn {
+  justify-content: flex-start;
+  margin-top: 0.35rem;
+  text-align: left;
+}

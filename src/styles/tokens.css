@@ -1,0 +1,465 @@
+:root {
+  color-scheme: light;
+
+  /* Marca */
+  --brand-navy: #023050;
+  --brand-blue: #0070c0;
+  --brand-gray-light: #e3e4e6;
+  --brand-gray-dark: #202429;
+
+  /* Gradientes de marca */
+  --grad-text: linear-gradient(90deg, #023050 0%, #0070c0 100%);
+  --grad-isotype: linear-gradient(135deg, #22d3ee 0%, #6a5acd 100%);
+
+  /* Superficies (modo claro) */
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f3f6;
+
+  /* Texto */
+  --text-main: #023050;
+  --text-muted: #5b6470;
+
+  /* Bordes */
+  --border: #cdd1d6;
+
+  /* Texto y superficies sobre el navy (menús laterales y drawer) */
+  --on-primary: #ffffff;
+  --on-primary-muted: rgb(255 255 255 / 0.82);
+  --on-primary-subtle: rgb(255 255 255 / 0.7);
+  --on-primary-border: rgb(255 255 255 / 0.35);
+  --on-primary-hover: rgb(255 255 255 / 0.08);
+  --on-primary-surface: rgb(255 255 255 / 0.06);
+
+  /* Roles semánticos */
+  --primary: var(--brand-navy);
+  --primary-hover: #03446e;
+  --primary-light: #e6eef4;
+  --secondary: var(--brand-blue);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+
+  /* Fondos, bordes y textos de badges y avisos */
+  --info-bg: #e1f0fa;
+  --info-border: rgb(0 112 192 / 0.25);
+  --info-text: var(--brand-navy);
+  --success-bg: #f0fdf4;
+  --success-bg-strong: #dcfce7;
+  --success-border: #bbf7d0;
+  --success-text: #166534;
+  --warning-bg-strong: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #fef2f2;
+  --danger-bg-strong: #fee2e2;
+  --danger-border: #fecaca;
+  --danger-text: #991b1b;
+
+  /* Fondo detrás de modales y del drawer */
+  --overlay: rgb(2 48 80 / 0.6);
+
+  --radius: 12px;
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.1);
+  --shadow: 0 4px 6px -1px rgb(2 48 80 / 0.08), 0 2px 4px -2px rgb(2 48 80 / 0.06);
+  --shadow-lg: 0 20px 25px -5px rgb(2 48 80 / 0.1);
+  --shadow-filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.4));
+  --shadow-glow-layer: drop-shadow(0 0 2px rgb(0 0 0 / 0.25));
+  --focus-ring: 0 0 0 3px rgb(0 112 192 / 0.18);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* App Shell rediseñada */
+  --shell-bg: #e3e4e6;
+  --shell-panel-bg: #ffffff;
+  --shell-panel-border: #cdd1d6;
+  --shell-sidebar-bg: #023050;
+  --shell-active-item-bg: #0b4570;
+  --shell-active-item-color: #ffffff;
+  --shell-search-bg: #f0f2f5;
+  --shell-search-border: #cdd1d6;
+  --shell-search-placeholder: #7c8796;
+  --shell-pill-border: #0070c0;
+  --shell-pill-hover: #eef6fc;
+
+  /* Base and utility colors */
+  --white: #ffffff;
+  --black: #000000;
+  --cyan-accent: #38bdf8;
+  --navy-deep: #021e33;
+
+  /* Authentication providers */
+  --color-google-blue: #4285f4;
+  --color-google-green: #34a853;
+  --color-google-yellow: #fbbc05;
+  --color-google-red: #ea4335;
+
+  /* Inputs and form controls */
+  --input-bg: #f8fafc;
+  --input-border: #e2e8f0;
+  --input-border-hover: #c8d0dc;
+  --input-border-subtle: #c8d0dc;
+  --input-border-subtle-hover: #a0aec0;
+  --input-bg-hover: #f3f6fa;
+  --input-border-focus: #a0aec0;
+  --input-text: #1a1a2e;
+  --input-text-dark: #e8edf4;
+  --input-placeholder: #94a3b8;
+
+  /* Complementary states and borders */
+  --brand-blue-hover: #005999;
+  --bg-surface-subtle: #f4f5f7;
+  --color-text-subtle: #8e98a5;
+  --status-danger-border: #f87171;
+  --status-success-border: #86efac;
+
+  /* ProTraining muscle pain scale (1 to 5) */
+  --pain-level-1: #20c56b;
+  --pain-level-2: #84cc16;
+  --pain-level-3: #f4b400;
+  --pain-level-4: #ff781f;
+  --pain-level-5: #f04444;
+  --pain-level-1-bg: rgb(32 197 107 / 0.15);
+  --pain-level-2-bg: rgb(132 204 22 / 0.15);
+  --pain-level-3-bg: rgb(244 180 0 / 0.15);
+  --pain-level-4-bg: rgb(255 120 31 / 0.15);
+  --pain-level-5-bg: rgb(240 68 68 / 0.15);
+  --muscle-default-fill: #e2e8f0;
+  --muscle-default-stroke: #cbd5e1;
+  --muscle-hover-stroke: #0070c0;
+  --muscle-hover-fill: rgb(0 112 192 / 0.22);
+  --muscle-badge-bg: rgb(255 255 255 / 0.25);
+  --muscle-blue: #023050;
+  --muscle-red: #f04444;
+
+  /* ProTraining Interactive Anatomical Palette (Configurable colors) */
+  --muscle-color-white: #ffffff;
+  --muscle-color-dark-green: #006b45;
+  --muscle-color-light-green: #55b83f;
+  --muscle-color-yellow: #ffd600;
+  --muscle-color-orange: #ff7900;
+  --muscle-color-red: #e50914;
+  --muscle-border-color: #ffffff;
+  --muscle-outline-selected: #0070c0;
+  --muscle-silhouette-fill: #e8ecf2;
+  --muscle-pain-shadow-sm: 0 2px 4px rgb(0 0 0 / 0.03);
+  --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.08);
+  --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.12);
+
+  /* Exercise muscle highlight tokens (KAN-320) */
+  --muscle-exercise-primary: #e50914;
+  --muscle-exercise-secondary: #ff7900;
+  --muscle-exercise-primary-glow: rgb(229 9 20 / 0.35);
+  --muscle-exercise-secondary-glow: rgb(255 121 0 / 0.25);
+
+  /* Suite banner and card (Coach & Athlete Dashboard) */
+  --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
+  --suite-badge-bg: rgb(255 255 255 / 0.15);
+  --suite-text-muted: rgb(255 255 255 / 0.78);
+  --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+
+  /* Daily Traffic Light System (KAN-366) */
+  --traffic-red: #ef4444;
+  --traffic-red-bg: rgb(239 68 68 / 0.12);
+  --traffic-red-border: #f87171;
+  --traffic-red-text: #b91c1c;
+
+  --traffic-yellow: #f59e0b;
+  --traffic-yellow-bg: rgb(245 158 11 / 0.14);
+  --traffic-yellow-border: #fbbf24;
+  --traffic-yellow-text: #b45309;
+
+  --traffic-green: #10b981;
+  --traffic-green-bg: rgb(16 185 129 / 0.12);
+  --traffic-green-border: #34d399;
+  --traffic-green-text: #047857;
+
+  --traffic-gray: #6b7280;
+  --traffic-gray-bg: rgb(107 114 128 / 0.12);
+  --traffic-gray-border: #9ca3af;
+  --traffic-gray-text: #4b5563;
+
+  /* Sticky pain alert interactions */
+  --pain-sticky-red-shadow: 0 14px 26px rgb(220 38 38 / 0.42);
+  --pain-sticky-yellow-shadow: 0 14px 26px rgb(234 179 8 / 0.42);
+  --donut-hover-shadow: drop-shadow(0 6px 14px rgb(0 0 0 / 0.16));
+  --sticky-btn-bg: rgb(0 0 0 / 0.08);
+  --sticky-btn-hover-bg: rgb(0 0 0 / 0.18);
+  --sticky-btn-text: #111827;
+  --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+
+  /* Filter chips (Monitoring) — compartidos en claro/oscuro (heredan de :root).
+     KAN-366: usados por los chips segmentados de MonitoringPage. */
+  --chip-active-count-bg: rgb(0 0 0 / 0.2);
+  --chip-primary-count-bg: rgb(255 255 255 / 0.2);
+
+  /* Backward compatibility aliases */
+  --warning-border: #f59e0b;
+  --warning-bg: rgb(245 158 11 / 0.14);
+
+  /* Performance metrics and indicators (Light Mode) */
+  --stat-cyan: #0284c7;
+  --stat-cyan-bg: rgb(2 132 199 / 0.1);
+  --stat-green: #16a34a;
+  --stat-green-bg: rgb(22 163 74 / 0.1);
+  /* Glow de la barra del Check-in del dashboard (KAN-366); variante en :root. */
+  --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
+  --stat-purple: #7c3aed;
+  --stat-purple-bg: rgb(124 58 237 / 0.1);
+  --stat-purple-border: rgb(124 58 237 / 0.25);
+  --stat-amber: #d97706;
+  --stat-amber-bg: rgb(217 119 6 / 0.1);
+
+  /* Cyan avatar for user profile */
+  --avatar-cyan-bg: #e0f2fe;
+  --avatar-cyan-border: #38bdf8;
+  --avatar-cyan-text: #0284c7;
+
+  /* Training routine and GIF viewer */
+  --routine-card-hover-border: var(--secondary);
+  --routine-gif-bg: rgb(2 48 80 / 0.08);
+  --routine-gif-bg-hover: rgb(0 119 182 / 0.14);
+  --routine-gif-play-bg: rgb(2 48 80 / 0.55);
+  --routine-badge-bg: rgb(2 48 80 / 0.88);
+  --routine-completed-bg: rgb(34 197 94 / 0.04);
+  --routine-completed-border: rgb(34 197 94 / 0.35);
+  --routine-modal-overlay: rgb(2 48 80 / 0.65);
+
+  /* Auth / Login theme tokens */
+  --bg-app: var(--brand-gray-light);
+  --bg-surface: var(--white);
+  --bg-surface-glass: rgb(255 255 255 / 0.85);
+  --color-primary: var(--brand-blue);
+  --color-primary-hover: var(--brand-blue-hover);
+  --color-primary-subtle: rgb(0 112 192 / 0.08);
+  --color-deep-blue: var(--brand-navy);
+  --color-text-main: var(--input-text);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-primary: var(--white);
+  --border-light: rgb(2 48 80 / 0.08);
+  --border-focus: var(--brand-blue);
+  --auth-shadow-sm: 0 2px 4px rgb(2 48 80 / 0.04);
+  --auth-shadow-md: 0 8px 24px -4px rgb(2 48 80 / 0.08), 0 2px 6px -2px rgb(2 48 80 / 0.04);
+  --auth-shadow-lg: 0 20px 40px -8px rgb(2 48 80 / 0.12), 0 4px 12px -2px rgb(2 48 80 / 0.06);
+  --auth-card-shadow: 0 20px 48px -12px rgb(2 48 80 / 0.08), 0 2px 8px rgb(2 48 80 / 0.02);
+  --auth-btn-primary-shadow: 0 6px 18px rgb(0 112 192 / 0.28);
+  --auth-btn-primary-hover-shadow: 0 8px 24px rgb(2 48 80 / 0.35);
+  --auth-spinner-border: rgb(255 255 255 / 0.35);
+  --auth-google-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+  --auth-google-hover-shadow: 0 4px 12px rgb(2 48 80 / 0.12);
+  --auth-google-dark-bg: rgb(255 255 255 / 0.08);
+  --auth-google-dark-border: rgb(255 255 255 / 0.2);
+  --auth-google-dark-hover-bg: rgb(255 255 255 / 0.14);
+  --auth-google-dark-hover-border: rgb(255 255 255 / 0.32);
+  --auth-google-dark-hover-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+  --auth-modal-overlay: rgb(2 48 80 / 0.45);
+  --auth-modal-shadow: 0 20px 48px -8px rgb(2 48 80 / 0.25);
+  --auth-community-shadow: 0 10px 28px rgb(2 48 80 / 0.04);
+  --auth-community-hover-shadow: 0 14px 32px rgb(2 48 80 / 0.07);
+  --auth-avatar-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+  --auth-visual-shadow: 0 20px 48px -8px rgb(2 48 80 / 0.18);
+  --auth-visual-border: rgb(255 255 255 / 0.15);
+  --auth-visual-scrim: linear-gradient(
+    180deg,
+    rgb(2 48 80 / 0.6) 0%,
+    rgb(2 48 80 / 0.08) 40%,
+    rgb(2 48 80 / 0.75) 100%
+  );
+  --auth-headline-shadow: 0 2px 16px rgb(0 0 0 / 0.5);
+  --auth-glass-bg: rgb(2 35 59 / 0.48);
+  --auth-glass-border: rgb(255 255 255 / 0.24);
+  --auth-glass-shadow: 0 16px 36px rgb(0 0 0 / 0.32);
+  --auth-glass-capsule-border: rgb(255 255 255 / 0.45);
+  --auth-glass-capsule-bg: rgb(255 255 255 / 0.12);
+  --auth-glass-btn-border: rgb(255 255 255 / 0.45);
+  --auth-glass-btn-bg: rgb(255 255 255 / 0.1);
+  --auth-glass-desc-color: rgb(255 255 255 / 0.92);
+  --auth-spinner-border-subtle: rgb(255 255 255 / 0.3);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --status-danger-bg: var(--danger-bg-strong);
+  --status-danger-text: var(--danger-text);
+  --status-success-bg: var(--success-bg-strong);
+  --status-success-text: var(--success-text);
+
+  --font-base: 'Montserrat', system-ui, -apple-system, sans-serif;
+
+  /* Muscle map hit transparent token */
+  --muscle-hit-transparent: rgb(255 255 255 / 0.001);
+
+  /* Dashboard weather widget gradient */
+  --grad-weather: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Superficies (modo oscuro) */
+  --bg-main: #14181e;
+  --bg-card: #1c222b;
+  --bg-subtle: #242c37;
+
+  /* Texto */
+  --text-main: #f1f3f6;
+  --text-muted: #9da8b5;
+
+  /* Bordes */
+  --border: #2e3846;
+
+  /* Roles semánticos en modo oscuro */
+  --primary: var(--brand-blue);
+  --primary-hover: #0ea5e9;
+  --primary-light: rgb(56 189 248 / 0.16);
+  --secondary: #38bdf8;
+  --secondary-hover: #0ea5e9;
+  --info-bg: rgb(56 189 248 / 0.16);
+  --info-border: rgb(56 189 248 / 0.35);
+  --info-text: #7dd3fc;
+  --success-text: #4ade80;
+  --success-bg-strong: rgb(34 197 94 / 0.2);
+  --warning-text: #fbbf24;
+  --warning-bg-strong: rgb(245 158 11 / 0.2);
+  --danger-text: #f87171;
+  --danger-bg-strong: rgb(239 68 68 / 0.2);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+
+  /* Inputs and states in dark mode */
+  --bg-surface-subtle: #1c2025;
+  --color-text-subtle: #6d7784;
+  --input-bg: #1c2025;
+  --input-border: #2e3846;
+  --input-border-hover: #3d4a5c;
+  --input-bg-hover: #222831;
+  --input-border-focus: #38bdf8;
+  --input-text: #f1f3f5;
+  --input-placeholder: #6d7784;
+
+  --warning-text: #fcd34d;
+  --status-danger-text-dark: #fca5a5;
+  --status-success-text-dark: #86efac;
+
+  /* Performance metrics and indicators (Dark Mode) */
+  --stat-cyan: #38bdf8;
+  --stat-cyan-bg: rgb(56 189 248 / 0.16);
+  --stat-green: #4ade80;
+  --stat-green-bg: rgb(74 222 128 / 0.16);
+  /* Glow de la barra del Check-in del dashboard (KAN-366); variante oscura. */
+  --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
+  --stat-purple: #c084fc;
+  --stat-purple-bg: rgb(192 132 252 / 0.18);
+  --stat-purple-border: rgb(192 132 252 / 0.35);
+  --stat-amber: #fbbf24;
+  --stat-amber-bg: rgb(251 191 36 / 0.16);
+
+  /* Cyan avatar for user profile (dark mode) */
+  --avatar-cyan-bg: rgb(2 132 199 / 0.22);
+  --avatar-cyan-border: #38bdf8;
+  --avatar-cyan-text: #38bdf8;
+
+  /* App Shell rediseñada (modo oscuro) */
+  --shell-bg: #0e1217;
+  --shell-panel-bg: #181e26;
+  --shell-panel-border: #2e3846;
+  --shell-sidebar-bg: #023050;
+  --shell-active-item-bg: #0e4c7b;
+  --shell-active-item-color: #ffffff;
+  --shell-search-bg: #202732;
+  --shell-search-border: #354050;
+  --shell-search-placeholder: #8b97a8;
+  --shell-pill-border: #38bdf8;
+  --shell-pill-hover: #032b45;
+
+  --muscle-default-fill: #1e293b;
+  --muscle-default-stroke: #334155;
+  --muscle-hover-stroke: #38bdf8;
+  --muscle-hover-fill: rgb(56 189 248 / 0.25);
+  --muscle-badge-bg: rgb(255 255 255 / 0.15);
+  --muscle-border-color: #272c33;
+  --muscle-outline-selected: #38bdf8;
+  --muscle-silhouette-fill: #1c222b;
+  --muscle-pain-shadow-sm: 0 2px 4px rgb(0 0 0 / 0.2);
+  --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.35);
+  --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.4);
+
+  /* Exercise muscle highlight tokens (KAN-320 dark mode) */
+  --muscle-exercise-primary: #f87171;
+  --muscle-exercise-secondary: #fb923c;
+  --muscle-exercise-primary-glow: rgb(248 113 113 / 0.4);
+  --muscle-exercise-secondary-glow: rgb(251 146 60 / 0.3);
+
+  --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
+  --suite-badge-bg: rgb(255 255 255 / 0.1);
+  --suite-text-muted: rgb(255 255 255 / 0.7);
+  --suite-button-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
+
+  /* Training routine and GIF viewer (dark mode) */
+  --routine-card-hover-border: var(--secondary);
+  --routine-gif-bg: rgb(255 255 255 / 0.05);
+  --routine-gif-bg-hover: rgb(56 189 248 / 0.15);
+  --routine-gif-play-bg: rgb(0 0 0 / 0.65);
+  --routine-badge-bg: rgb(14 18 23 / 0.88);
+  --routine-completed-bg: rgb(74 222 128 / 0.08);
+  --routine-completed-border: rgb(74 222 128 / 0.35);
+  --routine-modal-overlay: rgb(0 0 0 / 0.75);
+
+  /* Auth / Login theme tokens (dark mode) */
+  --bg-app: var(--brand-gray-dark);
+  --bg-surface: var(--bg-card);
+  --bg-surface-glass: rgb(39 44 51 / 0.85);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: rgb(0 112 192 / 0.18);
+  --color-text-main: var(--text-main);
+  --border-light: rgb(255 255 255 / 0.08);
+  --border-focus: var(--primary-hover);
+  --auth-shadow-sm: 0 2px 4px rgb(0 0 0 / 0.2);
+  --auth-shadow-md: 0 8px 24px -4px rgb(0 0 0 / 0.35);
+  --auth-shadow-lg: 0 20px 40px -8px rgb(0 0 0 / 0.45);
+  --auth-card-shadow: 0 20px 48px -12px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.2);
+  --auth-btn-primary-shadow: 0 6px 18px rgb(0 112 192 / 0.45);
+  --auth-btn-primary-hover-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+  --auth-modal-overlay: rgb(0 0 0 / 0.7);
+  --auth-modal-shadow: 0 20px 48px -8px rgb(0 0 0 / 0.5);
+  --auth-community-shadow: 0 10px 28px rgb(0 0 0 / 0.3);
+  --auth-community-hover-shadow: 0 14px 32px rgb(0 0 0 / 0.45);
+  --auth-visual-shadow: 0 20px 48px -8px rgb(0 0 0 / 0.45);
+
+  --status-danger-bg: rgb(153 27 27 / 0.25);
+  --status-danger-border: rgb(248 113 113 / 0.4);
+  --status-success-bg: rgb(22 101 52 / 0.25);
+  --status-success-border: rgb(134 239 172 / 0.4);
+
+  /* Daily Traffic Light System (KAN-366 - dark mode) */
+  --traffic-red: #f87171;
+  --traffic-red-bg: rgb(239 68 68 / 0.22);
+  --traffic-red-border: #ef4444;
+  --traffic-red-text: #fca5a5;
+
+  --traffic-yellow: #fbbf24;
+  --traffic-yellow-bg: rgb(245 158 11 / 0.22);
+  --traffic-yellow-border: #f59e0b;
+  --traffic-yellow-text: #fde68a;
+
+  --traffic-green: #34d399;
+  --traffic-green-bg: rgb(16 185 129 / 0.22);
+  --traffic-green-border: #10b981;
+  --traffic-green-text: #a7f3d0;
+
+  --traffic-gray: #9ca3af;
+  --traffic-gray-bg: rgb(156 163 175 / 0.2);
+  --traffic-gray-border: #6b7280;
+  --traffic-gray-text: #d1d5db;
+
+  /* Sticky pain alert interactions */
+  --pain-sticky-red-shadow: 0 14px 26px rgb(220 38 38 / 0.5);
+  --pain-sticky-yellow-shadow: 0 14px 26px rgb(234 179 8 / 0.5);
+  --donut-hover-shadow: drop-shadow(0 6px 14px rgb(0 0 0 / 0.35));
+  --sticky-btn-bg: rgb(0 0 0 / 0.15);
+  --sticky-btn-hover-bg: rgb(0 0 0 / 0.28);
+  --sticky-btn-text: #111827;
+  --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+}
