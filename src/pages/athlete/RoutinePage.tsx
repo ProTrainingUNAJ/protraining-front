@@ -14,7 +14,10 @@ import {
   Trophy,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { useSearchParams } from 'react-router-dom';
+import { todayInArgentina } from '../../utils/argentinaDate';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
+import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import {
   getMyTodayRoutine,
   type TodayRoutineResponse,
@@ -61,6 +64,14 @@ export const RoutinePage: React.FC = () => {
   const [selectedExerciseForModal, setSelectedExerciseForModal] =
     useState<TodayRoutineExercise | null>(null);
 
+  // Día pedido desde el calendario (?date=AAAA-MM-DD). Sin parámetro, o si es hoy, la rutina de hoy.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dateParam = searchParams.get('date');
+  const selectedDate =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) && dateParam !== todayInArgentina()
+      ? dateParam
+      : null;
+
   // Estado de series completadas (almacenado en localStorage para persistencia en el gimnasio)
   const [completedSets, setCompletedSets] = useState<Record<string, boolean>>({});
 
@@ -69,7 +80,10 @@ export const RoutinePage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getMyTodayRoutine({ throwOnError: true });
+      const response = await getMyTodayRoutine({
+        query: selectedDate ? { date: selectedDate } : undefined,
+        throwOnError: true,
+      });
       const loadedRoutine = response.data ?? null;
       setRoutine(loadedRoutine);
 
@@ -93,7 +107,7 @@ export const RoutinePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedDate]);
 
   // Carga inicial al montar la pagina
   useEffect(() => {
@@ -173,10 +187,25 @@ export const RoutinePage: React.FC = () => {
     <div className="app-page-container">
       {/* ── Encabezado Estándar ── */}
       <PageHeader
-        title="Mi Rutina"
-        description="Planificación de hoy con pesos calculados en barra e indicaciones técnicas del PF."
+        title={selectedDate ? `Rutina del ${formatSpanishDate(selectedDate)}` : 'Mi Rutina'}
+        description={
+          selectedDate
+            ? 'Planificación de ese día, con los pesos calculados según tus récords actuales.'
+            : 'Planificación de hoy con pesos calculados en barra e indicaciones técnicas del PF.'
+        }
         actions={
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {selectedDate && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem', gap: '0.4rem' }}
+                onClick={() => setSearchParams({})}
+              >
+                <Calendar size={15} />
+                <span>Volver a hoy</span>
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-secondary"
@@ -714,6 +743,12 @@ export const RoutinePage: React.FC = () => {
                     </>
                   )}
               </div>
+
+              {/* Fotos del ejercicio (inicio y fin del movimiento), como en la biblioteca */}
+              <ExerciseGifImage
+                images={selectedExerciseForModal.images}
+                name={selectedExerciseForModal.name}
+              />
 
               {/* Mapa Anatómico de Activación Muscular */}
               <div

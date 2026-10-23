@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
+import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -121,7 +121,7 @@ export const applyRoutineTemplate = <ThrowOnError extends boolean = false>(optio
 /**
  * Rutina de hoy del atleta autenticado con peso resuelto
  *
- * Devuelve la planificación del día del atleta correspondiente a la cuenta autenticada, resolviendo su perfil en el microservicio de Estructura. Calcula la carga exacta a levantar en kg en base a su 1RM vigente y redondeada al múltiplo de 2.5 kg más cercano. Si no cuenta con una marca previa, prescribe la serie como de referencia (isReference: true). Si hoy es día de descanso o no tiene sesión programada, responde 200 con la lista de ejercicios vacía.
+ * Devuelve la planificación del día del atleta correspondiente a la cuenta autenticada, resolviendo su perfil en el microservicio de Estructura. Calcula la carga exacta a levantar en kg en base a su 1RM vigente y redondeada al múltiplo de 2.5 kg más cercano. Si no cuenta con una marca previa, prescribe la serie como de referencia (isReference: true). Si hoy es día de descanso o no tiene sesión programada, responde 200 con la lista de ejercicios vacía. Con `date` devuelve la rutina de otro día (calendario del atleta), con los récords vigentes de hoy.
  *
  */
 export const getMyTodayRoutine = <ThrowOnError extends boolean = false>(options?: Options<GetMyTodayRoutineData, ThrowOnError>): RequestResult<GetMyTodayRoutineResponses, GetMyTodayRoutineErrors, ThrowOnError> => (options?.client ?? client).get<GetMyTodayRoutineResponses, GetMyTodayRoutineErrors, ThrowOnError>({
@@ -218,6 +218,19 @@ export const updateTrainingPlan = <ThrowOnError extends boolean = false>(options
 });
 
 /**
+ * Agenda del PF para una fecha
+ *
+ * Devuelve las sesiones que tocan en la fecha indicada en todas las asignaciones del PF (a categorías o a atletas), con la misma regla que la rutina del atleta: la semana sale de los días desde el inicio de la asignación y la sesión, del día de la semana. Requiere rol PreparadorFisico.
+ *
+ */
+export const getTrainingPlanSchedule = <ThrowOnError extends boolean = false>(options: Options<GetTrainingPlanScheduleData, ThrowOnError>): RequestResult<GetTrainingPlanScheduleResponses, GetTrainingPlanScheduleErrors, ThrowOnError> => (options.client ?? client).get<GetTrainingPlanScheduleResponses, GetTrainingPlanScheduleErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-plans/schedule',
+    ...options
+});
+
+/**
  * Asignar planificacion a categoria o atleta
  *
  * Registra una asignacion formal de planificacion a una categoria o atleta con su fecha de inicio. Requiere rol PreparadorFisico.
@@ -258,6 +271,18 @@ export const updateTrainingSessionNotes = <ThrowOnError extends boolean = false>
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Obtener atletas con sesion programada para una fecha
+ *
+ * Devuelve los IDs de los atletas que tienen al menos una sesion de entrenamiento programada para la fecha indicada (KAN-528).
+ */
+export const getScheduledAthletes = <ThrowOnError extends boolean = false>(options: Options<GetScheduledAthletesData, ThrowOnError>): RequestResult<GetScheduledAthletesResponses, GetScheduledAthletesErrors, ThrowOnError> => (options.client ?? client).get<GetScheduledAthletesResponses, GetScheduledAthletesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-sessions/scheduled-athletes',
+    ...options
 });
 
 /**

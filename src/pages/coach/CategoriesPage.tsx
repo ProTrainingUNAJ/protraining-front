@@ -63,6 +63,7 @@ export const CategoriesPage: React.FC = () => {
 
     structureService
       .getCategories(selectedOrgId)
+      .then((categories) => structureService.withAthleteCounts(categories))
       .then((data) => {
         if (!mounted) return;
         setCategories(data);
@@ -91,7 +92,9 @@ export const CategoriesPage: React.FC = () => {
     setLoadingCategories(true);
     setError(null);
     try {
-      const data = await structureService.getCategories(orgId);
+      const data = await structureService.withAthleteCounts(
+        await structureService.getCategories(orgId),
+      );
       setCategories(data);
     } catch (err: unknown) {
       setError(

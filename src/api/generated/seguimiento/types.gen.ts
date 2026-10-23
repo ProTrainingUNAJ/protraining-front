@@ -98,7 +98,7 @@ export type TrafficLightIndicators = {
     isSick: boolean;
     hasActiveInjury: boolean;
     /**
-     * Zonas de dolor reportadas (JSON serializado por el front).
+     * Zonas de dolor del check-in como "muscleId:nivel" separadas por coma.
      */
     painZones?: string | null;
 };
