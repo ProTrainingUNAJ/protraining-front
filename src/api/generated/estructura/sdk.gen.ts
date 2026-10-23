@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, ExportStructureCsvData, ExportStructureCsvErrors, ExportStructureCsvResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetMeData, GetMeErrors, GetMeResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, HealthCheckData, HealthCheckResponses, ListAthletesByCategoryData, ListAthletesByCategoryErrors, ListAthletesByCategoryResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListMyCategoriesData, ListMyCategoriesErrors, ListMyCategoriesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses } from './types.gen';
+import type { AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, ExportStructureCsvData, ExportStructureCsvErrors, ExportStructureCsvResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteMedicalRecordData, GetAthleteMedicalRecordErrors, GetAthleteMedicalRecordResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetMeData, GetMeErrors, GetMeResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, GetVapidPublicKeyData, GetVapidPublicKeyErrors, GetVapidPublicKeyResponses, HealthCheckData, HealthCheckResponses, ListAthleteMedicalRecordAuditLogsData, ListAthleteMedicalRecordAuditLogsErrors, ListAthleteMedicalRecordAuditLogsResponses, ListAthletesByCategoryData, ListAthletesByCategoryErrors, ListAthletesByCategoryResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListMyCategoriesData, ListMyCategoriesErrors, ListMyCategoriesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RegisterPushSubscriptionData, RegisterPushSubscriptionErrors, RegisterPushSubscriptionResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UnsubscribePushData, UnsubscribePushErrors, UnsubscribePushPostData, UnsubscribePushPostErrors, UnsubscribePushPostResponses, UnsubscribePushResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteMedicalRecordData, UpdateAthleteMedicalRecordErrors, UpdateAthleteMedicalRecordResponses, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -110,6 +110,48 @@ export const getAthleteGuardianConsent = <ThrowOnError extends boolean = false>(
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{id}/guardian-consent',
+    ...options
+});
+
+/**
+ * Consultar ficha médica de un atleta con justificación auditada
+ *
+ * Retorna los antecedentes médicos, cirugías, patologías y estado del apto físico del atleta. Exige declarar un motivo explícito en el parámetro `justification`, que el consentimiento digital esté firmado (por el atleta o su tutor si es menor) y registra un evento inmutable de lectura en auditoría.
+ *
+ */
+export const getAthleteMedicalRecord = <ThrowOnError extends boolean = false>(options: Options<GetAthleteMedicalRecordData, ThrowOnError>): RequestResult<GetAthleteMedicalRecordResponses, GetAthleteMedicalRecordErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteMedicalRecordResponses, GetAthleteMedicalRecordErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{id}/medical-record',
+    ...options
+});
+
+/**
+ * Completar o actualizar ficha médica de un atleta con justificación auditada
+ *
+ * Crea o actualiza la ficha médica del deportista exigiendo justificación explícita y consentimiento digital firmado, registrando un evento inmutable de alta o modificación en auditoría.
+ *
+ */
+export const updateAthleteMedicalRecord = <ThrowOnError extends boolean = false>(options: Options<UpdateAthleteMedicalRecordData, ThrowOnError>): RequestResult<UpdateAthleteMedicalRecordResponses, UpdateAthleteMedicalRecordErrors, ThrowOnError> => (options.client ?? client).put<UpdateAthleteMedicalRecordResponses, UpdateAthleteMedicalRecordErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{id}/medical-record',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Listar registros inmutables de auditoría médica de un atleta
+ *
+ * Retorna el historial cronológico descendente de lecturas y modificaciones sobre la ficha médica del deportista.
+ */
+export const listAthleteMedicalRecordAuditLogs = <ThrowOnError extends boolean = false>(options: Options<ListAthleteMedicalRecordAuditLogsData, ThrowOnError>): RequestResult<ListAthleteMedicalRecordAuditLogsResponses, ListAthleteMedicalRecordAuditLogsErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteMedicalRecordAuditLogsResponses, ListAthleteMedicalRecordAuditLogsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{id}/medical-record/audit-logs',
     ...options
 });
 
@@ -378,4 +420,62 @@ export const healthCheck = <ThrowOnError extends boolean = false>(options?: Opti
     responseType: 'json',
     url: '/api/health',
     ...options
+});
+
+/**
+ * Obtener clave pública VAPID
+ *
+ * Retorna la clave pública VAPID en formato Base64URL requerida para suscribir el navegador a Web Push.
+ */
+export const getVapidPublicKey = <ThrowOnError extends boolean = false>(options?: Options<GetVapidPublicKeyData, ThrowOnError>): RequestResult<GetVapidPublicKeyResponses, GetVapidPublicKeyErrors, ThrowOnError> => (options?.client ?? client).get<GetVapidPublicKeyResponses, GetVapidPublicKeyErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/push-subscriptions/public-key',
+    ...options
+});
+
+/**
+ * Revocar suscripción Web Push
+ *
+ * Revoca la suscripción Web Push asociada al endpoint especificado por query param o en el cuerpo.
+ */
+export const unsubscribePush = <ThrowOnError extends boolean = false>(options?: Options<UnsubscribePushData, ThrowOnError>): RequestResult<UnsubscribePushResponses, UnsubscribePushErrors, ThrowOnError> => (options?.client ?? client).delete<UnsubscribePushResponses, UnsubscribePushErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/push-subscriptions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+/**
+ * Registrar suscripción Web Push
+ *
+ * Registra o actualiza una suscripción Web Push del dispositivo del usuario logueado.
+ */
+export const registerPushSubscription = <ThrowOnError extends boolean = false>(options: Options<RegisterPushSubscriptionData, ThrowOnError>): RequestResult<RegisterPushSubscriptionResponses, RegisterPushSubscriptionErrors, ThrowOnError> => (options.client ?? client).post<RegisterPushSubscriptionResponses, RegisterPushSubscriptionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/push-subscriptions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Revocar suscripción Web Push (alias POST)
+ *
+ * Alternativa POST para revocar suscripciones cuando proxies intermedios descartan el cuerpo en peticiones DELETE.
+ */
+export const unsubscribePushPost = <ThrowOnError extends boolean = false>(options?: Options<UnsubscribePushPostData, ThrowOnError>): RequestResult<UnsubscribePushPostResponses, UnsubscribePushPostErrors, ThrowOnError> => (options?.client ?? client).post<UnsubscribePushPostResponses, UnsubscribePushPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/push-subscriptions/unsubscribe',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
 });

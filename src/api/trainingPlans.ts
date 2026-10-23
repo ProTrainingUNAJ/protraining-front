@@ -2,9 +2,11 @@ import {
   assignTrainingPlan,
   createTrainingPlan,
   getTrainingPlan,
+  getTrainingPlanSchedule,
   listTrainingPlans,
   updateTrainingPlan,
   SaveTrainingPlanRequest,
+  ScheduledSession,
   TrainingPlanDetail,
 } from './generated/entrenamiento';
 import { extractErrorMessage } from './axiosClient';
@@ -43,6 +45,11 @@ export const trainingPlansService = {
 
   update(id: string, body: SaveTrainingPlanRequest): Promise<TrainingPlanDetail> {
     return call(() => updateTrainingPlan({ path: { id }, body, throwOnError: true }));
+  },
+
+  // Sesiones que tocan en una fecha (AAAA-MM-DD) en todas las asignaciones del PF: la agenda del calendario.
+  schedule(date: string): Promise<ScheduledSession[]> {
+    return call(() => getTrainingPlanSchedule({ query: { date }, throwOnError: true }));
   },
 
   // Se asigna a una categoría o a un atleta, nunca a los dos (el back lo rechaza).

@@ -549,6 +549,88 @@
   font-weight: 800;
 }
 
+/* Días que se pueden tocar: el atleta ve su rutina de ese día y el PF, las sesiones */
+.shell-calendar-cell.is-clickable {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.shell-calendar-cell.is-clickable:hover {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.shell-calendar-cell.is-clickable.is-today:hover {
+  background-color: var(--secondary);
+  color: var(--on-primary);
+}
+
+.shell-calendar-cell.is-selected {
+  border-color: var(--primary);
+  font-weight: 700;
+}
+
+/* Agenda del PF para el día elegido */
+.shell-calendar-agenda {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.shell-calendar-agenda-title {
+  font-size: 0.8rem;
+  color: var(--text-main);
+}
+
+.shell-calendar-agenda-empty,
+.shell-calendar-agenda-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.shell-calendar-agenda-error {
+  color: var(--danger-text);
+}
+
+.shell-calendar-agenda-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shell-calendar-agenda-item:hover {
+  border-color: var(--primary);
+}
+
+.shell-calendar-agenda-plan {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.shell-calendar-agenda-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 .shell-calendar-footer {
   margin-top: 0.85rem;
   padding-top: 0.65rem;

@@ -172,8 +172,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '0.5rem',
-          height: '28px',
+          flexWrap: 'wrap',
+          gap: '0.35rem 0.5rem',
+          minHeight: '28px',
           boxSizing: 'border-box',
         }}
       >
@@ -204,8 +205,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               gap: '0.65rem',
               fontSize: '0.78rem',
               color: 'var(--text-secondary)',
-              overflow: 'hidden',
-              minWidth: 0,
+              marginLeft: 'auto',
             }}
           >
             {athlete.hasActiveInjury && (
@@ -220,8 +220,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   flexShrink: 0,
                 }}
                 title="Lesión activa reportada en el check-in de hoy"
+                aria-label="Lesión activa"
               >
-                <Siren size={14} /> Lesión
+                <Siren size={14} />
               </span>
             )}
 
@@ -237,8 +238,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   flexShrink: 0,
                 }}
                 title="Reportó enfermedad en el check-in de hoy"
+                aria-label="Enfermo"
               >
-                <Thermometer size={14} /> Enfermo
+                <Thermometer size={14} />
               </span>
             )}
 

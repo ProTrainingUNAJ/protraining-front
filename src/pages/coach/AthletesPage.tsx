@@ -46,16 +46,19 @@ export const AthletesPage: React.FC = () => {
     ])
       .then(async ([athletesData, orgsData]) => {
         if (!mounted) return;
-        setAthletes(athletesData);
 
-        if (orgsData.length > 0) {
-          const categoriesNested = await Promise.all(
-            orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
-          );
-          if (!mounted) return;
-          const allCategories = categoriesNested.flat();
-          setCategories(allCategories);
-        }
+        const categoriesNested = await Promise.all(
+          orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
+        );
+        const allCategories = categoriesNested.flat();
+        // El listado no trae las categorías de cada atleta: se cruzan con los atletas de cada categoría
+        const athletesWithCategories = await structureService.withCategories(
+          athletesData,
+          allCategories,
+        );
+        if (!mounted) return;
+        setCategories(allCategories);
+        setAthletes(athletesWithCategories);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -78,15 +81,12 @@ export const AthletesPage: React.FC = () => {
         structureService.getOrganizations().catch(() => [] as Organization[]),
       ]);
 
-      setAthletes(athletesData);
-
-      if (orgsData.length > 0) {
-        const categoriesNested = await Promise.all(
-          orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
-        );
-        const allCategories = categoriesNested.flat();
-        setCategories(allCategories);
-      }
+      const categoriesNested = await Promise.all(
+        orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
+      );
+      const allCategories = categoriesNested.flat();
+      setCategories(allCategories);
+      setAthletes(await structureService.withCategories(athletesData, allCategories));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al consultar el plantel de atletas.');
     } finally {

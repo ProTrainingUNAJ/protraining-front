@@ -188,6 +188,58 @@ export const structureService = {
     }
   },
 
+  // Ids de los atletas de una categoría (GET /categories/{id}/athletes).
+  async getCategoryAthleteIds(categoryId: string): Promise<string[]> {
+    try {
+      const response = await httpClient.get<RawAthlete[]>(
+        `/estructura/api/v1/categories/${categoryId}/athletes`,
+      );
+      return (response.data || []).map((athlete) => athlete.id);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  // El back no manda las cantidades en los listados: se cuentan a partir de las relaciones.
+  async withCategoryCounts(organizations: Organization[]): Promise<Organization[]> {
+    return Promise.all(
+      organizations.map(async (organization) => ({
+        ...organization,
+        categoriesCount: (await this.getCategories(organization.id).catch(() => [])).length,
+      })),
+    );
+  },
+
+  async withAthleteCounts(categories: Category[]): Promise<Category[]> {
+    return Promise.all(
+      categories.map(async (category) => ({
+        ...category,
+        athletesCount: (await this.getCategoryAthleteIds(category.id).catch(() => [])).length,
+      })),
+    );
+  },
+
+  // El listado de atletas no trae sus categorías: se arman con los atletas de cada categoría.
+  async withCategories(athletes: Athlete[], categories: Category[]): Promise<Athlete[]> {
+    const memberships = await Promise.all(
+      categories.map(async (category) => ({
+        category,
+        athleteIds: await this.getCategoryAthleteIds(category.id).catch(() => [] as string[]),
+      })),
+    );
+
+    return athletes.map((athlete) => {
+      const athleteCategories = memberships
+        .filter(({ athleteIds }) => athleteIds.includes(athlete.id))
+        .map(({ category }) => ({ id: category.id, name: category.name }));
+      return {
+        ...athlete,
+        categories: athleteCategories,
+        categoryNames: athleteCategories.map((category) => category.name),
+      };
+    });
+  },
+
   async assignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
     try {
       await httpClient.post(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);

@@ -23,6 +23,7 @@ export const OrganizationsPage: React.FC = () => {
 
     structureService
       .getOrganizations()
+      .then((organizations) => structureService.withCategoryCounts(organizations))
       .then((data) => {
         if (!isMounted) return;
         setOrganizations(data);
@@ -43,7 +44,9 @@ export const OrganizationsPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await structureService.getOrganizations();
+      const data = await structureService.withCategoryCounts(
+        await structureService.getOrganizations(),
+      );
       setOrganizations(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar las organizaciones.');

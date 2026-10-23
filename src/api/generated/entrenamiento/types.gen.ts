@@ -127,6 +127,10 @@ export type TodayRoutineExercise = {
     name: string;
     muscleGroup?: string;
     videoUrl?: string | null;
+    /**
+     * Fotos del ejercicio (inicio y fin del movimiento), las mismas que la biblioteca.
+     */
+    images?: Array<string>;
     sets: number;
     reps: number;
     percentage?: number;
@@ -295,6 +299,22 @@ export type TrainingPlanDetail = {
     name: string;
     objective?: string | null;
     weeks: Array<TrainingWeekDetail>;
+};
+
+/**
+ * Sesión que toca en una fecha para una asignación del PF. La asignación es a una categoría o a un atleta.
+ */
+export type ScheduledSession = {
+    assignmentId: string;
+    trainingPlanId: string;
+    planName: string;
+    sessionId: string;
+    sessionName: string;
+    weekNumber: number;
+    categoryId?: string | null;
+    athleteId?: string | null;
+    exerciseCount: number;
+    coachNotes?: string | null;
 };
 
 export type TrainingPlanSummary = {
@@ -537,7 +557,12 @@ export type ApplyRoutineTemplateResponses = {
 export type GetMyTodayRoutineData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Fecha de la rutina (hora Argentina, UTC-3). Si no se manda, se usa la de hoy.
+         */
+        date?: string;
+    };
     url: '/api/v1/me/today-routine';
 };
 
@@ -575,7 +600,12 @@ export type GetTodayRoutineData = {
          */
         athleteId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Fecha de la rutina (hora Argentina, UTC-3). Si no se manda, se usa la de hoy.
+         */
+        date?: string;
+    };
     url: '/api/v1/athletes/{athleteId}/today-routine';
 };
 
@@ -782,6 +812,44 @@ export type UpdateTrainingPlanResponses = {
 
 export type UpdateTrainingPlanResponse = UpdateTrainingPlanResponses[keyof UpdateTrainingPlanResponses];
 
+export type GetTrainingPlanScheduleData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Fecha a consultar (hora Argentina, UTC-3).
+         */
+        date: string;
+    };
+    url: '/api/v1/training-plans/schedule';
+};
+
+export type GetTrainingPlanScheduleErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type GetTrainingPlanScheduleError = GetTrainingPlanScheduleErrors[keyof GetTrainingPlanScheduleErrors];
+
+export type GetTrainingPlanScheduleResponses = {
+    /**
+     * OK
+     */
+    200: Array<ScheduledSession>;
+};
+
+export type GetTrainingPlanScheduleResponse = GetTrainingPlanScheduleResponses[keyof GetTrainingPlanScheduleResponses];
+
 export type AssignTrainingPlanData = {
     body: AssignPlanRequest;
     path?: never;
@@ -894,6 +962,36 @@ export type UpdateTrainingSessionNotesResponses = {
 };
 
 export type UpdateTrainingSessionNotesResponse = UpdateTrainingSessionNotesResponses[keyof UpdateTrainingSessionNotesResponses];
+
+export type GetScheduledAthletesData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Fecha de la sesion a consultar (YYYY-MM-DD).
+         */
+        date: string;
+    };
+    url: '/api/v1/training-sessions/scheduled-athletes';
+};
+
+export type GetScheduledAthletesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type GetScheduledAthletesError = GetScheduledAthletesErrors[keyof GetScheduledAthletesErrors];
+
+export type GetScheduledAthletesResponses = {
+    /**
+     * Lista de IDs de atletas con sesion programada.
+     */
+    200: Array<string>;
+};
+
+export type GetScheduledAthletesResponse = GetScheduledAthletesResponses[keyof GetScheduledAthletesResponses];
 
 export type HealthCheckData = {
     body?: never;
