@@ -213,7 +213,9 @@ export const CalendarButton: React.FC = () => {
                     isSelected ? 'is-selected' : ''
                   }`}
                   onClick={() => void handleSelectDay(dayNum)}
-                  aria-label={isPF ? `Ver las sesiones del ${dayNum}` : `Ver la rutina del ${dayNum}`}
+                  aria-label={
+                    isPF ? `Ver las sesiones del ${dayNum}` : `Ver la rutina del ${dayNum}`
+                  }
                   aria-pressed={isSelected}
                 >
                   <span>{dayNum}</span>
