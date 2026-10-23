@@ -31,7 +31,6 @@ export type Athlete = {
     phone: string;
     isMinor: boolean;
     emergencyContact?: string | null;
-    medicalConditions?: string | null;
     active: boolean;
     allowsHabitsRecommendations: boolean;
     /**
@@ -56,13 +55,53 @@ export type CreateAthleteRequest = {
     allowsPhysicalTraining: boolean;
     allowsHabitsRecommendations: boolean;
     emergencyContact?: string | null;
-    medicalConditions?: string | null;
 };
 
 export type UpdateAthleteRequest = {
     phone?: string;
     emergencyContact?: string;
-    medicalConditions?: string;
+};
+
+/**
+ * Ficha médica estructurada del atleta.
+ */
+export type MedicalRecord = {
+    id?: string | null;
+    athleteId: string;
+    medicalHistory?: string | null;
+    surgeries?: string | null;
+    pathologies?: string | null;
+    hasPhysicalFitnessCertificate: boolean;
+    physicalFitnessIssuedAt?: string | null;
+    physicalFitnessExpiresAt?: string | null;
+    physicalFitnessNotes?: string | null;
+    updatedAt?: string | null;
+};
+
+/**
+ * Solicitud para cargar o actualizar la ficha médica exigiendo justificación explícita.
+ */
+export type UpdateMedicalRecordRequest = {
+    justification: string;
+    medicalHistory?: string | null;
+    surgeries?: string | null;
+    pathologies?: string | null;
+    hasPhysicalFitnessCertificate: boolean;
+    physicalFitnessIssuedAt?: string | null;
+    physicalFitnessExpiresAt?: string | null;
+    physicalFitnessNotes?: string | null;
+};
+
+/**
+ * Registro inmutable de auditoría por lectura o modificación de ficha médica.
+ */
+export type MedicalRecordAuditLog = {
+    id: string;
+    athleteId: string;
+    accessedByUserId: string;
+    action: 'Read' | 'Create' | 'Update';
+    justification: string;
+    createdAt: string;
 };
 
 export type UpdateHabitsPermissionRequest = {
@@ -154,6 +193,43 @@ export type ProblemDetails = {
     errors?: {
         [key: string]: Array<string>;
     };
+};
+
+export type VapidPublicKey = {
+    /**
+     * Clave pública VAPID en Base64URL
+     */
+    publicKey: string;
+};
+
+export type PushSubscriptionKeys = {
+    /**
+     * Clave pública del cliente p256dh generada por PushManager
+     */
+    p256dh: string;
+    /**
+     * Secreto de autenticación generado por PushManager
+     */
+    auth: string;
+};
+
+export type RegisterPushSubscriptionRequest = {
+    /**
+     * URL del endpoint del servicio de push del navegador
+     */
+    endpoint: string;
+    keys: PushSubscriptionKeys;
+    /**
+     * Cadena de agente de usuario del dispositivo que registra la suscripción
+     */
+    userAgent?: string | null;
+};
+
+export type UnsubscribePushRequest = {
+    /**
+     * URL del endpoint de la suscripción a revocar
+     */
+    endpoint: string;
 };
 
 export type ListAthletesData = {
@@ -356,6 +432,112 @@ export type GetAthleteGuardianConsentResponses = {
 };
 
 export type GetAthleteGuardianConsentResponse = GetAthleteGuardianConsentResponses[keyof GetAthleteGuardianConsentResponses];
+
+export type GetAthleteMedicalRecordData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query: {
+        /**
+         * Motivo explícito por el cual el preparador físico consulta la ficha médica.
+         */
+        justification: string;
+    };
+    url: '/api/v1/athletes/{id}/medical-record';
+};
+
+export type GetAthleteMedicalRecordErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteMedicalRecordError = GetAthleteMedicalRecordErrors[keyof GetAthleteMedicalRecordErrors];
+
+export type GetAthleteMedicalRecordResponses = {
+    /**
+     * Ficha médica obtenida y acceso registrado en auditoría.
+     */
+    200: MedicalRecord;
+};
+
+export type GetAthleteMedicalRecordResponse = GetAthleteMedicalRecordResponses[keyof GetAthleteMedicalRecordResponses];
+
+export type UpdateAthleteMedicalRecordData = {
+    body: UpdateMedicalRecordRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{id}/medical-record';
+};
+
+export type UpdateAthleteMedicalRecordErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateAthleteMedicalRecordError = UpdateAthleteMedicalRecordErrors[keyof UpdateAthleteMedicalRecordErrors];
+
+export type UpdateAthleteMedicalRecordResponses = {
+    /**
+     * Ficha médica guardada y evento registrado en auditoría.
+     */
+    200: MedicalRecord;
+};
+
+export type UpdateAthleteMedicalRecordResponse = UpdateAthleteMedicalRecordResponses[keyof UpdateAthleteMedicalRecordResponses];
+
+export type ListAthleteMedicalRecordAuditLogsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{id}/medical-record/audit-logs';
+};
+
+export type ListAthleteMedicalRecordAuditLogsErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ListAthleteMedicalRecordAuditLogsError = ListAthleteMedicalRecordAuditLogsErrors[keyof ListAthleteMedicalRecordAuditLogsErrors];
+
+export type ListAthleteMedicalRecordAuditLogsResponses = {
+    /**
+     * Historial de auditoría médica obtenido exitosamente.
+     */
+    200: Array<MedicalRecordAuditLog>;
+};
+
+export type ListAthleteMedicalRecordAuditLogsResponse = ListAthleteMedicalRecordAuditLogsResponses[keyof ListAthleteMedicalRecordAuditLogsResponses];
 
 export type ListCategoriesByAthleteData = {
     body?: never;
@@ -950,3 +1132,127 @@ export type HealthCheckResponses = {
 };
 
 export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];
+
+export type GetVapidPublicKeyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push-subscriptions/public-key';
+};
+
+export type GetVapidPublicKeyErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+};
+
+export type GetVapidPublicKeyError = GetVapidPublicKeyErrors[keyof GetVapidPublicKeyErrors];
+
+export type GetVapidPublicKeyResponses = {
+    /**
+     * Clave pública VAPID obtenida exitosamente.
+     */
+    200: VapidPublicKey;
+};
+
+export type GetVapidPublicKeyResponse = GetVapidPublicKeyResponses[keyof GetVapidPublicKeyResponses];
+
+export type UnsubscribePushData = {
+    body?: UnsubscribePushRequest;
+    path?: never;
+    query?: {
+        /**
+         * Endpoint de la suscripción a revocar
+         */
+        endpoint?: string;
+    };
+    url: '/api/v1/push-subscriptions';
+};
+
+export type UnsubscribePushErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+};
+
+export type UnsubscribePushError = UnsubscribePushErrors[keyof UnsubscribePushErrors];
+
+export type UnsubscribePushResponses = {
+    /**
+     * Suscripción revocada exitosamente.
+     */
+    204: void;
+};
+
+export type UnsubscribePushResponse = UnsubscribePushResponses[keyof UnsubscribePushResponses];
+
+export type RegisterPushSubscriptionData = {
+    body: RegisterPushSubscriptionRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/push-subscriptions';
+};
+
+export type RegisterPushSubscriptionErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+};
+
+export type RegisterPushSubscriptionError = RegisterPushSubscriptionErrors[keyof RegisterPushSubscriptionErrors];
+
+export type RegisterPushSubscriptionResponses = {
+    /**
+     * Suscripción registrada exitosamente.
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type RegisterPushSubscriptionResponse = RegisterPushSubscriptionResponses[keyof RegisterPushSubscriptionResponses];
+
+export type UnsubscribePushPostData = {
+    body?: UnsubscribePushRequest;
+    path?: never;
+    query?: {
+        /**
+         * Endpoint de la suscripción a revocar
+         */
+        endpoint?: string;
+    };
+    url: '/api/v1/push-subscriptions/unsubscribe';
+};
+
+export type UnsubscribePushPostErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+};
+
+export type UnsubscribePushPostError = UnsubscribePushPostErrors[keyof UnsubscribePushPostErrors];
+
+export type UnsubscribePushPostResponses = {
+    /**
+     * Suscripción revocada exitosamente.
+     */
+    204: void;
+};
+
+export type UnsubscribePushPostResponse = UnsubscribePushPostResponses[keyof UnsubscribePushPostResponses];
