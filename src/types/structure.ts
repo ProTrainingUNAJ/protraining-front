@@ -57,3 +57,22 @@ export interface AthleteMe {
   active: boolean;
   categories: Category[];
 }
+
+export type HomeOrAway = 'Home' | 'Away' | 'Neutral';
+
+export interface Match {
+  id: string;
+  categoryId: string;
+  opponent: string;
+  matchDate: string;
+  homeOrAway: HomeOrAway;
+  notes?: string | null;
+  categoryName?: string;
+}
+
+export interface CreateMatchRequest {
+  opponent: string;
+  matchDate: string;
+  homeOrAway: HomeOrAway;
+  notes?: string | null;
+}

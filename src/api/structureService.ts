@@ -7,6 +7,8 @@ import {
   Athlete,
   CreateAthleteRequest,
   AthleteMe,
+  Match,
+  CreateMatchRequest,
 } from '../types/structure';
 
 interface RawOrganization {
@@ -263,6 +265,29 @@ export const structureService = {
   async getMe(): Promise<AthleteMe> {
     try {
       const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async getCategoryMatches(categoryId: string): Promise<Match[]> {
+    try {
+      const response = await httpClient.get<Match[]>(
+        `/estructura/api/v1/categories/${categoryId}/matches`,
+      );
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async createCategoryMatch(categoryId: string, data: CreateMatchRequest): Promise<Match> {
+    try {
+      const response = await httpClient.post<Match>(
+        `/estructura/api/v1/categories/${categoryId}/matches`,
+        data,
+      );
       return response.data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
