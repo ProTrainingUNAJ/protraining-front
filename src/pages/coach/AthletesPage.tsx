@@ -1,10 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Plus, RefreshCw, Check, AlertCircle, Tag, X, Search, Dumbbell } from 'lucide-react';
+import {
+  Users,
+  Plus,
+  RefreshCw,
+  Check,
+  AlertCircle,
+  Tag,
+  X,
+  Search,
+  Dumbbell,
+  HeartPulse,
+} from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
+import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -34,6 +46,7 @@ export const AthletesPage: React.FC = () => {
   // Modal de asignación N:N de categorías (CA3)
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
+  const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
   const [updatingCategory, setUpdatingCategory] = useState(false);
 
   // 1. Cargar atletas y categorías
@@ -728,6 +741,16 @@ export const AthletesPage: React.FC = () => {
                     <Dumbbell size={15} aria-hidden="true" />
                     <span>Récords</span>
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setInjuriesAthlete(athlete)}
+                    title="Ver sus lesiones y avanzar el stepper (KAN-421)"
+                  >
+                    <HeartPulse size={15} aria-hidden="true" />
+                    <span>Lesiones</span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -742,6 +765,16 @@ export const AthletesPage: React.FC = () => {
             recordsAthlete.fullName || `${recordsAthlete.firstName} ${recordsAthlete.lastName}`
           }
           onClose={() => setRecordsAthlete(null)}
+        />
+      )}
+
+      {injuriesAthlete && (
+        <AthleteInjuriesModal
+          athleteId={injuriesAthlete.id}
+          athleteName={
+            injuriesAthlete.fullName || `${injuriesAthlete.firstName} ${injuriesAthlete.lastName}`
+          }
+          onClose={() => setInjuriesAthlete(null)}
         />
       )}
 
