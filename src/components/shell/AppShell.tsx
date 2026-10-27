@@ -115,7 +115,12 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
             >
               <X size={20} aria-hidden="true" />
             </button>
-            <AppSidebar role={role} onNavigate={closeMobileMenu} className="app-sidebar-mobile" />
+            <AppSidebar
+              role={role}
+              onNavigate={closeMobileMenu}
+              className="app-sidebar-mobile"
+              isMobile={true}
+            />
           </div>
         </div>
       )}
