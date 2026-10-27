@@ -782,9 +782,12 @@ export const RoutinePage: React.FC = () => {
                 >
                   <ExerciseMuscleMap
                     primaryMuscles={
-                      selectedExerciseForModal.muscleGroup
-                        ? [selectedExerciseForModal.muscleGroup]
-                        : []
+                      (selectedExerciseForModal as unknown as { primaryMuscles?: string[] })
+                        .primaryMuscles ?? []
+                    }
+                    secondaryMuscles={
+                      (selectedExerciseForModal as unknown as { secondaryMuscles?: string[] })
+                        .secondaryMuscles ?? []
                     }
                     showLegend={true}
                     showViewToggle={true}
