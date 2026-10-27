@@ -74,6 +74,7 @@
   --shell-panel-bg: #ffffff;
   --shell-panel-border: #cdd1d6;
   --shell-sidebar-bg: #023050;
+  --shell-sidebar-width: 82px;
   --shell-active-item-bg: #0b4570;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #f0f2f5;
@@ -146,11 +147,11 @@
   --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.08);
   --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.12);
 
-  /* Exercise muscle highlight tokens (KAN-320) */
-  --muscle-exercise-primary: #e50914;
-  --muscle-exercise-secondary: #ff7900;
-  --muscle-exercise-primary-glow: rgb(229 9 20 / 0.35);
-  --muscle-exercise-secondary-glow: rgb(255 121 0 / 0.25);
+  /* Exercise muscle highlight tokens (KAN-320: Dorado principal, Plateado secundario) */
+  --muscle-exercise-primary: #d4af37;
+  --muscle-exercise-secondary: #94a3b8;
+  --muscle-exercise-primary-glow: rgb(212 175 55 / 0.4);
+  --muscle-exercise-secondary-glow: rgb(148 163 184 / 0.3);
 
   /* Suite banner and card (Coach & Athlete Dashboard) */
   --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
@@ -371,6 +372,7 @@
   --shell-panel-bg: #181e26;
   --shell-panel-border: #2e3846;
   --shell-sidebar-bg: #023050;
+  --shell-sidebar-width: 82px;
   --shell-active-item-bg: #0e4c7b;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #202732;
@@ -391,11 +393,11 @@
   --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.35);
   --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.4);
 
-  /* Exercise muscle highlight tokens (KAN-320 dark mode) */
-  --muscle-exercise-primary: #f87171;
-  --muscle-exercise-secondary: #fb923c;
-  --muscle-exercise-primary-glow: rgb(248 113 113 / 0.4);
-  --muscle-exercise-secondary-glow: rgb(251 146 60 / 0.3);
+  /* Exercise muscle highlight tokens (KAN-320 dark mode: Dorado principal, Plateado secundario) */
+  --muscle-exercise-primary: #facc15;
+  --muscle-exercise-secondary: #cbd5e1;
+  --muscle-exercise-primary-glow: rgb(250 204 21 / 0.45);
+  --muscle-exercise-secondary-glow: rgb(203 213 225 / 0.35);
 
   --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.1);

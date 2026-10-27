@@ -4,37 +4,65 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  width: 100%;
+  min-width: 0;
   background-color: var(--shell-bg);
   padding: 1.25rem;
   box-sizing: border-box;
+  overflow: hidden;
   transition: background-color 0.2s ease;
 }
 
 .app-shell-container {
   display: flex;
   width: 100%;
+  min-width: 0;
   max-width: 1720px;
-  min-height: calc(100vh - 2.5rem);
+  height: calc(100vh - 2.5rem);
+  height: calc(100dvh - 2.5rem);
+  max-height: calc(100vh - 2.5rem);
+  max-height: calc(100dvh - 2.5rem);
   background-color: var(--shell-panel-bg);
   border-radius: 28px;
   overflow: hidden;
   border: 1px solid var(--shell-panel-border);
   box-shadow: var(--shadow-lg);
   position: relative;
+  box-sizing: border-box;
 }
 
 /* ── Barra Lateral Izquierda Fija ── */
 .app-sidebar {
-  width: 82px;
+  width: var(--shell-sidebar-width, 82px);
+  min-width: var(--shell-sidebar-width, 82px);
+  max-width: var(--shell-sidebar-width, 82px);
+  flex: 0 0 var(--shell-sidebar-width, 82px);
+  flex-shrink: 0;
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
   background-color: var(--shell-sidebar-bg);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 0.5rem 1.25rem;
-  flex-shrink: 0;
   z-index: 40;
+  overflow: hidden;
+}
+
+.app-sidebar-desktop {
+  width: var(--shell-sidebar-width, 82px);
+  min-width: var(--shell-sidebar-width, 82px);
+  max-width: var(--shell-sidebar-width, 82px);
+  flex: 0 0 var(--shell-sidebar-width, 82px);
+  flex-shrink: 0;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
 }
 
@@ -140,6 +168,8 @@
   gap: 1rem;
   margin-top: auto;
   padding-top: 1rem;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .app-sidebar-divider {
@@ -286,11 +316,15 @@
 
 /* ── Panel Principal (Header + Contenido) ── */
 .app-main-panel {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   background-color: var(--shell-panel-bg);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ── Encabezado Superior Persistente ── */
@@ -667,9 +701,14 @@
 
 /* ── Área Principal de Contenido ── */
 .app-content-body {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
   padding: 1.75rem 2rem 2.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-gutter: stable;
   background-color: var(--shell-panel-bg);
   box-sizing: border-box;
@@ -853,13 +892,15 @@
 .app-mobile-drawer {
   position: fixed;
   inset: 0 auto 0 0;
-  width: 82px;
+  width: var(--shell-sidebar-width, 82px);
+  min-width: var(--shell-sidebar-width, 82px);
+  max-width: var(--shell-sidebar-width, 82px);
   background-color: var(--shell-sidebar-bg);
   z-index: 120;
   display: flex;
   flex-direction: column;
-  position: fixed;
   box-shadow: var(--shadow-lg);
+  box-sizing: border-box;
 }
 
 .app-mobile-drawer-close {
@@ -904,12 +945,22 @@
 @media (max-width: 991px) {
   .app-shell-viewport {
     padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
   }
 
   .app-shell-container {
     border-radius: 0;
     border: none;
     min-height: 100vh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   .app-sidebar-desktop {

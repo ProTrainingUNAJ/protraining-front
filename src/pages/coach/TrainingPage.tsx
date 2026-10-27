@@ -46,7 +46,8 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     muscleGroup: item.muscleGroup || 'Cuerpo Completo',
     equipment: item.equipment || 'Sin equipamiento',
     images,
-    primaryMuscles: item.primaryMuscles ?? (item.muscleGroup ? [item.muscleGroup] : []),
+    primaryMuscles:
+      item.primaryMuscles && item.primaryMuscles.length > 0 ? item.primaryMuscles : [],
     secondaryMuscles: item.secondaryMuscles ?? [],
   };
 };
@@ -559,6 +560,56 @@ export const TrainingPage: React.FC = () => {
                 >
                   Músculos Involucrados:
                 </strong>
+
+                {/* Descriptive chips for primary and secondary muscles */}
+                {((modalExercise.primaryMuscles && modalExercise.primaryMuscles.length > 0) ||
+                  (modalExercise.secondaryMuscles &&
+                    modalExercise.secondaryMuscles.length > 0)) && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.4rem',
+                      flexWrap: 'wrap',
+                      marginBottom: '0.85rem',
+                    }}
+                  >
+                    {modalExercise.primaryMuscles?.map((m, idx) => (
+                      <span
+                        key={`pri-${idx}`}
+                        className="badge badge-primary"
+                        style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}
+                      >
+                        {m} (Principal)
+                      </span>
+                    ))}
+                    {modalExercise.secondaryMuscles?.map((m, idx) => (
+                      <span
+                        key={`sec-${idx}`}
+                        className="badge badge-info"
+                        style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}
+                      >
+                        {m} (Secundario)
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Empty state message when no muscles are defined (Criterion 2) */}
+                {(!modalExercise.primaryMuscles || modalExercise.primaryMuscles.length === 0) &&
+                  (!modalExercise.secondaryMuscles ||
+                    modalExercise.secondaryMuscles.length === 0) && (
+                    <p
+                      style={{
+                        margin: '0.5rem 0',
+                        fontSize: '0.85rem',
+                        color: 'var(--text-muted)',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      Este ejercicio no tiene grupos musculares específicos cargados (movilidad o
+                      ejercicio general).
+                    </p>
+                  )}
 
                 {/* Mapa muscular anatómico con dos intensidades y Smart View */}
                 <ExerciseMuscleMap
