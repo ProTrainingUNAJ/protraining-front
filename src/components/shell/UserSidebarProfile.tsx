@@ -77,6 +77,7 @@ export const UserSidebarProfile: React.FC = () => {
             <span className="shell-sidebar-avatar-initials">{initials}</span>
           )}
         </span>
+        <span className="shell-sidebar-avatar-label">Mi Perfil</span>
       </button>
 
       {open && (
