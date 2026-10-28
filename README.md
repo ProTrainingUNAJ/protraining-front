@@ -20,12 +20,13 @@ Abre en `http://127.0.0.1:5173`. Las llamadas a `/api/...` van al gateway del ba
 | `npm run dev`                 | Levanta la app en modo desarrollo.                                                                                  |
 | `npm run build`               | Revisa los tipos (`tsc`) y arma la app en `dist/`.                                                                  |
 | `npm run lint`                | ESLint sobre el código y Stylelint sobre el CSS.                                                                    |
+| `npm test`                    | Corre los tests unitarios con Vitest.                                                                               |
 | `npm run format`              | Le da formato a todo con Prettier.                                                                                  |
 | `npm run format:check`        | Revisa el formato sin cambiar nada (es lo que corre el CI).                                                         |
 | `npm run generate-pwa-assets` | Vuelve a generar los íconos de la PWA desde `public/assets/isotype-gradient.png`.                                   |
 | `npm run generate:api`        | Regenera los tipos y el cliente desde los contratos OpenAPI del back (necesita `protraining-back` clonado al lado). |
 
-El CI (`.github/workflows/ci.yml`) corre `lint`, `format:check` y `build` en cada PR. Antes de pushear, corré `npm run format` y `npm run lint`.
+El CI (`.github/workflows/ci.yml`) corre `lint`, `test`, `format:check` y `build` en cada PR. Antes de pushear, corré `npm run format`, `npm run lint` y `npm test`.
 
 `npm run generate:api` lee los contratos de `../protraining-back/contracts`. Si el back está en otra ruta, pasala por variable de entorno:
 
@@ -95,6 +96,12 @@ Excepciones: `pf` (preparador físico), en la ruta `/pf` y en `PF`.
 - El nombre de la marca se muestra con el componente `Brand` ("**PRO**TRAINING"), no se escribe a mano.
 - Estilos sin inline (`style={{...}}`), salvo un valor que se calcula en el momento (un ancho de una barra de progreso).
 - Nada de `!important`.
+
+### Tests
+
+- Los tests unitarios se escriben con **Vitest** (viene con Vite, no hace falta configurarlo).
+- Van en una carpeta `__tests__` al lado del código que prueban, con nombre `<archivo>.test.ts`: por ejemplo `utils/__tests__/exerciseMuscleMapper.test.ts`.
+- Se prueba la lógica que no es visual (traducciones, cálculos, mapeos). Corren en el CI: si un test falla, el PR no pasa.
 
 ### Git
 
