@@ -253,6 +253,14 @@ export const DailyLoadPage: React.FC = () => {
           <div className="dl-result-total">
             <p className="dl-result-total-value">{result.totalMinutes} min</p>
             <p className="dl-result-total-label">Total del día · {result.date}</p>
+            <p className="dl-result-total-label">
+              Carga del día:{' '}
+              {result.totalLoad ??
+                ACTIVITIES.reduce(
+                  (acc, { key }) => acc + (result[key]?.minutes ?? 0) * (result[key]?.rpe ?? 0),
+                  0,
+                )}
+            </p>
           </div>
           <ul className="dl-result-list">
             {ACTIVITIES.map(({ key, label }) => (
@@ -339,6 +347,15 @@ export const DailyLoadPage: React.FC = () => {
                 <div className="dl-result-total">
                   <p className="dl-result-total-value">{todayLoad.totalMinutes} min</p>
                   <p className="dl-result-total-label">Total del día · {todayLoad.date}</p>
+                  <p className="dl-result-total-label">
+                    Carga del día:{' '}
+                    {todayLoad.totalLoad ??
+                      ACTIVITIES.reduce(
+                        (acc, { key }) =>
+                          acc + (todayLoad[key]?.minutes ?? 0) * (todayLoad[key]?.rpe ?? 0),
+                        0,
+                      )}
+                  </p>
                 </div>
 
                 {/* Listado (sin filtro) */}
