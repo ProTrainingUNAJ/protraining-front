@@ -14,6 +14,7 @@ import { SettingsPage } from './pages/coach/SettingsPage';
 import { HomePage } from './pages/athlete/HomePage';
 import { RoutinePage } from './pages/athlete/RoutinePage';
 import { CheckInPage } from './pages/athlete/CheckInPage';
+import { DailyLoadPage } from './pages/athlete/DailyLoadPage';
 import { ProgressPage } from './pages/athlete/ProgressPage';
 import { SettingsPage as AthleteSettingsPage } from './pages/athlete/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
               { index: true, element: <HomePage /> },
               { path: 'routine', element: <RoutinePage /> },
               { path: 'check-in', element: <CheckInPage /> },
+              { path: 'daily-load', element: <DailyLoadPage /> },
               { path: 'progress', element: <ProgressPage /> },
               { path: 'settings', element: <AthleteSettingsPage /> },
             ],
