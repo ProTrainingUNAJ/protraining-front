@@ -35,8 +35,7 @@ const STATUS_BADGES: Record<InjuryStatus, string> = {
   MedicallyCleared: 'badge badge-success',
 };
 
-// Única transición posible por estado: el stepper no puede ofrecer el salto
-// directo Active → MedicallyCleared (la regla de negocio la valida el back).
+// Solo se ofrece la transición siguiente: el salto directo lo rechaza el back.
 const NEXT_STATUS: Partial<Record<InjuryStatus, InjuryStatus>> = {
   Active: 'InRecovery',
   InRecovery: 'MedicallyCleared',
@@ -146,8 +145,7 @@ export function AthleteInjuriesModal({
       setAdvancingId(null);
       setNotes('');
     } catch (err: unknown) {
-      // El back puede rechazar con 400 (p. ej. salto directo o nota vacía):
-      // se muestra su ProblemDetails traducida, sin tildar al usuario.
+      // El back puede rechazar con 400 (salto directo, nota vacía, zona inválida).
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la lesión.');
     } finally {
       setSavingTransition(false);

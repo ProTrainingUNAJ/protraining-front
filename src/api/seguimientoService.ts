@@ -356,9 +356,7 @@ export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): T
 //
 // Wrappers manjos sobre `httpClient` con tipos propios alineados a
 // `AthleteInjuryDto` del back y errores traducidos (ProblemDetails en español,
-// 404 específico por atleta). El contrato y el SDK generado ya se alinearon al
-// backend real (zone/description, fechas y MedicallyCleared); estos wrappers
-// siguen siendo la puerta que usa el modal, sin cambio de comportamiento.
+// 404 específico por atleta).
 // ---------------------------------------------------------------------------
 
 // Estados del dominio (InjuryStatus en .NET); viajan como texto, no como número.
