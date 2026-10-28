@@ -354,10 +354,11 @@ export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): T
 // ---------------------------------------------------------------------------
 // Lesiones del atleta (KAN-419 / KAN-420 / KAN-421)
 //
-// Wrappers manjos: el SDK generado diverge del backend real (`Cleared` vs
-// `MedicallyCleared`, `bodyZone`/`notes` vs `zone`/`description` y sin fechas
-// en el schema `Injury`), así que se consumen los endpoints con `httpClient`
-// y tipos propios alineados a `AthleteInjuryDto` del back.
+// Wrappers manjos sobre `httpClient` con tipos propios alineados a
+// `AthleteInjuryDto` del back y errores traducidos (ProblemDetails en español,
+// 404 específico por atleta). El contrato y el SDK generado ya se alinearon al
+// backend real (zone/description, fechas y MedicallyCleared); estos wrappers
+// siguen siendo la puerta que usa el modal, sin cambio de comportamiento.
 // ---------------------------------------------------------------------------
 
 // Estados del dominio (InjuryStatus en .NET); viajan como texto, no como número.

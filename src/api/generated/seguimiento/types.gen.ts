@@ -115,21 +115,26 @@ export type GroupBenchmarkResponse = {
 };
 
 export type CreateInjuryRequest = {
-    bodyZone: string;
-    notes: string;
+    zone: string;
+    description: string;
+    injuryDate: string;
+    estimatedReturnDate: string;
 };
 
 export type UpdateInjuryStatusRequest = {
-    newStatus: 'Active' | 'InRecovery' | 'Cleared';
+    newStatus: 'Active' | 'InRecovery' | 'MedicallyCleared';
     transitionNotes: string;
 };
 
 export type Injury = {
     id: string;
     athleteId: string;
-    bodyZone: string;
-    notes: string;
-    status: 'Active' | 'InRecovery' | 'Cleared';
+    zone: string;
+    description: string;
+    injuryDate: string;
+    estimatedReturnDate: string;
+    status: 'Active' | 'InRecovery' | 'MedicallyCleared';
+    clearedAt?: string | null;
     createdAt: string;
     updatedAt?: string;
 };
@@ -210,6 +215,35 @@ export type SubmitCheckInResponses = {
 };
 
 export type SubmitCheckInResponse = SubmitCheckInResponses[keyof SubmitCheckInResponses];
+
+export type GetCompletedCheckInsData = {
+    body: {
+        date: string;
+        pfId?: string | null;
+        athleteIds: Array<string>;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/internal/check-ins/done';
+};
+
+export type GetCompletedCheckInsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type GetCompletedCheckInsError = GetCompletedCheckInsErrors[keyof GetCompletedCheckInsErrors];
+
+export type GetCompletedCheckInsResponses = {
+    /**
+     * Lista de IDs de atletas que ya completaron su check-in.
+     */
+    200: Array<string>;
+};
+
+export type GetCompletedCheckInsResponse = GetCompletedCheckInsResponses[keyof GetCompletedCheckInsResponses];
 
 export type ListAthleteCheckInsData = {
     body?: never;
