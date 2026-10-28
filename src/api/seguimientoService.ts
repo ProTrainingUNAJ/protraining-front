@@ -371,6 +371,7 @@ export interface DailyLoadSubmitRequest {
 export interface DailyLoadSubmitResponse {
   message: string;
   totalMinutes: number;
+  totalLoad: number;
   date: string;
   gym: DailyLoadActivityPayload;
   sportTraining: DailyLoadActivityPayload;
