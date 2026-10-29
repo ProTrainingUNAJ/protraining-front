@@ -380,3 +380,144 @@
 .plan-picker .plan-field select {
   margin-bottom: 0;
 }
+
+/* ── Wizard de generación con IA (KAN-412, KAN-413) ── */
+
+.plan-wizard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 720px;
+}
+
+.plan-wizard-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.plan-wizard-card .plan-field {
+  flex: initial;
+}
+
+.plan-wizard-card .plan-field input,
+.plan-wizard-card .plan-field select,
+.plan-wizard-card .plan-field textarea {
+  margin-bottom: 0;
+}
+
+.plan-field-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.plan-field-hint {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.plan-field-error {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.plan-input-invalid {
+  border-color: var(--danger);
+}
+
+.plan-day-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.plan-day-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.plan-day-chip:hover:not(:disabled) {
+  border-color: var(--secondary);
+  background: var(--bg-subtle);
+}
+
+.plan-day-chip.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.plan-day-chip:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.plan-wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.plan-generating-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  max-width: 560px;
+  padding: 2.5rem 1.5rem;
+}
+
+.plan-generating-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.plan-generating-text {
+  margin: 0;
+  max-width: 440px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.plan-draft-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plan-draft-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}

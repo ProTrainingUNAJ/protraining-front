@@ -53,6 +53,92 @@ export type SuggestRoutineResponse = {
     aiProvider: 'Ollama' | 'Gemini' | 'Rules';
 };
 
+export type PlanDraftExercise = {
+    exerciseId: string;
+    order: number;
+    sets: number;
+    reps: number;
+    targetPercentage?: number | null;
+};
+
+export type PlanDraftSession = {
+    name: string;
+    dayOfWeek: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+    order: number;
+    coachNotes?: string | null;
+    exercises: Array<PlanDraftExercise>;
+};
+
+export type PlanDraftWeek = {
+    weekNumber: number;
+    sessions: Array<PlanDraftSession>;
+};
+
+export type CreatePlanDraftRequest = {
+    /**
+     * Identificador del atleta destinatario (mutuamente excluyente con categoryId).
+     */
+    athleteId?: string | null;
+    /**
+     * Identificador de la categoría grupal destinataria (mutuamente excluyente con athleteId).
+     */
+    categoryId?: string | null;
+    /**
+     * Objetivo deportivo o fisiológico del ciclo de entrenamiento.
+     */
+    goal: string;
+    /**
+     * Cantidad de semanas del plan (1 a 8).
+     */
+    weeks?: number;
+    /**
+     * Frecuencia semanal de sesiones (1 a 6).
+     */
+    daysPerWeek?: number;
+    /**
+     * Días sugeridos de entrenamiento dentro de la semana.
+     */
+    trainingDays?: Array<string>;
+    /**
+     * Fecha de inicio del plan (por defecto el próximo lunes en Argentina).
+     */
+    startDate?: string | null;
+};
+
+export type UpdatePlanDraftRequest = {
+    name: string;
+    objective: string;
+    justificationSummary: string;
+    weeks: Array<PlanDraftWeek>;
+};
+
+export type PlanDraftResponse = {
+    id: string;
+    categoryId?: string | null;
+    athleteId?: string | null;
+    goal: string;
+    startDate: string;
+    status: 'Draft' | 'Approved' | 'Discarded';
+    provider: string;
+    approvedPlanId?: string | null;
+    name: string;
+    objective: string;
+    justificationSummary: string;
+    weeks: Array<PlanDraftWeek>;
+    warnings?: Array<string>;
+};
+
+export type ApprovePlanDraftResponse = {
+    id: string;
+    planId: string;
+    approvedPlanId: string;
+    status: 'Approved';
+    assigned: boolean;
+    assignmentId?: string | null;
+    warning?: string | null;
+    warnings?: Array<string>;
+};
+
 export type HabitsRecommendationResponse = {
     id: string;
     athleteId: string;
@@ -227,6 +313,183 @@ export type SuggestRoutineWithAiResponses = {
 };
 
 export type SuggestRoutineWithAiResponse = SuggestRoutineWithAiResponses[keyof SuggestRoutineWithAiResponses];
+
+export type CreatePlanDraftWithAiData = {
+    body: CreatePlanDraftRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts';
+};
+
+export type CreatePlanDraftWithAiErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type CreatePlanDraftWithAiError = CreatePlanDraftWithAiErrors[keyof CreatePlanDraftWithAiErrors];
+
+export type CreatePlanDraftWithAiResponses = {
+    /**
+     * Borrador de planificación generado y persistido exitosamente.
+     */
+    201: PlanDraftResponse;
+};
+
+export type CreatePlanDraftWithAiResponse = CreatePlanDraftWithAiResponses[keyof CreatePlanDraftWithAiResponses];
+
+export type GetPlanDraftByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}';
+};
+
+export type GetPlanDraftByIdErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetPlanDraftByIdError = GetPlanDraftByIdErrors[keyof GetPlanDraftByIdErrors];
+
+export type GetPlanDraftByIdResponses = {
+    /**
+     * Borrador de planificación recuperado.
+     */
+    200: PlanDraftResponse;
+};
+
+export type GetPlanDraftByIdResponse = GetPlanDraftByIdResponses[keyof GetPlanDraftByIdResponses];
+
+export type UpdatePlanDraftData = {
+    body: UpdatePlanDraftRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}';
+};
+
+export type UpdatePlanDraftErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type UpdatePlanDraftError = UpdatePlanDraftErrors[keyof UpdatePlanDraftErrors];
+
+export type UpdatePlanDraftResponses = {
+    /**
+     * Borrador actualizado exitosamente.
+     */
+    200: PlanDraftResponse;
+};
+
+export type UpdatePlanDraftResponse = UpdatePlanDraftResponses[keyof UpdatePlanDraftResponses];
+
+export type ApprovePlanDraftData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}/approve';
+};
+
+export type ApprovePlanDraftErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type ApprovePlanDraftError = ApprovePlanDraftErrors[keyof ApprovePlanDraftErrors];
+
+export type ApprovePlanDraftResponses = {
+    /**
+     * Borrador aprobado y planificación creada en Entrenamiento.
+     */
+    200: ApprovePlanDraftResponse;
+};
+
+export type ApprovePlanDraftResponse2 = ApprovePlanDraftResponses[keyof ApprovePlanDraftResponses];
+
+export type DiscardPlanDraftData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}/discard';
+};
+
+export type DiscardPlanDraftErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type DiscardPlanDraftError = DiscardPlanDraftErrors[keyof DiscardPlanDraftErrors];
+
+export type DiscardPlanDraftResponses = {
+    /**
+     * Borrador descartado exitosamente.
+     */
+    200: PlanDraftResponse;
+};
+
+export type DiscardPlanDraftResponse = DiscardPlanDraftResponses[keyof DiscardPlanDraftResponses];
 
 export type GetHabitsRecommendationData = {
     body?: never;

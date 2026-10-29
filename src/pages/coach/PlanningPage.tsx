@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ChevronRight, ClipboardList, Loader2, Plus } from 'lucide-react';
+import { AlertCircle, ChevronRight, ClipboardList, Loader2, Plus, Sparkles } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { trainingPlansService } from '../../api/trainingPlans';
 import { PlanListItem } from '../../types/trainingPlans';
@@ -64,18 +64,24 @@ export function PlanningPage() {
         title="Planificación"
         description="Tus planificaciones de entrenamiento. Abrí una para editar sus semanas y sesiones."
         actions={
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => {
-              setShowForm((open) => !open);
-              setError(null);
-            }}
-            disabled={creating}
-          >
-            <Plus size={16} aria-hidden="true" />
-            <span>{showForm ? 'Cancelar' : 'Nueva planificación'}</span>
-          </button>
+          <>
+            <Link to="/pf/assistant/new" className="btn btn-secondary">
+              <Sparkles size={16} aria-hidden="true" />
+              <span>Generar con IA</span>
+            </Link>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                setShowForm((open) => !open);
+                setError(null);
+              }}
+              disabled={creating}
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span>{showForm ? 'Cancelar' : 'Nueva planificación'}</span>
+            </button>
+          </>
         }
       />
 
@@ -129,7 +135,8 @@ export function PlanningPage() {
           </p>
         ) : plans.length === 0 && !error ? (
           <p className="plan-empty">
-            Todavía no tenés planificaciones. Creá la primera con «Nueva planificación».
+            Todavía no tenés planificaciones. Creá la primera con «Nueva planificación» o «Generar
+            con IA».
           </p>
         ) : (
           <ul className="plan-list">
