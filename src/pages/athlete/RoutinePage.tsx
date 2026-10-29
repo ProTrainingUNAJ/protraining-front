@@ -183,6 +183,16 @@ export const RoutinePage: React.FC = () => {
     return { totalSets, completedCount, percent, isAllCompleted };
   }, [exercises, completedSets]);
 
+  function getBarbellSideText(exercise: TodayRoutineExercise): string | null {
+    if (exercise.barWeight == null || exercise.weightPerSide == null) {
+      return null;
+    }
+    if (exercise.weightPerSide === 0) {
+      return 'Solo la barra';
+    }
+    return `${exercise.weightPerSide} kg por lado (barra de ${exercise.barWeight} kg)`;
+  }
+
   return (
     <div className="app-page-container">
       {/* ── Encabezado Estándar ── */}
@@ -573,7 +583,22 @@ export const RoutinePage: React.FC = () => {
                               {exercise.weightKg}{' '}
                               <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>kg</span>
                             </span>
-                            <span className="routine-weight-label">En Barra</span>
+                            {getBarbellSideText(exercise) ? (
+                              <span
+                                style={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  color: 'var(--text-muted)',
+                                  textAlign: 'center',
+                                  lineHeight: 1.2,
+                                  marginTop: '0.2rem',
+                                }}
+                              >
+                                {getBarbellSideText(exercise)}
+                              </span>
+                            ) : (
+                              <span className="routine-weight-label">Objetivo</span>
+                            )}
                           </>
                         ) : (
                           <>
@@ -686,7 +711,9 @@ export const RoutinePage: React.FC = () => {
                   <span style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--secondary)' }}>
                     {selectedExerciseForModal.weightKg !== null &&
                     selectedExerciseForModal.weightKg !== undefined
-                      ? `${selectedExerciseForModal.weightKg} kg en barra`
+                      ? getBarbellSideText(selectedExerciseForModal)
+                        ? `${selectedExerciseForModal.weightKg} kg · ${getBarbellSideText(selectedExerciseForModal)}`
+                        : `${selectedExerciseForModal.weightKg} kg`
                       : 'Carga Libre / Calibración'}
                   </span>
                 </div>

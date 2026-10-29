@@ -138,6 +138,8 @@ export type TodayRoutineExercise = {
      * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg). Es null en series de referencia sin récord previo.
      */
     weightKg?: number | null;
+    barWeight?: number | null;
+    weightPerSide?: number | null;
     /**
      * Marca 1RM vigente tomada como referencia para el cálculo. Es null si el atleta no tiene récord.
      */
