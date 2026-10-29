@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses } from './types.gen';
+import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -87,6 +87,77 @@ export const suggestRoutineWithAi = <ThrowOnError extends boolean = false>(optio
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Generar y persistir un nuevo borrador de planificación con IA
+ *
+ * Genera un borrador de planificación multisesión a través de la cadena resiliente de IA (Ollama -> Gemini -> Reglas), validando esquema e identificadores del catálogo oficial y persistiéndolo en la base de datos bajo aislamiento multi-tenant.
+ *
+ */
+export const createPlanDraftWithAi = <ThrowOnError extends boolean = false>(options: Options<CreatePlanDraftWithAiData, ThrowOnError>): RequestResult<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError> => (options.client ?? client).post<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener un borrador de planificación por su identificador
+ *
+ * Devuelve el borrador generado por la IA siempre que pertenezca al preparador físico autenticado.
+ */
+export const getPlanDraftById = <ThrowOnError extends boolean = false>(options: Options<GetPlanDraftByIdData, ThrowOnError>): RequestResult<GetPlanDraftByIdResponses, GetPlanDraftByIdErrors, ThrowOnError> => (options.client ?? client).get<GetPlanDraftByIdResponses, GetPlanDraftByIdErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}',
+    ...options
+});
+
+/**
+ * Editar y reemplazar el contenido de un borrador de planificación
+ *
+ * Permite al preparador físico modificar cualquier parte del borrador en estado Draft. Ejecuta validaciones de esquema, existencia en el catálogo oficial, rangos deportivos y topes pre-partido, guardando además las sustituciones o eliminaciones de ejercicios en la memoria del PF.
+ *
+ */
+export const updatePlanDraft = <ThrowOnError extends boolean = false>(options: Options<UpdatePlanDraftData, ThrowOnError>): RequestResult<UpdatePlanDraftResponses, UpdatePlanDraftErrors, ThrowOnError> => (options.client ?? client).put<UpdatePlanDraftResponses, UpdatePlanDraftErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Aprobar borrador de planificación y crearlo en Entrenamiento
+ *
+ * Transforma el borrador aprobado en un SaveTrainingPlanRequest, lo crea en el microservicio de Entrenamiento reenviando el token del preparador físico y lo asigna a la categoría o atleta con la fecha de inicio configurada. Si el borrador ya estaba aprobado, devuelve el planId existente sin duplicar la planificación.
+ *
+ */
+export const approvePlanDraft = <ThrowOnError extends boolean = false>(options: Options<ApprovePlanDraftData, ThrowOnError>): RequestResult<ApprovePlanDraftResponses, ApprovePlanDraftErrors, ThrowOnError> => (options.client ?? client).post<ApprovePlanDraftResponses, ApprovePlanDraftErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}/approve',
+    ...options
+});
+
+/**
+ * Descartar un borrador de planificación generado por la IA
+ *
+ * Pasa el borrador al estado Discarded impidiendo futuras ediciones o aprobaciones.
+ */
+export const discardPlanDraft = <ThrowOnError extends boolean = false>(options: Options<DiscardPlanDraftData, ThrowOnError>): RequestResult<DiscardPlanDraftResponses, DiscardPlanDraftErrors, ThrowOnError> => (options.client ?? client).post<DiscardPlanDraftResponses, DiscardPlanDraftErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}/discard',
+    ...options
 });
 
 /**
