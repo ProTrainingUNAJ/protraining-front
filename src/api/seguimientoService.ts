@@ -119,10 +119,10 @@ export async function syncPendingCheckIns(athleteId: string): Promise<number> {
     try {
       // Se manda la fecha original del check-in para que el back conserve el día
       // en que se hizo, aunque la sincronización ocurra al día siguiente (KAN-149).
-      await httpClient.post(
-        `/seguimiento/api/v1/athletes/${record.athleteId}/check-in`,
-        { ...record.payload, date: dateInArgentina(record.timestamp) },
-      );
+      await httpClient.post(`/seguimiento/api/v1/athletes/${record.athleteId}/check-in`, {
+        ...record.payload,
+        date: dateInArgentina(record.timestamp),
+      });
       await deletePendingCheckIn(record.id);
       syncedCount += 1;
     } catch (error: unknown) {

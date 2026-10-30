@@ -254,10 +254,7 @@ export const CheckInPage: React.FC = () => {
     // Sin conexión y sin atleta resuelto: no se puede guardar con un id de placeholder,
     // porque la sincronización luego fallaría con 404 para siempre (KAN-149).
     const cachedAthleteId = user?.id ? getCachedAthleteId(user.id) : null;
-    if (
-      (typeof navigator === 'undefined' || !navigator.onLine) &&
-      !cachedAthleteId
-    ) {
+    if ((typeof navigator === 'undefined' || !navigator.onLine) && !cachedAthleteId) {
       setErrorMessage(
         'No se pudo resolver tu atleta sin conexión. Conectate una vez y volvé a intentar.',
       );
