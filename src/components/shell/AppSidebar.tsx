@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import officialLogo from '../../assets/protraining-official-isotype.png';
+import logoDark from '../../assets/protraining-logo-dark.png';
 import { coachMenuItems } from '../../layouts/CoachMenu';
 import { athleteMenuItems } from '../../layouts/AthleteMenu';
 import { UserSidebarProfile } from './UserSidebarProfile';
@@ -9,16 +10,23 @@ interface AppSidebarProps {
   role: 'pf' | 'athlete';
   onNavigate?: () => void;
   className?: string;
+  isMobile?: boolean;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ role, onNavigate, className = '' }) => {
+export const AppSidebar: React.FC<AppSidebarProps> = ({
+  role,
+  onNavigate,
+  className = '',
+  isMobile = false,
+}) => {
   const items = role === 'pf' ? coachMenuItems : athleteMenuItems;
   const rootPath = role === 'pf' ? '/pf' : '/athlete';
+  const isMobileDrawer = isMobile || className.includes('app-sidebar-mobile');
 
   return (
     <aside className={`app-sidebar ${className}`} aria-label="Navegación lateral de ProTraining">
       <div className="app-sidebar-top">
-        {/* Logo oficial de ProTraining */}
+        {/* Logo oficial de ProTraining: versión completa horizontal en móvil, isotipo en escritorio */}
         <NavLink
           to={rootPath}
           className="app-sidebar-logo-link"
@@ -26,7 +34,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ role, onNavigate, classN
           aria-label="ProTraining Inicio"
           onClick={onNavigate}
         >
-          <img src={officialLogo} alt="ProTraining" className="app-sidebar-logo-img" />
+          {isMobileDrawer ? (
+            <img src={logoDark} alt="ProTraining" className="app-sidebar-logo-mobile" />
+          ) : (
+            <img src={officialLogo} alt="ProTraining" className="app-sidebar-logo-img" />
+          )}
         </NavLink>
 
         {/* Lista vertical de opciones de menú */}

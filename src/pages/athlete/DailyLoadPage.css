@@ -1,0 +1,445 @@
+/* Estilos exclusivos de la página "Carga del día" (KAN-442 / #147).
+   Prefijo dl- para no colisionar con otras páginas. */
+
+.dl-page {
+  min-height: 100vh;
+  background: var(--bg-main);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.dl-container {
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dl-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dl-progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.dl-progress-track {
+  width: 100%;
+  height: 0.625rem;
+  background: var(--bg-subtle);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.dl-progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transition: width 0.5s ease;
+}
+
+.dl-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.dl-icon-circle {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.dl-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.dl-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0.25rem 0 0;
+}
+
+.dl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.dl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.dl-field label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.dl-input {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 1.125rem;
+  text-align: center;
+  color: var(--text-main);
+  outline: none;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.dl-input:focus {
+  box-shadow: 0 0 0 2px var(--primary);
+  border-color: var(--primary);
+}
+
+.dl-hint {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dl-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.dl-nav {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.dl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.dl-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dl-btn:hover:not(:disabled) {
+  background: var(--bg-subtle);
+}
+
+.dl-btn-primary {
+  flex: 1;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  font-weight: 600;
+  min-width: 10rem;
+  box-shadow: var(--shadow);
+  transition:
+    filter 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.dl-btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  filter: none;
+}
+
+.dl-btn-primary:disabled {
+  opacity: 0.5;
+}
+
+.dl-amber {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--warning-text);
+  background: var(--warning-bg-strong);
+  border: 1px solid var(--warning);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Pantalla de resultado */
+.dl-result {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.dl-result-icon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 9999px;
+  background: var(--success-bg-strong);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.dl-result-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.dl-result-msg {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dl-result-total {
+  background: var(--bg-subtle);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.dl-result-total-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+}
+
+.dl-result-total-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.dl-result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.dl-result-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dl-result-list li:last-child {
+  border-bottom: none;
+}
+
+.dl-result-list .dl-result-val {
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+/* Toggle Registrar / Ver carga de hoy */
+.dl-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 0.25rem;
+}
+
+.dl-toggle-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.dl-toggle-btn:hover {
+  color: var(--text-main);
+}
+
+.dl-toggle-btn-active {
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Vista de carga registrada */
+.dl-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.dl-view-loading {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 1rem;
+}
+
+.dl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.dl-empty-text {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Chips de filtro por actividad */
+.dl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dl-chip {
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.dl-chip:hover {
+  color: var(--text-main);
+  border-color: var(--primary);
+}
+
+.dl-chip-active {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+/* Tarjetas del resumen */
+.dl-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dl-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.dl-summary-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dl-summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.dl-summary-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.dl-summary-value {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}

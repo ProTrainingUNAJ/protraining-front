@@ -8,6 +8,8 @@ import { AthletesPage } from './pages/coach/AthletesPage';
 import { PlanningPage } from './pages/coach/PlanningPage';
 import { PlanEditorPage } from './pages/coach/PlanEditorPage';
 import { SeasonCalendarPage } from './pages/coach/SeasonCalendarPage';
+import { GeneratePlanDraftPage } from './pages/coach/GeneratePlanDraftPage';
+import { AssistantDraftPage } from './pages/coach/AssistantDraftPage';
 import { TrainingPage } from './pages/coach/TrainingPage';
 import { MonitoringPage } from './pages/coach/MonitoringPage';
 import { ReportsPage } from './pages/coach/ReportsPage';
@@ -15,6 +17,7 @@ import { SettingsPage } from './pages/coach/SettingsPage';
 import { HomePage } from './pages/athlete/HomePage';
 import { RoutinePage } from './pages/athlete/RoutinePage';
 import { CheckInPage } from './pages/athlete/CheckInPage';
+import { DailyLoadPage } from './pages/athlete/DailyLoadPage';
 import { ProgressPage } from './pages/athlete/ProgressPage';
 import { SettingsPage as AthleteSettingsPage } from './pages/athlete/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -68,6 +71,8 @@ export const router = createBrowserRouter([
               { path: 'calendar', element: <SeasonCalendarPage /> },
               { path: 'planning', element: <PlanningPage /> },
               { path: 'planning/:planId', element: <PlanEditorPage /> },
+              { path: 'assistant/new', element: <GeneratePlanDraftPage /> },
+              { path: 'assistant/drafts/:draftId', element: <AssistantDraftPage /> },
               { path: 'training', element: <TrainingPage /> },
               { path: 'monitoring', element: <MonitoringPage /> },
               { path: 'reports', element: <ReportsPage /> },
@@ -86,6 +91,7 @@ export const router = createBrowserRouter([
               { index: true, element: <HomePage /> },
               { path: 'routine', element: <RoutinePage /> },
               { path: 'check-in', element: <CheckInPage /> },
+              { path: 'daily-load', element: <DailyLoadPage /> },
               { path: 'progress', element: <ProgressPage /> },
               { path: 'settings', element: <AthleteSettingsPage /> },
             ],

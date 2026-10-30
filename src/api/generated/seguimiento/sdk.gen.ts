@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -44,6 +44,16 @@ export const listAthleteCheckIns = <ThrowOnError extends boolean = false>(option
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/check-ins',
+    ...options
+});
+
+/**
+ * Obtener la carga del día del atleta
+ */
+export const getDailyLoad = <ThrowOnError extends boolean = false>(options: Options<GetDailyLoadData, ThrowOnError>): RequestResult<GetDailyLoadResponses, GetDailyLoadErrors, ThrowOnError> => (options.client ?? client).get<GetDailyLoadResponses, GetDailyLoadErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/daily-load',
     ...options
 });
 

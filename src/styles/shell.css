@@ -4,38 +4,67 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  width: 100%;
+  min-width: 0;
   background-color: var(--shell-bg);
   padding: 1.25rem;
   box-sizing: border-box;
+  overflow: hidden;
   transition: background-color 0.2s ease;
 }
 
 .app-shell-container {
   display: flex;
   width: 100%;
+  min-width: 0;
   max-width: 1720px;
-  min-height: calc(100vh - 2.5rem);
+  height: calc(100vh - 2.5rem);
+  height: calc(100dvh - 2.5rem);
+  max-height: calc(100vh - 2.5rem);
+  max-height: calc(100dvh - 2.5rem);
   background-color: var(--shell-panel-bg);
   border-radius: 28px;
   overflow: hidden;
   border: 1px solid var(--shell-panel-border);
   box-shadow: var(--shadow-lg);
   position: relative;
+  box-sizing: border-box;
 }
 
 /* ── Barra Lateral Izquierda Fija ── */
 .app-sidebar {
-  width: 82px;
+  width: var(--shell-sidebar-width, 82px);
+  min-width: var(--shell-sidebar-width, 82px);
+  max-width: var(--shell-sidebar-width, 82px);
+  flex: 0 0 var(--shell-sidebar-width, 82px);
+  flex-shrink: 0;
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
   background-color: var(--shell-sidebar-bg);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 0.5rem 1.25rem;
-  flex-shrink: 0;
   z-index: 40;
+  overflow: visible;
+}
+
+.app-sidebar-desktop {
+  width: var(--shell-sidebar-width, 82px);
+  min-width: var(--shell-sidebar-width, 82px);
+  max-width: var(--shell-sidebar-width, 82px);
+  flex: 0 0 var(--shell-sidebar-width, 82px);
+  flex-shrink: 0;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .app-sidebar-top {
@@ -122,7 +151,7 @@
     opacity 0.15s ease,
     transform 0.15s ease;
   box-shadow: var(--shadow-lg);
-  z-index: 100;
+  z-index: 1000;
   border: 1px solid var(--on-primary-border);
 }
 
@@ -140,6 +169,9 @@
   gap: 1rem;
   margin-top: auto;
   padding-top: 1rem;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 .app-sidebar-divider {
@@ -155,6 +187,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  overflow: visible;
 }
 
 .shell-sidebar-avatar-btn {
@@ -199,6 +232,10 @@
   text-transform: uppercase;
 }
 
+.shell-sidebar-avatar-label {
+  display: none;
+}
+
 .shell-sidebar-user-dropdown {
   position: absolute;
   left: calc(100% + 14px);
@@ -208,7 +245,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
-  z-index: 100;
+  z-index: 1100;
   overflow: hidden;
   animation: shellDropdownFade 0.18s ease;
 }
@@ -286,11 +323,15 @@
 
 /* ── Panel Principal (Header + Contenido) ── */
 .app-main-panel {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   background-color: var(--shell-panel-bg);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ── Encabezado Superior Persistente ── */
@@ -712,9 +753,14 @@
 
 /* ── Área Principal de Contenido ── */
 .app-content-body {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
   padding: 1.75rem 2rem 2.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-gutter: stable;
   background-color: var(--shell-panel-bg);
   box-sizing: border-box;
@@ -898,28 +944,138 @@
 .app-mobile-drawer {
   position: fixed;
   inset: 0 auto 0 0;
-  width: 82px;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  height: 100dvh;
   background-color: var(--shell-sidebar-bg);
   z-index: 120;
   display: flex;
   flex-direction: column;
-  position: fixed;
   box-shadow: var(--shadow-lg);
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.app-mobile-drawer .app-sidebar {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 100%;
+  padding: 1.5rem 1rem 1.25rem;
+  align-items: stretch;
+  overflow: visible;
+}
+
+.app-mobile-drawer .app-sidebar-top {
+  align-items: stretch;
+}
+
+.app-sidebar-logo-mobile {
+  height: 38px;
+  width: auto;
+  max-width: 175px;
+  object-fit: contain;
+  display: block;
+}
+
+.app-mobile-drawer .app-sidebar-logo-link {
+  width: auto;
+  height: auto;
+  margin-bottom: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  align-self: flex-start;
+}
+
+.app-mobile-drawer .app-sidebar-nav {
+  align-items: stretch;
+  gap: 0.45rem;
+}
+
+.app-mobile-drawer .app-sidebar-link {
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  justify-content: flex-start;
+  padding: 0.65rem 0.95rem;
+  gap: 0.85rem;
+  border-radius: 12px;
+}
+
+.app-mobile-drawer .app-sidebar-tooltip {
+  position: static;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--on-primary);
+  white-space: nowrap;
+}
+
+.app-mobile-drawer .app-sidebar-bottom {
+  align-items: stretch;
+  padding-top: 1.5rem;
+}
+
+.app-mobile-drawer .shell-sidebar-user-wrap {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.app-mobile-drawer .shell-sidebar-avatar-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+  gap: 0.85rem;
+}
+
+.app-mobile-drawer .shell-sidebar-avatar-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--on-primary);
+  white-space: nowrap;
+}
+
+.app-mobile-drawer .shell-sidebar-avatar-btn:hover {
+  transform: none;
+  background-color: var(--on-primary-hover);
+}
+
+.app-mobile-drawer .shell-sidebar-user-dropdown {
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  min-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .app-mobile-drawer-close {
   position: absolute;
-  top: 0.65rem;
-  right: 0.35rem;
+  top: 0.85rem;
+  right: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--on-primary-muted);
+  border-radius: 8px;
+  background: var(--on-primary-hover);
+  color: var(--on-primary);
   cursor: pointer;
   z-index: 10;
   transition:
@@ -929,7 +1085,7 @@
 
 .app-mobile-drawer-close:hover {
   color: var(--on-primary);
-  background-color: var(--on-primary-hover);
+  background-color: var(--secondary);
 }
 
 /* En pantallas de escritorio se oculta cualquier remanente del menú móvil */
@@ -949,12 +1105,22 @@
 @media (max-width: 991px) {
   .app-shell-viewport {
     padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
   }
 
   .app-shell-container {
     border-radius: 0;
     border: none;
     min-height: 100vh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   .app-sidebar-desktop {
@@ -971,7 +1137,53 @@
   }
 
   .app-content-body {
-    padding: 1.25rem 1rem;
+    padding: 0.85rem 0.75rem 1.25rem;
+  }
+
+  .app-page-container {
+    gap: 0.65rem;
+  }
+
+  .app-page-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    margin-bottom: 0.15rem;
+  }
+
+  .app-page-header-info {
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .app-page-title {
+    font-size: 1.25rem;
+    line-height: 1.15;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-page-description {
+    font-size: 0.78rem;
+    line-height: 1.2;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-page-header-actions {
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  .app-page-body {
+    gap: 0.55rem;
   }
 
   .wireframe-row-1 {
@@ -988,6 +1200,10 @@
 }
 
 @media (max-width: 680px) {
+  .app-content-body {
+    padding: 0.65rem 0.5rem 1rem;
+  }
+
   .app-header {
     height: 60px;
     padding: 0 0.75rem;

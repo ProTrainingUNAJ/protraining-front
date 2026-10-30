@@ -54,11 +54,28 @@ export type CheckIn = {
     hasActiveInjury?: boolean;
 };
 
+export type DailyLoadActivity = {
+    minutes?: number;
+    rpe?: number | null;
+};
+
 export type DailyLoadRequest = {
-    gymMinutes: number;
-    sportTrainingMinutes?: number;
-    matchMinutes?: number;
-    individualWorkMinutes?: number;
+    gym?: DailyLoadActivity;
+    sportTraining?: DailyLoadActivity;
+    match1?: DailyLoadActivity;
+    match2?: DailyLoadActivity;
+    individualWork?: DailyLoadActivity;
+};
+
+export type DailyLoadResponse = {
+    message: string;
+    totalMinutes: number;
+    date: string;
+    gym: DailyLoadActivity;
+    sportTraining: DailyLoadActivity;
+    match1: DailyLoadActivity;
+    match2: DailyLoadActivity;
+    individualWork: DailyLoadActivity;
 };
 
 export type CategoryAttendanceSummary = {
@@ -244,6 +261,33 @@ export type ListAthleteCheckInsResponses = {
 
 export type ListAthleteCheckInsResponse = ListAthleteCheckInsResponses[keyof ListAthleteCheckInsResponses];
 
+export type GetDailyLoadData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/daily-load';
+};
+
+export type GetDailyLoadErrors = {
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetDailyLoadError = GetDailyLoadErrors[keyof GetDailyLoadErrors];
+
+export type GetDailyLoadResponses = {
+    /**
+     * Carga del día obtenida.
+     */
+    200: DailyLoadResponse;
+};
+
+export type GetDailyLoadResponse = GetDailyLoadResponses[keyof GetDailyLoadResponses];
+
 export type RegisterDailyLoadData = {
     body: DailyLoadRequest;
     path: {
@@ -268,12 +312,13 @@ export type RegisterDailyLoadError = RegisterDailyLoadErrors[keyof RegisterDaily
 
 export type RegisterDailyLoadResponses = {
     /**
-     * Carga y asistencia registradas con éxito.
+     * Carga del día actualizada.
      */
-    200: {
-        message?: string;
-        totalMinutes?: number;
-    };
+    200: DailyLoadResponse;
+    /**
+     * Carga del día registrada.
+     */
+    201: DailyLoadResponse;
 };
 
 export type RegisterDailyLoadResponse = RegisterDailyLoadResponses[keyof RegisterDailyLoadResponses];
