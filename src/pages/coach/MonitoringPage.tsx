@@ -13,6 +13,9 @@ import {
   ATHLETE_NAME_FALLBACK,
   CATEGORY_NAME_FALLBACK,
   getCategoryTrafficLightToday,
+  getCategoryAttendanceToday,
+  setAttendance,
+  type CategoryAttendanceSummary,
   mapTrafficLightSummaryToItem,
 } from '../../api/seguimientoService';
 import { Category } from '../../types/structure';
@@ -134,6 +137,20 @@ export const MonitoringPage: React.FC = () => {
     Record<string, Partial<AthleteTrafficLightItem>>
   >({});
 
+  // Asistencia automática del día (KAN-445)
+  const [attendanceResult, setAttendanceResult] = useState<{
+    categoryId: string;
+    summary: CategoryAttendanceSummary | null;
+    error: string | null;
+  } | null>(null);
+  const [attendanceOverrides, setAttendanceOverrides] = useState<
+    Record<string, 'Present' | 'NoRecord'>
+  >({});
+
+  const attendanceLoading =
+    selectedCategoryId !== '' &&
+    (attendanceResult === null || attendanceResult.categoryId !== selectedCategoryId);
+
   useEffect(() => {
     if (!selectedCategoryId) return;
     let active = true;
@@ -162,6 +179,43 @@ export const MonitoringPage: React.FC = () => {
       active = false;
     };
   }, [selectedCategoryId, selectedCategoryName]);
+
+  const refreshAttendance = () => {
+    if (!selectedCategoryId) return;
+    getCategoryAttendanceToday(selectedCategoryId)
+      .then((summary) => {
+        setAttendanceResult({ categoryId: selectedCategoryId, summary, error: null });
+      })
+      .catch((err: unknown) => {
+        setAttendanceResult({
+          categoryId: selectedCategoryId,
+          summary: null,
+          error: err instanceof Error ? err.message : 'No se pudo consultar la asistencia.',
+        });
+      });
+  };
+
+  // Carga de asistencia del día cuando cambia la categoría o se abre la pestaña
+  useEffect(() => {
+    if (!selectedCategoryId || activeTab !== 'attendance') return;
+    let active = true;
+    getCategoryAttendanceToday(selectedCategoryId)
+      .then((summary) => {
+        if (!active) return;
+        setAttendanceResult({ categoryId: selectedCategoryId, summary, error: null });
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        setAttendanceResult({
+          categoryId: selectedCategoryId,
+          summary: null,
+          error: err instanceof Error ? err.message : 'No se pudo consultar la asistencia.',
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedCategoryId, activeTab]);
 
   const athletesLoading =
     selectedCategoryId !== '' &&
@@ -708,25 +762,79 @@ export const MonitoringPage: React.FC = () => {
             />
           </>
         ) : (
-          /* Traditional attendance tab */
-          <div
-            style={{
-              padding: '2rem',
-              textAlign: 'center',
-              background: 'var(--bg-card)',
-              borderRadius: '16px',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <Users size={32} style={{ color: 'var(--primary)', marginBottom: '0.5rem' }} />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>
-              Planilla de Asistencia Diaria
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
-              El registro de asistencia se sincroniza automáticamente con el Semáforo del Día.
-            </p>
-          </div>
-        )}
+          /* Asistencia automática del día (KAN-445) */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {attendanceLoading && (
+              <div style={{ padding: '2rem', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
+                <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '0.5rem' }} />
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>Consultando la asistencia del día…</p>
+              </div>
+            )}
+
+            {!attendanceLoading && attendanceResult?.error && (
+              <div style={{ padding: '1rem', background: 'var(--traffic-red-bg)', border: '1px solid var(--traffic-red-border)', borderRadius: '12px', color: 'var(--traffic-red-text)', fontSize: '0.85rem' }}>
+                {attendanceResult.error}
+              </div>
+            )}
+
+            {!attendanceLoading && attendanceResult?.summary && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                  <Users size={20} style={{ color: 'var(--primary)' }} />
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>Planilla de Asistencia Diaria</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    {attendanceResult.summary.presentCount} / {attendanceResult.summary.totalRoster} presentes ({attendanceResult.summary.attendancePercentage.toFixed(1)}%)
+                  </span>
+                  <button type="button" onClick={refreshAttendance} style={{ marginLeft: 'auto', padding: '0.3rem 0.7rem', borderRadius: '9999px', border: '1px solid var(--border)', background: 'var(--bg-subtle)', color: 'var(--text-main)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
+                    Actualizar
+                  </button>
+                </div>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                  La asistencia se marca cuando el atleta registra la carga del día (minutos + RPE). El check-in de bienestar no la marca.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
+                  {(attendanceResult.summary.athletes ?? []).map((athlete) => {
+                    const status = attendanceOverrides[athlete.athleteId] ?? athlete.status;
+                    const isPresent = status === 'Present';
+                    return (
+                      <div key={athlete.athleteId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.85rem 1rem', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                            {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: isPresent ? 'var(--traffic-green-text)' : 'var(--traffic-gray-text)' }}>
+                            {isPresent ? 'Presente' : 'Sin registro'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const next = isPresent ? 'NoRecord' : 'Present';
+                            setAttendanceOverrides((prev) => ({ ...prev, [athlete.athleteId]: next }));
+                            try {
+                              await setAttendance(athlete.athleteId, next === 'Present');
+                            } catch {
+                              setAttendanceOverrides((prev) => ({ ...prev, [athlete.athleteId]: status }));
+                            }
+                          }}
+                          style={{ padding: '0.35rem 0.75rem', borderRadius: '9999px', border: '1px solid var(--border)', background: isPresent ? 'var(--traffic-green-bg)' : 'var(--bg-subtle)', color: isPresent ? 'var(--traffic-green-text)' : 'var(--text-main)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          {isPresent ? 'Marcar sin registro' : 'Marcar presente'}
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {!attendanceLoading && !attendanceResult?.error && (attendanceResult?.summary?.athletes?.length ?? 0) === 0 && (
+                    <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border)' }}>
+                      No hay atletas para mostrar.
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>        )}
       </div>
     </div>
   );
