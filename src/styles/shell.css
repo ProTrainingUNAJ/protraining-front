@@ -1092,7 +1092,53 @@
   }
 
   .app-content-body {
-    padding: 1.25rem 1rem;
+    padding: 0.85rem 0.75rem 1.25rem;
+  }
+
+  .app-page-container {
+    gap: 0.65rem;
+  }
+
+  .app-page-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    margin-bottom: 0.15rem;
+  }
+
+  .app-page-header-info {
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .app-page-title {
+    font-size: 1.25rem;
+    line-height: 1.15;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-page-description {
+    font-size: 0.78rem;
+    line-height: 1.2;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-page-header-actions {
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  .app-page-body {
+    gap: 0.55rem;
   }
 
   .wireframe-row-1 {
@@ -1109,6 +1155,10 @@
 }
 
 @media (max-width: 680px) {
+  .app-content-body {
+    padding: 0.65rem 0.5rem 1rem;
+  }
+
   .app-header {
     height: 60px;
     padding: 0 0.75rem;
