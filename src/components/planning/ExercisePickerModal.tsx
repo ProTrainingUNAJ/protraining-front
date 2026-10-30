@@ -33,8 +33,9 @@ export function ExercisePickerModal({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [isUsedByPf, setIsUsedByPf] = useState(filterUsedByPf);
-  const [hasNoOwnExercises, setHasNoOwnExercises] = useState(false);
+  // Modo de filtro: si es true pide solo ejercicios del PF
+  const [usedByPf, setUsedByPf] = useState(filterUsedByPf);
+  // Aviso cuando el PF no tiene planificaciones cargadas
   const [notice, setNotice] = useState<string | null>(null);
 
   // Espera a que el PF deje de escribir antes de buscar.
@@ -52,22 +53,21 @@ export function ExercisePickerModal({
   useEffect(() => {
     let active = true;
     exercisesService
-      .search(search, page, PAGE_SIZE, isUsedByPf)
+      .search(search, page, PAGE_SIZE, usedByPf)
       .then((data) => {
         if (!active) return;
-        // Si arrancó buscando solo ejercicios del PF pero no tiene planificaciones ni récords,
-        // mostramos directamente el catálogo con un aviso.
+        // Si el PF todavía no tiene planificaciones (la lista viene vacía al inicio),
+        // mostrar directamente el catálogo con un aviso.
         if (
-          isUsedByPf &&
+          usedByPf &&
           search === '' &&
           page === 1 &&
           (data.totalCount === 0 || data.items.length === 0)
         ) {
-          setHasNoOwnExercises(true);
-          setIsUsedByPf(false);
           setNotice(
             'Todavía no tenés ejercicios en tus planificaciones. Mostrando todo el catálogo.',
           );
+          setUsedByPf(false);
           return;
         }
         setResult(data);
@@ -84,7 +84,7 @@ export function ExercisePickerModal({
     return () => {
       active = false;
     };
-  }, [search, page, isUsedByPf]);
+  }, [search, page, usedByPf]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -99,9 +99,9 @@ export function ExercisePickerModal({
     setPage(nextPage);
   };
 
-  const toggleCatalogMode = () => {
+  const switchToFullCatalog = () => {
     setLoading(true);
-    setIsUsedByPf((prev) => !prev);
+    setUsedByPf(false);
     setPage(1);
   };
 
@@ -207,10 +207,10 @@ export function ExercisePickerModal({
           </button>
         </div>
 
-        {filterUsedByPf && !hasNoOwnExercises && (
+        {usedByPf && (
           <div className="plan-picker-footer-link">
-            <button type="button" className="plan-picker-link" onClick={toggleCatalogMode}>
-              {isUsedByPf ? 'Buscar en todo el catálogo' : 'Ver solo mis ejercicios'}
+            <button type="button" className="plan-picker-link" onClick={switchToFullCatalog}>
+              Buscar en todo el catálogo
             </button>
           </div>
         )}
