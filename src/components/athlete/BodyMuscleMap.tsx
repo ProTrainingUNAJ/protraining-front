@@ -6,6 +6,8 @@ export interface BodyMuscleMapProps {
   onPainChange: (muscleId: string, level: number) => void;
   onClearAll?: () => void;
   readOnly?: boolean;
+  hasActiveInjury?: boolean;
+  hideControls?: boolean;
 }
 
 /**
@@ -18,6 +20,8 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
   onPainChange,
   onClearAll,
   readOnly = false,
+  hasActiveInjury = false,
+  hideControls = false,
 }) => {
   return (
     <InteractiveMuscleMap
@@ -25,6 +29,8 @@ export const BodyMuscleMap: React.FC<BodyMuscleMapProps> = ({
       onPainChange={onPainChange}
       onClearAll={onClearAll}
       readOnly={readOnly}
+      hasActiveInjury={hasActiveInjury}
+      hideControls={hideControls}
       initialView="both"
     />
   );

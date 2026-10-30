@@ -73,6 +73,7 @@ export const MUSCLE_COLORS = {
   yellow: 'var(--muscle-color-yellow)',
   orange: 'var(--muscle-color-orange)',
   red: 'var(--muscle-color-red)',
+  injury: '#000000',
 } as const;
 
 export type MuscleColorKey = keyof typeof MUSCLE_COLORS;
@@ -109,7 +110,7 @@ export interface JointRegion {
 }
 
 export interface InteractiveMuscleMapProps {
-  /** Pain registry per muscle group or joint (1 to 5) */
+  /** Pain registry per muscle group or joint (1 to 5, or 6 for injury) */
   musclePains?: Record<string, number>;
   /** Direct custom colors assigned to each region */
   muscleColors?: Record<string, string>;
@@ -131,6 +132,10 @@ export interface InteractiveMuscleMapProps {
   initialView?: ViewMode;
   /** Read-only mode flag */
   readOnly?: boolean;
+  /** Flag indicating athlete has reported an active injury (activates black injury color option) */
+  hasActiveInjury?: boolean;
+  /** Hide top category toolbar and bottom orientation guide for clean embeds */
+  hideControls?: boolean;
   /** Additional CSS class name */
   className?: string;
 }

@@ -53,11 +53,8 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
     <div className="muscle-map-view-column">
       {/* Anatomical view and perspective header */}
       {!hideHeader && (
-        <div className="muscle-map-view-header">
-          <span className="muscle-map-view-pill">Vista Posterior (Trasera)</span>
-          <span className="muscle-map-view-sub">
-            ← Lado Izq. del atleta | Lado Der. del atleta →
-          </span>
+        <div className="muscle-map-view-header" style={{ marginBottom: '0.85rem' }}>
+          <span className="muscle-map-view-pill">VISTA TRASERA</span>
         </div>
       )}
 
@@ -69,13 +66,13 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
             style={{
               width: '100%',
               height: 'auto',
-              maxHeight: '560px',
+              maxHeight: '480px',
               display: 'block',
               userSelect: 'none',
               overflow: 'visible',
               background: 'transparent',
             }}
-            aria-label="Mapa anatómico muscular y articular en vista posterior"
+            aria-label="Mapa anatómico muscular y articular en vista trasera"
           >
             <defs>
               <filter id="muscle-glow-back" x="-20%" y="-20%" width="140%" height="140%">
@@ -143,7 +140,7 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                     tabIndex={readOnly ? -1 : 0}
                     aria-label={`${muscle.name}. ${
                       hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                    } Vista posterior.`}
+                    } Vista trasera.`}
                     aria-pressed={isSelected}
                     filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
                     style={{
@@ -202,7 +199,7 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                     tabIndex={readOnly ? -1 : 0}
                     aria-label={`Articulación: ${joint.name}. ${
                       hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                    } Vista posterior.`}
+                    } Vista trasera.`}
                     aria-pressed={isSelected}
                     filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
                     style={{
@@ -265,6 +262,31 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
           </svg>
         </div>
         {sideContent}
+      </div>
+
+      <div
+        style={{ marginTop: '0.65rem', display: 'flex', justifyContent: 'center', width: '100%' }}
+      >
+        <span
+          className="muscle-map-view-sub"
+          style={{
+            textAlign: 'center',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            color: 'var(--checkin-title-color, #08254A)',
+            backgroundColor: 'var(--checkin-subtle-box-bg, rgba(8, 37, 74, 0.05))',
+            border: '1px solid var(--checkin-subtle-box-border, #CBD5E1)',
+            padding: '0.24rem 0.8rem',
+            borderRadius: '9999px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            letterSpacing: '0.01em',
+          }}
+        >
+          ← Lado Izq. del atleta | Lado Der. del atleta →
+        </span>
       </div>
     </div>
   );
