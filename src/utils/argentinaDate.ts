@@ -10,7 +10,9 @@ export function todayInArgentina(): string {
 // Fecha (AAAA-MM-DD) de un instante en Argentina. Útil para derivar el día original
 // de un check-in guardado sin conexión a partir de su timestamp UTC (KAN-149).
 export function dateInArgentina(value: string | Date): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: ARGENTINA_TIME_ZONE }).format(new Date(value));
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ARGENTINA_TIME_ZONE }).format(
+    new Date(value),
+  );
 }
 
 // Próximo lunes en hora de Argentina con formato AAAA-MM-DD.

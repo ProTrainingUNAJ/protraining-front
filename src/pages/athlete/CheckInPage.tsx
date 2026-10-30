@@ -205,12 +205,17 @@ export const CheckInPage: React.FC = () => {
 
     // Si la página se abre ya online con pendientes (p. ej. app cerrada offline y
     // reabierta al día siguiente), sincronizar de una vez (KAN-149).
+    // Se difiere con setTimeout para no llamar a setState sincrónicamente dentro del efecto.
+    let syncTimer: ReturnType<typeof setTimeout> | undefined;
     if (typeof navigator === 'undefined' || navigator.onLine) {
-      void handleSyncPending();
+      syncTimer = setTimeout(() => {
+        void handleSyncPending();
+      }, 0);
     }
 
     return () => {
       mounted = false;
+      if (syncTimer) clearTimeout(syncTimer);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -249,10 +254,7 @@ export const CheckInPage: React.FC = () => {
     // Sin conexión y sin atleta resuelto: no se puede guardar con un id de placeholder,
     // porque la sincronización luego fallaría con 404 para siempre (KAN-149).
     const cachedAthleteId = user?.id ? getCachedAthleteId(user.id) : null;
-    if (
-      (typeof navigator === 'undefined' || !navigator.onLine) &&
-      !cachedAthleteId
-    ) {
+    if ((typeof navigator === 'undefined' || !navigator.onLine) && !cachedAthleteId) {
       setErrorMessage(
         'No se pudo resolver tu atleta sin conexión. Conectate una vez y volvé a intentar.',
       );
