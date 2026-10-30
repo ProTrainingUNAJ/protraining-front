@@ -350,3 +350,60 @@ export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): T
     gray: items.filter((item) => item.status === 'gray').length,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Carga del día (minutos + RPE por actividad) — KAN-442 / issue #147
+// ---------------------------------------------------------------------------
+
+export interface DailyLoadActivityPayload {
+  minutes: number;
+  rpe?: number | null;
+}
+
+export interface DailyLoadSubmitRequest {
+  gym?: DailyLoadActivityPayload;
+  sportTraining?: DailyLoadActivityPayload;
+  match1?: DailyLoadActivityPayload;
+  match2?: DailyLoadActivityPayload;
+  individualWork?: DailyLoadActivityPayload;
+}
+
+export interface DailyLoadSubmitResponse {
+  message: string;
+  totalMinutes: number;
+  totalLoad: number;
+  date: string;
+  gym: DailyLoadActivityPayload;
+  sportTraining: DailyLoadActivityPayload;
+  match1: DailyLoadActivityPayload;
+  match2: DailyLoadActivityPayload;
+  individualWork: DailyLoadActivityPayload;
+}
+
+/**
+ * Registra/actualiza la carga del día del atleta (minutos + RPE por actividad).
+ * POST `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
+ * Primera vez del día → 201, repetir → 200 (upsert).
+ */
+export async function submitDailyLoad(
+  athleteId: string,
+  payload: DailyLoadSubmitRequest,
+): Promise<DailyLoadSubmitResponse> {
+  const response = await httpClient.post<DailyLoadSubmitResponse>(
+    `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
+    payload,
+  );
+  return response.data;
+}
+
+/**
+ * Obtiene la carga del día ya registrada del atleta.
+ * GET `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
+ * Devuelve 404 (y propaga el error) si aún no se registró carga hoy.
+ */
+export async function getDailyLoad(athleteId: string): Promise<DailyLoadSubmitResponse> {
+  const response = await httpClient.get<DailyLoadSubmitResponse>(
+    `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
+  );
+  return response.data;
+}

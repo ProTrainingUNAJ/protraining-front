@@ -17,11 +17,11 @@ permissions:
 jobs:
   build:
     name: CI ok
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -32,6 +32,10 @@ jobs:
       # ESLint para el código y Stylelint para el CSS (colores solo desde tokens.css).
       - name: Lint
         run: npm run lint
+
+      # Tests unitarios con Vitest (archivos *.test.ts dentro de __tests__).
+      - name: Tests
+        run: npm test
 
       # Falla si algún archivo no tiene el formato de Prettier: se arregla con "npm run format".
       - name: Formato

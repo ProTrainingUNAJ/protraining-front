@@ -5,3 +5,8 @@ dist/
 *.local
 .DS_Store
 *.tsbuildinfo
+
+# Variables de entorno: nunca se suben (lo que lleva VITE_ termina en el JS que baja el navegador, así que ahí no van secretos).
+.env
+.env.*
+!.env.example
