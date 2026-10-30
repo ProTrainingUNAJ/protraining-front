@@ -19,11 +19,13 @@ import { todayInArgentina } from '../../utils/argentinaDate';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import {
-  getMyTodayRoutine,
   type TodayRoutineResponse,
   type TodayRoutineExercise,
 } from '../../api/generated/entrenamiento';
-import { extractErrorMessage } from '../../api/axiosClient';
+import { todayRoutineService } from '../../api/todayRoutine';
+import { RecordPerformedSetModal } from '../../components/routine/RecordPerformedSetModal';
+import { GymSessionLoadCard } from '../../components/routine/GymSessionLoadCard';
+import type { StoredPerformedSet } from '../../types';
 
 function formatSpanishDate(dateString: string): string {
   try {
@@ -57,12 +59,29 @@ function getStorageKey(date?: string, athleteId?: string): string | null {
   return `protraining_sets_${date}_${athleteId}`;
 }
 
+function getPerformedStorageKey(date?: string, athleteId?: string): string | null {
+  if (date === undefined || athleteId === undefined) {
+    return null;
+  }
+  return `protraining_performed_${date}_${athleteId}`;
+}
+
 export const RoutinePage: React.FC = () => {
   const [routine, setRoutine] = useState<TodayRoutineResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedExerciseForModal, setSelectedExerciseForModal] =
     useState<TodayRoutineExercise | null>(null);
+  const [selectedExerciseForRecord, setSelectedExerciseForRecord] =
+    useState<TodayRoutineExercise | null>(null);
+
+  // Banner de propuesta de récord generada tras registrar una serie
+  const [proposalBanner, setProposalBanner] = useState<{
+    exerciseName: string;
+    weight: number;
+    reps: number;
+    proposalsGenerated: number;
+  } | null>(null);
 
   // Día pedido desde el calendario (?date=AAAA-MM-DD). Sin parámetro, o si es hoy, la rutina de hoy.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,16 +94,15 @@ export const RoutinePage: React.FC = () => {
   // Estado de series completadas (almacenado en localStorage para persistencia en el gimnasio)
   const [completedSets, setCompletedSets] = useState<Record<string, boolean>>({});
 
+  // Series realizadas por el atleta (almacenadas en localStorage y registradas en el back)
+  const [performedSets, setPerformedSets] = useState<Record<string, StoredPerformedSet>>({});
+
   // Carga de la rutina del atleta autenticado
   const fetchRoutine = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getMyTodayRoutine({
-        query: selectedDate ? { date: selectedDate } : undefined,
-        throwOnError: true,
-      });
-      const loadedRoutine = response.data ?? null;
+      const loadedRoutine = await todayRoutineService.getMyRoutine(selectedDate ?? undefined);
       setRoutine(loadedRoutine);
 
       // Cargar series guardadas si tenemos atletas y fecha identificados
@@ -95,14 +113,21 @@ export const RoutinePage: React.FC = () => {
             const saved = localStorage.getItem(key);
             setCompletedSets(saved ? JSON.parse(saved) : {});
           }
+
+          const perfKey = getPerformedStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
+          if (perfKey) {
+            const savedPerf = localStorage.getItem(perfKey);
+            setPerformedSets(savedPerf ? JSON.parse(savedPerf) : {});
+          }
         } catch {
           // Ignorar error de acceso a localStorage
         }
       } else {
         setCompletedSets({});
+        setPerformedSets({});
       }
     } catch (err) {
-      setError(extractErrorMessage(err));
+      setError(err instanceof Error ? err.message : 'Error al consultar la rutina');
       setRoutine(null);
     } finally {
       setIsLoading(false);
@@ -124,7 +149,7 @@ export const RoutinePage: React.FC = () => {
     };
   }, [fetchRoutine]);
 
-  // Cerrar modal con tecla Escape
+  // Cerrar modal de técnica con tecla Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && selectedExerciseForModal) {
@@ -155,6 +180,45 @@ export const RoutinePage: React.FC = () => {
       });
     },
     [routine],
+  );
+
+  // Manejador tras registrar serie en el back exitosamente
+  const handleRecordSuccess = useCallback(
+    (result: { exerciseId: string; weight: number; reps: number; proposalsGenerated: number }) => {
+      const exName = exercises.find((e) => e.exerciseId === result.exerciseId)?.name || 'Ejercicio';
+
+      setPerformedSets((prev) => {
+        const next: Record<string, StoredPerformedSet> = {
+          ...prev,
+          [result.exerciseId]: {
+            exerciseId: result.exerciseId,
+            weight: result.weight,
+            reps: result.reps,
+            recordedAt: new Date().toISOString(),
+            proposalsGenerated: result.proposalsGenerated,
+          },
+        };
+        try {
+          const perfKey = getPerformedStorageKey(routine?.date, routine?.athleteId);
+          if (perfKey) {
+            localStorage.setItem(perfKey, JSON.stringify(next));
+          }
+        } catch {
+          // Ignorar error de guardado
+        }
+        return next;
+      });
+
+      if (result.proposalsGenerated > 0) {
+        setProposalBanner({
+          exerciseName: exName,
+          weight: result.weight,
+          reps: result.reps,
+          proposalsGenerated: result.proposalsGenerated,
+        });
+      }
+    },
+    [exercises, routine],
   );
 
   // Métricas globales de la sesión (Progreso global de series)
@@ -289,6 +353,51 @@ export const RoutinePage: React.FC = () => {
               style={{ marginLeft: 'auto' }}
             >
               Reintentar
+            </button>
+          </div>
+        )}
+
+        {/* ── Banner de Celebración de Nueva Propuesta de Récord ── */}
+        {!isLoading && proposalBanner && (
+          <div
+            className="routine-progress-celebration"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              padding: '1rem 1.25rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <Trophy size={24} style={{ color: 'var(--stat-green)', flexShrink: 0 }} />
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.95rem' }}>
+                  ¡Propuesta de nuevo récord generada para tu PF!
+                </strong>
+                <span style={{ fontSize: '0.84rem' }}>
+                  Registraste {proposalBanner.weight} kg × {proposalBanner.reps} reps en{' '}
+                  {proposalBanner.exerciseName}. Tu preparador físico recibirá la propuesta para
+                  evaluarla y aprobarla.
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setProposalBanner(null)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--success-text)',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-label="Cerrar aviso"
+            >
+              <X size={18} />
             </button>
           </div>
         )}
@@ -462,6 +571,7 @@ export const RoutinePage: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
                 {exercises.map((exercise, exIdx) => {
                   const exKey = exercise.exerciseId || `ex-${exIdx}`;
+                  const performed = performedSets[exKey];
 
                   // Contabilizar series completadas para este ejercicio
                   let completedForEx = 0;
@@ -632,14 +742,92 @@ export const RoutinePage: React.FC = () => {
                           })}
                         </div>
                       </div>
+
+                      {/* ACCIÓN: REGISTRAR LO QUE HICE (KAN-392 / #097: Epley y propuesta de récord) */}
+                      <div
+                        style={{
+                          gridColumn: '1 / -1',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          flexWrap: 'wrap',
+                          paddingTop: '0.75rem',
+                          borderTop: '1px solid var(--border)',
+                          marginTop: '0.25rem',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          {performed ? (
+                            <span
+                              className="routine-performed-badge"
+                              title="Mejor serie registrada para Epley hoy"
+                            >
+                              <Trophy size={14} />
+                              <span>
+                                Registrado: {performed.weight} kg × {performed.reps} reps
+                              </span>
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                              Registrá tu mejor serie para calcular tu 1RM estimado con Epley
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          className="btn btn-primary routine-record-btn"
+                          onClick={() => setSelectedExerciseForRecord(exercise)}
+                          title="Registrar los kilos y repeticiones realizados en tu mejor serie"
+                        >
+                          <Trophy size={15} />
+                          <span>
+                            {performed ? 'Modificar lo que hice' : 'Registrar lo que hice'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
+
+            {/* 6. Coordinación KAN-442: Carga de Gimnasio (Minutos y RPE en la misma pantalla) */}
+            {exercises.length > 0 && routine.athleteId && (
+              <GymSessionLoadCard athleteId={routine.athleteId} />
+            )}
           </>
         )}
       </div>
+
+      {/* ── Modal de Registro de Serie Realizada y Algoritmo de Epley (KAN-392 / #097) ── */}
+      {selectedExerciseForRecord && (
+        <RecordPerformedSetModal
+          key={selectedExerciseForRecord.exerciseId || 'record-modal'}
+          exercise={selectedExerciseForRecord}
+          initialWeight={
+            selectedExerciseForRecord.exerciseId
+              ? performedSets[selectedExerciseForRecord.exerciseId]?.weight
+              : undefined
+          }
+          initialReps={
+            selectedExerciseForRecord.exerciseId
+              ? performedSets[selectedExerciseForRecord.exerciseId]?.reps
+              : undefined
+          }
+          isOpen={Boolean(selectedExerciseForRecord)}
+          onClose={() => setSelectedExerciseForRecord(null)}
+          onSuccess={handleRecordSuccess}
+        />
+      )}
 
       {/* ── Modal de Técnica, Video y Mapa Anatómico del Ejercicio ── */}
       {selectedExerciseForModal && (
