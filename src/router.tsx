@@ -7,6 +7,7 @@ import { CategoriesPage } from './pages/coach/CategoriesPage';
 import { AthletesPage } from './pages/coach/AthletesPage';
 import { PlanningPage } from './pages/coach/PlanningPage';
 import { PlanEditorPage } from './pages/coach/PlanEditorPage';
+import { SeasonCalendarPage } from './pages/coach/SeasonCalendarPage';
 import { GeneratePlanDraftPage } from './pages/coach/GeneratePlanDraftPage';
 import { AssistantDraftPage } from './pages/coach/AssistantDraftPage';
 import { TrainingPage } from './pages/coach/TrainingPage';
@@ -67,6 +68,7 @@ export const router = createBrowserRouter([
               { path: 'organizations', element: <OrganizationsPage /> },
               { path: 'categories', element: <CategoriesPage /> },
               { path: 'athletes', element: <AthletesPage /> },
+              { path: 'calendar', element: <SeasonCalendarPage /> },
               { path: 'planning', element: <PlanningPage /> },
               { path: 'planning/:planId', element: <PlanEditorPage /> },
               { path: 'assistant/new', element: <GeneratePlanDraftPage /> },

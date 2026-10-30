@@ -171,6 +171,18 @@
   --traffic-red-border: #f87171;
   --traffic-red-text: #b91c1c;
 
+  /* Season Calendar Tokens (KAN-404) */
+  --season-match-home-bg: #023050;
+  --season-match-home-border: #f59e0b;
+  --season-match-away-bg: #0f172a;
+  --season-match-away-border: #38bdf8;
+  --season-training-bg: #047857;
+  --season-training-border: #34d399;
+  --season-pill-bg: rgb(255 255 255 / 0.2);
+  --season-shadow-subtle: 0 1px 2px rgb(0 0 0 / 0.12);
+  --season-modal-backdrop: rgb(15 23 42 / 0.5);
+  --season-drawer-backdrop: rgb(15 23 42 / 0.4);
+
   --traffic-yellow: #f59e0b;
   --traffic-yellow-bg: rgb(245 158 11 / 0.14);
   --traffic-yellow-border: #fbbf24;

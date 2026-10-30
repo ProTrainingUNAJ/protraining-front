@@ -1,20 +1,30 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
-import { trainingPlansService } from '../../api/trainingPlans';
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Shield,
+  MapPin,
+} from 'lucide-react';
 import { structureService } from '../../api/structureService';
-import { ScheduledSession } from '../../api/generated/entrenamiento';
+import { matchService } from '../../services/matchService';
+import {
+  seasonPlanningService,
+  PlannedSessionWithTime,
+} from '../../services/seasonPlanningService';
+import { Match } from '../../types/structure';
 import { formatIsoDate } from '../../utils/argentinaDate';
+import { toIsoDate, formatTime } from '../../utils/calendarUtils';
 
-// Agenda del PF para el día elegido: las sesiones que tocan ese día en sus asignaciones
 type DaySchedule =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'done'; sessions: ScheduledSession[] };
+  | { status: 'done'; sessions: PlannedSessionWithTime[] };
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
-// Nombres de las categorías (de todas las organizaciones) y de los atletas del PF, por id
 async function loadTargetNames(): Promise<Record<string, string>> {
   const [organizations, athletes] = await Promise.all([
     structureService.getOrganizations().catch(() => []),
@@ -47,13 +57,73 @@ export const CalendarButton: React.FC = () => {
 
   const isPF = location.pathname.startsWith('/pf');
 
-  // Día elegido en el calendario (AAAA-MM-DD) y su agenda (solo PF)
+  // Selected date (YYYY-MM-DD) and routine schedule
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [daySchedule, setDaySchedule] = useState<DaySchedule | null>(null);
-  // Nombres de categorías y atletas para mostrar a quién está asignada cada sesión (se cargan una vez)
   const [targetNames, setTargetNames] = useState<Record<string, string> | null>(null);
 
-  // Cerrar al hacer clic fuera del popover
+  // Matches and scheduled trainings state
+  const [matches, setMatches] = useState<Match[]>([]);
+
+  // Load matches
+  const loadEvents = useCallback(async () => {
+    try {
+      const fetchedMatches = await matchService.getMatches([]);
+      setMatches(fetchedMatches);
+    } catch {
+      // Ignored
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchInitial = async () => {
+      try {
+        const fetchedMatches = await matchService.getMatches([]);
+        if (isMounted) {
+          setMatches(fetchedMatches);
+        }
+      } catch {
+        // Ignored
+      }
+    };
+    void fetchInitial();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Synchronize when matches change anywhere
+  useEffect(() => {
+    const unsubMatches = matchService.subscribe(() => {
+      void loadEvents();
+    });
+    return () => {
+      unsubMatches();
+    };
+  }, [loadEvents]);
+
+  // Map dates to events for fast dot lookup
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, { hasMatch: boolean; hasTraining: boolean }>();
+
+    matches.forEach((m) => {
+      const iso = toIsoDate(new Date(m.matchDate));
+      const entry = map.get(iso) || { hasMatch: false, hasTraining: false };
+      entry.hasMatch = true;
+      map.set(iso, entry);
+    });
+
+    return map;
+  }, [matches]);
+
+  // Events for selected date
+  const selectedMatches = useMemo(() => {
+    if (!selectedDate) return [];
+    return matches.filter((m) => toIsoDate(new Date(m.matchDate)) === selectedDate);
+  }, [matches, selectedDate]);
+
+  // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
@@ -68,7 +138,6 @@ export const CalendarButton: React.FC = () => {
     };
   }, [open]);
 
-  // Información del mes
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -90,7 +159,7 @@ export const CalendarButton: React.FC = () => {
   const daysOfWeek = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
 
   const firstDayOfMonth = new Date(year, month, 1);
-  const startingDay = (firstDayOfMonth.getDay() + 6) % 7; // Lunes = 0
+  const startingDay = (firstDayOfMonth.getDay() + 6) % 7; // Monday = 0
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const today = new Date();
@@ -107,7 +176,6 @@ export const CalendarButton: React.FC = () => {
     setCurrentDate(new Date(year, month + 1, 1));
   };
 
-  // Atleta: abre "Mi rutina" de ese día. PF: muestra abajo las sesiones planificadas ese día.
   const handleSelectDay = async (dayNum: number) => {
     const isoDate = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
 
@@ -121,7 +189,7 @@ export const CalendarButton: React.FC = () => {
     setDaySchedule({ status: 'loading' });
     try {
       const [sessions, names] = await Promise.all([
-        trainingPlansService.schedule(isoDate),
+        seasonPlanningService.getSessionsForDate(isoDate),
         targetNames ?? loadTargetNames(),
       ]);
       setTargetNames(names);
@@ -143,6 +211,13 @@ export const CalendarButton: React.FC = () => {
     setOpen(false);
     if (isPF) {
       navigate('/pf/planning');
+    }
+  };
+
+  const handleGoToCalendar = () => {
+    setOpen(false);
+    if (isPF) {
+      navigate('/pf/calendar');
     }
   };
 
@@ -201,9 +276,15 @@ export const CalendarButton: React.FC = () => {
 
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const dayNum = i + 1;
+              const iso = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
               const isToday = isCurrentMonth && dayNum === todayDate;
-
-              const isSelected = selectedDate === `${year}-${pad(month + 1)}-${pad(dayNum)}`;
+              const isSelected = selectedDate === iso;
+              const evt = eventsByDate.get(iso);
+              const dayOfWeek = new Date(year, month, dayNum).getDay();
+              const hasPlannedTraining =
+                isPF && (dayOfWeek === 3 || dayOfWeek === 4 || dayOfWeek === 5);
+              const showMatch = evt?.hasMatch;
+              const showTraining = evt?.hasTraining || hasPlannedTraining;
 
               return (
                 <button
@@ -214,31 +295,78 @@ export const CalendarButton: React.FC = () => {
                   }`}
                   onClick={() => void handleSelectDay(dayNum)}
                   aria-label={
-                    isPF ? `Ver las sesiones del ${dayNum}` : `Ver la rutina del ${dayNum}`
+                    isPF ? `Ver actividades del ${dayNum}` : `Ver la rutina del ${dayNum}`
                   }
                   aria-pressed={isSelected}
                 >
                   <span>{dayNum}</span>
+                  {(showMatch || showTraining) && (
+                    <span className="shell-calendar-dots">
+                      {showMatch && <span className="shell-calendar-dot match" title="Partido" />}
+                      {showTraining && (
+                        <span
+                          className="shell-calendar-dot training"
+                          title="Entrenamiento planificado"
+                        />
+                      )}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          {isPF && selectedDate && daySchedule && (
+          {isPF && selectedDate && (
             <div className="shell-calendar-agenda" aria-live="polite">
               <strong className="shell-calendar-agenda-title">
-                Sesiones del {formatIsoDate(selectedDate).slice(0, 5)}
+                Agenda del {formatIsoDate(selectedDate).slice(0, 5)}
               </strong>
-              {daySchedule.status === 'loading' && (
-                <p className="shell-calendar-agenda-empty">Cargando…</p>
+
+              {/* Matches for this date */}
+              {selectedMatches.map((m) => (
+                <div
+                  key={m.id}
+                  className="shell-calendar-agenda-item"
+                  onClick={handleGoToCalendar}
+                  title="Ver en Calendario de Temporada"
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      width: '100%',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span className="shell-calendar-agenda-badge match">
+                      {m.homeOrAway === 'Home' ? <Shield size={11} /> : <MapPin size={11} />}
+                      {m.homeOrAway === 'Home'
+                        ? 'Local'
+                        : m.homeOrAway === 'Away'
+                          ? 'Visitante'
+                          : 'Neutral'}
+                    </span>
+                    <span className="shell-calendar-agenda-meta">{formatTime(m.matchDate)} hs</span>
+                  </div>
+                  <span className="shell-calendar-agenda-plan">VS {m.opponent}</span>
+                  {m.categoryName && (
+                    <span className="shell-calendar-agenda-meta">{m.categoryName}</span>
+                  )}
+                </div>
+              ))}
+
+              {/* Assigned plan sessions */}
+              {daySchedule && daySchedule.status === 'loading' && (
+                <p className="shell-calendar-agenda-empty">Cargando rutinas…</p>
               )}
-              {daySchedule.status === 'error' && (
+              {daySchedule && daySchedule.status === 'error' && (
                 <p className="shell-calendar-agenda-error">{daySchedule.message}</p>
               )}
-              {daySchedule.status === 'done' && daySchedule.sessions.length === 0 && (
-                <p className="shell-calendar-agenda-empty">No hay sesiones planificadas ese día.</p>
-              )}
-              {daySchedule.status === 'done' &&
+              {daySchedule &&
+                daySchedule.status === 'done' &&
                 daySchedule.sessions.map((item) => {
                   const targetId = item.categoryId ?? item.athleteId ?? '';
                   return (
@@ -259,6 +387,14 @@ export const CalendarButton: React.FC = () => {
                     </button>
                   );
                 })}
+
+              {selectedMatches.length === 0 &&
+                daySchedule?.status === 'done' &&
+                daySchedule.sessions.length === 0 && (
+                  <p className="shell-calendar-agenda-empty">
+                    No hay actividades programadas este día.
+                  </p>
+                )}
             </div>
           )}
 
@@ -267,14 +403,25 @@ export const CalendarButton: React.FC = () => {
               Hoy: {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
             </span>
             {isPF && (
-              <button
-                type="button"
-                onClick={handleGoToPlanning}
-                className="shell-calendar-action-btn"
-              >
-                <span>Planificación</span>
-                <ArrowRight size={13} />
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={handleGoToCalendar}
+                  className="shell-calendar-action-btn"
+                  title="Abrir vista de temporada completa"
+                >
+                  <span>Temporada</span>
+                  <ArrowRight size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGoToPlanning}
+                  className="shell-calendar-action-btn"
+                >
+                  <span>Planificación</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
             )}
           </div>
         </div>

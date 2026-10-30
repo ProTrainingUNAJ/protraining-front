@@ -571,13 +571,38 @@
 
 .shell-calendar-cell {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 30px;
+  position: relative;
+  height: 32px;
   border-radius: 6px;
   font-size: 0.78rem;
   color: var(--text-main);
   box-sizing: border-box;
+}
+
+.shell-calendar-dots {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.shell-calendar-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.shell-calendar-dot.match {
+  background-color: var(--secondary);
+}
+
+.shell-calendar-dot.training {
+  background-color: var(--primary);
 }
 
 .shell-calendar-cell.empty {
@@ -670,6 +695,26 @@
 .shell-calendar-agenda-meta {
   font-size: 0.72rem;
   color: var(--text-muted);
+}
+
+.shell-calendar-agenda-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.shell-calendar-agenda-badge.match {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.shell-calendar-agenda-badge.training {
+  background-color: var(--info-bg);
+  color: var(--info-text);
 }
 
 .shell-calendar-footer {

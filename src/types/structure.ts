@@ -57,3 +57,59 @@ export interface AthleteMe {
   active: boolean;
   categories: Category[];
 }
+
+export type CompetitiveEventVenue = 'Home' | 'Away' | 'Neutral';
+export type CompetitiveEventType = 'Official' | 'Friendly' | 'Tournament';
+
+export interface CompetitiveEvent {
+  id: string;
+  categoryId?: string;
+  date: string; // YYYY-MM-DD
+  startTime?: string | null; // HH:mm:ss
+  opponent: string;
+  venue: CompetitiveEventVenue;
+  type: CompetitiveEventType;
+  notes?: string | null;
+}
+
+export interface CreateCompetitiveEventRequest {
+  date: string; // YYYY-MM-DD
+  startTime?: string | null; // HH:mm:ss
+  opponent: string;
+  venue: CompetitiveEventVenue;
+  type: CompetitiveEventType;
+  notes?: string | null;
+}
+
+export type SeasonPhaseType = 'Preseason' | 'Competitive' | 'Transition';
+
+export interface SeasonPhase {
+  id: string;
+  categoryId?: string;
+  name: string;
+  type: SeasonPhaseType;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  notes?: string | null;
+}
+
+export type HomeOrAway = CompetitiveEventVenue;
+
+export interface Match {
+  id: string;
+  categoryId: string;
+  opponent: string;
+  matchDate: string;
+  homeOrAway: HomeOrAway;
+  type?: CompetitiveEventType;
+  notes?: string | null;
+  categoryName?: string;
+}
+
+export interface CreateMatchRequest {
+  opponent: string;
+  matchDate: string;
+  homeOrAway: HomeOrAway;
+  type?: CompetitiveEventType;
+  notes?: string | null;
+}

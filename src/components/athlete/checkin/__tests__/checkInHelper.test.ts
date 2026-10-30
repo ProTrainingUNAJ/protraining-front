@@ -241,7 +241,11 @@ describe('checkInHelper', () => {
         key: (i: number) => Array.from(store.keys())[i] ?? null,
         length: store.size,
       };
-      (globalThis as unknown as { localStorage: unknown }).localStorage = mockStorage;
+      Object.defineProperty(globalThis, 'localStorage', {
+        value: mockStorage,
+        configurable: true,
+        writable: true,
+      });
     });
 
     it('generates consistent today key in YYYY-MM-DD format', async () => {

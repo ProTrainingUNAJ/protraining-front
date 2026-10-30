@@ -7,6 +7,11 @@ import {
   Athlete,
   CreateAthleteRequest,
   AthleteMe,
+  Match,
+  CreateMatchRequest,
+  CompetitiveEvent,
+  CreateCompetitiveEventRequest,
+  SeasonPhase,
 } from '../types/structure';
 
 interface RawOrganization {
@@ -264,6 +269,129 @@ export const structureService = {
     try {
       const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
       return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Obtiene los eventos competitivos oficiales registrados en Estructura (KAN-402 y KAN-403)
+   */
+  async getCategoryEvents(
+    categoryId: string,
+    params?: { from?: string; to?: string },
+  ): Promise<CompetitiveEvent[]> {
+    try {
+      const response = await httpClient.get<CompetitiveEvent[]>(
+        `/estructura/api/v1/categories/${categoryId}/events`,
+        { params },
+      );
+      return response.data || [];
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Crea un evento competitivo oficial en Estructura (KAN-402 y KAN-403)
+   */
+  async createCategoryEvent(
+    categoryId: string,
+    data: CreateCompetitiveEventRequest,
+  ): Promise<CompetitiveEvent> {
+    try {
+      const response = await httpClient.post<CompetitiveEvent>(
+        `/estructura/api/v1/categories/${categoryId}/events`,
+        data,
+      );
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Obtiene las fases de temporada de la categoría en Estructura (KAN-402 y KAN-403)
+   */
+  async getCategorySeasonPhases(categoryId: string): Promise<SeasonPhase[]> {
+    try {
+      const response = await httpClient.get<SeasonPhase[]>(
+        `/estructura/api/v1/categories/${categoryId}/season-phases`,
+      );
+      return response.data || [];
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Obtiene los partidos de la categoría consumiendo los eventos competitivos de Estructura (KAN-402 / KAN-403)
+   */
+  async getCategoryMatches(categoryId: string): Promise<Match[]> {
+    try {
+      const events = await this.getCategoryEvents(categoryId);
+      return events.map((ev) => {
+        const timePart = ev.startTime
+          ? ev.startTime.length === 5
+            ? `${ev.startTime}:00`
+            : ev.startTime
+          : '12:00:00';
+        return {
+          id: ev.id,
+          categoryId,
+          opponent: ev.opponent,
+          matchDate: `${ev.date}T${timePart}`,
+          homeOrAway: ev.venue,
+          type: ev.type,
+          notes: ev.notes,
+        };
+      });
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Registra un partido oficial enviándolo a la API de eventos competitivos de Estructura (KAN-402 / KAN-403)
+   */
+  async createCategoryMatch(categoryId: string, data: CreateMatchRequest): Promise<Match> {
+    try {
+      let date = '';
+      let startTime: string | null = null;
+
+      if (data.matchDate.includes('T')) {
+        const [d, t] = data.matchDate.split('T');
+        date = d;
+        startTime = t.replace('Z', '').split('.')[0];
+        if (startTime && startTime.length === 5) startTime += ':00';
+      } else {
+        date = data.matchDate;
+      }
+
+      const created = await this.createCategoryEvent(categoryId, {
+        date,
+        startTime,
+        opponent: data.opponent.trim(),
+        venue: data.homeOrAway,
+        type: data.type || 'Official',
+        notes: data.notes?.trim() || null,
+      });
+
+      const timePart = created.startTime
+        ? created.startTime.length === 5
+          ? `${created.startTime}:00`
+          : created.startTime
+        : '12:00:00';
+
+      return {
+        id: created.id,
+        categoryId,
+        opponent: created.opponent,
+        matchDate: `${created.date}T${timePart}`,
+        homeOrAway: created.venue,
+        type: created.type,
+        notes: created.notes,
+      };
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
