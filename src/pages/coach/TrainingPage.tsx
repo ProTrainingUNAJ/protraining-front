@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle } from 'lucide-react';
+import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle, Layers } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
@@ -14,13 +14,16 @@ interface ExerciseItem {
   images?: string[];
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
+  // Variantes (KAN-554): la etiqueta si es una variante, y las variantes si es un ejercicio base.
+  variantLabel?: string | null;
+  variants: ExerciseItem[];
 }
 
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
 
 const CHIP_CATEGORIES = ['Todos', 'Piernas', 'Pecho', 'Espalda', 'Hombros', 'Brazos', 'Core'];
 
-interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id'> {
+interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants'> {
   id?: string | number;
   name?: string;
   category?: string;
@@ -31,6 +34,8 @@ interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id'> {
   photoUrl2?: string | null;
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
+  variantLabel?: string | null;
+  variants?: ExerciseApiResponse[] | null;
 }
 
 const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
@@ -49,6 +54,8 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     primaryMuscles:
       item.primaryMuscles && item.primaryMuscles.length > 0 ? item.primaryMuscles : [],
     secondaryMuscles: item.secondaryMuscles ?? [],
+    variantLabel: item.variantLabel ?? null,
+    variants: (item.variants ?? []).map(mapExerciseToItem),
   };
 };
 
@@ -79,6 +86,16 @@ export const TrainingPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
+  // Variante elegida dentro del detalle; null muestra el ejercicio base.
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
+
+  const openDetail = (exercise: ExerciseItem) => {
+    setActiveVariantId(null);
+    setModalExercise(exercise);
+  };
+
+  const shownExercise =
+    modalExercise?.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise;
 
   // Carga inicial y filtros por Chip o Buscador directamente al Backend
   useEffect(() => {
@@ -99,6 +116,7 @@ export const TrainingPage: React.FC = () => {
             pageSize: PAGE_SIZE,
             search: searchTerm.trim() || undefined,
             muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+            groupVariants: true,
           },
         });
 
@@ -145,6 +163,7 @@ export const TrainingPage: React.FC = () => {
           pageSize: PAGE_SIZE,
           search: searchTerm.trim() || undefined,
           muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+          groupVariants: true,
         },
       });
 
@@ -371,7 +390,16 @@ export const TrainingPage: React.FC = () => {
                       >
                         <Tag size={12} /> {ex.category}
                       </span>
-                      {/* Eliminado el badge de intensidad inventada */}
+                      {ex.variants.length > 0 && (
+                        <span
+                          className="badge badge-primary"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                          title={ex.variants.map((variant) => variant.variantLabel).join(' · ')}
+                        >
+                          <Layers size={12} /> {ex.variants.length}{' '}
+                          {ex.variants.length === 1 ? 'variante' : 'variantes'}
+                        </span>
+                      )}
                     </div>
 
                     <h3
@@ -409,7 +437,7 @@ export const TrainingPage: React.FC = () => {
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      onClick={() => setModalExercise(ex)}
+                      onClick={() => openDetail(ex)}
                       style={{
                         padding: '0.2rem 0.6rem',
                         fontSize: '0.75rem',
@@ -455,7 +483,7 @@ export const TrainingPage: React.FC = () => {
         )}
 
         {/* Modal de Detalle Anatómico del Ejercicio (KAN-320) */}
-        {modalExercise && (
+        {modalExercise && shownExercise && (
           <div
             style={{
               position: 'fixed',
@@ -516,6 +544,17 @@ export const TrainingPage: React.FC = () => {
                   >
                     {modalExercise.name}
                   </h2>
+                  {shownExercise.variantLabel && (
+                    <p
+                      style={{
+                        margin: '0.25rem 0 0',
+                        fontSize: '0.85rem',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      Variante: {shownExercise.variantLabel}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -533,8 +572,48 @@ export const TrainingPage: React.FC = () => {
                 </button>
               </div>
 
+              {/* Variantes del ejercicio (KAN-554): cada una conserva su id, sus fotos y sus músculos */}
+              {modalExercise.variants.length > 0 && (
+                <div>
+                  <strong
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      color: 'var(--text-main)',
+                      marginBottom: '0.5rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Variantes:
+                  </strong>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className={`touch-chip ${activeVariantId === null ? 'active' : ''}`}
+                      onClick={() => setActiveVariantId(null)}
+                      aria-pressed={activeVariantId === null}
+                    >
+                      Principal
+                    </button>
+                    {modalExercise.variants.map((variant) => (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        className={`touch-chip ${activeVariantId === variant.id ? 'active' : ''}`}
+                        onClick={() => setActiveVariantId(variant.id)}
+                        aria-pressed={activeVariantId === variant.id}
+                        title={variant.name}
+                      >
+                        {variant.variantLabel ?? variant.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Animación GIF si está disponible */}
-              {modalExercise.images && modalExercise.images.length > 0 && (
+              {shownExercise.images && shownExercise.images.length > 0 && (
                 <div
                   style={{
                     borderRadius: 'var(--radius)',
@@ -542,7 +621,7 @@ export const TrainingPage: React.FC = () => {
                     maxHeight: '220px',
                   }}
                 >
-                  <ExerciseGifImage images={modalExercise.images} name={modalExercise.name} />
+                  <ExerciseGifImage images={shownExercise.images} name={shownExercise.name} />
                 </div>
               )}
 
@@ -562,9 +641,9 @@ export const TrainingPage: React.FC = () => {
                 </strong>
 
                 {/* Descriptive chips for primary and secondary muscles */}
-                {((modalExercise.primaryMuscles && modalExercise.primaryMuscles.length > 0) ||
-                  (modalExercise.secondaryMuscles &&
-                    modalExercise.secondaryMuscles.length > 0)) && (
+                {((shownExercise.primaryMuscles && shownExercise.primaryMuscles.length > 0) ||
+                  (shownExercise.secondaryMuscles &&
+                    shownExercise.secondaryMuscles.length > 0)) && (
                   <div
                     style={{
                       display: 'flex',
@@ -573,7 +652,7 @@ export const TrainingPage: React.FC = () => {
                       marginBottom: '0.85rem',
                     }}
                   >
-                    {modalExercise.primaryMuscles?.map((m, idx) => (
+                    {shownExercise.primaryMuscles?.map((m, idx) => (
                       <span
                         key={`pri-${idx}`}
                         className="badge badge-primary"
@@ -582,7 +661,7 @@ export const TrainingPage: React.FC = () => {
                         {m} (Principal)
                       </span>
                     ))}
-                    {modalExercise.secondaryMuscles?.map((m, idx) => (
+                    {shownExercise.secondaryMuscles?.map((m, idx) => (
                       <span
                         key={`sec-${idx}`}
                         className="badge badge-info"
@@ -595,9 +674,9 @@ export const TrainingPage: React.FC = () => {
                 )}
 
                 {/* Empty state message when no muscles are defined (Criterion 2) */}
-                {(!modalExercise.primaryMuscles || modalExercise.primaryMuscles.length === 0) &&
-                  (!modalExercise.secondaryMuscles ||
-                    modalExercise.secondaryMuscles.length === 0) && (
+                {(!shownExercise.primaryMuscles || shownExercise.primaryMuscles.length === 0) &&
+                  (!shownExercise.secondaryMuscles ||
+                    shownExercise.secondaryMuscles.length === 0) && (
                     <p
                       style={{
                         margin: '0.5rem 0',
@@ -613,8 +692,8 @@ export const TrainingPage: React.FC = () => {
 
                 {/* Mapa muscular anatómico con dos intensidades y Smart View */}
                 <ExerciseMuscleMap
-                  primaryMuscles={modalExercise.primaryMuscles}
-                  secondaryMuscles={modalExercise.secondaryMuscles}
+                  primaryMuscles={shownExercise.primaryMuscles}
+                  secondaryMuscles={shownExercise.secondaryMuscles}
                   showLegend={true}
                   showViewToggle={true}
                 />

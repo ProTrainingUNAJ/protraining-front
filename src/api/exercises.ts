@@ -9,6 +9,8 @@ function mapExercise(exercise: Exercise): CatalogExercise {
     muscleGroup: exercise.muscleGroup,
     equipment: exercise.equipment ?? null,
     images: exercise.images ?? [],
+    variantLabel: exercise.variantLabel ?? null,
+    variants: (exercise.variants ?? []).map(mapExercise),
   };
 }
 
@@ -18,6 +20,7 @@ export const exercisesService = {
     page: number,
     pageSize: number,
     usedByPf?: boolean,
+    groupVariants?: boolean,
   ): Promise<ExercisePage> {
     try {
       const { data } = await listExercises({
@@ -26,6 +29,7 @@ export const exercisesService = {
           page,
           pageSize,
           usedByPf: usedByPf || undefined,
+          groupVariants: groupVariants || undefined,
         },
         throwOnError: true,
       });
