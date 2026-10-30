@@ -347,6 +347,29 @@
   color: var(--text-muted);
 }
 
+.plan-picker-footer-link {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.plan-picker-link {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  color: var(--secondary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.plan-picker-link:hover {
+  color: var(--secondary-hover);
+}
+
 /* Modal de asignación */
 .plan-assign-type {
   display: flex;

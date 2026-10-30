@@ -1,23 +1,41 @@
 import { useEffect, useState } from 'react';
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Plus, Search, X } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Loader2,
+  Plus,
+  Search,
+  X,
+} from 'lucide-react';
 import { exercisesService } from '../../api/exercises';
 import { CatalogExercise, ExercisePage } from '../../types/trainingPlans';
 
 interface ExercisePickerModalProps {
   onClose: () => void;
   onSelect: (exercise: CatalogExercise) => void;
+  filterUsedByPf?: boolean;
 }
 
 const PAGE_SIZE = 12;
 const SEARCH_DELAY_MS = 300;
 
-export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalProps) {
+export function ExercisePickerModal({
+  onClose,
+  onSelect,
+  filterUsedByPf = false,
+}: ExercisePickerModalProps) {
   const [searchText, setSearchText] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [result, setResult] = useState<ExercisePage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isUsedByPf, setIsUsedByPf] = useState(filterUsedByPf);
+  const [hasNoOwnExercises, setHasNoOwnExercises] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Espera a que el PF deje de escribir antes de buscar.
   useEffect(() => {
@@ -34,12 +52,26 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
   useEffect(() => {
     let active = true;
     exercisesService
-      .search(search, page, PAGE_SIZE)
+      .search(search, page, PAGE_SIZE, isUsedByPf)
       .then((data) => {
-        if (active) {
-          setResult(data);
-          setError(null);
+        if (!active) return;
+        // Si arrancó buscando solo ejercicios del PF pero no tiene planificaciones ni récords,
+        // mostramos directamente el catálogo con un aviso.
+        if (
+          isUsedByPf &&
+          search === '' &&
+          page === 1 &&
+          (data.totalCount === 0 || data.items.length === 0)
+        ) {
+          setHasNoOwnExercises(true);
+          setIsUsedByPf(false);
+          setNotice(
+            'Todavía no tenés ejercicios en tus planificaciones. Mostrando todo el catálogo.',
+          );
+          return;
         }
+        setResult(data);
+        setError(null);
       })
       .catch((err: unknown) => {
         if (active) {
@@ -52,7 +84,7 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
     return () => {
       active = false;
     };
-  }, [search, page]);
+  }, [search, page, isUsedByPf]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -65,6 +97,12 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
   const goToPage = (nextPage: number) => {
     setLoading(true);
     setPage(nextPage);
+  };
+
+  const toggleCatalogMode = () => {
+    setLoading(true);
+    setIsUsedByPf((prev) => !prev);
+    setPage(1);
   };
 
   const items = result?.items ?? [];
@@ -85,6 +123,15 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
             <X size={18} aria-hidden="true" />
           </button>
         </div>
+
+        {notice && (
+          <div className="alert-banner info" role="status">
+            <span className="plan-inline">
+              <Info size={18} aria-hidden="true" />
+              {notice}
+            </span>
+          </div>
+        )}
 
         <div className="plan-picker-search">
           <Search size={16} aria-hidden="true" />
@@ -159,6 +206,14 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
             <ChevronRight size={16} aria-hidden="true" />
           </button>
         </div>
+
+        {filterUsedByPf && !hasNoOwnExercises && (
+          <div className="plan-picker-footer-link">
+            <button type="button" className="plan-picker-link" onClick={toggleCatalogMode}>
+              {isUsedByPf ? 'Buscar en todo el catálogo' : 'Ver solo mis ejercicios'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
