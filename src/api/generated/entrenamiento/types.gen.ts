@@ -221,6 +221,17 @@ export type TodayRoutineResponse = {
     exercises: Array<TodayRoutineExercise>;
 };
 
+export type PerformedSetInput = {
+    exerciseId: string;
+    weight: number;
+    reps: number;
+};
+
+export type RecordPerformedSetsResponse = {
+    recordedSetsCount: number;
+    proposalsGeneratedCount: number;
+};
+
 export type LogExecutionRequest = {
     exerciseId: string;
     weightUsedKg: number;
@@ -724,6 +735,43 @@ export type GetMyTodayRoutineResponses = {
 };
 
 export type GetMyTodayRoutineResponse = GetMyTodayRoutineResponses[keyof GetMyTodayRoutineResponses];
+
+export type RecordPerformedSetsData = {
+    body: Array<PerformedSetInput>;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/today-routine/performed-sets';
+};
+
+export type RecordPerformedSetsErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type RecordPerformedSetsError = RecordPerformedSetsErrors[keyof RecordPerformedSetsErrors];
+
+export type RecordPerformedSetsResponses = {
+    /**
+     * Series registradas correctamente
+     */
+    200: RecordPerformedSetsResponse;
+};
+
+export type RecordPerformedSetsResponse2 = RecordPerformedSetsResponses[keyof RecordPerformedSetsResponses];
 
 export type GetTodayRoutineData = {
     body?: never;
