@@ -4,6 +4,14 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8082' | 'http://estructura:8080' | (string & {});
 };
 
+export type CategoryInvitation = {
+    token: string;
+    expiresAt: string;
+    categoryId: string;
+    categoryName: string;
+    invitationUrl?: string | null;
+};
+
 /**
  * Registro de consentimiento parental obligatorio para atletas menores.
  */
@@ -230,6 +238,56 @@ export type UnsubscribePushRequest = {
      * URL del endpoint de la suscripción a revocar
      */
     endpoint: string;
+};
+
+export type CompetitiveEvent = {
+    id: string;
+    date: string;
+    startTime?: string | null;
+    opponent: string;
+    venue: 'Home' | 'Away' | 'Neutral';
+    type: 'Official' | 'Friendly' | 'Tournament';
+    notes?: string | null;
+};
+
+export type CreateCompetitiveEventRequest = {
+    date: string;
+    startTime?: string | null;
+    opponent: string;
+    venue: 'Home' | 'Away' | 'Neutral';
+    type: 'Official' | 'Friendly' | 'Tournament';
+    notes?: string | null;
+};
+
+export type UpdateCompetitiveEventRequest = {
+    date: string;
+    startTime?: string | null;
+    opponent: string;
+    venue: 'Home' | 'Away' | 'Neutral';
+    type: 'Official' | 'Friendly' | 'Tournament';
+    notes?: string | null;
+};
+
+export type SeasonPhase = {
+    id: string;
+    name: string;
+    type: 'Preseason' | 'Competitive' | 'Transition';
+    startDate: string;
+    endDate: string;
+};
+
+export type CreateSeasonPhaseRequest = {
+    name: string;
+    type: 'Preseason' | 'Competitive' | 'Transition';
+    startDate: string;
+    endDate: string;
+};
+
+export type UpdateSeasonPhaseRequest = {
+    name: string;
+    type: 'Preseason' | 'Competitive' | 'Transition';
+    startDate: string;
+    endDate: string;
 };
 
 export type ListAthletesData = {
@@ -1028,6 +1086,68 @@ export type ListAthletesByCategoryResponses = {
 
 export type ListAthletesByCategoryResponse = ListAthletesByCategoryResponses[keyof ListAthletesByCategoryResponses];
 
+export type GenerateCategoryInvitationTokenData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{id}/invitation-token';
+};
+
+export type GenerateCategoryInvitationTokenErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type GenerateCategoryInvitationTokenError = GenerateCategoryInvitationTokenErrors[keyof GenerateCategoryInvitationTokenErrors];
+
+export type GenerateCategoryInvitationTokenResponses = {
+    /**
+     * Token de invitación generado exitosamente.
+     */
+    200: CategoryInvitation;
+};
+
+export type GenerateCategoryInvitationTokenResponse = GenerateCategoryInvitationTokenResponses[keyof GenerateCategoryInvitationTokenResponses];
+
+export type ValidateCategoryInvitationTokenData = {
+    body?: never;
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/api/v1/invitations/{token}';
+};
+
+export type ValidateCategoryInvitationTokenErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+    /**
+     * El recurso solicitado ha expirado o ya no está disponible.
+     */
+    410: ProblemDetails;
+};
+
+export type ValidateCategoryInvitationTokenError = ValidateCategoryInvitationTokenErrors[keyof ValidateCategoryInvitationTokenErrors];
+
+export type ValidateCategoryInvitationTokenResponses = {
+    /**
+     * Token válido. Retorna la información de la categoría para el enrolamiento.
+     */
+    200: CategoryInvitation;
+};
+
+export type ValidateCategoryInvitationTokenResponse = ValidateCategoryInvitationTokenResponses[keyof ValidateCategoryInvitationTokenResponses];
+
 export type ListCategoryMatchesData = {
     body?: never;
     path: {
@@ -1085,6 +1205,311 @@ export type CreateCategoryMatchResponses = {
 };
 
 export type CreateCategoryMatchResponse = CreateCategoryMatchResponses[keyof CreateCategoryMatchResponses];
+
+export type ListCategoryEventsData = {
+    body?: never;
+    path: {
+        categoryId: string;
+    };
+    query?: {
+        /**
+         * Fecha inicio (inclusiva) en formato ISO YYYY-MM-DD. Por defecto fecha actual de Argentina.
+         */
+        from?: string;
+        /**
+         * Fecha fin (inclusiva) en formato ISO YYYY-MM-DD. Por defecto from + 14 días.
+         */
+        to?: string;
+    };
+    url: '/api/v1/categories/{categoryId}/events';
+};
+
+export type ListCategoryEventsErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ListCategoryEventsError = ListCategoryEventsErrors[keyof ListCategoryEventsErrors];
+
+export type ListCategoryEventsResponses = {
+    /**
+     * Lista de eventos competitivos obtenida exitosamente.
+     */
+    200: Array<CompetitiveEvent>;
+};
+
+export type ListCategoryEventsResponse = ListCategoryEventsResponses[keyof ListCategoryEventsResponses];
+
+export type CreateCategoryEventData = {
+    body: CreateCompetitiveEventRequest;
+    path: {
+        categoryId: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/events';
+};
+
+export type CreateCategoryEventErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (atletas no pueden crear eventos).
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type CreateCategoryEventError = CreateCategoryEventErrors[keyof CreateCategoryEventErrors];
+
+export type CreateCategoryEventResponses = {
+    /**
+     * Evento competitivo creado exitosamente.
+     */
+    201: CompetitiveEvent;
+};
+
+export type CreateCategoryEventResponse = CreateCategoryEventResponses[keyof CreateCategoryEventResponses];
+
+export type DeleteCategoryEventData = {
+    body?: never;
+    path: {
+        categoryId: string;
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/events/{id}';
+};
+
+export type DeleteCategoryEventErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (atletas no pueden eliminar eventos).
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteCategoryEventError = DeleteCategoryEventErrors[keyof DeleteCategoryEventErrors];
+
+export type DeleteCategoryEventResponses = {
+    /**
+     * Evento competitivo eliminado lógicamente con éxito.
+     */
+    204: void;
+};
+
+export type DeleteCategoryEventResponse = DeleteCategoryEventResponses[keyof DeleteCategoryEventResponses];
+
+export type UpdateCategoryEventData = {
+    body: UpdateCompetitiveEventRequest;
+    path: {
+        categoryId: string;
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/events/{id}';
+};
+
+export type UpdateCategoryEventErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (atletas no pueden actualizar eventos).
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateCategoryEventError = UpdateCategoryEventErrors[keyof UpdateCategoryEventErrors];
+
+export type UpdateCategoryEventResponses = {
+    /**
+     * Evento competitivo actualizado exitosamente.
+     */
+    200: CompetitiveEvent;
+};
+
+export type UpdateCategoryEventResponse = UpdateCategoryEventResponses[keyof UpdateCategoryEventResponses];
+
+export type ListCategorySeasonPhasesData = {
+    body?: never;
+    path: {
+        categoryId: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/season-phases';
+};
+
+export type ListCategorySeasonPhasesErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type ListCategorySeasonPhasesError = ListCategorySeasonPhasesErrors[keyof ListCategorySeasonPhasesErrors];
+
+export type ListCategorySeasonPhasesResponses = {
+    /**
+     * Lista de fases de temporada obtenida exitosamente.
+     */
+    200: Array<SeasonPhase>;
+};
+
+export type ListCategorySeasonPhasesResponse = ListCategorySeasonPhasesResponses[keyof ListCategorySeasonPhasesResponses];
+
+export type CreateCategorySeasonPhaseData = {
+    body: CreateSeasonPhaseRequest;
+    path: {
+        categoryId: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/season-phases';
+};
+
+export type CreateCategorySeasonPhaseErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (atletas no pueden crear fases).
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type CreateCategorySeasonPhaseError = CreateCategorySeasonPhaseErrors[keyof CreateCategorySeasonPhaseErrors];
+
+export type CreateCategorySeasonPhaseResponses = {
+    /**
+     * Fase de temporada creada exitosamente.
+     */
+    201: SeasonPhase;
+};
+
+export type CreateCategorySeasonPhaseResponse = CreateCategorySeasonPhaseResponses[keyof CreateCategorySeasonPhaseResponses];
+
+export type DeleteCategorySeasonPhaseData = {
+    body?: never;
+    path: {
+        categoryId: string;
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/season-phases/{id}';
+};
+
+export type DeleteCategorySeasonPhaseErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (atletas no pueden eliminar fases).
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteCategorySeasonPhaseError = DeleteCategorySeasonPhaseErrors[keyof DeleteCategorySeasonPhaseErrors];
+
+export type DeleteCategorySeasonPhaseResponses = {
+    /**
+     * Fase de temporada eliminada lógicamente con éxito.
+     */
+    204: void;
+};
+
+export type DeleteCategorySeasonPhaseResponse = DeleteCategorySeasonPhaseResponses[keyof DeleteCategorySeasonPhaseResponses];
+
+export type UpdateCategorySeasonPhaseData = {
+    body: UpdateSeasonPhaseRequest;
+    path: {
+        categoryId: string;
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/season-phases/{id}';
+};
+
+export type UpdateCategorySeasonPhaseErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (atletas no pueden modificar fases).
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateCategorySeasonPhaseError = UpdateCategorySeasonPhaseErrors[keyof UpdateCategorySeasonPhaseErrors];
+
+export type UpdateCategorySeasonPhaseResponses = {
+    /**
+     * Fase de temporada actualizada exitosamente.
+     */
+    200: SeasonPhase;
+};
+
+export type UpdateCategorySeasonPhaseResponse = UpdateCategorySeasonPhaseResponses[keyof UpdateCategorySeasonPhaseResponses];
 
 export type ExportStructureCsvData = {
     body?: never;

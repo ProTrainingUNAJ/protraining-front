@@ -28,6 +28,10 @@ export type User = {
      * Identificador del preparador físico asignado (excepción de dominio en español).
      */
     pfId?: string | null;
+    /**
+     * Número de teléfono de WhatsApp normalizado (solo dígitos).
+     */
+    phoneNumber?: string | null;
 };
 
 /**
@@ -63,6 +67,20 @@ export type RefreshResponse = {
     refreshToken: string;
     tokenType: string;
     expiresIn: number;
+};
+
+export type UpdatePhoneRequest = {
+    /**
+     * Número de teléfono de WhatsApp con código de país.
+     */
+    phoneNumber: string;
+};
+
+export type UpdatePhoneResponse = {
+    /**
+     * Número de teléfono normalizado en estándar E.164 (solo dígitos).
+     */
+    phoneNumber: string;
 };
 
 export type HealthStatus = {
@@ -138,6 +156,35 @@ export type RefreshTokenResponses = {
 };
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
+
+export type UpdateWhatsAppPhoneData = {
+    body: UpdatePhoneRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/phone';
+};
+
+export type UpdateWhatsAppPhoneErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type UpdateWhatsAppPhoneError = UpdateWhatsAppPhoneErrors[keyof UpdateWhatsAppPhoneErrors];
+
+export type UpdateWhatsAppPhoneResponses = {
+    /**
+     * Teléfono de WhatsApp actualizado y normalizado exitosamente.
+     */
+    200: UpdatePhoneResponse;
+};
+
+export type UpdateWhatsAppPhoneResponse = UpdateWhatsAppPhoneResponses[keyof UpdateWhatsAppPhoneResponses];
 
 export type HealthCheckData = {
     body?: never;
