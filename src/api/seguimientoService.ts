@@ -378,6 +378,99 @@ export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): T
 }
 
 // ---------------------------------------------------------------------------
+// Lesiones del atleta (KAN-419 / KAN-420 / KAN-421)
+//
+// Wrappers manjos sobre `httpClient` con tipos propios alineados a
+// `AthleteInjuryDto` del back y errores traducidos (ProblemDetails en español,
+// 404 específico por atleta).
+// ---------------------------------------------------------------------------
+
+// Estados del dominio (InjuryStatus en .NET); viajan como texto, no como número.
+export type InjuryStatus = 'Active' | 'InRecovery' | 'MedicallyCleared';
+
+export interface AthleteInjury {
+  id: string;
+  athleteId: string;
+  zone: string;
+  description: string;
+  injuryDate: string;
+  estimatedReturnDate: string;
+  status: InjuryStatus;
+  clearedAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateInjuryPayload {
+  zone: string;
+  description: string;
+  injuryDate: string;
+  estimatedReturnDate: string;
+}
+
+export interface UpdateInjuryStatusPayload {
+  newStatus: InjuryStatus;
+  transitionNotes: string;
+}
+
+/**
+ * Historial de lesiones de un atleta (GET `listAthleteInjuries`).
+ * Un filtro sin resultados responde 200 con lista vacía (nunca 404);
+ * el 404 del endpoint significa que el atleta no existe.
+ */
+export async function listAthleteInjuries(athleteId: string): Promise<AthleteInjury[]> {
+  try {
+    const response = await httpClient.get<AthleteInjury[]>(
+      `/seguimiento/api/v1/athletes/${athleteId}/injuries`,
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
+    }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Registra una lesión (POST `createInjury`): nace en `Active` y el backend
+ * exige fecha de retorno estimada posterior a la de la lesión (400 si no).
+ */
+export async function createAthleteInjury(
+  athleteId: string,
+  payload: CreateInjuryPayload,
+): Promise<AthleteInjury> {
+  try {
+    const response = await httpClient.post<AthleteInjury>(
+      `/seguimiento/api/v1/athletes/${athleteId}/injuries`,
+      payload,
+    );
+    return response.data;
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Avanza el stepper de una lesión (PATCH `updateInjuryStatus`, máquina de
+ * estados estricta de KAN-420). `transitionNotes` es obligatoria y el backend
+ * rechaza con 400 el salto directo de `Active` a `MedicallyCleared`.
+ */
+export async function updateInjuryStatus(
+  injuryId: string,
+  payload: UpdateInjuryStatusPayload,
+): Promise<AthleteInjury> {
+  try {
+    const response = await httpClient.patch<AthleteInjury>(
+      `/seguimiento/api/v1/injuries/${injuryId}/status`,
+      payload,
+    );
+    return response.data;
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Carga del día (minutos + RPE por actividad) — KAN-442 / issue #147
 // ---------------------------------------------------------------------------
 

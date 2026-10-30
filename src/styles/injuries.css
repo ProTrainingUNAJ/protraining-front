@@ -1,0 +1,145 @@
+/* ── Lesiones del atleta: stepper de estados (KAN-421) ── */
+
+.injury-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.injury-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.injury-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.injury-item-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.injury-item-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.injury-item-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Stepper horizontal: 3 pasos en un solo sentido (KAN-420/KAN-421) */
+
+.injury-stepper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.injury-step {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  text-align: center;
+}
+
+/* Conector hacia el paso siguiente; se pinta solo si el paso ya está cumplido. */
+.injury-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 0.52rem;
+  left: calc(50% + 0.75rem);
+  right: calc(-50% + 0.75rem);
+  height: 2px;
+  background: var(--border);
+}
+
+.injury-step.is-done:not(:last-child)::after {
+  background: var(--success);
+}
+
+.injury-step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-card);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  z-index: 1;
+}
+
+.injury-step.is-done .injury-step-dot {
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--on-primary);
+}
+
+.injury-step.is-current .injury-step-dot {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.injury-step-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.injury-step.is-done .injury-step-label {
+  color: var(--success-text);
+}
+
+.injury-step.is-current .injury-step-label {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Avance del stepper: textarea de observaciones clínicas */
+
+.injury-advance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+}
+
+.injury-advance .plan-field textarea {
+  margin-bottom: 0;
+}
+
+.injury-advance-btn {
+  align-self: flex-start;
+}

@@ -24,6 +24,10 @@ export type CheckInRequest = {
      * Lesión activa marcada por el atleta; el semáforo del día queda en Rojo.
      */
     hasActiveInjury?: boolean;
+    /**
+     * Fecha original del check-in (dia en Argentina). La manda el front al sincronizar un check-in guardado sin conexion; si no viene, se usa la fecha del servidor.
+     */
+    date?: string | null;
 };
 
 export type CheckInResponse = {
@@ -70,12 +74,17 @@ export type DailyLoadRequest = {
 export type DailyLoadResponse = {
     message: string;
     totalMinutes: number;
+    totalLoad?: number;
     date: string;
     gym: DailyLoadActivity;
     sportTraining: DailyLoadActivity;
     match1: DailyLoadActivity;
     match2: DailyLoadActivity;
     individualWork: DailyLoadActivity;
+};
+
+export type SetAttendanceRequest = {
+    present: boolean;
 };
 
 export type CategoryAttendanceSummary = {
@@ -132,21 +141,26 @@ export type GroupBenchmarkResponse = {
 };
 
 export type CreateInjuryRequest = {
-    bodyZone: string;
-    notes: string;
+    zone: string;
+    description: string;
+    injuryDate: string;
+    estimatedReturnDate: string;
 };
 
 export type UpdateInjuryStatusRequest = {
-    newStatus: 'Active' | 'InRecovery' | 'Cleared';
+    newStatus: 'Active' | 'InRecovery' | 'MedicallyCleared';
     transitionNotes: string;
 };
 
 export type Injury = {
     id: string;
     athleteId: string;
-    bodyZone: string;
-    notes: string;
-    status: 'Active' | 'InRecovery' | 'Cleared';
+    zone: string;
+    description: string;
+    injuryDate: string;
+    estimatedReturnDate: string;
+    status: 'Active' | 'InRecovery' | 'MedicallyCleared';
+    clearedAt?: string | null;
     createdAt: string;
     updatedAt?: string;
 };
@@ -204,11 +218,11 @@ export type SubmitCheckInErrors = {
      */
     401: ProblemDetails;
     /**
-     * Acceso denegado: el token no corresponde al atleta de la ruta.
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
      */
     403: ProblemDetails;
     /**
-     * La cuenta no tiene un atleta vinculado.
+     * La cuenta no tiene un atleta vinculado, o el atleta de la ruta no es el del token (nunca 403, para no revelar si el id existe).
      */
     404: ProblemDetails;
 };
@@ -227,6 +241,39 @@ export type SubmitCheckInResponses = {
 };
 
 export type SubmitCheckInResponse = SubmitCheckInResponses[keyof SubmitCheckInResponses];
+
+export type GetCompletedCheckInsData = {
+    body: {
+        date: string;
+        pfId: string;
+        athleteIds: Array<string>;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/internal/check-ins/done';
+};
+
+export type GetCompletedCheckInsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+};
+
+export type GetCompletedCheckInsError = GetCompletedCheckInsErrors[keyof GetCompletedCheckInsErrors];
+
+export type GetCompletedCheckInsResponses = {
+    /**
+     * Lista de IDs de atletas que ya completaron su check-in.
+     */
+    200: Array<string>;
+};
+
+export type GetCompletedCheckInsResponse = GetCompletedCheckInsResponses[keyof GetCompletedCheckInsResponses];
 
 export type ListAthleteCheckInsData = {
     body?: never;
@@ -323,6 +370,45 @@ export type RegisterDailyLoadResponses = {
 
 export type RegisterDailyLoadResponse = RegisterDailyLoadResponses[keyof RegisterDailyLoadResponses];
 
+export type SetAttendanceData = {
+    body: SetAttendanceRequest;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/attendance';
+};
+
+export type SetAttendanceErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type SetAttendanceError = SetAttendanceErrors[keyof SetAttendanceErrors];
+
+export type SetAttendanceResponses = {
+    /**
+     * Asistencia corregida.
+     */
+    204: void;
+};
+
+export type SetAttendanceResponse = SetAttendanceResponses[keyof SetAttendanceResponses];
+
 export type GetCategoryAttendanceTodayData = {
     body?: never;
     path: {
@@ -365,7 +451,7 @@ export type GetCategoryTrafficLightTodayErrors = {
      */
     401: ProblemDetails;
     /**
-     * Acceso denegado: el token no corresponde al atleta de la ruta.
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
      */
     403: ProblemDetails;
     /**
