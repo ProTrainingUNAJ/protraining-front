@@ -7,6 +7,7 @@ import {
   OfflineCheckInPayload,
 } from '../services/checkInOfflineService';
 import { structureService } from './structureService';
+import { dateInArgentina } from '../utils/argentinaDate';
 import {
   AthleteTrafficLightItem,
   PainZoneReport,
@@ -116,19 +117,44 @@ export async function syncPendingCheckIns(athleteId: string): Promise<number> {
   for (const record of pending) {
     if (!record.id) continue;
     try {
+      // Se manda la fecha original del check-in para que el back conserve el día
+      // en que se hizo, aunque la sincronización ocurra al día siguiente (KAN-149).
       await httpClient.post(
         `/seguimiento/api/v1/athletes/${record.athleteId}/check-in`,
-        record.payload,
+        { ...record.payload, date: dateInArgentina(record.timestamp) },
       );
       await deletePendingCheckIn(record.id);
       syncedCount += 1;
-    } catch {
-      // If still failing, stop and keep remaining records in IndexedDB
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      // Errores terminales: el back no va a aceptar este check-in nunca (fecha inválida,
+      // atleta no vinculado, duplicado). Se descarta para no reintentar para siempre.
+      if (status === 400 || status === 404 || status === 409) {
+        await deletePendingCheckIn(record.id);
+        continue;
+      }
+      // Red caída o 5xx: se corta y se reintenta al volver a conectar.
       break;
     }
   }
 
   return syncedCount;
+}
+
+/**
+ * Descarta los check-ins pendientes de un día (p. ej. cuando el atleta ya hizo el
+ * check-in online ese mismo día), para que el pendiente viejo no pise el nuevo.
+ */
+export async function discardPendingCheckInsForDate(
+  athleteId: string,
+  date: string,
+): Promise<number> {
+  const pending = await getPendingCheckIns(athleteId);
+  const toDelete = pending.filter(
+    (record) => record.id !== undefined && dateInArgentina(record.timestamp) === date,
+  );
+  await Promise.all(toDelete.map((record) => deletePendingCheckIn(record.id as number)));
+  return toDelete.length;
 }
 
 /**

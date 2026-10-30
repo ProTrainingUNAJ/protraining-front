@@ -31,8 +31,10 @@ import {
   submitCheckIn,
   syncPendingCheckIns,
   countPendingCheckIns,
+  discardPendingCheckInsForDate,
   CheckInSubmitResponse,
 } from '../../api/seguimientoService';
+import { todayInArgentina } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
 import {
   subscribeUserToPush,
@@ -158,7 +160,8 @@ export const CheckInPage: React.FC = () => {
 
   // Synchronize pending records from IndexedDB
   const handleSyncPending = useCallback(async () => {
-    if (!isOnline || isSyncing) return;
+    if (isSyncing) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     setIsSyncing(true);
     setSyncFeedback(null);
     try {
@@ -173,7 +176,7 @@ export const CheckInPage: React.FC = () => {
     } finally {
       setIsSyncing(false);
     }
-  }, [athleteId, isOnline, isSyncing]);
+  }, [athleteId, isSyncing]);
 
   // Listen for online/offline browser events
   useEffect(() => {
@@ -199,6 +202,12 @@ export const CheckInPage: React.FC = () => {
       .catch(() => {
         // Ignored
       });
+
+    // Si la página se abre ya online con pendientes (p. ej. app cerrada offline y
+    // reabierta al día siguiente), sincronizar de una vez (KAN-149).
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      void handleSyncPending();
+    }
 
     return () => {
       mounted = false;
@@ -237,6 +246,20 @@ export const CheckInPage: React.FC = () => {
       return;
     }
 
+    // Sin conexión y sin atleta resuelto: no se puede guardar con un id de placeholder,
+    // porque la sincronización luego fallaría con 404 para siempre (KAN-149).
+    const cachedAthleteId = user?.id ? getCachedAthleteId(user.id) : null;
+    if (
+      (typeof navigator === 'undefined' || !navigator.onLine) &&
+      !cachedAthleteId
+    ) {
+      setErrorMessage(
+        'No se pudo resolver tu atleta sin conexión. Conectate una vez y volvé a intentar.',
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     // Format pain zones: "Quadriceps:2,Hamstrings:1"
     const painZones =
       reportedPains.length > 0
@@ -257,6 +280,11 @@ export const CheckInPage: React.FC = () => {
       });
 
       setSubmissionResult(response);
+      // Si el check-in se hizo online, cualquier pendiente del mismo día queda obsoleto
+      // y se descarta para que no pise el recién guardado (KAN-149).
+      if (!response.isOffline) {
+        await discardPendingCheckInsForDate(athleteId, todayInArgentina());
+      }
       const remaining = await countPendingCheckIns(athleteId);
       setPendingOfflineCount(remaining);
     } catch (err: unknown) {
