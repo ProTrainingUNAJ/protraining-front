@@ -53,11 +53,8 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
     <div className="muscle-map-view-column">
       {/* Anatomical view and perspective header */}
       {!hideHeader && (
-        <div className="muscle-map-view-header">
-          <span className="muscle-map-view-pill">Vista Frontal (Anterior)</span>
-          <span className="muscle-map-view-sub">
-            ← Lado Der. del atleta | Lado Izq. del atleta →
-          </span>
+        <div className="muscle-map-view-header" style={{ marginBottom: '0.85rem' }}>
+          <span className="muscle-map-view-pill">VISTA FRONTAL</span>
         </div>
       )}
 
@@ -69,7 +66,7 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
             style={{
               width: '100%',
               height: 'auto',
-              maxHeight: '560px',
+              maxHeight: '480px',
               display: 'block',
               userSelect: 'none',
               overflow: 'visible',
@@ -265,6 +262,31 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
           </svg>
         </div>
         {sideContent}
+      </div>
+
+      <div
+        style={{ marginTop: '0.65rem', display: 'flex', justifyContent: 'center', width: '100%' }}
+      >
+        <span
+          className="muscle-map-view-sub"
+          style={{
+            textAlign: 'center',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            color: 'var(--checkin-title-color, #08254A)',
+            backgroundColor: 'var(--checkin-subtle-box-bg, rgba(8, 37, 74, 0.05))',
+            border: '1px solid var(--checkin-subtle-box-border, #CBD5E1)',
+            padding: '0.24rem 0.8rem',
+            borderRadius: '9999px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            letterSpacing: '0.01em',
+          }}
+        >
+          ← Lado Der. del atleta | Lado Izq. del atleta →
+        </span>
       </div>
     </div>
   );

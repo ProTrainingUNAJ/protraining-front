@@ -188,6 +188,11 @@ textarea:focus {
   border: 1px solid var(--success-border);
   color: var(--success-text);
 }
+.alert-banner.info {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info-text);
+}
 
 .modal-overlay {
   position: fixed;

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -64,6 +64,16 @@ export const listAthleteCheckIns = <ThrowOnError extends boolean = false>(option
 });
 
 /**
+ * Obtener la carga del día del atleta
+ */
+export const getDailyLoad = <ThrowOnError extends boolean = false>(options: Options<GetDailyLoadData, ThrowOnError>): RequestResult<GetDailyLoadResponses, GetDailyLoadErrors, ThrowOnError> => (options.client ?? client).get<GetDailyLoadResponses, GetDailyLoadErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/daily-load',
+    ...options
+});
+
+/**
  * Registrar minutos de actividad física del día
  *
  * El atleta reporta los minutos dedicados a gimnasio, práctica de su deporte, partido o trabajo individual. De aquí se deducen el volumen diario y la asistencia automática sin tomar lista.
@@ -73,6 +83,22 @@ export const registerDailyLoad = <ThrowOnError extends boolean = false>(options:
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/daily-load',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Corregir asistencia manualmente
+ *
+ * El preparador físico marca presente o ausente a un atleta cuando figura "sin registro" (no cargó su entrenamiento del día).
+ *
+ */
+export const setAttendance = <ThrowOnError extends boolean = false>(options: Options<SetAttendanceData, ThrowOnError>): RequestResult<SetAttendanceResponses, SetAttendanceErrors, ThrowOnError> => (options.client ?? client).patch<SetAttendanceResponses, SetAttendanceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/attendance',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -121,7 +147,7 @@ export const getGroupBenchmark = <ThrowOnError extends boolean = false>(options:
 /**
  * Listar lesiones de un atleta
  *
- * Obtiene el historial de lesiones registradas para un atleta, permitiendo filtrar por su estado actual.
+ * Obtiene el historial de lesiones registradas para un atleta, permitiendo filtrar por su estado actual. Responde 404 si el atleta no existe o es de otro PF.
  */
 export const listAthleteInjuries = <ThrowOnError extends boolean = false>(options: Options<ListAthleteInjuriesData, ThrowOnError>): RequestResult<ListAthleteInjuriesResponses, ListAthleteInjuriesErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteInjuriesResponses, ListAthleteInjuriesErrors, ThrowOnError>({
     responseType: 'json',
@@ -133,7 +159,7 @@ export const listAthleteInjuries = <ThrowOnError extends boolean = false>(option
 /**
  * Registrar una nueva lesión
  *
- * Da de alta una lesión para el atleta en estado inicial 'Active'.
+ * Da de alta una lesión para el atleta en estado inicial 'Active'. Responde 404 si el atleta no existe o es de otro PF.
  */
 export const createInjury = <ThrowOnError extends boolean = false>(options: Options<CreateInjuryData, ThrowOnError>): RequestResult<CreateInjuryResponses, CreateInjuryErrors, ThrowOnError> => (options.client ?? client).post<CreateInjuryResponses, CreateInjuryErrors, ThrowOnError>({
     responseType: 'json',

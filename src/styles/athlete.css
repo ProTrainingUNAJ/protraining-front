@@ -896,10 +896,19 @@
   }
 }
 
+.routine-weight-side {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 0.2rem;
+}
+
 /* ── Selector Anatómico Flotante de Dolor (Estilo Tarjetas Verticales) ── */
 .muscle-map-views-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.5rem;
   background: var(--bg-card);
   padding: 1.5rem 1rem;
@@ -926,22 +935,175 @@
 }
 
 .muscle-map-view-pill {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-main);
-  background: var(--bg-subtle);
-  padding: 0.3rem 0.95rem;
+  letter-spacing: 0.05em;
+  color: var(--muscle-pill-text);
+  background: var(--muscle-pill-bg);
+  padding: 0.35rem 1.15rem;
   border-radius: 9999px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--muscle-pill-border);
 }
 
 .muscle-map-view-sub {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 0.3rem;
+  font-size: 0.74rem;
+  color: var(--muscle-caption-color);
   font-weight: 600;
+  font-family: Montserrat, sans-serif;
+}
+
+/* ── Selector Interactivo de Vista Frontal / Trasera ── */
+.muscle-view-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+  width: 100%;
+}
+
+.muscle-view-pill-tab {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muscle-pill-text);
+  background: var(--muscle-pill-bg);
+  padding: 0.45rem 1.25rem;
+  border-radius: 9999px;
+  border: 1.5px solid var(--muscle-pill-border);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family:
+    Montserrat,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.muscle-view-pill-tab:hover {
+  border-color: var(--primary);
+  background: var(--bg-subtle);
+  transform: translateY(-1px);
+}
+
+.muscle-view-pill-tab.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+}
+
+.muscle-view-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warning-bg-strong);
+  color: var(--warning-text);
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.muscle-view-pill-tab.active .muscle-view-counter {
+  background: var(--white);
+  color: var(--primary);
+}
+
+/* Pastillas de navegación laterales (Frente / Trasero) sutiles a los costados del cuerpo */
+.muscle-side-nav-pill {
+  position: absolute;
+  top: 40%;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  color: var(--text-main);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  user-select: none;
+  font-family:
+    Montserrat,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.muscle-side-nav-pill.left {
+  left: 6px;
+}
+
+.muscle-side-nav-pill.right {
+  right: 6px;
+}
+
+.muscle-side-nav-pill:hover {
+  border-color: var(--primary);
+  background: var(--bg-subtle);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.muscle-side-nav-pill:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.muscle-side-nav-pill.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+}
+
+.muscle-side-nav-pill .muscle-side-nav-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warning-bg-strong);
+  color: var(--warning-text);
+  font-size: 0.68rem;
+  font-weight: 900;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.muscle-side-nav-pill.active .muscle-side-nav-counter {
+  background: var(--white);
+  color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .muscle-side-nav-pill {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .muscle-side-nav-pill.left {
+    left: 4px;
+  }
+
+  .muscle-side-nav-pill.right {
+    right: 4px;
+  }
 }
 
 .muscle-map-view-row {
@@ -963,8 +1125,8 @@
 .muscle-pain-vertical-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  width: 195px;
+  gap: 0.45rem;
+  width: 170px;
   flex-shrink: 0;
   animation: protrainingPainSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -984,8 +1146,8 @@
 .muscle-pain-card-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.85rem;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem;
   background: var(--bg-subtle);
   border: 1.5px solid var(--border);
   border-radius: 12px;
@@ -1043,6 +1205,12 @@
   background: var(--muscle-color-red);
 }
 
+.muscle-pain-dot--lvl6,
+.muscle-pain-dot--injury {
+  background: var(--muscle-color-injury);
+  border: 1.5px solid var(--muscle-injury-border);
+}
+
 .muscle-pain-texts {
   display: flex;
   flex-direction: column;
@@ -1098,4 +1266,357 @@
   .checkin-wellness-card {
     padding: 0.75rem 0.6rem !important;
   }
+}
+
+/* ── Registro de Series y Algoritmo de Epley (KAN-392 / #097) ── */
+.routine-record-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  min-height: 38px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.routine-performed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.routine-prescribed-ref-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+.routine-prescribed-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.routine-prescribed-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.routine-record-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 580px) {
+  .routine-record-inputs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.routine-record-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.routine-record-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.routine-record-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.routine-record-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 800;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.routine-record-input:focus {
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.routine-record-input-unit {
+  position: absolute;
+  right: 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.routine-record-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.routine-epley-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.1rem;
+  border-radius: 14px;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border);
+}
+
+.routine-epley-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.routine-epley-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.routine-epley-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: var(--warning-bg-strong);
+  border: 1px solid var(--warning);
+  color: var(--warning-text);
+  font-size: 0.84rem;
+}
+
+.routine-epley-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 500px) {
+  .routine-epley-stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.routine-epley-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.routine-epley-stat-card.highlight {
+  border-color: var(--secondary);
+  background: var(--info-bg);
+}
+
+.routine-epley-stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.routine-epley-stat-number {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--secondary);
+}
+
+.routine-epley-stat-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.routine-epley-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.routine-epley-verdict.success {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+}
+
+.routine-epley-verdict.neutral {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.routine-epley-verdict.subtle {
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+}
+
+/* ── Carga de Sesión (Coordinación KAN-442) ── */
+.routine-session-load-card {
+  margin-top: 1.5rem;
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.routine-session-load-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.routine-session-load-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--info-bg);
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.routine-session-load-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.routine-session-load-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0.15rem 0 0;
+}
+
+.routine-session-load-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.routine-session-load-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 650px) {
+  .routine-session-load-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.routine-rpe-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.routine-rpe-chips-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.routine-rpe-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.routine-rpe-chip:hover {
+  border-color: var(--secondary);
+  background: var(--bg-subtle);
+}
+
+.routine-rpe-chip.selected {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.routine-session-load-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.routine-session-load-feedback.success {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+}
+
+.routine-session-load-feedback.error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
 }

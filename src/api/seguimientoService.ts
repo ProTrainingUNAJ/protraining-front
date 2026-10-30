@@ -7,6 +7,7 @@ import {
   OfflineCheckInPayload,
 } from '../services/checkInOfflineService';
 import { structureService } from './structureService';
+import { dateInArgentina } from '../utils/argentinaDate';
 import {
   AthleteTrafficLightItem,
   PainZoneReport,
@@ -116,19 +117,44 @@ export async function syncPendingCheckIns(athleteId: string): Promise<number> {
   for (const record of pending) {
     if (!record.id) continue;
     try {
-      await httpClient.post(
-        `/seguimiento/api/v1/athletes/${record.athleteId}/check-in`,
-        record.payload,
-      );
+      // Se manda la fecha original del check-in para que el back conserve el día
+      // en que se hizo, aunque la sincronización ocurra al día siguiente (KAN-149).
+      await httpClient.post(`/seguimiento/api/v1/athletes/${record.athleteId}/check-in`, {
+        ...record.payload,
+        date: dateInArgentina(record.timestamp),
+      });
       await deletePendingCheckIn(record.id);
       syncedCount += 1;
-    } catch {
-      // If still failing, stop and keep remaining records in IndexedDB
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      // Errores terminales: el back no va a aceptar este check-in nunca (fecha inválida,
+      // atleta no vinculado, duplicado). Se descarta para no reintentar para siempre.
+      if (status === 400 || status === 404 || status === 409) {
+        await deletePendingCheckIn(record.id);
+        continue;
+      }
+      // Red caída o 5xx: se corta y se reintenta al volver a conectar.
       break;
     }
   }
 
   return syncedCount;
+}
+
+/**
+ * Descarta los check-ins pendientes de un día (p. ej. cuando el atleta ya hizo el
+ * check-in online ese mismo día), para que el pendiente viejo no pise el nuevo.
+ */
+export async function discardPendingCheckInsForDate(
+  athleteId: string,
+  date: string,
+): Promise<number> {
+  const pending = await getPendingCheckIns(athleteId);
+  const toDelete = pending.filter(
+    (record) => record.id !== undefined && dateInArgentina(record.timestamp) === date,
+  );
+  await Promise.all(toDelete.map((record) => deletePendingCheckIn(record.id as number)));
+  return toDelete.length;
 }
 
 /**
@@ -442,4 +468,93 @@ export async function updateInjuryStatus(
   } catch (err: unknown) {
     throw new Error(extractErrorMessage(err), { cause: err });
   }
+}
+
+// ---------------------------------------------------------------------------
+// Carga del día (minutos + RPE por actividad) — KAN-442 / issue #147
+// ---------------------------------------------------------------------------
+
+export interface DailyLoadActivityPayload {
+  minutes: number;
+  rpe?: number | null;
+}
+
+export interface DailyLoadSubmitRequest {
+  gym?: DailyLoadActivityPayload;
+  sportTraining?: DailyLoadActivityPayload;
+  match1?: DailyLoadActivityPayload;
+  match2?: DailyLoadActivityPayload;
+  individualWork?: DailyLoadActivityPayload;
+}
+
+export interface DailyLoadSubmitResponse {
+  message: string;
+  totalMinutes: number;
+  totalLoad: number;
+  date: string;
+  gym: DailyLoadActivityPayload;
+  sportTraining: DailyLoadActivityPayload;
+  match1: DailyLoadActivityPayload;
+  match2: DailyLoadActivityPayload;
+  individualWork: DailyLoadActivityPayload;
+}
+
+/**
+ * Registra/actualiza la carga del día del atleta (minutos + RPE por actividad).
+ * POST `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
+ * Primera vez del día → 201, repetir → 200 (upsert).
+ */
+export async function submitDailyLoad(
+  athleteId: string,
+  payload: DailyLoadSubmitRequest,
+): Promise<DailyLoadSubmitResponse> {
+  const response = await httpClient.post<DailyLoadSubmitResponse>(
+    `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
+    payload,
+  );
+  return response.data;
+}
+
+/**
+ * Obtiene la carga del día ya registrada del atleta.
+ * GET `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
+ * Devuelve 404 (y propaga el error) si aún no se registró carga hoy.
+ */
+export async function getDailyLoad(athleteId: string): Promise<DailyLoadSubmitResponse> {
+  const response = await httpClient.get<DailyLoadSubmitResponse>(
+    `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
+  );
+  return response.data;
+}
+
+// ---------------------------------------------------------------------------
+// Asistencia automática del día (KAN-445)
+// ---------------------------------------------------------------------------
+
+export interface AthleteAttendanceSummary {
+  athleteId: string;
+  athleteName: string;
+  status: 'Present' | 'NoRecord';
+}
+
+export interface CategoryAttendanceSummary {
+  categoryId: string;
+  date: string;
+  totalRoster: number;
+  presentCount: number;
+  attendancePercentage: number;
+  athletes?: AthleteAttendanceSummary[];
+}
+
+export async function getCategoryAttendanceToday(
+  categoryId: string,
+): Promise<CategoryAttendanceSummary> {
+  const response = await httpClient.get<CategoryAttendanceSummary>(
+    `/seguimiento/api/v1/categories/${categoryId}/attendance-today`,
+  );
+  return response.data;
+}
+
+export async function setAttendance(athleteId: string, present: boolean): Promise<void> {
+  await httpClient.patch(`/seguimiento/api/v1/athletes/${athleteId}/attendance`, { present });
 }

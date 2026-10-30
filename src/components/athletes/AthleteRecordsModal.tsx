@@ -243,7 +243,9 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
         </div>
       </div>
 
-      {showPicker && <ExercisePickerModal onClose={closePicker} onSelect={selectExercise} />}
+      {showPicker && (
+        <ExercisePickerModal onClose={closePicker} onSelect={selectExercise} filterUsedByPf />
+      )}
     </>
   );
 }

@@ -52,6 +52,12 @@ export const PAIN_LEVELS: PainLevelOption[] = [
     color: 'var(--muscle-color-red)',
     desc: 'Dolor severo / impedimento total',
   },
+  {
+    level: 6,
+    name: 'Lesión',
+    color: '#000000',
+    desc: 'Zona con lesión activa',
+  },
 ];
 
 export const getPainColor = (level?: number): string => {
