@@ -433,3 +433,35 @@ export async function getDailyLoad(athleteId: string): Promise<DailyLoadSubmitRe
   );
   return response.data;
 }
+
+// ---------------------------------------------------------------------------
+// Asistencia automática del día (KAN-445)
+// ---------------------------------------------------------------------------
+
+export interface AthleteAttendanceSummary {
+  athleteId: string;
+  athleteName: string;
+  status: 'Present' | 'NoRecord';
+}
+
+export interface CategoryAttendanceSummary {
+  categoryId: string;
+  date: string;
+  totalRoster: number;
+  presentCount: number;
+  attendancePercentage: number;
+  athletes?: AthleteAttendanceSummary[];
+}
+
+export async function getCategoryAttendanceToday(
+  categoryId: string,
+): Promise<CategoryAttendanceSummary> {
+  const response = await httpClient.get<CategoryAttendanceSummary>(
+    `/seguimiento/api/v1/categories/${categoryId}/attendance-today`,
+  );
+  return response.data;
+}
+
+export async function setAttendance(athleteId: string, present: boolean): Promise<void> {
+  await httpClient.patch(`/seguimiento/api/v1/athletes/${athleteId}/attendance`, { present });
+}
