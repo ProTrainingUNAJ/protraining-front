@@ -13,10 +13,20 @@ function mapExercise(exercise: Exercise): CatalogExercise {
 }
 
 export const exercisesService = {
-  async search(search: string, page: number, pageSize: number): Promise<ExercisePage> {
+  async search(
+    search: string,
+    page: number,
+    pageSize: number,
+    usedByPf?: boolean,
+  ): Promise<ExercisePage> {
     try {
       const { data } = await listExercises({
-        query: { search: search || undefined, page, pageSize },
+        query: {
+          search: search || undefined,
+          page,
+          pageSize,
+          usedByPf: usedByPf || undefined,
+        },
         throwOnError: true,
       });
 

@@ -342,6 +342,10 @@ export type ListExercisesData = {
          */
         equipment?: string;
         /**
+         * Si es true, filtra únicamente los ejercicios utilizados por el PF en sus planificaciones o con récords (1RM) cargados.
+         */
+        usedByPf?: boolean;
+        /**
          * Número de página para paginación de resultados.
          */
         page?: number;
