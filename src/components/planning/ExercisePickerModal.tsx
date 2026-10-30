@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   AlertCircle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Info,
   Loader2,
   Plus,
@@ -37,6 +39,8 @@ export function ExercisePickerModal({
   const [usedByPf, setUsedByPf] = useState(filterUsedByPf);
   // Aviso cuando el PF no tiene planificaciones cargadas
   const [notice, setNotice] = useState<string | null>(null);
+  // Ejercicio base con las variantes desplegadas (KAN-554)
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Espera a que el PF deje de escribir antes de buscar.
   useEffect(() => {
@@ -53,7 +57,7 @@ export function ExercisePickerModal({
   useEffect(() => {
     let active = true;
     exercisesService
-      .search(search, page, PAGE_SIZE, usedByPf)
+      .search(search, page, PAGE_SIZE, usedByPf, true)
       .then((data) => {
         if (!active) return;
         // Si el PF todavía no tiene planificaciones (la lista viene vacía al inicio),
@@ -163,23 +167,66 @@ export function ExercisePickerModal({
           <p className="plan-empty">No encontramos ejercicios con esa búsqueda.</p>
         ) : (
           <ul className="plan-picker-list">
-            {items.map((exercise) => (
-              <li key={exercise.id}>
-                <button
-                  type="button"
-                  className="plan-picker-item"
-                  onClick={() => onSelect(exercise)}
-                >
-                  <span className="plan-picker-item-info">
-                    <strong>{exercise.name}</strong>
-                    <span>
-                      {[exercise.muscleGroup, exercise.equipment].filter(Boolean).join(' · ')}
-                    </span>
-                  </span>
-                  <Plus size={18} aria-hidden="true" />
-                </button>
-              </li>
-            ))}
+            {items.map((exercise) => {
+              const variants = exercise.variants ?? [];
+              const expanded = expandedId === exercise.id;
+              return (
+                <li key={exercise.id}>
+                  <div className="plan-picker-row">
+                    <button
+                      type="button"
+                      className="plan-picker-item"
+                      onClick={() => onSelect(exercise)}
+                    >
+                      <span className="plan-picker-item-info">
+                        <strong>{exercise.name}</strong>
+                        <span>
+                          {[exercise.muscleGroup, exercise.equipment].filter(Boolean).join(' · ')}
+                        </span>
+                      </span>
+                      <Plus size={18} aria-hidden="true" />
+                    </button>
+                    {variants.length > 0 && (
+                      <button
+                        type="button"
+                        className="plan-picker-variant-toggle"
+                        onClick={() => setExpandedId(expanded ? null : exercise.id)}
+                        aria-expanded={expanded}
+                        aria-label={`${expanded ? 'Ocultar' : 'Ver'} variantes de ${exercise.name}`}
+                      >
+                        <span>
+                          {variants.length} {variants.length === 1 ? 'variante' : 'variantes'}
+                        </span>
+                        {expanded ? (
+                          <ChevronUp size={16} aria-hidden="true" />
+                        ) : (
+                          <ChevronDown size={16} aria-hidden="true" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  {expanded && (
+                    <ul className="plan-picker-variants">
+                      {variants.map((variant) => (
+                        <li key={variant.id}>
+                          <button
+                            type="button"
+                            className="plan-picker-item plan-picker-variant"
+                            onClick={() => onSelect(variant)}
+                          >
+                            <span className="plan-picker-item-info">
+                              <strong>{variant.variantLabel ?? variant.name}</strong>
+                              <span>{variant.name}</span>
+                            </span>
+                            <Plus size={16} aria-hidden="true" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
 

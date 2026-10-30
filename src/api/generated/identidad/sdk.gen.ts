@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses } from './types.gen';
+import type { HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -41,6 +41,22 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
 export const refreshToken = <ThrowOnError extends boolean = false>(options: Options<RefreshTokenData, ThrowOnError>): RequestResult<RefreshTokenResponses, RefreshTokenErrors, ThrowOnError> => (options.client ?? client).post<RefreshTokenResponses, RefreshTokenErrors, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/auth/refresh',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Actualizar teléfono de WhatsApp del usuario
+ *
+ * Actualiza y normaliza el número de teléfono de WhatsApp del usuario autenticado. Responde 400 con mensaje en español si el formato es inválido.
+ */
+export const updateWhatsAppPhone = <ThrowOnError extends boolean = false>(options: Options<UpdateWhatsAppPhoneData, ThrowOnError>): RequestResult<UpdateWhatsAppPhoneResponses, UpdateWhatsAppPhoneErrors, ThrowOnError> => (options.client ?? client).put<UpdateWhatsAppPhoneResponses, UpdateWhatsAppPhoneErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/phone',
     ...options,
     headers: {
         'Content-Type': 'application/json',

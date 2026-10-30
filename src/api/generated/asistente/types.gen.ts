@@ -153,6 +153,21 @@ export type HabitsRecommendationResponse = {
     approvedByPf: boolean;
 };
 
+export type PfDecisionResponse = {
+    id: string;
+    athleteId?: string | null;
+    date: string;
+    source: 'DayAdjustment' | 'PlanDraft';
+    sourceId: string;
+    zone?: string | null;
+    suggestedExerciseId: string;
+    decision: 'Approved' | 'Modified' | 'Rejected';
+    finalExerciseId?: string | null;
+    finalPercentage?: number | null;
+    reason?: string | null;
+    createdAt: string;
+};
+
 export type ProblemDetails = {
     type?: string;
     title: string;
@@ -490,6 +505,45 @@ export type DiscardPlanDraftResponses = {
 };
 
 export type DiscardPlanDraftResponse = DiscardPlanDraftResponses[keyof DiscardPlanDraftResponses];
+
+export type GetAthleteDecisionsData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: {
+        /**
+         * Filtro opcional por zona anatómica o de molestia (ej. espalda_baja).
+         */
+        zone?: string;
+    };
+    url: '/api/v1/assistant/athletes/{athleteId}/decisions';
+};
+
+export type GetAthleteDecisionsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteDecisionsError = GetAthleteDecisionsErrors[keyof GetAthleteDecisionsErrors];
+
+export type GetAthleteDecisionsResponses = {
+    /**
+     * Lista de decisiones recuperadas (hasta 50).
+     */
+    200: Array<PfDecisionResponse>;
+};
+
+export type GetAthleteDecisionsResponse = GetAthleteDecisionsResponses[keyof GetAthleteDecisionsResponses];
 
 export type GetHabitsRecommendationData = {
     body?: never;

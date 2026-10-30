@@ -19,6 +19,10 @@ export interface CatalogExercise {
   muscleGroup: string;
   equipment: string | null;
   images: string[];
+  // Variantes (KAN-554): la etiqueta si es una variante ("Agarre cerrado"), y sus variantes si
+  // es un ejercicio base (solo cuando se pide el catálogo agrupado).
+  variantLabel?: string | null;
+  variants?: CatalogExercise[];
 }
 
 export interface ExercisePage {

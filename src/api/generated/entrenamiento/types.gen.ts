@@ -82,6 +82,19 @@ export type Exercise = {
      * URLs de las 2 fotografías técnicas del ejercicio (postura inicial y postura final).
      */
     images?: Array<string>;
+    /**
+     * Si el ejercicio es una variante, el id de su ejercicio base (KAN-554). Es null en los ejercicios base.
+     */
+    parentExerciseId?: string | null;
+    /**
+     * Qué distingue a la variante de su ejercicio base. Es null en los ejercicios base.
+     */
+    variantLabel?: string | null;
+    /**
+     * Variantes del ejercicio base. Solo viene con `groupVariants=true`; si no, es null. Cada variante conserva su id: los récords (1RM) y las planificaciones apuntan a la variante exacta.
+     *
+     */
+    variants?: Array<Exercise> | null;
 };
 
 /**
@@ -411,6 +424,11 @@ export type ListExercisesData = {
          * Si es true, filtra únicamente los ejercicios utilizados por el PF en sus planificaciones o con récords (1RM) cargados.
          */
         usedByPf?: boolean;
+        /**
+         * Si es true, devuelve solo los ejercicios base, cada uno con sus variantes en `variants` (KAN-554). Un ejercicio base aparece si él o alguna de sus variantes cumple los filtros. Si es false, la lista es plana: base y variantes como ejercicios sueltos, cada variante con `parentExerciseId` y `variantLabel`.
+         *
+         */
+        groupVariants?: boolean;
         /**
          * Número de página para paginación de resultados.
          */
