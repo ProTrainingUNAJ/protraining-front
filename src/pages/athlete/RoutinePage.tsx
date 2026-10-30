@@ -584,16 +584,7 @@ export const RoutinePage: React.FC = () => {
                               <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>kg</span>
                             </span>
                             {getBarbellSideText(exercise) ? (
-                              <span
-                                style={{
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700,
-                                  color: 'var(--text-muted)',
-                                  textAlign: 'center',
-                                  lineHeight: 1.2,
-                                  marginTop: '0.2rem',
-                                }}
-                              >
+                              <span className="routine-weight-side">
                                 {getBarbellSideText(exercise)}
                               </span>
                             ) : (

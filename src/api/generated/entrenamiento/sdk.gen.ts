@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
+import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -28,6 +28,35 @@ export const listExercises = <ThrowOnError extends boolean = false>(options?: Op
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/exercises',
+    ...options
+});
+
+/**
+ * Chequear restricciones de una lista de ejercicios por zonas de dolor
+ *
+ * Evalúa una lista de ejercicios contra las zonas de dolor reportadas (formato "zona:nivel"). Devuelve por cada ejercicio si está restringido y, en su caso, la zona, nivel de dolor, motivo y lista ordenada de sustitutos biomecánicos.
+ *
+ */
+export const checkExerciseRestrictions = <ThrowOnError extends boolean = false>(options: Options<CheckExerciseRestrictionsData, ThrowOnError>): RequestResult<CheckExerciseRestrictionsResponses, CheckExerciseRestrictionsErrors, ThrowOnError> => (options.client ?? client).post<CheckExerciseRestrictionsResponses, CheckExerciseRestrictionsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/exercises/restrictions/check',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener ejercicios sustitutos para una zona de dolor
+ *
+ * Devuelve la lista ordenada de ejercicios sustitutos recomendados para un ejercicio y una zona anatómica de dolor específica.
+ */
+export const getExerciseSubstitutes = <ThrowOnError extends boolean = false>(options: Options<GetExerciseSubstitutesData, ThrowOnError>): RequestResult<GetExerciseSubstitutesResponses, GetExerciseSubstitutesErrors, ThrowOnError> => (options.client ?? client).get<GetExerciseSubstitutesResponses, GetExerciseSubstitutesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/exercises/{id}/substitutes',
     ...options
 });
 
@@ -233,7 +262,7 @@ export const getTrainingPlanSchedule = <ThrowOnError extends boolean = false>(op
 /**
  * Asignar planificacion a categoria o atleta
  *
- * Registra una asignacion formal de planificacion a una categoria o atleta con su fecha de inicio. Requiere rol PreparadorFisico.
+ * Registra una asignacion formal de planificacion a una categoria o atleta con su fecha de inicio. Requiere rol PreparadorFisico. Responde 404 si la planificacion, la categoria o el atleta no existen o son de otro PF.
  */
 export const assignTrainingPlan = <ThrowOnError extends boolean = false>(options: Options<AssignTrainingPlanData, ThrowOnError>): RequestResult<AssignTrainingPlanResponses, AssignTrainingPlanErrors, ThrowOnError> => (options.client ?? client).post<AssignTrainingPlanResponses, AssignTrainingPlanErrors, ThrowOnError>({
     responseType: 'json',
@@ -249,7 +278,7 @@ export const assignTrainingPlan = <ThrowOnError extends boolean = false>(options
 /**
  * Obtener sesion de entrenamiento
  *
- * Obtiene los detalles de una sesion de entrenamiento por su identificador.
+ * Obtiene los detalles de una sesion de entrenamiento por su identificador. Requiere rol PreparadorFisico (el atleta ve su sesion del dia en /api/v1/me/today-routine).
  */
 export const getTrainingSession = <ThrowOnError extends boolean = false>(options: Options<GetTrainingSessionData, ThrowOnError>): RequestResult<GetTrainingSessionResponses, GetTrainingSessionErrors, ThrowOnError> => (options.client ?? client).get<GetTrainingSessionResponses, GetTrainingSessionErrors, ThrowOnError>({
     responseType: 'json',
@@ -274,14 +303,14 @@ export const updateTrainingSessionNotes = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Obtener atletas con sesion programada para una fecha
+ * Obtener atletas con sesión programada para una fecha
  *
- * Devuelve los IDs de los atletas que tienen al menos una sesion de entrenamiento programada para la fecha indicada (KAN-528).
+ * Endpoint interno para microservicios con rol Servicio (worker de recordatorios). Devuelve los IDs de los atletas que tienen sesión ese día.
  */
 export const getScheduledAthletes = <ThrowOnError extends boolean = false>(options: Options<GetScheduledAthletesData, ThrowOnError>): RequestResult<GetScheduledAthletesResponses, GetScheduledAthletesErrors, ThrowOnError> => (options.client ?? client).get<GetScheduledAthletesResponses, GetScheduledAthletesErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/training-sessions/scheduled-athletes',
+    url: '/api/v1/internal/training-sessions/athletes-with-session',
     ...options
 });
 

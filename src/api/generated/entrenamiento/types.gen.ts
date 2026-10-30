@@ -4,6 +4,55 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8083' | 'http://entrenamiento:8080' | (string & {});
 };
 
+export type CheckExerciseRestrictionsRequest = {
+    /**
+     * Zonas de dolor reportadas en el check-in (formato "zona:nivel" separadas por comas).
+     */
+    painZones?: string | null;
+    /**
+     * Lista de IDs de ejercicios a verificar.
+     */
+    exerciseIds: Array<string>;
+};
+
+export type ExerciseSubstitute = {
+    /**
+     * Identificador del ejercicio sustituto.
+     */
+    exerciseId: string;
+    /**
+     * Nombre del ejercicio sustituto.
+     */
+    name: string;
+};
+
+export type ExerciseRestrictionCheckResult = {
+    /**
+     * Identificador del ejercicio evaluado.
+     */
+    exerciseId: string;
+    /**
+     * Indica si el ejercicio debe ser restringido/reemplazado por dolor.
+     */
+    restricted: boolean;
+    /**
+     * Zona de dolor que disparó la restricción.
+     */
+    zone?: string | null;
+    /**
+     * Nivel de dolor reportado para la zona (1 a 10).
+     */
+    painLevel?: number | null;
+    /**
+     * Motivo biomecánico de la contraindicación.
+     */
+    reason?: string | null;
+    /**
+     * Lista ordenada de ejercicios sustitutos recomendados.
+     */
+    substitutes: Array<ExerciseSubstitute>;
+};
+
 export type Exercise = {
     id: string;
     name: string;
@@ -138,7 +187,13 @@ export type TodayRoutineExercise = {
      * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg). Es null en series de referencia sin récord previo.
      */
     weightKg?: number | null;
+    /**
+     * Peso de la barra en kg (por defecto 20 kg en ejercicios con barra). Es null en ejercicios sin barra.
+     */
     barWeight?: number | null;
+    /**
+     * Peso a colocar por cada lado de la barra en kg. Es 0 si el peso total es menor o igual a la barra ("solo la barra") y null si el ejercicio no es con barra.
+     */
     weightPerSide?: number | null;
     /**
      * Marca 1RM vigente tomada como referencia para el cálculo. Es null si el atleta no tiene récord.
@@ -378,6 +433,78 @@ export type ListExercisesResponses = {
 };
 
 export type ListExercisesResponse = ListExercisesResponses[keyof ListExercisesResponses];
+
+export type CheckExerciseRestrictionsData = {
+    body: CheckExerciseRestrictionsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/exercises/restrictions/check';
+};
+
+export type CheckExerciseRestrictionsErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type CheckExerciseRestrictionsError = CheckExerciseRestrictionsErrors[keyof CheckExerciseRestrictionsErrors];
+
+export type CheckExerciseRestrictionsResponses = {
+    /**
+     * Chequeo de restricciones realizado exitosamente.
+     */
+    200: Array<ExerciseRestrictionCheckResult>;
+};
+
+export type CheckExerciseRestrictionsResponse = CheckExerciseRestrictionsResponses[keyof CheckExerciseRestrictionsResponses];
+
+export type GetExerciseSubstitutesData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del ejercicio restringido.
+         */
+        id: string;
+    };
+    query: {
+        /**
+         * Zona anatómica de dolor (ej. cuadriceps, espalda_baja).
+         */
+        zone: string;
+    };
+    url: '/api/v1/exercises/{id}/substitutes';
+};
+
+export type GetExerciseSubstitutesErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetExerciseSubstitutesError = GetExerciseSubstitutesErrors[keyof GetExerciseSubstitutesErrors];
+
+export type GetExerciseSubstitutesResponses = {
+    /**
+     * Lista ordenada de sustitutos obtenida exitosamente.
+     */
+    200: Array<ExerciseSubstitute>;
+};
+
+export type GetExerciseSubstitutesResponse = GetExerciseSubstitutesResponses[keyof GetExerciseSubstitutesResponses];
 
 export type GetAthleteRecordsData = {
     body?: never;
@@ -911,6 +1038,10 @@ export type GetTrainingSessionErrors = {
      */
     401: ProblemDetails;
     /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
      * Recurso o atleta no encontrado.
      */
     404: ProblemDetails;
@@ -974,11 +1105,15 @@ export type GetScheduledAthletesData = {
     path?: never;
     query: {
         /**
-         * Fecha de la sesion a consultar (YYYY-MM-DD).
+         * Fecha de la sesión a consultar (YYYY-MM-DD).
          */
         date: string;
+        /**
+         * Identificador del preparador físico para aislar datos.
+         */
+        pfId: string;
     };
-    url: '/api/v1/training-sessions/scheduled-athletes';
+    url: '/api/v1/internal/training-sessions/athletes-with-session';
 };
 
 export type GetScheduledAthletesErrors = {
@@ -986,13 +1121,17 @@ export type GetScheduledAthletesErrors = {
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
 };
 
 export type GetScheduledAthletesError = GetScheduledAthletesErrors[keyof GetScheduledAthletesErrors];
 
 export type GetScheduledAthletesResponses = {
     /**
-     * Lista de IDs de atletas con sesion programada.
+     * Lista de IDs de atletas con sesión programada.
      */
     200: Array<string>;
 };
