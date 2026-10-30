@@ -35,7 +35,8 @@ export const seasonPlanningService = {
       return filtered.map((s) => {
         // Extraer hora si estuviese disponible en propiedades extendidas o notas
         const rawTime =
-          (s as unknown as { sessionTime?: string; startTime?: string; time?: string }).sessionTime ??
+          (s as unknown as { sessionTime?: string; startTime?: string; time?: string })
+            .sessionTime ??
           (s as unknown as { startTime?: string }).startTime ??
           (s as unknown as { time?: string }).time ??
           null;
