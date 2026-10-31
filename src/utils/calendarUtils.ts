@@ -47,7 +47,8 @@ export function formatMonthYear(date: Date): string {
 }
 
 export function formatFullDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-').map(Number);
+  const cleanDate = isoDate.includes('T') ? isoDate.split('T')[0] : isoDate;
+  const [year, month, day] = cleanDate.split('-').map(Number);
   const date = new Date(year, month - 1, day);
   return date.toLocaleDateString('es-AR', {
     weekday: 'long',
@@ -59,6 +60,14 @@ export function formatFullDate(isoDate: string): string {
 
 export function formatTime(isoDateTime: string): string {
   try {
+    if (!isoDateTime) return '';
+    if (isoDateTime.includes('T')) {
+      const timePart = isoDateTime.split('T')[1].replace('Z', '').split('.')[0];
+      const parts = timePart.split(':');
+      if (parts.length >= 2) {
+        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+      }
+    }
     const date = new Date(isoDateTime);
     if (isNaN(date.getTime())) return '';
     return date.toLocaleTimeString('es-AR', {

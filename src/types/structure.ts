@@ -108,7 +108,9 @@ export interface Match {
 
 export interface CreateMatchRequest {
   opponent: string;
-  matchDate: string;
+  date?: string; // YYYY-MM-DD
+  startTime?: string | null; // HH:mm:ss
+  matchDate?: string; // Formato combinado opcional
   homeOrAway: HomeOrAway;
   type?: CompetitiveEventType;
   notes?: string | null;
