@@ -213,7 +213,7 @@
 
 .plan-exercise-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.25rem 4.25rem 4.75rem 2rem;
+  grid-template-columns: 1.75rem minmax(0, 1fr) 4.25rem 4.25rem 4.75rem 2rem;
   align-items: end;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
@@ -249,12 +249,18 @@
 
 @media (width <= 560px) {
   .plan-exercise-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) 2rem;
+    grid-template-columns: 1.75rem repeat(3, minmax(0, 1fr)) 2rem;
   }
 
   .plan-exercise-name {
+    grid-row: 1;
     grid-column: 1 / -1;
     white-space: normal;
+  }
+
+  .plan-exercise-row .plan-move {
+    grid-row: 2;
+    grid-column: 1;
   }
 
   .plan-session-day {
@@ -585,4 +591,36 @@
 
 .plan-picker-variant {
   padding: 0.5rem 0.75rem;
+}
+
+/* Flechas para reordenar ejercicios y sesiones del mismo día (KAN-542) */
+.plan-move {
+  display: inline-flex;
+  flex-direction: column;
+  align-self: center;
+  gap: 0.1rem;
+}
+
+.plan-move-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.plan-move-btn:hover:not(:disabled) {
+  border-color: var(--secondary);
+  color: var(--text-main);
+}
+
+.plan-move-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }

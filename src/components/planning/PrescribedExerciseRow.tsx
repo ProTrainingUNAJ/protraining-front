@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { DraftExercise } from '../../types/trainingPlans';
 import { PERCENTAGE_MAX } from '../../utils/planDraft';
 
@@ -7,6 +7,9 @@ interface PrescribedExerciseRowProps {
   disabled: boolean;
   onChange: (changes: Partial<DraftExercise>) => void;
   onRemove: () => void;
+  // Sin callback, la flecha queda deshabilitada (el primero no sube y el último no baja).
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 // Un campo vacío queda en 0 (series y repeticiones) o sin % (null); la
@@ -20,11 +23,36 @@ export function PrescribedExerciseRow({
   disabled,
   onChange,
   onRemove,
+  onMoveUp,
+  onMoveDown,
 }: PrescribedExerciseRowProps) {
   const label = exercise.exerciseName || 'Ejercicio sin nombre';
 
   return (
     <li className="plan-exercise-row">
+      <span className="plan-move">
+        <button
+          type="button"
+          className="plan-move-btn"
+          onClick={onMoveUp}
+          disabled={disabled || !onMoveUp}
+          aria-label={`Subir ${label}`}
+          title="Subir"
+        >
+          <ChevronUp size={14} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="plan-move-btn"
+          onClick={onMoveDown}
+          disabled={disabled || !onMoveDown}
+          aria-label={`Bajar ${label}`}
+          title="Bajar"
+        >
+          <ChevronDown size={14} aria-hidden="true" />
+        </button>
+      </span>
+
       <span className="plan-exercise-name" title={label}>
         {label}
       </span>

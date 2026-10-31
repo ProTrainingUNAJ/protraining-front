@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { DraftSession, DraftWeek } from '../../types/trainingPlans';
-import { dayPosition } from '../../utils/planDraft';
+import { dayPosition, type MoveDirection, sameDaySessions } from '../../utils/planDraft';
 import { SessionCard } from './SessionCard';
 
 interface WeekSectionProps {
@@ -15,6 +15,7 @@ interface WeekSectionProps {
   onSessionChange: (sessionKey: string, update: (session: DraftSession) => DraftSession) => void;
   onRemoveSession: (sessionKey: string) => void;
   onAddExercise: (sessionKey: string) => void;
+  onMoveSession: (sessionKey: string, direction: MoveDirection) => void;
 }
 
 export function WeekSection({
@@ -28,9 +29,10 @@ export function WeekSection({
   onSessionChange,
   onRemoveSession,
   onAddExercise,
+  onMoveSession,
 }: WeekSectionProps) {
-  // Se muestran por día (lunes primero). El orden que se guarda no cambia:
-  // reordenar sesiones queda para cuando esté resuelto KAN-534.
+  // Se muestran por día (lunes primero) y, dentro del día, por orden. Si hay dos o más el
+  // mismo día, se pueden reordenar con flechas (KAN-542; el back lo acepta desde la KAN-534).
   const sessions = [...week.sessions].sort(
     (a, b) => dayPosition(a.dayOfWeek) - dayPosition(b.dayOfWeek) || a.order - b.order,
   );
@@ -77,16 +79,25 @@ export function WeekSection({
           )}
 
           <div className="plan-session-grid">
-            {sessions.map((session) => (
-              <SessionCard
-                key={session.key}
-                session={session}
-                disabled={disabled}
-                onChange={(update) => onSessionChange(session.key, update)}
-                onRemove={() => onRemoveSession(session.key)}
-                onAddExercise={() => onAddExercise(session.key)}
-              />
-            ))}
+            {sessions.map((session) => {
+              const siblings = sameDaySessions(week, session.dayOfWeek);
+              const position = siblings.findIndex((s) => s.key === session.key);
+              return (
+                <SessionCard
+                  key={session.key}
+                  session={session}
+                  disabled={disabled}
+                  onChange={(update) => onSessionChange(session.key, update)}
+                  onRemove={() => onRemoveSession(session.key)}
+                  onAddExercise={() => onAddExercise(session.key)}
+                  showMove={siblings.length > 1}
+                  onMoveUp={position > 0 ? () => onMoveSession(session.key, -1) : undefined}
+                  onMoveDown={
+                    position < siblings.length - 1 ? () => onMoveSession(session.key, 1) : undefined
+                  }
+                />
+              );
+            })}
           </div>
 
           <button

@@ -1,6 +1,6 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { DraftExercise, DraftSession } from '../../types/trainingPlans';
-import { WEEK_DAYS } from '../../utils/planDraft';
+import { moveExercise, WEEK_DAYS } from '../../utils/planDraft';
 import { PrescribedExerciseRow } from './PrescribedExerciseRow';
 
 interface SessionCardProps {
@@ -9,6 +9,11 @@ interface SessionCardProps {
   onChange: (update: (session: DraftSession) => DraftSession) => void;
   onRemove: () => void;
   onAddExercise: () => void;
+  // Flechas de la sesión: solo cuando hay dos o más el mismo día (KAN-542). Sin callback, la flecha
+  // queda deshabilitada; si no viene ninguna de las dos, no se muestran.
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  showMove?: boolean;
 }
 
 const NOTES_MAX_LENGTH = 1000;
@@ -19,6 +24,9 @@ export function SessionCard({
   onChange,
   onRemove,
   onAddExercise,
+  onMoveUp,
+  onMoveDown,
+  showMove = false,
 }: SessionCardProps) {
   const updateExercise = (key: string, changes: Partial<DraftExercise>) =>
     onChange((current) => ({
@@ -64,6 +72,31 @@ export function SessionCard({
           aria-label="Nombre de la sesión"
         />
 
+        {showMove && (
+          <span className="plan-move">
+            <button
+              type="button"
+              className="plan-move-btn"
+              onClick={onMoveUp}
+              disabled={disabled || !onMoveUp}
+              aria-label={`Subir la sesión ${session.name}`}
+              title="Subir sesión"
+            >
+              <ChevronUp size={14} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="plan-move-btn"
+              onClick={onMoveDown}
+              disabled={disabled || !onMoveDown}
+              aria-label={`Bajar la sesión ${session.name}`}
+              title="Bajar sesión"
+            >
+              <ChevronDown size={14} aria-hidden="true" />
+            </button>
+          </span>
+        )}
+
         <button
           type="button"
           className="plan-icon-btn"
@@ -80,13 +113,23 @@ export function SessionCard({
         <p className="plan-empty">Todavía no hay ejercicios en esta sesión.</p>
       ) : (
         <ul className="plan-exercise-list">
-          {session.exercises.map((exercise) => (
+          {session.exercises.map((exercise, index) => (
             <PrescribedExerciseRow
               key={exercise.key}
               exercise={exercise}
               disabled={disabled}
               onChange={(changes) => updateExercise(exercise.key, changes)}
               onRemove={() => removeExercise(exercise.key)}
+              onMoveUp={
+                index > 0
+                  ? () => onChange((current) => moveExercise(current, exercise.key, -1))
+                  : undefined
+              }
+              onMoveDown={
+                index < session.exercises.length - 1
+                  ? () => onChange((current) => moveExercise(current, exercise.key, 1))
+                  : undefined
+              }
             />
           ))}
         </ul>

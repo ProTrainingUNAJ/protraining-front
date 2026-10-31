@@ -11,6 +11,8 @@ import {
   createExercise,
   createSession,
   createWeek,
+  moveSession,
+  type MoveDirection,
   toDraft,
   toSaveRequest,
   validateDraft,
@@ -120,6 +122,9 @@ export function PlanEditorPage() {
       ...week,
       sessions: week.sessions.filter((s) => s.key !== sessionKey),
     }));
+
+  const reorderSession = (weekKey: string, sessionKey: string, direction: MoveDirection) =>
+    editWeek(weekKey, (week) => moveSession(week, sessionKey, direction));
 
   const addExercise = (exercise: CatalogExercise) => {
     if (!pickerTarget) return;
@@ -312,6 +317,9 @@ export function PlanEditorPage() {
             onSessionChange={(sessionKey, update) => editSession(week.key, sessionKey, update)}
             onRemoveSession={(sessionKey) => removeSession(week.key, sessionKey)}
             onAddExercise={(sessionKey) => setPickerTarget({ weekKey: week.key, sessionKey })}
+            onMoveSession={(sessionKey, direction) =>
+              reorderSession(week.key, sessionKey, direction)
+            }
           />
         ))}
 
