@@ -87,6 +87,16 @@ export type MedicalRecord = {
 };
 
 /**
+ * Solicitud para acceder a la historia clínica/ficha médica declarando el motivo en el cuerpo.
+ */
+export type AccessMedicalRecordRequest = {
+    /**
+     * Motivo explícito por el cual el preparador físico consulta la ficha médica.
+     */
+    justification: string;
+};
+
+/**
  * Solicitud para cargar o actualizar la ficha médica exigiendo justificación explícita.
  */
 export type UpdateMedicalRecordRequest = {
@@ -491,21 +501,16 @@ export type GetAthleteGuardianConsentResponses = {
 
 export type GetAthleteGuardianConsentResponse = GetAthleteGuardianConsentResponses[keyof GetAthleteGuardianConsentResponses];
 
-export type GetAthleteMedicalRecordData = {
-    body?: never;
+export type AccessAthleteMedicalRecordData = {
+    body: AccessMedicalRecordRequest;
     path: {
         id: string;
     };
-    query: {
-        /**
-         * Motivo explícito por el cual el preparador físico consulta la ficha médica.
-         */
-        justification: string;
-    };
-    url: '/api/v1/athletes/{id}/medical-record';
+    query?: never;
+    url: '/api/v1/athletes/{id}/medical-record/access';
 };
 
-export type GetAthleteMedicalRecordErrors = {
+export type AccessAthleteMedicalRecordErrors = {
     /**
      * Solicitud con datos inválidos o formato erróneo.
      */
@@ -520,16 +525,16 @@ export type GetAthleteMedicalRecordErrors = {
     404: ProblemDetails;
 };
 
-export type GetAthleteMedicalRecordError = GetAthleteMedicalRecordErrors[keyof GetAthleteMedicalRecordErrors];
+export type AccessAthleteMedicalRecordError = AccessAthleteMedicalRecordErrors[keyof AccessAthleteMedicalRecordErrors];
 
-export type GetAthleteMedicalRecordResponses = {
+export type AccessAthleteMedicalRecordResponses = {
     /**
      * Ficha médica obtenida y acceso registrado en auditoría.
      */
     200: MedicalRecord;
 };
 
-export type GetAthleteMedicalRecordResponse = GetAthleteMedicalRecordResponses[keyof GetAthleteMedicalRecordResponses];
+export type AccessAthleteMedicalRecordResponse = AccessAthleteMedicalRecordResponses[keyof AccessAthleteMedicalRecordResponses];
 
 export type UpdateAthleteMedicalRecordData = {
     body: UpdateMedicalRecordRequest;

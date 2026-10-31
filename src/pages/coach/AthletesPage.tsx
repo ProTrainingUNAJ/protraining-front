@@ -12,6 +12,7 @@ import {
   Dumbbell,
   HeartPulse,
   QrCode,
+  FileText,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
@@ -19,6 +20,9 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
+import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
+import { MedicalRecordDetailModal } from '../../components/athletes/MedicalRecordDetailModal';
+import { MedicalRecord } from '../../types/medicalRecord';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -45,11 +49,16 @@ export const AthletesPage: React.FC = () => {
   const [emergencyContact, setEmergencyContact] = useState('');
   const [selectedNewAthleteCategories, setSelectedNewAthleteCategories] = useState<string[]>([]);
 
-  // Modal de asignación N:N de categorías (CA3)
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
   const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
+  const [justifyingAthlete, setJustifyingAthlete] = useState<Athlete | null>(null);
+  const [viewingMedicalRecord, setViewingMedicalRecord] = useState<{
+    athlete: Athlete;
+    record: MedicalRecord;
+    justification: string;
+  } | null>(null);
   const [updatingCategory, setUpdatingCategory] = useState(false);
 
   // 1. Cargar atletas y categorías
@@ -768,6 +777,16 @@ export const AthletesPage: React.FC = () => {
                     <HeartPulse size={15} aria-hidden="true" />
                     <span>Lesiones</span>
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setJustifyingAthlete(athlete)}
+                    title="Ver Ficha Médica del atleta con justificación obligatoria"
+                  >
+                    <FileText size={15} aria-hidden="true" />
+                    <span>Ver Ficha Médica</span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -922,6 +941,38 @@ export const AthletesPage: React.FC = () => {
           categoryId={invitingCategory.id}
           categoryName={invitingCategory.name}
           onClose={() => setInvitingCategory(null)}
+        />
+      )}
+
+      {justifyingAthlete && (
+        <MedicalRecordJustificationModal
+          athleteId={justifyingAthlete.id}
+          athleteName={
+            justifyingAthlete.fullName ||
+            `${justifyingAthlete.firstName} ${justifyingAthlete.lastName}`
+          }
+          isOpen={true}
+          onClose={() => setJustifyingAthlete(null)}
+          onSuccess={(record, justification) => {
+            setViewingMedicalRecord({
+              athlete: justifyingAthlete,
+              record,
+              justification,
+            });
+            setJustifyingAthlete(null);
+          }}
+        />
+      )}
+
+      {viewingMedicalRecord && (
+        <MedicalRecordDetailModal
+          athleteName={
+            viewingMedicalRecord.athlete.fullName ||
+            `${viewingMedicalRecord.athlete.firstName} ${viewingMedicalRecord.athlete.lastName}`
+          }
+          record={viewingMedicalRecord.record}
+          justificationUsed={viewingMedicalRecord.justification}
+          onClose={() => setViewingMedicalRecord(null)}
         />
       )}
     </div>
