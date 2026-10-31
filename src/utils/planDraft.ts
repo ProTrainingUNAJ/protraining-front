@@ -284,8 +284,7 @@ export function aiDraftToEditableDraft(
           id: null,
           exerciseId: exercise.exerciseId,
           exerciseName:
-            (exerciseNames && exerciseNames[exercise.exerciseId]) ||
-            `Ejercicio #${exercise.order}`,
+            (exerciseNames && exerciseNames[exercise.exerciseId]) || `Ejercicio #${exercise.order}`,
           order: exercise.order,
           sets: exercise.sets,
           reps: exercise.reps,
@@ -341,4 +340,3 @@ export function swapExercise(
     ),
   };
 }
-

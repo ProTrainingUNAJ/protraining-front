@@ -97,7 +97,13 @@ describe('AssistantDraftPage (KAN-413)', () => {
       { id: 'org-1', name: 'Club Atlético', description: null, categoriesCount: 1 },
     ]);
     vi.mocked(structureService.getCategories).mockResolvedValue([
-      { id: 'cat-1', organizationId: 'org-1', name: 'Primera División', description: null, athletesCount: 15 },
+      {
+        id: 'cat-1',
+        organizationId: 'org-1',
+        name: 'Primera División',
+        description: null,
+        athletesCount: 15,
+      },
     ]);
   });
 

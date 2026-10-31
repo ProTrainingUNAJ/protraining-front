@@ -19,12 +19,7 @@ import { planDraftsService } from '../../api/planDrafts';
 import { exercisesService } from '../../api/exercises';
 import { structureService } from '../../api/structureService';
 import { PlanDraftResponse } from '../../api/generated/asistente';
-import {
-  CatalogExercise,
-  DraftSession,
-  DraftWeek,
-  PlanDraft,
-} from '../../types/trainingPlans';
+import { CatalogExercise, DraftSession, DraftWeek, PlanDraft } from '../../types/trainingPlans';
 import {
   aiDraftToEditableDraft,
   createExercise,
@@ -118,7 +113,9 @@ export function AssistantDraftPage() {
           if (loadedDraft.categoryId) {
             const orgs = await structureService.getOrganizations();
             const cats = (
-              await Promise.all(orgs.map((o) => structureService.getCategories(o.id).catch(() => [])))
+              await Promise.all(
+                orgs.map((o) => structureService.getCategories(o.id).catch(() => [])),
+              )
             ).flat();
             const foundCat = cats.find((c) => c.id === loadedDraft.categoryId);
             resolvedTarget = foundCat ? `Categoría · ${foundCat.name}` : 'Categoría seleccionada';
@@ -492,7 +489,11 @@ export function AssistantDraftPage() {
           </div>
           {draft.justificationSummary && (
             <p className="plan-empty" style={{ margin: 0 }}>
-              <Sparkles size={16} aria-hidden="true" style={{ verticalAlign: 'text-bottom', marginRight: '0.4rem' }} />
+              <Sparkles
+                size={16}
+                aria-hidden="true"
+                style={{ verticalAlign: 'text-bottom', marginRight: '0.4rem' }}
+              />
               {draft.justificationSummary}
             </p>
           )}
@@ -658,7 +659,10 @@ export function AssistantDraftPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 id="discard-modal-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
+              <h2
+                id="discard-modal-title"
+                style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}
+              >
                 ¿Descartar este borrador?
               </h2>
               <button
@@ -671,8 +675,8 @@ export function AssistantDraftPage() {
               </button>
             </div>
             <p style={{ margin: '1rem 0', color: 'var(--text-muted)' }}>
-              Se perderán todas las modificaciones y la propuesta generada por la IA. Esta acción
-              no se puede deshacer.
+              Se perderán todas las modificaciones y la propuesta generada por la IA. Esta acción no
+              se puede deshacer.
             </p>
             <div className="plan-discard-actions">
               <button
