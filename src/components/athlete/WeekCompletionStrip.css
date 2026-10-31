@@ -1,0 +1,62 @@
+/* Tira de la semana del atleta (KAN-446): marca los días con carga del día. Prefijo wcs-. */
+
+.wcs-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.wcs-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.wcs-day--completed {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.wcs-day--pending {
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+}
+
+.wcs-day--loading {
+  height: 3.5rem;
+  background: var(--bg-subtle);
+  border-radius: 0.75rem;
+  animation: wcs-pulse 1.2s ease-in-out infinite;
+}
+
+.wcs-day-label {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.wcs-day-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes wcs-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}

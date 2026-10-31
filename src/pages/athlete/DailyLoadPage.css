@@ -1,6 +1,25 @@
 /* Estilos exclusivos de la página "Carga del día" (KAN-442 / #147).
    Prefijo dl- para no colisionar con otras páginas. */
 
+.dl-week {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dl-week-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dl-week-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
 .dl-page {
   min-height: 100vh;
   background: var(--bg-main);

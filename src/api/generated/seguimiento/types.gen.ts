@@ -83,6 +83,19 @@ export type DailyLoadResponse = {
     individualWork: DailyLoadActivity;
 };
 
+export type AthleteWeekDay = {
+    date: string;
+    dayOfWeek: string;
+    completed: boolean;
+};
+
+export type AthleteWeek = {
+    weekStart: string;
+    weekEnd: string;
+    completedDays: Array<string>;
+    days: Array<AthleteWeekDay>;
+};
+
 export type SetAttendanceRequest = {
     present: boolean;
 };
@@ -369,6 +382,43 @@ export type RegisterDailyLoadResponses = {
 };
 
 export type RegisterDailyLoadResponse = RegisterDailyLoadResponses[keyof RegisterDailyLoadResponses];
+
+export type GetAthleteWeekData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: {
+        date?: string;
+    };
+    url: '/api/v1/athletes/{athleteId}/daily-load/week';
+};
+
+export type GetAthleteWeekErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteWeekError = GetAthleteWeekErrors[keyof GetAthleteWeekErrors];
+
+export type GetAthleteWeekResponses = {
+    /**
+     * Semana del atleta obtenida.
+     */
+    200: AthleteWeek;
+};
+
+export type GetAthleteWeekResponse = GetAthleteWeekResponses[keyof GetAthleteWeekResponses];
 
 export type SetAttendanceData = {
     body: SetAttendanceRequest;
