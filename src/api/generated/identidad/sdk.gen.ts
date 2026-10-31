@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
+import type { GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -51,7 +51,7 @@ export const refreshToken = <ThrowOnError extends boolean = false>(options: Opti
 /**
  * Actualizar teléfono de WhatsApp del usuario
  *
- * Actualiza y normaliza el número de teléfono de WhatsApp del usuario autenticado. Responde 400 con mensaje en español si el formato es inválido.
+ * Solo para el rol PreparadorFisico. Actualiza y normaliza el número de WhatsApp de la cuenta del token (claim `sub`). Responde 400 con mensaje en español si el formato es inválido y 403 si el token es de un atleta.
  */
 export const updateWhatsAppPhone = <ThrowOnError extends boolean = false>(options: Options<UpdateWhatsAppPhoneData, ThrowOnError>): RequestResult<UpdateWhatsAppPhoneResponses, UpdateWhatsAppPhoneErrors, ThrowOnError> => (options.client ?? client).put<UpdateWhatsAppPhoneResponses, UpdateWhatsAppPhoneErrors, ThrowOnError>({
     responseType: 'json',
@@ -62,6 +62,18 @@ export const updateWhatsAppPhone = <ThrowOnError extends boolean = false>(option
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Obtener el WhatsApp del preparador físico del atleta
+ *
+ * Solo para el rol Atleta. Devuelve el número de WhatsApp de su preparador físico, tomado del claim `pf_id` del token, así que no se puede pedir el de otro PF. Responde 404 si el PF todavía no cargó su número.
+ */
+export const getPfContact = <ThrowOnError extends boolean = false>(options?: Options<GetPfContactData, ThrowOnError>): RequestResult<GetPfContactResponses, GetPfContactErrors, ThrowOnError> => (options?.client ?? client).get<GetPfContactResponses, GetPfContactErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/pf-contact',
+    ...options
 });
 
 /**

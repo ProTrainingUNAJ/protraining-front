@@ -6,6 +6,7 @@ import { SearchBar } from './SearchBar';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationsButton } from './NotificationsButton';
 import { CalendarButton } from './CalendarButton';
+import { ContactPfButton } from '../athlete/ContactPfButton';
 
 interface AppShellProps {
   role: 'pf' | 'athlete';
@@ -84,6 +85,9 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
 
               {/* Botón de notificaciones (Centro de Avisos exclusivo para PF) */}
               {role === 'pf' && <NotificationsButton />}
+
+              {/* Botón de WhatsApp para el atleta (solo si el PF tiene número) */}
+              {role === 'athlete' && <ContactPfButton />}
 
               {/* Botón de calendario */}
               <CalendarButton />

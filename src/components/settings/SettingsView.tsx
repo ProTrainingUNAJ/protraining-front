@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
+import { usersService } from '../../api/users';
 import {
   subscribeUserToPush,
   unsubscribeUserFromPush,
@@ -43,7 +44,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const [email, setEmail] = useState(
     user?.email || (role === 'pf' ? 'coach@protraining.com' : 'atleta@protraining.com'),
   );
-  const [phone, setPhone] = useState('+54 11 4567-8900');
+  const [phone, setPhone] = useState(
+    user?.phoneNumber || (role === 'pf' ? '' : '+54 11 4567-8900'),
+  );
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneSaving, setPhoneSaving] = useState(false);
   const [emergencyContact, setEmergencyContact] = useState('Dra. Laura Rossi (+54 11 9876-5432)');
 
   // Notification toggles
@@ -121,12 +126,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => {
-      setSavedSuccess(false);
-    }, 3000);
+    setPhoneError(null);
+
+    if (role === 'pf') {
+      try {
+        setPhoneSaving(true);
+        const result = await usersService.updateWhatsAppPhone(phone);
+        // Si sale bien, mostramos el número normalizado devuelto (ej: 5491123456789)
+        setPhone(result.phoneNumber);
+        setSavedSuccess(true);
+        setTimeout(() => {
+          setSavedSuccess(false);
+        }, 3000);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Error al guardar el teléfono';
+        setPhoneError(errorMsg);
+      } finally {
+        setPhoneSaving(false);
+      }
+    } else {
+      setSavedSuccess(true);
+      setTimeout(() => {
+        setSavedSuccess(false);
+      }, 3000);
+    }
   };
 
   return (
@@ -140,10 +165,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
             type="button"
             className="btn btn-primary"
             onClick={handleSave}
+            disabled={phoneSaving}
             title="Guardar preferencias del sistema"
           >
             <Save size={16} aria-hidden="true" />
-            <span>Guardar Cambios</span>
+            <span>{phoneSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
           </button>
         }
       />
@@ -408,14 +434,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       marginBottom: '0.35rem',
                     }}
                   >
-                    Teléfono de Contacto
+                    {role === 'pf' ? 'WhatsApp' : 'Teléfono de Contacto'}
                   </label>
                   <input
                     id="set-phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (phoneError) setPhoneError(null);
+                    }}
+                    placeholder={role === 'pf' ? '+54 9 11 2345-6789' : '+54 11 4567-8900'}
                   />
+                  {role === 'pf' && phoneError && (
+                    <span
+                      style={{
+                        display: 'block',
+                        color: 'var(--danger-text)',
+                        fontSize: '0.85rem',
+                        marginTop: '0.35rem',
+                      }}
+                      role="alert"
+                    >
+                      {phoneError}
+                    </span>
+                  )}
                 </div>
 
                 <div>
