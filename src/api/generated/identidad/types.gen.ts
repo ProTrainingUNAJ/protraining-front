@@ -83,6 +83,13 @@ export type UpdatePhoneResponse = {
     phoneNumber: string;
 };
 
+export type PfContact = {
+    /**
+     * Número de WhatsApp del preparador físico (solo dígitos, con código de país).
+     */
+    phoneNumber: string;
+};
+
 export type HealthStatus = {
     status: string;
     database?: string;
@@ -173,6 +180,10 @@ export type UpdateWhatsAppPhoneErrors = {
      * No autenticado o token inválido.
      */
     401: ProblemDetails;
+    /**
+     * El token no es de un preparador físico (por ejemplo, el de un atleta).
+     */
+    403: unknown;
 };
 
 export type UpdateWhatsAppPhoneError = UpdateWhatsAppPhoneErrors[keyof UpdateWhatsAppPhoneErrors];
@@ -185,6 +196,39 @@ export type UpdateWhatsAppPhoneResponses = {
 };
 
 export type UpdateWhatsAppPhoneResponse = UpdateWhatsAppPhoneResponses[keyof UpdateWhatsAppPhoneResponses];
+
+export type GetPfContactData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/pf-contact';
+};
+
+export type GetPfContactErrors = {
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * El token no es de un atleta.
+     */
+    403: unknown;
+    /**
+     * El preparador físico todavía no cargó su número de WhatsApp.
+     */
+    404: ProblemDetails;
+};
+
+export type GetPfContactError = GetPfContactErrors[keyof GetPfContactErrors];
+
+export type GetPfContactResponses = {
+    /**
+     * Número de WhatsApp del preparador físico.
+     */
+    200: PfContact;
+};
+
+export type GetPfContactResponse = GetPfContactResponses[keyof GetPfContactResponses];
 
 export type HealthCheckData = {
     body?: never;

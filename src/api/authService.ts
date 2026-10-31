@@ -32,6 +32,7 @@ export const authService = {
         fullName: data.user.fullName,
         role: data.user.role,
         pfId: data.user.pfId ?? null,
+        phoneNumber: data.user.phoneNumber ?? null,
       },
     };
 
