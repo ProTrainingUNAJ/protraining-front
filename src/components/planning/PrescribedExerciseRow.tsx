@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { DraftExercise } from '../../types/trainingPlans';
 import { PERCENTAGE_MAX } from '../../utils/planDraft';
 
@@ -7,6 +7,7 @@ interface PrescribedExerciseRowProps {
   disabled: boolean;
   onChange: (changes: Partial<DraftExercise>) => void;
   onRemove: () => void;
+  onSwap?: () => void;
   // Sin callback, la flecha queda deshabilitada (el primero no sube y el último no baja).
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -23,6 +24,7 @@ export function PrescribedExerciseRow({
   disabled,
   onChange,
   onRemove,
+  onSwap,
   onMoveUp,
   onMoveDown,
 }: PrescribedExerciseRowProps) {
@@ -104,6 +106,19 @@ export function PrescribedExerciseRow({
           aria-label={`Porcentaje del máximo de ${label}`}
         />
       </label>
+
+      {onSwap && (
+        <button
+          type="button"
+          className="plan-icon-btn"
+          onClick={onSwap}
+          disabled={disabled}
+          aria-label={`Cambiar ${label}`}
+          title="Cambiar ejercicio"
+        >
+          <ArrowLeftRight size={16} aria-hidden="true" />
+        </button>
+      )}
 
       <button
         type="button"

@@ -15,6 +15,7 @@ interface WeekSectionProps {
   onSessionChange: (sessionKey: string, update: (session: DraftSession) => DraftSession) => void;
   onRemoveSession: (sessionKey: string) => void;
   onAddExercise: (sessionKey: string) => void;
+  onSwapExercise?: (sessionKey: string, exerciseKey: string) => void;
   onMoveSession: (sessionKey: string, direction: MoveDirection) => void;
 }
 
@@ -29,6 +30,7 @@ export function WeekSection({
   onSessionChange,
   onRemoveSession,
   onAddExercise,
+  onSwapExercise,
   onMoveSession,
 }: WeekSectionProps) {
   // Se muestran por día (lunes primero) y, dentro del día, por orden. Si hay dos o más el
@@ -90,6 +92,11 @@ export function WeekSection({
                   onChange={(update) => onSessionChange(session.key, update)}
                   onRemove={() => onRemoveSession(session.key)}
                   onAddExercise={() => onAddExercise(session.key)}
+                  onSwapExercise={
+                    onSwapExercise
+                      ? (exerciseKey) => onSwapExercise(session.key, exerciseKey)
+                      : undefined
+                  }
                   showMove={siblings.length > 1}
                   onMoveUp={position > 0 ? () => onMoveSession(session.key, -1) : undefined}
                   onMoveDown={

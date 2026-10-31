@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Check, Loader2, Plus, Save, UserPlus } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { WeekSection } from '../../components/planning/WeekSection';
@@ -25,6 +25,7 @@ interface PickerTarget {
 
 export function PlanEditorPage() {
   const { planId = '' } = useParams();
+  const location = useLocation();
 
   const [draft, setDraft] = useState<PlanDraft | null>(null);
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
@@ -33,6 +34,9 @@ export function PlanEditorPage() {
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(
+    (location.state as { warning?: string } | null)?.warning ?? null,
+  );
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
   const [showAssign, setShowAssign] = useState(false);
 
@@ -260,6 +264,23 @@ export function PlanEditorPage() {
               className="plan-icon-btn"
               onClick={() => setError(null)}
               aria-label="Cerrar error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {warningMessage && (
+          <div className="alert-banner warning" role="status">
+            <span className="plan-inline">
+              <AlertCircle size={18} aria-hidden="true" />
+              {warningMessage}
+            </span>
+            <button
+              type="button"
+              className="plan-icon-btn"
+              onClick={() => setWarningMessage(null)}
+              aria-label="Cerrar aviso"
             >
               ×
             </button>
