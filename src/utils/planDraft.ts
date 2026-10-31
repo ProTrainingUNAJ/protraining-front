@@ -166,3 +166,55 @@ export function validateDraft(draft: PlanDraft): string | null {
   }
   return null;
 }
+
+export type MoveDirection = -1 | 1;
+
+// Sube (-1) o baja (+1) un ejercicio dentro de su sesión (KAN-542). Intercambia la posición y
+// también los `order` de los dos ejercicios: así no aparece un orden repetido ni se reusa el de
+// uno que se quitó en el mismo guardado. Es el orden en que el atleta los ve en "Mi rutina".
+export function moveExercise(
+  session: DraftSession,
+  exerciseKey: string,
+  direction: MoveDirection,
+): DraftSession {
+  const from = session.exercises.findIndex((e) => e.key === exerciseKey);
+  const to = from + direction;
+  if (from < 0 || to < 0 || to >= session.exercises.length) return session;
+
+  const exercises = [...session.exercises];
+  const moving = exercises[from];
+  const other = exercises[to];
+  exercises[from] = { ...other, order: moving.order };
+  exercises[to] = { ...moving, order: other.order };
+  return { ...session, exercises };
+}
+
+// Sesiones del mismo día que `session`, en el orden en que se muestran.
+export function sameDaySessions(week: DraftWeek, dayOfWeek: number): DraftSession[] {
+  return week.sessions.filter((s) => s.dayOfWeek === dayOfWeek).sort((a, b) => a.order - b.order);
+}
+
+// Sube (-1) o baja (+1) una sesión entre las del mismo día (KAN-542): intercambia sus `order`.
+// Las de otros días no cambian, porque las sesiones se muestran por día.
+export function moveSession(
+  week: DraftWeek,
+  sessionKey: string,
+  direction: MoveDirection,
+): DraftWeek {
+  const session = week.sessions.find((s) => s.key === sessionKey);
+  if (!session) return week;
+
+  const siblings = sameDaySessions(week, session.dayOfWeek);
+  const index = siblings.findIndex((s) => s.key === sessionKey);
+  const other = siblings[index + direction];
+  if (!other) return week;
+
+  return {
+    ...week,
+    sessions: week.sessions.map((s) => {
+      if (s.key === session.key) return { ...s, order: other.order };
+      if (s.key === other.key) return { ...s, order: session.order };
+      return s;
+    }),
+  };
+}
