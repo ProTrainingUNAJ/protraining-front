@@ -15,6 +15,8 @@ import {
 } from '../components/monitoring/trafficLight.types';
 import { PROTRAINING_MUSCLES } from '../components/athlete/bodyMuscleData';
 import { Category } from '../types/structure';
+import type { AthleteWeek } from '../types/seguimiento';
+import { getAthleteWeek as getAthleteWeekRequest } from './generated/seguimiento';
 
 export interface CheckInSubmitRequest {
   sleepHours: number;
@@ -525,6 +527,27 @@ export async function getDailyLoad(athleteId: string): Promise<DailyLoadSubmitRe
     `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
   );
   return response.data;
+}
+
+// ---------------------------------------------------------------------------
+// Semana del atleta con los días completados (KAN-446)
+// ---------------------------------------------------------------------------
+
+/**
+ * Obtiene la semana del atleta (lun→dom) marcando los días con carga del día.
+ * GET `/api/v1/athletes/{athleteId}/daily-load/week`.
+ */
+export async function getAthleteWeek(athleteId: string, date?: string): Promise<AthleteWeek> {
+  try {
+    const { data } = await getAthleteWeekRequest({
+      path: { athleteId },
+      query: date ? { date } : undefined,
+      throwOnError: true,
+    });
+    return data;
+  } catch (error) {
+    throw new Error(extractErrorMessage(error), { cause: error });
+  }
 }
 
 // ---------------------------------------------------------------------------

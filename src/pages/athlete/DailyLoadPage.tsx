@@ -16,9 +16,12 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import {
   submitDailyLoad,
   getDailyLoad,
+  getAthleteWeek,
   DailyLoadSubmitRequest,
   DailyLoadSubmitResponse,
 } from '../../api/seguimientoService';
+import type { AthleteWeek } from '../../types/seguimiento';
+import { WeekCompletionStrip } from '../../components/athlete/WeekCompletionStrip';
 import { structureService } from '../../api/structureService';
 import './DailyLoadPage.css';
 
@@ -125,6 +128,24 @@ export const DailyLoadPage: React.FC = () => {
   const [todayError, setTodayError] = useState<string | null>(null);
   const [is404, setIs404] = useState(false);
 
+  // ---- Semana del atleta con días completados (KAN-446) ----
+  const [week, setWeek] = useState<AthleteWeek | null>(null);
+  const [isLoadingWeek, setIsLoadingWeek] = useState(false);
+
+  const fetchWeek = useCallback(async (id: string) => {
+    if (!id) return;
+    setIsLoadingWeek(true);
+    try {
+      const data = await getAthleteWeek(id);
+      setWeek(data);
+    } catch (err) {
+      console.error('No se pudo obtener la semana del atleta', err);
+      setWeek(null);
+    } finally {
+      setIsLoadingWeek(false);
+    }
+  }, []);
+
   const fetchTodayLoad = useCallback(async (id: string) => {
     if (!id) return;
     setIsLoadingToday(true);
@@ -145,6 +166,19 @@ export const DailyLoadPage: React.FC = () => {
       setIsLoadingToday(false);
     }
   }, []);
+
+  // Carga de la semana al tener athleteId
+  useEffect(() => {
+    if (!athleteId) return;
+    let isMounted = true;
+    const timer = setTimeout(() => {
+      if (isMounted) void fetchWeek(athleteId);
+    }, 0);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [athleteId, fetchWeek]);
 
   // Carga inicial / al cambiar de modo
   useEffect(() => {
@@ -230,6 +264,7 @@ export const DailyLoadPage: React.FC = () => {
       const response = await submitDailyLoad(athleteId, payload);
       setResult(response);
       setTodayLoad(response);
+      void fetchWeek(athleteId);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al registrar la carga del día.';
       setErrorMessage(msg);
@@ -299,6 +334,17 @@ export const DailyLoadPage: React.FC = () => {
             {athleteResolutionError}
           </div>
         )}
+
+        {/* Tira de la semana con los días completados (KAN-446) */}
+        <div className="dl-week">
+          <p className="dl-week-title">Tu semana</p>
+          <WeekCompletionStrip days={week?.days ?? []} isLoading={isLoadingWeek} />
+          {!isLoadingWeek && (!week || week.days.length === 0) && (
+            <p className="dl-week-empty">
+              No se pudo cargar la semana. Reintentá en unos segundos.
+            </p>
+          )}
+        </div>
 
         {/* Toggle Registrar / Ver carga de hoy */}
         <div className="dl-toggle">
