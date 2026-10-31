@@ -37,6 +37,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
 }) => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<PlannedSessionWithTime[]>([]);
+  const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
 
   // Load planned training sessions for this specific date
   useEffect(() => {
@@ -78,8 +79,15 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const handleDeleteMatch = (matchId: string) => {
-    matchService.deleteMatch(matchId);
+  const handleDeleteMatch = async (categoryId: string, matchId: string) => {
+    try {
+      setDeletingMatchId(matchId);
+      await matchService.deleteMatch(categoryId, matchId);
+    } catch {
+      // Error manejado en servicio
+    } finally {
+      setDeletingMatchId(null);
+    }
   };
 
   const handleOpenPlanEditor = (planId: string) => {
@@ -200,7 +208,8 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                           className="season-calendar-quick-add-btn"
                           style={{ display: 'inline-flex' }}
                           title="Eliminar partido"
-                          onClick={() => handleDeleteMatch(m.id)}
+                          onClick={() => void handleDeleteMatch(m.categoryId, m.id)}
+                          disabled={deletingMatchId === m.id}
                           aria-label="Eliminar partido"
                         >
                           <Trash2 size={14} />

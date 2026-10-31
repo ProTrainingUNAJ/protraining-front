@@ -86,16 +86,20 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
       return;
     }
 
-    // Combine date & time into ISO string
-    const [year, month, day] = matchDate.split('-').map(Number);
-    const [hours, minutes] = (matchTime || '00:00').split(':').map(Number);
-    const combinedDate = new Date(year, month - 1, day, hours, minutes, 0);
+    // Formatear startTime como HH:mm:ss preservando la hora exacta seleccionada por el PF sin conversión UTC
+    const formattedStartTime = matchTime
+      ? matchTime.length === 5
+        ? `${matchTime}:00`
+        : matchTime
+      : '12:00:00';
 
     setIsSubmitting(true);
     try {
       const created = await matchService.createMatch(categoryId, {
         opponent: opponent.trim(),
-        matchDate: combinedDate.toISOString(),
+        date: matchDate,
+        startTime: formattedStartTime,
+        matchDate: `${matchDate}T${formattedStartTime}`,
         homeOrAway,
         notes: notes.trim() || null,
       });

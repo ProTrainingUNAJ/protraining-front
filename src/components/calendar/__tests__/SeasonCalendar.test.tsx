@@ -6,23 +6,32 @@ import { SeasonCalendarView } from '../SeasonCalendarView';
 import { matchService } from '../../../services/matchService';
 import { Category, Match } from '../../../types/structure';
 
-vi.mock('../../../api/structureService', () => ({
-  structureService: {
-    getCategoryMatches: vi.fn().mockImplementation(() => {
-      // Returns items in localStorage to simulate persistent backend
-      try {
-        const raw = localStorage.getItem('protraining_season_matches_v1');
-        return Promise.resolve(raw ? JSON.parse(raw) : []);
-      } catch {
-        return Promise.resolve([]);
-      }
-    }),
+vi.mock('../../../api/matches', () => ({
+  matchesApi: {
+    getCategoryMatches: vi.fn().mockResolvedValue([]),
     createCategoryMatch: vi.fn().mockImplementation((catId, data) =>
       Promise.resolve({
         id: 'test-match-123',
         categoryId: catId,
         opponent: data.opponent,
-        matchDate: data.matchDate,
+        matchDate: data.matchDate || `${data.date}T${data.startTime || '12:00:00'}`,
+        homeOrAway: data.homeOrAway,
+        notes: data.notes,
+      }),
+    ),
+    deleteCategoryMatch: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
+vi.mock('../../../api/structureService', () => ({
+  structureService: {
+    getCategoryMatches: vi.fn().mockResolvedValue([]),
+    createCategoryMatch: vi.fn().mockImplementation((catId, data) =>
+      Promise.resolve({
+        id: 'test-match-123',
+        categoryId: catId,
+        opponent: data.opponent,
+        matchDate: data.matchDate || `${data.date}T${data.startTime || '12:00:00'}`,
         homeOrAway: data.homeOrAway,
         notes: data.notes,
       }),
