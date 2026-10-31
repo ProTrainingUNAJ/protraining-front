@@ -14,7 +14,8 @@ interface AthleteRecordsModalProps {
 const ORIGIN_LABELS: Record<RecordOrigin, string> = {
   TestedInSession: 'Testeado',
   Reported: 'Reportado',
-  EstimatedEpley: 'Estimado',
+  EstimatedEpley: 'Estimado por Epley',
+  Epley: 'Estimado por Epley',
 };
 
 const WEIGHT_MAX_KG = 500;

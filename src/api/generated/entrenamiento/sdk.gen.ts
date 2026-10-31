@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
+import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -86,6 +86,44 @@ export const saveRecord = <ThrowOnError extends boolean = false>(options: Option
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Listar propuestas de récord
+ *
+ * Devuelve las propuestas de récord de Epley de los atletas del PF autenticado (filtro por pf_id), con el atleta, el ejercicio, el récord vigente, el propuesto, la serie que lo originó y la fecha.
+ *
+ */
+export const listRecordProposals = <ThrowOnError extends boolean = false>(options?: Options<ListRecordProposalsData, ThrowOnError>): RequestResult<ListRecordProposalsResponses, ListRecordProposalsErrors, ThrowOnError> => (options?.client ?? client).get<ListRecordProposalsResponses, ListRecordProposalsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/record-proposals',
+    ...options
+});
+
+/**
+ * Aprobar propuesta de récord Epley
+ *
+ * Desactiva el récord vigente del atleta y crea uno nuevo con el peso propuesto y origen Epley. Si el récord vigente cambió desde que se creó la propuesta, o si la propuesta ya no está pendiente, responde 409.
+ *
+ */
+export const approveRecordProposal = <ThrowOnError extends boolean = false>(options: Options<ApproveRecordProposalData, ThrowOnError>): RequestResult<ApproveRecordProposalResponses, ApproveRecordProposalErrors, ThrowOnError> => (options.client ?? client).post<ApproveRecordProposalResponses, ApproveRecordProposalErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/record-proposals/{id}/approve',
+    ...options
+});
+
+/**
+ * Descartar propuesta de récord Epley
+ *
+ * Deja la propuesta en estado Discarded sin modificar el récord vigente. Aprobar o descartar una propuesta que ya no está pendiente responde 409.
+ *
+ */
+export const discardRecordProposal = <ThrowOnError extends boolean = false>(options: Options<DiscardRecordProposalData, ThrowOnError>): RequestResult<DiscardRecordProposalResponses, DiscardRecordProposalErrors, ThrowOnError> => (options.client ?? client).post<DiscardRecordProposalResponses, DiscardRecordProposalErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/record-proposals/{id}/discard',
+    ...options
 });
 
 /**

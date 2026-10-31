@@ -1,5 +1,5 @@
 // Récord (1RM) de un atleta en un ejercicio, como lo muestra el PF.
-export type RecordOrigin = 'TestedInSession' | 'Reported' | 'EstimatedEpley';
+export type RecordOrigin = 'TestedInSession' | 'Reported' | 'EstimatedEpley' | 'Epley';
 
 export interface AthleteRecordItem {
   id: string;
