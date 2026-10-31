@@ -11,12 +11,14 @@ import {
   Search,
   Dumbbell,
   HeartPulse,
+  QrCode,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
+import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -47,6 +49,7 @@ export const AthletesPage: React.FC = () => {
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
+  const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
   const [updatingCategory, setUpdatingCategory] = useState(false);
 
   // 1. Cargar atletas y categorías
@@ -236,6 +239,20 @@ export const AthletesPage: React.FC = () => {
         description="Plantel deportivo, fichas médicas y asignación de divisiones."
         actions={
           <>
+            {selectedCategoryId && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  const cat = categories.find((c) => c.id === selectedCategoryId);
+                  if (cat) setInvitingCategory(cat);
+                }}
+                title="Invitar atletas a la categoría seleccionada"
+              >
+                <QrCode size={16} aria-hidden="true" />
+                <span>Invitar Atletas</span>
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-secondary"
@@ -898,6 +915,14 @@ export const AthletesPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {invitingCategory && (
+        <CategoryInvitationModal
+          categoryId={invitingCategory.id}
+          categoryName={invitingCategory.name}
+          onClose={() => setInvitingCategory(null)}
+        />
       )}
     </div>
   );

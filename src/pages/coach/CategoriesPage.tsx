@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Layers, Plus, RefreshCw, Check, AlertCircle, Users } from 'lucide-react';
+import { Layers, Plus, RefreshCw, Check, AlertCircle, Users, QrCode } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Organization, Category } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 
 export const CategoriesPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,6 +19,7 @@ export const CategoriesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
 
   // Campos de creación
   const [name, setName] = useState('');
@@ -506,10 +508,21 @@ export const CategoriesPage: React.FC = () => {
                   style={{
                     display: 'flex',
                     justifyContent: 'flex-end',
+                    gap: '0.5rem',
                     paddingTop: '0.75rem',
                     borderTop: '1px solid var(--border)',
                   }}
                 >
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setInvitingCategory(cat)}
+                    aria-label={`Invitar atletas a ${cat.name}`}
+                  >
+                    <QrCode size={14} aria-hidden="true" />
+                    <span>Invitar Atletas</span>
+                  </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
@@ -525,6 +538,14 @@ export const CategoriesPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {invitingCategory && (
+        <CategoryInvitationModal
+          categoryId={invitingCategory.id}
+          categoryName={invitingCategory.name}
+          onClose={() => setInvitingCategory(null)}
+        />
+      )}
     </div>
   );
 };

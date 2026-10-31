@@ -33,3 +33,27 @@ export function formatIsoDate(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
   return year && month && day ? `${day}/${month}/${year}` : isoDate;
 }
+
+// Formatea un instante en hora de Argentina como "DD/MM/AAAA a las HH:mm hs" (KAN-400).
+export function formatInvitationExpiration(isoDateTime: string | Date): string {
+  const date = new Date(isoDateTime);
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+
+  const datePart = new Intl.DateTimeFormat('es-AR', {
+    timeZone: ARGENTINA_TIME_ZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+
+  const timePart = new Intl.DateTimeFormat('es-AR', {
+    timeZone: ARGENTINA_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+
+  return `${datePart} a las ${timePart} hs`;
+}
