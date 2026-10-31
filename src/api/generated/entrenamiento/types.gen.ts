@@ -425,6 +425,11 @@ export type ListExercisesData = {
          */
         usedByPf?: boolean;
         /**
+         * Ejercicios puntuales por id (`?ids=a&ids=b`, hasta 100), por ejemplo para que el Asistente verifique que los ejercicios de un borrador existen en el catálogo (KAN-414). Si viene, se ignoran los demás filtros.
+         *
+         */
+        ids?: Array<string>;
+        /**
          * Si es true, devuelve solo los ejercicios base, cada uno con sus variantes en `variants` (KAN-554). Un ejercicio base aparece si él o alguna de sus variantes cumple los filtros. Si es false, la lista es plana: base y variantes como ejercicios sueltos, cada variante con `parentExerciseId` y `variantLabel`.
          *
          */
