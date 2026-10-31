@@ -4,7 +4,7 @@ import * as generatedApi from '../generated/estructura';
 
 vi.mock('../generated/estructura', async () => {
   return {
-    getAthleteMedicalRecord: vi.fn(),
+    accessAthleteMedicalRecord: vi.fn(),
     updateAthleteMedicalRecord: vi.fn(),
     listAthleteMedicalRecordAuditLogs: vi.fn(),
   };
@@ -16,7 +16,7 @@ describe('medicalRecordService (KAN-326)', () => {
   });
 
   describe('getMedicalRecord', () => {
-    it('obtiene la ficha médica declarando la justificación obligatoria en query param', async () => {
+    it('obtiene la ficha médica declarando la justificación obligatoria en el body mediante POST', async () => {
       const mockRecord = {
         id: 'rec-1',
         athleteId: 'ath-1',
@@ -24,7 +24,7 @@ describe('medicalRecordService (KAN-326)', () => {
         medicalHistory: 'Asma leve',
       };
 
-      vi.mocked(generatedApi.getAthleteMedicalRecord).mockResolvedValue({
+      vi.mocked(generatedApi.accessAthleteMedicalRecord).mockResolvedValue({
         data: mockRecord,
       } as never);
 
@@ -33,9 +33,9 @@ describe('medicalRecordService (KAN-326)', () => {
         'Control de aptitud física',
       );
 
-      expect(generatedApi.getAthleteMedicalRecord).toHaveBeenCalledWith({
+      expect(generatedApi.accessAthleteMedicalRecord).toHaveBeenCalledWith({
         path: { id: 'ath-1' },
-        query: { justification: 'Control de aptitud física' },
+        body: { justification: 'Control de aptitud física' },
         throwOnError: true,
       });
       expect(result).toEqual(mockRecord);
@@ -45,7 +45,7 @@ describe('medicalRecordService (KAN-326)', () => {
       await expect(medicalRecordService.getMedicalRecord('ath-1', '   ')).rejects.toThrow(
         'La justificación para acceder a la ficha médica es obligatoria.',
       );
-      expect(generatedApi.getAthleteMedicalRecord).not.toHaveBeenCalled();
+      expect(generatedApi.accessAthleteMedicalRecord).not.toHaveBeenCalled();
     });
   });
 

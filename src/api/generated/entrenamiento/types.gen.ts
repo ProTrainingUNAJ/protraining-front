@@ -4,6 +4,34 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8083' | 'http://entrenamiento:8080' | (string & {});
 };
 
+export type ImportRecordPreviewRow = {
+    rowNumber?: number;
+    athleteName?: string;
+    exerciseName?: string;
+    weightText?: string;
+    dateText?: string | null;
+    sourceText?: string | null;
+    status?: 'Ok' | 'AthleteNotFound' | 'ExerciseNotFound' | 'InvalidWeight';
+    message?: string;
+    athleteId?: string | null;
+    exerciseId?: string | null;
+    weightOneRepMaxKg?: number | null;
+    achievedAt?: string | null;
+    origin?: string | null;
+};
+
+export type ConfirmImportRecordRow = {
+    athleteId: string;
+    exerciseId: string;
+    weightOneRepMaxKg: number;
+    achievedAt?: string | null;
+    origin?: string | null;
+};
+
+export type ConfirmImportRecordsRequest = {
+    rows: Array<ConfirmImportRecordRow>;
+};
+
 export type CheckExerciseRestrictionsRequest = {
     /**
      * Zonas de dolor reportadas en el check-in (formato "zona:nivel" separadas por comas).
@@ -83,6 +111,10 @@ export type Exercise = {
      */
     images?: Array<string>;
     /**
+     * Origen del ejercicio (Catálogo inicial, cargado por el PF o propuesto por la IA).
+     */
+    origin?: 'Catalog' | 'Coach' | 'Ai';
+    /**
      * Si el ejercicio es una variante, el id de su ejercicio base (KAN-554). Es null en los ejercicios base.
      */
     parentExerciseId?: string | null;
@@ -95,6 +127,16 @@ export type Exercise = {
      *
      */
     variants?: Array<Exercise> | null;
+};
+
+export type CreateExerciseRequest = {
+    name: string;
+    muscleGroup: string;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    equipment?: string | null;
+    instructions?: string | null;
+    origin?: 'Catalog' | 'Coach' | 'Ai';
 };
 
 /**
@@ -484,6 +526,48 @@ export type ListExercisesResponses = {
 };
 
 export type ListExercisesResponse = ListExercisesResponses[keyof ListExercisesResponses];
+
+export type CreateExerciseData = {
+    body: CreateExerciseRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/exercises';
+};
+
+export type CreateExerciseErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Ya existe un ejercicio con ese nombre para este preparador físico o en el catálogo global.
+     */
+    409: {
+        /**
+         * Identificador del ejercicio existente.
+         */
+        id?: string;
+    };
+};
+
+export type CreateExerciseError = CreateExerciseErrors[keyof CreateExerciseErrors];
+
+export type CreateExerciseResponses = {
+    /**
+     * Ejercicio creado exitosamente.
+     */
+    201: Exercise;
+};
+
+export type CreateExerciseResponse = CreateExerciseResponses[keyof CreateExerciseResponses];
 
 export type CheckExerciseRestrictionsData = {
     body: CheckExerciseRestrictionsRequest;
@@ -1361,3 +1445,76 @@ export type HealthCheckResponses = {
 };
 
 export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];
+
+export type PreviewRecordsImportData = {
+    body: {
+        file: Blob | File;
+        athleteColumn: string;
+        exerciseColumn: string;
+        weightColumn: string;
+        dateColumn?: string;
+        sourceColumn?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/records/import/preview';
+};
+
+export type PreviewRecordsImportErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type PreviewRecordsImportError = PreviewRecordsImportErrors[keyof PreviewRecordsImportErrors];
+
+export type PreviewRecordsImportResponses = {
+    /**
+     * Vista previa generada.
+     */
+    200: Array<ImportRecordPreviewRow>;
+};
+
+export type PreviewRecordsImportResponse = PreviewRecordsImportResponses[keyof PreviewRecordsImportResponses];
+
+export type ConfirmRecordsImportData = {
+    body: ConfirmImportRecordsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/records/import/confirm';
+};
+
+export type ConfirmRecordsImportErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ConfirmRecordsImportError = ConfirmRecordsImportErrors[keyof ConfirmRecordsImportErrors];
+
+export type ConfirmRecordsImportResponses = {
+    /**
+     * Récords importados.
+     */
+    200: Array<Record>;
+};
+
+export type ConfirmRecordsImportResponse = ConfirmRecordsImportResponses[keyof ConfirmRecordsImportResponses];

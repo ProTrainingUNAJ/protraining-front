@@ -1,5 +1,5 @@
 import {
-  getAthleteMedicalRecord,
+  accessAthleteMedicalRecord,
   updateAthleteMedicalRecord,
   listAthleteMedicalRecordAuditLogs,
 } from './generated/estructura';
@@ -12,7 +12,7 @@ import {
 
 export const medicalRecordService = {
   /**
-   * Retrieves athlete medical record requiring an explicit justification (KAN-325).
+   * Retrieves athlete medical record requiring an explicit justification via POST /access (KAN-325).
    * Records an immutable access entry in the audit log table.
    */
   async getMedicalRecord(athleteId: string, justification: string): Promise<MedicalRecord> {
@@ -22,9 +22,9 @@ export const medicalRecordService = {
     }
 
     try {
-      const { data } = await getAthleteMedicalRecord({
+      const { data } = await accessAthleteMedicalRecord({
         path: { id: athleteId },
-        query: { justification: trimmed },
+        body: { justification: trimmed },
         throwOnError: true,
       });
       return data as MedicalRecord;
