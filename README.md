@@ -103,6 +103,12 @@ Excepciones: `pf` (preparador físico), en la ruta `/pf` y en `PF`.
 - Van en una carpeta `__tests__` al lado del código que prueban, con nombre `<archivo>.test.ts`: por ejemplo `utils/__tests__/exerciseMuscleMapper.test.ts`.
 - Se prueba la lógica que no es visual (traducciones, cálculos, mapeos). Corren en el CI: si un test falla, el PR no pasa.
 
+### Dependencias destacadas
+
+- **`qrcode.react`**: Utilizada para renderizar códigos QR vectoriales (SVG), permitiendo proyectar invitaciones y compartirlas de forma autónoma con los atletas.
+- **`lucide-react`**: Íconos de interfaz.
+- **`recharts`**: Gráficos y métricas de seguimiento.
+
 ### Git
 
 - La rama sale de `develop` y se llama `feature/KAN-XXX-descripcion` (o `fix/`, `refactor/`, `chore/`).
