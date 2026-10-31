@@ -78,4 +78,24 @@ describe('SessionCard', () => {
 
     expect(screen.queryByLabelText('Subir la sesión Fuerza')).toBeNull();
   });
+
+  it('llama a onSwapExercise al hacer clic en cambiar ejercicio (KAN-413)', () => {
+    const onSwapExercise = vi.fn();
+    render(
+      <SessionCard
+        session={session}
+        disabled={false}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
+        onAddExercise={vi.fn()}
+        onSwapExercise={onSwapExercise}
+      />,
+    );
+
+    const swapButton = screen.getByLabelText('Cambiar Sentadilla');
+    expect(swapButton).toBeTruthy();
+    fireEvent.click(swapButton);
+
+    expect(onSwapExercise).toHaveBeenCalledWith('squat');
+  });
 });

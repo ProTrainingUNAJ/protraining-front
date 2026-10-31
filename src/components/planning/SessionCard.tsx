@@ -9,6 +9,7 @@ interface SessionCardProps {
   onChange: (update: (session: DraftSession) => DraftSession) => void;
   onRemove: () => void;
   onAddExercise: () => void;
+  onSwapExercise?: (exerciseKey: string) => void;
   // Flechas de la sesión: solo cuando hay dos o más el mismo día (KAN-542). Sin callback, la flecha
   // queda deshabilitada; si no viene ninguna de las dos, no se muestran.
   onMoveUp?: () => void;
@@ -24,6 +25,7 @@ export function SessionCard({
   onChange,
   onRemove,
   onAddExercise,
+  onSwapExercise,
   onMoveUp,
   onMoveDown,
   showMove = false,
@@ -120,6 +122,7 @@ export function SessionCard({
               disabled={disabled}
               onChange={(changes) => updateExercise(exercise.key, changes)}
               onRemove={() => removeExercise(exercise.key)}
+              onSwap={onSwapExercise ? () => onSwapExercise(exercise.key) : undefined}
               onMoveUp={
                 index > 0
                   ? () => onChange((current) => moveExercise(current, exercise.key, -1))
