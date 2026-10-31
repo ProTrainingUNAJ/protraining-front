@@ -74,3 +74,373 @@
   margin-top: 0.35rem;
   text-align: left;
 }
+
+/* ── Tarjetas de aprobación de récords Epley para el PF (#099 / KAN-394) ── */
+
+.epley-proposals-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.15rem;
+  box-sizing: border-box;
+}
+
+.epley-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-right: 4rem;
+}
+
+.epley-widget-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.epley-widget-icon {
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+}
+
+.epley-widget-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.epley-widget-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.epley-widget-badge {
+  background: var(--stat-amber-bg);
+  color: var(--stat-amber);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
+
+.epley-widget-alert {
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.epley-alert-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: inherit;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.epley-widget-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.epley-widget-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.epley-widget-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted);
+  height: 100%;
+}
+
+.epley-empty-icon {
+  color: var(--stat-green);
+  margin-bottom: 0.45rem;
+}
+
+.epley-widget-empty h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.epley-widget-empty p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  max-width: 280px;
+}
+
+.epley-widget-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Tarjeta individual de propuesta ── */
+.epley-proposal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.epley-proposal-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.epley-proposal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.epley-proposal-athlete-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.epley-proposal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  background: var(--primary-light);
+  color: var(--primary);
+  align-self: flex-start;
+}
+
+.epley-proposal-athlete-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.epley-proposal-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.epley-proposal-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.epley-proposal-exercise-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.epley-proposal-performed {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.epley-proposal-weights-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.epley-weight-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.epley-weight-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.epley-weight-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.epley-weight-val.highlight {
+  color: var(--stat-green);
+}
+
+.epley-weights-arrow {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.epley-increment-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--success-bg-strong);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+  padding: 0.25rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.epley-proposal-error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.epley-proposal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.epley-decision-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+}
+
+.epley-records-btn {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.epley-btn-discard {
+  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.epley-btn-approve {
+  background: var(--stat-green);
+  color: var(--white);
+  border-color: var(--stat-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.epley-btn-approve:hover:not(:disabled) {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+/* ── Banner destacado en el panel de control del PF ── */
+.epley-dashboard-banner {
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-blue);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.epley-dashboard-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.epley-dashboard-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.epley-dashboard-banner-title h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.epley-dashboard-banner-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.epley-dashboard-banner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.85rem;
+}

@@ -124,6 +124,23 @@ export type PaginatedExerciseResponse = {
 };
 
 /**
+ * Propuesta de actualización de récord 1RM basada en recálculo Epley.
+ */
+export type RecordProposal = {
+    id: string;
+    athleteId: string;
+    athleteName: string;
+    exerciseId: string;
+    exerciseName: string;
+    currentWeight: number;
+    proposedWeight: number;
+    performedWeight: number;
+    performedReps: number;
+    status: 'Pending' | 'Approved' | 'Discarded';
+    createdAt: string;
+};
+
+/**
  * Objeto compartido de Récord 1RM con trazabilidad.
  */
 export type Record = {
@@ -132,7 +149,7 @@ export type Record = {
     exerciseId: string;
     exerciseName: string;
     weightOneRepMaxKg: number;
-    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley';
+    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley' | 'Epley';
     achievedAt: string;
     isCurrent: boolean;
 };
@@ -140,7 +157,7 @@ export type Record = {
 export type SaveRecordRequest = {
     exerciseId: string;
     weightOneRepMaxKg: number;
-    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley';
+    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley' | 'Epley';
 };
 
 export type RoutineItemRequest = {
@@ -606,6 +623,124 @@ export type SaveRecordResponses = {
 };
 
 export type SaveRecordResponse = SaveRecordResponses[keyof SaveRecordResponses];
+
+export type ListRecordProposalsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filtrar por estado de la propuesta. Por defecto Pending.
+         */
+        status?: 'Pending' | 'Approved' | 'Discarded';
+    };
+    url: '/api/v1/record-proposals';
+};
+
+export type ListRecordProposalsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ListRecordProposalsError = ListRecordProposalsErrors[keyof ListRecordProposalsErrors];
+
+export type ListRecordProposalsResponses = {
+    /**
+     * Lista de propuestas de récord obtenida exitosamente.
+     */
+    200: Array<RecordProposal>;
+};
+
+export type ListRecordProposalsResponse = ListRecordProposalsResponses[keyof ListRecordProposalsResponses];
+
+export type ApproveRecordProposalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la propuesta de récord.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/record-proposals/{id}/approve';
+};
+
+export type ApproveRecordProposalErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type ApproveRecordProposalError = ApproveRecordProposalErrors[keyof ApproveRecordProposalErrors];
+
+export type ApproveRecordProposalResponses = {
+    /**
+     * Propuesta aprobada y récord actualizado exitosamente.
+     */
+    200: Record;
+};
+
+export type ApproveRecordProposalResponse = ApproveRecordProposalResponses[keyof ApproveRecordProposalResponses];
+
+export type DiscardRecordProposalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la propuesta de récord.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/record-proposals/{id}/discard';
+};
+
+export type DiscardRecordProposalErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type DiscardRecordProposalError = DiscardRecordProposalErrors[keyof DiscardRecordProposalErrors];
+
+export type DiscardRecordProposalResponses = {
+    /**
+     * Propuesta descartada exitosamente.
+     */
+    204: void;
+};
+
+export type DiscardRecordProposalResponse = DiscardRecordProposalResponses[keyof DiscardRecordProposalResponses];
 
 export type CreateRoutineData = {
     body: CreateRoutineRequest;

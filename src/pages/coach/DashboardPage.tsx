@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GripVertical, ChevronLeft, ChevronRight, ArrowRight, RotateCcw, Plus } from 'lucide-react';
+import {
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  RotateCcw,
+  Plus,
+  Flame,
+} from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
@@ -8,11 +16,16 @@ import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessio
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
+import { EpleyProposalsWidget } from '../../components/dashboard/EpleyProposalsWidget';
+import { RecordProposalCard } from '../../components/dashboard/RecordProposalCard';
+import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
 import {
   fetchAllCategoriesTrafficLight,
   summarizeTrafficLightCounts,
 } from '../../api/seguimientoService';
+import { recordProposalsService } from '../../api/recordProposals';
+import { RecordProposalItem } from '../../types/recordProposals';
 
 export type DashboardCardType =
   | 'empty'
@@ -21,7 +34,8 @@ export type DashboardCardType =
   | 'traffic-light-summary'
   | 'checkin-progress'
   | 'pain-alerts'
-  | 'progress-chart';
+  | 'progress-chart'
+  | 'epley-proposals';
 
 export interface WireframeCardItem {
   id: string;
@@ -65,7 +79,7 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
     className: 'wireframe-row-3',
     cards: [
       { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
-      { id: 'w-r3-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-epley', name: 'Propuestas de Récord Epley', colSpan: 1, type: 'epley-proposals' },
     ],
   },
   {
@@ -175,6 +189,20 @@ export const DashboardPage: React.FC = () => {
                 { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
               ];
             }
+            const hasEpley = parsed.some((r: DashboardRow) =>
+              r.cards.some((c: WireframeCardItem) => c.type === 'epley-proposals'),
+            );
+            if (!hasEpley) {
+              const row3 = parsed.find((r: DashboardRow) => r.id === 'row-3');
+              if (row3 && row3.cards.length >= 2 && row3.cards[1].type === 'empty') {
+                row3.cards[1] = {
+                  id: 'w-epley',
+                  name: 'Propuestas de Récord Epley',
+                  colSpan: 1,
+                  type: 'epley-proposals',
+                };
+              }
+            }
           }
           return parsed;
         }
@@ -223,6 +251,43 @@ export const DashboardPage: React.FC = () => {
     const completed = total - trafficLightCounts.gray;
     return { completed, total };
   }, [trafficLightCounts]);
+
+  // Propuestas de récord Epley para el PF (KAN-394 / #099)
+  const [pendingProposals, setPendingProposals] = useState<RecordProposalItem[]>([]);
+  const [recordsAthlete, setRecordsAthlete] = useState<{ id: string; name: string } | null>(null);
+  const [proposalsRefreshKey, setProposalsRefreshKey] = useState(0);
+
+  const refreshProposals = React.useCallback(() => {
+    setProposalsRefreshKey((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    if (isAthlete) return;
+    let active = true;
+
+    recordProposalsService
+      .listPending()
+      .then((data) => {
+        if (active) setPendingProposals(data);
+      })
+      .catch(() => {
+        if (active) setPendingProposals([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isAthlete, proposalsRefreshKey]);
+
+  const handleApproveProposal = async (id: string) => {
+    await recordProposalsService.approve(id);
+    setPendingProposals((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleDiscardProposal = async (id: string) => {
+    await recordProposalsService.discard(id);
+    setPendingProposals((prev) => prev.filter((p) => p.id !== id));
+  };
 
   // Persist rows and widgets layout to localStorage
   useEffect(() => {
@@ -358,6 +423,17 @@ export const DashboardPage: React.FC = () => {
         );
       case 'pain-alerts':
         return <PainAlertsWidget athletes={trafficLightItems} />;
+      case 'epley-proposals':
+        return (
+          <EpleyProposalsWidget
+            onOpenRecords={(athleteId, athleteName) =>
+              setRecordsAthlete({ id: athleteId, name: athleteName })
+            }
+            onCountChange={() => {
+              refreshProposals();
+            }}
+          />
+        );
       case 'progress-chart':
         return (
           <EvolutionChartWidget
@@ -538,6 +614,39 @@ export const DashboardPage: React.FC = () => {
         className="app-page-body wireframe-dashboard-container"
         style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
       >
+        {!isAthlete && pendingProposals.length > 0 && (
+          <section
+            className="epley-dashboard-banner"
+            aria-label="Propuestas pendientes de récord Epley"
+          >
+            <div className="epley-dashboard-banner-header">
+              <div className="epley-dashboard-banner-title">
+                <Flame size={20} style={{ color: 'var(--brand-blue)' }} aria-hidden="true" />
+                <div>
+                  <h3>Propuestas de nuevo récord Epley pendientes ({pendingProposals.length})</h3>
+                  <p className="epley-dashboard-banner-desc">
+                    Atletas que registraron series con 1RM estimado superior al vigente. Aprobá en 1
+                    clic para consolidar la nueva marca con origen Estimado por Epley.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="epley-dashboard-banner-grid">
+              {pendingProposals.map((proposal) => (
+                <RecordProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onApprove={handleApproveProposal}
+                  onDiscard={handleDiscardProposal}
+                  onViewRecords={(athleteId, athleteName) =>
+                    setRecordsAthlete({ id: athleteId, name: athleteName })
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {rows.map((row) => (
           <div key={row.id} className={`wireframe-row ${row.className}`}>
             {row.cards.map((card, cardIndex) => {
@@ -607,6 +716,16 @@ export const DashboardPage: React.FC = () => {
           </div>
         ))}
       </div>
+      {recordsAthlete && (
+        <AthleteRecordsModal
+          athleteId={recordsAthlete.id}
+          athleteName={recordsAthlete.name}
+          onClose={() => {
+            setRecordsAthlete(null);
+            refreshProposals();
+          }}
+        />
+      )}
     </div>
   );
 };
