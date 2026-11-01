@@ -13,6 +13,20 @@ export type LoginRequest = {
     deviceId: string;
 };
 
+export type RegisterByInvitationRequest = {
+    email: string;
+    password: string;
+    fullName: string;
+    /**
+     * Token de invitación de la categoría (emitido por Estructura).
+     */
+    token: string;
+    /**
+     * Identificador del dispositivo cliente (opcional).
+     */
+    deviceId?: string | null;
+};
+
 /**
  * Información del usuario autenticado.
  */
@@ -163,6 +177,43 @@ export type RefreshTokenResponses = {
 };
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
+
+export type RegisterByInvitationData = {
+    body: RegisterByInvitationRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/register-by-invitation';
+};
+
+export type RegisterByInvitationErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No se permite el registro. El usuario ya existe con rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Ya existe una cuenta de atleta registrada con este correo electrónico.
+     */
+    409: ProblemDetails;
+    /**
+     * El enlace o código de invitación ha expirado.
+     */
+    410: ProblemDetails;
+};
+
+export type RegisterByInvitationError = RegisterByInvitationErrors[keyof RegisterByInvitationErrors];
+
+export type RegisterByInvitationResponses = {
+    /**
+     * Cuenta creada exitosamente. Devuelve el token JWT y los datos del usuario.
+     */
+    200: LoginResponse;
+};
+
+export type RegisterByInvitationResponse = RegisterByInvitationResponses[keyof RegisterByInvitationResponses];
 
 export type UpdateWhatsAppPhoneData = {
     body: UpdatePhoneRequest;

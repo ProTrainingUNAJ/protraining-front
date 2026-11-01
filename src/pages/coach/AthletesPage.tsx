@@ -11,6 +11,7 @@ import {
   Search,
   Dumbbell,
   HeartPulse,
+  Upload,
   QrCode,
   FileText,
   TrendingUp,
@@ -20,6 +21,7 @@ import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
+import { RecordsImportModal } from '../../components/athletes/RecordsImportModal';
 import { AthleteBenchmarkModal } from '../../components/athletes/AthleteBenchmarkModal';
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
@@ -54,6 +56,7 @@ export const AthletesPage: React.FC = () => {
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
+  const [showImportRecords, setShowImportRecords] = useState(false);
   const [benchmarkAthlete, setBenchmarkAthlete] = useState<Athlete | null>(null);
   const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
   const [justifyingAthlete, setJustifyingAthlete] = useState<Athlete | null>(null);
@@ -265,6 +268,16 @@ export const AthletesPage: React.FC = () => {
                 <span>Invitar Atletas</span>
               </button>
             )}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowImportRecords(true)}
+              disabled={loading || saving}
+              title="Importar récords desde un CSV"
+            >
+              <Upload size={16} aria-hidden="true" />
+              <span>Importar récords</span>
+            </button>
             <button
               type="button"
               className="btn btn-secondary"
@@ -827,6 +840,8 @@ export const AthletesPage: React.FC = () => {
           onClose={() => setInjuriesAthlete(null)}
         />
       )}
+
+      {showImportRecords && <RecordsImportModal onClose={() => setShowImportRecords(false)} />}
 
       {benchmarkAthlete && (
         <AthleteBenchmarkModal
