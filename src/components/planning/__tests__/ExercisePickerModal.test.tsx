@@ -61,4 +61,47 @@ describe('ExercisePickerModal', () => {
 
     expect(onSelect).toHaveBeenCalledWith(bench);
   });
+
+  it('filters by sub-muscle when Piernas is selected and then Isquiotibiales is clicked', async () => {
+    render(<ExercisePickerModal onClose={vi.fn()} onSelect={vi.fn()} />);
+
+    // Tap on 'Piernas' chip
+    fireEvent.click(screen.getByRole('button', { name: 'Piernas' }));
+
+    // Sub-muscle chips appear
+    const isquiosChip = await screen.findByRole('button', { name: 'Isquiotibiales' });
+    expect(isquiosChip).toBeTruthy();
+
+    // Tap on 'Isquiotibiales' chip
+    fireEvent.click(isquiosChip);
+
+    await waitFor(() => {
+      expect(exercisesService.search).toHaveBeenCalledWith(
+        '',
+        1,
+        12,
+        false,
+        true,
+        'Piernas',
+        'isquiotibiales',
+      );
+    });
+  });
+
+  it('shows specific empty state message when a selected muscle has no exercises', async () => {
+    vi.spyOn(exercisesService, 'search').mockResolvedValue({
+      items: [],
+      page: 1,
+      totalPages: 0,
+      totalCount: 0,
+    });
+
+    render(<ExercisePickerModal onClose={vi.fn()} onSelect={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Piernas' }));
+    const isquiosChip = await screen.findByRole('button', { name: 'Isquiotibiales' });
+    fireEvent.click(isquiosChip);
+
+    expect(await screen.findByText('No hay ejercicios para ese músculo.')).toBeTruthy();
+  });
 });

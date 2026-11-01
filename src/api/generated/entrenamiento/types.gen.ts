@@ -484,6 +484,10 @@ export type ListExercisesData = {
          */
         muscleGroup?: string;
         /**
+         * Filtrar por músculo puntual en español (ej. Isquiotibiales, Cuádriceps, Glúteos, Pecho).
+         */
+        muscle?: string;
+        /**
          * Filtrar por equipamiento requerido (ej. Barra Olímpica, Mancuerna, Máquina).
          */
         equipment?: string;
