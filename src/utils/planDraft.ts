@@ -1,5 +1,10 @@
 import { SaveTrainingPlanRequest, TrainingPlanDetail } from '../api/generated/entrenamiento';
 import {
+  PlanDraftResponse,
+  PlanDraftSession,
+  UpdatePlanDraftRequest,
+} from '../api/generated/asistente';
+import {
   CatalogExercise,
   DraftExercise,
   DraftSession,
@@ -216,5 +221,122 @@ export function moveSession(
       if (s.key === other.key) return { ...s, order: session.order };
       return s;
     }),
+  };
+}
+
+export type AssistantDayOfWeek = PlanDraftSession['dayOfWeek'];
+
+export const ASSISTANT_DAY_TO_NUMBER: Record<AssistantDayOfWeek, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
+export const NUMBER_TO_ASSISTANT_DAY: AssistantDayOfWeek[] = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+export function assistantDayToNumber(day: string): number {
+  if (day in ASSISTANT_DAY_TO_NUMBER) {
+    return ASSISTANT_DAY_TO_NUMBER[day as AssistantDayOfWeek];
+  }
+  return 1;
+}
+
+export function numberToAssistantDay(dayOfWeek: number): AssistantDayOfWeek {
+  const normalized = ((dayOfWeek % 7) + 7) % 7;
+  return NUMBER_TO_ASSISTANT_DAY[normalized] ?? 'Monday';
+}
+
+export function aiDraftToEditableDraft(
+  draft: PlanDraftResponse,
+  exerciseNames?: Record<string, string>,
+): PlanDraft {
+  return {
+    id: draft.id,
+    name: draft.name || 'Borrador generado con IA',
+    objective: draft.objective || draft.goal || '',
+    weeks: draft.weeks.map((week) => ({
+      key: newKey(),
+      id: null,
+      weekNumber: week.weekNumber,
+      nextSessionOrder: nextOrder(week.sessions.map((s) => s.order)),
+      sessions: week.sessions.map((session) => ({
+        key: newKey(),
+        id: null,
+        name: session.name,
+        order: session.order,
+        dayOfWeek: assistantDayToNumber(session.dayOfWeek),
+        coachNotes: session.coachNotes ?? '',
+        nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
+        exercises: session.exercises.map((exercise) => ({
+          key: newKey(),
+          id: null,
+          exerciseId: exercise.exerciseId,
+          exerciseName:
+            (exerciseNames && exerciseNames[exercise.exerciseId]) || `Ejercicio #${exercise.order}`,
+          order: exercise.order,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          targetPercentage: exercise.targetPercentage ?? null,
+        })),
+      })),
+    })),
+  };
+}
+
+export function toUpdateDraftRequest(
+  draft: PlanDraft,
+  justificationSummary: string,
+): UpdatePlanDraftRequest {
+  return {
+    name: draft.name.trim(),
+    objective: draft.objective.trim(),
+    justificationSummary: justificationSummary.trim(),
+    weeks: draft.weeks.map((week) => ({
+      weekNumber: week.weekNumber,
+      sessions: week.sessions.map((session) => ({
+        name: session.name.trim(),
+        order: session.order,
+        dayOfWeek: numberToAssistantDay(session.dayOfWeek),
+        coachNotes: session.coachNotes.trim() || null,
+        exercises: session.exercises.map((exercise) => ({
+          exerciseId: exercise.exerciseId,
+          order: exercise.order,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          targetPercentage: exercise.targetPercentage,
+        })),
+      })),
+    })),
+  };
+}
+
+export function swapExercise(
+  session: DraftSession,
+  exerciseKey: string,
+  newExercise: CatalogExercise,
+): DraftSession {
+  return {
+    ...session,
+    exercises: session.exercises.map((ex) =>
+      ex.key === exerciseKey
+        ? {
+            ...ex,
+            exerciseId: newExercise.id,
+            exerciseName: newExercise.name,
+          }
+        : ex,
+    ),
   };
 }

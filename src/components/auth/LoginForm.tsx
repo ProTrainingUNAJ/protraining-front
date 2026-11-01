@@ -30,6 +30,8 @@ const GoogleIcon: React.FC = () => (
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  // Bandera para Google Login (KAN-551). Apagada por defecto; se activa con VITE_GOOGLE_LOGIN_ENABLED=true
+  const isGoogleLoginEnabled = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === 'true';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -235,27 +237,30 @@ export const LoginForm: React.FC = () => {
           )}
         </button>
 
-        {/* Opción de Iniciar Sesión con Google abajo de Iniciar sesión */}
-        <button
-          type="button"
-          onClick={handleGoogleClick}
-          disabled={loading}
-          className="btn-pill-google"
-          id="btn-login-google"
-        >
-          <GoogleIcon />
-          <span>Iniciar sesión con Google</span>
-        </button>
+        {/* Opción de Iniciar Sesión con Google (oculta por defecto mediante bandera KAN-551) */}
+        {isGoogleLoginEnabled && (
+          <button
+            type="button"
+            onClick={handleGoogleClick}
+            disabled={loading}
+            className="btn-pill-google"
+            id="btn-login-google"
+          >
+            <GoogleIcon />
+            <span>Iniciar sesión con Google</span>
+          </button>
+        )}
 
-        {/* Accesos Secundarios: ¿Olvidaste tu contraseña? y Registrarse */}
+        {/* Accesos Secundarios: deshabilitados con (Próximamente) hasta que tengan backend (KAN-551) */}
         <div className="auth-secondary-actions">
           <button
             type="button"
             onClick={handleForgotPasswordClick}
-            disabled={loading}
+            disabled
             className="auth-secondary-btn"
+            title="Próximamente disponible"
           >
-            ¿Olvidaste tu contraseña?
+            ¿Olvidaste tu contraseña? (Próximamente)
           </button>
 
           <span className="auth-secondary-divider" aria-hidden="true">
@@ -265,10 +270,11 @@ export const LoginForm: React.FC = () => {
           <button
             type="button"
             onClick={handleRegisterClick}
-            disabled={loading}
+            disabled
             className="auth-secondary-btn"
+            title="Próximamente disponible"
           >
-            Registrarse
+            Registrarse (Próximamente)
           </button>
         </div>
       </form>

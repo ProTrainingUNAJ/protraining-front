@@ -12,6 +12,9 @@ import {
   Dumbbell,
   HeartPulse,
   Upload,
+  QrCode,
+  FileText,
+  TrendingUp,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
@@ -19,6 +22,11 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
 import { RecordsImportModal } from '../../components/athletes/RecordsImportModal';
+import { AthleteBenchmarkModal } from '../../components/athletes/AthleteBenchmarkModal';
+import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
+import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
+import { MedicalRecordDetailModal } from '../../components/athletes/MedicalRecordDetailModal';
+import { MedicalRecord } from '../../types/medicalRecord';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -45,11 +53,18 @@ export const AthletesPage: React.FC = () => {
   const [emergencyContact, setEmergencyContact] = useState('');
   const [selectedNewAthleteCategories, setSelectedNewAthleteCategories] = useState<string[]>([]);
 
-  // Modal de asignación N:N de categorías (CA3)
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
   const [showImportRecords, setShowImportRecords] = useState(false);
+  const [benchmarkAthlete, setBenchmarkAthlete] = useState<Athlete | null>(null);
+  const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
+  const [justifyingAthlete, setJustifyingAthlete] = useState<Athlete | null>(null);
+  const [viewingMedicalRecord, setViewingMedicalRecord] = useState<{
+    athlete: Athlete;
+    record: MedicalRecord;
+    justification: string;
+  } | null>(null);
   const [updatingCategory, setUpdatingCategory] = useState(false);
 
   // 1. Cargar atletas y categorías
@@ -239,6 +254,20 @@ export const AthletesPage: React.FC = () => {
         description="Plantel deportivo, fichas médicas y asignación de divisiones."
         actions={
           <>
+            {selectedCategoryId && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  const cat = categories.find((c) => c.id === selectedCategoryId);
+                  if (cat) setInvitingCategory(cat);
+                }}
+                title="Invitar atletas a la categoría seleccionada"
+              >
+                <QrCode size={16} aria-hidden="true" />
+                <span>Invitar Atletas</span>
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-secondary"
@@ -758,11 +787,32 @@ export const AthletesPage: React.FC = () => {
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setBenchmarkAthlete(athlete)}
+                    title="Comparar rendimiento individual frente al promedio del grupo (KAN-448)"
+                    data-testid={`benchmark-btn-${athlete.id}`}
+                  >
+                    <TrendingUp size={15} aria-hidden="true" />
+                    <span>Benchmark</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                     onClick={() => setInjuriesAthlete(athlete)}
                     title="Ver sus lesiones y avanzar el stepper (KAN-421)"
                   >
                     <HeartPulse size={15} aria-hidden="true" />
                     <span>Lesiones</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setJustifyingAthlete(athlete)}
+                    title="Ver Ficha Médica del atleta con justificación obligatoria"
+                  >
+                    <FileText size={15} aria-hidden="true" />
+                    <span>Ver Ficha Médica</span>
                   </button>
                 </div>
               </div>
@@ -792,6 +842,23 @@ export const AthletesPage: React.FC = () => {
       )}
 
       {showImportRecords && <RecordsImportModal onClose={() => setShowImportRecords(false)} />}
+
+      {benchmarkAthlete && (
+        <AthleteBenchmarkModal
+          athleteId={benchmarkAthlete.id}
+          athleteName={
+            benchmarkAthlete.fullName ||
+            `${benchmarkAthlete.firstName} ${benchmarkAthlete.lastName}`
+          }
+          categories={
+            benchmarkAthlete.categories && benchmarkAthlete.categories.length > 0
+              ? benchmarkAthlete.categories
+              : categories
+          }
+          initialCategoryId={selectedCategoryId || undefined}
+          onClose={() => setBenchmarkAthlete(null)}
+        />
+      )}
 
       {/* Modal de Asociación N:N de Categorías (CA3) */}
       {managingAthlete && (
@@ -913,6 +980,46 @@ export const AthletesPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {invitingCategory && (
+        <CategoryInvitationModal
+          categoryId={invitingCategory.id}
+          categoryName={invitingCategory.name}
+          onClose={() => setInvitingCategory(null)}
+        />
+      )}
+
+      {justifyingAthlete && (
+        <MedicalRecordJustificationModal
+          athleteId={justifyingAthlete.id}
+          athleteName={
+            justifyingAthlete.fullName ||
+            `${justifyingAthlete.firstName} ${justifyingAthlete.lastName}`
+          }
+          isOpen={true}
+          onClose={() => setJustifyingAthlete(null)}
+          onSuccess={(record, justification) => {
+            setViewingMedicalRecord({
+              athlete: justifyingAthlete,
+              record,
+              justification,
+            });
+            setJustifyingAthlete(null);
+          }}
+        />
+      )}
+
+      {viewingMedicalRecord && (
+        <MedicalRecordDetailModal
+          athleteName={
+            viewingMedicalRecord.athlete.fullName ||
+            `${viewingMedicalRecord.athlete.firstName} ${viewingMedicalRecord.athlete.lastName}`
+          }
+          record={viewingMedicalRecord.record}
+          justificationUsed={viewingMedicalRecord.justification}
+          onClose={() => setViewingMedicalRecord(null)}
+        />
       )}
     </div>
   );

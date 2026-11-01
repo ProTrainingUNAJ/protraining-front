@@ -3,6 +3,7 @@ import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle, Layers } from
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
+import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise } from '../../api/generated/entrenamiento';
 
 interface ExerciseItem {
@@ -644,30 +645,15 @@ export const TrainingPage: React.FC = () => {
                 {((shownExercise.primaryMuscles && shownExercise.primaryMuscles.length > 0) ||
                   (shownExercise.secondaryMuscles &&
                     shownExercise.secondaryMuscles.length > 0)) && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.4rem',
-                      flexWrap: 'wrap',
-                      marginBottom: '0.85rem',
-                    }}
-                  >
+                  <div className="exercise-muscle-chips">
                     {shownExercise.primaryMuscles?.map((m, idx) => (
-                      <span
-                        key={`pri-${idx}`}
-                        className="badge badge-primary"
-                        style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}
-                      >
-                        {m} (Principal)
+                      <span key={`pri-${idx}`} className="badge badge-primary exercise-muscle-chip">
+                        {getMuscleSpanishName(m)} (Principal)
                       </span>
                     ))}
                     {shownExercise.secondaryMuscles?.map((m, idx) => (
-                      <span
-                        key={`sec-${idx}`}
-                        className="badge badge-info"
-                        style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}
-                      >
-                        {m} (Secundario)
+                      <span key={`sec-${idx}`} className="badge badge-info exercise-muscle-chip">
+                        {getMuscleSpanishName(m)} (Secundario)
                       </span>
                     ))}
                   </div>

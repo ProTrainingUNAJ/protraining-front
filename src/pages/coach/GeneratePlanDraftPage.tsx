@@ -28,13 +28,13 @@ interface FormErrors {
 }
 
 const TRAINING_DAY_CHIPS: DayChipOption[] = [
-  { code: 'L', value: 'Lunes', label: 'Lunes' },
-  { code: 'M', value: 'Martes', label: 'Martes' },
-  { code: 'X', value: 'Miércoles', label: 'Miércoles' },
-  { code: 'J', value: 'Jueves', label: 'Jueves' },
-  { code: 'V', value: 'Viernes', label: 'Viernes' },
-  { code: 'S', value: 'Sábado', label: 'Sábado' },
-  { code: 'D', value: 'Domingo', label: 'Domingo' },
+  { code: 'L', value: 'Monday', label: 'Lunes' },
+  { code: 'M', value: 'Tuesday', label: 'Martes' },
+  { code: 'X', value: 'Wednesday', label: 'Miércoles' },
+  { code: 'J', value: 'Thursday', label: 'Jueves' },
+  { code: 'V', value: 'Friday', label: 'Viernes' },
+  { code: 'S', value: 'Saturday', label: 'Sábado' },
+  { code: 'D', value: 'Sunday', label: 'Domingo' },
 ];
 
 const GOAL_MAX_LENGTH = 500;
@@ -46,19 +46,19 @@ const DAYS_MAX = 6;
 function defaultDaysForCount(count: number): string[] {
   switch (count) {
     case 1:
-      return ['Lunes'];
+      return ['Monday'];
     case 2:
-      return ['Martes', 'Jueves'];
+      return ['Tuesday', 'Thursday'];
     case 3:
-      return ['Lunes', 'Miércoles', 'Viernes'];
+      return ['Monday', 'Wednesday', 'Friday'];
     case 4:
-      return ['Lunes', 'Martes', 'Jueves', 'Viernes'];
+      return ['Monday', 'Tuesday', 'Thursday', 'Friday'];
     case 5:
-      return ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+      return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
     case 6:
-      return ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     default:
-      return ['Lunes', 'Miércoles', 'Viernes'];
+      return ['Monday', 'Wednesday', 'Friday'];
   }
 }
 

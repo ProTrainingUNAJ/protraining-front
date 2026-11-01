@@ -247,7 +247,7 @@
   text-align: center;
 }
 
-@media (width <= 560px) {
+@media (width <=560px) {
   .plan-exercise-row {
     grid-template-columns: 1.75rem repeat(3, minmax(0, 1fr)) 2rem;
   }
@@ -623,4 +623,116 @@
 .plan-move-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+/* Borrador generado por IA (KAN-413) */
+.plan-draft-approval-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.plan-draft-approval-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.plan-draft-approval-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.plan-draft-approval-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-subtle);
+  border-radius: 8px;
+}
+
+.plan-draft-approval-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.plan-draft-approval-item span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.plan-draft-approval-item strong {
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.plan-draft-approval-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.plan-discard-modal {
+  max-width: 440px;
+  padding: 1.5rem;
+}
+
+.plan-discard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* Pestañas de planificación / catálogo */
+.plan-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.plan-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plan-tab-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--white);
+}
+
+.plan-template-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  margin-bottom: 0.75rem;
 }

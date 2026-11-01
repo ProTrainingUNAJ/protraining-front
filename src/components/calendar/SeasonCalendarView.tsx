@@ -130,18 +130,11 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
     };
   }, [loadMatches]);
 
-  // Seed demo data once categories are available
-  useEffect(() => {
-    if (categories.length > 0) {
-      matchService.seedDemoMatchesIfEmpty(categories);
-    }
-  }, [categories]);
-
-  // Matches indexed by local YYYY-MM-DD
+  // Matches indexados por fecha YYYY-MM-DD exacta sin desfasajes de zona horaria
   const matchesByDate = useMemo(() => {
     const map = new Map<string, Match[]>();
     matches.forEach((m) => {
-      const iso = toIsoDate(new Date(m.matchDate));
+      const iso = m.matchDate.includes('T') ? m.matchDate.split('T')[0] : m.matchDate;
       const list = map.get(iso) || [];
       list.push(m);
       map.set(iso, list);

@@ -16,6 +16,7 @@ export interface UserDto {
   fullName: string;
   role: string;
   pfId: string | null;
+  phoneNumber?: string | null;
 }
 
 export interface LoginResponse {
