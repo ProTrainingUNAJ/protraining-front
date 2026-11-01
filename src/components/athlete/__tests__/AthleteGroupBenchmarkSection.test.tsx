@@ -5,24 +5,29 @@ import { AthleteGroupBenchmarkSection } from '../AthleteGroupBenchmarkSection';
 import { athleteBenchmarkService } from '../../../services/athleteBenchmarkService';
 import { structureService } from '../../../api/structureService';
 import { GroupBenchmarkResponse } from '../../../types/benchmark';
+import { AthleteMe, Category } from '../../../types/structure';
 
 describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  const mockCategories = [
-    { id: 'cat-sub20', name: 'Sub 20' },
-    { id: 'cat-primera', name: 'Primera División' },
+  const mockCategories: Category[] = [
+    { id: 'cat-sub20', organizationId: 'org-1', name: 'Sub 20', athletesCount: 15 },
+    { id: 'cat-primera', organizationId: 'org-1', name: 'Primera División', athletesCount: 20 },
   ];
 
+  const createMockAthleteMe = (categories: Category[]): AthleteMe => ({
+    athleteId: 'ath-1',
+    firstName: 'Lucas',
+    lastName: 'Romero',
+    fullName: 'Lucas Romero',
+    active: true,
+    categories,
+  });
+
   it('CRITERIO OBLIGATORIO: DADO un atleta autenticado, CUANDO abre su perfil, ENTONCES visualiza sus propios números y el promedio de su grupo, y el salto por debajo del promedio queda marcado como punto a mejorar', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue({
-      id: 'ath-1',
-      firstName: 'Lucas',
-      lastName: 'Romero',
-      categories: mockCategories,
-    } as any);
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe(mockCategories));
 
     const mockBenchmarkResponse: GroupBenchmarkResponse = {
       athleteId: 'ath-1',
@@ -96,12 +101,9 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   });
 
   it('PRIVACIDAD (KAN-450): Solo muestra promedios anónimos de la categoría y nunca expone IDs ni datos de otros compañeros', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue({
-      id: 'ath-1',
-      firstName: 'Lucas',
-      lastName: 'Romero',
-      categories: [mockCategories[0]],
-    } as any);
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(
+      createMockAthleteMe([mockCategories[0]]),
+    );
 
     const mockBenchmarkResponse: GroupBenchmarkResponse = {
       athleteId: 'ath-1',
@@ -143,10 +145,7 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   });
 
   it('permite cambiar entre categorías asignadas al atleta (N:N)', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue({
-      id: 'ath-1',
-      categories: mockCategories,
-    } as any);
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe(mockCategories));
 
     const getBenchmarkSpy = vi
       .spyOn(athleteBenchmarkService, 'getMyGroupBenchmark')
@@ -174,10 +173,9 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   });
 
   it('muestra estado vacío cuando no hay métricas de tests registradas', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue({
-      id: 'ath-1',
-      categories: [mockCategories[0]],
-    } as any);
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(
+      createMockAthleteMe([mockCategories[0]]),
+    );
 
     vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockResolvedValue({
       athleteId: 'ath-1',
@@ -197,10 +195,9 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   });
 
   it('muestra mensaje de error amigable cuando falla la carga', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue({
-      id: 'ath-1',
-      categories: [mockCategories[0]],
-    } as any);
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(
+      createMockAthleteMe([mockCategories[0]]),
+    );
 
     vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockRejectedValue(
       new Error('Error de conexión con el servicio'),

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   AlertTriangle,
@@ -26,6 +26,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
   const [benchmark, setBenchmark] = useState<GroupBenchmarkResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   // 1. Cargar datos del atleta (/me) para conocer sus categorías asignadas
   useEffect(() => {
@@ -51,27 +52,45 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
   }, [athleteId]);
 
   // 2. Cargar benchmark del grupo para el atleta y la categoría seleccionada
-  const fetchBenchmark = useCallback(async () => {
-    if (!athleteId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await athleteBenchmarkService.getMyGroupBenchmark(
-        athleteId,
-        selectedCategoryId || undefined,
-      );
-      setBenchmark(data);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'No se pudo cargar la comparación grupal.';
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, [athleteId, selectedCategoryId]);
-
   useEffect(() => {
-    void fetchBenchmark();
-  }, [fetchBenchmark]);
+    let isMounted = true;
+    if (!athleteId) return;
+
+    athleteBenchmarkService
+      .getMyGroupBenchmark(athleteId, selectedCategoryId || undefined)
+      .then((data) => {
+        if (isMounted) {
+          setBenchmark(data);
+          setError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMounted) {
+          const msg =
+            err instanceof Error ? err.message : 'No se pudo cargar la comparación grupal.';
+          setError(msg);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [athleteId, selectedCategoryId, reloadTrigger]);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    setReloadTrigger((prev) => prev + 1);
+  };
+
+  const handleCategoryChange = (newCategoryId: string) => {
+    setSelectedCategoryId(newCategoryId);
+    setLoading(true);
+  };
 
   // Helper de badges accesibles (WCAG 2.1: texto + color + icono)
   const renderStatusBadge = (metric: GroupBenchmarkMetric) => {
@@ -224,7 +243,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
               <FolderTree size={15} style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
               <select
                 value={selectedCategoryId}
-                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 aria-label="Seleccionar categoría de comparación"
                 data-testid="benchmark-category-select"
                 style={{
@@ -249,7 +268,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() => void fetchBenchmark()}
+            onClick={handleRefresh}
             title="Recargar métricas"
             aria-label="Recargar métricas de comparación"
             style={{
