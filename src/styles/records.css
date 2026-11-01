@@ -444,3 +444,175 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 0.85rem;
 }
+
+/* -- Importación de récords desde CSV (KAN-390) -- */
+
+.records-import-modal {
+  max-width: 900px;
+}
+
+.records-import-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.records-import-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.records-import-upload-icon {
+  color: var(--primary);
+  opacity: 0.75;
+}
+
+.records-import-upload-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.records-import-help {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.records-import-file-btn {
+  position: relative;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+
+.records-import-file-btn:focus-within {
+  outline: 2px solid var(--border-focus, var(--primary));
+  outline-offset: 2px;
+}
+
+.records-import-file-name {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.records-import-upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.records-import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.records-import-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.records-import-fields .plan-field {
+  margin: 0;
+}
+
+.records-import-fields .plan-field select {
+  margin-bottom: 0;
+}
+
+.records-import-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.records-import-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.records-import-table-wrap {
+  max-height: 45vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.records-import-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.records-import-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.55rem 0.65rem;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.records-import-table td {
+  padding: 0.5rem 0.65rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-main);
+  vertical-align: top;
+}
+
+.records-import-table tr.is-error td {
+  background: var(--danger-bg);
+}
+
+.records-import-empty {
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.records-import-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.records-import-done-icon {
+  color: var(--stat-green);
+}
+
+.records-import-done h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
+
+.records-import-done p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.records-import-done .plan-picker-pager {
+  width: 100%;
+  margin-top: 1rem;
+}

@@ -212,6 +212,32 @@ export type ProblemDetails = {
     };
 };
 
+export type CategoryAveragesResponse = {
+    categoryId: string;
+    categoryName: string;
+    athleteCount: number;
+    weekStart: string;
+    weekEnd: string;
+    fitnessTests: Array<FitnessTestAverage>;
+    wellnessMetrics: Array<WellnessMetricAverage>;
+};
+
+export type FitnessTestAverage = {
+    testId: string;
+    testName: string;
+    motorSkill: string;
+    unit: string;
+    average: number;
+    testedAthleteCount: number;
+};
+
+export type WellnessMetricAverage = {
+    metric: string;
+    average: number;
+    reportedAthleteCount: number;
+    totalCheckIns: number;
+};
+
 export type SubmitCheckInData = {
     body: CheckInRequest;
     path: {
@@ -520,6 +546,46 @@ export type GetCategoryTrafficLightTodayResponses = {
 };
 
 export type GetCategoryTrafficLightTodayResponse = GetCategoryTrafficLightTodayResponses[keyof GetCategoryTrafficLightTodayResponses];
+
+export type GetCategoryAveragesData = {
+    body?: never;
+    path: {
+        categoryId: string;
+    };
+    query?: {
+        /**
+         * Fecha de inicio de la semana de consulta (formato YYYY-MM-DD). Si no se especifica, se toma el lunes de la semana actual en hora de Argentina.
+         */
+        weekStart?: string;
+    };
+    url: '/api/v1/categories/{categoryId}/averages';
+};
+
+export type GetCategoryAveragesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetCategoryAveragesError = GetCategoryAveragesErrors[keyof GetCategoryAveragesErrors];
+
+export type GetCategoryAveragesResponses = {
+    /**
+     * Promedios de la categoría obtenidos exitosamente.
+     */
+    200: CategoryAveragesResponse;
+};
+
+export type GetCategoryAveragesResponse = GetCategoryAveragesResponses[keyof GetCategoryAveragesResponses];
 
 export type GetGroupBenchmarkData = {
     body?: never;

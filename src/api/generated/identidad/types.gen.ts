@@ -13,6 +13,20 @@ export type LoginRequest = {
     deviceId: string;
 };
 
+export type RegisterByInvitationRequest = {
+    email: string;
+    password: string;
+    fullName: string;
+    /**
+     * Token de invitación de la categoría (emitido por Estructura).
+     */
+    token: string;
+    /**
+     * Identificador del dispositivo cliente (opcional).
+     */
+    deviceId?: string | null;
+};
+
 /**
  * Información del usuario autenticado.
  */
@@ -79,6 +93,13 @@ export type UpdatePhoneRequest = {
 export type UpdatePhoneResponse = {
     /**
      * Número de teléfono normalizado en estándar E.164 (solo dígitos).
+     */
+    phoneNumber: string;
+};
+
+export type PfContact = {
+    /**
+     * Número de WhatsApp del preparador físico (solo dígitos, con código de país).
      */
     phoneNumber: string;
 };
@@ -157,6 +178,43 @@ export type RefreshTokenResponses = {
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
 
+export type RegisterByInvitationData = {
+    body: RegisterByInvitationRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/register-by-invitation';
+};
+
+export type RegisterByInvitationErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No se permite el registro. El usuario ya existe con rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Ya existe una cuenta de atleta registrada con este correo electrónico.
+     */
+    409: ProblemDetails;
+    /**
+     * El enlace o código de invitación ha expirado.
+     */
+    410: ProblemDetails;
+};
+
+export type RegisterByInvitationError = RegisterByInvitationErrors[keyof RegisterByInvitationErrors];
+
+export type RegisterByInvitationResponses = {
+    /**
+     * Cuenta creada exitosamente. Devuelve el token JWT y los datos del usuario.
+     */
+    200: LoginResponse;
+};
+
+export type RegisterByInvitationResponse = RegisterByInvitationResponses[keyof RegisterByInvitationResponses];
+
 export type UpdateWhatsAppPhoneData = {
     body: UpdatePhoneRequest;
     path?: never;
@@ -173,6 +231,10 @@ export type UpdateWhatsAppPhoneErrors = {
      * No autenticado o token inválido.
      */
     401: ProblemDetails;
+    /**
+     * El token no es de un preparador físico (por ejemplo, el de un atleta).
+     */
+    403: unknown;
 };
 
 export type UpdateWhatsAppPhoneError = UpdateWhatsAppPhoneErrors[keyof UpdateWhatsAppPhoneErrors];
@@ -185,6 +247,39 @@ export type UpdateWhatsAppPhoneResponses = {
 };
 
 export type UpdateWhatsAppPhoneResponse = UpdateWhatsAppPhoneResponses[keyof UpdateWhatsAppPhoneResponses];
+
+export type GetPfContactData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/pf-contact';
+};
+
+export type GetPfContactErrors = {
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * El token no es de un atleta.
+     */
+    403: unknown;
+    /**
+     * El preparador físico todavía no cargó su número de WhatsApp.
+     */
+    404: ProblemDetails;
+};
+
+export type GetPfContactError = GetPfContactErrors[keyof GetPfContactErrors];
+
+export type GetPfContactResponses = {
+    /**
+     * Número de WhatsApp del preparador físico.
+     */
+    200: PfContact;
+};
+
+export type GetPfContactResponse = GetPfContactResponses[keyof GetPfContactResponses];
 
 export type HealthCheckData = {
     body?: never;

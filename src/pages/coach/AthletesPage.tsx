@@ -11,12 +11,14 @@ import {
   Search,
   Dumbbell,
   HeartPulse,
+  Upload,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
+import { RecordsImportModal } from '../../components/athletes/RecordsImportModal';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -47,6 +49,7 @@ export const AthletesPage: React.FC = () => {
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
+  const [showImportRecords, setShowImportRecords] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState(false);
 
   // 1. Cargar atletas y categorías
@@ -236,6 +239,16 @@ export const AthletesPage: React.FC = () => {
         description="Plantel deportivo, fichas médicas y asignación de divisiones."
         actions={
           <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowImportRecords(true)}
+              disabled={loading || saving}
+              title="Importar récords desde un CSV"
+            >
+              <Upload size={16} aria-hidden="true" />
+              <span>Importar récords</span>
+            </button>
             <button
               type="button"
               className="btn btn-secondary"
@@ -777,6 +790,8 @@ export const AthletesPage: React.FC = () => {
           onClose={() => setInjuriesAthlete(null)}
         />
       )}
+
+      {showImportRecords && <RecordsImportModal onClose={() => setShowImportRecords(false)} />}
 
       {/* Modal de Asociación N:N de Categorías (CA3) */}
       {managingAthlete && (
