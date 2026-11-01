@@ -9,8 +9,13 @@ import {
   ScheduledSession,
   TrainingPlanDetail,
 } from './generated/entrenamiento';
-import { extractErrorMessage } from './axiosClient';
-import { PlanAssignmentTarget, PlanListItem } from '../types/trainingPlans';
+import { extractErrorMessage, httpClient } from './axiosClient';
+import {
+  PlanAssignmentTarget,
+  PlanListItem,
+  ApplyPlanTemplatePayload,
+  PlanTemplateItem,
+} from '../types/trainingPlans';
 
 // Con throwOnError el SDK lanza el error de Axios, y extractErrorMessage puede
 // leer el ProblemDetails del back (el mensaje en español) y el código HTTP.
@@ -65,5 +70,32 @@ export const trainingPlansService = {
         throwOnError: true,
       }),
     );
+  },
+  // Listado de plantillas guardadas por el PF (KAN-440)
+  async listTemplates(): Promise<PlanTemplateItem[]> {
+    try {
+      const { data } = await httpClient.get<PlanTemplateItem[]>(
+        '/entrenamiento/api/v1/training-plans/templates',
+      );
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  // Aplica la plantilla clonándola y asignándola con desplazamiento de fechas (KAN-440)
+  async applyTemplate(
+    templateId: string,
+    payload: ApplyPlanTemplatePayload,
+  ): Promise<{ assignmentId: string; message: string }> {
+    try {
+      const { data } = await httpClient.post<{ assignmentId: string; message: string }>(
+        `/entrenamiento/api/v1/training-plans/templates/${templateId}/apply`,
+        payload,
+      );
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
   },
 };

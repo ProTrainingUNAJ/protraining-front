@@ -72,3 +72,15 @@ export interface PlanDraft {
   objective: string;
   weeks: DraftWeek[];
 }
+
+export interface PlanTemplateItem {
+  id: string;
+  name: string;
+  objective: string | null;
+}
+
+export interface ApplyPlanTemplatePayload {
+  startDate: string; // Formato AAAA-MM-DD
+  categoryId?: string | null;
+  athleteId?: string | null;
+}
