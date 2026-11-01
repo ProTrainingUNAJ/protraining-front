@@ -3,8 +3,12 @@ import {
   CategoryAveragesResponse,
 } from '../api/generated/seguimiento';
 import { athleteRecordsService } from '../api/athleteRecords';
-import { extractErrorMessage } from '../api/axiosClient';
-import { AthleteBenchmarkItem, CategoryBenchmarkSummary } from '../types/benchmark';
+import { extractErrorMessage, httpClient } from '../api/axiosClient';
+import {
+  AthleteBenchmarkItem,
+  CategoryBenchmarkSummary,
+  GroupBenchmarkResponse,
+} from '../types/benchmark';
 import { calculateBenchmarkItem, evaluateCategoryBenchmark } from '../utils/benchmarkCalculator';
 
 const EVALUATIONS_STORAGE_PREFIX = 'protraining_athlete_evaluations_';
@@ -63,6 +67,29 @@ export function saveAthleteEvaluation(
 
 export const athleteBenchmarkService = {
   /**
+   * Obtiene la comparativa directa del atleta frente a su grupo desde Seguimiento (KAN-449).
+   */
+  async getMyGroupBenchmark(
+    athleteId: string,
+    categoryId?: string,
+  ): Promise<GroupBenchmarkResponse> {
+    try {
+      const url = `/seguimiento/api/v1/athletes/${athleteId}/group-benchmark${categoryId ? `?categoryId=${categoryId}` : ''}`;
+      const response = await httpClient.get<GroupBenchmarkResponse>(url);
+      return response.data;
+    } catch (error) {
+      // Intentar también ruta sin prefijo si el proxy o mock responde directo en /api/v1
+      try {
+        const fallbackUrl = `/api/v1/athletes/${athleteId}/group-benchmark${categoryId ? `?categoryId=${categoryId}` : ''}`;
+        const fallbackResponse = await httpClient.get<GroupBenchmarkResponse>(fallbackUrl);
+        return fallbackResponse.data;
+      } catch {
+        throw new Error(extractErrorMessage(error), { cause: error });
+      }
+    }
+  },
+
+  /**
    * Obtiene los promedios calculados de la categoría desde Seguimiento.
    */
   async getCategoryAverages(
@@ -82,7 +109,7 @@ export const athleteBenchmarkService = {
   },
 
   /**
-   * Consolida el benchmark comparativo entre el atleta y su categoría.
+   * Consolida el benchmark comparativo entre el atleta y su categoría (vista PF, KAN-448).
    */
   async getAthleteBenchmark(
     athleteId: string,
