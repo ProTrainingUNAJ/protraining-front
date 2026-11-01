@@ -1045,6 +1045,19 @@
   border-radius: 6px;
 }
 
+/* KAN-557: Chips de músculos en el modal de biblioteca */
+.exercise-muscle-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.exercise-muscle-chip {
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
 /* ── KAN-366: Daily Traffic Light & Quick Sheet ── */
 .athlete-traffic-light-card:hover {
   transform: translateY(-2px);

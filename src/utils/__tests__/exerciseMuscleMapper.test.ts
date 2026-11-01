@@ -3,6 +3,7 @@ import {
   normalizeMuscleString,
   resolveMuscleIds,
   getExerciseMuscleHighlight,
+  getMuscleSpanishName,
 } from '../exerciseMuscleMapper';
 
 describe('exerciseMuscleMapper', () => {
@@ -80,6 +81,52 @@ describe('exerciseMuscleMapper', () => {
     it('recommends both perspectives when muscles span both planes', () => {
       const highlight = getExerciseMuscleHighlight(['quadriceps'], ['hamstrings']);
       expect(highlight.recommendedView).toBe('both');
+    });
+  });
+
+  describe('getMuscleSpanishName (KAN-557)', () => {
+    it('translates common muscle names from free-exercise-db to Spanish', () => {
+      expect(getMuscleSpanishName('biceps')).toBe('Bíceps');
+      expect(getMuscleSpanishName('quadriceps')).toBe('Cuádriceps');
+      expect(getMuscleSpanishName('chest')).toBe('Pectorales');
+      expect(getMuscleSpanishName('glutes')).toBe('Glúteos');
+      expect(getMuscleSpanishName('hamstrings')).toBe('Isquiotibiales');
+      expect(getMuscleSpanishName('calves')).toBe('Gemelos');
+      expect(getMuscleSpanishName('shoulders')).toBe('Hombros');
+      expect(getMuscleSpanishName('triceps')).toBe('Tríceps');
+      expect(getMuscleSpanishName('lats')).toBe('Dorsales');
+      expect(getMuscleSpanishName('abdominals')).toBe('Abdominales');
+      expect(getMuscleSpanishName('forearms')).toBe('Antebrazos');
+      expect(getMuscleSpanishName('traps')).toBe('Trapecios');
+      expect(getMuscleSpanishName('adductors')).toBe('Aductores');
+      expect(getMuscleSpanishName('abductors')).toBe('Abductores');
+      expect(getMuscleSpanishName('neck')).toBe('Cuello');
+    });
+
+    it('correctly translates compound muscle names', () => {
+      expect(getMuscleSpanishName('middle back')).toBe('Espalda media');
+      expect(getMuscleSpanishName('lower back')).toBe('Espalda baja');
+    });
+
+    it('handles uppercase, accents, and surrounding whitespace gracefully', () => {
+      expect(getMuscleSpanishName('  BICEPS  ')).toBe('Bíceps');
+      expect(getMuscleSpanishName('QUADRICEPS')).toBe('Cuádriceps');
+      expect(getMuscleSpanishName('Cuádriceps')).toBe('Cuádriceps');
+      expect(getMuscleSpanishName('Glúteos')).toBe('Glúteos');
+      expect(getMuscleSpanishName('  middle back ')).toBe('Espalda media');
+    });
+
+    it('gracefully returns capitalized fallback for unknown or custom muscles without crashing', () => {
+      expect(getMuscleSpanishName('serratus anterior')).toBe('Serratus anterior');
+      expect(getMuscleSpanishName('custom_muscle')).toBe('Custom_muscle');
+    });
+
+    it('returns empty string for empty, null, or non-string inputs', () => {
+      expect(getMuscleSpanishName('')).toBe('');
+      expect(getMuscleSpanishName('   ')).toBe('');
+      expect(getMuscleSpanishName(null)).toBe('');
+      expect(getMuscleSpanishName(undefined)).toBe('');
+      expect(getMuscleSpanishName(123 as unknown as string)).toBe('');
     });
   });
 });
