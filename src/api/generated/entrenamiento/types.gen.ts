@@ -252,6 +252,14 @@ export type TodayRoutineExercise = {
      * Fotos del ejercicio (inicio y fin del movimiento), las mismas que la biblioteca.
      */
     images?: Array<string>;
+    /**
+     * Grupos musculares principales involucrados en la ejecución.
+     */
+    primaryMuscles?: Array<string>;
+    /**
+     * Músculos secundarios o estabilizadores involucrados.
+     */
+    secondaryMuscles?: Array<string>;
     sets: number;
     reps: number;
     percentage?: number;

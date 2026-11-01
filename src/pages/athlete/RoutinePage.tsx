@@ -986,18 +986,30 @@ export const RoutinePage: React.FC = () => {
                     padding: '1rem',
                   }}
                 >
-                  <ExerciseMuscleMap
-                    primaryMuscles={
-                      (selectedExerciseForModal as unknown as { primaryMuscles?: string[] })
-                        .primaryMuscles ?? []
-                    }
-                    secondaryMuscles={
-                      (selectedExerciseForModal as unknown as { secondaryMuscles?: string[] })
-                        .secondaryMuscles ?? []
-                    }
-                    showLegend={true}
-                    showViewToggle={true}
-                  />
+                  {(!selectedExerciseForModal.primaryMuscles ||
+                    selectedExerciseForModal.primaryMuscles.length === 0) &&
+                  (!selectedExerciseForModal.secondaryMuscles ||
+                    selectedExerciseForModal.secondaryMuscles.length === 0) ? (
+                    <p
+                      style={{
+                        margin: '0.25rem 0',
+                        fontSize: '0.85rem',
+                        color: 'var(--text-muted)',
+                        fontStyle: 'italic',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Este ejercicio no tiene grupos musculares específicos cargados (movilidad o
+                      ejercicio general).
+                    </p>
+                  ) : (
+                    <ExerciseMuscleMap
+                      primaryMuscles={selectedExerciseForModal.primaryMuscles ?? []}
+                      secondaryMuscles={selectedExerciseForModal.secondaryMuscles ?? []}
+                      showLegend={true}
+                      showViewToggle={true}
+                    />
+                  )}
                 </div>
               </div>
 
