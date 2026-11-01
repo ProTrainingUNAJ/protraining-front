@@ -826,9 +826,7 @@ export const ProgressPage: React.FC = () => {
         </div>
 
         {/* Mis Números vs. Promedio del Grupo (KAN-449) */}
-        {resolvedAthleteId && (
-          <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />
-        )}
+        {resolvedAthleteId && <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />}
 
         {/* Historial de Evaluaciones Físicas */}
         <div className="card" style={{ margin: 0, padding: '1.5rem' }}>

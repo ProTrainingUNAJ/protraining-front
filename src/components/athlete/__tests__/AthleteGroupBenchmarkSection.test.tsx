@@ -101,9 +101,7 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   });
 
   it('PRIVACIDAD (KAN-450): Solo muestra promedios anónimos de la categoría y nunca expone IDs ni datos de otros compañeros', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue(
-      createMockAthleteMe([mockCategories[0]]),
-    );
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe([mockCategories[0]]));
 
     const mockBenchmarkResponse: GroupBenchmarkResponse = {
       athleteId: 'ath-1',
@@ -125,7 +123,9 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
       ],
     };
 
-    vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockResolvedValue(mockBenchmarkResponse);
+    vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockResolvedValue(
+      mockBenchmarkResponse,
+    );
 
     const { container } = render(<AthleteGroupBenchmarkSection athleteId="ath-1" />);
 
@@ -173,9 +173,7 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
   });
 
   it('muestra estado vacío cuando no hay métricas de tests registradas', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue(
-      createMockAthleteMe([mockCategories[0]]),
-    );
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe([mockCategories[0]]));
 
     vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockResolvedValue({
       athleteId: 'ath-1',
@@ -186,18 +184,12 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
 
     render(<AthleteGroupBenchmarkSection athleteId="ath-1" />);
 
-    expect(
-      await screen.findByText('Sin evaluaciones comparativas disponibles'),
-    ).toBeDefined();
-    expect(
-      screen.getByText(/Aún no se registraron evaluaciones físicas/i),
-    ).toBeDefined();
+    expect(await screen.findByText('Sin evaluaciones comparativas disponibles')).toBeDefined();
+    expect(screen.getByText(/Aún no se registraron evaluaciones físicas/i)).toBeDefined();
   });
 
   it('muestra mensaje de error amigable cuando falla la carga', async () => {
-    vi.spyOn(structureService, 'getMe').mockResolvedValue(
-      createMockAthleteMe([mockCategories[0]]),
-    );
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe([mockCategories[0]]));
 
     vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockRejectedValue(
       new Error('Error de conexión con el servicio'),

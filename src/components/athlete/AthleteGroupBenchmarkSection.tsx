@@ -376,7 +376,11 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           }}
           data-testid="empty-benchmark-state"
         >
-          <HelpCircle size={32} style={{ marginBottom: '0.5rem', opacity: 0.7 }} aria-hidden="true" />
+          <HelpCircle
+            size={32}
+            style={{ marginBottom: '0.5rem', opacity: 0.7 }}
+            aria-hidden="true"
+          />
           <h3 style={{ fontSize: '0.95rem', margin: '0.3rem 0', color: 'var(--text-main)' }}>
             Sin evaluaciones comparativas disponibles
           </h3>
@@ -411,9 +415,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                 background: metric.isWeakestPoint
                   ? 'var(--bg-subtle, rgba(239, 68, 68, 0.04))'
                   : 'var(--bg-card)',
-                boxShadow: metric.isWeakestPoint
-                  ? '0 2px 10px rgba(239, 68, 68, 0.12)'
-                  : 'none',
+                boxShadow: metric.isWeakestPoint ? '0 2px 10px rgba(239, 68, 68, 0.12)' : 'none',
               }}
               data-testid={`benchmark-card-${metric.dimension}`}
             >
@@ -544,4 +546,3 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
     </section>
   );
 };
-
