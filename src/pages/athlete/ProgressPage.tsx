@@ -16,6 +16,9 @@ import {
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 import { EVOLUTION_METRICS } from '../../components/athlete/progressMetricsData';
+import { useAuth } from '../../context/AuthContext';
+import { structureService } from '../../api/structureService';
+import { AthleteGroupBenchmarkSection } from '../../components/athlete/AthleteGroupBenchmarkSection';
 
 interface EvaluationItem {
   id: string;
@@ -92,6 +95,23 @@ export const ProgressPage: React.FC = () => {
   const [activeMetric, setActiveMetric] = useState<MetricKey>('cmj');
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [resolvedAthleteId, setResolvedAthleteId] = useState<string>(() => user?.id || '');
+
+  React.useEffect(() => {
+    let isMounted = true;
+    structureService
+      .getMe()
+      .then((me) => {
+        if (isMounted && me?.athleteId) {
+          setResolvedAthleteId(me.athleteId);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   // Track which metrics are already exported to Home/Dashboard (initialized from localStorage)
   const [exportedMetrics, setExportedMetrics] = useState<Record<string, string>>(readExportedState);
@@ -804,6 +824,11 @@ export const ProgressPage: React.FC = () => {
             onExportClick={() => setExportModalOpen(true)}
           />
         </div>
+
+        {/* Mis Números vs. Promedio del Grupo (KAN-449) */}
+        {resolvedAthleteId && (
+          <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />
+        )}
 
         {/* Historial de Evaluaciones Físicas */}
         <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
