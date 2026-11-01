@@ -13,12 +13,14 @@ import {
   HeartPulse,
   QrCode,
   FileText,
+  TrendingUp,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
+import { AthleteBenchmarkModal } from '../../components/athletes/AthleteBenchmarkModal';
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
 import { MedicalRecordDetailModal } from '../../components/athletes/MedicalRecordDetailModal';
@@ -52,6 +54,7 @@ export const AthletesPage: React.FC = () => {
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
+  const [benchmarkAthlete, setBenchmarkAthlete] = useState<Athlete | null>(null);
   const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
   const [justifyingAthlete, setJustifyingAthlete] = useState<Athlete | null>(null);
   const [viewingMedicalRecord, setViewingMedicalRecord] = useState<{
@@ -771,6 +774,17 @@ export const AthletesPage: React.FC = () => {
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setBenchmarkAthlete(athlete)}
+                    title="Comparar rendimiento individual frente al promedio del grupo (KAN-448)"
+                    data-testid={`benchmark-btn-${athlete.id}`}
+                  >
+                    <TrendingUp size={15} aria-hidden="true" />
+                    <span>Benchmark</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                     onClick={() => setInjuriesAthlete(athlete)}
                     title="Ver sus lesiones y avanzar el stepper (KAN-421)"
                   >
@@ -811,6 +825,23 @@ export const AthletesPage: React.FC = () => {
             injuriesAthlete.fullName || `${injuriesAthlete.firstName} ${injuriesAthlete.lastName}`
           }
           onClose={() => setInjuriesAthlete(null)}
+        />
+      )}
+
+      {benchmarkAthlete && (
+        <AthleteBenchmarkModal
+          athleteId={benchmarkAthlete.id}
+          athleteName={
+            benchmarkAthlete.fullName ||
+            `${benchmarkAthlete.firstName} ${benchmarkAthlete.lastName}`
+          }
+          categories={
+            benchmarkAthlete.categories && benchmarkAthlete.categories.length > 0
+              ? benchmarkAthlete.categories
+              : categories
+          }
+          initialCategoryId={selectedCategoryId || undefined}
+          onClose={() => setBenchmarkAthlete(null)}
         />
       )}
 
