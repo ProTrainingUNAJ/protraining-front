@@ -1,9 +1,10 @@
 import {
   getCategoryAverages as getCategoryAveragesRequest,
+  getGroupBenchmark as getGroupBenchmarkRequest,
   CategoryAveragesResponse,
 } from './generated/seguimiento';
 import { athleteRecordsService } from './athleteRecords';
-import { extractErrorMessage, httpClient } from './axiosClient';
+import { extractErrorMessage } from './axiosClient';
 import {
   AthleteBenchmarkItem,
   CategoryBenchmarkSummary,
@@ -20,17 +21,14 @@ export const athleteBenchmarkService = {
     categoryId?: string,
   ): Promise<GroupBenchmarkResponse> {
     try {
-      const url = `/seguimiento/api/v1/athletes/${athleteId}/group-benchmark${categoryId ? `?categoryId=${categoryId}` : ''}`;
-      const response = await httpClient.get<GroupBenchmarkResponse>(url);
-      return response.data;
+      const response = await getGroupBenchmarkRequest({
+        path: { athleteId },
+        query: categoryId ? { categoryId } : undefined,
+        throwOnError: true,
+      });
+      return response.data as unknown as GroupBenchmarkResponse;
     } catch (error) {
-      try {
-        const fallbackUrl = `/api/v1/athletes/${athleteId}/group-benchmark${categoryId ? `?categoryId=${categoryId}` : ''}`;
-        const fallbackResponse = await httpClient.get<GroupBenchmarkResponse>(fallbackUrl);
-        return fallbackResponse.data;
-      } catch {
-        throw new Error(extractErrorMessage(error), { cause: error });
-      }
+      throw new Error(extractErrorMessage(error), { cause: error });
     }
   },
 

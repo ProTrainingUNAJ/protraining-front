@@ -36,14 +36,14 @@ export interface CategoryBenchmarkSummary {
 export interface GroupBenchmarkMetric {
   dimension: string;
   athleteValue: number;
-  groupAverage: number;
+  groupAverage?: number | null;
   unit?: string;
-  difference?: number;
-  percentageDifference?: number;
+  difference?: number | null;
+  percentageDifference?: number | null;
   direction?: 'HigherIsBetter' | 'LowerIsBetter';
-  status?: 'BelowAverage' | 'Neutral' | 'AboveAverage';
+  status?: 'BelowAverage' | 'Neutral' | 'AboveAverage' | 'InsufficientGroupData';
   isWeakestPoint?: boolean;
-  trend?: string;
+  trend?: string | null;
 }
 
 export interface GroupBenchmarkResponse {
