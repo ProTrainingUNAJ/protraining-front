@@ -196,6 +196,25 @@ export type Record = {
     isCurrent: boolean;
 };
 
+export type RecordReliabilityAthlete = {
+    athleteId: string;
+    name: string;
+};
+
+export type RecordReliabilityGroup = {
+    group: 'Tested' | 'Reported' | 'Estimated' | 'NoData';
+    count: number;
+    percentage: number;
+    athletes: Array<RecordReliabilityAthlete>;
+};
+
+export type RecordReliabilitySummary = {
+    categoryId: string;
+    exerciseId?: string | null;
+    totalAthletes: number;
+    groups: Array<RecordReliabilityGroup>;
+};
+
 export type SaveRecordRequest = {
     exerciseId: string;
     weightOneRepMaxKg: number;
@@ -719,6 +738,44 @@ export type SaveRecordResponses = {
 };
 
 export type SaveRecordResponse = SaveRecordResponses[keyof SaveRecordResponses];
+
+export type GetRecordsReliabilityData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Identificador de la categoría.
+         */
+        categoryId: string;
+        /**
+         * Filtrar la confiabilidad a un solo ejercicio.
+         */
+        exerciseId?: string;
+    };
+    url: '/api/v1/records/reliability';
+};
+
+export type GetRecordsReliabilityErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetRecordsReliabilityError = GetRecordsReliabilityErrors[keyof GetRecordsReliabilityErrors];
+
+export type GetRecordsReliabilityResponses = {
+    /**
+     * Resumen de confiabilidad obtenido con éxito.
+     */
+    200: RecordReliabilitySummary;
+};
+
+export type GetRecordsReliabilityResponse = GetRecordsReliabilityResponses[keyof GetRecordsReliabilityResponses];
 
 export type ListRecordProposalsData = {
     body?: never;

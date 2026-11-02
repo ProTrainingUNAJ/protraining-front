@@ -12,6 +12,7 @@ import { GeneratePlanDraftPage } from './pages/coach/GeneratePlanDraftPage';
 import { AssistantDraftPage } from './pages/coach/AssistantDraftPage';
 import { TrainingPage } from './pages/coach/TrainingPage';
 import { MonitoringPage } from './pages/coach/MonitoringPage';
+import { RecordsReliabilityPage } from './pages/coach/RecordsReliabilityPage';
 import { ReportsPage } from './pages/coach/ReportsPage';
 import { SettingsPage } from './pages/coach/SettingsPage';
 import { HomePage } from './pages/athlete/HomePage';
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
               { path: 'assistant/drafts/:draftId', element: <AssistantDraftPage /> },
               { path: 'training', element: <TrainingPage /> },
               { path: 'monitoring', element: <MonitoringPage /> },
+              { path: 'records-reliability', element: <RecordsReliabilityPage /> },
               { path: 'reports', element: <ReportsPage /> },
               { path: 'settings', element: <SettingsPage /> },
             ],
