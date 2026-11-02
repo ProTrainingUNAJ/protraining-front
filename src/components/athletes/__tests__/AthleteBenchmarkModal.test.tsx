@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { AthleteBenchmarkModal } from '../AthleteBenchmarkModal';
-import { athleteBenchmarkService } from '../../../services/athleteBenchmarkService';
+import { athleteBenchmarkService } from '../../../api/athleteBenchmark';
 import { CategoryBenchmarkSummary } from '../../../types/benchmark';
 
-describe('AthleteBenchmarkModal (KAN-448)', () => {
+describe('AthleteBenchmarkModal (KAN-448 - Revisión)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     localStorage.clear();
@@ -17,7 +17,6 @@ describe('AthleteBenchmarkModal (KAN-448)', () => {
   ];
 
   it('CRITERIO DE ACEPTACIÓN: DADO un atleta con un resultado de salto por debajo del promedio de su categoría, CUANDO el PF abre su perfil, ENTONCES visualiza el salto marcado como un punto a mejorar', async () => {
-    // Mock del servicio que devuelve el benchmark con el salto del atleta por debajo del promedio
     const mockSummary: CategoryBenchmarkSummary = {
       categoryId: 'cat-sub20',
       categoryName: 'Sub 20',
@@ -81,6 +80,129 @@ describe('AthleteBenchmarkModal (KAN-448)', () => {
     expect(card.textContent).toContain('35 cm'); // Promedio Categoría
     expect(card.textContent).toContain('-5 cm (-14.3%)'); // Diferencia
     expect(card.textContent).toContain('Punto más débil'); // Badge visible
+  });
+
+  it('muestra "Todavía no hay tests cargados" cuando no existen mediciones del atleta para un test', async () => {
+    const mockSummaryWithoutMeasurement: CategoryBenchmarkSummary = {
+      categoryId: 'cat-sub20',
+      categoryName: 'Sub 20',
+      athleteId: 'ath-1',
+      athleteName: 'Lucas Romero',
+      athleteCount: 15,
+      items: [
+        {
+          testName: 'Velocidad 30m',
+          motorSkill: 'Velocity',
+          unit: 's',
+          athleteValue: null,
+          groupAverage: 4.1,
+          direction: 'lower_is_better',
+          absoluteDelta: null,
+          percentageDelta: null,
+          status: 'insufficient_data',
+          isWeakestPoint: false,
+        },
+      ],
+      weakestPoint: null,
+      areasToImproveCount: 0,
+    };
+
+    vi.spyOn(athleteBenchmarkService, 'getAthleteBenchmark').mockResolvedValue(
+      mockSummaryWithoutMeasurement,
+    );
+
+    render(
+      <AthleteBenchmarkModal
+        athleteId="ath-1"
+        athleteName="Lucas Romero"
+        categories={mockCategories}
+        initialCategoryId="cat-sub20"
+        onClose={vi.fn()}
+      />,
+    );
+
+    // Debe mostrar la leyenda oficial en el resultado del atleta
+    expect(await screen.findByText('Todavía no hay tests cargados')).toBeDefined();
+
+    // No debe marcarse como punto débil
+    expect(screen.queryByText(/Punto más débil identificado/i)).toBeNull();
+    expect(screen.getByText('Sin datos suficientes')).toBeDefined();
+  });
+
+  it('muestra "Todavía no hay tests cargados" cuando la lista de tests está completamente vacía', async () => {
+    const emptySummary: CategoryBenchmarkSummary = {
+      categoryId: 'cat-sub20',
+      categoryName: 'Sub 20',
+      athleteId: 'ath-1',
+      athleteName: 'Lucas Romero',
+      athleteCount: 15,
+      items: [],
+      weakestPoint: null,
+      areasToImproveCount: 0,
+    };
+
+    vi.spyOn(athleteBenchmarkService, 'getAthleteBenchmark').mockResolvedValue(emptySummary);
+
+    render(
+      <AthleteBenchmarkModal
+        athleteId="ath-1"
+        athleteName="Lucas Romero"
+        categories={mockCategories}
+        initialCategoryId="cat-sub20"
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Todavía no hay tests cargados')).toBeDefined();
+  });
+
+  it('no guarda evaluaciones en localStorage ni ofrece controles de persistencia local', async () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+
+    const mockSummary: CategoryBenchmarkSummary = {
+      categoryId: 'cat-sub20',
+      categoryName: 'Sub 20',
+      athleteId: 'ath-1',
+      athleteName: 'Lucas Romero',
+      athleteCount: 15,
+      items: [
+        {
+          testName: 'Salto Vertical CMJ',
+          unit: 'cm',
+          athleteValue: 32,
+          groupAverage: 35,
+          direction: 'higher_is_better',
+          absoluteDelta: -3,
+          percentageDelta: -8.6,
+          status: 'below_average',
+          isWeakestPoint: true,
+        },
+      ],
+      weakestPoint: null,
+      areasToImproveCount: 1,
+    };
+
+    vi.spyOn(athleteBenchmarkService, 'getAthleteBenchmark').mockResolvedValue(mockSummary);
+
+    render(
+      <AthleteBenchmarkModal
+        athleteId="ath-1"
+        athleteName="Lucas Romero"
+        categories={mockCategories}
+        initialCategoryId="cat-sub20"
+        onClose={vi.fn()}
+      />,
+    );
+
+    await screen.findByText('Salto Vertical CMJ');
+
+    // No debe existir ningún botón de edición o guardado local
+    expect(screen.queryByRole('button', { name: /Guardar/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Modificar medición/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Cargar medición/i })).toBeNull();
+
+    // No debe haberse escrito nada en localStorage
+    expect(setItemSpy).not.toHaveBeenCalled();
   });
 
   it('permite cambiar de categoría cuando el atleta pertenece a más de una (N:N)', async () => {

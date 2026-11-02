@@ -2,20 +2,15 @@ import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
-  Edit2,
   HelpCircle,
   Loader2,
   Minus,
-  Save,
   TrendingDown,
   TrendingUp,
   X,
 } from 'lucide-react';
-import {
-  athleteBenchmarkService,
-  saveAthleteEvaluation,
-} from '../../services/athleteBenchmarkService';
-import { CategoryBenchmarkSummary, AthleteBenchmarkItem } from '../../types/benchmark';
+import { athleteBenchmarkService } from '../../api/athleteBenchmark';
+import { CategoryBenchmarkSummary } from '../../types/benchmark';
 import { formatBenchmarkDelta, getStatusBadgeInfo } from '../../utils/benchmarkCalculator';
 
 interface AthleteBenchmarkModalProps {
@@ -42,11 +37,6 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
   const [loading, setLoading] = useState(Boolean(selectedCategoryId));
   const [error, setError] = useState<string | null>(null);
   const [reloadTrigger, setReloadTrigger] = useState(0);
-
-  // Estado para edición/carga rápida de una medición
-  const [editingTestName, setEditingTestName] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
-  const [savingValue, setSavingValue] = useState(false);
 
   const activeCategory = categories.find((c) => c.id === selectedCategoryId);
   const categoryName = activeCategory ? activeCategory.name : 'Categoría';
@@ -90,37 +80,14 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
   // Soporte de tecla Escape para accesibilidad
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !savingValue) onClose();
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose, savingValue]);
-
-  const handleSaveMeasurement = async (testItem: AthleteBenchmarkItem) => {
-    const num = parseFloat(editValue);
-    if (isNaN(num) || num < 0) {
-      return;
-    }
-
-    setSavingValue(true);
-    try {
-      saveAthleteEvaluation(athleteId, testItem.testName, num, testItem.unit);
-      setEditingTestName(null);
-      setEditValue('');
-      setReloadTrigger((prev) => prev + 1);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar la medición del test.');
-    } finally {
-      setSavingValue(false);
-    }
-  };
+  }, [onClose]);
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={savingValue ? undefined : onClose}
-      data-testid="athlete-benchmark-modal-overlay"
-    >
+    <div className="modal-overlay" onClick={onClose} data-testid="athlete-benchmark-modal-overlay">
       <div
         className="modal-content plan-picker"
         role="dialog"
@@ -149,7 +116,6 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
             type="button"
             className="plan-icon-btn"
             onClick={onClose}
-            disabled={savingValue}
             aria-label="Cerrar modal de comparativa"
           >
             <X size={20} aria-hidden="true" />
@@ -160,34 +126,35 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
         {categories.length > 1 && (
           <div
             style={{
-              marginBottom: '1rem',
-              padding: '0.75rem',
-              background: 'var(--surface-subtle, #f8f9fa)',
+              padding: '0.75rem 1rem',
+              background: '#f8f9fa',
               borderRadius: '6px',
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
             }}
           >
             <label
               htmlFor="benchmark-category-select"
-              style={{
-                display: 'block',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                marginBottom: '0.35rem',
-              }}
+              style={{ fontSize: '0.875rem', fontWeight: 600, color: '#495057' }}
             >
-              Categoría de comparación (N:N):
+              Categoría de comparación:
             </label>
             <select
               id="benchmark-category-select"
-              className="plan-field-input"
               value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
-              disabled={loading || savingValue}
+              onChange={(e) => {
+                setSelectedCategoryId(e.target.value);
+                setLoading(true);
+              }}
               style={{
-                width: '100%',
-                padding: '0.5rem',
+                flex: 1,
+                padding: '0.35rem 0.6rem',
                 borderRadius: '4px',
                 border: '1px solid #ced4da',
+                fontSize: '0.875rem',
+                background: '#ffffff',
               }}
             >
               {categories.map((c) => (
@@ -196,6 +163,19 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Mensaje informativo de categoría actual */}
+        {categories.length === 1 && (
+          <div
+            style={{
+              fontSize: '0.85rem',
+              color: '#6c757d',
+              marginBottom: '0.75rem',
+            }}
+          >
+            Comparando frente a los promedios de la categoría: <strong>{categoryName}</strong>
           </div>
         )}
 
@@ -246,7 +226,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
         {/* Contenido principal cuando no está cargando */}
         {!loading && summary && (
           <div>
-            {/* Banner de Punto más Débil (si existe) */}
+            {/* Banner de Punto más Débil (si existe con mediciones válidas) */}
             {summary.weakestPoint && (
               <div
                 role="status"
@@ -302,22 +282,13 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                   border: '1px solid #e9ecef',
                 }}
               >
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#6c757d',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                  }}
-                >
-                  Categoría
+                <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                  Atletas Evaluados
                 </span>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#212529' }}>
-                  {categoryName}
+                  {summary.athleteCount}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
-                  {summary.athleteCount} atletas
-                </span>
+                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>en {categoryName}</span>
               </div>
 
               <div
@@ -328,14 +299,24 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                   border: '1px solid #e9ecef',
                 }}
               >
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#6c757d',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                  }}
-                >
+                <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                  Tests Comparados
+                </span>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#212529' }}>
+                  {summary.items.length}
+                </div>
+                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>batería de pruebas</span>
+              </div>
+
+              <div
+                style={{
+                  background: '#f8f9fa',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef',
+                }}
+              >
+                <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
                   Puntos a Mejorar
                 </span>
                 <div
@@ -379,15 +360,12 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                   style={{ marginBottom: '0.5rem', opacity: 0.5 }}
                   aria-hidden="true"
                 />
-                <p style={{ margin: 0 }}>
-                  La categoría no tiene tests físicos con promedios registrados para esta semana.
-                </p>
+                <p style={{ margin: 0, fontWeight: 500 }}>Todavía no hay tests cargados</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {summary.items.map((item) => {
                   const badge = getStatusBadgeInfo(item.status, item.isWeakestPoint);
-                  const isEditing = editingTestName === item.testName;
 
                   // Estilos de badge accesibles (con color y contraste semántico)
                   let badgeBg = '#e9ecef';
@@ -498,7 +476,6 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                           marginTop: '0.75rem',
                           padding: '0.5rem 0',
                           borderTop: '1px solid #f1f3f5',
-                          borderBottom: '1px solid #f1f3f5',
                         }}
                       >
                         <div>
@@ -507,14 +484,15 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                           </span>
                           <span
                             style={{
-                              fontSize: '1rem',
+                              fontSize: item.athleteValue !== null ? '1rem' : '0.85rem',
                               fontWeight: 600,
-                              color: item.athleteValue !== null ? '#212529' : '#adb5bd',
+                              color: item.athleteValue !== null ? '#212529' : '#6c757d',
+                              fontStyle: item.athleteValue !== null ? 'normal' : 'italic',
                             }}
                           >
                             {item.athleteValue !== null
                               ? `${item.athleteValue} ${item.unit}`
-                              : 'Sin medición'}
+                              : 'Todavía no hay tests cargados'}
                           </span>
                         </div>
 
@@ -549,110 +527,6 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                           </span>
                         </div>
                       </div>
-
-                      {/* Acción para registrar o actualizar el resultado del atleta */}
-                      <div
-                        style={{
-                          marginTop: '0.75rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        {isEditing ? (
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              width: '100%',
-                              justifyContent: 'flex-end',
-                            }}
-                          >
-                            <label
-                              htmlFor={`edit-input-${item.testName}`}
-                              style={{ fontSize: '0.8rem', color: '#495057' }}
-                            >
-                              Nuevo valor ({item.unit}):
-                            </label>
-                            <input
-                              id={`edit-input-${item.testName}`}
-                              type="number"
-                              step="0.1"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              placeholder={`Ej: ${item.groupAverage ?? 30}`}
-                              disabled={savingValue}
-                              style={{
-                                width: '90px',
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '4px',
-                                border: '1px solid #ced4da',
-                                fontSize: '0.85rem',
-                              }}
-                            />
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              onClick={() => handleSaveMeasurement(item)}
-                              disabled={savingValue || !editValue}
-                              style={{
-                                padding: '0.25rem 0.6rem',
-                                fontSize: '0.8rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                              }}
-                            >
-                              {savingValue ? (
-                                <Loader2 size={14} className="plan-spin" aria-hidden="true" />
-                              ) : (
-                                <Save size={14} aria-hidden="true" />
-                              )}
-                              <span>Guardar</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={() => {
-                                setEditingTestName(null);
-                                setEditValue('');
-                              }}
-                              disabled={savingValue}
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => {
-                              setEditingTestName(item.testName);
-                              setEditValue(
-                                item.athleteValue !== null ? String(item.athleteValue) : '',
-                              );
-                            }}
-                            style={{
-                              fontSize: '0.8rem',
-                              padding: '0.25rem 0.5rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                            }}
-                            title={`Registrar o actualizar medición de ${item.testName}`}
-                          >
-                            <Edit2 size={13} aria-hidden="true" />
-                            <span>
-                              {item.athleteValue !== null
-                                ? 'Modificar medición'
-                                : 'Cargar medición'}
-                            </span>
-                          </button>
-                        )}
-                      </div>
                     </div>
                   );
                 })}
@@ -671,12 +545,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
             paddingTop: '1rem',
           }}
         >
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={onClose}
-            disabled={savingValue}
-          >
+          <button type="button" className="btn btn-primary" onClick={onClose}>
             Cerrar
           </button>
         </div>

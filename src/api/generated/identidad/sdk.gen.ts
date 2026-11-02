@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
+import type { GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -41,6 +41,21 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
 export const refreshToken = <ThrowOnError extends boolean = false>(options: Options<RefreshTokenData, ThrowOnError>): RequestResult<RefreshTokenResponses, RefreshTokenErrors, ThrowOnError> => (options.client ?? client).post<RefreshTokenResponses, RefreshTokenErrors, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/auth/refresh',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Registro de atleta por invitación
+ *
+ * Registra la cuenta de un nuevo atleta a partir de un token de invitación de categoría (KAN-397). Rechaza con 403 si el email ya existe con rol PreparadorFisico, responde 409 si ya existe como Atleta, y 410 o 400 si el token de invitación es inválido o venció.
+ */
+export const registerByInvitation = <ThrowOnError extends boolean = false>(options: Options<RegisterByInvitationData, ThrowOnError>): RequestResult<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError> => (options.client ?? client).post<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/register-by-invitation',
     ...options,
     headers: {
         'Content-Type': 'application/json',

@@ -9,7 +9,7 @@ import {
   RefreshCw,
   FolderTree,
 } from 'lucide-react';
-import { athleteBenchmarkService } from '../../services/athleteBenchmarkService';
+import { athleteBenchmarkService } from '../../api/athleteBenchmark';
 import { structureService } from '../../api/structureService';
 import { GroupBenchmarkMetric, GroupBenchmarkResponse } from '../../types/benchmark';
 import { Category } from '../../types/structure';
@@ -260,7 +260,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                 color: 'var(--text-muted)',
               }}
             >
-              Comparativa de rendimiento contra los promedios anónimos de tu categoría (KAN-449).
+              Comparativa de rendimiento contra los promedios anónimos de tu categoría.
             </p>
           </div>
         </div>

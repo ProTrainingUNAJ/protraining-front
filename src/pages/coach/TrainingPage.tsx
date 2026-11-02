@@ -5,6 +5,7 @@ import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise } from '../../api/generated/entrenamiento';
+import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExerciseItem {
   id: string;
@@ -21,8 +22,6 @@ interface ExerciseItem {
 }
 
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
-
-const CHIP_CATEGORIES = ['Todos', 'Piernas', 'Pecho', 'Espalda', 'Hombros', 'Brazos', 'Core'];
 
 interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants'> {
   id?: string | number;
@@ -78,6 +77,7 @@ function extractExerciseList(data: unknown): ExerciseApiResponse[] {
 export const TrainingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +117,7 @@ export const TrainingPage: React.FC = () => {
             pageSize: PAGE_SIZE,
             search: searchTerm.trim() || undefined,
             muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+            muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
             groupVariants: true,
           },
         });
@@ -148,7 +149,7 @@ export const TrainingPage: React.FC = () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [searchTerm, selectedCategory, retryCount]);
+  }, [searchTerm, selectedCategory, selectedMuscle, retryCount]);
 
   // Función para pedir la siguiente página manteniendo los filtros
   const handleLoadMore = async () => {
@@ -164,6 +165,7 @@ export const TrainingPage: React.FC = () => {
           pageSize: PAGE_SIZE,
           search: searchTerm.trim() || undefined,
           muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+          muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
           groupVariants: true,
         },
       });
@@ -239,7 +241,7 @@ export const TrainingPage: React.FC = () => {
             />
           </div>
 
-          {/* Chips Táctiles PWA */}
+          {/* Chips Táctiles PWA - Grupos principales */}
           <div
             className="exercise-chips-scroll"
             role="tablist"
@@ -250,12 +252,37 @@ export const TrainingPage: React.FC = () => {
                 key={cat}
                 type="button"
                 className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setSelectedMuscle(null);
+                }}
               >
                 {cat}
               </button>
             ))}
           </div>
+
+          {/* Chips Táctiles PWA - Músculos puntuales según grupo seleccionado */}
+          {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+            <div
+              className="exercise-subchips-scroll"
+              role="tablist"
+              aria-label="Filtro por músculo puntual"
+            >
+              {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
+                <button
+                  key={subMuscle}
+                  type="button"
+                  className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
+                  onClick={() =>
+                    setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
+                  }
+                >
+                  {subMuscle}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Indicador de carga si está conectando al backend */}
@@ -328,10 +355,14 @@ export const TrainingPage: React.FC = () => {
                 color: 'var(--text-main)',
               }}
             >
-              No se encontraron ejercicios
+              {selectedMuscle
+                ? 'No hay ejercicios para ese músculo'
+                : 'No se encontraron ejercicios'}
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
-              Prueba modificando el término de búsqueda o seleccionando otra categoría.
+              {selectedMuscle
+                ? 'Prueba seleccionando otro músculo o limpiando el filtro.'
+                : 'Prueba modificando el término de búsqueda o seleccionando otra categoría.'}
             </p>
           </div>
         ) : (

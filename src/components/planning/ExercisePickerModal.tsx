@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { exercisesService } from '../../api/exercises';
 import { CatalogExercise, ExercisePage } from '../../types/trainingPlans';
+import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExercisePickerModalProps {
   onClose: () => void;
@@ -37,6 +38,9 @@ export function ExercisePickerModal({
 
   // Modo de filtro: si es true pide solo ejercicios del PF
   const [usedByPf, setUsedByPf] = useState(filterUsedByPf);
+  // Filtro por grupo muscular y músculo puntual
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   // Aviso cuando el PF no tiene planificaciones cargadas
   const [notice, setNotice] = useState<string | null>(null);
   // Ejercicio base con las variantes desplegadas (KAN-554)
@@ -56,8 +60,15 @@ export function ExercisePickerModal({
 
   useEffect(() => {
     let active = true;
-    exercisesService
-      .search(search, page, PAGE_SIZE, usedByPf, true)
+    const catParam = selectedCategory === 'Todos' ? undefined : selectedCategory;
+    const muscleParam = selectedMuscle ? selectedMuscle.toLowerCase() : undefined;
+
+    const request =
+      catParam || muscleParam
+        ? exercisesService.search(search, page, PAGE_SIZE, usedByPf, true, catParam, muscleParam)
+        : exercisesService.search(search, page, PAGE_SIZE, usedByPf, true);
+
+    request
       .then((data) => {
         if (!active) return;
         // Si el PF todavía no tiene planificaciones (la lista viene vacía al inicio),
@@ -88,7 +99,7 @@ export function ExercisePickerModal({
     return () => {
       active = false;
     };
-  }, [search, page, usedByPf]);
+  }, [search, page, usedByPf, selectedCategory, selectedMuscle]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -149,6 +160,51 @@ export function ExercisePickerModal({
           />
         </div>
 
+        {/* Chips de grupos principales */}
+        <div
+          className="exercise-chips-scroll"
+          role="tablist"
+          aria-label="Filtro por grupo muscular"
+        >
+          {CHIP_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedCategory(cat);
+                setSelectedMuscle(null);
+                setPage(1);
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Chips de submúsculos según grupo seleccionado */}
+        {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+          <div
+            className="exercise-subchips-scroll"
+            role="tablist"
+            aria-label="Filtro por músculo puntual"
+          >
+            {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
+              <button
+                key={subMuscle}
+                type="button"
+                className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle));
+                  setPage(1);
+                }}
+              >
+                {subMuscle}
+              </button>
+            ))}
+          </div>
+        )}
+
         {error && (
           <div className="alert-banner danger" role="alert">
             <span className="plan-inline">
@@ -164,7 +220,11 @@ export function ExercisePickerModal({
             Buscando ejercicios…
           </p>
         ) : items.length === 0 && !error ? (
-          <p className="plan-empty">No encontramos ejercicios con esa búsqueda.</p>
+          <p className="plan-empty">
+            {selectedMuscle
+              ? 'No hay ejercicios para ese músculo.'
+              : 'No encontramos ejercicios con esa búsqueda.'}
+          </p>
         ) : (
           <ul className="plan-picker-list">
             {items.map((exercise) => {

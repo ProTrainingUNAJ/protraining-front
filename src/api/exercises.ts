@@ -21,6 +21,8 @@ export const exercisesService = {
     pageSize: number,
     usedByPf?: boolean,
     groupVariants?: boolean,
+    muscleGroup?: string,
+    muscle?: string,
   ): Promise<ExercisePage> {
     try {
       const { data } = await listExercises({
@@ -30,6 +32,8 @@ export const exercisesService = {
           pageSize,
           usedByPf: usedByPf || undefined,
           groupVariants: groupVariants || undefined,
+          muscleGroup: muscleGroup && muscleGroup !== 'Todos' ? muscleGroup : undefined,
+          muscle: muscle ? muscle.toLowerCase() : undefined,
         },
         throwOnError: true,
       });

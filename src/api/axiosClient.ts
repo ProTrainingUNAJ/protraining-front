@@ -76,13 +76,16 @@ const processQueue = (error: unknown = null) => {
 
 /**
  * Main Axios instance for ProTraining
+ *
+ * Ojo: no fijar `Content-Type` acá. Axios ya lo pone en `application/json`
+ * cuando el body es un objeto, y si lo dejamos como default rompe los pedidos
+ * multipart (el SDK borra el header para que el browser agregue el boundary,
+ * pero el default lo vuelve a poner y Axios termina serializando el FormData
+ * como JSON).
  */
 export const httpClient: AxiosInstance = axios.create({
   baseURL: '/api',
   timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 /**
