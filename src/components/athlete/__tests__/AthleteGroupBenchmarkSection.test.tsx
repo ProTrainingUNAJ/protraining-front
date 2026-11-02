@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { AthleteGroupBenchmarkSection } from '../AthleteGroupBenchmarkSection';
-import { athleteBenchmarkService } from '../../../services/athleteBenchmarkService';
+import { athleteBenchmarkService } from '../../../api/athleteBenchmark';
 import { structureService } from '../../../api/structureService';
 import { GroupBenchmarkResponse } from '../../../types/benchmark';
 import { AthleteMe, Category } from '../../../types/structure';
