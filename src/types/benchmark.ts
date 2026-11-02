@@ -1,8 +1,5 @@
 export type PerformanceStatus =
-  | 'above_average'
-  | 'on_average'
-  | 'below_average'
-  | 'insufficient_data';
+  'above_average' | 'on_average' | 'below_average' | 'insufficient_data';
 
 export type ImprovementDirection = 'higher_is_better' | 'lower_is_better';
 

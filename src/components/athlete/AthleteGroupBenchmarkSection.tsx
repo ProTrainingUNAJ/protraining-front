@@ -530,7 +530,9 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                           ? '1.2rem'
                           : '0.85rem',
                       fontWeight:
-                        metric.groupAverage !== null && metric.groupAverage !== undefined ? 800 : 600,
+                        metric.groupAverage !== null && metric.groupAverage !== undefined
+                          ? 800
+                          : 600,
                       color: 'var(--text-muted)',
                       lineHeight: 1.3,
                       display: 'block',

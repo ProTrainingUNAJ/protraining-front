@@ -146,7 +146,9 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
     // Verificamos que NO se muestren alertas de punto más débil ni deltas engañosos
     expect(screen.queryByTestId('weakest-point-alert')).toBeNull();
     expect(screen.queryByText(/En el promedio/i)).toBeNull();
-    expect(screen.getByText(/Pendiente de acumular mediciones grupales suficientes/i)).toBeDefined();
+    expect(
+      screen.getByText(/Pendiente de acumular mediciones grupales suficientes/i),
+    ).toBeDefined();
   });
 
   it('PRIVACIDAD (KAN-450): Solo muestra promedios anónimos de la categoría y nunca expone IDs ni datos de otros compañeros', async () => {
