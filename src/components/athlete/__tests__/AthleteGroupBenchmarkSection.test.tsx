@@ -100,6 +100,55 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
     expect(sprintBadge.textContent).toContain('Superior al promedio');
   });
 
+  it('K-ANONIMATO (KAN-449): cuando menos de 3 compañeros tienen datos, muestra el valor del atleta y «Todavía no hay suficientes datos del grupo» sin deltas ni badges engañosos', async () => {
+    vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe([mockCategories[0]]));
+
+    const mockInsufficientDataResponse: GroupBenchmarkResponse = {
+      athleteId: 'ath-1',
+      categoryId: 'cat-sub20',
+      categoryName: 'Sub 20',
+      metrics: [
+        {
+          dimension: 'Salto Vertical CMJ',
+          unit: 'cm',
+          athleteValue: 32.5,
+          groupAverage: null,
+          difference: null,
+          percentageDifference: null,
+          direction: 'HigherIsBetter',
+          status: 'InsufficientGroupData',
+          isWeakestPoint: false,
+          trend: null,
+        },
+      ],
+    };
+
+    vi.spyOn(athleteBenchmarkService, 'getMyGroupBenchmark').mockResolvedValue(
+      mockInsufficientDataResponse,
+    );
+
+    render(<AthleteGroupBenchmarkSection athleteId="ath-1" />);
+
+    expect(await screen.findByText('Mis Números vs. Promedio del Grupo')).toBeDefined();
+
+    // Verificamos que se muestre el valor propio del atleta con normalidad
+    const athleteVal = await screen.findByTestId('athlete-val-Salto Vertical CMJ');
+    expect(athleteVal.textContent).toContain('32.5 cm');
+
+    // Verificamos el texto exacto obligatorio para promedio cuando no hay suficientes datos
+    const groupAvg = screen.getByTestId('group-avg-Salto Vertical CMJ');
+    expect(groupAvg.textContent).toContain('Todavía no hay suficientes datos del grupo');
+
+    // Verificamos badge accesible de Datos insuficientes
+    const badge = screen.getByTestId('badge-status-Salto Vertical CMJ');
+    expect(badge.textContent).toContain('Datos insuficientes');
+
+    // Verificamos que NO se muestren alertas de punto más débil ni deltas engañosos
+    expect(screen.queryByTestId('weakest-point-alert')).toBeNull();
+    expect(screen.queryByText(/En el promedio/i)).toBeNull();
+    expect(screen.getByText(/Pendiente de acumular mediciones grupales suficientes/i)).toBeDefined();
+  });
+
   it('PRIVACIDAD (KAN-450): Solo muestra promedios anónimos de la categoría y nunca expone IDs ni datos de otros compañeros', async () => {
     vi.spyOn(structureService, 'getMe').mockResolvedValue(createMockAthleteMe([mockCategories[0]]));
 

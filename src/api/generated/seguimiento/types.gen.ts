@@ -145,11 +145,18 @@ export type TrafficLightIndicators = {
 export type GroupBenchmarkResponse = {
     athleteId: string;
     categoryId: string;
+    categoryName?: string;
     metrics: Array<{
         dimension: string;
         athleteValue: number;
-        groupAverage: number;
-        trend?: string;
+        groupAverage?: number | null;
+        unit?: string;
+        difference?: number | null;
+        percentageDifference?: number | null;
+        direction?: string;
+        status?: string;
+        isWeakestPoint?: boolean;
+        trend?: string | null;
     }>;
 };
 
@@ -592,11 +599,21 @@ export type GetGroupBenchmarkData = {
     path: {
         athleteId: string;
     };
-    query?: never;
+    query?: {
+        categoryId?: string;
+    };
     url: '/api/v1/athletes/{athleteId}/group-benchmark';
 };
 
 export type GetGroupBenchmarkErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
     /**
      * Atleta o lesión no encontrados.
      */

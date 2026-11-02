@@ -94,6 +94,35 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
 
   // Helper de badges accesibles (WCAG 2.1: texto + color + icono)
   const renderStatusBadge = (metric: GroupBenchmarkMetric) => {
+    if (
+      metric.status === 'InsufficientGroupData' ||
+      metric.groupAverage === null ||
+      metric.groupAverage === undefined
+    ) {
+      return (
+        <span
+          className="badge"
+          style={{
+            background: 'var(--bg-subtle, rgba(148, 163, 184, 0.15))',
+            color: 'var(--text-muted, #94a3b8)',
+            border: '1px solid var(--border)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.35rem 0.65rem',
+            borderRadius: '999px',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+          }}
+          aria-label="Estado: Datos insuficientes"
+          data-testid={`badge-status-${metric.dimension}`}
+        >
+          <HelpCircle size={13} aria-hidden="true" />
+          <span>Datos insuficientes</span>
+        </span>
+      );
+    }
+
     if (metric.status === 'BelowAverage' || metric.isWeakestPoint) {
       return (
         <span
@@ -496,49 +525,75 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                   </span>
                   <span
                     style={{
-                      fontSize: '1.2rem',
-                      fontWeight: 800,
+                      fontSize:
+                        metric.groupAverage !== null && metric.groupAverage !== undefined
+                          ? '1.2rem'
+                          : '0.85rem',
+                      fontWeight:
+                        metric.groupAverage !== null && metric.groupAverage !== undefined ? 800 : 600,
                       color: 'var(--text-muted)',
+                      lineHeight: 1.3,
+                      display: 'block',
                     }}
                     data-testid={`group-avg-${metric.dimension}`}
                   >
-                    {metric.groupAverage} {metric.unit || ''}
+                    {metric.groupAverage !== null && metric.groupAverage !== undefined
+                      ? `${metric.groupAverage} ${metric.unit || ''}`
+                      : 'Todavía no hay suficientes datos del grupo'}
                   </span>
                 </div>
               </div>
 
               {/* Diferencia y Tendencia */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.8rem',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                <span>
-                  Diferencia:{' '}
-                  <strong
-                    style={{
-                      color:
-                        metric.status === 'BelowAverage'
-                          ? 'var(--stat-red, #ef4444)'
-                          : metric.status === 'AboveAverage'
-                            ? 'var(--stat-green, #22c55e)'
-                            : 'var(--text-main)',
-                    }}
-                  >
-                    {metric.difference !== undefined && metric.difference > 0 ? '+' : ''}
-                    {metric.difference} {metric.unit || ''}
-                  </strong>
-                </span>
+              {metric.difference !== null &&
+              metric.difference !== undefined &&
+              metric.groupAverage !== null &&
+              metric.groupAverage !== undefined ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.8rem',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  <span>
+                    Diferencia:{' '}
+                    <strong
+                      style={{
+                        color:
+                          metric.status === 'BelowAverage'
+                            ? 'var(--stat-red, #ef4444)'
+                            : metric.status === 'AboveAverage'
+                              ? 'var(--stat-green, #22c55e)'
+                              : 'var(--text-main)',
+                      }}
+                    >
+                      {metric.difference > 0 ? '+' : ''}
+                      {metric.difference} {metric.unit || ''}
+                    </strong>
+                  </span>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <Sparkles size={13} style={{ color: 'var(--stat-cyan)' }} aria-hidden="true" />
-                  <span>{metric.trend || `${metric.percentageDifference}%`}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Sparkles size={13} style={{ color: 'var(--stat-cyan)' }} aria-hidden="true" />
+                    <span>{metric.trend || `${metric.percentageDifference}%`}</span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    fontSize: '0.78rem',
+                    color: 'var(--text-muted)',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  <span>Pendiente de acumular mediciones grupales suficientes</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
