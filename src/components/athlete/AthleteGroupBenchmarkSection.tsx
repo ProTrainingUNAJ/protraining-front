@@ -9,7 +9,7 @@ import {
   RefreshCw,
   FolderTree,
 } from 'lucide-react';
-import { athleteBenchmarkService } from '../../services/athleteBenchmarkService';
+import { athleteBenchmarkService } from '../../api/athleteBenchmark';
 import { structureService } from '../../api/structureService';
 import { GroupBenchmarkMetric, GroupBenchmarkResponse } from '../../types/benchmark';
 import { Category } from '../../types/structure';
