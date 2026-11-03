@@ -551,6 +551,30 @@
   gap: 0.75rem;
 }
 
+.plan-draft-justification {
+  margin: 0;
+}
+
+.plan-draft-justification-icon {
+  vertical-align: text-bottom;
+  margin-right: 0.4rem;
+}
+
+.plan-draft-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.plan-draft-warnings-title {
+  font-weight: 600;
+}
+
+.plan-draft-warnings-list {
+  margin: 0.25rem 0 0 1.5rem;
+  padding: 0;
+}
+
 /* Variantes en el selector de ejercicios (KAN-554): el base se elige directo y sus variantes se despliegan */
 .plan-picker-row {
   display: flex;
@@ -688,6 +712,23 @@
 .plan-discard-modal {
   max-width: 440px;
   padding: 1.5rem;
+}
+
+.plan-discard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plan-discard-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.plan-discard-text {
+  margin: 1rem 0;
+  color: var(--text-muted);
 }
 
 .plan-discard-actions {

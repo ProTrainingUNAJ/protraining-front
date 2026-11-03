@@ -33,7 +33,9 @@ export function PlanEditorPage() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(
+    (location.state as { message?: string } | null)?.message ?? null,
+  );
   const [warningMessage, setWarningMessage] = useState<string | null>(
     (location.state as { warning?: string } | null)?.warning ?? null,
   );

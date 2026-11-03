@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   Bookmark,
@@ -20,6 +20,7 @@ import { PlanListItem, PlanTemplateItem } from '../../types/trainingPlans';
 
 export function PlanningPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') === 'templates' ? 'templates' : 'plans';
 
@@ -40,7 +41,9 @@ export function PlanningPage() {
   const [selectedTemplateForApply, setSelectedTemplateForApply] = useState<PlanTemplateItem | null>(
     null,
   );
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    (location.state as { message?: string } | null)?.message ?? null,
+  );
 
   // Carga inicial de planificaciones
   useEffect(() => {

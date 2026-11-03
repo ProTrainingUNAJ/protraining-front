@@ -29,6 +29,7 @@ vi.mock('../../../api/planDrafts', () => ({
 vi.mock('../../../api/exercises', () => ({
   exercisesService: {
     search: vi.fn(),
+    getByIds: vi.fn(),
   },
 }));
 
@@ -93,6 +94,15 @@ describe('AssistantDraftPage (KAN-413)', () => {
       totalPages: 1,
       totalCount: 1,
     });
+    vi.mocked(exercisesService.getByIds).mockResolvedValue([
+      {
+        id: 'ex-1',
+        name: 'Sentadilla con barra',
+        muscleGroup: 'Piernas',
+        equipment: 'Barra',
+        images: [],
+      },
+    ]);
     vi.mocked(structureService.getOrganizations).mockResolvedValue([
       { id: 'org-1', name: 'Club Atlético', description: null, categoriesCount: 1 },
     ]);
@@ -133,6 +143,8 @@ describe('AssistantDraftPage (KAN-413)', () => {
     expect(screen.getByText(/Proveedor: Gemini/i)).toBeDefined();
     expect(screen.getAllByText(/Categoría · Primera División/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Generado con 3 sesiones semanales/i)).toBeDefined();
+    expect(screen.getByText('Avisos del borrador')).toBeDefined();
+    expect(screen.queryByText(/KAN-408/i)).toBeNull();
     expect(
       screen.getByText(/Ajustado por el partido del sábado 7\/11: Sentadilla 85 % → 60 %/i),
     ).toBeDefined();
@@ -259,5 +271,114 @@ describe('AssistantDraftPage (KAN-413)', () => {
         state: { message: 'El borrador de planificación fue descartado.' },
       });
     });
+  });
+
+  it('muestra los nombres de los ejercicios aunque no estén en la primera página del catálogo', async () => {
+    const draftWithBasics: PlanDraftResponse = {
+      ...sampleDraft,
+      weeks: [
+        {
+          weekNumber: 1,
+          sessions: [
+            {
+              name: 'Sesión Fuerza Inferior',
+              dayOfWeek: 'Monday',
+              order: 1,
+              coachNotes: null,
+              exercises: [
+                {
+                  exerciseId: 'ex-sentadilla',
+                  order: 1,
+                  sets: 4,
+                  reps: 6,
+                  targetPercentage: 80,
+                },
+                {
+                  exerciseId: 'ex-peso-muerto',
+                  order: 2,
+                  sets: 3,
+                  reps: 8,
+                  targetPercentage: 75,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    vi.mocked(planDraftsService.get).mockResolvedValue(draftWithBasics);
+
+    // La primera página por orden alfabético NO trae ni sentadilla ni peso muerto
+    vi.mocked(exercisesService.search).mockResolvedValue({
+      items: [
+        {
+          id: 'ex-alfa-1',
+          name: '90/90 Isquiotibiales',
+          muscleGroup: 'Piernas',
+          equipment: null,
+          images: [],
+        },
+        {
+          id: 'ex-alfa-2',
+          name: 'Ciclismo',
+          muscleGroup: 'Cardio',
+          equipment: 'Bicicleta',
+          images: [],
+        },
+      ],
+      page: 1,
+      totalPages: 5,
+      totalCount: 420,
+    });
+
+    // getByIds resuelve exactamente los IDs pedidos por el borrador
+    vi.mocked(exercisesService.getByIds).mockResolvedValue([
+      {
+        id: 'ex-sentadilla',
+        name: 'Sentadilla trasera con barra',
+        muscleGroup: 'Piernas',
+        equipment: 'Barra',
+        images: [],
+      },
+      {
+        id: 'ex-peso-muerto',
+        name: 'Peso muerto rumano',
+        muscleGroup: 'Piernas',
+        equipment: 'Barra',
+        images: [],
+      },
+    ]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Sentadilla trasera con barra')).toBeDefined();
+      expect(screen.getByText('Peso muerto rumano')).toBeDefined();
+    });
+
+    expect(exercisesService.getByIds).toHaveBeenCalledWith(['ex-sentadilla', 'ex-peso-muerto']);
+    expect(screen.queryByText(/Ejercicio #/i)).toBeNull();
+  });
+
+  it('pide confirmación al tocar Planificaciones si hay cambios sin guardar', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Repeticiones de Sentadilla con barra/i)).toBeDefined();
+    });
+
+    const repsInput = screen.getByLabelText(/Repeticiones de Sentadilla con barra/i);
+    fireEvent.change(repsInput, { target: { value: '12' } });
+
+    const backLink = screen.getByRole('link', { name: /Planificaciones/i });
+    const clickAllowed = fireEvent.click(backLink);
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(clickAllowed).toBe(false);
+
+    confirmSpy.mockRestore();
   });
 });
