@@ -94,13 +94,24 @@ export function AssistantDraftPage() {
         if (!active) return;
         setDraft(loadedDraft);
 
-        // 1. Catálogo para resolver nombres de ejercicios
+        // 1. Catálogo para resolver nombres de los ejercicios del borrador
         const exerciseNamesMap: Record<string, string> = {};
         try {
-          const catalog = await exercisesService.search('', 1, 100);
-          if (active && catalog.items) {
-            for (const item of catalog.items) {
-              exerciseNamesMap[item.id] = item.name;
+          const draftExerciseIds = Array.from(
+            new Set(
+              (loadedDraft.weeks ?? []).flatMap((week) =>
+                (week.sessions ?? []).flatMap((session) =>
+                  (session.exercises ?? []).map((ex) => ex.exerciseId),
+                ),
+              ),
+            ),
+          );
+          if (draftExerciseIds.length > 0) {
+            const catalogExercises = await exercisesService.getByIds(draftExerciseIds);
+            if (active) {
+              for (const item of catalogExercises) {
+                exerciseNamesMap[item.id] = item.name;
+              }
             }
           }
         } catch {
@@ -334,9 +345,18 @@ export function AssistantDraftPage() {
   const totalSessions =
     editableDraft?.weeks.reduce((acc, week) => acc + week.sessions.length, 0) ?? 0;
 
+  const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      dirty &&
+      !window.confirm('Tenés cambios sin guardar en el borrador. ¿Seguro que querés salir?')
+    ) {
+      e.preventDefault();
+    }
+  };
+
   const headerActions = (
     <>
-      <Link to="/pf/planning" className="btn btn-secondary">
+      <Link to="/pf/planning" className="btn btn-secondary" onClick={handleBackClick}>
         <ArrowLeft size={16} aria-hidden="true" />
         <span>Planificaciones</span>
       </Link>
@@ -488,26 +508,22 @@ export function AssistantDraftPage() {
             </span>
           </div>
           {draft.justificationSummary && (
-            <p className="plan-empty" style={{ margin: 0 }}>
-              <Sparkles
-                size={16}
-                aria-hidden="true"
-                style={{ verticalAlign: 'text-bottom', marginRight: '0.4rem' }}
-              />
+            <p className="plan-empty plan-draft-justification">
+              <Sparkles size={16} aria-hidden="true" className="plan-draft-justification-icon" />
               {draft.justificationSummary}
             </p>
           )}
         </div>
 
-        {/* Correcciones del validador de partidos (KAN-408) */}
+        {/* Avisos del borrador */}
         {draft.warnings && draft.warnings.length > 0 && (
           <div className="alert-banner warning" role="status">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <span className="plan-inline" style={{ fontWeight: 600 }}>
+            <div className="plan-draft-warnings">
+              <span className="plan-inline plan-draft-warnings-title">
                 <AlertCircle size={18} aria-hidden="true" />
-                Ajustes automáticos de carga por partido (KAN-408):
+                Avisos del borrador
               </span>
-              <ul style={{ margin: '0.25rem 0 0 1.5rem', padding: 0 }}>
+              <ul className="plan-draft-warnings-list">
                 {draft.warnings.map((w) => (
                   <li key={w}>{w}</li>
                 ))}
@@ -658,11 +674,8 @@ export function AssistantDraftPage() {
             aria-labelledby="discard-modal-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2
-                id="discard-modal-title"
-                style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}
-              >
+            <div className="plan-discard-header">
+              <h2 id="discard-modal-title" className="plan-discard-title">
                 ¿Descartar este borrador?
               </h2>
               <button
@@ -674,7 +687,7 @@ export function AssistantDraftPage() {
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
-            <p style={{ margin: '1rem 0', color: 'var(--text-muted)' }}>
+            <p className="plan-discard-text">
               Se perderán todas las modificaciones y la propuesta generada por la IA. Esta acción no
               se puede deshacer.
             </p>

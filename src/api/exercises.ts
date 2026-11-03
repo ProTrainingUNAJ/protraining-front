@@ -60,4 +60,29 @@ export const exercisesService = {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
   },
+
+  async getByIds(ids: string[]): Promise<CatalogExercise[]> {
+    const uniqueIds = Array.from(new Set(ids.filter((id) => id.trim().length > 0)));
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    try {
+      const { data } = await listExercises({
+        query: {
+          ids: uniqueIds,
+          pageSize: uniqueIds.length,
+        },
+        throwOnError: true,
+      });
+
+      const raw: unknown = data;
+      if (Array.isArray(raw)) {
+        return (raw as Exercise[]).map(mapExercise);
+      }
+      return (data.items ?? []).map(mapExercise);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
 };
