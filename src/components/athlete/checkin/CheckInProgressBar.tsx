@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { getStepTitle, getStepProgress } from './checkInHelper';
 
 export interface CheckInProgressBarProps {
@@ -79,7 +79,7 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
           />
         </div>
 
-        {/* ── Círculos de pasos alineados sobre la barra ── */}
+        {/* ── Círculos de pasos alineados sobre la barra con números siempre visibles ── */}
         <div
           className="checkin-step-dots"
           style={{
@@ -122,26 +122,19 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
                     isCompleted || isActive
                       ? 'var(--checkin-step-active-bg)'
                       : 'var(--checkin-counter-bg)',
-                  color:
-                    isCompleted || isActive
-                      ? 'var(--color-contrast-white)'
-                      : 'var(--checkin-subtitle-color)',
+                  color: isCompleted || isActive ? 'var(--white)' : 'var(--checkin-subtitle-color)',
                   cursor: isAllowed ? 'pointer' : 'default',
                   transition: 'all 0.2s ease',
                   padding: 0,
                   boxShadow: 'none',
                 }}
               >
-                {isCompleted ? (
-                  <Check size={14} strokeWidth={3} color="var(--color-contrast-white)" />
-                ) : (
-                  stepNum
-                )}
+                {stepNum}
               </button>
             );
           })}
 
-          {/* Resumen Dot (Estrella ★) */}
+          {/* Resumen Dot (Estrella ★ visible en blanco cuando está activo) */}
           {(() => {
             const isSummaryActive = isSummary;
             const summaryStepNum = totalSteps + 1;
@@ -166,16 +159,14 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
                   background: isSummaryActive
                     ? 'var(--checkin-step-active-bg)'
                     : 'var(--checkin-counter-bg)',
-                  color: isSummaryActive
-                    ? 'var(--color-contrast-white)'
-                    : 'var(--checkin-subtitle-color)',
+                  color: isSummaryActive ? 'var(--white)' : 'var(--checkin-subtitle-color)',
                   cursor: isAllowed ? 'pointer' : 'default',
                   transition: 'all 0.2s ease',
                   padding: 0,
                   boxShadow: 'none',
                 }}
               >
-                <span style={{ lineHeight: 1, fontSize: '0.88rem', marginTop: '-1px' }}>★</span>
+                <Star size={14} fill="currentColor" stroke="none" />
               </button>
             );
           })()}
