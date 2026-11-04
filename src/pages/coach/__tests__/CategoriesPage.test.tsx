@@ -15,11 +15,19 @@ vi.mock('../../../api/structureService', () => ({
   },
 }));
 
-vi.mock('../../../api/categoryInvitations', () => ({
-  categoryInvitationsService: {
-    generate: vi.fn(),
-  },
-}));
+vi.mock('../../../api/categoryInvitations', () => {
+  const generate = vi.fn();
+  const getOrGenerate = vi.fn((id: string, opts?: { forceRefresh?: boolean }) => {
+    return generate(id, opts);
+  });
+  return {
+    categoryInvitationsService: {
+      generate,
+      getOrGenerate,
+      clearCached: vi.fn(),
+    },
+  };
+});
 
 describe('CategoriesPage · Invitar Atletas (KAN-400)', () => {
   const mockOrgs = [{ id: 'org-1', name: 'Club Atlético Pro', categoriesCount: 1 }];
@@ -84,6 +92,8 @@ describe('CategoriesPage · Invitar Atletas (KAN-400)', () => {
       expect(screen.getByText(/Vence el 07\/11\/2026 a las 12:00 hs/)).toBeDefined();
     });
 
-    expect(categoryInvitationsService.generate).toHaveBeenCalledWith('cat-1');
+    expect(categoryInvitationsService.generate).toHaveBeenCalledWith('cat-1', {
+      forceRefresh: false,
+    });
   });
 });

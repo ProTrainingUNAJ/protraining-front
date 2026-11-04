@@ -4,11 +4,19 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { CategoryInvitationModal } from '../CategoryInvitationModal';
 import { categoryInvitationsService } from '../../../api/categoryInvitations';
 
-vi.mock('../../../api/categoryInvitations', () => ({
-  categoryInvitationsService: {
-    generate: vi.fn(),
-  },
-}));
+vi.mock('../../../api/categoryInvitations', () => {
+  const generate = vi.fn();
+  const getOrGenerate = vi.fn((id: string, opts?: { forceRefresh?: boolean }) => {
+    return generate(id, opts);
+  });
+  return {
+    categoryInvitationsService: {
+      generate,
+      getOrGenerate,
+      clearCached: vi.fn(),
+    },
+  };
+});
 
 describe('CategoryInvitationModal (KAN-400)', () => {
   const defaultProps = {
@@ -29,18 +37,23 @@ describe('CategoryInvitationModal (KAN-400)', () => {
     vi.clearAllMocks();
   });
 
-  it('muestra estado de carga inicial mientras se genera la invitación', () => {
-    vi.mocked(categoryInvitationsService.generate).mockReturnValue(new Promise(() => {}));
+  it('muestra estado de carga inicial mientras se obtiene o genera la invitación', () => {
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockReturnValue(new Promise(() => {}));
 
     render(<CategoryInvitationModal {...defaultProps} />);
 
     expect(screen.getByText('Generando código QR y enlace seguro...')).toBeDefined();
   });
 
-  it('renderiza exitosamente el código QR, vencimiento en hora Argentina y enlace copiable', async () => {
-    vi.mocked(categoryInvitationsService.generate).mockResolvedValueOnce(mockInvitation);
+  it('reutiliza o genera la invitación y renderiza el QR, vencimiento en hora Argentina y enlace copiable', async () => {
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockResolvedValueOnce(mockInvitation);
 
     render(<CategoryInvitationModal {...defaultProps} />);
+
+    // Verifica que se haya llamado a getOrGenerate con forceRefresh false
+    expect(categoryInvitationsService.getOrGenerate).toHaveBeenCalledWith('cat-123', {
+      forceRefresh: false,
+    });
 
     // Espera a que termine la carga
     await waitFor(() => {
@@ -64,10 +77,47 @@ describe('CategoryInvitationModal (KAN-400)', () => {
 
     // Muestra el botón de copiar
     expect(screen.getByRole('button', { name: /Copiar enlace/i })).toBeDefined();
+
+    // Muestra la opción de generar un nuevo enlace
+    expect(
+      screen.getByRole('button', { name: /Generar un nuevo enlace de invitación/i }),
+    ).toBeDefined();
+  });
+
+  it('permite al usuario solicitar un nuevo enlace mediante el botón "Generar un nuevo enlace"', async () => {
+    const regeneratedInvitation = {
+      ...mockInvitation,
+      token: 'token-nuevo-789',
+      invitationUrl: 'http://localhost:5173/invite/token-nuevo-789',
+    };
+
+    vi.mocked(categoryInvitationsService.getOrGenerate)
+      .mockResolvedValueOnce(mockInvitation)
+      .mockResolvedValueOnce(regeneratedInvitation);
+
+    render(<CategoryInvitationModal {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Copiar enlace/i })).toBeDefined();
+    });
+
+    const regenerateBtn = screen.getByRole('button', {
+      name: /Generar un nuevo enlace de invitación/i,
+    });
+    fireEvent.click(regenerateBtn);
+
+    await waitFor(() => {
+      const input = screen.getByLabelText('URL de invitación a la categoría') as HTMLInputElement;
+      expect(input.value).toBe('http://localhost:5173/invite/token-nuevo-789');
+    });
+
+    expect(categoryInvitationsService.getOrGenerate).toHaveBeenLastCalledWith('cat-123', {
+      forceRefresh: true,
+    });
   });
 
   it('copia el enlace al portapapeles y conmuta el botón a "¡Copiado!"', async () => {
-    vi.mocked(categoryInvitationsService.generate).mockResolvedValueOnce(mockInvitation);
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockResolvedValueOnce(mockInvitation);
 
     const writeTextMock = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, {
@@ -92,8 +142,8 @@ describe('CategoryInvitationModal (KAN-400)', () => {
     });
   });
 
-  it('muestra mensaje de error y permite reintentar si la generación falla', async () => {
-    vi.mocked(categoryInvitationsService.generate)
+  it('muestra mensaje de error y permite reintentar si la obtención/generación falla', async () => {
+    vi.mocked(categoryInvitationsService.getOrGenerate)
       .mockRejectedValueOnce(new Error('Error de conexión con el servicio.'))
       .mockResolvedValueOnce(mockInvitation);
 
@@ -109,10 +159,14 @@ describe('CategoryInvitationModal (KAN-400)', () => {
     await waitFor(() => {
       expect(screen.getByText(/Vence el 07\/11\/2026 a las 12:00 hs/)).toBeDefined();
     });
+
+    expect(categoryInvitationsService.getOrGenerate).toHaveBeenLastCalledWith('cat-123', {
+      forceRefresh: true,
+    });
   });
 
   it('cierra el modal al hacer clic en el botón de cerrar (X) o en "Cerrar"', async () => {
-    vi.mocked(categoryInvitationsService.generate).mockResolvedValueOnce(mockInvitation);
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockResolvedValueOnce(mockInvitation);
 
     render(<CategoryInvitationModal {...defaultProps} />);
 
@@ -130,7 +184,7 @@ describe('CategoryInvitationModal (KAN-400)', () => {
   });
 
   it('cierra el modal al presionar la tecla Escape', async () => {
-    vi.mocked(categoryInvitationsService.generate).mockResolvedValueOnce(mockInvitation);
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockResolvedValueOnce(mockInvitation);
 
     render(<CategoryInvitationModal {...defaultProps} />);
 
@@ -143,7 +197,7 @@ describe('CategoryInvitationModal (KAN-400)', () => {
   });
 
   it('cierra el modal al hacer clic en el overlay de fondo', async () => {
-    vi.mocked(categoryInvitationsService.generate).mockResolvedValueOnce(mockInvitation);
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockResolvedValueOnce(mockInvitation);
 
     render(<CategoryInvitationModal {...defaultProps} />);
 

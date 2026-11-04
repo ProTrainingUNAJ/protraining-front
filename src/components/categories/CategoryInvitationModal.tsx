@@ -22,13 +22,19 @@ export function CategoryInvitationModal({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const forceRefreshRef = useRef(false);
   const copyTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     let active = true;
+    const forceRefresh = forceRefreshRef.current;
+    forceRefreshRef.current = false;
 
-    categoryInvitationsService
-      .generate(categoryId)
+    const fetchPromise = categoryInvitationsService.getOrGenerate
+      ? categoryInvitationsService.getOrGenerate(categoryId, { forceRefresh })
+      : categoryInvitationsService.generate(categoryId);
+
+    fetchPromise
       .then((data) => {
         if (active) {
           setInvitation(data);
@@ -110,6 +116,14 @@ export function CategoryInvitationModal({
   const handleRetry = () => {
     setLoading(true);
     setError(null);
+    forceRefreshRef.current = true;
+    setReloadKey((prev) => prev + 1);
+  };
+
+  const handleRegenerate = () => {
+    setLoading(true);
+    setError(null);
+    forceRefreshRef.current = true;
     setReloadKey((prev) => prev + 1);
   };
 
@@ -218,6 +232,17 @@ export function CategoryInvitationModal({
                       <span>Copiar enlace</span>
                     </>
                   )}
+                </button>
+              </div>
+              <div className="invitation-regenerate-wrapper">
+                <button
+                  type="button"
+                  className="invitation-regenerate-btn"
+                  onClick={handleRegenerate}
+                  aria-label="Generar un nuevo enlace de invitación"
+                >
+                  <RefreshCw size={13} aria-hidden="true" />
+                  <span>Generar un nuevo enlace</span>
                 </button>
               </div>
             </div>

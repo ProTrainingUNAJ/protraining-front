@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { categoryInvitationsService, buildInvitationUrl } from '../categoryInvitations';
+import {
+  categoryInvitationsService,
+  buildInvitationUrl,
+  getCachedInvitation,
+  storeCachedInvitation,
+  clearCachedInvitation,
+} from '../categoryInvitations';
 import * as generatedApi from '../generated/estructura';
 
 vi.mock('../generated/estructura', async () => {
@@ -12,6 +18,7 @@ vi.mock('../generated/estructura', async () => {
 describe('categoryInvitationsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
   });
 
   describe('buildInvitationUrl', () => {
@@ -19,6 +26,126 @@ describe('categoryInvitationsService', () => {
       const token = 'test-token-123';
       const expectedOrigin = window.location.origin;
       expect(buildInvitationUrl(token)).toBe(`${expectedOrigin}/invite/${token}`);
+    });
+  });
+
+  describe('cache helpers', () => {
+    it('almacena y recupera una invitación vigente de localStorage', () => {
+      const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString();
+      const invitation = {
+        token: 'cached-token-1',
+        expiresAt: futureDate,
+        categoryId: 'cat-cache-1',
+        categoryName: 'Primera',
+        invitationUrl: 'http://localhost/invite/cached-token-1',
+      };
+
+      storeCachedInvitation(invitation);
+      const retrieved = getCachedInvitation('cat-cache-1');
+
+      expect(retrieved).toEqual(invitation);
+    });
+
+    it('retorna null y limpia el storage si la invitación almacenada ya expiró', () => {
+      const pastDate = new Date(Date.now() - 60 * 1000).toISOString();
+      const expiredInvitation = {
+        token: 'expired-token',
+        expiresAt: pastDate,
+        categoryId: 'cat-expired',
+        categoryName: 'Reserva',
+        invitationUrl: 'http://localhost/invite/expired-token',
+      };
+
+      storeCachedInvitation(expiredInvitation);
+      const retrieved = getCachedInvitation('cat-expired');
+
+      expect(retrieved).toBeNull();
+      expect(getCachedInvitation('cat-expired')).toBeNull();
+    });
+
+    it('permite limpiar explícitamente la invitación de una categoría', () => {
+      const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+      storeCachedInvitation({
+        token: 'to-clear',
+        expiresAt: futureDate,
+        categoryId: 'cat-clear',
+        categoryName: 'Sub-20',
+        invitationUrl: 'http://localhost/invite/to-clear',
+      });
+
+      clearCachedInvitation('cat-clear');
+      expect(getCachedInvitation('cat-clear')).toBeNull();
+    });
+  });
+
+  describe('getOrGenerate', () => {
+    it('reutiliza el token vigente almacenado sin llamar a generateCategoryInvitationToken', async () => {
+      const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+      const cached = {
+        token: 'token-existente',
+        expiresAt: futureDate,
+        categoryId: 'cat-reuse',
+        categoryName: 'Primera',
+        invitationUrl: 'http://localhost/invite/token-existente',
+      };
+      storeCachedInvitation(cached);
+
+      const result = await categoryInvitationsService.getOrGenerate('cat-reuse');
+
+      expect(result).toEqual(cached);
+      expect(generatedApi.generateCategoryInvitationToken).not.toHaveBeenCalled();
+    });
+
+    it('genera un token nuevo si no hay ninguno en storage', async () => {
+      const mockDto = {
+        token: 'token-nuevo',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        categoryId: 'cat-fresh',
+        categoryName: 'Juveniles',
+        invitationUrl: null,
+      };
+
+      vi.mocked(generatedApi.generateCategoryInvitationToken).mockResolvedValueOnce({
+        data: mockDto,
+      } as never);
+
+      const result = await categoryInvitationsService.getOrGenerate('cat-fresh');
+
+      expect(generatedApi.generateCategoryInvitationToken).toHaveBeenCalledTimes(1);
+      expect(result.token).toBe('token-nuevo');
+
+      // Comprueba que además quedó almacenado en cache
+      const stored = getCachedInvitation('cat-fresh');
+      expect(stored?.token).toBe('token-nuevo');
+    });
+
+    it('fuerza la generación de un nuevo token si forceRefresh es true', async () => {
+      const oldFutureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+      storeCachedInvitation({
+        token: 'token-viejo-aun-valido',
+        expiresAt: oldFutureDate,
+        categoryId: 'cat-refresh',
+        categoryName: 'Primera',
+        invitationUrl: 'http://localhost/invite/token-viejo-aun-valido',
+      });
+
+      const newFutureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      vi.mocked(generatedApi.generateCategoryInvitationToken).mockResolvedValueOnce({
+        data: {
+          token: 'token-regenerado',
+          expiresAt: newFutureDate,
+          categoryId: 'cat-refresh',
+          categoryName: 'Primera',
+          invitationUrl: null,
+        },
+      } as never);
+
+      const result = await categoryInvitationsService.getOrGenerate('cat-refresh', {
+        forceRefresh: true,
+      });
+
+      expect(generatedApi.generateCategoryInvitationToken).toHaveBeenCalledTimes(1);
+      expect(result.token).toBe('token-regenerado');
     });
   });
 
