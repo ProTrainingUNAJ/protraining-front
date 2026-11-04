@@ -85,6 +85,7 @@
 
   /* Base and utility colors */
   --white: #ffffff;
+  --color-contrast-white: #ffffff;
   --black: #000000;
   --cyan-accent: #38bdf8;
   --navy-deep: #021e33;
