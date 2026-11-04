@@ -60,9 +60,18 @@ describe('CalendarButton - Perfil del Atleta y Tareas Diarias', () => {
 
     vi.mocked(structureService.getMe).mockResolvedValue({
       athleteId: 'ath-1',
+      firstName: 'Juan',
+      lastName: 'Perez',
       fullName: 'Juan Perez',
-      email: 'juan@protraining.com',
-      categories: [{ id: 'cat-1', name: 'Primera División' }],
+      active: true,
+      categories: [
+        {
+          id: 'cat-1',
+          name: 'Primera División',
+          organizationId: 'org-1',
+          athletesCount: 20,
+        },
+      ],
     });
 
     vi.mocked(matchService.getMatches).mockResolvedValue([
@@ -77,27 +86,28 @@ describe('CalendarButton - Perfil del Atleta y Tareas Diarias', () => {
     ]);
 
     vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
-      id: 'routine-1',
       athleteId: 'ath-1',
       date: '2026-11-03',
       coachNotes: 'Priorizar velocidad en la fase concéntrica',
       exercises: [
         {
-          id: 'ex-1',
+          exerciseId: 'ex-1',
           name: 'Sentadilla Trasera',
-          order: 1,
-          sets: [],
+          sets: 4,
+          reps: 8,
+          isReference: false,
         },
         {
-          id: 'ex-2',
+          exerciseId: 'ex-2',
           name: 'Press Banca',
-          order: 2,
-          sets: [],
+          sets: 3,
+          reps: 10,
+          isReference: false,
         },
       ],
     });
 
-    vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue(false);
+    vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue(null);
   });
 
   it('abre el popover y vincula las tareas diarias del atleta para la fecha seleccionada', async () => {
