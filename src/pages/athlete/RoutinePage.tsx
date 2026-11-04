@@ -990,15 +990,7 @@ export const RoutinePage: React.FC = () => {
                     selectedExerciseForModal.primaryMuscles.length === 0) &&
                   (!selectedExerciseForModal.secondaryMuscles ||
                     selectedExerciseForModal.secondaryMuscles.length === 0) ? (
-                    <p
-                      style={{
-                        margin: '0.25rem 0',
-                        fontSize: '0.85rem',
-                        color: 'var(--text-muted)',
-                        fontStyle: 'italic',
-                        textAlign: 'center',
-                      }}
-                    >
+                    <p className="routine-modal-no-muscles">
                       Este ejercicio no tiene grupos musculares específicos cargados (movilidad o
                       ejercicio general).
                     </p>
