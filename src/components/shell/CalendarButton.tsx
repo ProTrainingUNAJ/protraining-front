@@ -279,8 +279,7 @@ export const CalendarButton: React.FC = () => {
       } catch (err: unknown) {
         setAthleteSchedule({
           status: 'error',
-          message:
-            err instanceof Error ? err.message : 'No se pudieron cargar las tareas del día.',
+          message: err instanceof Error ? err.message : 'No se pudieron cargar las tareas del día.',
         });
       }
     } else {
@@ -406,9 +405,7 @@ export const CalendarButton: React.FC = () => {
                     isSelected ? 'is-selected' : ''
                   }`}
                   onClick={() => handleSelectDay(dayNum)}
-                  aria-label={
-                    isPF ? `Ver actividades del ${dayNum}` : `Ver tareas del ${dayNum}`
-                  }
+                  aria-label={isPF ? `Ver actividades del ${dayNum}` : `Ver tareas del ${dayNum}`}
                   aria-pressed={isSelected}
                 >
                   <span>{dayNum}</span>
@@ -517,9 +514,7 @@ export const CalendarButton: React.FC = () => {
                                 : 'ejercicios'}
                             </span>
                           </div>
-                          <span className="shell-calendar-agenda-plan">
-                            🏋️‍♂️ Sesión de Gimnasio
-                          </span>
+                          <span className="shell-calendar-agenda-plan">🏋️‍♂️ Sesión de Gimnasio</span>
                           {athleteSchedule.routine.coachNotes && (
                             <span className="shell-calendar-agenda-meta">
                               {athleteSchedule.routine.coachNotes}
@@ -703,8 +698,7 @@ export const CalendarButton: React.FC = () => {
                             {item.planName} · {item.sessionName}
                           </span>
                           <span className="shell-calendar-agenda-meta">
-                            {targetNames?.[targetId] ??
-                              (item.categoryId ? 'Categoría' : 'Atleta')}{' '}
+                            {targetNames?.[targetId] ?? (item.categoryId ? 'Categoría' : 'Atleta')}{' '}
                             · {item.exerciseCount}{' '}
                             {item.exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}
                           </span>
