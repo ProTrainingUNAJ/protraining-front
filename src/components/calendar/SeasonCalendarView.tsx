@@ -6,6 +6,7 @@ import {
   Plus,
   LayoutGrid,
   Columns,
+  AlertCircle,
 } from 'lucide-react';
 import { Category, Match } from '../../types/structure';
 import {
@@ -13,7 +14,6 @@ import {
   getWeekDays,
   formatMonthYear,
   formatTime,
-  toIsoDate,
   sortActivitiesByTime,
 } from '../../utils/calendarUtils';
 import { matchService } from '../../services/matchService';
@@ -48,10 +48,12 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
   const [isCreateMatchModalOpen, setIsCreateMatchModalOpen] = useState(false);
   const [modalInitialDate, setModalInitialDate] = useState<string | undefined>(undefined);
   const [drawerDate, setDrawerDate] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Load matches
   const loadMatches = useCallback(async () => {
     try {
+      setLoadError(null);
       const categoryIds = selectedCategoryId ? [selectedCategoryId] : categories.map((c) => c.id);
       const dataMatches = await matchService.getMatches(categoryIds);
       const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
@@ -62,8 +64,10 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
       }));
 
       setMatches(enrichedMatches);
-    } catch {
-      // Handled silently
+    } catch (err: unknown) {
+      setLoadError(
+        err instanceof Error ? err.message : 'No se pudieron cargar los partidos del calendario.',
+      );
     }
   }, [selectedCategoryId, categories]);
 
@@ -72,6 +76,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
     let isMounted = true;
     const run = async () => {
       try {
+        setLoadError(null);
         const categoryIds = selectedCategoryId ? [selectedCategoryId] : categories.map((c) => c.id);
         const dataMatches = await matchService.getMatches(categoryIds);
         if (!isMounted) return;
@@ -83,8 +88,11 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
         }));
 
         setMatches(enrichedMatches);
-      } catch {
-        // Handled silently
+      } catch (err: unknown) {
+        if (!isMounted) return;
+        setLoadError(
+          err instanceof Error ? err.message : 'No se pudieron cargar los partidos del calendario.',
+        );
       }
     };
     void run();
@@ -274,6 +282,24 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
         </div>
       </header>
 
+      {/* Error banner if match fetch fails */}
+      {loadError && (
+        <div
+          className="form-error-banner"
+          role="alert"
+          style={{
+            margin: '1rem 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.85rem 1rem',
+          }}
+        >
+          <AlertCircle size={20} />
+          <span>{loadError}</span>
+        </div>
+      )}
+
       {/* Monthly View */}
       {viewMode === 'month' && (
         <div className="season-calendar-month-wrapper">
@@ -350,6 +376,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                     {activities.slice(0, 2).map((act, idx) => {
                       if (act.kind === 'match') {
                         const m = act.match;
+                        const timeDisplay = act.time ? `${act.time} hs` : 'Sin horario';
                         return (
                           <div
                             key={`${act.id}-${idx}`}
@@ -362,15 +389,13 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                             }}
                             title={`Partido vs ${m.opponent} (${
                               m.homeOrAway === 'Home' ? 'Local' : 'Visitante'
-                            }) - ${act.time ? `${act.time} hs` : ''}`}
+                            }) - ${timeDisplay}`}
                           >
                             <span className="season-event-block-title">
                               <span>⚽</span>
                               <span>VS {m.opponent}</span>
                             </span>
-                            {act.time && (
-                              <span className="season-event-block-meta">{act.time} hs</span>
-                            )}
+                            <span className="season-event-block-meta">{timeDisplay}</span>
                           </div>
                         );
                       }
@@ -472,6 +497,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                     activities.map((act, idx) => {
                       if (act.kind === 'match') {
                         const m = act.match;
+                        const timeDisplay = act.time ? `${act.time} hs` : 'Sin horario';
                         return (
                           <div
                             key={`${act.id}-${idx}`}
@@ -501,9 +527,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                                 </span>
                               )}
                             </div>
-                            {act.time && (
-                              <span className="season-event-block-meta">{act.time} hs</span>
-                            )}
+                            <span className="season-event-block-meta">{timeDisplay}</span>
                           </div>
                         );
                       }
@@ -559,7 +583,10 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
           setMatches((prev) => [...prev.filter((m) => m.id !== newMatch.id), newMatch]);
           void loadMatches();
           if (newMatch.matchDate) {
-            setDrawerDate(toIsoDate(new Date(newMatch.matchDate)));
+            const targetIso = newMatch.matchDate.includes('T')
+              ? newMatch.matchDate.split('T')[0]
+              : newMatch.matchDate;
+            setDrawerDate(targetIso);
           }
         }}
       />

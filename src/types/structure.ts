@@ -100,6 +100,7 @@ export interface Match {
   categoryId: string;
   opponent: string;
   matchDate: string;
+  startTime?: string | null;
   homeOrAway: HomeOrAway;
   type?: CompetitiveEventType;
   notes?: string | null;

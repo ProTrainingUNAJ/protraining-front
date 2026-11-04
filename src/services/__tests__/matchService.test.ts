@@ -115,6 +115,16 @@ describe('matchService (KAN-404)', () => {
     expect(matchesApi.getCategoryMatches).toHaveBeenCalledTimes(2);
   });
 
+  it('propaga el error si la consulta de partidos de una categoría falla en vez de tragarlo con arreglo vacío', async () => {
+    vi.mocked(matchesApi.getCategoryMatches).mockRejectedValue(
+      new Error('Error 503: Servicio de estructura no disponible'),
+    );
+
+    await expect(matchService.getMatches(['cat-1'])).rejects.toThrow(
+      'Error 503: Servicio de estructura no disponible',
+    );
+  });
+
   it('retorna arreglo vacío si la lista de categorías está vacía sin consultar la API', async () => {
     const matches = await matchService.getMatches([]);
     expect(matches).toEqual([]);

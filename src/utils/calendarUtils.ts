@@ -58,7 +58,7 @@ export function formatFullDate(isoDate: string): string {
   });
 }
 
-export function formatTime(isoDateTime: string): string {
+export function formatTime(isoDateTime?: string | null): string {
   try {
     if (!isoDateTime) return '';
     if (isoDateTime.includes('T')) {
@@ -68,13 +68,7 @@ export function formatTime(isoDateTime: string): string {
         return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
       }
     }
-    const date = new Date(isoDateTime);
-    if (isNaN(date.getTime())) return '';
-    return date.toLocaleTimeString('es-AR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
+    return '';
   } catch {
     return '';
   }

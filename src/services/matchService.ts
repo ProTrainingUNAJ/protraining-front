@@ -35,15 +35,9 @@ export const matchService = {
       return [];
     }
 
-    // Consulta en paralelo los partidos oficiales de cada categoría en el backend
+    // Query category matches in parallel, propagating any backend errors
     const results = await Promise.all(
-      categoryIds.map(async (catId) => {
-        try {
-          return await matchesApi.getCategoryMatches(catId);
-        } catch {
-          return [];
-        }
-      }),
+      categoryIds.map((catId) => matchesApi.getCategoryMatches(catId)),
     );
 
     const allMatches: Match[] = [];

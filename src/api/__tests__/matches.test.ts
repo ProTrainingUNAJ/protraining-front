@@ -40,10 +40,77 @@ describe('matchesApi (KAN-404)', () => {
       categoryId: 'cat-1',
       opponent: 'Club Almagro',
       matchDate: '2026-11-07T15:30:00',
+      startTime: '15:30:00',
       homeOrAway: 'Home',
       type: 'Official',
       notes: 'Clásico barrial',
     });
+  });
+
+  it('mapea un evento sin hora manteniendo startTime como null y matchDate sin 12:00:00', async () => {
+    vi.mocked(generatedApi.listCategoryEvents).mockResolvedValue({
+      data: [
+        {
+          id: 'ev-no-time',
+          date: '2026-11-07',
+          startTime: null,
+          opponent: 'Club San Telmo',
+          venue: 'Away',
+          type: 'Official',
+          notes: null,
+        },
+      ],
+    } as never);
+
+    const matches = await matchesApi.getCategoryMatches('cat-1');
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual({
+      id: 'ev-no-time',
+      categoryId: 'cat-1',
+      opponent: 'Club San Telmo',
+      matchDate: '2026-11-07',
+      startTime: null,
+      homeOrAway: 'Away',
+      type: 'Official',
+      notes: null,
+    });
+  });
+
+  it('crea un partido sin hora enviando startTime vacio o null sin fijar 12:00:00', async () => {
+    const createSpy = vi.mocked(generatedApi.createCategoryEvent).mockResolvedValue({
+      data: {
+        id: 'ev-no-time-created',
+        date: '2026-11-07',
+        startTime: null,
+        opponent: 'Club Atlético Defensores',
+        venue: 'Home',
+        type: 'Official',
+        notes: null,
+      },
+    } as never);
+
+    const result = await matchesApi.createCategoryMatch('cat-1', {
+      opponent: 'Club Atlético Defensores',
+      date: '2026-11-07',
+      startTime: '',
+      homeOrAway: 'Home',
+    });
+
+    expect(createSpy).toHaveBeenCalledWith({
+      path: { categoryId: 'cat-1' },
+      body: {
+        date: '2026-11-07',
+        startTime: null,
+        opponent: 'Club Atlético Defensores',
+        venue: 'Home',
+        type: 'Official',
+        notes: null,
+      },
+      throwOnError: true,
+    });
+
+    expect(result.matchDate).toBe('2026-11-07');
+    expect(result.startTime).toBeNull();
   });
 
   it('crea un partido nocturno a las 21:30 preservando date y startTime tal cual sin correrse al día siguiente', async () => {

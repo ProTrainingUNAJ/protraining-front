@@ -11,6 +11,7 @@ import {
   Compass,
   Trash2,
   ArrowRight,
+  AlertCircle,
 } from 'lucide-react';
 import { Match } from '../../types/structure';
 import { formatFullDate, formatTime, sortActivitiesByTime } from '../../utils/calendarUtils';
@@ -38,6 +39,15 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<PlannedSessionWithTime[]>([]);
   const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [prevDate, setPrevDate] = useState(isoDate);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevDate !== isoDate || prevIsOpen !== isOpen) {
+    setPrevDate(isoDate);
+    setPrevIsOpen(isOpen);
+    setDeleteError(null);
+  }
 
   // Load planned training sessions for this specific date
   useEffect(() => {
@@ -81,10 +91,13 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
 
   const handleDeleteMatch = async (categoryId: string, matchId: string) => {
     try {
+      setDeleteError(null);
       setDeletingMatchId(matchId);
       await matchService.deleteMatch(categoryId, matchId);
-    } catch {
-      // Error manejado en servicio
+    } catch (err: unknown) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Ocurrió un error al intentar eliminar el partido.',
+      );
     } finally {
       setDeletingMatchId(null);
     }
@@ -143,6 +156,23 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
         </div>
 
         <div className="day-detail-drawer-content">
+          {deleteError && (
+            <div
+              className="form-error-banner"
+              role="alert"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: '0.5rem 0',
+                padding: '0.65rem 0.85rem',
+              }}
+            >
+              <AlertCircle size={16} />
+              <span>{deleteError}</span>
+            </div>
+          )}
+
           {/* Quick action to add match on this day */}
           <button
             type="button"
@@ -194,15 +224,13 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                           <Icon size={12} style={{ marginRight: '4px' }} />
                           <span>{badge.label}</span>
                         </span>
-                        {time && (
-                          <span
-                            className="text-xs text-muted"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                          >
-                            <Clock size={12} />
-                            <span>{time} hs</span>
-                          </span>
-                        )}
+                        <span
+                          className="text-xs text-muted"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <Clock size={12} />
+                          <span>{time ? `${time} hs` : 'Sin horario'}</span>
+                        </span>
                         <button
                           type="button"
                           className="season-calendar-quick-add-btn"

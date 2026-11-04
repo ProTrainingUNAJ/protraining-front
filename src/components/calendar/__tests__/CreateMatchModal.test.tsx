@@ -156,4 +156,57 @@ describe('CreateMatchModal (KAN-404)', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
   });
+
+  it('permite crear un partido sin horario enviando startTime vacio o nulo sin forzar 12:00', async () => {
+    const onMatchCreated = vi.fn();
+    const onClose = vi.fn();
+
+    const createSpy = vi.spyOn(matchService, 'createMatch').mockResolvedValue({
+      id: 'match-no-time-1',
+      categoryId: 'cat-primera',
+      opponent: 'Club Flandria',
+      matchDate: '2026-11-14',
+      startTime: null,
+      homeOrAway: 'Home',
+    });
+
+    render(
+      <CreateMatchModal
+        isOpen={true}
+        onClose={onClose}
+        categories={mockCategories}
+        initialCategoryId="cat-primera"
+        initialDate="2026-11-14"
+        onMatchCreated={onMatchCreated}
+      />,
+    );
+
+    const opponentInput = screen.getByPlaceholderText(/Club San Martín/i);
+    fireEvent.change(opponentInput, { target: { value: 'Club Flandria' } });
+
+    const form = screen.getByRole('dialog').querySelector('form')!;
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+
+    await waitFor(() => {
+      expect(createSpy).toHaveBeenCalledWith(
+        'cat-primera',
+        expect.objectContaining({
+          opponent: 'Club Flandria',
+          date: '2026-11-14',
+          startTime: null,
+          matchDate: '2026-11-14',
+        }),
+      );
+
+      const callArgs = createSpy.mock.calls[0][1];
+      expect(callArgs.startTime).toBeNull();
+      expect(callArgs.matchDate).toBe('2026-11-14');
+      expect(callArgs.matchDate).not.toContain('12:00');
+
+      expect(onMatchCreated).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
 });
