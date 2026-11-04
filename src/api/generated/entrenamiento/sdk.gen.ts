@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyRoutineTemplateData, ApplyRoutineTemplateErrors, ApplyRoutineTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, ConfirmRecordsImportData, ConfirmRecordsImportErrors, ConfirmRecordsImportResponses, CreateExerciseData, CreateExerciseErrors, CreateExerciseResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateRoutineTemplateData, CreateRoutineTemplateErrors, CreateRoutineTemplateResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetRecordsReliabilityData, GetRecordsReliabilityErrors, GetRecordsReliabilityResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListRoutineTemplatesData, ListRoutineTemplatesErrors, ListRoutineTemplatesResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, PreviewRecordsImportData, PreviewRecordsImportErrors, PreviewRecordsImportResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
+import type { ApplyPlanTemplateData, ApplyPlanTemplateErrors, ApplyPlanTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CompleteOnboardingData, CompleteOnboardingErrors, CompleteOnboardingResponses, ConfirmRecordsImportData, ConfirmRecordsImportErrors, ConfirmRecordsImportResponses, CreateExerciseData, CreateExerciseErrors, CreateExerciseResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetRecordsReliabilityData, GetRecordsReliabilityErrors, GetRecordsReliabilityResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListPlanTemplatesData, ListPlanTemplatesErrors, ListPlanTemplatesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, PreviewRecordsImportData, PreviewRecordsImportErrors, PreviewRecordsImportResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SavePlanAsTemplateData, SavePlanAsTemplateErrors, SavePlanAsTemplateResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -118,6 +118,22 @@ export const getRecordsReliability = <ThrowOnError extends boolean = false>(opti
 });
 
 /**
+ * Onboarding inicial de marcas físicas del atleta
+ *
+ * Permite al atleta declarar sus antecedentes de fuerza durante la bienvenida. Cada marca se registra con origen estimado.
+ */
+export const completeOnboarding = <ThrowOnError extends boolean = false>(options: Options<CompleteOnboardingData, ThrowOnError>): RequestResult<CompleteOnboardingResponses, CompleteOnboardingErrors, ThrowOnError> => (options.client ?? client).post<CompleteOnboardingResponses, CompleteOnboardingErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/me/onboarding',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Listar propuestas de récord
  *
  * Devuelve las propuestas de récord de Epley de los atletas del PF autenticado (filtro por pf_id), con el atleta, el ejercicio, el récord vigente, el propuesto, la serie que lo originó y la fecha.
@@ -164,49 +180,6 @@ export const createRoutine = <ThrowOnError extends boolean = false>(options: Opt
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/routines',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Listar plantillas de rutinas del preparador físico
- *
- * Obtiene las planificaciones guardadas como plantillas maestras para reutilizar en otros grupos o temporadas.
- */
-export const listRoutineTemplates = <ThrowOnError extends boolean = false>(options?: Options<ListRoutineTemplatesData, ThrowOnError>): RequestResult<ListRoutineTemplatesResponses, ListRoutineTemplatesErrors, ThrowOnError> => (options?.client ?? client).get<ListRoutineTemplatesResponses, ListRoutineTemplatesErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/routine-templates',
-    ...options
-});
-
-/**
- * Guardar una rutina como plantilla reutilizable
- *
- * Permite guardar una estructura de entrenamiento como plantilla maestra.
- */
-export const createRoutineTemplate = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineTemplateData, ThrowOnError>): RequestResult<CreateRoutineTemplateResponses, CreateRoutineTemplateErrors, ThrowOnError> => (options.client ?? client).post<CreateRoutineTemplateResponses, CreateRoutineTemplateErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/routine-templates',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Aplicar plantilla a una categoría o atleta
- *
- * Clona y asigna la planificación de la plantilla a la categoría o deportista indicado.
- */
-export const applyRoutineTemplate = <ThrowOnError extends boolean = false>(options: Options<ApplyRoutineTemplateData, ThrowOnError>): RequestResult<ApplyRoutineTemplateResponses, ApplyRoutineTemplateErrors, ThrowOnError> => (options.client ?? client).post<ApplyRoutineTemplateResponses, ApplyRoutineTemplateErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/routine-templates/{templateId}/apply',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -352,6 +325,50 @@ export const assignTrainingPlan = <ThrowOnError extends boolean = false>(options
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/training-plans/assignments',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Guardar una planificacion como plantilla
+ *
+ * Copia profundamente una planificacion existente (con sus semanas y sesiones) y la guarda como plantilla. Requiere rol PreparadorFisico.
+ */
+export const savePlanAsTemplate = <ThrowOnError extends boolean = false>(options: Options<SavePlanAsTemplateData, ThrowOnError>): RequestResult<SavePlanAsTemplateResponses, SavePlanAsTemplateErrors, ThrowOnError> => (options.client ?? client).post<SavePlanAsTemplateResponses, SavePlanAsTemplateErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-plans/{id}/save-as-template',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Listar plantillas de planificacion
+ *
+ * Obtiene las plantillas creadas por el preparador fisico autenticado. Requiere rol PreparadorFisico.
+ */
+export const listPlanTemplates = <ThrowOnError extends boolean = false>(options?: Options<ListPlanTemplatesData, ThrowOnError>): RequestResult<ListPlanTemplatesResponses, ListPlanTemplatesErrors, ThrowOnError> => (options?.client ?? client).get<ListPlanTemplatesResponses, ListPlanTemplatesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-plans/templates',
+    ...options
+});
+
+/**
+ * Aplicar plantilla a una categoria o atleta
+ *
+ * Clona profundamente la plantilla a una planificacion nueva y la asigna a la categoria o atleta indicado desde la fecha especificada. Requiere rol PreparadorFisico.
+ */
+export const applyPlanTemplate = <ThrowOnError extends boolean = false>(options: Options<ApplyPlanTemplateData, ThrowOnError>): RequestResult<ApplyPlanTemplateResponses, ApplyPlanTemplateErrors, ThrowOnError> => (options.client ?? client).post<ApplyPlanTemplateResponses, ApplyPlanTemplateErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-plans/templates/{id}/apply',
     ...options,
     headers: {
         'Content-Type': 'application/json',

@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Check, Loader2, Plus, Save, UserPlus } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Bookmark,
+  Check,
+  Loader2,
+  Plus,
+  Save,
+  UserPlus,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { WeekSection } from '../../components/planning/WeekSection';
 import { ExercisePickerModal } from '../../components/planning/ExercisePickerModal';
 import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
 import { trainingPlansService } from '../../api/trainingPlans';
 import { CatalogExercise, DraftSession, DraftWeek, PlanDraft } from '../../types/trainingPlans';
+import { SaveAsTemplateModal } from '../../components/planning/SaveAsTemplateModal';
 import {
   createExercise,
   createSession,
@@ -41,6 +51,7 @@ export function PlanEditorPage() {
   );
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
   const [showAssign, setShowAssign] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -226,6 +237,20 @@ export function PlanEditorPage() {
             <button
               type="button"
               className="btn btn-secondary"
+              onClick={() => setShowSaveTemplate(true)}
+              disabled={saving || dirty}
+              title={
+                dirty
+                  ? 'Guardá los cambios antes de crear una plantilla'
+                  : 'Guardar esta planificación como plantilla reutilizable'
+              }
+            >
+              <Bookmark size={16} aria-hidden="true" />
+              <span>Guardar como plantilla</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
               onClick={() => setShowAssign(true)}
               disabled={saving || dirty}
               title={
@@ -362,6 +387,20 @@ export function PlanEditorPage() {
           planName={draft.name}
           onClose={closeAssign}
           onAssigned={handleAssigned}
+        />
+      )}
+
+      {showSaveTemplate && (
+        <SaveAsTemplateModal
+          planId={draft.id}
+          defaultName={draft.name}
+          onClose={() => setShowSaveTemplate(false)}
+          onSaved={(templateName) => {
+            setShowSaveTemplate(false);
+            setSavedMessage(
+              `Plantilla «${templateName}» guardada exitosamente. Ya podés encontrarla en el Catálogo de plantillas.`,
+            );
+          }}
         />
       )}
     </div>

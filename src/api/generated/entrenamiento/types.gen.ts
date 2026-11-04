@@ -11,10 +11,14 @@ export type ImportRecordPreviewRow = {
     weightText?: string;
     dateText?: string | null;
     sourceText?: string | null;
-    status?: 'Ok' | 'AthleteNotFound' | 'ExerciseNotFound' | 'InvalidWeight';
+    status?: 'Ok' | 'AthleteNotFound' | 'ExerciseNotFound' | 'ExerciseApproximate' | 'InvalidWeight';
     message?: string;
     athleteId?: string | null;
     exerciseId?: string | null;
+    /**
+     * Nombre del ejercicio del catálogo con el que se resolvió la fila. En ExerciseApproximate es la coincidencia parcial sugerida.
+     */
+    matchedExerciseName?: string | null;
     weightOneRepMaxKg?: number | null;
     achievedAt?: string | null;
     origin?: string | null;
@@ -213,6 +217,11 @@ export type RecordReliabilitySummary = {
     exerciseId?: string | null;
     totalAthletes: number;
     groups: Array<RecordReliabilityGroup>;
+};
+
+export type OnboardingRecordRequest = {
+    exerciseId: string;
+    weightOneRepMaxKg: number;
 };
 
 export type SaveRecordRequest = {
@@ -777,6 +786,39 @@ export type GetRecordsReliabilityResponses = {
 
 export type GetRecordsReliabilityResponse = GetRecordsReliabilityResponses[keyof GetRecordsReliabilityResponses];
 
+export type CompleteOnboardingData = {
+    body: Array<OnboardingRecordRequest>;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/onboarding';
+};
+
+export type CompleteOnboardingErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type CompleteOnboardingError = CompleteOnboardingErrors[keyof CompleteOnboardingErrors];
+
+export type CompleteOnboardingResponses = {
+    /**
+     * Marcas registradas exitosamente.
+     */
+    201: Array<Record>;
+};
+
+export type CompleteOnboardingResponse = CompleteOnboardingResponses[keyof CompleteOnboardingResponses];
+
 export type ListRecordProposalsData = {
     body?: never;
     path?: never;
@@ -926,88 +968,6 @@ export type CreateRoutineResponses = {
 };
 
 export type CreateRoutineResponse = CreateRoutineResponses[keyof CreateRoutineResponses];
-
-export type ListRoutineTemplatesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/routine-templates';
-};
-
-export type ListRoutineTemplatesErrors = {
-    /**
-     * Token de autenticación ausente o inválido.
-     */
-    401: ProblemDetails;
-};
-
-export type ListRoutineTemplatesError = ListRoutineTemplatesErrors[keyof ListRoutineTemplatesErrors];
-
-export type ListRoutineTemplatesResponses = {
-    /**
-     * Lista de plantillas recuperadas.
-     */
-    200: Array<RoutineTemplate>;
-};
-
-export type ListRoutineTemplatesResponse = ListRoutineTemplatesResponses[keyof ListRoutineTemplatesResponses];
-
-export type CreateRoutineTemplateData = {
-    body: CreateRoutineTemplateRequest;
-    path?: never;
-    query?: never;
-    url: '/api/v1/routine-templates';
-};
-
-export type CreateRoutineTemplateErrors = {
-    /**
-     * Solicitud con datos inválidos o reglas de negocio incumplidas.
-     */
-    400: ProblemDetails;
-};
-
-export type CreateRoutineTemplateError = CreateRoutineTemplateErrors[keyof CreateRoutineTemplateErrors];
-
-export type CreateRoutineTemplateResponses = {
-    /**
-     * Plantilla creada exitosamente.
-     */
-    201: RoutineTemplate;
-};
-
-export type CreateRoutineTemplateResponse = CreateRoutineTemplateResponses[keyof CreateRoutineTemplateResponses];
-
-export type ApplyRoutineTemplateData = {
-    body: {
-        categoryId?: string | null;
-        /**
-         * Opcional si se aplica a toda una categoría.
-         */
-        athleteId?: string | null;
-        dayOfWeek: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
-    };
-    path: {
-        templateId: string;
-    };
-    query?: never;
-    url: '/api/v1/routine-templates/{templateId}/apply';
-};
-
-export type ApplyRoutineTemplateErrors = {
-    /**
-     * Recurso o atleta no encontrado.
-     */
-    404: ProblemDetails;
-};
-
-export type ApplyRoutineTemplateError = ApplyRoutineTemplateErrors[keyof ApplyRoutineTemplateErrors];
-
-export type ApplyRoutineTemplateResponses = {
-    /**
-     * Rutina asignada desde la plantilla con éxito.
-     */
-    201: unknown;
-};
 
 export type GetMyTodayRoutineData = {
     body?: never;
@@ -1378,6 +1338,103 @@ export type AssignTrainingPlanResponses = {
 };
 
 export type AssignTrainingPlanResponse = AssignTrainingPlanResponses[keyof AssignTrainingPlanResponses];
+
+export type SavePlanAsTemplateData = {
+    body: {
+        name: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/{id}/save-as-template';
+};
+
+export type SavePlanAsTemplateErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type SavePlanAsTemplateError = SavePlanAsTemplateErrors[keyof SavePlanAsTemplateErrors];
+
+export type SavePlanAsTemplateResponses = {
+    /**
+     * Plantilla guardada exitosamente.
+     */
+    201: TrainingPlanDetail;
+};
+
+export type SavePlanAsTemplateResponse = SavePlanAsTemplateResponses[keyof SavePlanAsTemplateResponses];
+
+export type ListPlanTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/training-plans/templates';
+};
+
+export type ListPlanTemplatesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type ListPlanTemplatesError = ListPlanTemplatesErrors[keyof ListPlanTemplatesErrors];
+
+export type ListPlanTemplatesResponses = {
+    /**
+     * Lista de plantillas recuperadas.
+     */
+    200: Array<TrainingPlanSummary>;
+};
+
+export type ListPlanTemplatesResponse = ListPlanTemplatesResponses[keyof ListPlanTemplatesResponses];
+
+export type ApplyPlanTemplateData = {
+    body: {
+        startDate: string;
+        categoryId?: string | null;
+        athleteId?: string | null;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/templates/{id}/apply';
+};
+
+export type ApplyPlanTemplateErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type ApplyPlanTemplateError = ApplyPlanTemplateErrors[keyof ApplyPlanTemplateErrors];
+
+export type ApplyPlanTemplateResponses = {
+    /**
+     * Plantilla aplicada y asignada exitosamente.
+     */
+    201: AssignPlanResponse;
+};
+
+export type ApplyPlanTemplateResponse = ApplyPlanTemplateResponses[keyof ApplyPlanTemplateResponses];
 
 export type GetTrainingSessionData = {
     body?: never;

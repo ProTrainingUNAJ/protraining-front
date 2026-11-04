@@ -1,19 +1,22 @@
 import {
+  applyPlanTemplate,
   assignTrainingPlan,
   createTrainingPlan,
   getTrainingPlan,
   getTrainingPlanSchedule,
+  listPlanTemplates,
   listTrainingPlans,
+  savePlanAsTemplate,
   updateTrainingPlan,
   SaveTrainingPlanRequest,
   ScheduledSession,
   TrainingPlanDetail,
 } from './generated/entrenamiento';
-import { extractErrorMessage, httpClient } from './axiosClient';
+import { extractErrorMessage } from './axiosClient';
 import {
-  PlanAssignmentTarget,
   PlanListItem,
   ApplyPlanTemplatePayload,
+  PlanAssignmentTarget,
   PlanTemplateItem,
 } from '../types/trainingPlans';
 
@@ -71,31 +74,42 @@ export const trainingPlansService = {
       }),
     );
   },
-  // Listado de plantillas guardadas por el PF (KAN-440)
+
+  // Listado oficial del SDK adaptado a PlanTemplateItem
   async listTemplates(): Promise<PlanTemplateItem[]> {
-    try {
-      const { data } = await httpClient.get<PlanTemplateItem[]>(
-        '/entrenamiento/api/v1/training-plans/templates',
-      );
-      return data;
-    } catch (error) {
-      throw new Error(extractErrorMessage(error), { cause: error });
-    }
+    const templates = await call(() => listPlanTemplates({ throwOnError: true }));
+    return templates.map((t) => ({
+      id: t.id,
+      name: t.name,
+      objective: t.objective ?? null,
+    }));
   },
 
-  // Aplica la plantilla clonándola y asignándola con desplazamiento de fechas (KAN-440)
   async applyTemplate(
     templateId: string,
     payload: ApplyPlanTemplatePayload,
   ): Promise<{ assignmentId: string; message: string }> {
-    try {
-      const { data } = await httpClient.post<{ assignmentId: string; message: string }>(
-        `/entrenamiento/api/v1/training-plans/templates/${templateId}/apply`,
-        payload,
-      );
-      return data;
-    } catch (error) {
-      throw new Error(extractErrorMessage(error), { cause: error });
-    }
+    return call(() =>
+      applyPlanTemplate({
+        path: { id: templateId },
+        body: {
+          startDate: payload.startDate,
+          categoryId: payload.categoryId ?? undefined,
+          athleteId: payload.athleteId ?? undefined,
+        },
+        throwOnError: true,
+      }),
+    );
+  },
+
+  // Debe llamarse saveAsTemplate
+  saveAsTemplate(planId: string, name: string): Promise<TrainingPlanDetail> {
+    return call(() =>
+      savePlanAsTemplate({
+        path: { id: planId },
+        body: { name },
+        throwOnError: true,
+      }),
+    );
   },
 };
