@@ -60,10 +60,7 @@ export const getSorenessColor = (soreness: number): string => {
   }
 };
 
-export const getMetricCurrentColor = (
-  key: MetricKey,
-  val: number | null,
-): string => {
+export const getMetricCurrentColor = (key: MetricKey, val: number | null): string => {
   if (val === null) return COLOR_SCALE.neutral;
   switch (key) {
     case 'sleepHours':
@@ -134,4 +131,3 @@ export function renderStarSvg(type: 'four' | 'five', size: number, color: string
     </svg>
   );
 }
-

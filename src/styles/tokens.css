@@ -456,12 +456,24 @@
   --checkin-btn-submit-shadow-hover: 0 6px 18px rgb(8 37 74 / 0.32);
 
   /* Traffic Glow Effects */
-  --traffic-glow-red-1: 0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6), inset 0 2px 4px rgb(255 255 255 / 0.6);
-  --traffic-glow-red-2: 0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85), inset 0 2px 4px rgb(255 255 255 / 0.75);
-  --traffic-glow-yellow-1: 0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6), inset 0 2px 4px rgb(255 255 255 / 0.6);
-  --traffic-glow-yellow-2: 0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85), inset 0 2px 4px rgb(255 255 255 / 0.75);
-  --traffic-glow-green-1: 0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6), inset 0 2px 4px rgb(255 255 255 / 0.6);
-  --traffic-glow-green-2: 0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85), inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-red-1:
+    0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-red-2:
+    0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-yellow-1:
+    0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-yellow-2:
+    0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-green-1:
+    0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-green-2:
+    0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
   --traffic-shell-border: rgb(255 255 255 / 0.16);
   --traffic-shell-shadow: 0 8px 24px rgb(0 0 0 / 0.4), inset 0 1px 2px rgb(255 255 255 / 0.2);
   --traffic-bulb-border: rgb(0 0 0 / 0.6);
@@ -753,12 +765,24 @@
   --checkin-btn-submit-shadow-hover: 0 6px 18px rgb(8 37 74 / 0.32);
 
   /* Traffic Glow Effects */
-  --traffic-glow-red-1: 0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6), inset 0 2px 4px rgb(255 255 255 / 0.6);
-  --traffic-glow-red-2: 0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85), inset 0 2px 4px rgb(255 255 255 / 0.75);
-  --traffic-glow-yellow-1: 0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6), inset 0 2px 4px rgb(255 255 255 / 0.6);
-  --traffic-glow-yellow-2: 0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85), inset 0 2px 4px rgb(255 255 255 / 0.75);
-  --traffic-glow-green-1: 0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6), inset 0 2px 4px rgb(255 255 255 / 0.6);
-  --traffic-glow-green-2: 0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85), inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-red-1:
+    0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-red-2:
+    0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-yellow-1:
+    0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-yellow-2:
+    0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-green-1:
+    0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-green-2:
+    0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
   --traffic-shell-border: rgb(255 255 255 / 0.16);
   --traffic-shell-shadow: 0 8px 24px rgb(0 0 0 / 0.4), inset 0 1px 2px rgb(255 255 255 / 0.2);
   --traffic-bulb-border: rgb(0 0 0 / 0.6);

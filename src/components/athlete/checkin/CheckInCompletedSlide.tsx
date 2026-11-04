@@ -144,8 +144,22 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
       </>
     ) : eyeType === 'worried' ? (
       <>
-        <rect x="20" y="18" width="5.2" height="13" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
-        <rect x="35" y="18" width="5.2" height="13" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
+        <rect
+          x="20"
+          y="18"
+          width="5.2"
+          height="13"
+          rx="2.6"
+          fill="var(--checkin-mood-face-stroke)"
+        />
+        <rect
+          x="35"
+          y="18"
+          width="5.2"
+          height="13"
+          rx="2.6"
+          fill="var(--checkin-mood-face-stroke)"
+        />
         <path
           d="M 19 41 Q 30 33 41 41"
           fill="none"
@@ -156,8 +170,22 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
       </>
     ) : eyeType === 'neutral' ? (
       <>
-        <rect x="20" y="18" width="5.2" height="14" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
-        <rect x="35" y="18" width="5.2" height="14" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
+        <rect
+          x="20"
+          y="18"
+          width="5.2"
+          height="14"
+          rx="2.6"
+          fill="var(--checkin-mood-face-stroke)"
+        />
+        <rect
+          x="35"
+          y="18"
+          width="5.2"
+          height="14"
+          rx="2.6"
+          fill="var(--checkin-mood-face-stroke)"
+        />
         <line
           x1="18"
           y1="39"
@@ -276,8 +304,10 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
   const sleepColor = getSleepColor(sleepHours ?? 7.5);
   const fatigueColor = getFatigueColor(fatigueLevel ?? 2);
   const sorenessColor = getSorenessColor(muscleSoreness ?? 1);
-  const painZonesColor = reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
-  const healthInjuryColor = isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
+  const painZonesColor =
+    reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
+  const healthInjuryColor =
+    isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -353,10 +383,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
           aria-label={`Semáforo de estado: ${badge.label}`}
         >
           {/* Carcasa del semáforo estilo cápsula compacta dentro del círculo */}
-          <div
-            className="checkin-traffic-shell checkin-traffic-shell--compact"
-            role="img"
-          >
+          <div className="checkin-traffic-shell checkin-traffic-shell--compact" role="img">
             {/* Luz Roja (Arriba) */}
             <div
               className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isRed ? 'checkin-traffic-bulb--red-on' : 'checkin-traffic-bulb--red-off'}`}
@@ -612,7 +639,8 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 <strong
                   className="checkin-summary-item-val"
                   style={{
-                    color: isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--traffic-green)',
+                    color:
+                      isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--traffic-green)',
                   }}
                 >
                   {getHealthInjurySummary()}
@@ -704,7 +732,9 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                       }}
                     />
                     <strong>{m?.name || mId}:</strong>&nbsp;
-                    <span style={{ color: isInjury ? 'var(--traffic-red)' : color, fontWeight: 700 }}>
+                    <span
+                      style={{ color: isInjury ? 'var(--traffic-red)' : color, fontWeight: 700 }}
+                    >
                       {painLabel}
                     </span>
                     {idx < reportedPains.length - 1 && <span>,</span>}

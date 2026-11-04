@@ -250,7 +250,13 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                   <div style={{ fontWeight: 700, color: 'var(--warning-text)', fontSize: '1rem' }}>
                     Punto más débil identificado: {summary.weakestPoint.testName}
                   </div>
-                  <p style={{ margin: '0.25rem 0 0', color: 'var(--warning-text)', fontSize: '0.875rem' }}>
+                  <p
+                    style={{
+                      margin: '0.25rem 0 0',
+                      color: 'var(--warning-text)',
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Resultado del atleta:{' '}
                     <strong>
                       {summary.weakestPoint.athleteValue} {summary.weakestPoint.unit}
@@ -288,7 +294,9 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   {summary.athleteCount}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>en {categoryName}</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  en {categoryName}
+                </span>
               </div>
 
               <div
@@ -305,7 +313,9 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   {summary.items.length}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>batería de pruebas</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  batería de pruebas
+                </span>
               </div>
 
               <div
@@ -329,7 +339,9 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                   {summary.areasToImproveCount}{' '}
                   {summary.areasToImproveCount === 1 ? 'test' : 'tests'}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>por debajo del grupo</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  por debajo del grupo
+                </span>
               </div>
             </div>
 
@@ -390,7 +402,9 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                       key={item.testName}
                       data-testid={`benchmark-card-${item.testName.replace(/\s+/g, '-').toLowerCase()}`}
                       style={{
-                        border: item.isWeakestPoint ? '2px solid var(--danger-border)' : '1px solid var(--border)',
+                        border: item.isWeakestPoint
+                          ? '2px solid var(--danger-border)'
+                          : '1px solid var(--border)',
                         borderRadius: '8px',
                         padding: '1rem',
                         background: item.isWeakestPoint ? 'var(--danger-bg)' : 'var(--bg-surface)',
@@ -479,14 +493,23 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                         }}
                       >
                         <div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--text-muted)',
+                              display: 'block',
+                            }}
+                          >
                             Resultado Atleta
                           </span>
                           <span
                             style={{
                               fontSize: item.athleteValue !== null ? '1rem' : '0.85rem',
                               fontWeight: 600,
-                              color: item.athleteValue !== null ? 'var(--text-main)' : 'var(--text-muted)',
+                              color:
+                                item.athleteValue !== null
+                                  ? 'var(--text-main)'
+                                  : 'var(--text-muted)',
                               fontStyle: item.athleteValue !== null ? 'normal' : 'italic',
                             }}
                           >
@@ -497,10 +520,18 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                         </div>
 
                         <div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--text-muted)',
+                              display: 'block',
+                            }}
+                          >
                             Promedio Categoría
                           </span>
-                          <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                          <span
+                            style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
+                          >
                             {item.groupAverage !== null
                               ? `${item.groupAverage} ${item.unit}`
                               : 'Sin promedio'}
@@ -508,7 +539,13 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                         </div>
 
                         <div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--text-muted)',
+                              display: 'block',
+                            }}
+                          >
                             Diferencia
                           </span>
                           <span

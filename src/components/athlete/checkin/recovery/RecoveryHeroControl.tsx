@@ -118,26 +118,20 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
           <div className="recovery-value-filled">
             <div className="recovery-value-number-wrap">
               <span className="recovery-value-number">{currentVal}</span>
-              <span className="recovery-value-unit">
-                {currentVal === 1 ? 'hora' : 'horas'}
-              </span>
+              <span className="recovery-value-unit">{currentVal === 1 ? 'hora' : 'horas'}</span>
             </div>
           </div>
         );
       case 'sleepQuality':
         return (
           <div className="recovery-value-filled">
-            <span className="recovery-value-label">
-              {QUALITY_LABELS[currentVal] ?? currentVal}
-            </span>
+            <span className="recovery-value-label">{QUALITY_LABELS[currentVal] ?? currentVal}</span>
           </div>
         );
       case 'fatigueLevel':
         return (
           <div className="recovery-value-filled">
-            <span className="recovery-value-label">
-              {FATIGUE_LABELS[currentVal] ?? currentVal}
-            </span>
+            <span className="recovery-value-label">{FATIGUE_LABELS[currentVal] ?? currentVal}</span>
           </div>
         );
       case 'muscleSoreness':
@@ -162,7 +156,14 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
         className={`recovery-stepper-btn ${isMin ? 'is-disabled' : ''}`}
         title="Disminuir valor"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
           <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
         </svg>
       </button>
@@ -250,7 +251,14 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
         className={`recovery-stepper-btn ${isMax ? 'is-disabled' : ''}`}
         title="Aumentar valor"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
           <line x1="12" y1="5" x2="12" y2="19" strokeLinecap="round" />
           <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
         </svg>
@@ -258,4 +266,3 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
     </div>
   );
 };
-

@@ -11,8 +11,20 @@ export interface CheckInFatigueMuscleSlideProps {
 }
 
 const FATIGUE_OPTIONS = [
-  { value: 1, label: 'Enérgico', icon: '⚡', desc: 'Batería 100% · Al máximo', color: 'var(--traffic-green)' },
-  { value: 2, label: 'Fresco', icon: '🔋', desc: 'Batería 80% · Óptima energía', color: 'var(--checkin-scale-green)' },
+  {
+    value: 1,
+    label: 'Enérgico',
+    icon: '⚡',
+    desc: 'Batería 100% · Al máximo',
+    color: 'var(--traffic-green)',
+  },
+  {
+    value: 2,
+    label: 'Fresco',
+    icon: '🔋',
+    desc: 'Batería 80% · Óptima energía',
+    color: 'var(--checkin-scale-green)',
+  },
   {
     value: 3,
     label: 'Moderada',
@@ -20,8 +32,20 @@ const FATIGUE_OPTIONS = [
     desc: 'Batería 50% · Cansancio común',
     color: 'var(--traffic-yellow)',
   },
-  { value: 4, label: 'Alta', icon: '🪫', desc: 'Batería 25% · Fatiga pesada', color: 'var(--checkin-scale-orange)' },
-  { value: 5, label: 'Agotado', icon: '⚠️', desc: 'Batería 5% · Sin energía', color: 'var(--traffic-red)' },
+  {
+    value: 4,
+    label: 'Alta',
+    icon: '🪫',
+    desc: 'Batería 25% · Fatiga pesada',
+    color: 'var(--checkin-scale-orange)',
+  },
+  {
+    value: 5,
+    label: 'Agotado',
+    icon: '⚠️',
+    desc: 'Batería 5% · Sin energía',
+    color: 'var(--traffic-red)',
+  },
 ];
 
 const SORENESS_OPTIONS = [
@@ -32,10 +56,34 @@ const SORENESS_OPTIONS = [
     desc: 'Músculos sueltos y descansados',
     color: 'var(--traffic-green)',
   },
-  { value: 2, label: 'Leve', icon: '🧘', desc: 'Tirantez muscular suave', color: 'var(--checkin-scale-green)' },
-  { value: 3, label: 'Molestia', icon: '🏋️', desc: 'Agujetas o carga moderada', color: 'var(--traffic-yellow)' },
-  { value: 4, label: 'Fuerte', icon: '⚡', desc: 'Músculos muy adoloridos', color: 'var(--checkin-scale-orange)' },
-  { value: 5, label: 'Severo', icon: '🚨', desc: 'Rigidez muscular extrema', color: 'var(--traffic-red)' },
+  {
+    value: 2,
+    label: 'Leve',
+    icon: '🧘',
+    desc: 'Tirantez muscular suave',
+    color: 'var(--checkin-scale-green)',
+  },
+  {
+    value: 3,
+    label: 'Molestia',
+    icon: '🏋️',
+    desc: 'Agujetas o carga moderada',
+    color: 'var(--traffic-yellow)',
+  },
+  {
+    value: 4,
+    label: 'Fuerte',
+    icon: '⚡',
+    desc: 'Músculos muy adoloridos',
+    color: 'var(--checkin-scale-orange)',
+  },
+  {
+    value: 5,
+    label: 'Severo',
+    icon: '🚨',
+    desc: 'Rigidez muscular extrema',
+    color: 'var(--traffic-red)',
+  },
 ];
 
 export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps> = ({
@@ -83,8 +131,18 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
         {/* Trazos curvos decorativos (︵ ︵) */}
         <div className="pixel-bubble-waves" aria-hidden="true">
           <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
-            <path d="M 3 4 Q 11 9 19 4" stroke="var(--border)" strokeWidth="2" strokeLinecap="round" />
-            <path d="M 3 9 Q 11 14 19 9" stroke="var(--border)" strokeWidth="2" strokeLinecap="round" />
+            <path
+              d="M 3 4 Q 11 9 19 4"
+              stroke="var(--border)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <path
+              d="M 3 9 Q 11 14 19 9"
+              stroke="var(--border)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </svg>
         </div>
 

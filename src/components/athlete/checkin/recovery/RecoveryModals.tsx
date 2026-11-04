@@ -44,7 +44,8 @@ export const RecoveryValidationModal: React.FC<RecoveryValidationModalProps> = (
 
         <p className="recovery-modal-desc">
           Para avanzar al siguiente paso, debés registrar las <strong>4 opciones</strong> de
-          descanso y recuperación con los botones + o −. No pueden quedar en estado neutro sin pintar.
+          descanso y recuperación con los botones + o −. No pueden quedar en estado neutro sin
+          pintar.
         </p>
 
         {/* Lista de métricas pendientes */}
@@ -149,4 +150,3 @@ export const RecoverySleepHoursConfirmModal: React.FC<RecoverySleepHoursConfirmM
     </div>
   );
 };
-

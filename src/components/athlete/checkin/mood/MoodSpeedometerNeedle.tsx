@@ -32,4 +32,3 @@ export const MoodSpeedometerNeedle: React.FC<MoodSpeedometerNeedleProps> = ({
     </g>
   );
 };
-

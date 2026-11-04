@@ -15,10 +15,7 @@ import {
 } from './recovery/recoveryHelper';
 import { RecoveryHeroControl } from './recovery/RecoveryHeroControl';
 import { RecoveryRadialMeter } from './recovery/RecoveryRadialMeter';
-import {
-  RecoveryValidationModal,
-  RecoverySleepHoursConfirmModal,
-} from './recovery/RecoveryModals';
+import { RecoveryValidationModal, RecoverySleepHoursConfirmModal } from './recovery/RecoveryModals';
 
 export type { CheckInRecoverySlideProps, MetricKey };
 
@@ -271,7 +268,14 @@ export const CheckInRecoverySlide: React.FC<CheckInRecoverySlideProps> = ({
             className="checkin-circular-nav-btn prev"
             title="Paso anterior"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
@@ -298,7 +302,14 @@ export const CheckInRecoverySlide: React.FC<CheckInRecoverySlideProps> = ({
             className="checkin-circular-nav-btn next"
             title="Siguiente paso"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>

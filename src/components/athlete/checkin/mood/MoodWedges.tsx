@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  CX,
-  CY,
-  R_INNER,
-  R_OUTER,
-  STAR_POINTS_RULETA,
-  createWedgePath,
-} from './mood.types';
+import { CX, CY, R_INNER, R_OUTER, STAR_POINTS_RULETA, createWedgePath } from './mood.types';
 
 interface MoodWedgesProps {
   onSectorClick: (val: number) => void;
@@ -166,4 +159,3 @@ export const MoodWedges: React.FC<MoodWedgesProps> = ({ onSectorClick }) => {
     </>
   );
 };
-

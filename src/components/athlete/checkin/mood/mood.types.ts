@@ -159,4 +159,3 @@ export const AMBIENT_STARS: AmbientStar[] = [
   { id: 'a5', x: -20, y: -54, size: 12, type: 'five', duration: 2.3, delay: 1.2, colorIdx: 1 },
   { id: 'a6', x: 24, y: -52, size: 15, type: 'four', duration: 2.5, delay: 0.7, colorIdx: 2 },
 ];
-

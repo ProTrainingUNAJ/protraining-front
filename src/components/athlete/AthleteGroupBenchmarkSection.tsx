@@ -548,9 +548,9 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
 
               {/* Diferencia y Tendencia */}
               {metric.difference !== null &&
-                metric.difference !== undefined &&
-                metric.groupAverage !== null &&
-                metric.groupAverage !== undefined ? (
+              metric.difference !== undefined &&
+              metric.groupAverage !== null &&
+              metric.groupAverage !== undefined ? (
                 <div
                   style={{
                     display: 'flex',

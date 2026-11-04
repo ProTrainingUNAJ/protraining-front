@@ -168,4 +168,3 @@ export const MoodBubbleFace: React.FC<MoodBubbleFaceProps> = ({
     </div>
   );
 };
-

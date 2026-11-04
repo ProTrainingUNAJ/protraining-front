@@ -197,16 +197,8 @@ export const ConcentricMoodStressDial: React.FC<ConcentricMoodStressDialProps> =
 
         {/* ── Floating Bubble con Efecto de Estrellitas para Motivado o Excelente ── */}
         <div className="pixel-mood-bubble-center">
-          <MoodStarEffects
-            isStarMood={isStarMood}
-            burstKey={burstKey}
-            starPalette={starPalette}
-          />
-          <MoodBubbleFace
-            activeMood={activeMood}
-            isStarMood={isStarMood}
-            tearKey={tearKey}
-          />
+          <MoodStarEffects isStarMood={isStarMood} burstKey={burstKey} starPalette={starPalette} />
+          <MoodBubbleFace activeMood={activeMood} isStarMood={isStarMood} tearKey={tearKey} />
         </div>
 
         {/* ── Dos trazos curvos indicadores (︶ ︶) ── */}

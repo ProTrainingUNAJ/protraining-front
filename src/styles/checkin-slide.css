@@ -1301,13 +1301,15 @@
     opacity: 1;
   }
   35% {
-    transform: translate(-50%, -50%) translate(calc(var(--star-dx) * 0.5), calc(var(--star-dy) * 0.5))
-      scale(1.35) rotate(calc(var(--star-rot) * 0.5));
+    transform: translate(-50%, -50%)
+      translate(calc(var(--star-dx) * 0.5), calc(var(--star-dy) * 0.5)) scale(1.35)
+      rotate(calc(var(--star-rot) * 0.5));
     opacity: 1;
   }
   75% {
-    transform: translate(-50%, -50%) translate(calc(var(--star-dx) * 0.9), calc(var(--star-dy) * 0.9))
-      scale(1) rotate(calc(var(--star-rot) * 0.9));
+    transform: translate(-50%, -50%)
+      translate(calc(var(--star-dx) * 0.9), calc(var(--star-dy) * 0.9)) scale(1)
+      rotate(calc(var(--star-rot) * 0.9));
     opacity: 0.95;
   }
   100% {
@@ -1448,9 +1450,7 @@
 }
 
 .pixel-bubble-hero.is-star {
-  box-shadow:
-    var(--checkin-star-hero-glow),
-    var(--checkin-star-hero-shadow);
+  box-shadow: var(--checkin-star-hero-glow), var(--checkin-star-hero-shadow);
 }
 
 .mood-tear-drop {
@@ -1860,9 +1860,7 @@
 }
 
 .recovery-modal-title {
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 1.35rem;
   font-weight: 800;
   color: var(--checkin-title-color);
@@ -1871,9 +1869,7 @@
 }
 
 .recovery-modal-desc {
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.94rem;
   font-weight: 500;
   color: var(--checkin-subtitle-color);
@@ -1898,9 +1894,7 @@
   background-color: var(--checkin-alert-bg);
   border: 1.5px solid var(--checkin-alert-border);
   color: var(--checkin-alert-text);
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
@@ -1939,9 +1933,7 @@
   color: var(--checkin-next-btn-color);
   border-radius: 9999px;
   border: none;
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -1968,9 +1960,7 @@
   border: 1.5px solid var(--border);
   color: var(--text-main);
   border-radius: 9999px;
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -1984,9 +1974,7 @@
   color: var(--checkin-next-btn-color);
   border-radius: 9999px;
   border: none;
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -1998,7 +1986,8 @@
    TRAFFIC LIGHT COMPONENT (Check-in Status)
    ========================================================================== */
 @keyframes trafficGlowRed {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: var(--traffic-glow-red-1);
   }
   50% {
@@ -2007,7 +1996,8 @@
 }
 
 @keyframes trafficGlowYellow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: var(--traffic-glow-yellow-1);
   }
   50% {
@@ -2016,7 +2006,8 @@
 }
 
 @keyframes trafficGlowGreen {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: var(--traffic-glow-green-1);
   }
   50% {

@@ -131,13 +131,16 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
     {
       key: 'muscleSoreness' as MetricKey,
       label: 'Dolor muscular',
-      color: muscleSoreness !== null ? getSorenessColor(muscleSoreness) : 'var(--checkin-scale-neutral)',
+      color:
+        muscleSoreness !== null ? getSorenessColor(muscleSoreness) : 'var(--checkin-scale-neutral)',
       isAnswered: muscleSoreness !== null,
       icon: (
         <g transform="translate(-8.5, -8.5)">
           {renderBicepsMuscle(
             17,
-            muscleSoreness !== null ? getSorenessColor(muscleSoreness) : 'var(--checkin-scale-neutral)',
+            muscleSoreness !== null
+              ? getSorenessColor(muscleSoreness)
+              : 'var(--checkin-scale-neutral)',
             muscleSoreness !== null ? 'var(--white)' : 'var(--input-placeholder)',
           )}
         </g>
@@ -147,10 +150,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
 
   return (
     <div className="recovery-meter-wrap">
-      <svg
-        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-        className="recovery-meter-svg"
-      >
+      <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} className="recovery-meter-svg">
         {/* 1. ARCOS DE FONDO (CARRILES BASE) */}
         {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
           const cfg = METRIC_CONFIGS[key];
@@ -277,4 +277,3 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
     </div>
   );
 };
-
