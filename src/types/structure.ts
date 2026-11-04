@@ -56,6 +56,22 @@ export interface AthleteMe {
   fullName: string;
   active: boolean;
   categories: Category[];
+  hasSignedConsent?: boolean;
+  isMinor?: boolean;
+}
+
+export interface AthleteConsentStatus {
+  hasSignedConsent: boolean;
+  isMinor: boolean;
+  consentDate?: string | null;
+  allowsPhysicalTraining: boolean;
+  allowsHabitsRecommendations: boolean;
+  guardianName?: string | null;
+}
+
+export interface RegisterAdultConsentRequest {
+  allowsPhysicalTraining: boolean;
+  allowsHabitsRecommendations: boolean;
 }
 
 export type CompetitiveEventVenue = 'Home' | 'Away' | 'Neutral';

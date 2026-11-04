@@ -8,6 +8,8 @@ import {
   Athlete,
   CreateAthleteRequest,
   AthleteMe,
+  AthleteConsentStatus,
+  RegisterAdultConsentRequest,
   Match,
   CreateMatchRequest,
   CompetitiveEvent,
@@ -314,5 +316,32 @@ export const structureService = {
    */
   async createCategoryMatch(categoryId: string, data: CreateMatchRequest): Promise<Match> {
     return matchesApi.createCategoryMatch(categoryId, data);
+  },
+
+  /**
+   * Obtiene el estado del consentimiento digital del atleta autenticado (KAN-326)
+   */
+  async getMyConsent(): Promise<AthleteConsentStatus> {
+    try {
+      const response = await httpClient.get<AthleteConsentStatus>('/estructura/api/v1/me/consent');
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Registra el consentimiento digital para un atleta adulto autenticado (KAN-326)
+   */
+  async registerMyConsent(data: RegisterAdultConsentRequest): Promise<AthleteConsentStatus> {
+    try {
+      const response = await httpClient.post<AthleteConsentStatus>(
+        '/estructura/api/v1/me/consent',
+        data,
+      );
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
   },
 };
