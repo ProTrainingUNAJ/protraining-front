@@ -403,7 +403,7 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
                   fontSize: '1.1rem',
                   padding: '0.1rem 0.35rem',

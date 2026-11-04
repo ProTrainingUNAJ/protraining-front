@@ -104,7 +104,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           className="badge"
           style={{
             background: 'var(--bg-subtle, rgba(148, 163, 184, 0.15))',
-            color: 'var(--text-muted, #94a3b8)',
+            color: 'var(--text-muted)',
             border: '1px solid var(--border)',
             display: 'inline-flex',
             alignItems: 'center',
@@ -129,7 +129,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           className="badge"
           style={{
             background: 'var(--stat-red-bg, rgba(239, 68, 68, 0.15))',
-            color: 'var(--stat-red, #ef4444)',
+            color: 'var(--stat-red)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
             display: 'inline-flex',
             alignItems: 'center',
@@ -154,7 +154,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           className="badge"
           style={{
             background: 'var(--stat-green-bg, rgba(34, 197, 94, 0.15))',
-            color: 'var(--stat-green, #22c55e)',
+            color: 'var(--stat-green)',
             border: '1px solid rgba(34, 197, 94, 0.3)',
             display: 'inline-flex',
             alignItems: 'center',
@@ -178,7 +178,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
         className="badge"
         style={{
           background: 'var(--bg-subtle, rgba(148, 163, 184, 0.15))',
-          color: 'var(--text-muted, #94a3b8)',
+          color: 'var(--text-muted)',
           border: '1px solid var(--border)',
           display: 'inline-flex',
           alignItems: 'center',
@@ -232,7 +232,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
               height: '40px',
               borderRadius: '10px',
               background: 'var(--stat-cyan-bg, rgba(6, 182, 212, 0.15))',
-              color: 'var(--stat-cyan, #06b6d4)',
+              color: 'var(--stat-cyan)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -279,7 +279,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                   padding: '0.45rem 0.85rem',
                   borderRadius: '8px',
                   border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle, #1e293b)',
+                  background: 'var(--bg-subtle)',
                   color: 'var(--text-main)',
                   fontSize: '0.82rem',
                   fontWeight: 600,
@@ -332,7 +332,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
         >
           <AlertTriangle
             size={22}
-            style={{ color: 'var(--stat-red, #ef4444)', flexShrink: 0 }}
+            style={{ color: 'var(--stat-red)', flexShrink: 0 }}
             aria-hidden="true"
           />
           <div>
@@ -340,7 +340,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
               style={{
                 display: 'block',
                 fontSize: '0.9rem',
-                color: 'var(--stat-red, #ef4444)',
+                color: 'var(--stat-red)',
                 fontWeight: 800,
               }}
             >
@@ -383,7 +383,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           style={{
             background: 'rgba(239, 68, 68, 0.1)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: 'var(--stat-red, #ef4444)',
+            color: 'var(--stat-red)',
             padding: '1rem',
             borderRadius: '10px',
             fontSize: '0.88rem',
@@ -439,7 +439,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                 padding: '1.15rem',
                 borderRadius: '12px',
                 border: metric.isWeakestPoint
-                  ? '1px solid var(--stat-red, #ef4444)'
+                  ? '1px solid var(--stat-red)'
                   : '1px solid var(--border)',
                 background: metric.isWeakestPoint
                   ? 'var(--bg-subtle, rgba(239, 68, 68, 0.04))'
@@ -483,7 +483,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                   gap: '0.75rem',
                   padding: '0.75rem',
                   borderRadius: '10px',
-                  background: 'var(--bg-subtle, #1e293b)',
+                  background: 'var(--bg-subtle)',
                   marginBottom: '0.75rem',
                 }}
               >
@@ -548,9 +548,9 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
 
               {/* Diferencia y Tendencia */}
               {metric.difference !== null &&
-              metric.difference !== undefined &&
-              metric.groupAverage !== null &&
-              metric.groupAverage !== undefined ? (
+                metric.difference !== undefined &&
+                metric.groupAverage !== null &&
+                metric.groupAverage !== undefined ? (
                 <div
                   style={{
                     display: 'flex',
@@ -566,9 +566,9 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                       style={{
                         color:
                           metric.status === 'BelowAverage'
-                            ? 'var(--stat-red, #ef4444)'
+                            ? 'var(--stat-red)'
                             : metric.status === 'AboveAverage'
-                              ? 'var(--stat-green, #22c55e)'
+                              ? 'var(--stat-green)'
                               : 'var(--text-main)',
                       }}
                     >

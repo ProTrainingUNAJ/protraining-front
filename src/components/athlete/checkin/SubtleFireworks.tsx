@@ -26,16 +26,22 @@ interface Rocket {
   trail: Array<{ x: number; y: number; alpha: number }>;
 }
 
-const FIREWORK_COLORS = [
-  '#C084FC', // Violet 400
-  '#A855F7', // Violet 500
-  '#E879F9', // Fuchsia 400
-  '#F472B6', // Pink 400
-  '#FBBF24', // Amber 400 (Golden sparkle)
-  '#FDE047', // Yellow 300
-  '#38BDF8', // Sky 400
-  '#FFFFFF', // White highlight
+const FIREWORK_TOKENS = [
+  '--firework-violet-light',
+  '--firework-violet',
+  '--firework-fuchsia',
+  '--firework-pink',
+  '--firework-amber',
+  '--firework-yellow',
+  '--firework-sky',
+  '--firework-white',
 ];
+
+const getFireworkColors = (): string[] => {
+  if (typeof window === 'undefined') return [];
+  const styles = getComputedStyle(document.documentElement);
+  return FIREWORK_TOKENS.map((token) => styles.getPropertyValue(token).trim() || token);
+};
 
 export const SubtleFireworks: React.FC<SubtleFireworksProps> = ({ active, triggerKey = 0 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -47,6 +53,8 @@ export const SubtleFireworks: React.FC<SubtleFireworksProps> = ({ active, trigge
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const fireworkColors = getFireworkColors();
 
     let width = (canvas.width = canvas.offsetWidth || 500);
     let height = (canvas.height = canvas.offsetHeight || 300);
@@ -68,7 +76,7 @@ export const SubtleFireworks: React.FC<SubtleFireworksProps> = ({ active, trigge
     const createExplosion = (x: number, y: number, baseColor?: string) => {
       const count = 24 + Math.floor(Math.random() * 8);
       const chosenColor =
-        baseColor || FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+        baseColor || fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
 
       for (let i = 0; i < count; i++) {
         const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
@@ -76,7 +84,7 @@ export const SubtleFireworks: React.FC<SubtleFireworksProps> = ({ active, trigge
         const color =
           Math.random() > 0.4
             ? chosenColor
-            : FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+            : fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
 
         particles.push({
           x,
@@ -102,7 +110,7 @@ export const SubtleFireworks: React.FC<SubtleFireworksProps> = ({ active, trigge
         y: startY,
         targetY: Math.max(targetY, 40),
         vy: -5.5 - Math.random() * 1.5,
-        color: FIREWORK_COLORS[Math.floor(Math.random() * 4)],
+        color: fireworkColors[Math.floor(Math.random() * 4)],
         trail: [],
       });
     };

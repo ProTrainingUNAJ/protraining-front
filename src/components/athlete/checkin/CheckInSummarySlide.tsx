@@ -33,11 +33,11 @@ export interface CheckInSummarySlideProps {
 
 // ── Paleta exacta compartida con Paso 2 (Recuperación) ──
 const COLOR_SCALE = {
-  brown: '#6D381E', // Peor / Crítico
-  orange: '#FF6B00', // Alerta alta
-  yellow: '#FFB703', // Regular / Moderado
-  green: '#00A859', // Favorable / Bueno
-  violet: '#8E24AA', // Óptimo / Excelente
+  brown: 'var(--checkin-scale-brown)', // Peor / Crítico
+  orange: 'var(--checkin-scale-orange)', // Alerta alta
+  yellow: 'var(--checkin-scale-yellow)', // Regular / Moderado
+  green: 'var(--checkin-scale-green)', // Favorable / Bueno
+  violet: 'var(--checkin-scale-violet)', // Óptimo / Excelente
 };
 
 const getSleepColor = (hours: number): string => {
@@ -87,11 +87,11 @@ const MOOD_CONFIGS: Record<
   number,
   { color: string; label: string; eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star' }
 > = {
-  1: { color: '#5D2517', label: 'Desanimado', eyeType: 'sad' },
-  2: { color: '#F05A22', label: 'Regular', eyeType: 'worried' },
-  3: { color: '#FFAE19', label: 'Neutral', eyeType: 'neutral' },
-  4: { color: '#2CA049', label: 'Motivado', eyeType: 'happy' },
-  5: { color: '#9B26B6', label: 'Excelente', eyeType: 'star' },
+  1: { color: 'var(--checkin-mood-desanimado)', label: 'Desanimado', eyeType: 'sad' },
+  2: { color: 'var(--checkin-mood-regular)', label: 'Regular', eyeType: 'worried' },
+  3: { color: 'var(--checkin-mood-neutral)', label: 'Neutral', eyeType: 'neutral' },
+  4: { color: 'var(--checkin-mood-motivado)', label: 'Motivado', eyeType: 'happy' },
+  5: { color: 'var(--checkin-mood-excelente)', label: 'Excelente', eyeType: 'star' },
 };
 
 // Renderizado vectorial de la cara exacta de ánimo seleccionada en Paso 1
@@ -106,54 +106,54 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
       <>
         <path
           d="M 15 17 Q 21 21 27 21"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="2.6"
           strokeLinecap="round"
           fill="none"
         />
         <path
           d="M 45 17 Q 39 21 33 21"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="2.6"
           strokeLinecap="round"
           fill="none"
         />
-        <circle cx="21" cy="25" r="2.8" fill="#2B1408" />
-        <circle cx="39" cy="25" r="2.8" fill="#2B1408" />
+        <circle cx="21" cy="25" r="2.8" fill="var(--checkin-mood-face-stroke)" />
+        <circle cx="39" cy="25" r="2.8" fill="var(--checkin-mood-face-stroke)" />
         <path
           d="M 19 43 Q 30 31 41 43"
           fill="none"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="4.6"
           strokeLinecap="round"
         />
         <path
           d="M 21 27 C 19 29.5, 18.2 31.5, 18.6 33.5 C 19 35.5, 23 35.5, 23.4 33.5 C 23.8 31.5, 23 29.5, 21 27 Z"
-          fill="#38BDF8"
+          fill="var(--scanner-line-bright)"
         />
       </>
     ) : eyeType === 'worried' ? (
       <>
-        <rect x="20" y="18" width="5.2" height="13" rx="2.6" fill="#2B1408" />
-        <rect x="35" y="18" width="5.2" height="13" rx="2.6" fill="#2B1408" />
+        <rect x="20" y="18" width="5.2" height="13" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
+        <rect x="35" y="18" width="5.2" height="13" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
         <path
           d="M 19 41 Q 30 33 41 41"
           fill="none"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="4.6"
           strokeLinecap="round"
         />
       </>
     ) : eyeType === 'neutral' ? (
       <>
-        <rect x="20" y="18" width="5.2" height="14" rx="2.6" fill="#2B1408" />
-        <rect x="35" y="18" width="5.2" height="14" rx="2.6" fill="#2B1408" />
+        <rect x="20" y="18" width="5.2" height="14" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
+        <rect x="35" y="18" width="5.2" height="14" rx="2.6" fill="var(--checkin-mood-face-stroke)" />
         <line
           x1="18"
           y1="39"
           x2="42"
           y2="39"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="4.6"
           strokeLinecap="round"
         />
@@ -162,14 +162,14 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
       <>
         <path
           d="M 17 24 Q 22 15 28 24"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="3.6"
           strokeLinecap="round"
           fill="none"
         />
         <path
           d="M 32 24 Q 38 15 43 24"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="3.6"
           strokeLinecap="round"
           fill="none"
@@ -177,7 +177,7 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
         <path
           d="M 19 36 Q 30 48 41 36"
           fill="none"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="4.6"
           strokeLinecap="round"
         />
@@ -187,19 +187,19 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
         <g transform="translate(21, 21)">
           <polygon
             points="0,-7.5 2.2,-2.3 7.5,-2.3 3.2,0.8 4.8,5.8 0,2.3 -4.8,5.8 -3.2,0.8 -7.5,-2.3 -2.2,-2.3"
-            fill="#2B1408"
+            fill="var(--checkin-mood-face-stroke)"
           />
         </g>
         <g transform="translate(39, 21)">
           <polygon
             points="0,-7.5 2.2,-2.3 7.5,-2.3 3.2,0.8 4.8,5.8 0,2.3 -4.8,5.8 -3.2,0.8 -7.5,-2.3 -2.2,-2.3"
-            fill="#2B1408"
+            fill="var(--checkin-mood-face-stroke)"
           />
         </g>
         <path
           d="M 18 36 Q 30 50 42 36"
           fill="none"
-          stroke="#2B1408"
+          stroke="var(--checkin-mood-face-stroke)"
           strokeWidth="4.6"
           strokeLinecap="round"
         />
@@ -209,7 +209,7 @@ const renderMoodFace = (eyeType: 'sad' | 'worried' | 'neutral' | 'happy' | 'star
 );
 
 // Render del ícono de bíceps flexionado (Paso 2)
-const renderBicepsMuscle = (size = 22, fill = '#FFFFFF') => (
+const renderBicepsMuscle = (size = 22, fill = 'var(--white)') => (
   <svg
     width={size}
     height={size}
@@ -225,8 +225,8 @@ const renderBicepsMuscle = (size = 22, fill = '#FFFFFF') => (
       d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"
       fill={fill}
     />
-    <path d="M15 14a5 5 0 0 0-7.584 2" stroke="rgba(0,0,0,0.25)" strokeWidth="1.8" />
-    <path d="M9.964 6.825C8.019 7.977 9.5 13 8 15" stroke="rgba(0,0,0,0.25)" strokeWidth="1.8" />
+    <path d="M15 14a5 5 0 0 0-7.584 2" stroke="rgba(0,0,0,0.3)" strokeWidth="1.8" />
+    <path d="M9.964 6.825C8.019 7.977 9.5 13 8 15" stroke="rgba(0,0,0,0.3)" strokeWidth="1.8" />
   </svg>
 );
 
@@ -261,8 +261,8 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   const sleepColor = getSleepColor(sleepHours ?? 7.5);
   const fatigueColor = getFatigueColor(fatigueLevel ?? 2);
   const sorenessColor = getSorenessColor(muscleSoreness ?? 1);
-  const painZonesColor = reportedCount > 0 ? '#FF6B00' : '#00A859';
-  const healthInjuryColor = isSick || hasActiveInjury ? '#DC2626' : '#00A859';
+  const painZonesColor = reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
+  const healthInjuryColor = isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -358,17 +358,17 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
             Revisá tus respuestas antes de enviar tu informe al cuerpo técnico.
           </p>
 
-          {/* Burbuja Central Flotante (76px, matching Step 1 & Step 2) */}
+          {/* Burbuja Central Flotante (120px) */}
           <div
             className="pixel-bubble-hero"
             style={{
               background: 'var(--checkin-next-btn-bg)',
               boxShadow: '0 8px 24px rgba(0, 119, 200, 0.35)',
-              color: '#FFFFFF',
+              color: 'var(--white)',
             }}
             aria-hidden="true"
           >
-            <Check size={40} color="#FFFFFF" strokeWidth={3} />
+            <Check size={48} color="var(--white)" strokeWidth={3} />
           </div>
 
           {/* Trazos curvos decorativos (︵ ︵) */}
@@ -471,7 +471,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     boxShadow: `0 4px 10px ${sorenessColor}40`,
                   }}
                 >
-                  {renderBicepsMuscle(20, '#FFFFFF')}
+                  {renderBicepsMuscle(22, 'var(--white)')}
                 </div>
 
                 <div className="checkin-summary-item-texts">
@@ -518,7 +518,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     boxShadow: `0 4px 10px ${sleepColor}40`,
                   }}
                 >
-                  <Moon size={20} color="#FFFFFF" fill="#FFFFFF" />
+                  <Moon size={22} color="var(--white)" fill="var(--white)" />
                 </div>
 
                 <div className="checkin-summary-item-texts">
@@ -565,7 +565,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     boxShadow: `0 4px 10px ${painZonesColor}40`,
                   }}
                 >
-                  <Activity size={20} color="#FFFFFF" strokeWidth={2.4} />
+                  <Activity size={22} color="var(--white)" strokeWidth={2.6} />
                 </div>
 
                 <div className="checkin-summary-item-texts">
@@ -614,7 +614,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     boxShadow: `0 4px 10px ${fatigueColor}40`,
                   }}
                 >
-                  <Zap size={20} color="#FFFFFF" fill="#FFFFFF" />
+                  <Zap size={22} color="var(--white)" fill="var(--white)" />
                 </div>
 
                 <div className="checkin-summary-item-texts">
@@ -661,7 +661,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     boxShadow: `0 4px 10px ${healthInjuryColor}40`,
                   }}
                 >
-                  <HeartPulse size={20} color="#FFFFFF" strokeWidth={2.4} />
+                  <HeartPulse size={22} color="var(--white)" strokeWidth={2.6} />
                 </div>
 
                 <div className="checkin-summary-item-texts">
@@ -669,7 +669,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                   <strong
                     className="checkin-summary-item-val"
                     style={{
-                      color: isSick || hasActiveInjury ? '#EF4444' : '#10B981',
+                      color: isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--traffic-green)',
                     }}
                   >
                     {getHealthInjurySummary()}
@@ -718,7 +718,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                   const painInfo = PAIN_LEVELS.find((p) => p.level === lvl);
                   const isInjury = lvl === 6;
                   const painLabel = painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${lvl}`);
-                  const color = isInjury ? '#EF4444' : getPainColor(lvl);
+                  const color = isInjury ? 'var(--traffic-red)' : getPainColor(lvl);
                   return (
                     <span key={mId} style={{ display: 'inline-flex', alignItems: 'center' }}>
                       <span
@@ -732,7 +732,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                         }}
                       />
                       <strong>{m?.name || mId}:</strong>&nbsp;
-                      <span style={{ color: isInjury ? '#EF4444' : color, fontWeight: 700 }}>
+                      <span style={{ color: isInjury ? 'var(--traffic-red)' : color, fontWeight: 700 }}>
                         {painLabel}
                       </span>
                       {idx < reportedPains.length - 1 && <span>,</span>}

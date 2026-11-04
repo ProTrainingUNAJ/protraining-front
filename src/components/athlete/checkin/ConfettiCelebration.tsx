@@ -15,16 +15,22 @@ interface Particle {
   opacity: number;
 }
 
-const CONFETTI_COLORS = [
-  '#28b675', // Verde ProTraining
-  '#0077c8', // Azul ProTraining
-  '#ea9f11', // Dorado / Ámbar
-  '#ff4d4f', // Coral festivo
-  '#8b5cf6', // Púrpura brillante
-  '#38bdf8', // Celeste cielo
-  '#ec4899', // Rosa vibrante
-  '#ffffff', // Blanco brillo
+const CONFETTI_TOKENS = [
+  '--celebration-green',
+  '--celebration-blue',
+  '--celebration-amber',
+  '--celebration-coral',
+  '--celebration-purple',
+  '--celebration-cyan',
+  '--celebration-pink',
+  '--celebration-white',
 ];
+
+const getConfettiColors = (): string[] => {
+  if (typeof window === 'undefined') return [];
+  const styles = getComputedStyle(document.documentElement);
+  return CONFETTI_TOKENS.map((token) => styles.getPropertyValue(token).trim() || token);
+};
 
 export interface ConfettiCelebrationProps {
   durationMs?: number;
@@ -43,6 +49,8 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const confettiColors = getConfettiColors();
 
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
@@ -66,7 +74,7 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({
         vx: (Math.random() - 0.5) * 12,
         vy: -Math.random() * 10 - 4, // Impulso inicial ascendente
         size: Math.random() * 8 + 6,
-        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+        color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
         rotation: Math.random() * 360,
         rotationSpeed: (Math.random() - 0.5) * 12,
         wobble: Math.random() * Math.PI,

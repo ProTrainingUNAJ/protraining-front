@@ -358,7 +358,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Ícono circular suave con termómetro celeste (#0EA5E9) */}
+              {/* Ícono circular suave con termómetro médico celeste */}
               <div
                 style={{
                   width: '64px',
@@ -379,20 +379,20 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                   {/* Cuerpo del termómetro médico */}
                   <path
                     d="M13 18.5V8a3.5 3.5 0 0 1 7 0v10.5a6 6 0 1 1-7 0Z"
-                    stroke="#0EA5E9"
+                    stroke="var(--primary)"
                     strokeWidth="2.4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                   {/* Bulbo de mercurio en la base */}
-                  <circle cx="16.5" cy="23.5" r="2.8" fill="#0EA5E9" />
+                  <circle cx="16.5" cy="23.5" r="2.8" fill="var(--primary)" />
                   {/* Mercurio en el tubo */}
                   <line
                     x1="16.5"
                     y1="14"
                     x2="16.5"
                     y2="20.7"
-                    stroke="#0EA5E9"
+                    stroke="var(--primary)"
                     strokeWidth="2.4"
                     strokeLinecap="round"
                   />
@@ -402,7 +402,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     y1="8.5"
                     x2="26"
                     y2="14.5"
-                    stroke="#0EA5E9"
+                    stroke="var(--primary)"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
@@ -411,7 +411,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     y1="11.5"
                     x2="29"
                     y2="11.5"
-                    stroke="#0EA5E9"
+                    stroke="var(--primary)"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
@@ -521,7 +521,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Ícono circular suave con dos curitas cruzadas en celeste (#0EA5E9) */}
+              {/* Ícono circular suave con dos curitas cruzadas en celeste */}
               <div
                 style={{
                   width: '64px',
@@ -547,7 +547,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     height="9"
                     rx="4.5"
                     transform="rotate(-45 17 17)"
-                    stroke="#0EA5E9"
+                    stroke="var(--primary)"
                     strokeWidth="2.3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -560,16 +560,16 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     height="9"
                     rx="4.5"
                     transform="rotate(45 17 17)"
-                    stroke="#0EA5E9"
+                    stroke="var(--primary)"
                     strokeWidth="2.3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                   {/* Pequeños orificios / textura en el centro de la curita */}
-                  <circle cx="17" cy="14" r="1" fill="#0EA5E9" />
-                  <circle cx="17" cy="20" r="1" fill="#0EA5E9" />
-                  <circle cx="14" cy="17" r="1" fill="#0EA5E9" />
-                  <circle cx="20" cy="17" r="1" fill="#0EA5E9" />
+                  <circle cx="17" cy="14" r="1" fill="var(--primary)" />
+                  <circle cx="17" cy="20" r="1" fill="var(--primary)" />
+                  <circle cx="14" cy="17" r="1" fill="var(--primary)" />
+                  <circle cx="20" cy="17" r="1" fill="var(--primary)" />
                 </svg>
               </div>
 

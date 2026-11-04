@@ -11,17 +11,17 @@ export interface CheckInFatigueMuscleSlideProps {
 }
 
 const FATIGUE_OPTIONS = [
-  { value: 1, label: 'Enérgico', icon: '⚡', desc: 'Batería 100% · Al máximo', color: '#10B981' },
-  { value: 2, label: 'Fresco', icon: '🔋', desc: 'Batería 80% · Óptima energía', color: '#22C55E' },
+  { value: 1, label: 'Enérgico', icon: '⚡', desc: 'Batería 100% · Al máximo', color: 'var(--traffic-green)' },
+  { value: 2, label: 'Fresco', icon: '🔋', desc: 'Batería 80% · Óptima energía', color: 'var(--checkin-scale-green)' },
   {
     value: 3,
     label: 'Moderada',
     icon: '🔋',
     desc: 'Batería 50% · Cansancio común',
-    color: '#F59E0B',
+    color: 'var(--traffic-yellow)',
   },
-  { value: 4, label: 'Alta', icon: '🪫', desc: 'Batería 25% · Fatiga pesada', color: '#F97316' },
-  { value: 5, label: 'Agotado', icon: '⚠️', desc: 'Batería 5% · Sin energía', color: '#EF4444' },
+  { value: 4, label: 'Alta', icon: '🪫', desc: 'Batería 25% · Fatiga pesada', color: 'var(--checkin-scale-orange)' },
+  { value: 5, label: 'Agotado', icon: '⚠️', desc: 'Batería 5% · Sin energía', color: 'var(--traffic-red)' },
 ];
 
 const SORENESS_OPTIONS = [
@@ -30,12 +30,12 @@ const SORENESS_OPTIONS = [
     label: 'Sin dolor',
     icon: '🛡️',
     desc: 'Músculos sueltos y descansados',
-    color: '#10B981',
+    color: 'var(--traffic-green)',
   },
-  { value: 2, label: 'Leve', icon: '🧘', desc: 'Tirantez muscular suave', color: '#22C55E' },
-  { value: 3, label: 'Molestia', icon: '🏋️', desc: 'Agujetas o carga moderada', color: '#F59E0B' },
-  { value: 4, label: 'Fuerte', icon: '⚡', desc: 'Músculos muy adoloridos', color: '#F97316' },
-  { value: 5, label: 'Severo', icon: '🚨', desc: 'Rigidez muscular extrema', color: '#EF4444' },
+  { value: 2, label: 'Leve', icon: '🧘', desc: 'Tirantez muscular suave', color: 'var(--checkin-scale-green)' },
+  { value: 3, label: 'Molestia', icon: '🏋️', desc: 'Agujetas o carga moderada', color: 'var(--traffic-yellow)' },
+  { value: 4, label: 'Fuerte', icon: '⚡', desc: 'Músculos muy adoloridos', color: 'var(--checkin-scale-orange)' },
+  { value: 5, label: 'Severo', icon: '🚨', desc: 'Rigidez muscular extrema', color: 'var(--traffic-red)' },
 ];
 
 export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps> = ({
@@ -73,18 +73,18 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
           style={{
             background: currentFatigue.color,
             boxShadow: `0 8px 24px ${currentFatigue.color}45`,
-            color: '#FFFFFF',
+            color: 'var(--color-contrast-white)',
           }}
           aria-hidden="true"
         >
-          <Zap size={36} fill="#FFFFFF" color="#FFFFFF" />
+          <Zap size={36} fill="var(--color-contrast-white)" color="var(--color-contrast-white)" />
         </div>
 
         {/* Trazos curvos decorativos (︵ ︵) */}
         <div className="pixel-bubble-waves" aria-hidden="true">
           <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
-            <path d="M 3 4 Q 11 9 19 4" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" />
-            <path d="M 3 9 Q 11 14 19 9" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" />
+            <path d="M 3 4 Q 11 9 19 4" stroke="var(--border)" strokeWidth="2" strokeLinecap="round" />
+            <path d="M 3 9 Q 11 14 19 9" stroke="var(--border)" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
 
@@ -104,7 +104,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
               style={{
                 fontSize: '0.92rem',
                 fontWeight: 800,
-                color: '#08254A',
+                color: 'var(--checkin-input-color)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
@@ -140,8 +140,8 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                   onClick={() => onFatigueChange(opt.value)}
                   style={{
                     borderColor: isSelected ? opt.color : 'rgba(0, 0, 0, 0.08)',
-                    background: isSelected ? `${opt.color}18` : '#F8FAFC',
-                    color: isSelected ? opt.color : '#08254A',
+                    background: isSelected ? `${opt.color}18` : 'var(--bg-subtle)',
+                    color: isSelected ? opt.color : 'var(--checkin-input-color)',
                     borderRadius: '16px',
                     fontWeight: 700,
                   }}
@@ -170,7 +170,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
             style={{
               margin: 0,
               fontSize: '0.8rem',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               textAlign: 'center',
               fontFamily: 'Montserrat, sans-serif',
             }}
@@ -196,7 +196,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
               style={{
                 fontSize: '0.92rem',
                 fontWeight: 800,
-                color: '#08254A',
+                color: 'var(--checkin-input-color)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
@@ -236,8 +236,8 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                   onClick={() => onSorenessChange(opt.value)}
                   style={{
                     borderColor: isSelected ? opt.color : 'rgba(0, 0, 0, 0.08)',
-                    background: isSelected ? `${opt.color}18` : '#F8FAFC',
-                    color: isSelected ? opt.color : '#08254A',
+                    background: isSelected ? `${opt.color}18` : 'var(--bg-subtle)',
+                    color: isSelected ? opt.color : 'var(--checkin-input-color)',
                     borderRadius: '16px',
                     fontWeight: 700,
                   }}
@@ -266,7 +266,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
             style={{
               margin: 0,
               fontSize: '0.8rem',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               textAlign: 'center',
               fontFamily: 'Montserrat, sans-serif',
             }}
