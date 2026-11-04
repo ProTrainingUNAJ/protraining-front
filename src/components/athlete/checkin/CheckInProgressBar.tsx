@@ -122,14 +122,21 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
                     isCompleted || isActive
                       ? 'var(--checkin-step-active-bg)'
                       : 'var(--checkin-counter-bg)',
-                  color: isCompleted || isActive ? '#FFFFFF' : 'var(--checkin-subtitle-color)',
+                  color:
+                    isCompleted || isActive
+                      ? 'var(--color-contrast-white)'
+                      : 'var(--checkin-subtitle-color)',
                   cursor: isAllowed ? 'pointer' : 'default',
                   transition: 'all 0.2s ease',
                   padding: 0,
                   boxShadow: 'none',
                 }}
               >
-                {isCompleted ? <Check size={14} strokeWidth={3} color="#FFFFFF" /> : stepNum}
+                {isCompleted ? (
+                  <Check size={14} strokeWidth={3} color="var(--color-contrast-white)" />
+                ) : (
+                  stepNum
+                )}
               </button>
             );
           })}
@@ -159,7 +166,9 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
                   background: isSummaryActive
                     ? 'var(--checkin-step-active-bg)'
                     : 'var(--checkin-counter-bg)',
-                  color: isSummaryActive ? '#FFFFFF' : 'var(--checkin-subtitle-color)',
+                  color: isSummaryActive
+                    ? 'var(--color-contrast-white)'
+                    : 'var(--checkin-subtitle-color)',
                   cursor: isAllowed ? 'pointer' : 'default',
                   transition: 'all 0.2s ease',
                   padding: 0,

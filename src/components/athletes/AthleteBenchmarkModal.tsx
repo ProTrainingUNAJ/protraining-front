@@ -105,7 +105,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
             <p
               style={{
                 margin: '0.25rem 0 0',
-                color: 'var(--text-muted, #6c757d)',
+                color: 'var(--text-muted)',
                 fontSize: '0.9rem',
               }}
             >
@@ -127,7 +127,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
           <div
             style={{
               padding: '0.75rem 1rem',
-              background: '#f8f9fa',
+              background: 'var(--bg-subtle)',
               borderRadius: '6px',
               marginBottom: '1rem',
               display: 'flex',
@@ -137,7 +137,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
           >
             <label
               htmlFor="benchmark-category-select"
-              style={{ fontSize: '0.875rem', fontWeight: 600, color: '#495057' }}
+              style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}
             >
               Categoría de comparación:
             </label>
@@ -152,9 +152,9 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                 flex: 1,
                 padding: '0.35rem 0.6rem',
                 borderRadius: '4px',
-                border: '1px solid #ced4da',
+                border: '1px solid var(--border)',
                 fontSize: '0.875rem',
-                background: '#ffffff',
+                background: 'var(--bg-surface)',
               }}
             >
               {categories.map((c) => (
@@ -171,7 +171,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
           <div
             style={{
               fontSize: '0.85rem',
-              color: '#6c757d',
+              color: 'var(--text-muted)',
               marginBottom: '0.75rem',
             }}
           >
@@ -186,8 +186,8 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
             role="alert"
             style={{
               padding: '0.75rem 1rem',
-              background: '#f8d7da',
-              color: '#842029',
+              background: 'var(--danger-bg-strong)',
+              color: 'var(--danger-text)',
               borderRadius: '6px',
               marginBottom: '1rem',
               display: 'flex',
@@ -210,7 +210,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
 
         {/* Estado de Carga */}
         {loading && (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#6c757d' }}>
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
             <Loader2
               size={32}
               className="plan-spin"
@@ -231,8 +231,8 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
               <div
                 role="status"
                 style={{
-                  background: '#fff3cd',
-                  border: '1px solid #ffecb5',
+                  background: 'var(--warning-bg-strong)',
+                  border: '1px solid var(--traffic-yellow-border)',
                   borderRadius: '8px',
                   padding: '1rem',
                   marginBottom: '1.25rem',
@@ -243,14 +243,20 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
               >
                 <AlertTriangle
                   size={24}
-                  style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }}
+                  style={{ color: 'var(--warning)', flexShrink: 0, marginTop: '2px' }}
                   aria-hidden="true"
                 />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: '#997404', fontSize: '1rem' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--warning-text)', fontSize: '1rem' }}>
                     Punto más débil identificado: {summary.weakestPoint.testName}
                   </div>
-                  <p style={{ margin: '0.25rem 0 0', color: '#664d03', fontSize: '0.875rem' }}>
+                  <p
+                    style={{
+                      margin: '0.25rem 0 0',
+                      color: 'var(--warning-text)',
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Resultado del atleta:{' '}
                     <strong>
                       {summary.weakestPoint.athleteValue} {summary.weakestPoint.unit}
@@ -276,60 +282,66 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
             >
               <div
                 style={{
-                  background: '#f8f9fa',
+                  background: 'var(--bg-subtle)',
                   padding: '0.75rem 1rem',
                   borderRadius: '6px',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border)',
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
                   Atletas Evaluados
                 </span>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#212529' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   {summary.athleteCount}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>en {categoryName}</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  en {categoryName}
+                </span>
               </div>
 
               <div
                 style={{
-                  background: '#f8f9fa',
+                  background: 'var(--bg-subtle)',
                   padding: '0.75rem 1rem',
                   borderRadius: '6px',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border)',
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
                   Tests Comparados
                 </span>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#212529' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   {summary.items.length}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>batería de pruebas</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  batería de pruebas
+                </span>
               </div>
 
               <div
                 style={{
-                  background: '#f8f9fa',
+                  background: 'var(--bg-subtle)',
                   padding: '0.75rem 1rem',
                   borderRadius: '6px',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border)',
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
                   Puntos a Mejorar
                 </span>
                 <div
                   style={{
                     fontSize: '1.1rem',
                     fontWeight: 700,
-                    color: summary.areasToImproveCount > 0 ? '#d97706' : '#198754',
+                    color: summary.areasToImproveCount > 0 ? 'var(--warning)' : 'var(--success)',
                   }}
                 >
                   {summary.areasToImproveCount}{' '}
                   {summary.areasToImproveCount === 1 ? 'test' : 'tests'}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>por debajo del grupo</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  por debajo del grupo
+                </span>
               </div>
             </div>
 
@@ -339,7 +351,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                 fontSize: '1rem',
                 fontWeight: 600,
                 marginBottom: '0.75rem',
-                color: '#333',
+                color: 'var(--text-main)',
               }}
             >
               Comparativa de Evaluaciones Físicas
@@ -350,9 +362,9 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                 style={{
                   padding: '2rem',
                   textAlign: 'center',
-                  background: '#f8f9fa',
+                  background: 'var(--bg-subtle)',
                   borderRadius: '6px',
-                  color: '#6c757d',
+                  color: 'var(--text-muted)',
                 }}
               >
                 <HelpCircle
@@ -368,21 +380,21 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                   const badge = getStatusBadgeInfo(item.status, item.isWeakestPoint);
 
                   // Estilos de badge accesibles (con color y contraste semántico)
-                  let badgeBg = '#e9ecef';
-                  let badgeColor = '#495057';
-                  let badgeBorder = '#ced4da';
+                  let badgeBg = 'var(--bg-subtle)';
+                  let badgeColor = 'var(--text-muted)';
+                  let badgeBorder = 'var(--border)';
                   if (badge.variant === 'danger') {
-                    badgeBg = '#f8d7da';
-                    badgeColor = '#842029';
-                    badgeBorder = '#f5c2c7';
+                    badgeBg = 'var(--danger-bg-strong)';
+                    badgeColor = 'var(--danger-text)';
+                    badgeBorder = 'var(--danger-border)';
                   } else if (badge.variant === 'warning') {
-                    badgeBg = '#fff3cd';
-                    badgeColor = '#664d03';
-                    badgeBorder = '#ffecb5';
+                    badgeBg = 'var(--warning-bg-strong)';
+                    badgeColor = 'var(--warning-text)';
+                    badgeBorder = 'var(--traffic-yellow-border)';
                   } else if (badge.variant === 'success') {
-                    badgeBg = '#d1e7dd';
-                    badgeColor = '#0f5132';
-                    badgeBorder = '#badbcc';
+                    badgeBg = 'var(--success-bg-strong)';
+                    badgeColor = 'var(--success-text)';
+                    badgeBorder = 'var(--success-border)';
                   }
 
                   return (
@@ -390,10 +402,12 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                       key={item.testName}
                       data-testid={`benchmark-card-${item.testName.replace(/\s+/g, '-').toLowerCase()}`}
                       style={{
-                        border: item.isWeakestPoint ? '2px solid #f5c2c7' : '1px solid #dee2e6',
+                        border: item.isWeakestPoint
+                          ? '2px solid var(--danger-border)'
+                          : '1px solid var(--border)',
                         borderRadius: '8px',
                         padding: '1rem',
-                        background: item.isWeakestPoint ? '#fffbfa' : '#ffffff',
+                        background: item.isWeakestPoint ? 'var(--danger-bg)' : 'var(--bg-surface)',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                       }}
                     >
@@ -408,24 +422,24 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                       >
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <strong style={{ fontSize: '1rem', color: '#212529' }}>
+                            <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
                               {item.testName}
                             </strong>
                             {item.motorSkill && (
                               <span
                                 style={{
                                   fontSize: '0.75rem',
-                                  background: '#e9ecef',
+                                  background: 'var(--bg-subtle)',
                                   padding: '0.15rem 0.4rem',
                                   borderRadius: '4px',
-                                  color: '#495057',
+                                  color: 'var(--text-main)',
                                 }}
                               >
                                 {item.motorSkill}
                               </span>
                             )}
                           </div>
-                          <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             Dirección de mejora:{' '}
                             {item.direction === 'higher_is_better'
                               ? 'Mayor valor es mejor'
@@ -475,18 +489,27 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                           gap: '0.5rem',
                           marginTop: '0.75rem',
                           padding: '0.5rem 0',
-                          borderTop: '1px solid #f1f3f5',
+                          borderTop: '1px solid var(--border)',
                         }}
                       >
                         <div>
-                          <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--text-muted)',
+                              display: 'block',
+                            }}
+                          >
                             Resultado Atleta
                           </span>
                           <span
                             style={{
                               fontSize: item.athleteValue !== null ? '1rem' : '0.85rem',
                               fontWeight: 600,
-                              color: item.athleteValue !== null ? '#212529' : '#6c757d',
+                              color:
+                                item.athleteValue !== null
+                                  ? 'var(--text-main)'
+                                  : 'var(--text-muted)',
                               fontStyle: item.athleteValue !== null ? 'normal' : 'italic',
                             }}
                           >
@@ -497,10 +520,18 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                         </div>
 
                         <div>
-                          <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--text-muted)',
+                              display: 'block',
+                            }}
+                          >
                             Promedio Categoría
                           </span>
-                          <span style={{ fontSize: '1rem', fontWeight: 600, color: '#212529' }}>
+                          <span
+                            style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
+                          >
                             {item.groupAverage !== null
                               ? `${item.groupAverage} ${item.unit}`
                               : 'Sin promedio'}
@@ -508,7 +539,13 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                         </div>
 
                         <div>
-                          <span style={{ fontSize: '0.75rem', color: '#6c757d', display: 'block' }}>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--text-muted)',
+                              display: 'block',
+                            }}
+                          >
                             Diferencia
                           </span>
                           <span
@@ -517,10 +554,10 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
                               fontWeight: 700,
                               color:
                                 item.status === 'below_average'
-                                  ? '#d97706'
+                                  ? 'var(--warning)'
                                   : item.status === 'above_average'
-                                    ? '#198754'
-                                    : '#6c757d',
+                                    ? 'var(--success)'
+                                    : 'var(--text-muted)',
                             }}
                           >
                             {formatBenchmarkDelta(item)}
@@ -541,7 +578,7 @@ export const AthleteBenchmarkModal: React.FC<AthleteBenchmarkModalProps> = ({
             marginTop: '1.5rem',
             display: 'flex',
             justifyContent: 'flex-end',
-            borderTop: '1px solid #dee2e6',
+            borderTop: '1px solid var(--border)',
             paddingTop: '1rem',
           }}
         >

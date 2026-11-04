@@ -679,11 +679,11 @@ export const CheckInPage: React.FC = () => {
               style={{
                 fontSize: '0.85rem',
                 fontWeight: 700,
-                color: submissionResult ? '#00A859' : '#0284C7',
-                background: submissionResult ? 'rgba(0, 168, 89, 0.1)' : 'rgba(14, 165, 233, 0.1)',
+                color: submissionResult ? 'var(--checkin-scale-green)' : 'var(--stat-cyan)',
+                background: submissionResult ? 'var(--success-bg)' : 'var(--stat-cyan-bg)',
                 border: submissionResult
-                  ? '1px solid rgba(0, 168, 89, 0.25)'
-                  : '1px solid rgba(14, 165, 233, 0.25)',
+                  ? '1px solid var(--success-border)'
+                  : '1px solid var(--info-border)',
                 padding: '0.25rem 0.75rem',
                 borderRadius: '9999px',
                 margin: 0,

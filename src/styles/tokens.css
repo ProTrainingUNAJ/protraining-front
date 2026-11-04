@@ -351,6 +351,56 @@
   --checkin-input-border: #cbd5e1;
   --checkin-input-color: #08254a;
 
+  /* Check-in Scale and Mood System */
+  --checkin-scale-brown: #6d381e;
+  --checkin-scale-orange: #ff6b00;
+  --checkin-scale-yellow: #ffb703;
+  --checkin-scale-green: #00a859;
+  --checkin-scale-violet: #8e24aa;
+  --checkin-scale-neutral: #cbd5e1;
+
+  --checkin-mood-desanimado: #5d2517;
+  --checkin-mood-regular: #f05a22;
+  --checkin-mood-neutral: #ffae19;
+  --checkin-mood-motivado: #2ca049;
+  --checkin-mood-excelente: #9b26b6;
+  --checkin-mood-face-stroke: #2b1408;
+
+  --checkin-star-gold: #fbbf24;
+  --checkin-star-green: #4ade80;
+  --checkin-star-yellow: #fef08a;
+  --checkin-star-violet: #c084fc;
+  --checkin-star-pink: #f472b6;
+
+  /* Check-in Traffic Light */
+  --traffic-shell-bg: linear-gradient(180deg, #1c222b 0%, #10141a 100%);
+  --traffic-red-border: #fca5a5;
+  --traffic-yellow-border: #fde68a;
+  --traffic-green-border: #a7f3d0;
+  --traffic-bulb-off-red: radial-gradient(circle at 35% 35%, #421414 0%, #1e0707 100%);
+  --traffic-bulb-off-yellow: radial-gradient(circle at 35% 35%, #42300b 0%, #1e1704 100%);
+  --traffic-bulb-off-green: radial-gradient(circle at 35% 35%, #0b3a23 0%, #031a0f 100%);
+
+  /* Celebration and Fireworks Tokens */
+  --celebration-coral: #ff4d4f;
+  --celebration-pink: #ec4899;
+  --celebration-fuchsia: #e879f9;
+  --celebration-green: #28b675;
+  --celebration-blue: #0077c8;
+  --celebration-amber: #ea9f11;
+  --celebration-purple: #8b5cf6;
+  --celebration-cyan: #38bdf8;
+  --celebration-white: #ffffff;
+
+  --firework-violet-light: #c084fc;
+  --firework-violet: #a855f7;
+  --firework-fuchsia: #e879f9;
+  --firework-pink: #f472b6;
+  --firework-amber: #fbbf24;
+  --firework-yellow: #fde047;
+  --firework-sky: #38bdf8;
+  --firework-white: #ffffff;
+
   /* Biometric Scanner Tokens (Celeste / Cyan) */
   --scanner-line-color: #0284c7;
   --scanner-line-bright: #38bdf8;
@@ -388,6 +438,47 @@
     drop-shadow(0 0 24px rgb(56 189 248 / 0.7));
   --scanner-glow-fade: drop-shadow(0 0 6px rgb(14 165 233 / 0.4))
     drop-shadow(0 0 12px rgb(56 189 248 / 0.3));
+
+  /* Check-in Shadows and Effects */
+  --checkin-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+  --checkin-star-hero-glow: 0 0 26px rgb(255 255 255 / 0.4);
+  --checkin-star-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  --checkin-needle-shadow: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+  --checkin-needle-shadow-drag: drop-shadow(0 8px 16px rgb(0 0 0 / 0.45));
+  --checkin-stepper-shadow: 0 4px 10px rgb(0 0 0 / 0.08);
+  --checkin-stepper-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.12);
+  --checkin-progress-arc-glow: drop-shadow(0 0 4px rgb(14 165 233 / 0.35));
+  --checkin-alert-icon-shadow: 0 8px 20px rgb(217 119 6 / 0.18);
+  --checkin-sleep-icon-bg: rgb(142 36 170 / 0.12);
+  --checkin-sleep-icon-border: rgb(142 36 170 / 0.35);
+  --checkin-sleep-icon-shadow: 0 8px 20px rgb(142 36 170 / 0.2);
+  --checkin-btn-submit-shadow: 0 4px 14px rgb(8 37 74 / 0.25);
+  --checkin-btn-submit-shadow-hover: 0 6px 18px rgb(8 37 74 / 0.32);
+
+  /* Traffic Glow Effects */
+  --traffic-glow-red-1:
+    0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-red-2:
+    0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-yellow-1:
+    0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-yellow-2:
+    0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-green-1:
+    0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-green-2:
+    0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-shell-border: rgb(255 255 255 / 0.16);
+  --traffic-shell-shadow: 0 8px 24px rgb(0 0 0 / 0.4), inset 0 1px 2px rgb(255 255 255 / 0.2);
+  --traffic-bulb-border: rgb(0 0 0 / 0.6);
+  --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
+  --traffic-reflection-bg: rgb(255 255 255 / 0.85);
 }
 
 [data-theme='dark'] {
@@ -606,4 +697,95 @@
   --checkin-input-bg: #242c37;
   --checkin-input-border: #334155;
   --checkin-input-color: #f1f3f6;
+
+  /* Check-in Scale and Mood System (dark mode) */
+  --checkin-scale-brown: #8b4513;
+  --checkin-scale-orange: #ff781f;
+  --checkin-scale-yellow: #fbbf24;
+  --checkin-scale-green: #22c55e;
+  --checkin-scale-violet: #a855f7;
+  --checkin-scale-neutral: #64748b;
+
+  --checkin-mood-desanimado: #7a321e;
+  --checkin-mood-regular: #ff781f;
+  --checkin-mood-neutral: #fbbf24;
+  --checkin-mood-motivado: #22c55e;
+  --checkin-mood-excelente: #a855f7;
+  --checkin-mood-face-stroke: #1c1917;
+
+  --checkin-star-gold: #fbbf24;
+  --checkin-star-green: #4ade80;
+  --checkin-star-yellow: #fef08a;
+  --checkin-star-violet: #c084fc;
+  --checkin-star-pink: #f472b6;
+
+  /* Check-in Traffic Light */
+  --traffic-shell-bg: linear-gradient(180deg, #1c222b 0%, #10141a 100%);
+  --traffic-red-border: #fca5a5;
+  --traffic-yellow-border: #fde68a;
+  --traffic-green-border: #a7f3d0;
+  --traffic-bulb-off-red: radial-gradient(circle at 35% 35%, #421414 0%, #1e0707 100%);
+  --traffic-bulb-off-yellow: radial-gradient(circle at 35% 35%, #42300b 0%, #1e1704 100%);
+  --traffic-bulb-off-green: radial-gradient(circle at 35% 35%, #0b3a23 0%, #031a0f 100%);
+
+  /* Celebration and Fireworks Tokens */
+  --celebration-coral: #ff4d4f;
+  --celebration-pink: #ec4899;
+  --celebration-fuchsia: #e879f9;
+  --celebration-green: #28b675;
+  --celebration-blue: #0077c8;
+  --celebration-amber: #ea9f11;
+  --celebration-purple: #8b5cf6;
+  --celebration-cyan: #38bdf8;
+  --celebration-white: #ffffff;
+
+  --firework-violet-light: #c084fc;
+  --firework-violet: #a855f7;
+  --firework-fuchsia: #e879f9;
+  --firework-pink: #f472b6;
+  --firework-amber: #fbbf24;
+  --firework-yellow: #fde047;
+  --firework-sky: #38bdf8;
+  --firework-white: #ffffff;
+
+  /* Check-in Shadows and Effects */
+  --checkin-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+  --checkin-star-hero-glow: 0 0 26px rgb(255 255 255 / 0.4);
+  --checkin-star-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  --checkin-needle-shadow: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+  --checkin-needle-shadow-drag: drop-shadow(0 8px 16px rgb(0 0 0 / 0.45));
+  --checkin-stepper-shadow: 0 4px 10px rgb(0 0 0 / 0.08);
+  --checkin-stepper-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.12);
+  --checkin-progress-arc-glow: drop-shadow(0 0 4px rgb(14 165 233 / 0.35));
+  --checkin-alert-icon-shadow: 0 8px 20px rgb(217 119 6 / 0.18);
+  --checkin-sleep-icon-bg: rgb(142 36 170 / 0.12);
+  --checkin-sleep-icon-border: rgb(142 36 170 / 0.35);
+  --checkin-sleep-icon-shadow: 0 8px 20px rgb(142 36 170 / 0.2);
+  --checkin-btn-submit-shadow: 0 4px 14px rgb(8 37 74 / 0.25);
+  --checkin-btn-submit-shadow-hover: 0 6px 18px rgb(8 37 74 / 0.32);
+
+  /* Traffic Glow Effects */
+  --traffic-glow-red-1:
+    0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-red-2:
+    0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-yellow-1:
+    0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-yellow-2:
+    0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-green-1:
+    0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-green-2:
+    0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-shell-border: rgb(255 255 255 / 0.16);
+  --traffic-shell-shadow: 0 8px 24px rgb(0 0 0 / 0.4), inset 0 1px 2px rgb(255 255 255 / 0.2);
+  --traffic-bulb-border: rgb(0 0 0 / 0.6);
+  --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
+  --traffic-reflection-bg: rgb(255 255 255 / 0.85);
 }
