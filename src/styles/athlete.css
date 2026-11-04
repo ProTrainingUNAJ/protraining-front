@@ -875,6 +875,14 @@
   padding: 1.5rem;
 }
 
+.routine-modal-no-muscles {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
 .routine-modal-footer {
   display: flex;
   align-items: center;
