@@ -23,13 +23,14 @@ function mapEventToMatch(ev: CompetitiveEvent, categoryId: string): Match {
     ? ev.startTime.length === 5
       ? `${ev.startTime}:00`
       : ev.startTime
-    : '12:00:00';
+    : null;
 
   return {
     id: ev.id,
     categoryId,
     opponent: ev.opponent,
-    matchDate: `${ev.date}T${timePart}`,
+    matchDate: timePart ? `${ev.date}T${timePart}` : ev.date,
+    startTime: timePart,
     homeOrAway: ev.venue,
     type: ev.type,
     notes: ev.notes ?? null,
@@ -156,14 +157,15 @@ export const matchesApi = {
    */
   async createCategoryMatch(categoryId: string, req: CreateMatchRequest): Promise<Match> {
     let date = req.date || '';
-    let startTime: string | null = req.startTime ?? null;
+    let startTime: string | null = req.startTime?.trim() ? req.startTime.trim() : null;
 
-    // Soporte para formato combinado cuando no se especifiquen date o startTime directamente
+    // Support combined format when date or startTime are not directly specified
     if (!date && req.matchDate) {
       if (req.matchDate.includes('T')) {
         const [d, t] = req.matchDate.split('T');
         date = d;
-        startTime = t.replace('Z', '').split('.')[0];
+        const candidateTime = t.replace('Z', '').split('.')[0];
+        startTime = candidateTime ? candidateTime : null;
       } else {
         date = req.matchDate;
       }
@@ -171,11 +173,13 @@ export const matchesApi = {
 
     if (startTime && startTime.length === 5) {
       startTime += ':00';
+    } else if (!startTime) {
+      startTime = null;
     }
 
     const createdEvent = await this.createCategoryEvent(categoryId, {
       date,
-      startTime,
+      startTime: startTime || null,
       opponent: req.opponent.trim(),
       venue: req.homeOrAway,
       type: req.type || 'Official',

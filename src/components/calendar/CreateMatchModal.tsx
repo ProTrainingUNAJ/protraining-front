@@ -35,7 +35,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   const [categoryId, setCategoryId] = useState(() => initialCategoryId || categories[0]?.id || '');
   const [opponent, setOpponent] = useState('');
   const [matchDate, setMatchDate] = useState(() => initialDate || getUpcomingSaturdayIso());
-  const [matchTime, setMatchTime] = useState('15:30');
+  const [matchTime, setMatchTime] = useState('');
   const [homeOrAway, setHomeOrAway] = useState<HomeOrAway>('Home');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +48,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
       setCategoryId(initialCategoryId || (categories[0]?.id ?? ''));
       setOpponent('');
       setMatchDate(initialDate || getUpcomingSaturdayIso());
-      setMatchTime('15:30');
+      setMatchTime('');
       setHomeOrAway('Home');
       setNotes('');
       setErrorMessage(null);
@@ -86,12 +86,13 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
       return;
     }
 
-    // Formatear startTime como HH:mm:ss preservando la hora exacta seleccionada por el PF sin conversión UTC
-    const formattedStartTime = matchTime
-      ? matchTime.length === 5
-        ? `${matchTime}:00`
-        : matchTime
-      : '12:00:00';
+    // Format startTime as HH:mm:ss or null if empty, preserving selected time without forcing 12:00
+    const trimmedTime = matchTime.trim();
+    const formattedStartTime = trimmedTime
+      ? trimmedTime.length === 5
+        ? `${trimmedTime}:00`
+        : trimmedTime
+      : null;
 
     setIsSubmitting(true);
     try {
@@ -99,7 +100,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         opponent: opponent.trim(),
         date: matchDate,
         startTime: formattedStartTime,
-        matchDate: `${matchDate}T${formattedStartTime}`,
+        matchDate: formattedStartTime ? `${matchDate}T${formattedStartTime}` : matchDate,
         homeOrAway,
         notes: notes.trim() || null,
       });

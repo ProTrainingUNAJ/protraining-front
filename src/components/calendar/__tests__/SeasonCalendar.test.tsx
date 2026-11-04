@@ -14,7 +14,8 @@ vi.mock('../../../api/matches', () => ({
         id: 'test-match-123',
         categoryId: catId,
         opponent: data.opponent,
-        matchDate: data.matchDate || `${data.date}T${data.startTime || '12:00:00'}`,
+        matchDate:
+          data.matchDate || (data.startTime ? `${data.date}T${data.startTime}` : data.date),
         homeOrAway: data.homeOrAway,
         notes: data.notes,
       }),
@@ -31,7 +32,8 @@ vi.mock('../../../api/structureService', () => ({
         id: 'test-match-123',
         categoryId: catId,
         opponent: data.opponent,
-        matchDate: data.matchDate || `${data.date}T${data.startTime || '12:00:00'}`,
+        matchDate:
+          data.matchDate || (data.startTime ? `${data.date}T${data.startTime}` : data.date),
         homeOrAway: data.homeOrAway,
         notes: data.notes,
       }),
@@ -186,6 +188,41 @@ describe('SeasonCalendarView (KAN-404)', () => {
     await waitFor(() => {
       const trainingBlocks = screen.getAllByText(/Fuerza base/i);
       expect(trainingBlocks.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('muestra banner de error visible si la carga de partidos falla (ej. Estructura no responde)', async () => {
+    vi.spyOn(matchService, 'getMatches').mockRejectedValue(
+      new Error('Error al conectar con el servicio de Estructura'),
+    );
+
+    renderWithRouter(<SeasonCalendarView categories={mockCategories} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Error al conectar con el servicio de Estructura')).toBeDefined();
+    });
+  });
+
+  it('muestra "Sin horario" cuando un partido se programo sin hora', async () => {
+    const today = new Date();
+    const targetIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const matchWithoutTime: Match = {
+      id: 'match-no-time-badge',
+      categoryId: 'cat-primera',
+      opponent: 'Club Atlético Brown',
+      matchDate: targetIso,
+      startTime: null,
+      homeOrAway: 'Home',
+    };
+
+    vi.spyOn(matchService, 'getMatches').mockResolvedValue([matchWithoutTime]);
+
+    renderWithRouter(<SeasonCalendarView categories={mockCategories} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/VS Club Atlético Brown/i)).toBeDefined();
+      expect(screen.getByText('Sin horario')).toBeDefined();
     });
   });
 });

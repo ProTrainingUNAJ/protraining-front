@@ -7,21 +7,38 @@ import {
   ArrowRight,
   Shield,
   MapPin,
+  Dumbbell,
+  ClipboardList,
+  Activity,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { structureService } from '../../api/structureService';
 import { matchService } from '../../services/matchService';
 import {
   seasonPlanningService,
   PlannedSessionWithTime,
 } from '../../services/seasonPlanningService';
-import { Match } from '../../types/structure';
+import { todayRoutineService } from '../../api/todayRoutine';
+import { getCheckInCompleted } from '../athlete/checkin/checkInHelper';
+import { Match, AthleteMe } from '../../types/structure';
+import { TodayRoutineResponse } from '../../api/generated/entrenamiento';
 import { formatIsoDate } from '../../utils/argentinaDate';
-import { toIsoDate, formatTime } from '../../utils/calendarUtils';
+import { formatTime } from '../../utils/calendarUtils';
 
 type DaySchedule =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'done'; sessions: PlannedSessionWithTime[] };
+
+type AthleteDaySchedule =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | {
+      status: 'done';
+      routine: TodayRoutineResponse | null;
+      planningSessions: PlannedSessionWithTime[];
+      isCheckInDone: boolean;
+    };
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -49,49 +66,107 @@ async function loadTargetNames(): Promise<Record<string, string>> {
 }
 
 export const CalendarButton: React.FC = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const popoverRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isPF = location.pathname.startsWith('/pf');
+  const isPF = user?.role === 'PreparadorFisico' || location.pathname.startsWith('/pf');
+  const isAthlete = user?.role === 'Atleta' || location.pathname.startsWith('/athlete');
 
   // Selected date (YYYY-MM-DD) and routine schedule
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [daySchedule, setDaySchedule] = useState<DaySchedule | null>(null);
+  const [athleteSchedule, setAthleteSchedule] = useState<AthleteDaySchedule | null>(null);
   const [targetNames, setTargetNames] = useState<Record<string, string> | null>(null);
+  const [athleteMe, setAthleteMe] = useState<AthleteMe | null>(null);
 
   // Matches and scheduled trainings state
   const [matches, setMatches] = useState<Match[]>([]);
 
+  // Resolve athlete identity and categories
+  useEffect(() => {
+    if (!isAthlete) return;
+    let isMounted = true;
+    structureService
+      .getMe()
+      .then((me) => {
+        if (isMounted && me) {
+          setAthleteMe(me);
+        }
+      })
+      .catch(() => {
+        // Ignored
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [isAthlete, user?.id]);
+
   // Load matches
   const loadEvents = useCallback(async () => {
     try {
-      const fetchedMatches = await matchService.getMatches([]);
-      setMatches(fetchedMatches);
+      if (isAthlete) {
+        const me = athleteMe ?? (await structureService.getMe().catch(() => null));
+        if (me?.categories && me.categories.length > 0) {
+          const catIds = me.categories.map((c) => c.id);
+          const fetchedMatches = await matchService.getMatches(catIds);
+          setMatches(fetchedMatches);
+          return;
+        }
+      } else {
+        const orgs = await structureService.getOrganizations().catch(() => []);
+        const catsNested = await Promise.all(
+          orgs.map((org) => structureService.getCategories(org.id).catch(() => [])),
+        );
+        const catIds = catsNested.flat().map((c) => c.id);
+        const fetchedMatches = await matchService.getMatches(catIds);
+        setMatches(fetchedMatches);
+        return;
+      }
+      setMatches([]);
     } catch {
-      // Ignored
+      setMatches([]);
     }
-  }, []);
+  }, [isAthlete, athleteMe]);
 
   useEffect(() => {
     let isMounted = true;
     const fetchInitial = async () => {
       try {
-        const fetchedMatches = await matchService.getMatches([]);
-        if (isMounted) {
-          setMatches(fetchedMatches);
+        if (isAthlete) {
+          const me = await structureService.getMe().catch(() => null);
+          if (isMounted && me) {
+            setAthleteMe(me);
+          }
+          if (me?.categories && me.categories.length > 0) {
+            const catIds = me.categories.map((c) => c.id);
+            const fetchedMatches = await matchService.getMatches(catIds);
+            if (isMounted) setMatches(fetchedMatches);
+            return;
+          }
+        } else {
+          const orgs = await structureService.getOrganizations().catch(() => []);
+          const catsNested = await Promise.all(
+            orgs.map((org) => structureService.getCategories(org.id).catch(() => [])),
+          );
+          const catIds = catsNested.flat().map((c) => c.id);
+          const fetchedMatches = await matchService.getMatches(catIds);
+          if (isMounted) setMatches(fetchedMatches);
+          return;
         }
+        if (isMounted) setMatches([]);
       } catch {
-        // Ignored
+        if (isMounted) setMatches([]);
       }
     };
     void fetchInitial();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isAthlete]);
 
   // Synchronize when matches change anywhere
   useEffect(() => {
@@ -108,7 +183,7 @@ export const CalendarButton: React.FC = () => {
     const map = new Map<string, { hasMatch: boolean; hasTraining: boolean }>();
 
     matches.forEach((m) => {
-      const iso = toIsoDate(new Date(m.matchDate));
+      const iso = m.matchDate.includes('T') ? m.matchDate.split('T')[0] : m.matchDate;
       const entry = map.get(iso) || { hasMatch: false, hasTraining: false };
       entry.hasMatch = true;
       map.set(iso, entry);
@@ -120,7 +195,10 @@ export const CalendarButton: React.FC = () => {
   // Events for selected date
   const selectedMatches = useMemo(() => {
     if (!selectedDate) return [];
-    return matches.filter((m) => toIsoDate(new Date(m.matchDate)) === selectedDate);
+    return matches.filter((m) => {
+      const iso = m.matchDate.includes('T') ? m.matchDate.split('T')[0] : m.matchDate;
+      return iso === selectedDate;
+    });
   }, [matches, selectedDate]);
 
   // Close on outside click
@@ -176,30 +254,64 @@ export const CalendarButton: React.FC = () => {
     setCurrentDate(new Date(year, month + 1, 1));
   };
 
-  const handleSelectDay = async (dayNum: number) => {
-    const isoDate = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
-
-    if (!isPF) {
-      setOpen(false);
-      navigate(`/athlete/routine?date=${isoDate}`);
-      return;
-    }
-
+  const fetchScheduleForDate = async (isoDate: string) => {
     setSelectedDate(isoDate);
-    setDaySchedule({ status: 'loading' });
-    try {
-      const [sessions, names] = await Promise.all([
-        seasonPlanningService.getSessionsForDate(isoDate),
-        targetNames ?? loadTargetNames(),
-      ]);
-      setTargetNames(names);
-      setDaySchedule({ status: 'done', sessions });
-    } catch (err: unknown) {
-      setDaySchedule({
-        status: 'error',
-        message: err instanceof Error ? err.message : 'No se pudo cargar la agenda del día.',
-      });
+
+    if (isAthlete) {
+      setAthleteSchedule({ status: 'loading' });
+      try {
+        const [routineResult, planningSessions] = await Promise.all([
+          todayRoutineService.getMyRoutine(isoDate).catch(() => null),
+          seasonPlanningService
+            .getSessionsForDate(isoDate, undefined, athleteMe?.categories)
+            .catch(() => []),
+        ]);
+
+        const athleteId = athleteMe?.athleteId || user?.id || '';
+        const isCheckInDone = Boolean(getCheckInCompleted(athleteId));
+
+        setAthleteSchedule({
+          status: 'done',
+          routine: routineResult,
+          planningSessions,
+          isCheckInDone,
+        });
+      } catch (err: unknown) {
+        setAthleteSchedule({
+          status: 'error',
+          message: err instanceof Error ? err.message : 'No se pudieron cargar las tareas del día.',
+        });
+      }
+    } else {
+      setDaySchedule({ status: 'loading' });
+      try {
+        const [sessions, names] = await Promise.all([
+          seasonPlanningService.getSessionsForDate(isoDate),
+          targetNames ?? loadTargetNames(),
+        ]);
+        setTargetNames(names);
+        setDaySchedule({ status: 'done', sessions });
+      } catch (err: unknown) {
+        setDaySchedule({
+          status: 'error',
+          message: err instanceof Error ? err.message : 'No se pudo cargar la agenda del día.',
+        });
+      }
     }
+  };
+
+  const handleToggleOpen = () => {
+    const nextOpen = !open;
+    setOpen(nextOpen);
+    if (nextOpen && !selectedDate) {
+      const todayIso = `${year}-${pad(month + 1)}-${pad(todayDate)}`;
+      void fetchScheduleForDate(todayIso);
+    }
+  };
+
+  const handleSelectDay = (dayNum: number) => {
+    const isoDate = `${year}-${pad(month + 1)}-${pad(dayNum)}`;
+    void fetchScheduleForDate(isoDate);
   };
 
   const handleOpenPlan = (planId: string) => {
@@ -226,7 +338,7 @@ export const CalendarButton: React.FC = () => {
       <button
         type="button"
         className="shell-pill-btn shell-calendar-btn"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggleOpen}
         aria-label="Abrir calendario"
         title="Calendario y agenda de actividades"
         aria-expanded={open}
@@ -281,8 +393,7 @@ export const CalendarButton: React.FC = () => {
               const isSelected = selectedDate === iso;
               const evt = eventsByDate.get(iso);
               const dayOfWeek = new Date(year, month, dayNum).getDay();
-              const hasPlannedTraining =
-                isPF && (dayOfWeek === 3 || dayOfWeek === 4 || dayOfWeek === 5);
+              const hasPlannedTraining = dayOfWeek === 3 || dayOfWeek === 4 || dayOfWeek === 5;
               const showMatch = evt?.hasMatch;
               const showTraining = evt?.hasTraining || hasPlannedTraining;
 
@@ -293,10 +404,8 @@ export const CalendarButton: React.FC = () => {
                   className={`shell-calendar-cell is-clickable ${isToday ? 'is-today' : ''} ${
                     isSelected ? 'is-selected' : ''
                   }`}
-                  onClick={() => void handleSelectDay(dayNum)}
-                  aria-label={
-                    isPF ? `Ver actividades del ${dayNum}` : `Ver la rutina del ${dayNum}`
-                  }
+                  onClick={() => handleSelectDay(dayNum)}
+                  aria-label={isPF ? `Ver actividades del ${dayNum}` : `Ver tareas del ${dayNum}`}
                   aria-pressed={isSelected}
                 >
                   <span>{dayNum}</span>
@@ -316,10 +425,12 @@ export const CalendarButton: React.FC = () => {
             })}
           </div>
 
-          {isPF && selectedDate && (
+          {selectedDate && (
             <div className="shell-calendar-agenda" aria-live="polite">
               <strong className="shell-calendar-agenda-title">
-                Agenda del {formatIsoDate(selectedDate).slice(0, 5)}
+                {isAthlete
+                  ? `Tareas del ${formatIsoDate(selectedDate).slice(0, 5)}`
+                  : `Agenda del ${formatIsoDate(selectedDate).slice(0, 5)}`}
               </strong>
 
               {/* Matches for this date */}
@@ -327,10 +438,10 @@ export const CalendarButton: React.FC = () => {
                 <div
                   key={m.id}
                   className="shell-calendar-agenda-item"
-                  onClick={handleGoToCalendar}
-                  title="Ver en Calendario de Temporada"
-                  role="button"
-                  tabIndex={0}
+                  onClick={isPF ? handleGoToCalendar : undefined}
+                  title={isPF ? 'Ver en Calendario de Temporada' : 'Partido oficial programado'}
+                  role={isPF ? 'button' : undefined}
+                  tabIndex={isPF ? 0 : undefined}
                 >
                   <div
                     style={{
@@ -349,52 +460,261 @@ export const CalendarButton: React.FC = () => {
                           ? 'Visitante'
                           : 'Neutral'}
                     </span>
-                    <span className="shell-calendar-agenda-meta">{formatTime(m.matchDate)} hs</span>
+                    <span className="shell-calendar-agenda-meta">
+                      {formatTime(m.matchDate) ? `${formatTime(m.matchDate)} hs` : 'Sin horario'}
+                    </span>
                   </div>
-                  <span className="shell-calendar-agenda-plan">VS {m.opponent}</span>
+                  <span className="shell-calendar-agenda-plan">⚽ VS {m.opponent}</span>
                   {m.categoryName && (
                     <span className="shell-calendar-agenda-meta">{m.categoryName}</span>
                   )}
                 </div>
               ))}
 
-              {/* Assigned plan sessions */}
-              {daySchedule && daySchedule.status === 'loading' && (
-                <p className="shell-calendar-agenda-empty">Cargando rutinas…</p>
-              )}
-              {daySchedule && daySchedule.status === 'error' && (
-                <p className="shell-calendar-agenda-error">{daySchedule.message}</p>
-              )}
-              {daySchedule &&
-                daySchedule.status === 'done' &&
-                daySchedule.sessions.map((item) => {
-                  const targetId = item.categoryId ?? item.athleteId ?? '';
-                  return (
-                    <button
-                      type="button"
-                      key={item.assignmentId}
-                      className="shell-calendar-agenda-item"
-                      onClick={() => handleOpenPlan(item.trainingPlanId)}
-                      title="Abrir la planificación"
-                    >
-                      <span className="shell-calendar-agenda-plan">
-                        {item.planName} · {item.sessionName}
-                      </span>
-                      <span className="shell-calendar-agenda-meta">
-                        {targetNames?.[targetId] ?? (item.categoryId ? 'Categoría' : 'Atleta')} ·{' '}
-                        {item.exerciseCount} {item.exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}
-                      </span>
-                    </button>
-                  );
-                })}
+              {/* Tasks for athlete */}
+              {isAthlete && (
+                <>
+                  {athleteSchedule && athleteSchedule.status === 'loading' && (
+                    <p className="shell-calendar-agenda-empty">Cargando tareas del día…</p>
+                  )}
+                  {athleteSchedule && athleteSchedule.status === 'error' && (
+                    <p className="shell-calendar-agenda-error">{athleteSchedule.message}</p>
+                  )}
+                  {athleteSchedule && athleteSchedule.status === 'done' && (
+                    <>
+                      {/* Routine task */}
+                      {athleteSchedule.routine?.exercises &&
+                      athleteSchedule.routine.exercises.length > 0 ? (
+                        <button
+                          type="button"
+                          className="shell-calendar-agenda-item"
+                          onClick={() => {
+                            setOpen(false);
+                            navigate(`/athlete/routine?date=${selectedDate}`);
+                          }}
+                          title="Abrir mi rutina de entrenamiento"
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              width: '100%',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <span className="shell-calendar-agenda-badge training">
+                              <Dumbbell size={11} />
+                              <span>Rutina de Pesas</span>
+                            </span>
+                            <span className="shell-calendar-agenda-meta">
+                              {athleteSchedule.routine.exercises.length}{' '}
+                              {athleteSchedule.routine.exercises.length === 1
+                                ? 'ejercicio'
+                                : 'ejercicios'}
+                            </span>
+                          </div>
+                          <span className="shell-calendar-agenda-plan">🏋️‍♂️ Sesión de Gimnasio</span>
+                          {athleteSchedule.routine.coachNotes && (
+                            <span className="shell-calendar-agenda-meta">
+                              {athleteSchedule.routine.coachNotes}
+                            </span>
+                          )}
+                        </button>
+                      ) : athleteSchedule.planningSessions.length > 0 ? (
+                        athleteSchedule.planningSessions.map((item) => (
+                          <button
+                            type="button"
+                            key={item.assignmentId}
+                            className="shell-calendar-agenda-item"
+                            onClick={() => {
+                              setOpen(false);
+                              navigate(`/athlete/routine?date=${selectedDate}`);
+                            }}
+                            title="Abrir la rutina de entrenamiento"
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                width: '100%',
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <span className="shell-calendar-agenda-badge training">
+                                <Dumbbell size={11} />
+                                <span>
+                                  {item.sessionTime ? `${item.sessionTime} hs` : 'Rutina'}
+                                </span>
+                              </span>
+                              <span className="shell-calendar-agenda-meta">
+                                {item.exerciseCount} ejercicios
+                              </span>
+                            </div>
+                            <span className="shell-calendar-agenda-plan">
+                              🏋️‍♂️ {item.planName}: {item.sessionName}
+                            </span>
+                          </button>
+                        ))
+                      ) : (
+                        <button
+                          type="button"
+                          className="shell-calendar-agenda-item"
+                          onClick={() => {
+                            setOpen(false);
+                            navigate(`/athlete/routine?date=${selectedDate}`);
+                          }}
+                          title="Ir a la rutina general"
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              width: '100%',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <span className="shell-calendar-agenda-badge training">
+                              <Dumbbell size={11} />
+                              <span>Rutina</span>
+                            </span>
+                          </div>
+                          <span
+                            className="shell-calendar-agenda-plan"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            Sin ejercicios asignados hoy
+                          </span>
+                          <span className="shell-calendar-agenda-meta">
+                            Toca para ver la rutina general
+                          </span>
+                        </button>
+                      )}
 
-              {selectedMatches.length === 0 &&
-                daySchedule?.status === 'done' &&
-                daySchedule.sessions.length === 0 && (
-                  <p className="shell-calendar-agenda-empty">
-                    No hay actividades programadas este día.
-                  </p>
-                )}
+                      {/* Daily Check-in task */}
+                      <button
+                        type="button"
+                        className="shell-calendar-agenda-item"
+                        onClick={() => {
+                          setOpen(false);
+                          navigate('/athlete/check-in');
+                        }}
+                        title="Ir a check-in diario"
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            width: '100%',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <span
+                            className={`shell-calendar-agenda-badge ${
+                              athleteSchedule.isCheckInDone ? 'training' : 'match'
+                            }`}
+                          >
+                            <ClipboardList size={11} />
+                            <span>
+                              {athleteSchedule.isCheckInDone ? 'Completado' : 'Pendiente'}
+                            </span>
+                          </span>
+                          <span className="shell-calendar-agenda-meta">Bienestar</span>
+                        </div>
+                        <span className="shell-calendar-agenda-plan">
+                          {athleteSchedule.isCheckInDone
+                            ? '✅ Check-in de bienestar completado'
+                            : '📋 Check-in diario de bienestar'}
+                        </span>
+                        <span className="shell-calendar-agenda-meta">
+                          {athleteSchedule.isCheckInDone
+                            ? 'Descanso, ánimo y molestias registrados'
+                            : 'Registrar horas de sueño, dolor y fatiga'}
+                        </span>
+                      </button>
+
+                      {/* Daily Load task */}
+                      <button
+                        type="button"
+                        className="shell-calendar-agenda-item"
+                        onClick={() => {
+                          setOpen(false);
+                          navigate('/athlete/daily-load');
+                        }}
+                        title="Registrar carga del día"
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            width: '100%',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <span className="shell-calendar-agenda-badge training">
+                            <Activity size={11} />
+                            <span>Carga del Día</span>
+                          </span>
+                          <span className="shell-calendar-agenda-meta">RPE / Minutos</span>
+                        </div>
+                        <span className="shell-calendar-agenda-plan">
+                          ⚡ Registrar esfuerzo y duración
+                        </span>
+                        <span className="shell-calendar-agenda-meta">
+                          Gimnasio, entrenamiento y partido
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Tasks for coach (PF) */}
+              {isPF && (
+                <>
+                  {daySchedule && daySchedule.status === 'loading' && (
+                    <p className="shell-calendar-agenda-empty">Cargando rutinas…</p>
+                  )}
+                  {daySchedule && daySchedule.status === 'error' && (
+                    <p className="shell-calendar-agenda-error">{daySchedule.message}</p>
+                  )}
+                  {daySchedule &&
+                    daySchedule.status === 'done' &&
+                    daySchedule.sessions.map((item) => {
+                      const targetId = item.categoryId ?? item.athleteId ?? '';
+                      return (
+                        <button
+                          type="button"
+                          key={item.assignmentId}
+                          className="shell-calendar-agenda-item"
+                          onClick={() => handleOpenPlan(item.trainingPlanId)}
+                          title="Abrir la planificación"
+                        >
+                          <span className="shell-calendar-agenda-plan">
+                            {item.planName} · {item.sessionName}
+                          </span>
+                          <span className="shell-calendar-agenda-meta">
+                            {targetNames?.[targetId] ?? (item.categoryId ? 'Categoría' : 'Atleta')}{' '}
+                            · {item.exerciseCount}{' '}
+                            {item.exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}
+                          </span>
+                        </button>
+                      );
+                    })}
+
+                  {selectedMatches.length === 0 &&
+                    daySchedule?.status === 'done' &&
+                    daySchedule.sessions.length === 0 && (
+                      <p className="shell-calendar-agenda-empty">
+                        No hay actividades programadas este día.
+                      </p>
+                    )}
+                </>
+              )}
             </div>
           )}
 
@@ -419,6 +739,34 @@ export const CalendarButton: React.FC = () => {
                   className="shell-calendar-action-btn"
                 >
                   <span>Planificación</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            )}
+            {isAthlete && (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate('/athlete/routine');
+                  }}
+                  className="shell-calendar-action-btn"
+                  title="Ir a mi rutina de hoy"
+                >
+                  <Dumbbell size={13} />
+                  <span>Mi Rutina</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate('/athlete/progress');
+                  }}
+                  className="shell-calendar-action-btn"
+                  title="Ver mi perfil y progreso de atleta"
+                >
+                  <span>Mi Progreso</span>
                   <ArrowRight size={13} />
                 </button>
               </div>
