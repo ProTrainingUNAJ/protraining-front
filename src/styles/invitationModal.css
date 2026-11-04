@@ -171,6 +171,34 @@
   border-color: var(--success-border);
 }
 
+.invitation-regenerate-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.5rem;
+}
+
+.invitation-regenerate-btn {
+  background: transparent;
+  border: none;
+  color: var(--secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.invitation-regenerate-btn:hover {
+  color: var(--primary);
+  background: var(--shell-search-bg);
+}
+
 .invitation-state-container {
   display: flex;
   flex-direction: column;
