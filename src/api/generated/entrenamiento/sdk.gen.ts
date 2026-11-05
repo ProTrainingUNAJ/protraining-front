@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyPlanTemplateData, ApplyPlanTemplateErrors, ApplyPlanTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CompleteOnboardingData, CompleteOnboardingErrors, CompleteOnboardingResponses, ConfirmRecordsImportData, ConfirmRecordsImportErrors, ConfirmRecordsImportResponses, CreateExerciseData, CreateExerciseErrors, CreateExerciseResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetRecordsReliabilityData, GetRecordsReliabilityErrors, GetRecordsReliabilityResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListPlanTemplatesData, ListPlanTemplatesErrors, ListPlanTemplatesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, PreviewRecordsImportData, PreviewRecordsImportErrors, PreviewRecordsImportResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SavePlanAsTemplateData, SavePlanAsTemplateErrors, SavePlanAsTemplateResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
+import type { ApplyPlanTemplateData, ApplyPlanTemplateErrors, ApplyPlanTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CompleteOnboardingData, CompleteOnboardingErrors, CompleteOnboardingResponses, ConfirmRecordsImportData, ConfirmRecordsImportErrors, ConfirmRecordsImportResponses, CreateExerciseData, CreateExerciseErrors, CreateExerciseResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetRecordsReliabilityData, GetRecordsReliabilityErrors, GetRecordsReliabilityResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListPlanAssignmentsData, ListPlanAssignmentsErrors, ListPlanAssignmentsResponses, ListPlanTemplatesData, ListPlanTemplatesErrors, ListPlanTemplatesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, PreviewRecordsImportData, PreviewRecordsImportErrors, PreviewRecordsImportResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SavePlanAsTemplateData, SavePlanAsTemplateErrors, SavePlanAsTemplateResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateExerciseVideoData, UpdateExerciseVideoErrors, UpdateExerciseVideoResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -40,6 +40,22 @@ export const createExercise = <ThrowOnError extends boolean = false>(options: Op
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/exercises',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Actualizar video de referencia de un ejercicio
+ *
+ * Permite al preparador físico asociar o actualizar el link de video de YouTube para la técnica de un ejercicio.
+ */
+export const updateExerciseVideo = <ThrowOnError extends boolean = false>(options: Options<UpdateExerciseVideoData, ThrowOnError>): RequestResult<UpdateExerciseVideoResponses, UpdateExerciseVideoErrors, ThrowOnError> => (options.client ?? client).put<UpdateExerciseVideoResponses, UpdateExerciseVideoErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/exercises/{id}/video',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -313,6 +329,18 @@ export const getTrainingPlanSchedule = <ThrowOnError extends boolean = false>(op
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/training-plans/schedule',
+    ...options
+});
+
+/**
+ * Listar mis asignaciones con su fin y su estado
+ *
+ * Devuelve las asignaciones del PF del token, primero las activas y después las terminadas. La fecha de fin se calcula (inicio + semanas del plan × 7 − 1) y el estado se compara con la fecha de hoy en Argentina. Requiere rol PreparadorFisico.
+ */
+export const listPlanAssignments = <ThrowOnError extends boolean = false>(options?: Options<ListPlanAssignmentsData, ThrowOnError>): RequestResult<ListPlanAssignmentsResponses, ListPlanAssignmentsErrors, ThrowOnError> => (options?.client ?? client).get<ListPlanAssignmentsResponses, ListPlanAssignmentsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-plans/assignments',
     ...options
 });
 

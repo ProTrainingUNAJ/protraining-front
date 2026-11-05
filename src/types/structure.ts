@@ -60,19 +60,10 @@ export interface AthleteMe {
   isMinor?: boolean;
 }
 
-export interface AthleteConsentStatus {
-  hasSignedConsent: boolean;
-  isMinor: boolean;
-  consentDate?: string | null;
-  allowsPhysicalTraining: boolean;
-  allowsHabitsRecommendations: boolean;
-  guardianName?: string | null;
-}
-
-export interface RegisterAdultConsentRequest {
-  allowsPhysicalTraining: boolean;
-  allowsHabitsRecommendations: boolean;
-}
+export type {
+  AthleteConsentStatus,
+  RegisterAdultConsentRequest,
+} from '../api/generated/estructura';
 
 export type CompetitiveEventVenue = 'Home' | 'Away' | 'Neutral';
 export type CompetitiveEventType = 'Official' | 'Friendly' | 'Tournament';

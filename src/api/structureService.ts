@@ -1,6 +1,10 @@
 import { httpClient, extractErrorMessage } from './axiosClient';
 import { matchesApi } from './matches';
 import {
+  getMyConsent as getMyConsentApi,
+  registerMyConsent as registerMyConsentApi,
+} from './generated/estructura';
+import {
   Organization,
   CreateOrganizationRequest,
   Category,
@@ -319,27 +323,27 @@ export const structureService = {
   },
 
   /**
-   * Obtiene el estado del consentimiento digital del atleta autenticado (KAN-326)
+   * Obtiene el estado del consentimiento digital del atleta autenticado (KAN-326) usando SDK OpenAPI.
    */
   async getMyConsent(): Promise<AthleteConsentStatus> {
     try {
-      const response = await httpClient.get<AthleteConsentStatus>('/estructura/api/v1/me/consent');
-      return response.data;
+      const { data } = await getMyConsentApi({ throwOnError: true });
+      return data as AthleteConsentStatus;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
   },
 
   /**
-   * Registra el consentimiento digital para un atleta adulto autenticado (KAN-326)
+   * Registra el consentimiento digital para un atleta adulto autenticado (KAN-326) usando SDK OpenAPI.
    */
   async registerMyConsent(data: RegisterAdultConsentRequest): Promise<AthleteConsentStatus> {
     try {
-      const response = await httpClient.post<AthleteConsentStatus>(
-        '/estructura/api/v1/me/consent',
-        data,
-      );
-      return response.data;
+      const { data: responseData } = await registerMyConsentApi({
+        body: data,
+        throwOnError: true,
+      });
+      return responseData as AthleteConsentStatus;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
