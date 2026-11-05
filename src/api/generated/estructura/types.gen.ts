@@ -9,7 +9,16 @@ export type CategoryInvitation = {
     expiresAt: string;
     categoryId: string;
     categoryName: string;
+    pfId: string;
     invitationUrl?: string | null;
+};
+
+export type AcceptCategoryInvitationRequest = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    emergencyContact?: string | null;
 };
 
 /**
@@ -158,6 +167,58 @@ export type Me = {
      * Categorías a las que pertenece. Vacía si el atleta está dado de baja.
      */
     categories: Array<MeCategory>;
+    /**
+     * Indica si el atleta cuenta con consentimiento digital firmado.
+     */
+    hasSignedConsent?: boolean;
+    /**
+     * Indica si el atleta es menor de edad.
+     */
+    isMinor?: boolean;
+};
+
+/**
+ * Estado del consentimiento digital del atleta.
+ */
+export type AthleteConsentStatus = {
+    /**
+     * Indica si el consentimiento ya fue firmado (por el atleta si es mayor, o por el tutor si es menor).
+     */
+    hasSignedConsent: boolean;
+    /**
+     * Indica si el atleta es menor de edad.
+     */
+    isMinor: boolean;
+    /**
+     * Fecha y hora en la que se registró la firma digital.
+     */
+    consentDate?: string | null;
+    /**
+     * Autorización para preparación física.
+     */
+    allowsPhysicalTraining: boolean;
+    /**
+     * Autorización para recomendaciones de hábitos saludables y descanso.
+     */
+    allowsHabitsRecommendations: boolean;
+    /**
+     * Nombre del tutor legal en caso de atleta menor de edad.
+     */
+    guardianName?: string | null;
+};
+
+/**
+ * Solicitud de firma digital del consentimiento para atleta adulto.
+ */
+export type RegisterAdultConsentRequest = {
+    /**
+     * Autorización de preparación física (obligatoria en true para completar el consentimiento).
+     */
+    allowsPhysicalTraining?: boolean;
+    /**
+     * Autorización opcional para recepción de recomendaciones de hábitos saludables y descanso.
+     */
+    allowsHabitsRecommendations?: boolean;
 };
 
 export type MeCategory = {
@@ -777,6 +838,76 @@ export type ListMyCategoriesResponses = {
 
 export type ListMyCategoriesResponse = ListMyCategoriesResponses[keyof ListMyCategoriesResponses];
 
+export type GetMyConsentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/consent';
+};
+
+export type GetMyConsentErrors = {
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El token no es de un atleta.
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type GetMyConsentError = GetMyConsentErrors[keyof GetMyConsentErrors];
+
+export type GetMyConsentResponses = {
+    /**
+     * Estado del consentimiento del atleta logueado.
+     */
+    200: AthleteConsentStatus;
+};
+
+export type GetMyConsentResponse = GetMyConsentResponses[keyof GetMyConsentResponses];
+
+export type RegisterMyConsentData = {
+    body: RegisterAdultConsentRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/consent';
+};
+
+export type RegisterMyConsentErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El token no es de un atleta.
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type RegisterMyConsentError = RegisterMyConsentErrors[keyof RegisterMyConsentErrors];
+
+export type RegisterMyConsentResponses = {
+    /**
+     * Consentimiento digital registrado exitosamente.
+     */
+    200: AthleteConsentStatus;
+};
+
+export type RegisterMyConsentResponse = RegisterMyConsentResponses[keyof RegisterMyConsentResponses];
+
 export type ListOrganizationsData = {
     body?: never;
     path?: never;
@@ -1152,6 +1283,49 @@ export type ValidateCategoryInvitationTokenResponses = {
 };
 
 export type ValidateCategoryInvitationTokenResponse = ValidateCategoryInvitationTokenResponses[keyof ValidateCategoryInvitationTokenResponses];
+
+export type AcceptCategoryInvitationData = {
+    body: AcceptCategoryInvitationRequest;
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/api/v1/invitations/{token}/accept';
+};
+
+export type AcceptCategoryInvitationErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso no autorizado o permisos insuficientes para la operación solicitada.
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+    /**
+     * El recurso solicitado ha expirado o ya no está disponible.
+     */
+    410: ProblemDetails;
+};
+
+export type AcceptCategoryInvitationError = AcceptCategoryInvitationErrors[keyof AcceptCategoryInvitationErrors];
+
+export type AcceptCategoryInvitationResponses = {
+    /**
+     * Invitación aceptada con éxito y atleta vinculado a la categoría.
+     */
+    200: Athlete;
+};
+
+export type AcceptCategoryInvitationResponse = AcceptCategoryInvitationResponses[keyof AcceptCategoryInvitationResponses];
 
 export type ListCategoryMatchesData = {
     body?: never;

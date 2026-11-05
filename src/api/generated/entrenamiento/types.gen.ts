@@ -326,6 +326,10 @@ export type TodayRoutineResponse = {
      * Indicaciones o notas del preparador físico asociadas a la sesión.
      */
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
     exercises: Array<TodayRoutineExercise>;
 };
 
@@ -379,8 +383,31 @@ export type AssignPlanRequest = {
     athleteId?: string | null;
 };
 
+/**
+ * Asignación del PF a una categoría o a un atleta, con su fin calculado y su estado.
+ */
+export type PlanAssignmentSummary = {
+    assignmentId: string;
+    trainingPlanId: string;
+    planName: string;
+    categoryId?: string | null;
+    athleteId?: string | null;
+    startDate: string;
+    endDate: string;
+    status: 'Active' | 'Finished';
+};
+
 export type AssignPlanResponse = {
     assignmentId: string;
+    startDate: string;
+    /**
+     * Último día de la asignación, calculado como inicio + semanas del plan × 7 − 1. No se guarda.
+     */
+    endDate: string;
+    /**
+     * Active hasta el último día inclusive; Finished desde el día siguiente (fecha de Argentina).
+     */
+    status: 'Active' | 'Finished';
     message: string;
 };
 
@@ -424,6 +451,10 @@ export type TrainingSessionRequest = {
      */
     dayOfWeek: number;
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
     exercises?: Array<PrescribedExerciseRequest>;
 };
 
@@ -461,6 +492,10 @@ export type TrainingSessionDetail = {
     order: number;
     dayOfWeek: number;
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
     exercises: Array<PrescribedExerciseDetail>;
 };
 
@@ -491,6 +526,14 @@ export type ScheduledSession = {
     athleteId?: string | null;
     exerciseCount: number;
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
+    /**
+     * Último día de la asignación (inicio + semanas del plan × 7 − 1).
+     */
+    assignmentEndDate?: string | null;
 };
 
 export type TrainingPlanSummary = {
@@ -608,6 +651,53 @@ export type CreateExerciseResponses = {
 };
 
 export type CreateExerciseResponse = CreateExerciseResponses[keyof CreateExerciseResponses];
+
+export type UpdateExerciseVideoData = {
+    body: {
+        /**
+         * URL del video de YouTube o null para quitarlo.
+         */
+        videoUrl?: string | null;
+    };
+    path: {
+        /**
+         * Identificador único del ejercicio
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/exercises/{id}/video';
+};
+
+export type UpdateExerciseVideoErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateExerciseVideoError = UpdateExerciseVideoErrors[keyof UpdateExerciseVideoErrors];
+
+export type UpdateExerciseVideoResponses = {
+    /**
+     * Video actualizado exitosamente. Devuelve el ejercicio actualizado.
+     */
+    200: Exercise;
+};
+
+export type UpdateExerciseVideoResponse = UpdateExerciseVideoResponses[keyof UpdateExerciseVideoResponses];
 
 export type CheckExerciseRestrictionsData = {
     body: CheckExerciseRestrictionsRequest;
@@ -1301,6 +1391,40 @@ export type GetTrainingPlanScheduleResponses = {
 };
 
 export type GetTrainingPlanScheduleResponse = GetTrainingPlanScheduleResponses[keyof GetTrainingPlanScheduleResponses];
+
+export type ListPlanAssignmentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filtra por estado. Sin filtro devuelve todas.
+         */
+        status?: 'Active' | 'Finished';
+    };
+    url: '/api/v1/training-plans/assignments';
+};
+
+export type ListPlanAssignmentsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ListPlanAssignmentsError = ListPlanAssignmentsErrors[keyof ListPlanAssignmentsErrors];
+
+export type ListPlanAssignmentsResponses = {
+    /**
+     * Asignaciones del PF.
+     */
+    200: Array<PlanAssignmentSummary>;
+};
+
+export type ListPlanAssignmentsResponse = ListPlanAssignmentsResponses[keyof ListPlanAssignmentsResponses];
 
 export type AssignTrainingPlanData = {
     body: AssignPlanRequest;
