@@ -3,6 +3,8 @@ import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle, Layers } from
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
+import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPlayer';
+import { exercisesService } from '../../api/exercises';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise } from '../../api/generated/entrenamiento';
 import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
@@ -12,6 +14,7 @@ interface ExerciseItem {
   name: string;
   category: string;
   muscleGroup: string;
+  videoUrl?: string | null;
   equipment: string;
   images?: string[];
   primaryMuscles?: string[];
@@ -49,6 +52,7 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     name: item.name ?? 'Sin nombre',
     category: item.category || 'General',
     muscleGroup: item.muscleGroup || 'Cuerpo Completo',
+    videoUrl: item.videoUrl ?? null,
     equipment: item.equipment || 'Sin equipamiento',
     images,
     primaryMuscles:
@@ -89,10 +93,43 @@ export const TrainingPage: React.FC = () => {
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
   // Variante elegida dentro del detalle; null muestra el ejercicio base.
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
+  const [videoInput, setVideoInput] = useState('');
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const [videoFeedback, setVideoFeedback] = useState<{ text: string; error?: boolean } | null>(
+    null,
+  );
+
+  const handleSaveVideo = async () => {
+    if (!shownExercise) return;
+    setIsSavingVideo(true);
+    setVideoFeedback(null);
+    try {
+      await exercisesService.updateVideoUrl(shownExercise.id, videoInput || null);
+      setModalExercise((prev) => {
+        if (!prev) return null;
+        if (activeVariantId) {
+          return {
+            ...prev,
+            variants: prev.variants.map((v) =>
+              v.id === activeVariantId ? { ...v, videoUrl: videoInput.trim() || null } : v,
+            ),
+          };
+        }
+        return { ...prev, videoUrl: videoInput.trim() || null };
+      });
+      setVideoFeedback({ text: '¡Video de YouTube actualizado con éxito!' });
+    } catch {
+      setVideoFeedback({ text: 'Error al guardar el video.', error: true });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
 
   const openDetail = (exercise: ExerciseItem) => {
     setActiveVariantId(null);
     setModalExercise(exercise);
+    setVideoFeedback(null);
+    setVideoInput(exercise.videoUrl ?? '');
   };
 
   const shownExercise =
@@ -714,6 +751,70 @@ export const TrainingPage: React.FC = () => {
                   showLegend={true}
                   showViewToggle={true}
                 />
+              </div>
+
+              {/* Campo para que el PF pegue el link de YouTube (KAN-380) */}
+              <div
+                style={{
+                  marginTop: '1rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: 'var(--text-main)',
+                    marginBottom: '0.4rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Video de Referencia (YouTube):
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="url"
+                    className="form-input"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={videoInput}
+                    onChange={(e) => setVideoInput(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-main)',
+                      color: 'var(--text-main)',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleSaveVideo}
+                    disabled={isSavingVideo}
+                  >
+                    {isSavingVideo ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+                {videoFeedback && (
+                  <p
+                    style={{
+                      marginTop: '0.4rem',
+                      fontSize: '0.8rem',
+                      color: videoFeedback.error ? 'var(--danger)' : 'var(--success)',
+                    }}
+                  >
+                    {videoFeedback.text}
+                  </p>
+                )}
+                {shownExercise.videoUrl && (
+                  <ExerciseVideoPlayer
+                    videoUrl={shownExercise.videoUrl}
+                    exerciseName={shownExercise.name}
+                  />
+                )}
               </div>
 
               <div
