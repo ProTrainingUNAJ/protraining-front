@@ -1,5 +1,5 @@
 import { listExercises, Exercise } from './generated/entrenamiento';
-import { extractErrorMessage } from './axiosClient';
+import { extractErrorMessage, httpClient } from './axiosClient';
 import { CatalogExercise, ExercisePage } from '../types/trainingPlans';
 
 function mapExercise(exercise: Exercise): CatalogExercise {
@@ -81,6 +81,17 @@ export const exercisesService = {
         return (raw as Exercise[]).map(mapExercise);
       }
       return (data.items ?? []).map(mapExercise);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  async updateVideoUrl(id: string, videoUrl: string | null): Promise<void> {
+    try {
+      await httpClient.put(`/entrenamiento/api/v1/exercises/${id}/video`, {
+        exerciseId: id,
+        videoUrl: videoUrl ? videoUrl.trim() : null,
+      });
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

@@ -12,12 +12,14 @@ import {
   X,
   Activity,
   Trophy,
+  Play,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { useSearchParams } from 'react-router-dom';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
+import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPlayer';
 import {
   type TodayRoutineResponse,
   type TodayRoutineExercise,
@@ -96,6 +98,9 @@ export const RoutinePage: React.FC = () => {
 
   // Series realizadas por el atleta (almacenadas en localStorage y registradas en el back)
   const [performedSets, setPerformedSets] = useState<Record<string, StoredPerformedSet>>({});
+
+  // Estado del video del ejercicio
+  const [openVideoExerciseId, setOpenVideoExerciseId] = useState<string | null>(null);
 
   // Carga de la rutina del atleta autenticado
   const fetchRoutine = useCallback(async () => {
@@ -673,6 +678,27 @@ export const RoutinePage: React.FC = () => {
                             <Activity size={13} />
                             <span>Ver técnica</span>
                           </button>
+
+                          {exercise.videoUrl && (
+                            <button
+                              type="button"
+                              className={`routine-tech-btn ${openVideoExerciseId === exercise.exerciseId ? 'active' : ''}`}
+                              onClick={() =>
+                                setOpenVideoExerciseId((prev) =>
+                                  prev === exercise.exerciseId
+                                    ? null
+                                    : (exercise.exerciseId ?? null),
+                                )
+                              }
+                            >
+                              <Play size={13} />
+                              <span>
+                                {openVideoExerciseId === exercise.exerciseId
+                                  ? 'Ocultar video'
+                                  : 'Ver video'}
+                              </span>
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -794,6 +820,15 @@ export const RoutinePage: React.FC = () => {
                           </span>
                         </button>
                       </div>
+
+                      {openVideoExerciseId === exercise.exerciseId && exercise.videoUrl && (
+                        <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem' }}>
+                          <ExerciseVideoPlayer
+                            videoUrl={exercise.videoUrl}
+                            exerciseName={exercise.name}
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1044,6 +1079,13 @@ export const RoutinePage: React.FC = () => {
                     "{routine.coachNotes}"
                   </p>
                 </div>
+              )}
+
+              {selectedExerciseForModal.videoUrl && (
+                <ExerciseVideoPlayer
+                  videoUrl={selectedExerciseForModal.videoUrl}
+                  exerciseName={selectedExerciseForModal.name}
+                />
               )}
             </div>
 
