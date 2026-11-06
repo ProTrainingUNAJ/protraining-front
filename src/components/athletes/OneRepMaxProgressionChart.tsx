@@ -14,6 +14,7 @@ import { AthleteRecordItem, formatRecordOrigin } from '../../types/athleteRecord
 
 export interface OneRepMaxProgressionChartProps {
   athleteId: string;
+  strengthUnavailable?: boolean;
 }
 
 export interface ProgressionPoint {
@@ -63,7 +64,10 @@ function formatChartDate(isoDateTime: string): string {
   }
 }
 
-export function OneRepMaxProgressionChart({ athleteId }: OneRepMaxProgressionChartProps) {
+export function OneRepMaxProgressionChart({
+  athleteId,
+  strengthUnavailable,
+}: OneRepMaxProgressionChartProps) {
   const selectId = useId();
   const [allRecords, setAllRecords] = useState<AthleteRecordItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,6 +159,17 @@ export function OneRepMaxProgressionChart({ athleteId }: OneRepMaxProgressionCha
     );
   }
 
+  if (strengthUnavailable && exerciseOptions.length === 0) {
+    return (
+      <div className="alert-banner warning" role="status" data-testid="strength-unavailable-alert">
+        <span className="plan-inline">
+          <AlertCircle size={18} aria-hidden="true" />
+          No pudimos cargar los récords de fuerza en este momento.
+        </span>
+      </div>
+    );
+  }
+
   if (exerciseOptions.length === 0) {
     return (
       <div className="rm-chart-empty" role="status">
@@ -169,6 +184,19 @@ export function OneRepMaxProgressionChart({ athleteId }: OneRepMaxProgressionCha
 
   return (
     <div className="rm-evolution-container">
+      {strengthUnavailable && (
+        <div
+          className="alert-banner warning"
+          role="status"
+          style={{ marginBottom: '1rem' }}
+          data-testid="strength-unavailable-alert"
+        >
+          <span className="plan-inline">
+            <AlertCircle size={18} aria-hidden="true" />
+            No pudimos cargar los récords de fuerza en este momento.
+          </span>
+        </div>
+      )}
       <div className="rm-evolution-header">
         <div className="rm-evolution-selector-group">
           <label htmlFor={selectId} className="rm-evolution-label">

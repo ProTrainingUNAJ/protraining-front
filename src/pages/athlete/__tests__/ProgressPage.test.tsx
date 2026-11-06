@@ -6,6 +6,7 @@ import { ProgressPage } from '../ProgressPage';
 import { athleteRecordsService } from '../../../api/athleteRecords';
 import { structureService } from '../../../api/structureService';
 import { athleteBenchmarkService } from '../../../api/athleteBenchmark';
+import { athleteEvolutionService } from '../../../api/athleteEvolution';
 
 vi.mock('recharts', async (importOriginal) => {
   const original = await importOriginal<typeof import('recharts')>();
@@ -39,6 +40,15 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
       categoryId: 'cat-1',
       categoryName: 'Sub 20',
       metrics: [],
+    });
+    vi.spyOn(athleteEvolutionService, 'getEvolution').mockResolvedValue({
+      athleteId: 'ath-123',
+      from: '2026-08-01',
+      to: '2026-11-01',
+      strength: [],
+      fitnessTests: [],
+      wellness: { fatiguePoints: [], dailyPoints: [] },
+      strengthUnavailable: false,
     });
   });
 
@@ -99,6 +109,57 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
     await waitFor(() => {
       expect(screen.getByText('Progresión de 1RM')).toBeDefined();
       expect(screen.getByText('Sin récords cargados')).toBeDefined();
+    });
+  });
+
+  it('CRITERIO KAN-435: muestra el banner "No pudimos cargar los récords de fuerza en este momento." cuando strengthUnavailable es true', async () => {
+    vi.spyOn(athleteEvolutionService, 'getEvolution').mockResolvedValue({
+      athleteId: 'ath-123',
+      from: '2026-08-01',
+      to: '2026-11-01',
+      strength: [],
+      fitnessTests: [],
+      wellness: { fatiguePoints: [], dailyPoints: [] },
+      strengthUnavailable: true,
+    });
+    vi.spyOn(athleteRecordsService, 'listHistory').mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={['/athlete/progress?tab=evolution']}>
+        <ProgressPage />
+      </MemoryRouter>,
+    );
+
+    // Debe mostrar la advertencia explícita en la sección de fuerza/1RM
+    await waitFor(() => {
+      expect(screen.getByTestId('strength-unavailable-banner')).toBeDefined();
+      expect(
+        screen.getByText('No pudimos cargar los récords de fuerza en este momento.'),
+      ).toBeDefined();
+    });
+
+    // Cambiar a "Mi progreso" verifica que las curvas y métricas siguen funcionando normalmente
+    const tabMiProgreso = screen.getByRole('tab', { name: /Mi progreso/i });
+    fireEvent.click(tabMiProgreso);
+
+    expect(screen.getByText('Salto Vertical CMJ')).toBeDefined();
+    expect(screen.getByText('Carga RPE Promedio')).toBeDefined();
+  });
+
+  it('CRITERIO KAN-434 / KAN-435: maneja error 404 (atleta no encontrado o de otro PF) mostrando la alerta', async () => {
+    vi.spyOn(athleteEvolutionService, 'getEvolution').mockRejectedValue(
+      new Error('Atleta no encontrado'),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/athlete/progress?tab=evolution']}>
+        <ProgressPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('evolution-error-banner')).toBeDefined();
+      expect(screen.getByText('Atleta no encontrado')).toBeDefined();
     });
   });
 });
