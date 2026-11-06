@@ -176,6 +176,10 @@ export type AthleteEvolutionResponse = {
      */
     fitnessTests: Array<FitnessTestEvolutionSeries>;
     wellness: WellnessEvolution;
+    /**
+     * Indica si el servicio de Entrenamiento no estuvo disponible para consultar los récords (modo degradado).
+     */
+    strengthUnavailable: boolean;
 };
 
 export type StrengthEvolutionSeries = {
@@ -1154,6 +1158,51 @@ export type UpdateFieldTestResultResponses = {
 };
 
 export type UpdateFieldTestResultResponse = UpdateFieldTestResultResponses[keyof UpdateFieldTestResultResponses];
+
+export type ConfirmFieldTestResultData = {
+    body?: never;
+    path: {
+        sessionId: string;
+        resultId: string;
+    };
+    query?: never;
+    url: '/api/v1/field-test-sessions/{sessionId}/results/{resultId}/confirm';
+};
+
+export type ConfirmFieldTestResultErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+    /**
+     * Servicio dependiente no disponible (Estructura o Entrenamiento no respondió tras los reintentos de Polly). La operación no se completó y puede reintentarse.
+     *
+     */
+    503: ProblemDetails;
+};
+
+export type ConfirmFieldTestResultError = ConfirmFieldTestResultErrors[keyof ConfirmFieldTestResultErrors];
+
+export type ConfirmFieldTestResultResponses = {
+    /**
+     * Resultado confirmado y 1RM sincronizado con Entrenamiento.
+     */
+    200: FieldTestResult;
+};
+
+export type ConfirmFieldTestResultResponse = ConfirmFieldTestResultResponses[keyof ConfirmFieldTestResultResponses];
 
 export type HealthCheckData = {
     body?: never;

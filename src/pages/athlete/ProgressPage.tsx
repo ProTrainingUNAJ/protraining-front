@@ -14,12 +14,15 @@ import {
   Dumbbell,
   BarChart3,
   Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 import { EVOLUTION_METRICS } from '../../components/athlete/progressMetricsData';
 import { useAuth } from '../../context/AuthContext';
 import { structureService } from '../../api/structureService';
+import { athleteEvolutionService } from '../../api/athleteEvolution';
+import type { AthleteEvolutionResponse } from '../../types/seguimiento';
 import { AthleteGroupBenchmarkSection } from '../../components/athlete/AthleteGroupBenchmarkSection';
 import { OneRepMaxProgressionChart } from '../../components/athletes/OneRepMaxProgressionChart';
 
@@ -104,6 +107,8 @@ export const ProgressPage: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const { user } = useAuth();
   const [resolvedAthleteId, setResolvedAthleteId] = useState<string>(() => user?.id || '');
+  const [evolution, setEvolution] = useState<AthleteEvolutionResponse | null>(null);
+  const [evolutionError, setEvolutionError] = useState<string | null>(null);
 
   const handleTabChange = (tab: 'progress' | 'evolution') => {
     setActiveTab(tab);
@@ -128,6 +133,31 @@ export const ProgressPage: React.FC = () => {
       isMounted = false;
     };
   }, [user]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    if (!resolvedAthleteId) return;
+
+    athleteEvolutionService
+      .getEvolution(resolvedAthleteId)
+      .then((data) => {
+        if (isMounted) {
+          setEvolution(data);
+          setEvolutionError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMounted) {
+          setEvolutionError(
+            err instanceof Error ? err.message : 'No se pudo cargar la evolución.',
+          );
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [resolvedAthleteId]);
 
   // Track which metrics are already exported to Home/Dashboard (initialized from localStorage)
   const [exportedMetrics, setExportedMetrics] = useState<Record<string, string>>(readExportedState);
@@ -370,8 +400,37 @@ export const ProgressPage: React.FC = () => {
                 Evolución histórica de tus récords máximos por ejercicio.
               </p>
             </div>
+            {evolutionError && (
+              <div
+                className="alert-banner danger"
+                role="alert"
+                style={{ marginBottom: '1rem' }}
+                data-testid="evolution-error-banner"
+              >
+                <span className="plan-inline">
+                  <AlertCircle size={18} aria-hidden="true" />
+                  {evolutionError}
+                </span>
+              </div>
+            )}
+            {evolution?.strengthUnavailable && (
+              <div
+                className="alert-banner warning"
+                role="status"
+                style={{ marginBottom: '1rem' }}
+                data-testid="strength-unavailable-banner"
+              >
+                <span className="plan-inline">
+                  <AlertCircle size={18} aria-hidden="true" />
+                  No pudimos cargar los récords de fuerza en este momento.
+                </span>
+              </div>
+            )}
             {resolvedAthleteId ? (
-              <OneRepMaxProgressionChart athleteId={resolvedAthleteId} />
+              <OneRepMaxProgressionChart
+                athleteId={resolvedAthleteId}
+                strengthUnavailable={evolution?.strengthUnavailable}
+              />
             ) : (
               <div className="rm-chart-empty" role="status">
                 <Loader2 size={24} className="plan-spin" aria-hidden="true" />

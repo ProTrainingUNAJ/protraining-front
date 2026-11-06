@@ -179,4 +179,34 @@ describe('OneRepMaxProgressionChart (KAN-436 / #141)', () => {
       expect(screen.getByText('Error de red al consultar el historial.')).toBeDefined();
     });
   });
+
+  it('CRITERIO KAN-435: muestra advertencia explícita cuando Entrenamiento está en modo degradado (strengthUnavailable)', async () => {
+    vi.spyOn(athleteRecordsService, 'listHistory').mockResolvedValue([]);
+
+    render(<OneRepMaxProgressionChart athleteId="ath-1" strengthUnavailable={true} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Cargando evolución/i)).toBeNull();
+    });
+
+    expect(screen.getByTestId('strength-unavailable-alert')).toBeDefined();
+    expect(
+      screen.getByText('No pudimos cargar los récords de fuerza en este momento.'),
+    ).toBeDefined();
+    // No debe engañar diciendo que el atleta no tiene récords cargados
+    expect(screen.queryByText('Sin récords cargados')).toBeNull();
+  });
+
+  it('CRITERIO KAN-434 / KAN-435: maneja atleta ajeno o no existente mostrando error 404 "Atleta no encontrado"', async () => {
+    vi.spyOn(athleteRecordsService, 'listHistory').mockRejectedValue(
+      new Error('Atleta no encontrado'),
+    );
+
+    render(<OneRepMaxProgressionChart athleteId="ath-other-pf" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeDefined();
+      expect(screen.getByText('Atleta no encontrado')).toBeDefined();
+    });
+  });
 });
