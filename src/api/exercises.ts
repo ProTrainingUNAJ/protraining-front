@@ -9,6 +9,7 @@ function mapExercise(exercise: Exercise): CatalogExercise {
     muscleGroup: exercise.muscleGroup,
     equipment: exercise.equipment ?? null,
     images: exercise.images ?? [],
+    exerciseType: exercise.exerciseType,
     variantLabel: exercise.variantLabel ?? null,
     variants: (exercise.variants ?? []).map(mapExercise),
   };
@@ -23,6 +24,7 @@ export const exercisesService = {
     groupVariants?: boolean,
     muscleGroup?: string,
     muscle?: string,
+    exerciseType?: string,
   ): Promise<ExercisePage> {
     try {
       const { data } = await listExercises({
@@ -34,6 +36,10 @@ export const exercisesService = {
           groupVariants: groupVariants || undefined,
           muscleGroup: muscleGroup && muscleGroup !== 'Todos' ? muscleGroup : undefined,
           muscle: muscle ? muscle.toLowerCase() : undefined,
+          exerciseType:
+            exerciseType && exerciseType !== 'Todos'
+              ? (exerciseType as Exercise['exerciseType'])
+              : undefined,
         },
         throwOnError: true,
       });

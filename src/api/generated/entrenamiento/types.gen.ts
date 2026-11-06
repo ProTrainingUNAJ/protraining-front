@@ -130,6 +130,10 @@ export type Exercise = {
      */
     origin?: 'Catalog' | 'Coach' | 'Ai';
     /**
+     * Modalidad o tipo de ejercicio (con carga, tiempo, distancia, repeticiones).
+     */
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+    /**
      * Si el ejercicio es una variante, el id de su ejercicio base (KAN-554). Es null en los ejercicios base.
      */
     parentExerciseId?: string | null;
@@ -152,6 +156,7 @@ export type CreateExerciseRequest = {
     equipment?: string | null;
     instructions?: string | null;
     origin?: 'Catalog' | 'Coach' | 'Ai';
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
 };
 
 /**
@@ -573,6 +578,10 @@ export type ListExercisesData = {
          * Filtrar por equipamiento requerido (ej. Barra Olímpica, Mancuerna, Máquina).
          */
         equipment?: string;
+        /**
+         * Filtrar por tipo de ejercicio (Weight, Time, Distance, Reps).
+         */
+        exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
         /**
          * Si es true, filtra únicamente los ejercicios utilizados por el PF en sus planificaciones o con récords (1RM) cargados.
          */

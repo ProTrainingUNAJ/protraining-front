@@ -114,4 +114,77 @@ describe('TrainingPage · Filtro por Músculo Puntual', () => {
       screen.getByText('Prueba seleccionando otro músculo o limpiando el filtro.'),
     ).toBeTruthy();
   });
+
+  it('DADO la biblioteca CUANDO se filtra por «distancia» ENTONCES aparecen pasadas y sprints (KAN-453)', async () => {
+    vi.mocked(entrenamientoApi.listExercises).mockImplementation((async (
+      options: Parameters<typeof entrenamientoApi.listExercises>[0],
+    ) => {
+      if (options?.query?.exerciseType === 'Distance') {
+        return {
+          data: {
+            items: [
+              {
+                id: 'ex-pasadas',
+                name: 'Pasadas',
+                category: 'Carrera',
+                muscleGroup: 'Piernas',
+                exerciseType: 'Distance',
+                equipment: 'solo el cuerpo',
+                primaryMuscles: ['cuádriceps', 'gemelos'],
+                variants: [],
+              },
+              {
+                id: 'ex-sprints',
+                name: 'Sprints',
+                category: 'Velocidad',
+                muscleGroup: 'Piernas',
+                exerciseType: 'Distance',
+                equipment: 'solo el cuerpo',
+                primaryMuscles: ['cuádriceps', 'glúteos'],
+                variants: [],
+              },
+            ],
+            page: 1,
+            pageSize: 20,
+            totalCount: 2,
+            totalPages: 1,
+          },
+        } as unknown as Awaited<ReturnType<typeof entrenamientoApi.listExercises>>;
+      }
+      return {
+        data: {
+          items: [],
+          page: 1,
+          pageSize: 20,
+          totalCount: 0,
+          totalPages: 0,
+        },
+      } as unknown as Awaited<ReturnType<typeof entrenamientoApi.listExercises>>;
+    }) as never);
+
+    render(
+      <MemoryRouter>
+        <TrainingPage />
+      </MemoryRouter>,
+    );
+
+    const distanciaBtn = await screen.findByRole('button', { name: 'Distancia' });
+    expect(distanciaBtn).toBeTruthy();
+    fireEvent.click(distanciaBtn);
+
+    await waitFor(() => {
+      expect(entrenamientoApi.listExercises).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            exerciseType: 'Distance',
+          }),
+        }),
+      );
+    });
+
+    expect(await screen.findByText('Pasadas')).toBeTruthy();
+    expect(await screen.findByText('Sprints')).toBeTruthy();
+    const badges = screen.getAllByText('Distancia');
+    expect(badges.length).toBeGreaterThan(0);
+  });
 });
