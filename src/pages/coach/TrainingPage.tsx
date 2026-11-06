@@ -7,6 +7,7 @@ import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPla
 import { exercisesService } from '../../api/exercises';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise } from '../../api/generated/entrenamiento';
+import { extractYouTubeId } from '../../utils/youtube';
 import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExerciseItem {
@@ -15,6 +16,7 @@ interface ExerciseItem {
   category: string;
   muscleGroup: string;
   videoUrl?: string | null;
+  videoSource?: 'Pf' | 'Catalog' | null;
   equipment: string;
   images?: string[];
   primaryMuscles?: string[];
@@ -53,6 +55,9 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     category: item.category || 'General',
     muscleGroup: item.muscleGroup || 'Cuerpo Completo',
     videoUrl: item.videoUrl ?? null,
+    videoSource:
+      ((item as Record<string, unknown>).videoSource as 'Pf' | 'Catalog' | null) ??
+      (item.videoUrl ? 'Catalog' : null),
     equipment: item.equipment || 'Sin equipamiento',
     images,
     primaryMuscles:
@@ -101,25 +106,63 @@ export const TrainingPage: React.FC = () => {
 
   const handleSaveVideo = async () => {
     if (!shownExercise) return;
+
+    const trimmed = videoInput.trim();
+
+    // Validación preventiva en el cliente antes de llamar a la API
+    if (trimmed && !extractYouTubeId(trimmed)) {
+      setVideoFeedback({ text: 'El link tiene que ser un video de YouTube.', error: true });
+      return;
+    }
+
     setIsSavingVideo(true);
     setVideoFeedback(null);
     try {
-      await exercisesService.updateVideoUrl(shownExercise.id, videoInput || null);
+      await exercisesService.updateVideoUrl(shownExercise.id, trimmed || null);
       setModalExercise((prev) => {
         if (!prev) return null;
         if (activeVariantId) {
           return {
             ...prev,
             variants: prev.variants.map((v) =>
-              v.id === activeVariantId ? { ...v, videoUrl: videoInput.trim() || null } : v,
+              v.id === activeVariantId
+                ? { ...v, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null }
+                : v,
             ),
           };
         }
-        return { ...prev, videoUrl: videoInput.trim() || null };
+        return { ...prev, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null };
       });
       setVideoFeedback({ text: '¡Video de YouTube actualizado con éxito!' });
     } catch {
       setVideoFeedback({ text: 'Error al guardar el video.', error: true });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
+
+  const handleRemoveVideo = async () => {
+    if (!shownExercise) return;
+    setIsSavingVideo(true);
+    setVideoFeedback(null);
+    try {
+      await exercisesService.updateVideoUrl(shownExercise.id, null);
+      setModalExercise((prev) => {
+        if (!prev) return null;
+        if (activeVariantId) {
+          return {
+            ...prev,
+            variants: prev.variants.map((v) =>
+              v.id === activeVariantId ? { ...v, videoUrl: null, videoSource: null } : v,
+            ),
+          };
+        }
+        return { ...prev, videoUrl: null, videoSource: null };
+      });
+      setVideoInput('');
+      setVideoFeedback({ text: 'Se quitó tu video y se volvió al sugerido.' });
+    } catch {
+      setVideoFeedback({ text: 'Error al quitar el video.', error: true });
     } finally {
       setIsSavingVideo(false);
     }
@@ -761,18 +804,32 @@ export const TrainingPage: React.FC = () => {
                   borderTop: '1px solid var(--border)',
                 }}
               >
-                <label
+                <div
                   style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    color: 'var(--text-main)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     marginBottom: '0.4rem',
-                    textTransform: 'uppercase',
                   }}
                 >
-                  Video de Referencia (YouTube):
-                </label>
+                  <label
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      color: 'var(--text-main)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Video de Referencia (YouTube):
+                  </label>
+                  {shownExercise.videoSource && (
+                    <span
+                      className={`badge ${shownExercise.videoSource === 'Pf' ? 'badge-primary' : 'badge-info'}`}
+                    >
+                      {shownExercise.videoSource === 'Pf' ? 'Video propio' : 'Video sugerido'}
+                    </span>
+                  )}
+                </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <input
                     type="url"
@@ -797,6 +854,17 @@ export const TrainingPage: React.FC = () => {
                   >
                     {isSavingVideo ? 'Guardando...' : 'Guardar'}
                   </button>
+                  {shownExercise.videoSource === 'Pf' && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleRemoveVideo}
+                      disabled={isSavingVideo}
+                      title="Quitar video propio y volver al sugerido del catálogo"
+                    >
+                      Quitar mi video
+                    </button>
+                  )}
                 </div>
                 {videoFeedback && (
                   <p

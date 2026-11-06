@@ -85,6 +85,13 @@ export type ExerciseRestrictionCheckResult = {
     substitutes: Array<ExerciseSubstitute>;
 };
 
+export type UpdateExerciseVideoRequest = {
+    /**
+     * URL del video de YouTube o null para quitarlo.
+     */
+    videoUrl?: string | null;
+};
+
 export type Exercise = {
     id: string;
     name: string;
@@ -106,6 +113,10 @@ export type Exercise = {
      * Enlace al video explicativo de YouTube (reproducible embebido o externo).
      */
     videoUrl?: string | null;
+    /**
+     * Origen del video de técnica ("Pf" si es video propio del preparador físico, "Catalog" si es sugerido por la plataforma).
+     */
+    videoSource?: 'Pf' | 'Catalog';
     /**
      * URL del GIF/animación técnica del movimiento.
      */
@@ -653,12 +664,7 @@ export type CreateExerciseResponses = {
 export type CreateExerciseResponse = CreateExerciseResponses[keyof CreateExerciseResponses];
 
 export type UpdateExerciseVideoData = {
-    body: {
-        /**
-         * URL del video de YouTube o null para quitarlo.
-         */
-        videoUrl?: string | null;
-    };
+    body: UpdateExerciseVideoRequest;
     path: {
         /**
          * Identificador único del ejercicio
@@ -781,6 +787,18 @@ export type GetAthleteRecordsData = {
          * Filtrar solo marcas vigentes activas.
          */
         currentOnly?: boolean;
+        /**
+         * Filtrar por un ejercicio específico para ver su evolución histórica.
+         */
+        exerciseId?: string;
+        /**
+         * Fecha inicial del rango de evolución (inclusive).
+         */
+        from?: string;
+        /**
+         * Fecha final del rango de evolución (inclusive).
+         */
+        to?: string;
     };
     url: '/api/v1/athletes/{athleteId}/records';
 };

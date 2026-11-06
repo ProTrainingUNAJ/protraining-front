@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -49,6 +49,19 @@ export const getCompletedCheckIns = <ThrowOnError extends boolean = false>(optio
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Obtener el check-in del día del atleta
+ *
+ * Devuelve el check-in registrado hoy (calculado en hora de Argentina) por el atleta, incluyendo las zonas de dolor reportadas (painZones). Exclusivo para el preparador físico autenticado; responde 404 si el atleta todavía no completó el check-in de hoy o no pertenece al PF.
+ *
+ */
+export const getTodayCheckIn = <ThrowOnError extends boolean = false>(options: Options<GetTodayCheckInData, ThrowOnError>): RequestResult<GetTodayCheckInResponses, GetTodayCheckInErrors, ThrowOnError> => (options.client ?? client).get<GetTodayCheckInResponses, GetTodayCheckInErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/check-in/today',
+    ...options
 });
 
 /**
@@ -226,6 +239,79 @@ export const listFitnessTests = <ThrowOnError extends boolean = false>(options?:
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/fitness-tests',
     ...options
+});
+
+/**
+ * Historial de tests físicos de un atleta
+ *
+ * Devuelve el historial de resultados de pruebas físicas del atleta, con opción de filtrar por un test específico del catálogo y por rango de fechas.
+ *
+ */
+export const listAthleteFitnessTests = <ThrowOnError extends boolean = false>(options: Options<ListAthleteFitnessTestsData, ThrowOnError>): RequestResult<ListAthleteFitnessTestsResponses, ListAthleteFitnessTestsErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteFitnessTestsResponses, ListAthleteFitnessTestsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/fitness-tests',
+    ...options
+});
+
+/**
+ * Consultar evolución temporal unificada de un atleta
+ *
+ * Consolida en una vista temporal unificada día a día la progresión histórica de fuerza (1RM), capacidades atléticas (salto/velocidad) y fatiga/wellness a lo largo de las semanas (por defecto, los últimos 3 meses).
+ *
+ */
+export const getAthleteEvolution = <ThrowOnError extends boolean = false>(options: Options<GetAthleteEvolutionData, ThrowOnError>): RequestResult<GetAthleteEvolutionResponses, GetAthleteEvolutionErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteEvolutionResponses, GetAthleteEvolutionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/evolution',
+    ...options
+});
+
+/**
+ * Sesión de test de campo con sus resultados
+ *
+ * Devuelve la sesión de test de campo con sus tests del catálogo (en orden de evaluación) y los resultados cargados por atleta. Responde 404 si la sesión no existe o es de otro PF.
+ *
+ */
+export const getFieldTestSession = <ThrowOnError extends boolean = false>(options: Options<GetFieldTestSessionData, ThrowOnError>): RequestResult<GetFieldTestSessionResponses, GetFieldTestSessionErrors, ThrowOnError> => (options.client ?? client).get<GetFieldTestSessionResponses, GetFieldTestSessionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}',
+    ...options
+});
+
+/**
+ * Carga rápida de un resultado de campo
+ *
+ * Registra el valor de un atleta para un test de la sesión. Responde 404 si la sesión no existe o es de otro PF, o si el atleta no existe o es de otro PF (en ese caso no se persiste nada). Responde 409 si el mismo (sesión, prueba, atleta e intento) ya fue cargado.
+ *
+ */
+export const createFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<CreateFieldTestResultData, ThrowOnError>): RequestResult<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/results',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Corregir un resultado de campo
+ *
+ * Actualiza el valor y el intento de un resultado ya cargado. Responde 404 si la sesión o el resultado no existen o son de otro PF. Responde 409 si la corrección choca con un resultado ya cargado (misma prueba, atleta e intento).
+ *
+ */
+export const updateFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<UpdateFieldTestResultData, ThrowOnError>): RequestResult<UpdateFieldTestResultResponses, UpdateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).put<UpdateFieldTestResultResponses, UpdateFieldTestResultErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/results/{resultId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

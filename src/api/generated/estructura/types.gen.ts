@@ -18,6 +18,30 @@ export type AcceptCategoryInvitationRequest = {
     lastName: string;
     email: string;
     phone: string;
+    /**
+     * Fecha de nacimiento del atleta (determina minoría de edad < 18 años).
+     */
+    birthDate: string;
+    /**
+     * Obligatorio si el atleta es menor de 18 años.
+     */
+    guardianName?: string | null;
+    /**
+     * Obligatorio si el atleta es menor y no proporciona teléfono.
+     */
+    guardianEmail?: string | null;
+    /**
+     * Obligatorio si el atleta es menor y no proporciona email.
+     */
+    guardianPhone?: string | null;
+    /**
+     * Autorización de preparación física por el tutor (obligatoria si es menor).
+     */
+    allowsPhysicalTraining?: boolean | null;
+    /**
+     * Autorización secundaria de recomendaciones de hábitos por el tutor.
+     */
+    allowsHabitsRecommendations?: boolean | null;
     emergencyContact?: string | null;
 };
 

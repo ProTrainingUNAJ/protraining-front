@@ -1,0 +1,37 @@
+.exercise-video-wrapper {
+  margin-top: 0.75rem;
+}
+
+.exercise-video-frame-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--bg-main);
+}
+
+.exercise-video-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.exercise-video-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+
+.exercise-video-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.exercise-video-link:hover {
+  color: var(--text-main);
+}
