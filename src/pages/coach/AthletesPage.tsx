@@ -55,6 +55,7 @@ export const AthletesPage: React.FC = () => {
 
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
+  const [recordsInitialTab, setRecordsInitialTab] = useState<'records' | 'evolution'>('records');
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
   const [showImportRecords, setShowImportRecords] = useState(false);
   const [benchmarkAthlete, setBenchmarkAthlete] = useState<Athlete | null>(null);
@@ -777,11 +778,28 @@ export const AthletesPage: React.FC = () => {
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setRecordsAthlete(athlete)}
+                    onClick={() => {
+                      setRecordsInitialTab('records');
+                      setRecordsAthlete(athlete);
+                    }}
                     title="Ver y cargar sus récords (1RM)"
                   >
                     <Dumbbell size={15} aria-hidden="true" />
                     <span>Récords</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => {
+                      setRecordsInitialTab('evolution');
+                      setRecordsAthlete(athlete);
+                    }}
+                    title="Ver la evolución y progresión de 1RM del atleta"
+                    data-testid={`evolution-btn-${athlete.id}`}
+                  >
+                    <TrendingUp size={15} aria-hidden="true" />
+                    <span>Evolución</span>
                   </button>
                   <button
                     type="button"
@@ -827,7 +845,11 @@ export const AthletesPage: React.FC = () => {
           athleteName={
             recordsAthlete.fullName || `${recordsAthlete.firstName} ${recordsAthlete.lastName}`
           }
-          onClose={() => setRecordsAthlete(null)}
+          initialTab={recordsInitialTab}
+          onClose={() => {
+            setRecordsAthlete(null);
+            setRecordsInitialTab('records');
+          }}
         />
       )}
 

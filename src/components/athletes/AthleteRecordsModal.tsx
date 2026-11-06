@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, Check, Dumbbell, Loader2, X } from 'lucide-react';
+import { AlertCircle, Check, Dumbbell, Loader2, TrendingUp, X } from 'lucide-react';
 import { athleteRecordsService } from '../../api/athleteRecords';
 import { ExercisePickerModal } from '../planning/ExercisePickerModal';
 import { AthleteRecordItem, RecordOrigin } from '../../types/athleteRecords';
 import { CatalogExercise } from '../../types/trainingPlans';
+import { OneRepMaxProgressionChart } from './OneRepMaxProgressionChart';
 
 interface AthleteRecordsModalProps {
   athleteId: string;
   athleteName: string;
   onClose: () => void;
+  initialTab?: 'records' | 'evolution';
 }
 
 const ORIGIN_LABELS: Record<RecordOrigin, string> = {
@@ -30,7 +32,13 @@ function formatKg(weightKg: number): string {
   return `${weightKg.toLocaleString('es-AR', { maximumFractionDigits: 2 })} kg`;
 }
 
-export function AthleteRecordsModal({ athleteId, athleteName, onClose }: AthleteRecordsModalProps) {
+export function AthleteRecordsModal({
+  athleteId,
+  athleteName,
+  onClose,
+  initialTab = 'records',
+}: AthleteRecordsModalProps) {
+  const [activeTab, setActiveTab] = useState<'records' | 'evolution'>(initialTab);
   const [records, setRecords] = useState<AthleteRecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,109 +146,143 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
             </button>
           </div>
 
-          <p className="plan-empty">
-            Con el 1RM de cada ejercicio se calcula el peso que ve el atleta en su rutina: por
-            ejemplo, 100 kg al 80% son 80 kg.
-          </p>
+          <nav
+            className="records-modal-tabs"
+            role="tablist"
+            aria-label="Secciones de récords del atleta"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'records'}
+              className={`records-modal-tab-btn ${activeTab === 'records' ? 'active' : ''}`}
+              onClick={() => setActiveTab('records')}
+            >
+              <Dumbbell size={16} aria-hidden="true" />
+              <span>Récords</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'evolution'}
+              className={`records-modal-tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
+              onClick={() => setActiveTab('evolution')}
+              data-testid="tab-evolucion-pf"
+            >
+              <TrendingUp size={16} aria-hidden="true" />
+              <span>Evolución</span>
+            </button>
+          </nav>
 
-          {error && (
-            <div className="alert-banner danger" role="alert">
-              <span className="plan-inline">
-                <AlertCircle size={18} aria-hidden="true" />
-                {error}
-              </span>
-            </div>
-          )}
-
-          {savedMessage && (
-            <div className="alert-banner success" role="status">
-              <span className="plan-inline">
-                <Check size={18} aria-hidden="true" />
-                {savedMessage}
-              </span>
-            </div>
-          )}
-
-          {loading ? (
-            <p className="plan-empty plan-inline">
-              <Loader2 size={16} className="plan-spin" aria-hidden="true" />
-              Cargando récords…
-            </p>
-          ) : records.length === 0 ? (
-            <p className="plan-empty">Todavía no tiene récords cargados.</p>
+          {activeTab === 'evolution' ? (
+            <OneRepMaxProgressionChart athleteId={athleteId} />
           ) : (
-            <ul className="records-list">
-              {records.map((record) => (
-                <li key={record.id} className="records-item">
-                  <span className="records-item-name">{record.exerciseName}</span>
-                  <span className="records-item-weight">{formatKg(record.weightKg)}</span>
-                  <span className="records-item-meta">
-                    {ORIGIN_LABELS[record.origin]} · {formatDate(record.achievedAt)}
+            <>
+              <p className="plan-empty">
+                Con el 1RM de cada ejercicio se calcula el peso que ve el atleta en su rutina: por
+                ejemplo, 100 kg al 80% son 80 kg.
+              </p>
+
+              {error && (
+                <div className="alert-banner danger" role="alert">
+                  <span className="plan-inline">
+                    <AlertCircle size={18} aria-hidden="true" />
+                    {error}
                   </span>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+
+              {savedMessage && (
+                <div className="alert-banner success" role="status">
+                  <span className="plan-inline">
+                    <Check size={18} aria-hidden="true" />
+                    {savedMessage}
+                  </span>
+                </div>
+              )}
+
+              {loading ? (
+                <p className="plan-empty plan-inline">
+                  <Loader2 size={16} className="plan-spin" aria-hidden="true" />
+                  Cargando récords…
+                </p>
+              ) : records.length === 0 ? (
+                <p className="plan-empty">Todavía no tiene récords cargados.</p>
+              ) : (
+                <ul className="records-list">
+                  {records.map((record) => (
+                    <li key={record.id} className="records-item">
+                      <span className="records-item-name">{record.exerciseName}</span>
+                      <span className="records-item-weight">{formatKg(record.weightKg)}</span>
+                      <span className="records-item-meta">
+                        {ORIGIN_LABELS[record.origin]} · {formatDate(record.achievedAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <form className="records-form" onSubmit={handleSubmit}>
+                <h3>Cargar un récord</h3>
+
+                <div className="plan-field">
+                  <span>Ejercicio</span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary records-exercise-btn"
+                    onClick={() => setShowPicker(true)}
+                    disabled={saving}
+                  >
+                    <Dumbbell size={16} aria-hidden="true" />
+                    <span>{exercise ? exercise.name : 'Elegir de la biblioteca'}</span>
+                  </button>
+                </div>
+
+                <div className="records-form-row">
+                  <label className="plan-field">
+                    <span>1RM (kg)</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0.5}
+                      max={WEIGHT_MAX_KG}
+                      step={0.5}
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      disabled={saving}
+                      placeholder="Ej. 100"
+                    />
+                  </label>
+                  <label className="plan-field">
+                    <span>Origen</span>
+                    <select
+                      value={origin}
+                      onChange={(e) => setOrigin(e.target.value as RecordOrigin)}
+                      disabled={saving}
+                    >
+                      <option value="TestedInSession">Testeado</option>
+                      <option value="Reported">Reportado</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className="plan-picker-pager">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={onClose}
+                    disabled={saving}
+                  >
+                    Cerrar
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={saving || !exercise}>
+                    {saving && <Loader2 size={16} className="plan-spin" aria-hidden="true" />}
+                    <span>{saving ? 'Guardando…' : 'Guardar récord'}</span>
+                  </button>
+                </div>
+              </form>
+            </>
           )}
-
-          <form className="records-form" onSubmit={handleSubmit}>
-            <h3>Cargar un récord</h3>
-
-            <div className="plan-field">
-              <span>Ejercicio</span>
-              <button
-                type="button"
-                className="btn btn-secondary records-exercise-btn"
-                onClick={() => setShowPicker(true)}
-                disabled={saving}
-              >
-                <Dumbbell size={16} aria-hidden="true" />
-                <span>{exercise ? exercise.name : 'Elegir de la biblioteca'}</span>
-              </button>
-            </div>
-
-            <div className="records-form-row">
-              <label className="plan-field">
-                <span>1RM (kg)</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={0.5}
-                  max={WEIGHT_MAX_KG}
-                  step={0.5}
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  disabled={saving}
-                  placeholder="Ej. 100"
-                />
-              </label>
-              <label className="plan-field">
-                <span>Origen</span>
-                <select
-                  value={origin}
-                  onChange={(e) => setOrigin(e.target.value as RecordOrigin)}
-                  disabled={saving}
-                >
-                  <option value="TestedInSession">Testeado</option>
-                  <option value="Reported">Reportado</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="plan-picker-pager">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-                disabled={saving}
-              >
-                Cerrar
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={saving || !exercise}>
-                {saving && <Loader2 size={16} className="plan-spin" aria-hidden="true" />}
-                <span>{saving ? 'Guardando…' : 'Guardar récord'}</span>
-              </button>
-            </div>
-          </form>
         </div>
       </div>
 
