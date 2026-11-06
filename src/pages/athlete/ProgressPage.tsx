@@ -148,9 +148,7 @@ export const ProgressPage: React.FC = () => {
       })
       .catch((err: unknown) => {
         if (isMounted) {
-          setEvolutionError(
-            err instanceof Error ? err.message : 'No se pudo cargar la evolución.',
-          );
+          setEvolutionError(err instanceof Error ? err.message : 'No se pudo cargar la evolución.');
         }
       });
 
