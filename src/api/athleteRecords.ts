@@ -30,6 +30,20 @@ export const athleteRecordsService = {
     }
   },
 
+  // Historial completo de récords del atleta (vigentes y pasados) para evolución.
+  async listHistory(athleteId: string): Promise<AthleteRecordItem[]> {
+    try {
+      const { data } = await getAthleteRecords({
+        path: { athleteId },
+        query: { currentOnly: false },
+        throwOnError: true,
+      });
+      return data.map(mapRecord);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
   // El back deja el récord anterior de ese ejercicio como no vigente.
   async save(
     athleteId: string,

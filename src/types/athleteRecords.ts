@@ -9,3 +9,14 @@ export interface AthleteRecordItem {
   origin: RecordOrigin;
   achievedAt: string;
 }
+
+export const RECORD_ORIGIN_LABELS: Record<RecordOrigin, string> = {
+  TestedInSession: 'Testeado',
+  Reported: 'Reportado',
+  EstimatedEpley: 'Estimado',
+  Epley: 'Epley',
+};
+
+export function formatRecordOrigin(origin: RecordOrigin): string {
+  return RECORD_ORIGIN_LABELS[origin] || origin;
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   TrendingUp,
   Award,
@@ -12,6 +12,8 @@ import {
   X,
   LayoutGrid,
   Dumbbell,
+  BarChart3,
+  Loader2,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
@@ -19,6 +21,7 @@ import { EVOLUTION_METRICS } from '../../components/athlete/progressMetricsData'
 import { useAuth } from '../../context/AuthContext';
 import { structureService } from '../../api/structureService';
 import { AthleteGroupBenchmarkSection } from '../../components/athlete/AthleteGroupBenchmarkSection';
+import { OneRepMaxProgressionChart } from '../../components/athletes/OneRepMaxProgressionChart';
 
 interface EvaluationItem {
   id: string;
@@ -91,12 +94,25 @@ const readExportedState = (): Record<string, string> => {
 
 export const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'progress' | 'evolution'>(() =>
+    searchParams.get('tab') === 'evolution' ? 'evolution' : 'progress',
+  );
   const [period, setPeriod] = useState('Últimos 3 meses');
   const [activeMetric, setActiveMetric] = useState<MetricKey>('cmj');
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const { user } = useAuth();
   const [resolvedAthleteId, setResolvedAthleteId] = useState<string>(() => user?.id || '');
+
+  const handleTabChange = (tab: 'progress' | 'evolution') => {
+    setActiveTab(tab);
+    if (tab === 'evolution') {
+      setSearchParams({ tab: 'evolution' }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  };
 
   React.useEffect(() => {
     let isMounted = true;
@@ -302,562 +318,512 @@ export const ProgressPage: React.FC = () => {
       />
 
       <div className="app-page-body">
-        {/* Toast Notificador Flotante */}
-        {toastMessage && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1rem',
-              background: 'var(--brand-navy)',
-              color: 'var(--on-primary)',
-              padding: '0.75rem 1.25rem',
-              borderRadius: '12px',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--secondary)',
-              animation: 'fadeInModal 0.2s ease-out',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <Sparkles size={18} style={{ color: 'var(--stat-cyan)' }} />
-              <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>{toastMessage}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  background: 'var(--secondary)',
-                  padding: '0.35rem 0.8rem',
-                  fontSize: '0.78rem',
-                  gap: '0.35rem',
-                }}
-                onClick={() => navigate('/athlete')}
-              >
-                <span>Ver en Inicio</span>
-                <ArrowRight size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setToastMessage(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--on-primary-subtle)',
-                  cursor: 'pointer',
-                  padding: '2px',
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Métricas Principales de Evolución (4 KPIs Superiores) */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '1.25rem',
-          }}
+        {/* Selector de pestañas: Mi progreso / Mi evolución (KAN-436) */}
+        <nav
+          className="plan-tabs"
+          role="tablist"
+          aria-label="Secciones de evolución y progreso del atleta"
         >
-          {/* 1. Salto Vertical CMJ */}
-          <div
-            className="card"
-            style={{
-              margin: 0,
-              padding: '1.25rem',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%',
-              boxSizing: 'border-box',
-            }}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'progress'}
+            className={`plan-tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
+            onClick={() => handleTabChange('progress')}
           >
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.65rem',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
-                    background: 'var(--stat-cyan-bg)',
-                    color: 'var(--stat-cyan)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <TrendingUp size={18} strokeWidth={2.5} />
-                </div>
-                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                  Salto Vertical CMJ
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                <strong
-                  style={{
-                    fontSize: '1.65rem',
-                    color: 'var(--text-main)',
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  42.5
-                </strong>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                  cm
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                marginTop: '0.65rem',
-                fontSize: '0.78rem',
-              }}
-            >
-              <span
-                style={{
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  background: 'var(--stat-green-bg)',
-                  color: 'var(--stat-green)',
-                  fontWeight: 800,
-                }}
-              >
-                +5.2%
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>vs. inicio de temporada</span>
-            </div>
-          </div>
+            <BarChart3 size={16} aria-hidden="true" />
+            <span>Mi progreso</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'evolution'}
+            className={`plan-tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
+            onClick={() => handleTabChange('evolution')}
+            data-testid="tab-mi-evolucion"
+          >
+            <TrendingUp size={16} aria-hidden="true" />
+            <span>Mi evolución</span>
+          </button>
+        </nav>
 
-          {/* 2. Asistencia a Sesiones */}
-          <div
-            className="card"
-            style={{
-              margin: 0,
-              padding: '1.25rem',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div>
-              <div
+        {activeTab === 'evolution' ? (
+          <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h2
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.65rem',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
-                    background: 'var(--stat-green-bg)',
-                    color: 'var(--stat-green)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Award size={18} strokeWidth={2.5} />
-                </div>
-                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                  Asistencia a Sesiones
-                </span>
-              </div>
-              <strong
-                style={{
-                  fontSize: '1.65rem',
+                  fontSize: '1.2rem',
+                  fontWeight: 800,
+                  margin: 0,
                   color: 'var(--text-main)',
-                  letterSpacing: '-0.02em',
                 }}
               >
-                96%
-              </strong>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                marginTop: '0.65rem',
-                fontSize: '0.78rem',
-                color: 'var(--text-muted)',
-              }}
-            >
-              <span
+                Progresión de 1RM
+              </h2>
+              <p
                 style={{
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  background: 'var(--stat-green-bg)',
-                  color: 'var(--stat-green)',
-                  fontWeight: 800,
+                  margin: '0.2rem 0 0',
+                  fontSize: '0.84rem',
+                  color: 'var(--text-muted)',
                 }}
               >
-                24 / 25
-              </span>
-              <span>sesiones completadas</span>
+                Evolución histórica de tus récords máximos por ejercicio.
+              </p>
             </div>
+            {resolvedAthleteId ? (
+              <OneRepMaxProgressionChart athleteId={resolvedAthleteId} />
+            ) : (
+              <div className="rm-chart-empty" role="status">
+                <Loader2 size={24} className="plan-spin" aria-hidden="true" />
+                <p className="rm-chart-empty-text">Cargando perfil…</p>
+              </div>
+            )}
           </div>
-
-          {/* 3. Carga RPE Promedio */}
-          <div
-            className="card"
-            style={{
-              margin: 0,
-              padding: '1.25rem',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%',
-              boxSizing: 'border-box',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <div>
+        ) : (
+          <>
+            {/* Toast Notificador Flotante */}
+            {toastMessage && (
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: '0.75rem',
+                  gap: '1rem',
+                  background: 'var(--brand-navy)',
+                  color: 'var(--on-primary)',
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '12px',
+                  boxShadow: 'var(--shadow-lg)',
+                  border: '1px solid var(--secondary)',
+                  animation: 'fadeInModal 0.2s ease-out',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <Sparkles size={18} style={{ color: 'var(--stat-cyan)' }} />
+                  <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>{toastMessage}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{
+                      background: 'var(--secondary)',
+                      padding: '0.35rem 0.8rem',
+                      fontSize: '0.78rem',
+                      gap: '0.35rem',
+                    }}
+                    onClick={() => navigate('/athlete')}
+                  >
+                    <span>Ver en Inicio</span>
+                    <ArrowRight size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setToastMessage(null)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--on-primary-subtle)',
+                      cursor: 'pointer',
+                      padding: '2px',
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Métricas Principales de Evolución (4 KPIs Superiores) */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: '1.25rem',
+              }}
+            >
+              {/* 1. Salto Vertical CMJ */}
+              <div
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <div>
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: '10px',
-                      background: 'var(--stat-purple-bg)',
-                      color: 'var(--stat-purple)',
-                      flexShrink: 0,
+                      gap: '0.65rem',
+                      marginBottom: '0.75rem',
                     }}
                   >
-                    <Activity size={18} strokeWidth={2.5} />
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '10px',
+                        background: 'var(--stat-cyan-bg)',
+                        color: 'var(--stat-cyan)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <TrendingUp size={18} strokeWidth={2.5} />
+                    </div>
+                    <span
+                      style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}
+                    >
+                      Salto Vertical CMJ
+                    </span>
                   </div>
-                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                    Carga RPE Promedio
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                    <strong
+                      style={{
+                        fontSize: '1.65rem',
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.02em',
+                      }}
+                    >
+                      42.5
+                    </strong>
+                    <span
+                      style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}
+                    >
+                      cm
+                    </span>
+                  </div>
                 </div>
-                <span
-                  style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    padding: '0.15rem 0.45rem',
-                    borderRadius: '6px',
-                    background: 'var(--stat-purple-bg)',
-                    color: 'var(--stat-purple)',
-                    border: '1px solid var(--stat-purple-border)',
-                  }}
-                >
-                  Borg CR10
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                <strong
-                  style={{
-                    fontSize: '1.65rem',
-                    color: 'var(--text-main)',
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  7.2
-                </strong>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                  / 10
-                </span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '0.5rem' }}>
-              <div
-                style={{
-                  width: '100%',
-                  height: '6px',
-                  background: 'var(--bg-subtle)',
-                  borderRadius: '3px',
-                  overflow: 'hidden',
-                  marginBottom: '0.35rem',
-                }}
-              >
                 <div
                   style={{
-                    width: '72%',
-                    height: '100%',
-                    background:
-                      'linear-gradient(90deg, var(--stat-cyan) 0%, var(--stat-purple) 100%)',
-                    borderRadius: '3px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    marginTop: '0.65rem',
+                    fontSize: '0.78rem',
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      padding: '0.15rem 0.45rem',
+                      borderRadius: '6px',
+                      background: 'var(--stat-green-bg)',
+                      color: 'var(--stat-green)',
+                      fontWeight: 800,
+                    }}
+                  >
+                    +5.2%
+                  </span>
+                  <span style={{ color: 'var(--text-muted)' }}>vs. inicio de temporada</span>
+                </div>
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.76rem',
-                }}
-              >
-                <span style={{ color: 'var(--text-muted)' }}>Esfuerzo programado</span>
-                <span style={{ color: 'var(--stat-purple)', fontWeight: 800 }}>
-                  Óptimo (Zona 4)
-                </span>
-              </div>
-            </div>
-          </div>
 
-          {/* 4. Potencia Pico Relativa */}
-          <div
-            className="card"
-            style={{
-              margin: 0,
-              padding: '1.25rem',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div>
+              {/* 2. Asistencia a Sesiones */}
               <div
+                className="card"
                 style={{
+                  margin: 0,
+                  padding: '1.25rem',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.65rem',
-                  marginBottom: '0.75rem',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '10px',
+                        background: 'var(--stat-green-bg)',
+                        color: 'var(--stat-green)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Award size={18} strokeWidth={2.5} />
+                    </div>
+                    <span
+                      style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}
+                    >
+                      Asistencia a Sesiones
+                    </span>
+                  </div>
+                  <strong
+                    style={{
+                      fontSize: '1.65rem',
+                      color: 'var(--text-main)',
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    96%
+                  </strong>
+                </div>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
-                    background: 'var(--stat-amber-bg)',
-                    color: 'var(--stat-amber)',
-                    flexShrink: 0,
+                    gap: '0.35rem',
+                    marginTop: '0.65rem',
+                    fontSize: '0.78rem',
+                    color: 'var(--text-muted)',
                   }}
                 >
-                  <Zap size={18} strokeWidth={2.5} />
-                </div>
-                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                  Potencia Pico Relativa
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                <strong
-                  style={{
-                    fontSize: '1.65rem',
-                    color: 'var(--text-main)',
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  54.2
-                </strong>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                  W/kg
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                marginTop: '0.65rem',
-                fontSize: '0.78rem',
-              }}
-            >
-              <span
-                style={{
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  background: 'var(--stat-amber-bg)',
-                  color: 'var(--stat-amber)',
-                  fontWeight: 800,
-                }}
-              >
-                Élite
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>Nivel competitivo</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── SECCIÓN NUEVA: Gráficos de Evolución Deportiva y Exportación a Inicio ── */}
-        <div
-          className="card"
-          style={{
-            margin: 0,
-            padding: '1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-          }}
-        >
-          {/* Cabecera y Selector de Métricas */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              paddingBottom: '0.75rem',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  marginBottom: '0.2rem',
-                }}
-              >
-                <TrendingUp size={18} style={{ color: 'var(--secondary)' }} />
-                <h2
-                  style={{
-                    fontSize: '1.2rem',
-                    fontWeight: 800,
-                    margin: 0,
-                    color: 'var(--text-main)',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  Gráficos de Evolución Deportiva
-                </h2>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-                Monitoreo continuo de fuerza, potencia, velocidad y resistencia. Podés exportar
-                cualquier gráfico como burbuja en tu pantalla de Inicio.
-              </p>
-            </div>
-
-            {/* Chips de selección de métrica */}
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-              {(
-                [
-                  { key: 'cmj', label: 'Salto CMJ', icon: <TrendingUp size={13} /> },
-                  { key: 'squat', label: '1RM Sentadilla', icon: <Dumbbell size={13} /> },
-                  { key: 'sprint', label: 'Sprint 30m', icon: <Zap size={13} /> },
-                  { key: 'rpe', label: 'Carga RPE', icon: <Activity size={13} /> },
-                  { key: 'yoyo', label: 'Test Yo-Yo', icon: <Award size={13} /> },
-                ] as { key: MetricKey; label: string; icon: React.ReactNode }[]
-              ).map((m) => {
-                const isSelected = activeMetric === m.key;
-                const isPinned = !!exportedMetrics[m.key];
-
-                return (
-                  <button
-                    key={m.key}
-                    type="button"
-                    onClick={() => setActiveMetric(m.key)}
+                  <span
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      padding: '0.4rem 0.75rem',
-                      borderRadius: '9999px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      border: isSelected
-                        ? '1.5px solid var(--secondary)'
-                        : '1px solid var(--border)',
-                      background: isSelected ? 'var(--secondary)' : 'var(--bg-subtle)',
-                      color: isSelected ? 'var(--on-primary)' : 'var(--text-main)',
-                      transition: 'all 0.15s ease',
+                      padding: '0.15rem 0.45rem',
+                      borderRadius: '6px',
+                      background: 'var(--stat-green-bg)',
+                      color: 'var(--stat-green)',
+                      fontWeight: 800,
                     }}
                   >
-                    {m.icon}
-                    <span>{m.label}</span>
-                    {isPinned && (
-                      <span
-                        style={{
-                          width: '6px',
-                          height: '6px',
-                          borderRadius: '50%',
-                          background: isSelected ? 'var(--on-primary)' : 'var(--stat-green)',
-                        }}
-                        title="Fijado en Inicio"
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    24 / 25
+                  </span>
+                  <span>sesiones completadas</span>
+                </div>
+              </div>
 
-          {/* Gráfico Activo en Gran Formato */}
-          <EvolutionChartWidget
-            metricKey={activeMetric}
-            variant="full"
-            isExported={!!exportedMetrics[activeMetric]}
-            onExportClick={() => setExportModalOpen(true)}
-          />
-        </div>
-
-        {/* Mis Números vs. Promedio del Grupo (KAN-449) */}
-        {resolvedAthleteId && <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />}
-
-        {/* Historial de Evaluaciones Físicas */}
-        <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-          <h2
-            style={{
-              fontSize: '1.15rem',
-              fontWeight: 700,
-              marginBottom: '0.35rem',
-              color: 'var(--text-main)',
-            }}
-          >
-            Registro de Evaluaciones Físicas
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-            Resultados de las mediciones realizadas por el cuerpo técnico en campo y gimnasio.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {HISTORY_EVALUATIONS.map((evalItem) => (
+              {/* 3. Carga RPE Promedio */}
               <div
-                key={evalItem.id}
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '34px',
+                          height: '34px',
+                          borderRadius: '10px',
+                          background: 'var(--stat-purple-bg)',
+                          color: 'var(--stat-purple)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Activity size={18} strokeWidth={2.5} />
+                      </div>
+                      <span
+                        style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}
+                      >
+                        Carga RPE Promedio
+                      </span>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        padding: '0.15rem 0.45rem',
+                        borderRadius: '6px',
+                        background: 'var(--stat-purple-bg)',
+                        color: 'var(--stat-purple)',
+                        border: '1px solid var(--stat-purple-border)',
+                      }}
+                    >
+                      Borg CR10
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                    <strong
+                      style={{
+                        fontSize: '1.65rem',
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.02em',
+                      }}
+                    >
+                      7.2
+                    </strong>
+                    <span
+                      style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}
+                    >
+                      / 10
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '0.5rem' }}>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '6px',
+                      background: 'var(--bg-subtle)',
+                      borderRadius: '3px',
+                      overflow: 'hidden',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '72%',
+                        height: '100%',
+                        background:
+                          'linear-gradient(90deg, var(--stat-cyan) 0%, var(--stat-purple) 100%)',
+                        borderRadius: '3px',
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '0.76rem',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-muted)' }}>Esfuerzo programado</span>
+                    <span style={{ color: 'var(--stat-purple)', fontWeight: 800 }}>
+                      Óptimo (Zona 4)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Potencia Pico Relativa */}
+              <div
+                className="card"
+                style={{
+                  margin: 0,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '10px',
+                        background: 'var(--stat-amber-bg)',
+                        color: 'var(--stat-amber)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Zap size={18} strokeWidth={2.5} />
+                    </div>
+                    <span
+                      style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}
+                    >
+                      Potencia Pico Relativa
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                    <strong
+                      style={{
+                        fontSize: '1.65rem',
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.02em',
+                      }}
+                    >
+                      54.2
+                    </strong>
+                    <span
+                      style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}
+                    >
+                      W/kg
+                    </span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    marginTop: '0.65rem',
+                    fontSize: '0.78rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      padding: '0.15rem 0.45rem',
+                      borderRadius: '6px',
+                      background: 'var(--stat-amber-bg)',
+                      color: 'var(--stat-amber)',
+                      fontWeight: 800,
+                    }}
+                  >
+                    Élite
+                  </span>
+                  <span style={{ color: 'var(--text-muted)' }}>Nivel competitivo</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECCIÓN NUEVA: Gráficos de Evolución Deportiva y Exportación a Inicio ── */}
+            <div
+              className="card"
+              style={{
+                margin: 0,
+                padding: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.25rem',
+              }}
+            >
+              {/* Cabecera y Selector de Métricas */}
+              <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  padding: '1rem',
-                  borderRadius: '12px',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border)',
                   flexWrap: 'wrap',
-                  gap: '0.75rem',
+                  gap: '1rem',
+                  paddingBottom: '0.75rem',
+                  borderBottom: '1px solid var(--border)',
                 }}
               >
                 <div>
@@ -866,73 +832,204 @@ export const ProgressPage: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      marginBottom: '0.25rem',
+                      marginBottom: '0.2rem',
                     }}
                   >
-                    <span
+                    <TrendingUp size={18} style={{ color: 'var(--secondary)' }} />
+                    <h2
                       style={{
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: '6px',
-                        background: 'var(--bg-card)',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        border: '1px solid var(--border)',
+                        fontSize: '1.2rem',
+                        fontWeight: 800,
+                        margin: 0,
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.01em',
                       }}
                     >
-                      {evalItem.category}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {evalItem.date}
-                    </span>
+                      Gráficos de Evolución Deportiva
+                    </h2>
                   </div>
-                  <strong
-                    style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}
-                  >
-                    {evalItem.testName}
-                  </strong>
+                  <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-muted)' }}>
+                    Monitoreo continuo de fuerza, potencia, velocidad y resistencia. Podés exportar
+                    cualquier gráfico como burbuja en tu pantalla de Inicio.
+                  </p>
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <div style={{ textAlign: 'right' }}>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-muted)',
-                        display: 'block',
-                      }}
-                    >
-                      Resultado
-                    </span>
-                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>
-                      {evalItem.result}
-                    </strong>
-                  </div>
+                {/* Chips de selección de métrica */}
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {(
+                    [
+                      { key: 'cmj', label: 'Salto CMJ', icon: <TrendingUp size={13} /> },
+                      { key: 'squat', label: '1RM Sentadilla', icon: <Dumbbell size={13} /> },
+                      { key: 'sprint', label: 'Sprint 30m', icon: <Zap size={13} /> },
+                      { key: 'rpe', label: 'Carga RPE', icon: <Activity size={13} /> },
+                      { key: 'yoyo', label: 'Test Yo-Yo', icon: <Award size={13} /> },
+                    ] as { key: MetricKey; label: string; icon: React.ReactNode }[]
+                  ).map((m) => {
+                    const isSelected = activeMetric === m.key;
+                    const isPinned = !!exportedMetrics[m.key];
 
-                  <span
-                    style={{
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '8px',
-                      background: 'var(--stat-green-bg)',
-                      color: 'var(--stat-green)',
-                      fontSize: '0.8rem',
-                      fontWeight: 800,
-                    }}
-                  >
-                    {evalItem.delta}
-                  </span>
+                    return (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setActiveMetric(m.key)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          padding: '0.4rem 0.75rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          border: isSelected
+                            ? '1.5px solid var(--secondary)'
+                            : '1px solid var(--border)',
+                          background: isSelected ? 'var(--secondary)' : 'var(--bg-subtle)',
+                          color: isSelected ? 'var(--on-primary)' : 'var(--text-main)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {m.icon}
+                        <span>{m.label}</span>
+                        {isPinned && (
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: isSelected ? 'var(--on-primary)' : 'var(--stat-green)',
+                            }}
+                            title="Fijado en Inicio"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+
+              {/* Gráfico Activo en Gran Formato */}
+              <EvolutionChartWidget
+                metricKey={activeMetric}
+                variant="full"
+                isExported={!!exportedMetrics[activeMetric]}
+                onExportClick={() => setExportModalOpen(true)}
+              />
+            </div>
+
+            {/* Mis Números vs. Promedio del Grupo (KAN-449) */}
+            {resolvedAthleteId && <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />}
+
+            {/* Historial de Evaluaciones Físicas */}
+            <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+              <h2
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  marginBottom: '0.35rem',
+                  color: 'var(--text-main)',
+                }}
+              >
+                Registro de Evaluaciones Físicas
+              </h2>
+              <p
+                style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}
+              >
+                Resultados de las mediciones realizadas por el cuerpo técnico en campo y gimnasio.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {HISTORY_EVALUATIONS.map((evalItem) => (
+                  <div
+                    key={evalItem.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '1rem',
+                      borderRadius: '12px',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border)',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '6px',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-muted)',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            border: '1px solid var(--border)',
+                          }}
+                        >
+                          {evalItem.category}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {evalItem.date}
+                        </span>
+                      </div>
+                      <strong
+                        style={{ fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}
+                      >
+                        {evalItem.testName}
+                      </strong>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div style={{ textAlign: 'right' }}>
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                          }}
+                        >
+                          Resultado
+                        </span>
+                        <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>
+                          {evalItem.result}
+                        </strong>
+                      </div>
+
+                      <span
+                        style={{
+                          padding: '0.25rem 0.6rem',
+                          borderRadius: '8px',
+                          background: 'var(--stat-green-bg)',
+                          color: 'var(--stat-green)',
+                          fontSize: '0.8rem',
+                          fontWeight: 800,
+                        }}
+                      >
+                        {evalItem.delta}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Modal Selector para Exportar Gráfico a una Burbuja de Inicio ── */}
