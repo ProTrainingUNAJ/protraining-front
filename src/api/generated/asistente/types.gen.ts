@@ -168,6 +168,30 @@ export type PfDecisionResponse = {
     createdAt: string;
 };
 
+export type DayConflictsResponse = {
+    hasConflicts: boolean;
+    painZones?: string | null;
+    /**
+     * Aviso informativo cuando todavía no hizo el check-in ("Todavía no hizo el check-in") o no tiene dolor/conflictos.
+     */
+    message?: string | null;
+    conflicts: Array<DayConflictItem>;
+};
+
+export type DayConflictItem = {
+    exerciseId: string;
+    name: string;
+    zone: string;
+    painLevel: number;
+    reason: string;
+    substitutes: Array<DayConflictSubstitute>;
+};
+
+export type DayConflictSubstitute = {
+    exerciseId: string;
+    name: string;
+};
+
 export type ProblemDetails = {
     type?: string;
     title: string;
@@ -505,6 +529,48 @@ export type DiscardPlanDraftResponses = {
 };
 
 export type DiscardPlanDraftResponse = DiscardPlanDraftResponses[keyof DiscardPlanDraftResponses];
+
+export type GetAthleteDayConflictsData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/day-conflicts';
+};
+
+export type GetAthleteDayConflictsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GetAthleteDayConflictsError = GetAthleteDayConflictsErrors[keyof GetAthleteDayConflictsErrors];
+
+export type GetAthleteDayConflictsResponses = {
+    /**
+     * Cruce de dolor del check-in con la rutina de hoy evaluado exitosamente.
+     */
+    200: DayConflictsResponse;
+};
+
+export type GetAthleteDayConflictsResponse = GetAthleteDayConflictsResponses[keyof GetAthleteDayConflictsResponses];
 
 export type GetAthleteDecisionsData = {
     body?: never;

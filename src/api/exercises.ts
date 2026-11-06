@@ -1,5 +1,5 @@
-import { listExercises, Exercise } from './generated/entrenamiento';
-import { extractErrorMessage, httpClient } from './axiosClient';
+import { listExercises, updateExerciseVideo, Exercise } from './generated/entrenamiento';
+import { extractErrorMessage } from './axiosClient';
 import { CatalogExercise, ExercisePage } from '../types/trainingPlans';
 
 function mapExercise(exercise: Exercise): CatalogExercise {
@@ -88,9 +88,12 @@ export const exercisesService = {
 
   async updateVideoUrl(id: string, videoUrl: string | null): Promise<void> {
     try {
-      await httpClient.put(`/entrenamiento/api/v1/exercises/${id}/video`, {
-        exerciseId: id,
-        videoUrl: videoUrl ? videoUrl.trim() : null,
+      await updateExerciseVideo({
+        path: { id },
+        body: {
+          videoUrl: videoUrl ? videoUrl.trim() : null,
+        },
+        throwOnError: true,
       });
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });

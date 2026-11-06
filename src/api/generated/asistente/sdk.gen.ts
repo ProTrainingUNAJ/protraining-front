@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
+import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -157,6 +157,19 @@ export const discardPlanDraft = <ThrowOnError extends boolean = false>(options: 
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/assistant/plan-drafts/{id}/discard',
+    ...options
+});
+
+/**
+ * Detectar dolor del check-in en zonas que trabaja la rutina de hoy
+ *
+ * Cruza el dolor reportado hoy en el check-in del atleta (Seguimiento) con los ejercicios de la rutina que le toca hoy (Entrenamiento) y consulta la matriz de restricciones anatómicas para devolver los ejercicios en conflicto junto con sus sustitutos seguros. Si el atleta todavía no completó el check-in de hoy, responde 200 con hasConflicts en false y el aviso "Todavía no hizo el check-in". Si el atleta no existe o pertenece a otro PF, responde 404. Si Seguimiento o Entrenamiento no están disponibles, responde 503 sin inventar conflictos.
+ *
+ */
+export const getAthleteDayConflicts = <ThrowOnError extends boolean = false>(options: Options<GetAthleteDayConflictsData, ThrowOnError>): RequestResult<GetAthleteDayConflictsResponses, GetAthleteDayConflictsErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteDayConflictsResponses, GetAthleteDayConflictsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/day-conflicts',
     ...options
 });
 

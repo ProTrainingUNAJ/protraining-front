@@ -58,10 +58,9 @@ describe('YouTube utilities (KAN-380)', () => {
       );
     });
 
-    it('mantiene la URL si no es un ID reconocible', () => {
-      expect(getYouTubeWatchUrl('https://otra-plataforma.com/video')).toBe(
-        'https://otra-plataforma.com/video',
-      );
+    it('retorna null si no es un ID reconocible de YouTube', () => {
+      expect(getYouTubeWatchUrl('https://otra-plataforma.com/video')).toBeNull();
+      expect(getYouTubeWatchUrl('javascript:alert(1)')).toBeNull();
     });
   });
 });

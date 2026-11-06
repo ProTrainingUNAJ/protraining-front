@@ -160,6 +160,68 @@ export type GroupBenchmarkResponse = {
     }>;
 };
 
+/**
+ * Vista consolidada de curvas de evolución temporal del atleta para graficar.
+ */
+export type AthleteEvolutionResponse = {
+    athleteId: string;
+    from: string;
+    to: string;
+    /**
+     * Series de progresión de fuerza (1RM) agrupadas por ejercicio.
+     */
+    strength: Array<StrengthEvolutionSeries>;
+    /**
+     * Series de capacidades atléticas (salto, velocidad, etc.) agrupadas por test físico.
+     */
+    fitnessTests: Array<FitnessTestEvolutionSeries>;
+    wellness: WellnessEvolution;
+};
+
+export type StrengthEvolutionSeries = {
+    exerciseId: string;
+    exerciseName: string;
+    unit: string;
+    points: Array<EvolutionDataPoint>;
+};
+
+export type FitnessTestEvolutionSeries = {
+    catalogTestId: string;
+    testName: string;
+    motorCapacity: string;
+    unit: string;
+    points: Array<EvolutionDataPoint>;
+};
+
+export type EvolutionDataPoint = {
+    date: string;
+    value: number;
+    label?: string | null;
+};
+
+export type WellnessEvolution = {
+    /**
+     * Curva de progresión de niveles de fatiga día a día.
+     */
+    fatiguePoints: Array<EvolutionDataPoint>;
+    /**
+     * Detalle completo de variables de wellness registradas día a día.
+     */
+    dailyPoints: Array<DailyWellnessPoint>;
+};
+
+export type DailyWellnessPoint = {
+    date: string;
+    fatigueLevel: number;
+    sleepHours: number;
+    sleepQuality: number;
+    muscleSoreness: number;
+    moodRate: number;
+    stressLevel: number;
+    trafficLight: string;
+    hasActiveInjury: boolean;
+};
+
 export type CreateInjuryRequest = {
     zone: string;
     description: string;
@@ -183,6 +245,21 @@ export type Injury = {
     clearedAt?: string | null;
     createdAt: string;
     updatedAt?: string;
+};
+
+/**
+ * Resultado histórico de una prueba física de un atleta.
+ */
+export type AthleteFitnessTest = {
+    id: string;
+    athleteId: string;
+    catalogTestId: string;
+    testName: string;
+    motorCapacity: string;
+    value: number;
+    measurementUnit: string;
+    attempt: number;
+    recordedAt: string;
 };
 
 export type FitnessTest = {
@@ -243,6 +320,63 @@ export type WellnessMetricAverage = {
     average: number;
     reportedAthleteCount: number;
     totalCheckIns: number;
+};
+
+/**
+ * Sesión de test de campo (KAN-425) con sus tests y resultados.
+ */
+export type FieldTestSession = {
+    id: string;
+    categoryId: string;
+    date: string;
+    name: string;
+    status: 'Planned' | 'InProgress' | 'Closed';
+    /**
+     * Tests del catálogo de la sesión, en orden de evaluación.
+     */
+    tests: Array<FieldTestSessionTest>;
+    /**
+     * Resultados cargados por los atletas.
+     */
+    results: Array<FieldTestResult>;
+};
+
+/**
+ * Test del catálogo incluido en la sesión, con su orden de evaluación.
+ */
+export type FieldTestSessionTest = {
+    catalogTestId: string;
+    order: number;
+};
+
+/**
+ * Resultado de un atleta en un test de la sesión, con su intento.
+ */
+export type FieldTestResult = {
+    id: string;
+    catalogTestId: string;
+    athleteId: string;
+    value: number;
+    attempt: number;
+    recordedAt: string;
+};
+
+/**
+ * Carga rápida de un resultado de campo (KAN-425).
+ */
+export type CreateFieldTestResultRequest = {
+    catalogTestId: string;
+    athleteId: string;
+    value: number;
+    attempt: number;
+};
+
+/**
+ * Corrección de un resultado de campo ya cargado (KAN-425).
+ */
+export type UpdateFieldTestResultRequest = {
+    value: number;
+    attempt: number;
 };
 
 export type SubmitCheckInData = {
@@ -321,6 +455,41 @@ export type GetCompletedCheckInsResponses = {
 
 export type GetCompletedCheckInsResponse = GetCompletedCheckInsResponses[keyof GetCompletedCheckInsResponses];
 
+export type GetTodayCheckInData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/check-in/today';
+};
+
+export type GetTodayCheckInErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetTodayCheckInError = GetTodayCheckInErrors[keyof GetTodayCheckInErrors];
+
+export type GetTodayCheckInResponses = {
+    /**
+     * Check-in del día obtenido.
+     */
+    200: CheckIn;
+};
+
+export type GetTodayCheckInResponse = GetTodayCheckInResponses[keyof GetTodayCheckInResponses];
+
 export type ListAthleteCheckInsData = {
     body?: never;
     path: {
@@ -328,6 +497,14 @@ export type ListAthleteCheckInsData = {
     };
     query?: {
         limit?: number;
+        /**
+         * Fecha inicial del rango de consulta (inclusive).
+         */
+        from?: string;
+        /**
+         * Fecha final del rango de consulta (inclusive).
+         */
+        to?: string;
     };
     url: '/api/v1/athletes/{athleteId}/check-ins';
 };
@@ -759,6 +936,224 @@ export type ListFitnessTestsResponses = {
 };
 
 export type ListFitnessTestsResponse = ListFitnessTestsResponses[keyof ListFitnessTestsResponses];
+
+export type ListAthleteFitnessTestsData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: {
+        /**
+         * Identificador del test del catálogo para consultar su evolución.
+         */
+        testId?: string;
+        /**
+         * Fecha inicial del rango de consulta (inclusive).
+         */
+        from?: string;
+        /**
+         * Fecha final del rango de consulta (inclusive).
+         */
+        to?: string;
+    };
+    url: '/api/v1/athletes/{athleteId}/fitness-tests';
+};
+
+export type ListAthleteFitnessTestsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type ListAthleteFitnessTestsError = ListAthleteFitnessTestsErrors[keyof ListAthleteFitnessTestsErrors];
+
+export type ListAthleteFitnessTestsResponses = {
+    /**
+     * Historial de tests obtenido con éxito.
+     */
+    200: Array<AthleteFitnessTest>;
+};
+
+export type ListAthleteFitnessTestsResponse = ListAthleteFitnessTestsResponses[keyof ListAthleteFitnessTestsResponses];
+
+export type GetAthleteEvolutionData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: {
+        /**
+         * Cantidad de meses hacia atrás para la consulta histórica (por defecto 3 meses).
+         */
+        months?: number;
+        /**
+         * Fecha inicial personalizada del rango (inclusive). Tiene prioridad sobre months.
+         */
+        from?: string;
+        /**
+         * Fecha final personalizada del rango (inclusive). Por defecto es hoy en hora de Argentina.
+         */
+        to?: string;
+    };
+    url: '/api/v1/athletes/{athleteId}/evolution';
+};
+
+export type GetAthleteEvolutionErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteEvolutionError = GetAthleteEvolutionErrors[keyof GetAthleteEvolutionErrors];
+
+export type GetAthleteEvolutionResponses = {
+    /**
+     * Curvas de evolución obtenidas con éxito y listas para graficar.
+     */
+    200: AthleteEvolutionResponse;
+};
+
+export type GetAthleteEvolutionResponse = GetAthleteEvolutionResponses[keyof GetAthleteEvolutionResponses];
+
+export type GetFieldTestSessionData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/field-test-sessions/{sessionId}';
+};
+
+export type GetFieldTestSessionErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetFieldTestSessionError = GetFieldTestSessionErrors[keyof GetFieldTestSessionErrors];
+
+export type GetFieldTestSessionResponses = {
+    /**
+     * Sesión obtenida con éxito.
+     */
+    200: FieldTestSession;
+};
+
+export type GetFieldTestSessionResponse = GetFieldTestSessionResponses[keyof GetFieldTestSessionResponses];
+
+export type CreateFieldTestResultData = {
+    body: CreateFieldTestResultRequest;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/field-test-sessions/{sessionId}/results';
+};
+
+export type CreateFieldTestResultErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type CreateFieldTestResultError = CreateFieldTestResultErrors[keyof CreateFieldTestResultErrors];
+
+export type CreateFieldTestResultResponses = {
+    /**
+     * Resultado registrado con éxito.
+     */
+    201: FieldTestResult;
+};
+
+export type CreateFieldTestResultResponse = CreateFieldTestResultResponses[keyof CreateFieldTestResultResponses];
+
+export type UpdateFieldTestResultData = {
+    body: UpdateFieldTestResultRequest;
+    path: {
+        sessionId: string;
+        resultId: string;
+    };
+    query?: never;
+    url: '/api/v1/field-test-sessions/{sessionId}/results/{resultId}';
+};
+
+export type UpdateFieldTestResultErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type UpdateFieldTestResultError = UpdateFieldTestResultErrors[keyof UpdateFieldTestResultErrors];
+
+export type UpdateFieldTestResultResponses = {
+    /**
+     * Resultado actualizado con éxito.
+     */
+    200: FieldTestResult;
+};
+
+export type UpdateFieldTestResultResponse = UpdateFieldTestResultResponses[keyof UpdateFieldTestResultResponses];
 
 export type HealthCheckData = {
     body?: never;

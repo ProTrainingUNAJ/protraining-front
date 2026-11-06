@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { ExerciseVideoPlayer } from '../ExerciseVideoPlayer';
 
 describe('ExerciseVideoPlayer (KAN-380)', () => {
@@ -33,19 +32,11 @@ describe('ExerciseVideoPlayer (KAN-380)', () => {
     expect(link.getAttribute('target')).toBe('_blank');
   });
 
-  it('si la URL no es estándar o no se puede embeber, muestra fallback con botón que abre YouTube', () => {
-    render(
-      <ExerciseVideoPlayer
-        videoUrl="https://youtube.com/live/some-stream"
-        exerciseName="Ejercicio Especial"
-      />,
+  it('si la URL no es un video de YouTube válido, no renderiza nada por seguridad', () => {
+    const { container } = render(
+      <ExerciseVideoPlayer videoUrl="javascript:alert(1)" exerciseName="Ejercicio Inseguro" />,
     );
 
-    expect(screen.getByText('Este video no puede reproducirse embebido.')).toBeTruthy();
-
-    const button = screen.getByRole('link', { name: /abrir en youtube/i }) as HTMLAnchorElement;
-    expect(button).toBeTruthy();
-    expect(button.getAttribute('href')).toBe('https://youtube.com/live/some-stream');
-    expect(button.getAttribute('target')).toBe('_blank');
+    expect(container.firstChild).toBeNull();
   });
 });

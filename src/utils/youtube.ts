@@ -10,7 +10,7 @@ export function getYouTubeEmbedUrl(videoId: string): string {
   return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
 }
 
-export function getYouTubeWatchUrl(videoIdOrUrl: string): string {
+export function getYouTubeWatchUrl(videoIdOrUrl: string): string | null {
   const id = extractYouTubeId(videoIdOrUrl);
-  return id ? `https://www.youtube.com/watch?v=${id}` : videoIdOrUrl;
+  return id ? `https://www.youtube.com/watch?v=${id}` : null;
 }
