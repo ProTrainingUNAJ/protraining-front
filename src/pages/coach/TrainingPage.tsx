@@ -15,6 +15,7 @@ interface ExerciseItem {
   name: string;
   category: string;
   muscleGroup: string;
+  exerciseType?: Exercise['exerciseType'] | null;
   videoUrl?: string | null;
   videoSource?: 'Pf' | 'Catalog' | null;
   equipment: string;
@@ -26,13 +27,37 @@ interface ExerciseItem {
   variants: ExerciseItem[];
 }
 
+const EXERCISE_TYPES = [
+  { label: 'Todos los tipos', value: 'Todos' },
+  { label: 'Distancia', value: 'Distance' },
+  { label: 'Tiempo', value: 'Time' },
+  { label: 'Repeticiones', value: 'Reps' },
+  { label: 'Con carga', value: 'Weight' },
+] as const;
+
+const getExerciseTypeBadge = (type?: string | null) => {
+  switch (type) {
+    case 'Distance':
+      return { label: 'Distancia', className: 'badge-info' };
+    case 'Time':
+      return { label: 'Tiempo', className: 'badge-warning' };
+    case 'Reps':
+      return { label: 'Repeticiones', className: 'badge-success' };
+    case 'Weight':
+      return { label: 'Con carga', className: 'badge-primary' };
+    default:
+      return null;
+  }
+};
+
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
 
-interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants'> {
+interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants' | 'exerciseType'> {
   id?: string | number;
   name?: string;
   category?: string;
   muscleGroup?: string;
+  exerciseType?: Exercise['exerciseType'] | null;
   equipment?: string | null;
   images?: string[];
   photoUrl1?: string | null;
@@ -54,6 +79,7 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     name: item.name ?? 'Sin nombre',
     category: item.category || 'General',
     muscleGroup: item.muscleGroup || 'Cuerpo Completo',
+    exerciseType: item.exerciseType ?? null,
     videoUrl: item.videoUrl ?? null,
     videoSource:
       ((item as Record<string, unknown>).videoSource as 'Pf' | 'Catalog' | null) ??
@@ -85,6 +111,7 @@ function extractExerciseList(data: unknown): ExerciseApiResponse[] {
 
 export const TrainingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('Todos');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
@@ -198,6 +225,8 @@ export const TrainingPage: React.FC = () => {
             search: searchTerm.trim() || undefined,
             muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
             muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
+            exerciseType:
+              selectedType === 'Todos' ? undefined : (selectedType as Exercise['exerciseType']),
             groupVariants: true,
           },
         });
@@ -229,7 +258,7 @@ export const TrainingPage: React.FC = () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [searchTerm, selectedCategory, selectedMuscle, retryCount]);
+  }, [searchTerm, selectedCategory, selectedMuscle, selectedType, retryCount]);
 
   // Función para pedir la siguiente página manteniendo los filtros
   const handleLoadMore = async () => {
@@ -246,6 +275,8 @@ export const TrainingPage: React.FC = () => {
           search: searchTerm.trim() || undefined,
           muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
           muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
+          exerciseType:
+            selectedType === 'Todos' ? undefined : (selectedType as Exercise['exerciseType']),
           groupVariants: true,
         },
       });
@@ -319,6 +350,24 @@ export const TrainingPage: React.FC = () => {
                 boxSizing: 'border-box',
               }}
             />
+          </div>
+
+          {/* Chips Táctiles PWA - Tipo de ejercicio / Modalidad (KAN-453) */}
+          <div
+            className="exercise-chips-scroll"
+            role="tablist"
+            aria-label="Filtro por modalidad de ejercicio"
+          >
+            {EXERCISE_TYPES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                className={`touch-chip ${selectedType === t.value ? 'active' : ''}`}
+                onClick={() => setSelectedType(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
           {/* Chips Táctiles PWA - Grupos principales */}
@@ -494,14 +543,24 @@ export const TrainingPage: React.FC = () => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         marginBottom: '0.65rem',
+                        flexWrap: 'wrap',
+                        gap: '0.35rem',
                       }}
                     >
-                      <span
-                        className="badge badge-info"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                      >
-                        <Tag size={12} /> {ex.category}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                        <span
+                          className="badge badge-info"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <Tag size={12} /> {ex.category}
+                        </span>
+                        {(() => {
+                          const badge = getExerciseTypeBadge(ex.exerciseType);
+                          return badge ? (
+                            <span className={`badge ${badge.className}`}>{badge.label}</span>
+                          ) : null;
+                        })()}
+                      </div>
                       {ex.variants.length > 0 && (
                         <span
                           className="badge badge-primary"
@@ -643,8 +702,23 @@ export const TrainingPage: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      marginBottom: '0.35rem',
+                      alignItems: 'center',
+                    }}
+                  >
                     <span className="badge badge-info">{modalExercise.category}</span>
+                    {(() => {
+                      const badge = getExerciseTypeBadge(
+                        shownExercise.exerciseType ?? modalExercise.exerciseType,
+                      );
+                      return badge ? (
+                        <span className={`badge ${badge.className}`}>{badge.label}</span>
+                      ) : null;
+                    })()}
                   </div>
                   <h2
                     style={{

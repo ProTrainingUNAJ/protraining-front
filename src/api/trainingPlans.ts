@@ -102,7 +102,6 @@ export const trainingPlansService = {
     );
   },
 
-  // Debe llamarse saveAsTemplate
   saveAsTemplate(planId: string, name: string): Promise<TrainingPlanDetail> {
     return call(() =>
       savePlanAsTemplate({
