@@ -63,16 +63,29 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
         dayOfWeek: session.dayOfWeek,
         coachNotes: session.coachNotes ?? '',
         nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
-        exercises: session.exercises.map((exercise) => ({
-          key: newKey(),
-          id: exercise.id,
-          exerciseId: exercise.exerciseId,
-          exerciseName: exercise.exerciseName,
-          order: exercise.order,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          targetPercentage: exercise.targetPercentage ?? null,
-        })),
+        exercises: session.exercises.map((exercise) => {
+          const ex = exercise as unknown as Record<string, unknown>;
+          const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+          return {
+            key: newKey(),
+            id: exercise.id,
+            exerciseId: exercise.exerciseId,
+            exerciseName: exercise.exerciseName,
+            order: exercise.order,
+            exerciseType: exType,
+            sets: exercise.sets,
+            reps: exercise.reps ?? 0,
+            targetDistanceMeters:
+              exType === 'Distance'
+                ? (exercise.reps ?? null)
+                : ((ex.targetDistanceMeters as number) ?? null),
+            targetTimeSeconds:
+              exType === 'Time'
+                ? (exercise.reps ?? null)
+                : ((ex.targetTimeSeconds as number) ?? null),
+            targetPercentage: exercise.targetPercentage ?? null,
+          };
+        }),
       })),
     })),
   };
@@ -93,14 +106,23 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
         order: session.order,
         dayOfWeek: session.dayOfWeek,
         coachNotes: session.coachNotes.trim() || null,
-        exercises: session.exercises.map((exercise) => ({
-          id: exercise.id,
-          exerciseId: exercise.exerciseId,
-          order: exercise.order,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          targetPercentage: exercise.targetPercentage,
-        })),
+        exercises: session.exercises.map((exercise) => {
+          const type = exercise.exerciseType ?? 'Weight';
+          const repsVal =
+            type === 'Distance'
+              ? (exercise.targetDistanceMeters ?? exercise.reps ?? 0)
+              : type === 'Time'
+                ? (exercise.targetTimeSeconds ?? exercise.reps ?? 0)
+                : (exercise.reps ?? 0);
+          return {
+            id: exercise.id,
+            exerciseId: exercise.exerciseId,
+            order: exercise.order,
+            sets: exercise.sets,
+            reps: repsVal,
+            targetPercentage: exercise.targetPercentage,
+          };
+        }),
       })),
     })),
   };
@@ -133,14 +155,19 @@ export function createSession(week: DraftWeek): DraftSession {
 }
 
 export function createExercise(session: DraftSession, exercise: CatalogExercise): DraftExercise {
+  const type = exercise.exerciseType ?? 'Weight';
+
   return {
     key: newKey(),
     id: null,
     exerciseId: exercise.id,
     exerciseName: exercise.name,
     order: session.nextExerciseOrder,
-    sets: 3,
-    reps: 10,
+    exerciseType: type,
+    sets: type === 'Distance' ? 6 : type === 'Time' ? 4 : 3,
+    reps: type === 'Distance' ? 100 : type === 'Time' ? 30 : 10,
+    targetDistanceMeters: type === 'Distance' ? 100 : null,
+    targetTimeSeconds: type === 'Time' ? 30 : null,
     targetPercentage: null,
   };
 }
@@ -156,11 +183,24 @@ export function validateDraft(draft: PlanDraft): string | null {
       if (!session.name.trim()) return `${where}: la sesión necesita un nombre.`;
 
       for (const exercise of session.exercises) {
+        const type = exercise.exerciseType ?? 'Weight';
         if (!Number.isInteger(exercise.sets) || exercise.sets < 1) {
-          return `${where}: las series de "${exercise.exerciseName}" tienen que ser 1 o más.`;
+          return `${where}: las series o pasadas de "${exercise.exerciseName}" tienen que ser 1 o más.`;
         }
-        if (!Number.isInteger(exercise.reps) || exercise.reps < 1) {
-          return `${where}: las repeticiones de "${exercise.exerciseName}" tienen que ser 1 o más.`;
+        if (type === 'Distance') {
+          const dist = exercise.targetDistanceMeters || exercise.reps;
+          if (!dist || dist < 1) {
+            return `${where}: la distancia de "${exercise.exerciseName}" tiene que ser 1 m o más.`;
+          }
+        } else if (type === 'Time') {
+          const time = exercise.targetTimeSeconds || exercise.reps;
+          if (!time || time < 1) {
+            return `${where}: el tiempo de "${exercise.exerciseName}" tiene que ser 1 seg o más.`;
+          }
+        } else {
+          if (!Number.isInteger(exercise.reps) || exercise.reps < 1) {
+            return `${where}: las repeticiones de "${exercise.exerciseName}" tienen que ser 1 o más.`;
+          }
         }
         const percentage = exercise.targetPercentage;
         if (percentage !== null && (percentage <= 0 || percentage > PERCENTAGE_MAX)) {
@@ -286,6 +326,7 @@ export function aiDraftToEditableDraft(
           exerciseName:
             (exerciseNames && exerciseNames[exercise.exerciseId]) || `Ejercicio #${exercise.order}`,
           order: exercise.order,
+          exerciseType: 'Weight',
           sets: exercise.sets,
           reps: exercise.reps,
           targetPercentage: exercise.targetPercentage ?? null,

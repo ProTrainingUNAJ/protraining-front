@@ -699,6 +699,7 @@
     grid-template-columns: repeat(3, 1fr);
     min-height: 140px;
   }
+
   .wireframe-row-1 .wireframe-card {
     min-height: 140px;
   }
@@ -707,6 +708,7 @@
     grid-template-columns: repeat(3, 1fr);
     min-height: 250px;
   }
+
   .wireframe-row-2 .wireframe-card {
     min-height: 250px;
   }
@@ -715,6 +717,7 @@
     grid-template-columns: repeat(2, 1fr);
     min-height: 220px;
   }
+
   .wireframe-row-3 .wireframe-card {
     min-height: 220px;
   }
@@ -723,6 +726,7 @@
     grid-template-columns: repeat(3, 1fr);
     min-height: 200px;
   }
+
   .wireframe-row-4 .wireframe-card {
     min-height: 200px;
   }
@@ -733,18 +737,22 @@
     grid-template-columns: repeat(2, 1fr);
     min-height: auto;
   }
+
   .wireframe-row-2 {
     grid-template-columns: repeat(2, 1fr);
     min-height: auto;
   }
+
   .wireframe-row-3 {
     grid-template-columns: 1fr;
     min-height: auto;
   }
+
   .wireframe-row-4 {
     grid-template-columns: repeat(2, 1fr);
     min-height: auto;
   }
+
   .wireframe-card {
     min-height: auto !important;
   }
@@ -1148,6 +1156,7 @@
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -1462,10 +1471,34 @@
   animation: noticeSpin 0.9s linear infinite;
 }
 
+/* Encabezados y badges en tarjetas y modal de ejercicios */
+.exercise-card-header-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.exercise-badges-group {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.exercise-modal-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  align-items: center;
+}
+
 @keyframes noticeSpin {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

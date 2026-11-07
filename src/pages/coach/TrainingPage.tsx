@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
 import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPlayer';
+import { ExerciseTypeBadge } from '../../components/exercises/ExerciseTypeBadge';
 import { exercisesService } from '../../api/exercises';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise } from '../../api/generated/entrenamiento';
@@ -34,21 +35,6 @@ const EXERCISE_TYPES = [
   { label: 'Repeticiones', value: 'Reps' },
   { label: 'Con carga', value: 'Weight' },
 ] as const;
-
-const getExerciseTypeBadge = (type?: string | null) => {
-  switch (type) {
-    case 'Distance':
-      return { label: 'Distancia', className: 'badge-info' };
-    case 'Time':
-      return { label: 'Tiempo', className: 'badge-warning' };
-    case 'Reps':
-      return { label: 'Repeticiones', className: 'badge-success' };
-    case 'Weight':
-      return { label: 'Con carga', className: 'badge-primary' };
-    default:
-      return null;
-  }
-};
 
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
 
@@ -537,35 +523,17 @@ export const TrainingPage: React.FC = () => {
                   <div>
                     <ExerciseGifImage images={ex.images} name={ex.name} />
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '0.65rem',
-                        flexWrap: 'wrap',
-                        gap: '0.35rem',
-                      }}
-                    >
-                      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-                        <span
-                          className="badge badge-info"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                        >
+                    <div className="exercise-card-header-meta">
+                      <div className="exercise-badges-group">
+                        <span className="badge badge-info">
                           <Tag size={12} /> {ex.category}
                         </span>
-                        {(() => {
-                          const badge = getExerciseTypeBadge(ex.exerciseType);
-                          return badge ? (
-                            <span className={`badge ${badge.className}`}>{badge.label}</span>
-                          ) : null;
-                        })()}
+                        <ExerciseTypeBadge type={ex.exerciseType} />
                       </div>
                       {ex.variants.length > 0 && (
                         <span
                           className="badge badge-primary"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                          title={ex.variants.map((variant) => variant.variantLabel).join(' · ')}
+                          title={ex.variants.map((v) => v.variantLabel).join(' · ')}
                         >
                           <Layers size={12} /> {ex.variants.length}{' '}
                           {ex.variants.length === 1 ? 'variante' : 'variantes'}
@@ -702,23 +670,11 @@ export const TrainingPage: React.FC = () => {
                 }}
               >
                 <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.5rem',
-                      marginBottom: '0.35rem',
-                      alignItems: 'center',
-                    }}
-                  >
+                  <div className="exercise-modal-badges">
                     <span className="badge badge-info">{modalExercise.category}</span>
-                    {(() => {
-                      const badge = getExerciseTypeBadge(
-                        shownExercise.exerciseType ?? modalExercise.exerciseType,
-                      );
-                      return badge ? (
-                        <span className={`badge ${badge.className}`}>{badge.label}</span>
-                      ) : null;
-                    })()}
+                    <ExerciseTypeBadge
+                      type={shownExercise.exerciseType ?? modalExercise.exerciseType}
+                    />
                   </div>
                   <h2
                     style={{

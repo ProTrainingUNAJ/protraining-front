@@ -40,8 +40,11 @@ export interface DraftExercise {
   exerciseId: string;
   exerciseName: string;
   order: number;
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   sets: number;
   reps: number;
+  targetDistanceMeters?: number | null;
+  targetTimeSeconds?: number | null;
   targetPercentage: number | null;
 }
 
