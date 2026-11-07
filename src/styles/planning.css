@@ -212,24 +212,53 @@
 }
 
 .plan-exercise-row {
-  display: grid;
-  grid-template-columns: 1.75rem minmax(0, 1fr) 4.25rem 4.25rem 4.75rem 2rem;
-  align-items: end;
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-card);
 }
 
+.plan-exercise-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .plan-exercise-name {
-  align-self: center;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-main);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.plan-exercise-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.plan-exercise-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.plan-exercise-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 .plan-exercise-field {
@@ -239,30 +268,17 @@
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
+  width: 4.25rem;
 }
 
 .plan-exercise-field input {
   margin: 0.15rem 0 0;
   padding: 0.4rem 0.5rem;
   text-align: center;
+  width: 100%;
 }
 
 @media (width <=560px) {
-  .plan-exercise-row {
-    grid-template-columns: 1.75rem repeat(3, minmax(0, 1fr)) 2rem;
-  }
-
-  .plan-exercise-name {
-    grid-row: 1;
-    grid-column: 1 / -1;
-    white-space: normal;
-  }
-
-  .plan-exercise-row .plan-move {
-    grid-row: 2;
-    grid-column: 1;
-  }
-
   .plan-session-day {
     flex-basis: 7rem;
   }
@@ -776,4 +792,21 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   margin-bottom: 0.75rem;
+}
+
+.plan-type-select {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text-muted);
+  width: fit-content;
+  cursor: pointer;
+}
+
+.plan-type-select:focus {
+  outline: none;
+  border-color: var(--brand-navy);
+  color: var(--text-main);
 }
