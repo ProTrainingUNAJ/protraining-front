@@ -912,3 +912,111 @@
   font-size: 0.82rem;
   color: var(--text-muted);
 }
+
+/* ── Selector de rango y gráfico Salto vs. Carga (KAN-437 / #142) ── */
+
+.evolution-range-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.25rem;
+}
+
+.evolution-range-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-main);
+}
+
+.evolution-range-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.evolution-range-selector {
+  display: inline-flex;
+  background: var(--bg-subtle);
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  gap: 0.25rem;
+}
+
+.evolution-range-btn {
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.evolution-range-btn:hover {
+  color: var(--text-main);
+}
+
+.evolution-range-btn.active {
+  background: var(--bg-card);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.jump-load-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--primary);
+}
+
+.jump-load-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.jump-load-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.jump-load-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
+}
+
+.jump-load-tooltip-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.jump-load-tooltip-marker.jump-marker {
+  background: var(--primary);
+}
+
+.jump-load-tooltip-marker.load-marker {
+  background: var(--secondary);
+}
+
+.evolution-alert-banner {
+  margin-bottom: 1rem;
+}
+
+.evolution-charts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}

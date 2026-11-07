@@ -48,6 +48,7 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
       strength: [],
       fitnessTests: [],
       wellness: { fatiguePoints: [], dailyPoints: [] },
+      weeklyLoads: [],
       strengthUnavailable: false,
     });
   });
@@ -120,6 +121,7 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
       strength: [],
       fitnessTests: [],
       wellness: { fatiguePoints: [], dailyPoints: [] },
+      weeklyLoads: [],
       strengthUnavailable: true,
     });
     vi.spyOn(athleteRecordsService, 'listHistory').mockResolvedValue([]);

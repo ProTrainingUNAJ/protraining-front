@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AlertCircle, Check, Dumbbell, Loader2, TrendingUp, X } from 'lucide-react';
 import { athleteRecordsService } from '../../api/athleteRecords';
+import { athleteEvolutionService } from '../../api/athleteEvolution';
 import { ExercisePickerModal } from '../planning/ExercisePickerModal';
 import { AthleteRecordItem, RecordOrigin } from '../../types/athleteRecords';
 import { CatalogExercise } from '../../types/trainingPlans';
+import { AthleteEvolutionResponse } from '../../types/seguimiento';
 import { OneRepMaxProgressionChart } from './OneRepMaxProgressionChart';
+import { JumpVsLoadProgressionChart } from './JumpVsLoadProgressionChart';
+import { EvolutionRangeSelector } from './EvolutionRangeSelector';
+import { EvolutionRange, getEvolutionRangeOptions } from '../../utils/evolutionRange';
 
 interface AthleteRecordsModalProps {
   athleteId: string;
@@ -50,6 +55,23 @@ export function AthleteRecordsModal({
   const [saving, setSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
 
+  const [range, setRange] = useState<EvolutionRange>('3m');
+  const [evolutionData, setEvolutionData] = useState<AthleteEvolutionResponse | null>(null);
+  const [evolutionLoading, setEvolutionLoading] = useState(initialTab === 'evolution');
+  const [evolutionError, setEvolutionError] = useState<string | null>(null);
+
+  const handleTabSelect = (tab: 'records' | 'evolution') => {
+    setActiveTab(tab);
+    if (tab === 'evolution') {
+      setEvolutionLoading(true);
+    }
+  };
+
+  const handleRangeChange = (nextRange: EvolutionRange) => {
+    setRange(nextRange);
+    setEvolutionLoading(true);
+  };
+
   useEffect(() => {
     let active = true;
     athleteRecordsService
@@ -69,6 +91,33 @@ export function AthleteRecordsModal({
       active = false;
     };
   }, [athleteId]);
+
+  useEffect(() => {
+    if (activeTab !== 'evolution') return;
+
+    let active = true;
+
+    athleteEvolutionService
+      .getEvolution(athleteId, getEvolutionRangeOptions(range))
+      .then((data) => {
+        if (active) {
+          setEvolutionData(data);
+          setEvolutionError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setEvolutionError(err instanceof Error ? err.message : 'No se pudo cargar la evolución.');
+        }
+      })
+      .finally(() => {
+        if (active) setEvolutionLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [athleteId, activeTab, range]);
 
   // Con el buscador abierto, Escape cierra solo el buscador.
   useEffect(() => {
@@ -156,7 +205,7 @@ export function AthleteRecordsModal({
               role="tab"
               aria-selected={activeTab === 'records'}
               className={`records-modal-tab-btn ${activeTab === 'records' ? 'active' : ''}`}
-              onClick={() => setActiveTab('records')}
+              onClick={() => handleTabSelect('records')}
             >
               <Dumbbell size={16} aria-hidden="true" />
               <span>Récords</span>
@@ -166,7 +215,7 @@ export function AthleteRecordsModal({
               role="tab"
               aria-selected={activeTab === 'evolution'}
               className={`records-modal-tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
-              onClick={() => setActiveTab('evolution')}
+              onClick={() => handleTabSelect('evolution')}
               data-testid="tab-evolucion-pf"
             >
               <TrendingUp size={16} aria-hidden="true" />
@@ -175,7 +224,43 @@ export function AthleteRecordsModal({
           </nav>
 
           {activeTab === 'evolution' ? (
-            <OneRepMaxProgressionChart athleteId={athleteId} />
+            <div className="evolution-charts-grid" data-testid="evolution-pf-container">
+              <EvolutionRangeSelector
+                value={range}
+                onChange={handleRangeChange}
+                disabled={evolutionLoading}
+              />
+
+              {evolutionData?.strengthUnavailable && (
+                <div
+                  className="alert-banner warning evolution-alert-banner"
+                  role="status"
+                  data-testid="strength-unavailable-alert"
+                >
+                  <span className="plan-inline">
+                    <AlertCircle size={18} aria-hidden="true" />
+                    No pudimos cargar los récords de fuerza en este momento.
+                  </span>
+                </div>
+              )}
+
+              <JumpVsLoadProgressionChart
+                fitnessTests={evolutionData?.fitnessTests ?? []}
+                weeklyLoads={evolutionData?.weeklyLoads ?? []}
+                isCoach={true}
+                loading={evolutionLoading}
+                error={evolutionError}
+              />
+
+              <OneRepMaxProgressionChart
+                athleteId={athleteId}
+                strengthUnavailable={evolutionData?.strengthUnavailable}
+                strengthSeries={evolutionData?.strength}
+                loading={evolutionLoading}
+                error={evolutionError}
+                suppressBanner={true}
+              />
+            </div>
           ) : (
             <>
               <p className="plan-empty">

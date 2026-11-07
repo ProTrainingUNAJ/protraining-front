@@ -47,6 +47,14 @@ describe('athleteEvolutionService (KAN-434 / KAN-435)', () => {
         fatiguePoints: [{ date: '2026-09-01', value: 3, label: 'Nivel 3' }],
         dailyPoints: [],
       },
+      weeklyLoads: [
+        {
+          weekStartDate: '2026-08-31',
+          weekEndDate: '2026-09-06',
+          totalLoad: 1200,
+          totalMinutes: 180,
+        },
+      ],
       strengthUnavailable: false,
     };
 
@@ -85,6 +93,7 @@ describe('athleteEvolutionService (KAN-434 / KAN-435)', () => {
         fatiguePoints: [{ date: '2026-09-01', value: 3, label: 'Nivel 3' }],
         dailyPoints: [],
       },
+      weeklyLoads: [],
       strengthUnavailable: true,
     };
 

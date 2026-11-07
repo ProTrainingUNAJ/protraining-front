@@ -6,6 +6,7 @@ export type {
   AthleteEvolutionResponse,
   StrengthEvolutionSeries,
   FitnessTestEvolutionSeries,
+  WeeklyLoadEvolutionPoint,
   EvolutionDataPoint,
   WellnessEvolution,
 } from '../api/generated/seguimiento/types.gen';
