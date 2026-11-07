@@ -177,6 +177,10 @@ export type AthleteEvolutionResponse = {
     fitnessTests: Array<FitnessTestEvolutionSeries>;
     wellness: WellnessEvolution;
     /**
+     * Series de carga semanal acumulada (lunes a domingo en hora de Argentina). Solo disponible para el Preparador Físico; para el atleta se devuelve un arreglo vacío.
+     */
+    weeklyLoads: Array<WeeklyLoadEvolutionPoint>;
+    /**
      * Indica si el servicio de Entrenamiento no estuvo disponible para consultar los récords (modo degradado).
      */
     strengthUnavailable: boolean;
@@ -224,6 +228,19 @@ export type DailyWellnessPoint = {
     stressLevel: number;
     trafficLight: string;
     hasActiveInjury: boolean;
+};
+
+export type WeeklyLoadEvolutionPoint = {
+    weekStartDate: string;
+    weekEndDate: string;
+    /**
+     * Carga semanal acumulada (suma de minutos × RPE de todas las actividades). Las semanas sin actividad registrada se devuelven en 0.
+     */
+    totalLoad: number;
+    /**
+     * Minutos totales de actividad física en la semana.
+     */
+    totalMinutes: number;
 };
 
 export type CreateInjuryRequest = {

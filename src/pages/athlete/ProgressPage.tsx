@@ -25,6 +25,9 @@ import { athleteEvolutionService } from '../../api/athleteEvolution';
 import type { AthleteEvolutionResponse } from '../../types/seguimiento';
 import { AthleteGroupBenchmarkSection } from '../../components/athlete/AthleteGroupBenchmarkSection';
 import { OneRepMaxProgressionChart } from '../../components/athletes/OneRepMaxProgressionChart';
+import { JumpVsLoadProgressionChart } from '../../components/athletes/JumpVsLoadProgressionChart';
+import { EvolutionRangeSelector } from '../../components/athletes/EvolutionRangeSelector';
+import { EvolutionRange, getEvolutionRangeOptions } from '../../utils/evolutionRange';
 
 interface EvaluationItem {
   id: string;
@@ -109,14 +112,22 @@ export const ProgressPage: React.FC = () => {
   const [resolvedAthleteId, setResolvedAthleteId] = useState<string>(() => user?.id || '');
   const [evolution, setEvolution] = useState<AthleteEvolutionResponse | null>(null);
   const [evolutionError, setEvolutionError] = useState<string | null>(null);
+  const [evolutionRange, setEvolutionRange] = useState<EvolutionRange>('3m');
+  const [evolutionLoading, setEvolutionLoading] = useState(false);
 
   const handleTabChange = (tab: 'progress' | 'evolution') => {
     setActiveTab(tab);
     if (tab === 'evolution') {
+      setEvolutionLoading(true);
       setSearchParams({ tab: 'evolution' }, { replace: true });
     } else {
       setSearchParams({}, { replace: true });
     }
+  };
+
+  const handleEvolutionRangeChange = (nextRange: EvolutionRange) => {
+    setEvolutionRange(nextRange);
+    setEvolutionLoading(true);
   };
 
   React.useEffect(() => {
@@ -139,7 +150,7 @@ export const ProgressPage: React.FC = () => {
     if (!resolvedAthleteId) return;
 
     athleteEvolutionService
-      .getEvolution(resolvedAthleteId)
+      .getEvolution(resolvedAthleteId, getEvolutionRangeOptions(evolutionRange))
       .then((data) => {
         if (isMounted) {
           setEvolution(data);
@@ -150,12 +161,17 @@ export const ProgressPage: React.FC = () => {
         if (isMounted) {
           setEvolutionError(err instanceof Error ? err.message : 'No se pudo cargar la evolución.');
         }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setEvolutionLoading(false);
+        }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [resolvedAthleteId]);
+  }, [resolvedAthleteId, evolutionRange]);
 
   // Track which metrics are already exported to Home/Dashboard (initialized from localStorage)
   const [exportedMetrics, setExportedMetrics] = useState<Record<string, string>>(readExportedState);
@@ -398,11 +414,17 @@ export const ProgressPage: React.FC = () => {
                 Evolución histórica de tus récords máximos por ejercicio.
               </p>
             </div>
+
+            <EvolutionRangeSelector
+              value={evolutionRange}
+              onChange={handleEvolutionRangeChange}
+              disabled={evolutionLoading}
+            />
+
             {evolutionError && (
               <div
-                className="alert-banner danger"
+                className="alert-banner danger evolution-alert-banner"
                 role="alert"
-                style={{ marginBottom: '1rem' }}
                 data-testid="evolution-error-banner"
               >
                 <span className="plan-inline">
@@ -413,9 +435,8 @@ export const ProgressPage: React.FC = () => {
             )}
             {evolution?.strengthUnavailable && (
               <div
-                className="alert-banner warning"
+                className="alert-banner warning evolution-alert-banner"
                 role="status"
-                style={{ marginBottom: '1rem' }}
                 data-testid="strength-unavailable-banner"
               >
                 <span className="plan-inline">
@@ -425,10 +446,20 @@ export const ProgressPage: React.FC = () => {
               </div>
             )}
             {resolvedAthleteId ? (
-              <OneRepMaxProgressionChart
-                athleteId={resolvedAthleteId}
-                strengthUnavailable={evolution?.strengthUnavailable}
-              />
+              <div className="evolution-charts-grid">
+                <JumpVsLoadProgressionChart
+                  fitnessTests={evolution?.fitnessTests ?? []}
+                  isCoach={false}
+                  loading={evolutionLoading}
+                />
+                <OneRepMaxProgressionChart
+                  athleteId={resolvedAthleteId}
+                  strengthUnavailable={evolution?.strengthUnavailable}
+                  strengthSeries={evolution?.strength}
+                  loading={evolutionLoading}
+                  suppressBanner={true}
+                />
+              </div>
             ) : (
               <div className="rm-chart-empty" role="status">
                 <Loader2 size={24} className="plan-spin" aria-hidden="true" />
