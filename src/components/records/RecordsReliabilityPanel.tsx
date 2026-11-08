@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, AlertCircle, Users } from 'lucide-react';
+import { Loader2, AlertCircle, Users, RefreshCw } from 'lucide-react';
 import { recordsReliabilityService } from '../../api/recordsReliability';
 import {
-  RELIABILITY_GROUP_ORDER,
   RELIABILITY_GROUP_LABELS,
-  RELIABILITY_GROUP_DESCRIPTIONS,
+  type RecordReliabilityGroupKey,
   type RecordsReliabilitySummary,
 } from '../../types/recordsReliability';
+import { AthleteRecordsModal } from '../athletes/AthleteRecordsModal';
+import { RecordsReliabilityChart } from './RecordsReliabilityChart';
 
 export interface RecordsReliabilityPanelProps {
   categoryId: string;
   exerciseId?: string;
+}
+
+function pluralize(count: number, singular: string, plural: string) {
+  return `${count} ${count === 1 ? singular : plural}`;
 }
 
 export function RecordsReliabilityPanel({ categoryId, exerciseId }: RecordsReliabilityPanelProps) {
@@ -18,6 +23,13 @@ export function RecordsReliabilityPanel({ categoryId, exerciseId }: RecordsRelia
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [selectedGroup, setSelectedGroup] = useState<RecordReliabilityGroupKey | null>(null);
+  const [detailAthlete, setDetailAthlete] = useState<{ id: string; name: string } | null>(null);
+
+  // Click en un segmento o en la leyenda: si ya estaba elegido, se deselecciona.
+  const handleSelectGroup = (groupKey: RecordReliabilityGroupKey) => {
+    setSelectedGroup((current) => (current === groupKey ? null : groupKey));
+  };
 
   useEffect(() => {
     if (!categoryId) return;
@@ -76,6 +88,17 @@ export function RecordsReliabilityPanel({ categoryId, exerciseId }: RecordsRelia
   if (!data) return null;
 
   const total = data.totalAthletes || 0;
+  const totalRecords = data.totalRecords || 0;
+  const selected = selectedGroup
+    ? data.groups.find((group) => group.group === selectedGroup)
+    : undefined;
+
+  const selectedCount =
+    selectedGroup === 'NoData' ? (selected?.athleteCount ?? 0) : (selected?.recordCount ?? 0);
+  const selectedCountLabel =
+    selectedGroup === 'NoData'
+      ? pluralize(selectedCount, 'atleta', 'atletas')
+      : pluralize(selectedCount, 'récord', 'récords');
 
   return (
     <div className="records-reliability-panel">
@@ -83,49 +106,85 @@ export function RecordsReliabilityPanel({ categoryId, exerciseId }: RecordsRelia
         <div className="records-reliability-summary-row">
           <Users size={16} aria-hidden="true" />
           <span>
-            {total} {total === 1 ? 'atleta' : 'atletas'} en la categoría
+            {pluralize(total, 'atleta', 'atletas')} en la categoría ·{' '}
+            {pluralize(totalRecords, 'récord', 'récords')} cargados
           </span>
+          <button
+            type="button"
+            className="btn btn-secondary records-reliability-refresh"
+            onClick={() => {
+              setLoading(true);
+              setReloadKey((k) => k + 1);
+            }}
+            disabled={loading}
+            title="Actualizar el resumen"
+          >
+            <RefreshCw size={14} aria-hidden="true" />
+            <span>Actualizar</span>
+          </button>
         </div>
+        <p className="records-reliability-summary-hint">
+          Cada atleta puede aparecer en más de un grupo: se cuenta la cantidad de récords vigentes
+          de cada origen. Quien no tiene ningún récord aparece en Sin datos.
+        </p>
       </div>
 
-      <div className="records-reliability-grid">
-        {RELIABILITY_GROUP_ORDER.map((groupKey) => {
-          const group = data.groups.find((g) => g.group === groupKey);
-          const count = group?.count ?? 0;
-          const percentage = group?.percentage ?? 0;
-          const athletes = group?.athletes ?? [];
-          const needsTesting = groupKey === 'Estimated' || groupKey === 'NoData';
+      <RecordsReliabilityChart
+        groups={data.groups}
+        totalAthletes={total}
+        totalRecords={totalRecords}
+        selectedGroup={selectedGroup}
+        onSelectGroup={handleSelectGroup}
+      />
 
-          return (
-            <div
-              key={groupKey}
-              className={`card records-reliability-group-card${needsTesting ? ' needs-testing' : ''}`}
+      {selectedGroup && (
+        <div className="card records-reliability-detail" role="status" aria-live="polite">
+          <div className="records-reliability-detail-header">
+            <h3 className="records-reliability-detail-title">
+              {RELIABILITY_GROUP_LABELS[selectedGroup]} ({selectedCountLabel})
+            </h3>
+            <button
+              type="button"
+              className="btn btn-secondary records-reliability-detail-close"
+              onClick={() => setSelectedGroup(null)}
             >
-              <div className="records-reliability-group-header">
-                <h3 className="records-reliability-group-title">
-                  {RELIABILITY_GROUP_LABELS[groupKey]}
-                </h3>
-                <span className="badge badge-info">
-                  {count} · {percentage.toFixed(1)}%
-                </span>
-              </div>
-              <p className="records-reliability-group-description">
-                {RELIABILITY_GROUP_DESCRIPTIONS[groupKey]}
-                {needsTesting && count > 0 ? ' Conviene testear.' : ''}
-              </p>
-              {athletes.length === 0 ? (
-                <p className="records-reliability-empty">Sin atletas en este grupo.</p>
-              ) : (
-                <ul className="records-reliability-athlete-list">
-                  {athletes.map((athlete) => (
-                    <li key={athlete.athleteId}>{athlete.name}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              Cerrar detalle
+            </button>
+          </div>
+          {(selected?.athletes ?? []).length === 0 ? (
+            <p className="records-reliability-empty">No hay atletas en este grupo.</p>
+          ) : (
+            <ul className="records-reliability-detail-list">
+              {(selected?.athletes ?? []).map((athlete) => (
+                <li key={athlete.athleteId} className="records-reliability-detail-item">
+                  <span>
+                    <strong>{athlete.name}</strong> —{' '}
+                    {selectedGroup === 'NoData'
+                      ? 'sin récords'
+                      : pluralize(athlete.recordCount, 'récord', 'récords')}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary records-reliability-detail-see"
+                    onClick={() => setDetailAthlete({ id: athlete.athleteId, name: athlete.name })}
+                  >
+                    Ver detalle
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {detailAthlete && (
+        <AthleteRecordsModal
+          athleteId={detailAthlete.id}
+          athleteName={detailAthlete.name}
+          readOnly
+          onClose={() => setDetailAthlete(null)}
+        />
+      )}
     </div>
   );
 }
