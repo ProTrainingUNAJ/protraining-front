@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, AlertCircle, Users } from 'lucide-react';
+import { Loader2, AlertCircle, Users, RefreshCw } from 'lucide-react';
 import { recordsReliabilityService } from '../../api/recordsReliability';
 import {
   RELIABILITY_GROUP_LABELS,
@@ -109,6 +109,19 @@ export function RecordsReliabilityPanel({ categoryId, exerciseId }: RecordsRelia
             {pluralize(total, 'atleta', 'atletas')} en la categoría ·{' '}
             {pluralize(totalRecords, 'récord', 'récords')} cargados
           </span>
+          <button
+            type="button"
+            className="btn btn-secondary records-reliability-refresh"
+            onClick={() => {
+              setLoading(true);
+              setReloadKey((k) => k + 1);
+            }}
+            disabled={loading}
+            title="Actualizar el resumen"
+          >
+            <RefreshCw size={14} aria-hidden="true" />
+            <span>Actualizar</span>
+          </button>
         </div>
         <p className="records-reliability-summary-hint">
           Cada atleta puede aparecer en más de un grupo: se cuenta la cantidad de récords vigentes
