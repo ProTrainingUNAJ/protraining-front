@@ -515,25 +515,50 @@ export const DashboardPage: React.FC = () => {
                   ? 'Accedé a tus rutinas asignadas y seguimiento físico.'
                   : 'Monitoreá el semáforo de tu plantel y planificá cargas con precisión.'}
               </p>
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  background: 'var(--secondary)',
-                  borderRadius: '9999px',
-                  padding: '0.45rem 1rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  boxShadow: 'var(--suite-button-shadow)',
-                }}
-                onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/monitoring')}
-              >
-                <span>{isAthlete ? 'Ver Rutina' : 'Ver Semáforo'}</span>
-                <ArrowRight size={14} />
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{
+                    background: 'var(--secondary)',
+                    borderRadius: '9999px',
+                    padding: '0.45rem 1rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    boxShadow: 'var(--suite-button-shadow)',
+                  }}
+                  onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/monitoring')}
+                >
+                  <span>{isAthlete ? 'Ver Rutina' : 'Ver Semáforo'}</span>
+                  <ArrowRight size={14} />
+                </button>
+
+                {isAthlete && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{
+                      borderRadius: '9999px',
+                      padding: '0.45rem 1rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      background: 'transparent',
+                      borderColor: 'var(--on-primary-border)',
+                      color: 'var(--white)',
+                    }}
+                    onClick={() => navigate('/athlete/settings?tab=marcas')}
+                  >
+                    <span>Mis marcas</span>
+                    <ArrowRight size={14} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );

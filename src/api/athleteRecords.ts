@@ -1,4 +1,9 @@
-import { getAthleteRecords, saveRecord, Record as ApiRecord } from './generated/entrenamiento';
+import {
+  completeOnboarding,
+  getAthleteRecords,
+  saveRecord,
+  Record as ApiRecord,
+} from './generated/entrenamiento';
 import { extractErrorMessage } from './axiosClient';
 import { AthleteRecordItem, RecordOrigin } from '../types/athleteRecords';
 
@@ -58,6 +63,19 @@ export const athleteRecordsService = {
         throwOnError: true,
       });
       return mapRecord(data);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  // Declara marcas en el onboarding (KAN-415/417). El back solo crea las de
+  // ejercicios sin récord vigente y devuelve las creadas (o []).
+  async declareOnboarding(
+    marks: { exerciseId: string; weightOneRepMaxKg: number }[],
+  ): Promise<AthleteRecordItem[]> {
+    try {
+      const { data } = await completeOnboarding({ body: marks, throwOnError: true });
+      return data.map(mapRecord);
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

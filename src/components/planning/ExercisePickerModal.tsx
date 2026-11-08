@@ -19,6 +19,10 @@ interface ExercisePickerModalProps {
   onClose: () => void;
   onSelect: (exercise: CatalogExercise) => void;
   filterUsedByPf?: boolean;
+  // Filtro opcional por modalidad (KAN-417: Mis marcas solo ofrece ejercicios en kg).
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+  // Ejercicios que ya tienen marca y no deben ofrecerse (KAN-417).
+  excludedIds?: string[];
 }
 
 const PAGE_SIZE = 12;
@@ -28,6 +32,8 @@ export function ExercisePickerModal({
   onClose,
   onSelect,
   filterUsedByPf = false,
+  exerciseType,
+  excludedIds,
 }: ExercisePickerModalProps) {
   const [searchText, setSearchText] = useState('');
   const [search, setSearch] = useState('');
@@ -63,8 +69,18 @@ export function ExercisePickerModal({
     const catParam = selectedCategory === 'Todos' ? undefined : selectedCategory;
     const muscleParam = selectedMuscle ? selectedMuscle.toLowerCase() : undefined;
 
-    const request =
-      catParam || muscleParam
+    const request = exerciseType
+      ? exercisesService.search(
+          search,
+          page,
+          PAGE_SIZE,
+          usedByPf,
+          true,
+          catParam,
+          muscleParam,
+          exerciseType,
+        )
+      : catParam || muscleParam
         ? exercisesService.search(search, page, PAGE_SIZE, usedByPf, true, catParam, muscleParam)
         : exercisesService.search(search, page, PAGE_SIZE, usedByPf, true);
 
@@ -99,7 +115,7 @@ export function ExercisePickerModal({
     return () => {
       active = false;
     };
-  }, [search, page, usedByPf, selectedCategory, selectedMuscle]);
+  }, [search, page, usedByPf, selectedCategory, selectedMuscle, exerciseType]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -120,7 +136,8 @@ export function ExercisePickerModal({
     setPage(1);
   };
 
-  const items = result?.items ?? [];
+  const excluded = new Set(excludedIds ?? []);
+  const items = (result?.items ?? []).filter((exercise) => !excluded.has(exercise.id));
   const totalPages = Math.max(result?.totalPages ?? 1, 1);
 
   return (
