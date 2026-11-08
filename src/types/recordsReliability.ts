@@ -25,13 +25,13 @@ export const RELIABILITY_GROUP_LABELS: Record<RecordReliabilityGroupKey, string>
   Tested: 'Testeado',
   Reported: 'Reportado',
   Estimated: 'Estimado',
-  NoData: 'Sin dato',
+  NoData: 'Sin datos',
 };
 
-// Descripción corta de cada grupo para la UI.
-export const RELIABILITY_GROUP_DESCRIPTIONS: Record<RecordReliabilityGroupKey, string> = {
-  Tested: 'Medido en una sesión de test (incluye Epley).',
-  Reported: 'Lo dijo el atleta o lo cargó el PF.',
-  Estimated: 'Declarado en el onboarding.',
-  NoData: 'No hay de dónde calcular el peso.',
+// Colores de marca para los segmentos del gráfico apilado (KAN-417).
+export const RELIABILITY_GROUP_COLORS: Record<RecordReliabilityGroupKey, string> = {
+  Tested: 'var(--stat-green)',
+  Reported: 'var(--secondary)',
+  Estimated: 'var(--stat-amber)',
+  NoData: 'var(--text-muted)',
 };

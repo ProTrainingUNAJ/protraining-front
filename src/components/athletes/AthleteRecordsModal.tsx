@@ -16,6 +16,8 @@ interface AthleteRecordsModalProps {
   athleteName: string;
   onClose: () => void;
   initialTab?: 'records' | 'evolution';
+  // En modo lectura solo se muestran los récords; no se puede cargar uno nuevo.
+  readOnly?: boolean;
 }
 
 const ORIGIN_LABELS: Record<RecordOrigin, string> = {
@@ -42,6 +44,7 @@ export function AthleteRecordsModal({
   athleteName,
   onClose,
   initialTab = 'records',
+  readOnly = false,
 }: AthleteRecordsModalProps) {
   const [activeTab, setActiveTab] = useState<'records' | 'evolution'>(initialTab);
   const [records, setRecords] = useState<AthleteRecordItem[]>([]);
@@ -307,65 +310,79 @@ export function AthleteRecordsModal({
                 </ul>
               )}
 
-              <form className="records-form" onSubmit={handleSubmit}>
-                <h3>Cargar un récord</h3>
+              {!readOnly && (
+                <form className="records-form" onSubmit={handleSubmit}>
+                  <h3>Cargar un récord</h3>
 
-                <div className="plan-field">
-                  <span>Ejercicio</span>
-                  <button
-                    type="button"
-                    className="btn btn-secondary records-exercise-btn"
-                    onClick={() => setShowPicker(true)}
-                    disabled={saving}
-                  >
-                    <Dumbbell size={16} aria-hidden="true" />
-                    <span>{exercise ? exercise.name : 'Elegir de la biblioteca'}</span>
-                  </button>
-                </div>
-
-                <div className="records-form-row">
-                  <label className="plan-field">
-                    <span>1RM (kg)</span>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      min={0.5}
-                      max={WEIGHT_MAX_KG}
-                      step={0.5}
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      disabled={saving}
-                      placeholder="Ej. 100"
-                    />
-                  </label>
-                  <label className="plan-field">
-                    <span>Origen</span>
-                    <select
-                      value={origin}
-                      onChange={(e) => setOrigin(e.target.value as RecordOrigin)}
+                  <div className="plan-field">
+                    <span>Ejercicio</span>
+                    <button
+                      type="button"
+                      className="btn btn-secondary records-exercise-btn"
+                      onClick={() => setShowPicker(true)}
                       disabled={saving}
                     >
-                      <option value="TestedInSession">Testeado</option>
-                      <option value="Reported">Reportado</option>
-                    </select>
-                  </label>
-                </div>
+                      <Dumbbell size={16} aria-hidden="true" />
+                      <span>{exercise ? exercise.name : 'Elegir de la biblioteca'}</span>
+                    </button>
+                  </div>
 
+                  <div className="records-form-row">
+                    <label className="plan-field">
+                      <span>1RM (kg)</span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={0.5}
+                        max={WEIGHT_MAX_KG}
+                        step={0.5}
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        disabled={saving}
+                        placeholder="Ej. 100"
+                      />
+                    </label>
+                    <label className="plan-field">
+                      <span>Origen</span>
+                      <select
+                        value={origin}
+                        onChange={(e) => setOrigin(e.target.value as RecordOrigin)}
+                        disabled={saving}
+                      >
+                        <option value="TestedInSession">Testeado</option>
+                        <option value="Reported">Reportado</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="plan-picker-pager">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={onClose}
+                      disabled={saving}
+                    >
+                      Cerrar
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={saving || !exercise}
+                    >
+                      {saving && <Loader2 size={16} className="plan-spin" aria-hidden="true" />}
+                      <span>{saving ? 'Guardando…' : 'Guardar récord'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {readOnly && (
                 <div className="plan-picker-pager">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={onClose}
-                    disabled={saving}
-                  >
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>
                     Cerrar
                   </button>
-                  <button type="submit" className="btn btn-primary" disabled={saving || !exercise}>
-                    {saving && <Loader2 size={16} className="plan-spin" aria-hidden="true" />}
-                    <span>{saving ? 'Guardando…' : 'Guardar récord'}</span>
-                  </button>
                 </div>
-              </form>
+              )}
             </>
           )}
         </div>

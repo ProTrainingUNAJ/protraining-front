@@ -17,21 +17,24 @@ describe('recordsReliabilityService', () => {
     const mockSummary = {
       categoryId: 'cat-1',
       totalAthletes: 2,
+      totalRecords: 2,
       groups: [
         {
           group: 'Tested',
-          count: 1,
+          athleteCount: 1,
+          recordCount: 1,
           percentage: 50,
-          athletes: [{ athleteId: 'a1', name: 'Juan' }],
+          athletes: [{ athleteId: 'a1', name: 'Juan', recordCount: 1 }],
         },
-        { group: 'Reported', count: 0, percentage: 0, athletes: [] },
+        { group: 'Reported', athleteCount: 0, recordCount: 0, percentage: 0, athletes: [] },
         {
           group: 'Estimated',
-          count: 1,
+          athleteCount: 1,
+          recordCount: 1,
           percentage: 50,
-          athletes: [{ athleteId: 'a2', name: 'Pedro' }],
+          athletes: [{ athleteId: 'a2', name: 'Pedro', recordCount: 1 }],
         },
-        { group: 'NoData', count: 0, percentage: 0, athletes: [] },
+        { group: 'NoData', athleteCount: 0, recordCount: 0, percentage: 0, athletes: [] },
       ],
     };
 
@@ -50,7 +53,7 @@ describe('recordsReliabilityService', () => {
 
   it('getByCategory passes exerciseId when provided', async () => {
     vi.mocked(generatedApi.getRecordsReliability).mockResolvedValueOnce({
-      data: { categoryId: 'cat-1', totalAthletes: 0, groups: [] },
+      data: { categoryId: 'cat-1', totalAthletes: 0, totalRecords: 0, groups: [] },
     } as never);
 
     await recordsReliabilityService.getByCategory('cat-1', 'ex-1');

@@ -100,7 +100,7 @@ export function RecordsReliabilityPage() {
     <div className="app-page-container">
       <PageHeader
         title="Confiabilidad de récords"
-        description="Resumen por categoría de cuántos atletas tienen récords confiables y a cuáles conviene testear."
+        description="Resumen por categoría de cuántos récords hay de cada estado y qué atletas los tienen."
         actions={
           <div className="records-reliability-page-toolbar">
             {categories.length > 0 && (

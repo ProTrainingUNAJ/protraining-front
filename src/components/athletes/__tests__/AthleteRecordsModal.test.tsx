@@ -111,6 +111,28 @@ describe('AthleteRecordsModal - Pestaña Evolución para el PF (KAN-436 / KAN-43
     });
   });
 
+  it('en modo solo lectura muestra los récords pero no permite cargar uno nuevo', async () => {
+    vi.spyOn(athleteRecordsService, 'listCurrent').mockResolvedValue([
+      {
+        id: 'rec-1',
+        exerciseId: 'ex-squat',
+        exerciseName: 'Sentadilla trasera',
+        weightKg: 120,
+        origin: 'TestedInSession',
+        achievedAt: '2026-10-01T10:00:00Z',
+      },
+    ]);
+
+    render(
+      <AthleteRecordsModal athleteId="ath-10" athleteName="Mateo Rossi" readOnly onClose={vi.fn()} />,
+    );
+
+    await waitFor(() => expect(screen.getByText('Sentadilla trasera')).toBeDefined());
+
+    expect(screen.queryByText('Cargar un récord')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Guardar récord/i })).toBeNull();
+  });
+
   it('CRITERIO 1: DADO un atleta con 4 tests de salto y su carga cargada CUANDO el PF elige "3 meses" ENTONCES ve las dos series en ese rango', async () => {
     vi.spyOn(athleteEvolutionService, 'getEvolution').mockResolvedValue(sampleEvolution);
 

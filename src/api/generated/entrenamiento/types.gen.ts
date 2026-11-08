@@ -219,11 +219,25 @@ export type Record = {
 export type RecordReliabilityAthlete = {
     athleteId: string;
     name: string;
+    /**
+     * Cantidad de récords vigentes del atleta en el grupo. En Sin dato siempre es 0.
+     */
+    recordCount: number;
 };
 
 export type RecordReliabilityGroup = {
     group: 'Tested' | 'Reported' | 'Estimated' | 'NoData';
-    count: number;
+    /**
+     * Cantidad de atletas con al menos un récord del grupo. En Sin dato, atletas sin ningún récord.
+     */
+    athleteCount: number;
+    /**
+     * Cantidad total de récords del grupo. En Sin dato siempre es 0.
+     */
+    recordCount: number;
+    /**
+     * Porcentaje de récords del grupo sobre el total. En Sin dato, porcentaje de atletas sin récords sobre el total de atletas.
+     */
     percentage: number;
     athletes: Array<RecordReliabilityAthlete>;
 };
@@ -232,6 +246,10 @@ export type RecordReliabilitySummary = {
     categoryId: string;
     exerciseId?: string | null;
     totalAthletes: number;
+    /**
+     * Cantidad total de récords vigentes considerados en el resumen.
+     */
+    totalRecords: number;
     groups: Array<RecordReliabilityGroup>;
 };
 
