@@ -124,7 +124,12 @@ describe('AthleteRecordsModal - Pestaña Evolución para el PF (KAN-436 / KAN-43
     ]);
 
     render(
-      <AthleteRecordsModal athleteId="ath-10" athleteName="Mateo Rossi" readOnly onClose={vi.fn()} />,
+      <AthleteRecordsModal
+        athleteId="ath-10"
+        athleteName="Mateo Rossi"
+        readOnly
+        onClose={vi.fn()}
+      />,
     );
 
     await waitFor(() => expect(screen.getByText('Sentadilla trasera')).toBeDefined());

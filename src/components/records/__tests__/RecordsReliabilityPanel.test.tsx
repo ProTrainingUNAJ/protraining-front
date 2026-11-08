@@ -130,9 +130,7 @@ describe('RecordsReliabilityPanel - dashboard de confiabilidad (KAN-417)', () =>
     vi.mocked(recordsReliabilityService.getByCategory).mockResolvedValueOnce(summary as never);
 
     render(<RecordsReliabilityPanel categoryId="cat-1" />);
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Testeado (1)' })).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Testeado (1)' })).toBeDefined());
 
     fireEvent.click(screen.getByRole('button', { name: 'Testeado (1)' }));
     let detail = screen.getByRole('status');
@@ -153,9 +151,7 @@ describe('RecordsReliabilityPanel - dashboard de confiabilidad (KAN-417)', () =>
     vi.mocked(recordsReliabilityService.getByCategory).mockResolvedValueOnce(summary as never);
 
     render(<RecordsReliabilityPanel categoryId="cat-1" />);
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Estimado (5)' })).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Estimado (5)' })).toBeDefined());
 
     fireEvent.click(screen.getByRole('button', { name: 'Estimado (5)' }));
 
@@ -169,9 +165,7 @@ describe('RecordsReliabilityPanel - dashboard de confiabilidad (KAN-417)', () =>
     vi.mocked(recordsReliabilityService.getByCategory).mockResolvedValueOnce(summary as never);
 
     const { container } = render(<RecordsReliabilityPanel categoryId="cat-1" />);
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Testeado (1)' })).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Testeado (1)' })).toBeDefined());
 
     const testedSegment = container.querySelector('path[fill="var(--stat-green)"]');
     expect(testedSegment).not.toBeNull();
