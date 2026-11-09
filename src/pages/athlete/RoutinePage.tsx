@@ -13,6 +13,7 @@ import {
   Activity,
   Trophy,
   Play,
+  Timer,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { useSearchParams } from 'react-router-dom';
@@ -27,6 +28,7 @@ import {
 import { todayRoutineService } from '../../api/todayRoutine';
 import { RecordPerformedSetModal } from '../../components/routine/RecordPerformedSetModal';
 import { GymSessionLoadCard } from '../../components/routine/GymSessionLoadCard';
+import { IntervalTimerModal } from '../../components/timer/IntervalTimerModal';
 import type { StoredPerformedSet } from '../../types';
 
 type RoutineExerciseItem = TodayRoutineExercise & {
@@ -82,6 +84,8 @@ export const RoutinePage: React.FC = () => {
     useState<TodayRoutineExercise | null>(null);
   const [selectedExerciseForRecord, setSelectedExerciseForRecord] =
     useState<TodayRoutineExercise | null>(null);
+  const [selectedExerciseForTimer, setSelectedExerciseForTimer] =
+    useState<RoutineExerciseItem | null>(null);
 
   // Banner de propuesta de récord generada tras registrar una serie
   const [proposalBanner, setProposalBanner] = useState<{
@@ -650,9 +654,29 @@ export const RoutinePage: React.FC = () => {
                             }}
                           >
                             {exercise.exerciseType === 'Distance'
-                              ? `${exercise.sets} series × ${exercise.reps} m`
+                              ? `${exercise.sets} series × ${exercise.reps} m${
+                                  exercise.targetTimeSeconds != null
+                                    ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
+                                        'es-AR',
+                                        {
+                                          minimumFractionDigits: 1,
+                                          maximumFractionDigits: 1,
+                                        },
+                                      )} s`
+                                    : ''
+                                }`
                               : exercise.exerciseType === 'Time'
-                                ? `${exercise.sets} series × ${exercise.reps} s`
+                                ? `${exercise.sets} series × ${exercise.reps} s${
+                                    exercise.targetTimeSeconds != null
+                                      ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
+                                          'es-AR',
+                                          {
+                                            minimumFractionDigits: 1,
+                                            maximumFractionDigits: 1,
+                                          },
+                                        )} s`
+                                      : ''
+                                  }`
                                 : `${exercise.sets} series × ${exercise.reps} reps`}
                           </span>
 
@@ -692,6 +716,18 @@ export const RoutinePage: React.FC = () => {
                             <Activity size={13} />
                             <span>Ver técnica</span>
                           </button>
+
+                          {exercise.exerciseType === 'Time' && (
+                            <button
+                              type="button"
+                              className="routine-tech-btn"
+                              onClick={() => setSelectedExerciseForTimer(exercise)}
+                              title="Hacer series con temporizador Tabata / Intervalos"
+                            >
+                              <Timer size={13} />
+                              <span>Temporizador</span>
+                            </button>
+                          )}
 
                           {exercise.videoUrl && (
                             <button
@@ -1156,6 +1192,20 @@ export const RoutinePage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* Modal de Temporizador */}
+      {selectedExerciseForTimer && (
+        <IntervalTimerModal
+          isOpen={Boolean(selectedExerciseForTimer)}
+          onClose={() => setSelectedExerciseForTimer(null)}
+          exerciseName={selectedExerciseForTimer.name}
+          defaultWorkSeconds={selectedExerciseForTimer.reps || 30}
+          totalSets={selectedExerciseForTimer.sets}
+          onSetCompleted={(setNum) => {
+            const exKey = selectedExerciseForTimer.exerciseId || 'ex-0';
+            toggleSet(exKey, setNum);
+          }}
+        />
       )}
     </div>
   );

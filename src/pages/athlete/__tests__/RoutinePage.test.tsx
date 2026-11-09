@@ -147,9 +147,9 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       });
 
       // Valida que diga "100 m" en vez de "100 reps"
-      expect(screen.getByText('6 series × 100 m')).toBeTruthy();
+      expect(screen.getByText(/6 (series )?× 100 m · meta 15,6 s/)).toBeTruthy();
       // Valida la meta de tiempo y la etiqueta
-      expect(screen.getByText(/15,6/)).toBeTruthy();
+      expect(screen.getAllByText(/15,6/).length).toBeGreaterThanOrEqual(2);
       expect(screen.getByText('Meta de tiempo')).toBeTruthy();
     });
 
