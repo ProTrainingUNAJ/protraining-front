@@ -623,6 +623,27 @@
   width: 100%;
 }
 
+/* ── Temas dinámicos según actividad seleccionada (KAN-571) ── */
+.dl-theme--gym {
+  --active-act-color: var(--celebration-blue);
+}
+
+.dl-theme--sportTraining {
+  --active-act-color: var(--celebration-green);
+}
+
+.dl-theme--match1 {
+  --active-act-color: var(--celebration-amber);
+}
+
+.dl-theme--match2 {
+  --active-act-color: var(--celebration-coral);
+}
+
+.dl-theme--individualWork {
+  --active-act-color: var(--celebration-purple);
+}
+
 /* ── 5. Panel de Entradas (Minutos a la izquierda y RPE a la derecha) ── */
 .dl-inputs-section {
   display: grid;
@@ -638,10 +659,10 @@
   }
 }
 
-/* Campo de Minutos y Quick Presets */
+/* Campo de Minutos y Quick Presets (remarcado con el color de la actividad) */
 .dl-field-block {
   background: var(--bg-subtle);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--active-act-color, var(--border));
   border-radius: 1.15rem;
   padding: 1.25rem 1.5rem;
   display: flex;
@@ -650,6 +671,10 @@
   gap: 0.85rem;
   width: 100%;
   box-sizing: border-box;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--active-act-color, transparent) 14%, transparent);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 @media (max-width: 640px) {
@@ -675,16 +700,19 @@
 }
 
 .dl-field-title-icon {
-  color: var(--primary);
+  color: var(--active-act-color, var(--primary));
+  transition: color 0.25s ease;
 }
 
 .dl-field-value-pill {
   font-size: 0.825rem;
   font-weight: 700;
-  color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--active-act-color, var(--primary));
+  background: color-mix(in srgb, var(--active-act-color, var(--primary)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--active-act-color, var(--primary)) 25%, transparent);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
+  transition: all 0.25s ease;
 }
 
 /* Minutos input container (alineado con la barra de RPE) */
@@ -979,19 +1007,23 @@
 .dl-live-gauge {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--primary) 8%, var(--bg-subtle)),
-    color-mix(in srgb, var(--primary) 3%, var(--bg-card))
+    color-mix(in srgb, var(--active-act-color, var(--primary)) 8%, var(--bg-subtle)),
+    color-mix(in srgb, var(--active-act-color, var(--primary)) 3%, var(--bg-card))
   );
-  border: 1.5px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  border: 1.5px solid var(--active-act-color, color-mix(in srgb, var(--primary) 22%, transparent));
   border-radius: 1.15rem;
   padding: 1.35rem 1.65rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--active-act-color, transparent) 15%, transparent);
   animation: dlPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   width: 100%;
   box-sizing: border-box;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
 }
 
 @keyframes dlPopIn {

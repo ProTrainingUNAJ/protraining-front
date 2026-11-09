@@ -608,7 +608,7 @@ export const DailyLoadPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="dl-register-flow">
+            <div className={`dl-register-flow dl-theme--${selectedActivity}`}>
               {/* 3. CARRUSEL INTERACTIVO, COLORIDO Y SIMÉTRICO DE ACTIVIDADES */}
               <div className="dl-carousel-container" aria-label="Carrusel de actividades">
                 <div
