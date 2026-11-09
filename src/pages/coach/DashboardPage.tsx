@@ -14,6 +14,7 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
 import { DailyLoadWidget } from '../../components/dashboard/DailyLoadWidget';
+import { DailyTrafficLightWidget } from '../../components/dashboard/DailyTrafficLightWidget';
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
@@ -37,7 +38,8 @@ export type DashboardCardType =
   | 'pain-alerts'
   | 'progress-chart'
   | 'epley-proposals'
-  | 'daily-load';
+  | 'daily-load'
+  | 'daily-traffic-light';
 
 export interface WireframeCardItem {
   id: string;
@@ -103,7 +105,12 @@ const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
     className: 'wireframe-row-1',
     cards: [
       { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
-      { id: 'a-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      {
+        id: 'a-daily-traffic-light',
+        name: 'Semáforo Diario',
+        colSpan: 1,
+        type: 'daily-traffic-light',
+      },
       { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
   },
@@ -220,6 +227,41 @@ export const DashboardPage: React.FC = () => {
                   name: 'Carga del Día',
                   colSpan: 1,
                   type: 'daily-load',
+                };
+              }
+            }
+
+            // Athlete: ensure the daily traffic light widget is in row 1 next to training session (KAN-547)
+            const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
+            const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');
+
+            // If it was temporarily in row-2, remove it from row-2
+            if (row2 && Array.isArray(row2.cards)) {
+              const tlIdxInRow2 = row2.cards.findIndex(
+                (c: WireframeCardItem) => c.type === 'daily-traffic-light',
+              );
+              if (tlIdxInRow2 !== -1) {
+                row2.cards[tlIdxInRow2] = {
+                  id: 'a-r2-2',
+                  name: 'Módulo 2-B',
+                  colSpan: 1,
+                  type: 'empty',
+                };
+              }
+            }
+
+            // Place next to "Predio y Horario" in row 1
+            if (row1 && Array.isArray(row1.cards)) {
+              const tlIdxInRow1 = row1.cards.findIndex(
+                (c: WireframeCardItem) => c.type === 'daily-traffic-light',
+              );
+              if (tlIdxInRow1 === -1) {
+                const targetIdx = row1.cards.length > 1 ? 1 : 0;
+                row1.cards[targetIdx] = {
+                  id: 'a-daily-traffic-light',
+                  name: 'Semáforo Diario',
+                  colSpan: 1,
+                  type: 'daily-traffic-light',
                 };
               }
             }
@@ -451,6 +493,8 @@ export const DashboardPage: React.FC = () => {
     switch (card.type) {
       case 'daily-load':
         return <DailyLoadWidget />;
+      case 'daily-traffic-light':
+        return <DailyTrafficLightWidget />;
       case 'training-session':
         return <TrainingSessionWidget />;
       case 'traffic-light-summary':

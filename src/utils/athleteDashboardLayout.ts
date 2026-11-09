@@ -1,5 +1,6 @@
 export const ATHLETE_DASHBOARD_STORAGE_KEY = 'protraining_bento_rows_athlete_v8';
 export const DAILY_LOAD_CARD_ID = 'a-daily-load';
+export const DAILY_TRAFFIC_LIGHT_CARD_ID = 'a-daily-traffic-light';
 
 export interface StoredCard {
   id: string;
@@ -21,6 +22,13 @@ export const DAILY_LOAD_CARD: StoredCard = {
   name: 'Carga del Día',
   colSpan: 1,
   type: 'daily-load',
+};
+
+export const DAILY_TRAFFIC_LIGHT_CARD: StoredCard = {
+  id: DAILY_TRAFFIC_LIGHT_CARD_ID,
+  name: 'Semáforo Diario',
+  colSpan: 1,
+  type: 'daily-traffic-light',
 };
 
 /**
@@ -76,7 +84,7 @@ export const pinDailyLoadWidget = (): boolean => {
           className: 'wireframe-row-1',
           cards: [
             { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
-            { id: 'a-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+            { ...DAILY_TRAFFIC_LIGHT_CARD },
             { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
           ],
         },
