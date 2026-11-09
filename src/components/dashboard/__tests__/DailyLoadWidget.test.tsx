@@ -74,27 +74,34 @@ describe('DailyLoadWidget (KAN-571)', () => {
     vi.mocked(seguimientoService.getDailyLoad).mockResolvedValueOnce({
       date: '2026-11-09',
       message: 'Carga obtenida',
-      totalMinutes: 152,
-      totalLoad: 398,
+      totalMinutes: 302,
+      totalLoad: 1178,
       gym: { minutes: 30, rpe: 5 },
       sportTraining: { minutes: 2, rpe: 4 },
-      match1: { minutes: 0, rpe: null },
-      match2: { minutes: 0, rpe: null },
+      match1: { minutes: 90, rpe: 6 },
+      match2: { minutes: 60, rpe: 4 },
       individualWork: { minutes: 120, rpe: 2 },
     });
 
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('152')).toBeDefined();
+      expect(screen.getByText('302')).toBeDefined();
     });
 
-    expect(screen.getByText('398')).toBeDefined();
+    expect(screen.getByText('1178')).toBeDefined();
     expect(screen.getByText('Hoy · Registrada')).toBeDefined();
     expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
     expect(screen.getByText(/30m/i)).toBeDefined();
     expect(screen.getByText(/Deporte:/i)).toBeDefined();
     expect(screen.getByText(/2m/i)).toBeDefined();
+    expect(screen.getByText(/Partido 1:/i)).toBeDefined();
+    expect(screen.getByText(/90m/i)).toBeDefined();
+    expect(screen.getByText(/Partido 2:/i)).toBeDefined();
+    expect(screen.getByText(/60m/i)).toBeDefined();
+    expect(screen.getByText(/Individual:/i)).toBeDefined();
+    expect(screen.getByText(/120m/i)).toBeDefined();
+    expect(screen.queryByText(/más/i)).toBeNull();
 
     const btnDetail = screen.getByRole('button', { name: /Ver detalle o actualizar/i });
     fireEvent.click(btnDetail);
