@@ -207,15 +207,42 @@
   width: 100%;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .dl-carousel-track {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.75rem calc(50% - 105px);
+    box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-}
 
-@media (max-width: 520px) {
-  .dl-carousel-track {
-    grid-template-columns: repeat(2, 1fr);
+  .dl-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dl-carousel-card {
+    flex: 0 0 210px;
+    width: 210px;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    opacity: 0.65;
+    transform: scale(0.92);
+    transition:
+      transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.28s ease,
+      box-shadow 0.28s ease,
+      border-color 0.28s ease;
+  }
+
+  .dl-carousel-card--active {
+    opacity: 1;
+    transform: scale(1.04);
+    z-index: 2;
   }
 }
 
@@ -1213,15 +1240,29 @@
   width: 100%;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .dl-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.75rem 0.5rem;
+    box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-}
 
-@media (max-width: 520px) {
-  .dl-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .dl-cards-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dl-summary-card {
+    flex: 0 0 175px;
+    width: 175px;
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
   }
 }
 

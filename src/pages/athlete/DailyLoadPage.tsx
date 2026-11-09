@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Dumbbell,
   Activity,
@@ -269,6 +269,7 @@ export const DailyLoadPage: React.FC = () => {
 
   // Carousel navigation between activities
   const currentActivityIndex = ACTIVITIES.findIndex((a) => a.key === selectedActivity);
+  const carouselTrackRef = useRef<HTMLDivElement>(null);
 
   const handlePrevActivity = () => {
     const nextIdx = (currentActivityIndex - 1 + ACTIVITIES.length) % ACTIVITIES.length;
@@ -279,6 +280,60 @@ export const DailyLoadPage: React.FC = () => {
     const nextIdx = (currentActivityIndex + 1) % ACTIVITIES.length;
     setSelectedActivity(ACTIVITIES[nextIdx].key);
   };
+
+  // Mobile sliding carousel: centrar automáticamente la actividad activa
+  useEffect(() => {
+    if (!carouselTrackRef.current) return;
+    const track = carouselTrackRef.current;
+    const activeCard = track.querySelector<HTMLElement>('.dl-carousel-card--active');
+    if (activeCard && typeof activeCard.scrollIntoView === 'function') {
+      activeCard.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  }, [selectedActivity]);
+
+  // Mobile touch swipe listener: actualizar actividad según el scroll en mobile
+  useEffect(() => {
+    const track = carouselTrackRef.current;
+    if (!track) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const handleScroll = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (track.scrollWidth <= track.clientWidth) return;
+        const trackCenter = track.getBoundingClientRect().left + track.clientWidth / 2;
+        const cards = Array.from(track.querySelectorAll<HTMLElement>('.dl-carousel-card'));
+        let closestKey: keyof DailyLoadSubmitRequest | null = null;
+        let minDistance = Infinity;
+
+        cards.forEach((card) => {
+          const cardRect = card.getBoundingClientRect();
+          const cardCenter = cardRect.left + cardRect.width / 2;
+          const dist = Math.abs(trackCenter - cardCenter);
+          if (dist < minDistance) {
+            minDistance = dist;
+            const key = card.getAttribute('data-activity') as keyof DailyLoadSubmitRequest;
+            if (key) closestKey = key;
+          }
+        });
+
+        if (closestKey && closestKey !== selectedActivity) {
+          setSelectedActivity(closestKey);
+        }
+      }, 120);
+    };
+
+    track.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      track.removeEventListener('scroll', handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [selectedActivity]);
 
   // Prefill inputs when selected activity or today's load changes
   useEffect(() => {
@@ -590,6 +645,7 @@ export const DailyLoadPage: React.FC = () => {
                 </div>
 
                 <div
+                  ref={carouselTrackRef}
                   className="dl-carousel-track"
                   role="group"
                   aria-label="Seleccionar actividad"
@@ -604,6 +660,7 @@ export const DailyLoadPage: React.FC = () => {
                       <button
                         key={key}
                         type="button"
+                        data-activity={key}
                         aria-label={label}
                         className={`dl-carousel-card dl-carousel-card--${key} ${isSelected ? 'dl-carousel-card--active' : ''} ${hasMinutes ? 'dl-carousel-card--completed' : ''}`}
                         onClick={() => setSelectedActivity(key)}
