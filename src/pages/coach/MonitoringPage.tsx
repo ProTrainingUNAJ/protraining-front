@@ -818,7 +818,7 @@ export const MonitoringPage: React.FC = () => {
                   </strong>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                     {attendanceResult.summary.presentCount} / {attendanceResult.summary.totalRoster}{' '}
-                    presentes ({attendanceResult.summary.attendancePercentage.toFixed(1)}%)
+                    presentes ({(attendanceResult.summary.attendancePercentage ?? 0).toFixed(1)}%)
                   </span>
                   <button
                     type="button"

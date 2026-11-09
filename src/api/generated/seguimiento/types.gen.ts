@@ -74,7 +74,7 @@ export type DailyLoadRequest = {
 export type DailyLoadResponse = {
     message: string;
     totalMinutes: number;
-    totalLoad?: number;
+    totalLoad: number;
     date: string;
     gym: DailyLoadActivity;
     sportTraining: DailyLoadActivity;
@@ -106,6 +106,13 @@ export type CategoryAttendanceSummary = {
     totalRoster: number;
     presentCount: number;
     attendancePercentage?: number;
+    athletes?: Array<AthleteAttendanceSummary>;
+};
+
+export type AthleteAttendanceSummary = {
+    athleteId: string;
+    athleteName: string;
+    status: 'Present' | 'NoRecord';
 };
 
 /**

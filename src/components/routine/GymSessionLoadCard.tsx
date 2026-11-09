@@ -6,7 +6,6 @@ import {
   type DailyLoadSubmitResponse,
   type DailyLoadSubmitRequest,
 } from '../../api/seguimientoService';
-import axios from 'axios';
 
 export interface GymSessionLoadCardProps {
   athleteId: string;
@@ -27,6 +26,10 @@ export function GymSessionLoadCard({ athleteId }: GymSessionLoadCardProps) {
     setIsLoading(true);
     try {
       const data = await getDailyLoad(athleteId);
+      if (data === null) {
+        setTodayLoad(null);
+        return;
+      }
       setTodayLoad(data);
       if (data.gym?.minutes) {
         setMinutes(data.gym.minutes);
@@ -34,11 +37,8 @@ export function GymSessionLoadCard({ athleteId }: GymSessionLoadCardProps) {
       if (data.gym?.rpe !== undefined && data.gym?.rpe !== null) {
         setRpe(data.gym.rpe);
       }
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
-        // Aún no hay registro de carga hoy
-        setTodayLoad(null);
-      }
+    } catch {
+      setTodayLoad(null);
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +102,7 @@ export function GymSessionLoadCard({ athleteId }: GymSessionLoadCardProps) {
     }
   };
 
-  const hasGymRegistered = todayLoad?.gym && todayLoad.gym.minutes > 0;
+  const hasGymRegistered = (todayLoad?.gym?.minutes ?? 0) > 0;
 
   return (
     <div className="card routine-session-load-card">
@@ -125,7 +125,7 @@ export function GymSessionLoadCard({ athleteId }: GymSessionLoadCardProps) {
           <span className="badge badge-success" style={{ gap: '0.35rem' }}>
             <CheckCircle2 size={13} />
             <span>
-              Registrado: {todayLoad.gym.minutes} min · RPE {todayLoad.gym.rpe ?? '—'}
+              Registrado: {todayLoad?.gym?.minutes ?? 0} min · RPE {todayLoad?.gym?.rpe ?? '—'}
             </span>
           </span>
         )}

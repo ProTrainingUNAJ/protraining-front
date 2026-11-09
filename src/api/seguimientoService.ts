@@ -17,6 +17,16 @@ import { PROTRAINING_MUSCLES } from '../components/athlete/bodyMuscleData';
 import { Category } from '../types/structure';
 import type { AthleteWeek } from '../types/seguimiento';
 import { getAthleteWeek as getAthleteWeekRequest } from './generated/seguimiento';
+import {
+  getDailyLoad as getDailyLoadRequest,
+  registerDailyLoad as registerDailyLoadRequest,
+  getCategoryAttendanceToday as getCategoryAttendanceTodayRequest,
+  setAttendance as setAttendanceRequest,
+  type DailyLoadActivity,
+  type DailyLoadRequest,
+  type DailyLoadResponse,
+  type CategoryAttendanceSummary,
+} from './generated/seguimiento';
 
 export interface CheckInSubmitRequest {
   sleepHours: number;
@@ -476,30 +486,10 @@ export async function updateInjuryStatus(
 // Carga del día (minutos + RPE por actividad) — KAN-442 / issue #147
 // ---------------------------------------------------------------------------
 
-export interface DailyLoadActivityPayload {
-  minutes: number;
-  rpe?: number | null;
-}
-
-export interface DailyLoadSubmitRequest {
-  gym?: DailyLoadActivityPayload;
-  sportTraining?: DailyLoadActivityPayload;
-  match1?: DailyLoadActivityPayload;
-  match2?: DailyLoadActivityPayload;
-  individualWork?: DailyLoadActivityPayload;
-}
-
-export interface DailyLoadSubmitResponse {
-  message: string;
-  totalMinutes: number;
-  totalLoad: number;
-  date: string;
-  gym: DailyLoadActivityPayload;
-  sportTraining: DailyLoadActivityPayload;
-  match1: DailyLoadActivityPayload;
-  match2: DailyLoadActivityPayload;
-  individualWork: DailyLoadActivityPayload;
-}
+// Aliases de tipos para compatibilidad con consumidores existentes.
+export type DailyLoadActivityPayload = DailyLoadActivity;
+export type DailyLoadSubmitRequest = DailyLoadRequest;
+export type DailyLoadSubmitResponse = DailyLoadResponse;
 
 /**
  * Registra/actualiza la carga del día del atleta (minutos + RPE por actividad).
@@ -508,25 +498,37 @@ export interface DailyLoadSubmitResponse {
  */
 export async function submitDailyLoad(
   athleteId: string,
-  payload: DailyLoadSubmitRequest,
-): Promise<DailyLoadSubmitResponse> {
-  const response = await httpClient.post<DailyLoadSubmitResponse>(
-    `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
-    payload,
-  );
-  return response.data;
+  payload: DailyLoadRequest,
+): Promise<DailyLoadResponse> {
+  try {
+    const response = await registerDailyLoadRequest({
+      path: { athleteId },
+      body: payload,
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
 }
 
 /**
  * Obtiene la carga del día ya registrada del atleta.
  * GET `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
- * Devuelve 404 (y propaga el error) si aún no se registró carga hoy.
+ * Devuelve `null` si aún no se registró carga hoy (404).
  */
-export async function getDailyLoad(athleteId: string): Promise<DailyLoadSubmitResponse> {
-  const response = await httpClient.get<DailyLoadSubmitResponse>(
-    `/seguimiento/api/v1/athletes/${athleteId}/daily-load`,
-  );
-  return response.data;
+export async function getDailyLoad(athleteId: string): Promise<DailyLoadResponse | null> {
+  try {
+    const response = await getDailyLoadRequest({
+      path: { athleteId },
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status;
+    if (status === 404) return null;
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -554,30 +556,31 @@ export async function getAthleteWeek(athleteId: string, date?: string): Promise<
 // Asistencia automática del día (KAN-445)
 // ---------------------------------------------------------------------------
 
-export interface AthleteAttendanceSummary {
-  athleteId: string;
-  athleteName: string;
-  status: 'Present' | 'NoRecord';
-}
-
-export interface CategoryAttendanceSummary {
-  categoryId: string;
-  date: string;
-  totalRoster: number;
-  presentCount: number;
-  attendancePercentage: number;
-  athletes?: AthleteAttendanceSummary[];
-}
+// AthleteAttendanceSummary y CategoryAttendanceSummary provienen del SDK generado.
+export type { AthleteAttendanceSummary, CategoryAttendanceSummary } from './generated/seguimiento';
 
 export async function getCategoryAttendanceToday(
   categoryId: string,
 ): Promise<CategoryAttendanceSummary> {
-  const response = await httpClient.get<CategoryAttendanceSummary>(
-    `/seguimiento/api/v1/categories/${categoryId}/attendance-today`,
-  );
-  return response.data;
+  try {
+    const response = await getCategoryAttendanceTodayRequest({
+      path: { categoryId },
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
 }
 
 export async function setAttendance(athleteId: string, present: boolean): Promise<void> {
-  await httpClient.patch(`/seguimiento/api/v1/athletes/${athleteId}/attendance`, { present });
+  try {
+    await setAttendanceRequest({
+      path: { athleteId },
+      body: { present },
+      throwOnError: true,
+    });
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
 }
