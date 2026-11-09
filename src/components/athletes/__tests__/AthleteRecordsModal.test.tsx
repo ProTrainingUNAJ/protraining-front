@@ -138,6 +138,29 @@ describe('AthleteRecordsModal - Pestaña Evolución para el PF (KAN-436 / KAN-43
     expect(screen.queryByRole('button', { name: /Guardar récord/i })).toBeNull();
   });
 
+  it('muestra la unidad en segundos (s) para ejercicios de carrera/tiempo como Pasadas (KAN-457)', async () => {
+    vi.spyOn(athleteRecordsService, 'listCurrent').mockResolvedValue([
+      {
+        id: 'rec-pasadas',
+        exerciseId: 'ex-pasadas',
+        exerciseName: 'Pasadas',
+        weightKg: 14,
+        origin: 'TestedInSession',
+        achievedAt: '2026-11-09T10:00:00Z',
+      },
+    ]);
+
+    render(<AthleteRecordsModal athleteId="ath-10" athleteName="Lucas Gómez" onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Pasadas')).toBeDefined();
+    });
+
+    // En vez de "14 kg", debe mostrar "14 s"
+    expect(screen.getByText('14 s')).toBeDefined();
+    expect(screen.queryByText('14 kg')).toBeNull();
+  });
+
   it('CRITERIO 1: DADO un atleta con 4 tests de salto y su carga cargada CUANDO el PF elige "3 meses" ENTONCES ve las dos series en ese rango', async () => {
     vi.spyOn(athleteEvolutionService, 'getEvolution').mockResolvedValue(sampleEvolution);
 

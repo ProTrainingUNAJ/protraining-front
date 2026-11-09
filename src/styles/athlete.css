@@ -736,6 +736,104 @@
   border-color: var(--success);
 }
 
+/* Registro de tiempos de pasadas (ejercicios de carrera/distancia/tiempo - KAN-457) */
+.routine-pass-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.routine-pass-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.routine-pass-row.completed {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+}
+
+.routine-pass-row.exceeded {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.routine-pass-label-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.routine-pass-title {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.routine-pass-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--white);
+}
+
+.routine-pass-badge.achieved {
+  background: var(--success);
+}
+
+.routine-pass-badge.missed {
+  background: var(--danger);
+}
+
+.routine-pass-diff {
+  opacity: 0.85;
+  font-size: 0.7rem;
+}
+
+.routine-pass-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.routine-pass-input {
+  width: 80px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: right;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.routine-pass-input:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.routine-pass-unit {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 /* Botón disparador de técnica en la tarjeta */
 .routine-tech-btn {
   display: inline-flex;

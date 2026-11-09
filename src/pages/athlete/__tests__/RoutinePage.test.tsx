@@ -111,7 +111,7 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
     expect(screen.queryByTitle('Video de técnica: Sentadilla Trasera')).toBeNull();
   });
 
-  describe('RoutinePage · Meta de tiempo por test (KAN-455)', () => {
+  describe('RoutinePage · Meta de tiempo por test', () => {
     it('Criterio de aceptación: DADO 100 m al 90 % con meta calculada ENTONCES muestra 15,6 s y "6 series × 100 m"', async () => {
       vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
         date: '2026-11-08',
@@ -190,6 +190,51 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       expect(screen.getByText('4 series × 200 m')).toBeTruthy();
       expect(screen.getByText('Sin meta')).toBeTruthy();
       expect(screen.getByText('Ritmo libre')).toBeTruthy();
+    });
+
+    it('Criterio de aceptación KAN-457: DADO una meta de 15,6 s CUANDO el atleta carga 15,2 s ENTONCES la app la marca como cumplida', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-08',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100',
+            name: 'Pasadas',
+            muscleGroup: 'Piernas',
+            sets: 1,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: 15.6,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas')).toBeTruthy();
+      });
+
+      // Busca el campo de texto para cargar el tiempo de la pasada 1
+      const input = screen.getByLabelText(/tiempo de pasada 1/i);
+      expect(input).toBeTruthy();
+
+      // Carga 15.2 s (menor a la meta de 15.6 s)
+      fireEvent.change(input, { target: { value: '15.2' } });
+
+      // Valida que la marque como "Cumplida"
+      expect(screen.getByText('Cumplida')).toBeTruthy();
     });
   });
 });
