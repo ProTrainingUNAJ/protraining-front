@@ -659,9 +659,13 @@
   }
 }
 
-/* Campo de Minutos y Quick Presets (remarcado con el color de la actividad) */
+/* Campo de Minutos y Quick Presets (remarcado y pintado por dentro con el color de la actividad) */
 .dl-field-block {
-  background: var(--bg-subtle);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--active-act-color, var(--primary)) 8%, var(--bg-subtle)),
+    color-mix(in srgb, var(--active-act-color, var(--primary)) 3%, var(--bg-card))
+  );
   border: 1.5px solid var(--active-act-color, var(--border));
   border-radius: 1rem;
   padding: 0.75rem 1.15rem;
@@ -674,7 +678,8 @@
   box-shadow: 0 4px 14px color-mix(in srgb, var(--active-act-color, transparent) 14%, transparent);
   transition:
     border-color 0.25s ease,
-    box-shadow 0.25s ease;
+    box-shadow 0.25s ease,
+    background 0.25s ease;
 }
 
 @media (max-width: 640px) {
