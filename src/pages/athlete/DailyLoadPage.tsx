@@ -10,6 +10,7 @@ import {
   Eye,
   ClipboardList,
 } from 'lucide-react';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
 import {
@@ -54,24 +55,24 @@ const ACTIVITIES: {
   icon: React.ReactNode;
   hint: string;
 }[] = [
-  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={28} />, hint: 'Fuerza, pesas, movilidad' },
+  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={26} />, hint: 'Fuerza, pesas, movilidad' },
   {
     key: 'sportTraining',
     label: 'Entrenamiento del deporte',
-    icon: <Activity size={28} />,
+    icon: <Activity size={26} />,
     hint: 'Práctica técnica/táctica',
   },
-  { key: 'match1', label: 'Partido 1', icon: <Trophy size={28} />, hint: 'Primer partido del día' },
+  { key: 'match1', label: 'Partido 1', icon: <Trophy size={26} />, hint: 'Primer partido del día' },
   {
     key: 'match2',
     label: 'Partido 2',
-    icon: <Trophy size={28} />,
+    icon: <Trophy size={26} />,
     hint: 'Segundo partido del día',
   },
   {
     key: 'individualWork',
     label: 'Trabajo individual',
-    icon: <User size={28} />,
+    icon: <User size={26} />,
     hint: 'Extra, recuperación, técnica',
   },
 ];
@@ -120,14 +121,14 @@ export const DailyLoadPage: React.FC = () => {
     }
   }, [user?.id]);
 
-  // ---- Modo ver carga de hoy ----
+  // Mode: register vs view today's load
   const [viewMode, setViewMode] = useState<ViewMode>('register');
   const [todayLoad, setTodayLoad] = useState<DailyLoadSubmitResponse | null>(null);
   const [isLoadingToday, setIsLoadingToday] = useState(false);
   const [todayError, setTodayError] = useState<string | null>(null);
   const [is404, setIs404] = useState(false);
 
-  // ---- Semana del atleta con días completados (KAN-446) ----
+  // Athlete week with completed days (KAN-446)
   const [week, setWeek] = useState<AthleteWeek | null>(null);
   const [isLoadingWeek, setIsLoadingWeek] = useState(false);
 
@@ -152,21 +153,21 @@ export const DailyLoadPage: React.FC = () => {
     setIs404(false);
     try {
       const data = await getDailyLoad(id);
-      if (data === null) {
+      setTodayLoad(data);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
         setIs404(true);
         setTodayLoad(null);
       } else {
-        setTodayLoad(data);
+        setTodayError(err instanceof Error ? err.message : 'Error al obtener la carga del día.');
+        setTodayLoad(null);
       }
-    } catch (err: unknown) {
-      setTodayError(err instanceof Error ? err.message : 'Error al obtener la carga del día.');
-      setTodayLoad(null);
     } finally {
       setIsLoadingToday(false);
     }
   }, []);
 
-  // Carga de la semana al tener athleteId
+  // Fetch week when athleteId becomes available
   useEffect(() => {
     if (!athleteId) return;
     let isMounted = true;
@@ -179,20 +180,9 @@ export const DailyLoadPage: React.FC = () => {
     };
   }, [athleteId, fetchWeek]);
 
-  // Carga inicial / al cambiar de modo
+  // Load today's load on initial load or mode switch
   useEffect(() => {
     if (!athleteId) return;
-    if (viewMode === 'view') {
-      let isMounted = true;
-      const timer = setTimeout(() => {
-        if (isMounted) void fetchTodayLoad(athleteId);
-      }, 0);
-      return () => {
-        isMounted = false;
-        clearTimeout(timer);
-      };
-    }
-    // En modo registro, precargamos la carga existente para no pisar otras actividades
     let isMounted = true;
     const timer = setTimeout(() => {
       if (isMounted) void fetchTodayLoad(athleteId);
@@ -203,7 +193,7 @@ export const DailyLoadPage: React.FC = () => {
     };
   }, [viewMode, athleteId, fetchTodayLoad]);
 
-  // ---- Modo registrar ----
+  // Registration mode state
   const [selectedActivity, setSelectedActivity] = useState<keyof DailyLoadSubmitRequest>('gym');
   const [regMinutes, setRegMinutes] = useState<number>(0);
   const [regRpe, setRegRpe] = useState<number | null>(null);
@@ -211,7 +201,7 @@ export const DailyLoadPage: React.FC = () => {
   const [result, setResult] = useState<DailyLoadSubmitResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Prefill inputs cuando cambia la actividad seleccionada o la carga existente
+  // Prefill inputs when selected activity or today's load changes
   useEffect(() => {
     let isMounted = true;
     const timer = setTimeout(() => {
@@ -253,7 +243,7 @@ export const DailyLoadPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      // Preservar las demás actividades de la carga existente (si la hay)
+      // Preserve other activities in today's payload
       const payload: DailyLoadSubmitRequest = {};
       for (const { key } of ACTIVITIES) {
         payload[key] = activityFromLoad(todayLoad, key);
@@ -274,130 +264,163 @@ export const DailyLoadPage: React.FC = () => {
 
   const selectedMeta = ACTIVITIES.find((a) => a.key === selectedActivity)!;
 
-  // Pantalla de resultado (tras registrar)
+  // Result screen after successful registration
   if (result) {
     return (
-      <div className="dl-page">
-        <div className="dl-result">
-          <div className="dl-result-icon">
-            <CheckCircle2 size={44} />
+      <div className="app-page-container">
+        <PageHeader title="Carga del día" description="Registrá minutos y RPE por actividad" />
+        <div className="app-page-body">
+          <div className="dl-result-wrapper">
+            <div className="dl-result">
+              <div className="dl-result-icon" aria-hidden="true">
+                <CheckCircle2 size={44} />
+              </div>
+              <h2 className="dl-result-title">¡Carga registrada!</h2>
+              <p className="dl-result-msg">{result.message}</p>
+              <div className="dl-result-total">
+                <p className="dl-result-total-value">{result.totalMinutes} min</p>
+                <p className="dl-result-total-label">Total del día · {result.date}</p>
+                <p className="dl-result-total-label">Carga del día: {result.totalLoad}</p>
+              </div>
+              <ul className="dl-result-list">
+                {ACTIVITIES.map(({ key, label }) => (
+                  <li key={key}>
+                    <span>{label}</span>
+                    <span className="dl-result-val">
+                      {result[key]?.minutes ?? 0} min · RPE {result[key]?.rpe ?? '—'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={() => {
+                  setResult(null);
+                  setRegMinutes(0);
+                  setRegRpe(null);
+                  setErrorMessage(null);
+                }}
+                className="dl-btn dl-btn-primary"
+              >
+                Registrar otra actividad
+              </button>
+            </div>
           </div>
-          <h2 className="dl-result-title">¡Carga registrada!</h2>
-          <p className="dl-result-msg">{result.message}</p>
-          <div className="dl-result-total">
-            <p className="dl-result-total-value">{result.totalMinutes} min</p>
-            <p className="dl-result-total-label">Total del día · {result.date}</p>
-            <p className="dl-result-total-label">Carga del día: {result.totalLoad}</p>
-          </div>
-          <ul className="dl-result-list">
-            {ACTIVITIES.map(({ key, label }) => (
-              <li key={key}>
-                <span>{label}</span>
-                <span className="dl-result-val">
-                  {result[key]?.minutes ?? 0} min · RPE {result[key]?.rpe ?? '—'}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={() => {
-              setResult(null);
-              setRegMinutes(0);
-              setRegRpe(null);
-              setErrorMessage(null);
-            }}
-            className="dl-btn dl-btn-primary"
-          >
-            Registrar otra actividad
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="dl-page">
-      <div className="dl-container">
-        <PageHeader title="Carga del día" description="Registrá minutos y RPE por actividad" />
+    <div className="app-page-container">
+      <PageHeader title="Carga del día" description="Registrá minutos y RPE por actividad" />
 
+      <div className="app-page-body dl-page-body">
         {athleteResolutionError && (
-          <div className="dl-amber">
-            <AlertTriangle size={16} />
-            {athleteResolutionError}
+          <div className="dl-amber" role="alert">
+            <AlertTriangle size={18} />
+            <span>{athleteResolutionError}</span>
           </div>
         )}
 
-        {/* Tira de la semana con los días completados (KAN-446) */}
-        <div className="dl-week">
-          <p className="dl-week-title">Tu semana</p>
+        {/* Week completion strip card (KAN-446) */}
+        <section className="dl-week-card" aria-label="Semana del atleta">
+          <div className="dl-week-header">
+            <h2 className="dl-week-title">Tu semana</h2>
+            <span className="dl-week-subtitle">Días con carga registrada</span>
+          </div>
           <WeekCompletionStrip days={week?.days ?? []} isLoading={isLoadingWeek} />
           {!isLoadingWeek && (!week || week.days.length === 0) && (
             <p className="dl-week-empty">
               No se pudo cargar la semana. Reintentá en unos segundos.
             </p>
           )}
-        </div>
+        </section>
 
-        {/* Toggle Registrar / Ver carga de hoy */}
-        <div className="dl-toggle">
-          <button
-            type="button"
-            className={`dl-toggle-btn ${viewMode === 'register' ? 'dl-toggle-btn-active' : ''}`}
-            onClick={() => setViewMode('register')}
-          >
-            <ClipboardList size={16} /> Registrar
-          </button>
-          <button
-            type="button"
-            className={`dl-toggle-btn ${viewMode === 'view' ? 'dl-toggle-btn-active' : ''}`}
-            onClick={() => setViewMode('view')}
-          >
-            <Eye size={16} /> Ver carga de hoy
-          </button>
+        {/* Toggle Register / View today's load */}
+        <div className="dl-toggle-wrapper">
+          <div className="dl-toggle" role="tablist" aria-label="Modo de vista">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'register'}
+              className={`dl-toggle-btn ${viewMode === 'register' ? 'dl-toggle-btn-active' : ''}`}
+              onClick={() => setViewMode('register')}
+            >
+              <ClipboardList size={16} /> Registrar actividad
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'view'}
+              className={`dl-toggle-btn ${viewMode === 'view' ? 'dl-toggle-btn-active' : ''}`}
+              onClick={() => setViewMode('view')}
+            >
+              <Eye size={16} /> Ver carga de hoy
+            </button>
+          </div>
         </div>
 
         {viewMode === 'view' ? (
-          <div className="dl-view">
+          <div className="dl-view-container">
             {isLoadingToday && <div className="dl-view-loading">Cargando carga del día…</div>}
 
             {!isLoadingToday && is404 && (
-              <div className="dl-empty">
+              <div className="dl-empty-card">
                 <p className="dl-empty-text">Aún no registraste carga hoy</p>
+                <p className="dl-empty-sub">
+                  Seleccioná una actividad para comenzar a cargar tus minutos y nivel de esfuerzo.
+                </p>
                 <button
                   type="button"
                   className="dl-btn dl-btn-primary"
                   onClick={() => setViewMode('register')}
                 >
-                  Ir a registrar
+                  <ClipboardList size={16} /> Ir a registrar
                 </button>
               </div>
             )}
 
             {!isLoadingToday && todayError && (
-              <div className="dl-error">
-                <AlertTriangle size={16} />
-                {todayError}
+              <div className="dl-error" role="alert">
+                <AlertTriangle size={18} />
+                <span>{todayError}</span>
               </div>
             )}
 
             {!isLoadingToday && todayLoad && (
-              <>
-                <div className="dl-result-total">
-                  <p className="dl-result-total-value">{todayLoad.totalMinutes} min</p>
-                  <p className="dl-result-total-label">Total del día · {todayLoad.date}</p>
-                  <p className="dl-result-total-label">Carga del día: {todayLoad.totalLoad}</p>
+              <div className="dl-view-content">
+                <div className="dl-view-summary-banner">
+                  <div className="dl-summary-metric">
+                    <span className="dl-summary-metric-val">{todayLoad.totalMinutes} min</span>
+                    <span className="dl-summary-metric-lbl">Total minutos · {todayLoad.date}</span>
+                  </div>
+                  <div className="dl-summary-divider" aria-hidden="true" />
+                  <div className="dl-summary-metric">
+                    <span className="dl-summary-metric-val dl-summary-metric-val--primary">
+                      {todayLoad.totalLoad}
+                    </span>
+                    <span className="dl-summary-metric-lbl">Carga del día (minutos × RPE)</span>
+                  </div>
                 </div>
 
-                {/* Listado (sin filtro) */}
-                <div className="dl-cards">
-                  {ACTIVITIES.map(({ key, label, icon }) => {
+                {/* Responsive grid of activity cards */}
+                <div className="dl-cards-grid">
+                  {ACTIVITIES.map(({ key, label, icon, hint }) => {
                     const data = todayLoad[key as keyof DailyLoadSubmitResponse] as
                       { minutes: number; rpe: number | null } | undefined;
+                    const hasMinutes = (data?.minutes ?? 0) > 0;
                     return (
-                      <div key={key} className="dl-summary-card">
-                        <div className="dl-summary-icon">{icon}</div>
+                      <div
+                        key={key}
+                        className={`dl-summary-card ${hasMinutes ? 'dl-summary-card--active' : ''}`}
+                      >
+                        <div className="dl-summary-icon" aria-hidden="true">
+                          {icon}
+                        </div>
                         <div className="dl-summary-body">
                           <p className="dl-summary-label">{label}</p>
+                          <p className="dl-summary-hint">{hint}</p>
                           <p className="dl-summary-value">
                             {data?.minutes ?? 0} min · RPE {data?.rpe ?? '—'}
                           </p>
@@ -406,13 +429,13 @@ export const DailyLoadPage: React.FC = () => {
                     );
                   })}
                 </div>
-              </>
+              </div>
             )}
           </div>
         ) : (
-          <>
-            {/* Selector de actividad (chips) */}
-            <div className="dl-chips">
+          <div className="dl-form-container">
+            {/* Activity selector chips */}
+            <div className="dl-chips" role="group" aria-label="Seleccionar actividad">
               {ACTIVITIES.map(({ key, label }) => (
                 <button
                   key={key}
@@ -427,7 +450,9 @@ export const DailyLoadPage: React.FC = () => {
 
             <div className="dl-card">
               <div className="flex flex-col items-center text-center gap-3">
-                <div className="dl-icon-circle">{selectedMeta.icon}</div>
+                <div className="dl-icon-circle" aria-hidden="true">
+                  {selectedMeta.icon}
+                </div>
                 <div>
                   <h2 className="dl-title">{selectedMeta.label}</h2>
                   <p className="dl-subtitle">{selectedMeta.hint}</p>
@@ -436,8 +461,9 @@ export const DailyLoadPage: React.FC = () => {
 
               <div className="dl-grid">
                 <div className="dl-field">
-                  <label>Minutos</label>
+                  <label htmlFor="dl-input-minutes">Minutos</label>
                   <input
+                    id="dl-input-minutes"
                     type="number"
                     min={0}
                     value={regMinutes}
@@ -449,8 +475,9 @@ export const DailyLoadPage: React.FC = () => {
                   />
                 </div>
                 <div className="dl-field">
-                  <label>RPE (0–10)</label>
+                  <label htmlFor="dl-input-rpe">RPE (0–10)</label>
                   <input
+                    id="dl-input-rpe"
                     type="number"
                     min={0}
                     max={10}
@@ -466,27 +493,27 @@ export const DailyLoadPage: React.FC = () => {
               </div>
 
               <p className="dl-hint">Si no hiciste esta actividad, dejá minutos en 0.</p>
-            </div>
 
-            {errorMessage && (
-              <div className="dl-error">
-                <AlertTriangle size={16} />
-                {errorMessage}
+              {errorMessage && (
+                <div className="dl-error" role="alert">
+                  <AlertTriangle size={18} />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              <div className="dl-nav">
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="dl-btn dl-btn-primary"
+                >
+                  <Send size={18} />
+                  {isSubmitting ? 'Guardando...' : 'Guardar carga'}
+                </button>
               </div>
-            )}
-
-            <div className="dl-nav">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="dl-btn dl-btn-primary"
-              >
-                <Send size={18} />
-                {isSubmitting ? 'Guardando...' : 'Guardar carga'}
-              </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
