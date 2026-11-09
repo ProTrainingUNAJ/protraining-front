@@ -415,55 +415,6 @@ export const DailyLoadPage: React.FC = () => {
   // Completed days count for weekly streak gamification
   const completedDaysCount = week?.days ? week.days.filter((d) => d.completed).length : 0;
 
-  // Result screen after successful registration
-  if (result) {
-    return (
-      <div className="app-page-container">
-        {showConfetti && <ConfettiCelebration durationMs={4500} particleCount={140} />}
-        <PageHeader title="Carga del día" description="Registrá minutos y RPE por actividad" />
-        <div className="app-page-body">
-          <div className="dl-result-wrapper">
-            <div className="dl-result">
-              <div className="dl-result-icon" aria-hidden="true">
-                <CheckCircle2 size={44} />
-              </div>
-              <h2 className="dl-result-title">¡Carga registrada!</h2>
-              <p className="dl-result-msg">{result.message}</p>
-              <div className="dl-result-total">
-                <p className="dl-result-total-value">{result.totalMinutes} min</p>
-                <p className="dl-result-total-label">Total del día · {result.date}</p>
-                <p className="dl-result-total-label">Carga del día: {result.totalLoad}</p>
-              </div>
-              <ul className="dl-result-list">
-                {ACTIVITIES.map(({ key, label }) => (
-                  <li key={key}>
-                    <span>{label}</span>
-                    <span className="dl-result-val">
-                      {result[key]?.minutes ?? 0} min · RPE {result[key]?.rpe ?? '—'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={() => {
-                  setResult(null);
-                  setShowConfetti(false);
-                  setRegMinutes(0);
-                  setRegRpe(null);
-                  setErrorMessage(null);
-                }}
-                className="dl-btn dl-btn-primary"
-              >
-                Registrar otra actividad
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="app-page-container">
       <PageHeader title="Carga del día" description="Registrá minutos y RPE por actividad" />
@@ -956,6 +907,55 @@ export const DailyLoadPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal / Diálogo translúcido de celebración al registrar con éxito (fondo visible con efecto glass) */}
+      {result && (
+        <div
+          className="dl-result-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dl-result-title"
+        >
+          {showConfetti && <ConfettiCelebration durationMs={4500} particleCount={140} />}
+          <div className="dl-result-modal">
+            <div className="dl-result-icon" aria-hidden="true">
+              <CheckCircle2 size={44} />
+            </div>
+            <h2 id="dl-result-title" className="dl-result-title">
+              ¡Carga registrada!
+            </h2>
+            <p className="dl-result-msg">{result.message}</p>
+            <div className="dl-result-total">
+              <p className="dl-result-total-value">{result.totalMinutes} min</p>
+              <p className="dl-result-total-label">Total del día · {result.date}</p>
+              <p className="dl-result-total-label">Carga del día: {result.totalLoad}</p>
+            </div>
+            <ul className="dl-result-list">
+              {ACTIVITIES.map(({ key, label }) => (
+                <li key={key}>
+                  <span>{label}</span>
+                  <span className="dl-result-val">
+                    {result[key]?.minutes ?? 0} min · RPE {result[key]?.rpe ?? '—'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => {
+                setResult(null);
+                setShowConfetti(false);
+                setRegMinutes(0);
+                setRegRpe(null);
+                setErrorMessage(null);
+              }}
+              className="dl-btn dl-btn-primary"
+            >
+              Registrar otra actividad
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

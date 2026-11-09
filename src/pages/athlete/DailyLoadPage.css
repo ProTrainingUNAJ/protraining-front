@@ -1327,27 +1327,49 @@
   font-weight: 800;
 }
 
-/* ── Pantalla de Confirmación / Celebración ── */
-.dl-result-wrapper {
+/* ── Overlay Modal Translúcido de Confirmación (Fondo visible con efecto glassmorphism) ── */
+.dl-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
+  align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 1rem 0;
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 1.25rem;
+  box-sizing: border-box;
+  animation: dlFadeIn 0.25s ease-out;
 }
 
-.dl-result {
+@keyframes dlFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dl-result-modal {
   width: 100%;
-  max-width: 32rem;
+  max-width: 30rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    0 24px 48px -12px color-mix(in srgb, var(--black) 25%, transparent),
+    0 4px 16px color-mix(in srgb, var(--primary) 15%, transparent);
   padding: 2.25rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.35rem;
+  gap: 1.25rem;
   text-align: center;
   animation: dlPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .dl-result-icon {
