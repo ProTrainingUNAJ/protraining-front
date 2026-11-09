@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
+import type { ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -171,6 +171,53 @@ export const getAthleteDayConflicts = <ThrowOnError extends boolean = false>(opt
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/assistant/athletes/{athleteId}/day-conflicts',
     ...options
+});
+
+/**
+ * Generar propuesta de ajuste del día a partir de los conflictos de hoy
+ *
+ * Genera y persiste la propuesta de ajuste del día (`day_adjustments`) a partir de los conflictos de dolor de hoy (KAN-451). El ejercicio sustituto se elige por reglas (el primero de la lista de sustitutos habilitados de KAN-387) y la IA solo redacta la justificación (con respaldo por reglas si Ollama y Gemini fallan o están apagados). Si ya existe una propuesta `Pending` para hoy, devuelve esa sin duplicarla.
+ *
+ */
+export const createAthleteDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<CreateAthleteDayAdjustmentData, ThrowOnError>): RequestResult<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/day-adjustments',
+    ...options
+});
+
+/**
+ * Aprobar propuesta de ajuste del día y aplicarla en Entrenamiento
+ *
+ * Aprueba la propuesta de ajuste del día (permitiendo cambiar el sustituto por otro de la lista de sustitutos habilitados de KAN-387), llama a Entrenamiento para aplicar el ajuste en la sesión del atleta y guarda la decisión en la memoria del PF (`pf_decisions`) dentro de la misma transacción.
+ *
+ */
+export const approveDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<ApproveDayAdjustmentData, ThrowOnError>): RequestResult<ApproveDayAdjustmentResponses, ApproveDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<ApproveDayAdjustmentResponses, ApproveDayAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/day-adjustments/{id}/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Rechazar propuesta de ajuste del día
+ *
+ * Rechaza la propuesta dejando la sesión sin cambios y registra la decisión en la memoria del PF (`pf_decisions`) dentro de la misma transacción.
+ *
+ */
+export const rejectDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<RejectDayAdjustmentData, ThrowOnError>): RequestResult<RejectDayAdjustmentResponses, RejectDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<RejectDayAdjustmentResponses, RejectDayAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/day-adjustments/{id}/reject',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

@@ -176,6 +176,46 @@ export type DayConflictsResponse = {
      */
     message?: string | null;
     conflicts: Array<DayConflictItem>;
+    sessionId?: string | null;
+};
+
+export type DayAdjustmentItem = {
+    originalExerciseId: string;
+    originalExerciseName: string;
+    suggestedSubstituteExerciseId: string;
+    suggestedSubstituteExerciseName: string;
+    substituteExerciseId: string;
+    substituteExerciseName: string;
+    zone: string;
+    painLevel: number;
+    reason: string;
+    availableSubstitutes: Array<DayConflictSubstitute>;
+};
+
+export type DayAdjustmentResponse = {
+    id: string;
+    athleteId: string;
+    date: string;
+    sessionId: string;
+    status: 'Pending' | 'Approved' | 'Rejected';
+    items: Array<DayAdjustmentItem>;
+    justification: string;
+    provider: string;
+    rejectionReason?: string | null;
+    createdAt?: string | null;
+};
+
+export type ApproveDayAdjustmentItemInput = {
+    originalExerciseId: string;
+    substituteExerciseId: string;
+};
+
+export type ApproveDayAdjustmentRequest = {
+    items?: Array<ApproveDayAdjustmentItemInput> | null;
+};
+
+export type RejectDayAdjustmentRequest = {
+    reason?: string | null;
 };
 
 export type DayConflictItem = {
@@ -571,6 +611,148 @@ export type GetAthleteDayConflictsResponses = {
 };
 
 export type GetAthleteDayConflictsResponse = GetAthleteDayConflictsResponses[keyof GetAthleteDayConflictsResponses];
+
+export type CreateAthleteDayAdjustmentData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/day-adjustments';
+};
+
+export type CreateAthleteDayAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type CreateAthleteDayAdjustmentError = CreateAthleteDayAdjustmentErrors[keyof CreateAthleteDayAdjustmentErrors];
+
+export type CreateAthleteDayAdjustmentResponses = {
+    /**
+     * Propuesta de ajuste del día generada o recuperada exitosamente.
+     */
+    200: DayAdjustmentResponse;
+};
+
+export type CreateAthleteDayAdjustmentResponse = CreateAthleteDayAdjustmentResponses[keyof CreateAthleteDayAdjustmentResponses];
+
+export type ApproveDayAdjustmentData = {
+    body?: ApproveDayAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la propuesta de ajuste del día.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/day-adjustments/{id}/approve';
+};
+
+export type ApproveDayAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type ApproveDayAdjustmentError = ApproveDayAdjustmentErrors[keyof ApproveDayAdjustmentErrors];
+
+export type ApproveDayAdjustmentResponses = {
+    /**
+     * Propuesta aprobada y aplicada en la rutina del atleta.
+     */
+    200: DayAdjustmentResponse;
+};
+
+export type ApproveDayAdjustmentResponse = ApproveDayAdjustmentResponses[keyof ApproveDayAdjustmentResponses];
+
+export type RejectDayAdjustmentData = {
+    body?: RejectDayAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la propuesta de ajuste del día.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/day-adjustments/{id}/reject';
+};
+
+export type RejectDayAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type RejectDayAdjustmentError = RejectDayAdjustmentErrors[keyof RejectDayAdjustmentErrors];
+
+export type RejectDayAdjustmentResponses = {
+    /**
+     * Propuesta rechazada exitosamente.
+     */
+    200: DayAdjustmentResponse;
+};
+
+export type RejectDayAdjustmentResponse = RejectDayAdjustmentResponses[keyof RejectDayAdjustmentResponses];
 
 export type GetAthleteDecisionsData = {
     body?: never;

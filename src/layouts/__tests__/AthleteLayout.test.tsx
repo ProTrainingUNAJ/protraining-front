@@ -40,6 +40,7 @@ describe('AthleteLayout (KAN-326)', () => {
       selectedRole: 'Atleta',
       setSelectedRole: vi.fn(),
       login: vi.fn(),
+      registerByInvitation: vi.fn(),
       logout: vi.fn(),
       theme: 'light',
       themePreference: 'system',

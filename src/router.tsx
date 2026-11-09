@@ -21,6 +21,7 @@ import { CheckInPage } from './pages/athlete/CheckInPage';
 import { DailyLoadPage } from './pages/athlete/DailyLoadPage';
 import { ProgressPage } from './pages/athlete/ProgressPage';
 import { SettingsPage as AthleteSettingsPage } from './pages/athlete/SettingsPage';
+import { InvitationLandingPage } from './pages/athlete/InvitationLandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'login/atleta', element: <LoginPage /> },
       { path: 'login/pf', element: <LoginPage /> },
+      { path: 'invite/:token', element: <InvitationLandingPage /> },
       {
         path: 'pf',
         element: <RequireAuth allowedRole="PreparadorFisico" />,

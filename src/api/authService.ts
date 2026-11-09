@@ -41,6 +41,48 @@ export const authService = {
   },
 
   /**
+   * Registers a new athlete account using a category invitation token (KAN-398 / KAN-397).
+   */
+  async registerByInvitation(request: {
+    email: string;
+    password: string;
+    fullName: string;
+    token: string;
+    deviceId?: string;
+  }): Promise<AuthSession> {
+    const deviceId = request.deviceId ?? getDeviceId();
+    const response = await httpClient.post<LoginResponse>(
+      '/identidad/api/v1/auth/register-by-invitation',
+      {
+        ...request,
+        email: request.email.trim(),
+        deviceId,
+      },
+    );
+
+    const data = response.data;
+    const expiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
+
+    const session: AuthSession = {
+      accessToken: data.accessToken,
+      tokenType: data.tokenType || 'Bearer',
+      expiresAt,
+      refreshToken: data.refreshToken,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.fullName,
+        role: data.user.role,
+        pfId: data.user.pfId ?? null,
+        phoneNumber: data.user.phoneNumber ?? null,
+      },
+    };
+
+    saveStoredSession(session);
+    return session;
+  },
+
+  /**
    * Logs out current user and clears session storage
    */
   logout() {

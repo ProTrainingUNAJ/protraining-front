@@ -57,3 +57,16 @@ export function formatInvitationExpiration(isoDateTime: string | Date): string {
 
   return `${datePart} a las ${timePart} hs`;
 }
+
+// Determines if a birth date corresponds to an athlete under 18 years old according to current Argentina date.
+export function isMinorInArgentina(birthDateIso: string): boolean {
+  if (!birthDateIso || !/^\d{4}-\d{2}-\d{2}$/.test(birthDateIso)) return false;
+  const [bYear, bMonth, bDay] = birthDateIso.split('-').map(Number);
+  const [todayYear, todayMonth, todayDay] = todayInArgentina().split('-').map(Number);
+
+  let age = todayYear - bYear;
+  if (todayMonth < bMonth || (todayMonth === bMonth && todayDay < bDay)) {
+    age--;
+  }
+  return age < 18;
+}

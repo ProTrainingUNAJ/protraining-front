@@ -5,6 +5,7 @@ import {
   getCachedInvitation,
   storeCachedInvitation,
   clearCachedInvitation,
+  getHttpErrorStatus,
 } from '../categoryInvitations';
 import * as generatedApi from '../generated/estructura';
 
@@ -12,6 +13,7 @@ vi.mock('../generated/estructura', async () => {
   return {
     generateCategoryInvitationToken: vi.fn(),
     validateCategoryInvitationToken: vi.fn(),
+    acceptCategoryInvitation: vi.fn(),
   };
 });
 
@@ -242,6 +244,81 @@ describe('categoryInvitationsService', () => {
       await expect(categoryInvitationsService.validate('expired-token')).rejects.toThrow(
         'Invitación caducada.',
       );
+    });
+  });
+
+  describe('accept', () => {
+    it('llama a acceptCategoryInvitation y retorna los datos del atleta creado', async () => {
+      const mockAthlete = {
+        id: 'ath-123',
+        firstName: 'Mateo',
+        lastName: 'Fernández',
+        email: 'mateo@ejemplo.com',
+      };
+
+      vi.mocked(generatedApi.acceptCategoryInvitation).mockResolvedValueOnce({
+        data: mockAthlete,
+      } as never);
+
+      const payload = {
+        firstName: 'Mateo',
+        lastName: 'Fernández',
+        email: 'mateo@ejemplo.com',
+        phone: '+5491112345678',
+        birthDate: '2005-05-15',
+      };
+
+      const result = await categoryInvitationsService.accept('tok-abc', payload);
+
+      expect(generatedApi.acceptCategoryInvitation).toHaveBeenCalledWith({
+        path: { token: 'tok-abc' },
+        body: payload,
+        throwOnError: true,
+      });
+
+      expect(result).toEqual(mockAthlete);
+    });
+
+    it('propaga error cuando falla la aceptación', async () => {
+      vi.mocked(generatedApi.acceptCategoryInvitation).mockRejectedValueOnce(
+        new Error('Debe proporcionar tutor.'),
+      );
+
+      await expect(
+        categoryInvitationsService.accept('tok-abc', {
+          firstName: 'Mateo',
+          lastName: 'Fernández',
+          email: 'mateo@ejemplo.com',
+          phone: '+5491112345678',
+          birthDate: '2010-05-15',
+        }),
+      ).rejects.toThrow('Debe proporcionar tutor.');
+    });
+  });
+
+  describe('getHttpErrorStatus', () => {
+    it('obtiene el status de un AxiosError', () => {
+      const axiosErr = {
+        isAxiosError: true,
+        response: { status: 410 },
+      };
+      expect(getHttpErrorStatus(axiosErr)).toBe(410);
+    });
+
+    it('obtiene el status de un error con propiedad status directa', () => {
+      const err = { status: 404 };
+      expect(getHttpErrorStatus(err)).toBe(404);
+    });
+
+    it('obtiene el status anidado en cause', () => {
+      const inner = { response: { status: 409 } };
+      const err = new Error('Conflicto', { cause: inner });
+      expect(getHttpErrorStatus(err)).toBe(409);
+    });
+
+    it('devuelve undefined si no hay status', () => {
+      expect(getHttpErrorStatus(new Error('Simple'))).toBeUndefined();
+      expect(getHttpErrorStatus(null)).toBeUndefined();
     });
   });
 });
