@@ -322,6 +322,7 @@ export type TodayRoutineExercise = {
      * Músculos secundarios o estabilizadores involucrados.
      */
     secondaryMuscles?: Array<string>;
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
     sets: number;
     reps: number;
     percentage?: number;
@@ -345,6 +346,10 @@ export type TodayRoutineExercise = {
      * True si el ejercicio no tiene récord previo y la serie se prescribe como de referencia para probar y registrar.
      */
     isReference: boolean;
+    /**
+     * Meta de tiempo calculada en segundos (KAN-455). Null si no tiene test.
+     */
+    targetTimeSeconds?: number | null;
 };
 
 export type TodayRoutineResponse = {
@@ -365,6 +370,18 @@ export type TodayRoutineResponse = {
      */
     startTime?: string | null;
     exercises: Array<TodayRoutineExercise>;
+    /**
+     * Identificador de la sesión de entrenamiento programada para la fecha.
+     */
+    sessionId?: string | null;
+    /**
+     * Indica si el preparador físico aprobó un ajuste de la sesión para esta fecha (KAN-452).
+     */
+    adjustedByCoach?: boolean;
+    /**
+     * Nota explicativa del ajuste aprobado por el preparador físico (KAN-452).
+     */
+    adjustmentNote?: string | null;
 };
 
 export type PerformedSetInput = {
@@ -455,6 +472,36 @@ export type TrainingSession = {
      */
     dayOfWeek: number;
     coachNotes?: string | null;
+};
+
+export type ApplyAthleteSessionAdjustmentItem = {
+    originalExerciseId: string;
+    substituteExerciseId: string;
+};
+
+export type ApplyAthleteSessionAdjustmentRequest = {
+    athleteId: string;
+    date: string;
+    /**
+     * Identificador del plan de entrenamiento vigente vinculado (KAN-463).
+     */
+    trainingPlanId?: string | null;
+    note?: string | null;
+    items: Array<ApplyAthleteSessionAdjustmentItem>;
+};
+
+export type ApplyAthleteSessionAdjustmentResponse = {
+    id: string;
+    athleteId: string;
+    /**
+     * Identificador del plan de entrenamiento vigente vinculado (KAN-463).
+     */
+    trainingPlanId?: string | null;
+    sessionId: string;
+    date: string;
+    adjustedByCoach: boolean;
+    note?: string | null;
+    items: Array<ApplyAthleteSessionAdjustmentItem>;
 };
 
 export type UpdateCoachNotesRequest = {
@@ -947,7 +994,8 @@ export type CompleteOnboardingError = CompleteOnboardingErrors[keyof CompleteOnb
 
 export type CompleteOnboardingResponses = {
     /**
-     * Marcas registradas exitosamente.
+     * Marcas nuevas registradas como estimadas. Puede devolver un arreglo vacío si todos los ejercicios declarados ya tenían un récord vigente.
+     *
      */
     201: Array<Record>;
 };
@@ -1684,6 +1732,99 @@ export type UpdateTrainingSessionNotesResponses = {
 };
 
 export type UpdateTrainingSessionNotesResponse = UpdateTrainingSessionNotesResponses[keyof UpdateTrainingSessionNotesResponses];
+
+export type GetAthleteSessionAdjustmentData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la sesión de entrenamiento.
+         */
+        sessionId: string;
+    };
+    query: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+        /**
+         * Fecha de la sesión (por defecto hoy en hora de Argentina).
+         */
+        date?: string;
+    };
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments';
+};
+
+export type GetAthleteSessionAdjustmentErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteSessionAdjustmentError = GetAthleteSessionAdjustmentErrors[keyof GetAthleteSessionAdjustmentErrors];
+
+export type GetAthleteSessionAdjustmentResponses = {
+    /**
+     * Ajuste o variante de sesión recuperado exitosamente.
+     */
+    200: ApplyAthleteSessionAdjustmentResponse;
+};
+
+export type GetAthleteSessionAdjustmentResponse = GetAthleteSessionAdjustmentResponses[keyof GetAthleteSessionAdjustmentResponses];
+
+export type ApplyAthleteSessionAdjustmentData = {
+    body: ApplyAthleteSessionAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la sesión de entrenamiento.
+         */
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments';
+};
+
+export type ApplyAthleteSessionAdjustmentErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type ApplyAthleteSessionAdjustmentError = ApplyAthleteSessionAdjustmentErrors[keyof ApplyAthleteSessionAdjustmentErrors];
+
+export type ApplyAthleteSessionAdjustmentResponses = {
+    /**
+     * Ajuste aplicado exitosamente.
+     */
+    200: ApplyAthleteSessionAdjustmentResponse;
+};
+
+export type ApplyAthleteSessionAdjustmentResponse2 = ApplyAthleteSessionAdjustmentResponses[keyof ApplyAthleteSessionAdjustmentResponses];
 
 export type GetScheduledAthletesData = {
     body?: never;

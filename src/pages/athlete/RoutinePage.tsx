@@ -29,6 +29,12 @@ import { RecordPerformedSetModal } from '../../components/routine/RecordPerforme
 import { GymSessionLoadCard } from '../../components/routine/GymSessionLoadCard';
 import type { StoredPerformedSet } from '../../types';
 
+type RoutineExerciseItem = TodayRoutineExercise & {
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+  targetTimeSeconds?: number | null;
+  bestMarkSeconds?: number | null;
+};
+
 function formatSpanishDate(dateString: string): string {
   try {
     const parts = dateString.split('-');
@@ -574,7 +580,8 @@ export const RoutinePage: React.FC = () => {
             {/* 5. Lista Ergonómica Móvil de Ejercicios con Series, Reps, Peso y Marcado de Series */}
             {exercises.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
-                {exercises.map((exercise, exIdx) => {
+                {exercises.map((rawExercise, exIdx) => {
+                  const exercise = rawExercise as RoutineExerciseItem;
                   const exKey = exercise.exerciseId || `ex-${exIdx}`;
                   const performed = performedSets[exKey];
 
@@ -642,7 +649,11 @@ export const RoutinePage: React.FC = () => {
                               color: 'var(--text-main)',
                             }}
                           >
-                            {exercise.sets} series × {exercise.reps} reps
+                            {exercise.exerciseType === 'Distance'
+                              ? `${exercise.sets} series × ${exercise.reps} m`
+                              : exercise.exerciseType === 'Time'
+                                ? `${exercise.sets} series × ${exercise.reps} s`
+                                : `${exercise.sets} series × ${exercise.reps} reps`}
                           </span>
 
                           {exercise.percentage !== undefined && exercise.percentage > 0 && (
@@ -653,7 +664,10 @@ export const RoutinePage: React.FC = () => {
                                 color: 'var(--text-muted)',
                               }}
                             >
-                              ({exercise.percentage}% 1RM)
+                              {exercise.exerciseType === 'Distance' ||
+                              exercise.exerciseType === 'Time'
+                                ? `(${exercise.percentage}%)`
+                                : `(${exercise.percentage}% 1RM)`}
                             </span>
                           )}
 
@@ -702,40 +716,68 @@ export const RoutinePage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* PESO EXACTO A COLOCAR EN BARRA (Destacado para el gimnasio) */}
-                      <div
-                        className={`routine-weight-callout ${
-                          exercise.isReference ? 'reference' : 'highlight'
-                        }`}
-                        title={
-                          exercise.isReference
-                            ? 'Serie de referencia sin récord previo'
-                            : 'Peso exacto a colocar en la barra'
-                        }
-                      >
-                        {exercise.weightKg !== null && exercise.weightKg !== undefined ? (
-                          <>
+                      {/* META DE LA SERIE: PESO EN BARRA O TIEMPO */}
+                      {exercise.exerciseType === 'Distance' || exercise.exerciseType === 'Time' ? (
+                        // ── CASO CARRERA / DISTANCIA / TIEMPO ──
+                        exercise.targetTimeSeconds != null ? (
+                          <div
+                            className="routine-weight-callout highlight"
+                            title="Meta de tiempo calculada a partir de tu mejor test"
+                          >
                             <span className="routine-weight-number">
-                              {exercise.weightKg}{' '}
-                              <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>kg</span>
+                              {exercise.targetTimeSeconds.toLocaleString('es-AR', {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1,
+                              })}{' '}
+                              <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>s</span>
                             </span>
-                            {getBarbellSideText(exercise) ? (
-                              <span className="routine-weight-side">
-                                {getBarbellSideText(exercise)}
-                              </span>
-                            ) : (
-                              <span className="routine-weight-label">Objetivo</span>
-                            )}
-                          </>
+                            <span className="routine-weight-label">Meta de tiempo</span>
+                          </div>
                         ) : (
-                          <>
-                            <span className="routine-weight-number warning">Carga Libre</span>
-                            <span className="routine-weight-label">Calibración</span>
-                          </>
-                        )}
-                      </div>
+                          <div
+                            className="routine-weight-callout reference"
+                            title="Serie sin test de referencia registrado"
+                          >
+                            <span className="routine-weight-number warning">Sin meta</span>
+                            <span className="routine-weight-label">Ritmo libre</span>
+                          </div>
+                        )
+                      ) : (
+                        // ── CASO FUERZA / PESAS ──
+                        <div
+                          className={`routine-weight-callout ${
+                            exercise.isReference ? 'reference' : 'highlight'
+                          }`}
+                          title={
+                            exercise.isReference
+                              ? 'Serie de referencia sin récord previo'
+                              : 'Peso exacto a colocar en la barra'
+                          }
+                        >
+                          {exercise.weightKg !== null && exercise.weightKg !== undefined ? (
+                            <>
+                              <span className="routine-weight-number">
+                                {exercise.weightKg}{' '}
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>kg</span>
+                              </span>
+                              {getBarbellSideText(exercise) ? (
+                                <span className="routine-weight-side">
+                                  {getBarbellSideText(exercise)}
+                                </span>
+                              ) : (
+                                <span className="routine-weight-label">Objetivo</span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <span className="routine-weight-number warning">Carga Libre</span>
+                              <span className="routine-weight-label">Calibración</span>
+                            </>
+                          )}
+                        </div>
+                      )}
 
-                      {/* TRACKER DE SERIES DEL EJERCICIO (KAN-066 - Touch Targets Ergonómicos) */}
+                      {/* TRACKER DE SERIES DEL EJERCICIO */}
                       <div className="routine-sets-tracker">
                         <div className="routine-sets-header">
                           <span>Series a registrar:</span>
@@ -769,57 +811,59 @@ export const RoutinePage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* ACCIÓN: REGISTRAR LO QUE HICE (KAN-392 / #097: Epley y propuesta de récord) */}
-                      <div
-                        style={{
-                          gridColumn: '1 / -1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '0.75rem',
-                          flexWrap: 'wrap',
-                          paddingTop: '0.75rem',
-                          borderTop: '1px solid var(--border)',
-                          marginTop: '0.25rem',
-                        }}
-                      >
+                      {/* ACCIÓN: REGISTRAR LO QUE HICE (Epley y propuesta de récord). Solo mostramos registro para ejercicios de pesas/fuerza */}
+                      {exercise.exerciseType !== 'Distance' && exercise.exerciseType !== 'Time' && (
                         <div
                           style={{
+                            gridColumn: '1 / -1',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem',
+                            justifyContent: 'space-between',
+                            gap: '0.75rem',
                             flexWrap: 'wrap',
+                            paddingTop: '0.75rem',
+                            borderTop: '1px solid var(--border)',
+                            marginTop: '0.25rem',
                           }}
                         >
-                          {performed ? (
-                            <span
-                              className="routine-performed-badge"
-                              title="Mejor serie registrada para Epley hoy"
-                            >
-                              <Trophy size={14} />
-                              <span>
-                                Registrado: {performed.weight} kg × {performed.reps} reps
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            {performed ? (
+                              <span
+                                className="routine-performed-badge"
+                                title="Mejor serie registrada para Epley hoy"
+                              >
+                                <Trophy size={14} />
+                                <span>
+                                  Registrado: {performed.weight} kg × {performed.reps} reps
+                                </span>
                               </span>
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                              Registrá tu mejor serie para calcular tu 1RM estimado con Epley
-                            </span>
-                          )}
-                        </div>
+                            ) : (
+                              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                                Registrá tu mejor serie para calcular tu 1RM estimado con Epley
+                              </span>
+                            )}
+                          </div>
 
-                        <button
-                          type="button"
-                          className="btn btn-primary routine-record-btn"
-                          onClick={() => setSelectedExerciseForRecord(exercise)}
-                          title="Registrar los kilos y repeticiones realizados en tu mejor serie"
-                        >
-                          <Trophy size={15} />
-                          <span>
-                            {performed ? 'Modificar lo que hice' : 'Registrar lo que hice'}
-                          </span>
-                        </button>
-                      </div>
+                          <button
+                            type="button"
+                            className="btn btn-primary routine-record-btn"
+                            onClick={() => setSelectedExerciseForRecord(exercise)}
+                            title="Registrar los kilos y repeticiones realizados en tu mejor serie"
+                          >
+                            <Trophy size={15} />
+                            <span>
+                              {performed ? 'Modificar lo que hice' : 'Registrar lo que hice'}
+                            </span>
+                          </button>
+                        </div>
+                      )}
 
                       {openVideoExerciseId === exercise.exerciseId && exercise.videoUrl && (
                         <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem' }}>
@@ -835,7 +879,7 @@ export const RoutinePage: React.FC = () => {
               </div>
             )}
 
-            {/* 6. Coordinación KAN-442: Carga de Gimnasio (Minutos y RPE en la misma pantalla) */}
+            {/* 6. Carga de Gimnasio (Minutos y RPE en la misma pantalla) */}
             {exercises.length > 0 && routine.athleteId && (
               <GymSessionLoadCard athleteId={routine.athleteId} />
             )}
@@ -843,7 +887,7 @@ export const RoutinePage: React.FC = () => {
         )}
       </div>
 
-      {/* ── Modal de Registro de Serie Realizada y Algoritmo de Epley (KAN-392 / #097) ── */}
+      {/* ── Modal de Registro de Serie Realizada y Algoritmo de Epley ── */}
       {selectedExerciseForRecord && (
         <RecordPerformedSetModal
           key={selectedExerciseForRecord.exerciseId || 'record-modal'}
@@ -917,18 +961,19 @@ export const RoutinePage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span
-                    style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}
-                  >
-                    CARGA OBJETIVO
-                  </span>
                   <span style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--secondary)' }}>
-                    {selectedExerciseForModal.weightKg !== null &&
-                    selectedExerciseForModal.weightKg !== undefined
-                      ? getBarbellSideText(selectedExerciseForModal)
-                        ? `${selectedExerciseForModal.weightKg} kg · ${getBarbellSideText(selectedExerciseForModal)}`
-                        : `${selectedExerciseForModal.weightKg} kg`
-                      : 'Carga Libre / Calibración'}
+                    {(selectedExerciseForModal as RoutineExerciseItem).exerciseType ===
+                      'Distance' ||
+                    (selectedExerciseForModal as RoutineExerciseItem).exerciseType === 'Time'
+                      ? (selectedExerciseForModal as RoutineExerciseItem).targetTimeSeconds != null
+                        ? `${(selectedExerciseForModal as RoutineExerciseItem).targetTimeSeconds} s`
+                        : 'Sin meta (Ritmo libre)'
+                      : selectedExerciseForModal.weightKg !== null &&
+                          selectedExerciseForModal.weightKg !== undefined
+                        ? getBarbellSideText(selectedExerciseForModal)
+                          ? `${selectedExerciseForModal.weightKg} kg · ${getBarbellSideText(selectedExerciseForModal)}`
+                          : `${selectedExerciseForModal.weightKg} kg`
+                        : 'Carga Libre / Calibración'}
                   </span>
                 </div>
 

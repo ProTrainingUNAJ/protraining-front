@@ -110,4 +110,86 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
     fireEvent.click(screen.getByRole('button', { name: /ocultar video/i }));
     expect(screen.queryByTitle('Video de técnica: Sentadilla Trasera')).toBeNull();
   });
+
+  describe('RoutinePage · Meta de tiempo por test (KAN-455)', () => {
+    it('Criterio de aceptación: DADO 100 m al 90 % con meta calculada ENTONCES muestra 15,6 s y "6 series × 100 m"', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-08',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-sprints',
+            name: 'Sprints',
+            muscleGroup: 'Piernas',
+            sets: 6,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: 15.6,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sprints')).toBeTruthy();
+      });
+
+      // Valida que diga "100 m" en vez de "100 reps"
+      expect(screen.getByText('6 series × 100 m')).toBeTruthy();
+      // Valida la meta de tiempo y la etiqueta
+      expect(screen.getByText(/15,6/)).toBeTruthy();
+      expect(screen.getByText('Meta de tiempo')).toBeTruthy();
+    });
+
+    it('serie sin test: muestra "Sin meta" y "Ritmo libre"', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-08',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas',
+            name: 'Pasadas',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 200,
+            isReference: true,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: null,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas')).toBeTruthy();
+      });
+
+      expect(screen.getByText('4 series × 200 m')).toBeTruthy();
+      expect(screen.getByText('Sin meta')).toBeTruthy();
+      expect(screen.getByText('Ritmo libre')).toBeTruthy();
+    });
+  });
 });
