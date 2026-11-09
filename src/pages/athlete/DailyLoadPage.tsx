@@ -819,7 +819,7 @@ export const DailyLoadPage: React.FC = () => {
                     })}
                   </div>
 
-                  {/* Tarjeta de feedback explicativa según el RPE */}
+                  {/* Tarjeta de feedback explicativa según el RPE (altura y estructura idéntica con o sin selección) */}
                   <div className="dl-rpe-feedback-box">
                     {selectedRpeMeta ? (
                       <>
@@ -840,10 +840,19 @@ export const DailyLoadPage: React.FC = () => {
                         <p className="dl-rpe-feedback-desc">{selectedRpeMeta.desc}</p>
                       </>
                     ) : (
-                      <p className="dl-rpe-feedback-desc">
-                        Tocá un número del 1 al 10 según la intensidad física que sentiste durante la
-                        actividad.
-                      </p>
+                      <>
+                        <div className="dl-rpe-feedback-header">
+                          <p className="dl-rpe-feedback-title dl-rpe-feedback-title--muted">
+                            Escala de esfuerzo físico
+                          </p>
+                          <span className="dl-rpe-feedback-tag dl-rpe-feedback-tag--empty">
+                            0 a 10
+                          </span>
+                        </div>
+                        <p className="dl-rpe-feedback-desc">
+                          Tocá un número del 1 al 10 según la intensidad física sentida en la sesión.
+                        </p>
+                      </>
                     )}
                   </div>
                 </div>

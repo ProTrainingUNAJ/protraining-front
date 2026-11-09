@@ -729,7 +729,7 @@
 }
 
 .dl-rpe-btn:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
   color: var(--text-main);
 }
 
@@ -787,7 +787,7 @@
   border: 0;
 }
 
-/* Feedback de RPE seleccionado */
+/* Feedback de RPE seleccionado (tamaño uniforme con o sin selección) */
 .dl-rpe-feedback-box {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -795,7 +795,10 @@
   padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 4.65rem;
+  box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
@@ -813,6 +816,11 @@
   margin: 0;
 }
 
+.dl-rpe-feedback-title--muted {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 .dl-rpe-feedback-tag {
   font-size: 0.725rem;
   font-weight: 700;
@@ -820,6 +828,12 @@
   letter-spacing: 0.04em;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
+}
+
+.dl-rpe-feedback-tag--empty {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 .dl-rpe-feedback-tag--easy {
