@@ -1059,29 +1059,6 @@ export const DailyLoadPage: React.FC = () => {
             <div className="dl-result-actions">
               <button
                 type="button"
-                onClick={handlePinWidget}
-                className={`dl-btn-home-widget ${isWidgetPinned ? 'dl-btn-home-widget--pinned' : ''}`}
-                title={
-                  isWidgetPinned
-                    ? 'El widget ya está en la segunda fila de tu pantalla de Inicio'
-                    : 'Fijar el widget de Carga del Día en la segunda fila de tu Inicio'
-                }
-              >
-                {isWidgetPinned ? (
-                  <>
-                    <CheckCircle2 size={16} style={{ color: 'var(--stat-green)' }} />
-                    <span>✓ Widget en tu Inicio</span>
-                  </>
-                ) : (
-                  <>
-                    <LayoutGrid size={16} />
-                    <span>Agregar widget al Inicio</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
                 onClick={() => {
                   setResult(null);
                   setShowConfetti(false);

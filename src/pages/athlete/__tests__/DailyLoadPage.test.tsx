@@ -147,13 +147,6 @@ describe('DailyLoadPage (KAN-571)', () => {
     });
     expect(screen.getByText('Carga del día: 630')).toBeDefined();
     expect(screen.getByRole('button', { name: /Registrar otra actividad/i })).toBeDefined();
-
-    // Verificación de botón para agregar widget al inicio en la pantalla de éxito (KAN-571)
-    const btnHomeWidget = screen.getByRole('button', { name: /Agregar widget al Inicio/i });
-    expect(btnHomeWidget).toBeDefined();
-    fireEvent.click(btnHomeWidget);
-
-    expect(screen.getByRole('button', { name: /✓ Widget en tu Inicio/i })).toBeDefined();
   });
 
   it('permite cambiar a la pestaña "Ver carga de hoy" y visualiza el resumen y tarjetas', async () => {

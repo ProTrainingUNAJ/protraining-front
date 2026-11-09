@@ -1598,42 +1598,6 @@
   width: 100%;
 }
 
-.dl-btn-home-widget {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border-radius: 0.75rem;
-  border: 1.5px solid var(--border);
-  background: var(--bg-subtle);
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.dl-btn-home-widget:hover {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, var(--bg-subtle));
-  color: var(--primary);
-}
-
-.dl-btn-home-widget--pinned {
-  background: color-mix(in srgb, var(--stat-green) 12%, var(--bg-card));
-  border-color: color-mix(in srgb, var(--stat-green) 40%, transparent);
-  color: var(--stat-green);
-}
-
-.dl-btn-home-widget--pinned:hover {
-  background: color-mix(in srgb, var(--stat-green) 18%, var(--bg-card));
-  border-color: var(--stat-green);
-  color: var(--stat-green);
-}
-
 /* Botón de fijar al inicio en el banner de Ver carga de hoy */
 .dl-summary-action-wrap {
   display: flex;
@@ -1674,42 +1638,6 @@
   flex-direction: column;
   gap: 0.65rem;
   width: 100%;
-}
-
-.dl-btn-home-widget {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border-radius: 0.75rem;
-  border: 1.5px solid var(--border);
-  background: var(--bg-subtle);
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.dl-btn-home-widget:hover {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, var(--bg-subtle));
-  color: var(--primary);
-}
-
-.dl-btn-home-widget--pinned {
-  background: color-mix(in srgb, var(--stat-green) 12%, var(--bg-card));
-  border-color: color-mix(in srgb, var(--stat-green) 40%, transparent);
-  color: var(--stat-green);
-}
-
-.dl-btn-home-widget--pinned:hover {
-  background: color-mix(in srgb, var(--stat-green) 18%, var(--bg-card));
-  border-color: var(--stat-green);
-  color: var(--stat-green);
 }
 
 /* Botón de fijar al inicio en el banner de Ver carga de hoy */
