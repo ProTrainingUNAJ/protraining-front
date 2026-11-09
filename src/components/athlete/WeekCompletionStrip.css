@@ -20,17 +20,35 @@
   border-radius: 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
-  transition: all 0.2s ease;
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .wcs-day--completed {
-  color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--success-text);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--celebration-green) 22%, var(--bg-card)),
+    color-mix(in srgb, var(--celebration-green) 12%, var(--bg-card))
+  );
+  border-color: var(--celebration-green);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--celebration-green) 25%, transparent);
+}
+
+.wcs-day--completed .wcs-day-label {
+  color: var(--success-text);
+  font-weight: 700;
+}
+
+.wcs-day--completed .wcs-day-icon {
+  color: var(--celebration-green);
 }
 
 .wcs-day--pending {
   color: var(--text-muted);
   background: var(--bg-subtle);
+  border-color: transparent;
 }
 
 .wcs-day--loading {
