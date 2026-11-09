@@ -28,6 +28,7 @@ const ORIGIN_LABELS: Record<RecordOrigin, string> = {
 };
 
 const WEIGHT_MAX_KG = 500;
+const TIME_MAX_SECONDS = 600;
 
 function formatDate(isoDateTime: string): string {
   return new Date(isoDateTime).toLocaleDateString('es-AR', {
@@ -35,8 +36,15 @@ function formatDate(isoDateTime: string): string {
   });
 }
 
-function formatKg(weightKg: number): string {
-  return `${weightKg.toLocaleString('es-AR', { maximumFractionDigits: 2 })} kg`;
+function isTimedExercise(exerciseName?: string, exerciseType?: string): boolean {
+  if (exerciseType === 'Distance' || exerciseType === 'Time') return true;
+  if (!exerciseName) return false;
+  return /pasadas|sprint|trote|carrera|running/i.test(exerciseName);
+}
+
+function formatRecordValue(value: number, exerciseName?: string, exerciseType?: string): string {
+  const formatted = value.toLocaleString('es-AR', { maximumFractionDigits: 2 });
+  return isTimedExercise(exerciseName, exerciseType) ? `${formatted} s` : `${formatted} kg`;
 }
 
 export function AthleteRecordsModal({
@@ -143,6 +151,8 @@ export function AthleteRecordsModal({
     setWeight(current ? String(current.weightKg) : '');
   };
 
+  const isTimed = isTimedExercise(exercise?.name, exercise?.exerciseType);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!exercise) {
@@ -150,8 +160,13 @@ export function AthleteRecordsModal({
       return;
     }
     const weightKg = Number(weight);
-    if (!weight || !Number.isFinite(weightKg) || weightKg <= 0 || weightKg > WEIGHT_MAX_KG) {
-      setError(`El 1RM tiene que ser mayor a 0 y hasta ${WEIGHT_MAX_KG} kg.`);
+    const maxVal = isTimed ? TIME_MAX_SECONDS : WEIGHT_MAX_KG;
+    if (!weight || !Number.isFinite(weightKg) || weightKg <= 0 || weightKg > maxVal) {
+      setError(
+        isTimed
+          ? `El tiempo tiene que ser mayor a 0 y hasta ${TIME_MAX_SECONDS} s.`
+          : `El 1RM tiene que ser mayor a 0 y hasta ${WEIGHT_MAX_KG} kg.`,
+      );
       return;
     }
 
@@ -165,7 +180,9 @@ export function AthleteRecordsModal({
           a.exerciseName.localeCompare(b.exerciseName, 'es'),
         ),
       );
-      setSavedMessage(`Se guardó ${formatKg(saved.weightKg)} en ${saved.exerciseName}.`);
+      setSavedMessage(
+        `Se guardó ${formatRecordValue(saved.weightKg, saved.exerciseName, exercise?.exerciseType)} en ${saved.exerciseName}.`,
+      );
       setExercise(null);
       setWeight('');
     } catch (err: unknown) {
@@ -267,8 +284,8 @@ export function AthleteRecordsModal({
           ) : (
             <>
               <p className="plan-empty">
-                Con el 1RM de cada ejercicio se calcula el peso que ve el atleta en su rutina: por
-                ejemplo, 100 kg al 80% son 80 kg.
+                Con el 1RM o marca de cada ejercicio se calcula lo que ve el atleta en su rutina:
+                por ejemplo, 100 kg al 80% son 80 kg; 14 s al 90% son 15,6 s.
               </p>
 
               {error && (
@@ -301,7 +318,9 @@ export function AthleteRecordsModal({
                   {records.map((record) => (
                     <li key={record.id} className="records-item">
                       <span className="records-item-name">{record.exerciseName}</span>
-                      <span className="records-item-weight">{formatKg(record.weightKg)}</span>
+                      <span className="records-item-weight">
+                        {formatRecordValue(record.weightKg, record.exerciseName)}
+                      </span>
                       <span className="records-item-meta">
                         {ORIGIN_LABELS[record.origin]} · {formatDate(record.achievedAt)}
                       </span>
@@ -329,17 +348,18 @@ export function AthleteRecordsModal({
 
                   <div className="records-form-row">
                     <label className="plan-field">
-                      <span>1RM (kg)</span>
+                      <span>{isTimed ? 'Mejor tiempo (s)' : '1RM (kg)'}</span>
                       <input
                         type="number"
                         inputMode="decimal"
-                        min={0.5}
-                        max={WEIGHT_MAX_KG}
-                        step={0.5}
+                        min={0.1}
+                        max={isTimed ? TIME_MAX_SECONDS : WEIGHT_MAX_KG}
+                        step={isTimed ? 0.1 : 0.5}
                         value={weight}
                         onChange={(e) => setWeight(e.target.value)}
                         disabled={saving}
-                        placeholder="Ej. 100"
+                        placeholder={isTimed ? 'Ej. 14.5' : 'Ej. 100'}
+                        aria-label={isTimed ? 'Mejor tiempo en segundos' : '1RM en kilogramos'}
                       />
                     </label>
                     <label className="plan-field">

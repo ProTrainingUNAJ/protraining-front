@@ -29,6 +29,7 @@ import { todayRoutineService } from '../../api/todayRoutine';
 import { RecordPerformedSetModal } from '../../components/routine/RecordPerformedSetModal';
 import { GymSessionLoadCard } from '../../components/routine/GymSessionLoadCard';
 import { IntervalTimerModal } from '../../components/timer/IntervalTimerModal';
+import { evaluateTimeTarget } from '../../utils/timeTarget';
 import type { StoredPerformedSet } from '../../types';
 
 type RoutineExerciseItem = TodayRoutineExercise & {
@@ -112,6 +113,9 @@ export const RoutinePage: React.FC = () => {
   // Estado del video del ejercicio
   const [openVideoExerciseId, setOpenVideoExerciseId] = useState<string | null>(null);
 
+  // Tiempos reales cargados por pasada (ejercicios de distancia o tiempo)
+  const [performedSetTimes, setPerformedSetTimes] = useState<Record<string, number>>({});
+
   // Carga de la rutina del atleta autenticado
   const fetchRoutine = useCallback(async () => {
     setIsLoading(true);
@@ -133,6 +137,12 @@ export const RoutinePage: React.FC = () => {
           if (perfKey) {
             const savedPerf = localStorage.getItem(perfKey);
             setPerformedSets(savedPerf ? JSON.parse(savedPerf) : {});
+          }
+
+          const timesKey = `${key}_times`;
+          const savedTimes = localStorage.getItem(timesKey);
+          if (savedTimes) {
+            setPerformedSetTimes(JSON.parse(savedTimes));
           }
         } catch {
           // Ignorar error de acceso a localStorage
@@ -193,6 +203,48 @@ export const RoutinePage: React.FC = () => {
         }
         return next;
       });
+    },
+    [routine],
+  );
+
+  // Guardar el tiempo cronometrado de una pasada individual y marcarla
+  const handleRecordSetTime = useCallback(
+    (exerciseKey: string, setIndex: number, timeSeconds: number | null) => {
+      setPerformedSetTimes((prev) => {
+        const setKey = `${exerciseKey}_set_${setIndex}`;
+        const next = { ...prev };
+        if (timeSeconds !== null && timeSeconds > 0) {
+          next[setKey] = timeSeconds;
+        } else {
+          delete next[setKey];
+        }
+        try {
+          const storageKey = getStorageKey(routine?.date, routine?.athleteId);
+          if (storageKey) {
+            localStorage.setItem(`${storageKey}_times`, JSON.stringify(next));
+          }
+        } catch {
+          // Ignorar error de guardado local
+        }
+        return next;
+      });
+
+      // Si carga un tiempo válido, también tilda la serie en completadas
+      if (timeSeconds !== null && timeSeconds > 0) {
+        setCompletedSets((prev) => {
+          const key = `${exerciseKey}_set_${setIndex}`;
+          const next = { ...prev, [key]: true };
+          try {
+            const storageKey = getStorageKey(routine?.date, routine?.athleteId);
+            if (storageKey) {
+              localStorage.setItem(storageKey, JSON.stringify(next));
+            }
+          } catch {
+            // Ignorar
+          }
+          return next;
+        });
+      }
     },
     [routine],
   );
@@ -822,29 +874,104 @@ export const RoutinePage: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="routine-sets-grid">
-                          {Array.from({ length: exercise.sets }, (_, i) => i + 1).map((sNum) => {
-                            const isDone = !!completedSets[`${exKey}_set_${sNum}`];
-                            return (
-                              <button
-                                key={sNum}
-                                type="button"
-                                className={`routine-set-chip ${isDone ? 'completed' : ''}`}
-                                onClick={() => toggleSet(exKey, sNum)}
-                                aria-label={`Serie ${sNum} de ${exercise.name}: ${
-                                  isDone ? 'completada' : 'pendiente'
-                                }`}
-                              >
-                                {isDone ? (
-                                  <Check size={16} />
-                                ) : (
-                                  <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>●</span>
-                                )}
-                                <span>Serie {sNum}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                        {exercise.exerciseType === 'Distance' ||
+                        exercise.exerciseType === 'Time' ? (
+                          /* ── CASO CARRERA / DISTANCIA / TIEMPO: Campos para cargar tiempo real ── */
+                          <div className="routine-pass-list">
+                            {Array.from({ length: exercise.sets }, (_, i) => i + 1).map((sNum) => {
+                              const setKey = `${exKey}_set_${sNum}`;
+                              const timeVal = performedSetTimes[setKey];
+                              const evaluation = evaluateTimeTarget(
+                                timeVal,
+                                exercise.targetTimeSeconds,
+                              );
+                              const isDone = Boolean(evaluation?.isAchieved);
+
+                              return (
+                                <div
+                                  key={sNum}
+                                  className={`routine-pass-row ${
+                                    isDone
+                                      ? 'completed'
+                                      : evaluation && !evaluation.isAchieved
+                                        ? 'exceeded'
+                                        : ''
+                                  }`}
+                                >
+                                  <div className="routine-pass-label-group">
+                                    <span className="routine-pass-title">Pasada {sNum}</span>
+
+                                    {/* Badge de Cumplida / Superó la meta */}
+                                    {evaluation && (
+                                      <span
+                                        className={`routine-pass-badge ${
+                                          evaluation.isAchieved ? 'achieved' : 'missed'
+                                        }`}
+                                      >
+                                        {evaluation.isAchieved && <Check size={13} />}
+                                        {evaluation.statusLabel}
+                                        {evaluation.differenceSeconds != null &&
+                                          evaluation.differenceSeconds !== 0 && (
+                                            <span className="routine-pass-diff">
+                                              (
+                                              {evaluation.differenceSeconds > 0
+                                                ? `+${evaluation.differenceSeconds}`
+                                                : evaluation.differenceSeconds}{' '}
+                                              s)
+                                            </span>
+                                          )}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Input para tipear el tiempo real en segundos */}
+                                  <div className="routine-pass-input-group">
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      min="0"
+                                      placeholder="0.0"
+                                      aria-label={`Tiempo de pasada ${sNum}`}
+                                      value={timeVal ?? ''}
+                                      onChange={(e) => {
+                                        const raw = e.target.value.replace(',', '.');
+                                        const val = raw === '' ? null : parseFloat(raw);
+                                        handleRecordSetTime(exKey, sNum, val);
+                                      }}
+                                      className="routine-pass-input"
+                                    />
+                                    <span className="routine-pass-unit">s</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          /* ── CASO FUERZA / PESAS: Chips habituales de marcar serie ── */
+                          <div className="routine-sets-grid">
+                            {Array.from({ length: exercise.sets }, (_, i) => i + 1).map((sNum) => {
+                              const isDone = !!completedSets[`${exKey}_set_${sNum}`];
+                              return (
+                                <button
+                                  key={sNum}
+                                  type="button"
+                                  className={`routine-set-chip ${isDone ? 'completed' : ''}`}
+                                  onClick={() => toggleSet(exKey, sNum)}
+                                  aria-label={`Serie ${sNum} de ${exercise.name}: ${
+                                    isDone ? 'completada' : 'pendiente'
+                                  }`}
+                                >
+                                  {isDone ? (
+                                    <Check size={16} />
+                                  ) : (
+                                    <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>●</span>
+                                  )}
+                                  <span>Serie {sNum}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       {/* ACCIÓN: REGISTRAR LO QUE HICE (Epley y propuesta de récord). Solo mostramos registro para ejercicios de pesas/fuerza */}
