@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyPlanTemplateData, ApplyPlanTemplateErrors, ApplyPlanTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CompleteOnboardingData, CompleteOnboardingErrors, CompleteOnboardingResponses, ConfirmRecordsImportData, ConfirmRecordsImportErrors, ConfirmRecordsImportResponses, CreateExerciseData, CreateExerciseErrors, CreateExerciseResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetRecordsReliabilityData, GetRecordsReliabilityErrors, GetRecordsReliabilityResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListPlanAssignmentsData, ListPlanAssignmentsErrors, ListPlanAssignmentsResponses, ListPlanTemplatesData, ListPlanTemplatesErrors, ListPlanTemplatesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, PreviewRecordsImportData, PreviewRecordsImportErrors, PreviewRecordsImportResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SavePlanAsTemplateData, SavePlanAsTemplateErrors, SavePlanAsTemplateResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateExerciseVideoData, UpdateExerciseVideoErrors, UpdateExerciseVideoResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
+import type { ApplyAthleteSessionAdjustmentData, ApplyAthleteSessionAdjustmentErrors, ApplyAthleteSessionAdjustmentResponses, ApplyPlanTemplateData, ApplyPlanTemplateErrors, ApplyPlanTemplateResponses, ApproveRecordProposalData, ApproveRecordProposalErrors, ApproveRecordProposalResponses, AssignTrainingPlanData, AssignTrainingPlanErrors, AssignTrainingPlanResponses, CheckExerciseRestrictionsData, CheckExerciseRestrictionsErrors, CheckExerciseRestrictionsResponses, CompleteOnboardingData, CompleteOnboardingErrors, CompleteOnboardingResponses, ConfirmRecordsImportData, ConfirmRecordsImportErrors, ConfirmRecordsImportResponses, CreateExerciseData, CreateExerciseErrors, CreateExerciseResponses, CreateRoutineData, CreateRoutineErrors, CreateRoutineResponses, CreateTrainingPlanData, CreateTrainingPlanErrors, CreateTrainingPlanResponses, DiscardRecordProposalData, DiscardRecordProposalErrors, DiscardRecordProposalResponses, GetAthleteRecordsData, GetAthleteRecordsErrors, GetAthleteRecordsResponses, GetAthleteSessionAdjustmentData, GetAthleteSessionAdjustmentErrors, GetAthleteSessionAdjustmentResponses, GetExerciseSubstitutesData, GetExerciseSubstitutesErrors, GetExerciseSubstitutesResponses, GetMyTodayRoutineData, GetMyTodayRoutineErrors, GetMyTodayRoutineResponses, GetRecordsReliabilityData, GetRecordsReliabilityErrors, GetRecordsReliabilityResponses, GetScheduledAthletesData, GetScheduledAthletesErrors, GetScheduledAthletesResponses, GetTodayRoutineData, GetTodayRoutineErrors, GetTodayRoutineResponses, GetTrainingPlanData, GetTrainingPlanErrors, GetTrainingPlanResponses, GetTrainingPlanScheduleData, GetTrainingPlanScheduleErrors, GetTrainingPlanScheduleResponses, GetTrainingSessionData, GetTrainingSessionErrors, GetTrainingSessionResponses, HealthCheckData, HealthCheckResponses, ListExercisesData, ListExercisesErrors, ListExercisesResponses, ListPlanAssignmentsData, ListPlanAssignmentsErrors, ListPlanAssignmentsResponses, ListPlanTemplatesData, ListPlanTemplatesErrors, ListPlanTemplatesResponses, ListRecordProposalsData, ListRecordProposalsErrors, ListRecordProposalsResponses, ListTrainingPlansData, ListTrainingPlansErrors, ListTrainingPlansResponses, LogExecutionData, LogExecutionErrors, LogExecutionResponses, PreviewRecordsImportData, PreviewRecordsImportErrors, PreviewRecordsImportResponses, RecordPerformedSetsData, RecordPerformedSetsErrors, RecordPerformedSetsResponses, SavePlanAsTemplateData, SavePlanAsTemplateErrors, SavePlanAsTemplateResponses, SaveRecordData, SaveRecordErrors, SaveRecordResponses, UpdateExerciseVideoData, UpdateExerciseVideoErrors, UpdateExerciseVideoResponses, UpdateTrainingPlanData, UpdateTrainingPlanErrors, UpdateTrainingPlanResponses, UpdateTrainingSessionNotesData, UpdateTrainingSessionNotesErrors, UpdateTrainingSessionNotesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -123,7 +123,7 @@ export const saveRecord = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Resumen de confiabilidad de los récords de una categoría
  *
- * Devuelve, por grupo de confiabilidad, la cantidad, el porcentaje y la lista de atletas de la categoría. Los grupos salen del origen del récord vigente más confiable de cada atleta (Testeado, Reportado, Estimado, Sin dato). Un récord con origen Epley cuenta como Testeado. Opcionalmente se puede filtrar por un solo ejercicio con exerciseId.
+ * Devuelve, por grupo de confiabilidad, la cantidad de récords, la cantidad de atletas y la lista de atletas de la categoría. Un atleta puede aparecer en más de un grupo si tiene récords vigentes de distintos orígenes. Los grupos salen del origen de cada récord vigente (Testeado, Reportado, Estimado); quienes no tienen ningún récord quedan en Sin dato. Un récord con origen Epley cuenta como Testeado. Opcionalmente se puede filtrar por un solo ejercicio con exerciseId.
  *
  */
 export const getRecordsReliability = <ThrowOnError extends boolean = false>(options: Options<GetRecordsReliabilityData, ThrowOnError>): RequestResult<GetRecordsReliabilityResponses, GetRecordsReliabilityErrors, ThrowOnError> => (options.client ?? client).get<GetRecordsReliabilityResponses, GetRecordsReliabilityErrors, ThrowOnError>({
@@ -136,7 +136,8 @@ export const getRecordsReliability = <ThrowOnError extends boolean = false>(opti
 /**
  * Onboarding inicial de marcas físicas del atleta
  *
- * Permite al atleta declarar sus antecedentes de fuerza durante la bienvenida. Cada marca se registra con origen estimado.
+ * Permite al atleta declarar sus antecedentes de fuerza durante la bienvenida. Solo se registran con origen estimado las marcas de ejercicios que no tienen un récord vigente; las marcas existentes (por ejemplo, las registradas por el PF) no se modifican ni se desactivan. La respuesta puede ser un arreglo vacío si todos los ejercicios declarados ya tenían récord vigente.
+ *
  */
 export const completeOnboarding = <ThrowOnError extends boolean = false>(options: Options<CompleteOnboardingData, ThrowOnError>): RequestResult<CompleteOnboardingResponses, CompleteOnboardingErrors, ThrowOnError> => (options.client ?? client).post<CompleteOnboardingResponses, CompleteOnboardingErrors, ThrowOnError>({
     responseType: 'json',
@@ -424,6 +425,36 @@ export const getTrainingSession = <ThrowOnError extends boolean = false>(options
 export const updateTrainingSessionNotes = <ThrowOnError extends boolean = false>(options: Options<UpdateTrainingSessionNotesData, ThrowOnError>): RequestResult<UpdateTrainingSessionNotesResponses, UpdateTrainingSessionNotesErrors, ThrowOnError> => (options.client ?? client).put<UpdateTrainingSessionNotesResponses, UpdateTrainingSessionNotesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/training-sessions/{id}/notes',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener ajuste o variante de sesión por atleta y fecha
+ *
+ * Devuelve el ajuste o variante individual de sesión registrado para un atleta y fecha (#168 · KAN-463). Requiere rol PreparadorFisico.
+ *
+ */
+export const getAthleteSessionAdjustment = <ThrowOnError extends boolean = false>(options: Options<GetAthleteSessionAdjustmentData, ThrowOnError>): RequestResult<GetAthleteSessionAdjustmentResponses, GetAthleteSessionAdjustmentErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteSessionAdjustmentResponses, GetAthleteSessionAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments',
+    ...options
+});
+
+/**
+ * Aplicar ajuste de sesión por atleta y fecha
+ *
+ * Guarda o reemplaza el ajuste del día de una sesión de entrenamiento para un atleta y fecha específicos al aprobar una propuesta en el Asistente (#157 · KAN-452). Requiere rol PreparadorFisico.
+ *
+ */
+export const applyAthleteSessionAdjustment = <ThrowOnError extends boolean = false>(options: Options<ApplyAthleteSessionAdjustmentData, ThrowOnError>): RequestResult<ApplyAthleteSessionAdjustmentResponses, ApplyAthleteSessionAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<ApplyAthleteSessionAdjustmentResponses, ApplyAthleteSessionAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments',
     ...options,
     headers: {
         'Content-Type': 'application/json',
