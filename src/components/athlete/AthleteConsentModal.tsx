@@ -81,22 +81,15 @@ export const AthleteConsentModal: React.FC<AthleteConsentModalProps> = ({
               </div>
             ) : (
               <>
-                <div
-                  className="medical-notice-box"
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                    borderColor: 'var(--danger, #dc2626)',
-                  }}
-                >
+                <div className="medical-notice-box consent-error-box">
                   <AlertTriangle
                     size={22}
-                    style={{ color: 'var(--danger, #dc2626)', flexShrink: 0, marginTop: '2px' }}
+                    className="consent-error-icon"
+                    style={{ marginTop: '2px' }}
                     aria-hidden="true"
                   />
                   <div>
-                    <strong style={{ color: 'var(--danger, #dc2626)' }}>
-                      Falta el consentimiento de tu tutor, hablá con tu PF.
-                    </strong>
+                    <strong>Falta el consentimiento de tu tutor, hablá con tu PF.</strong>
                     <div style={{ marginTop: '0.35rem' }}>
                       Al ser menor de edad, el consentimiento legal para el entrenamiento y el
                       acceso a tu ficha médica debe ser otorgado y registrado por tu padre, madre o
@@ -127,15 +120,8 @@ export const AthleteConsentModal: React.FC<AthleteConsentModalProps> = ({
           <form onSubmit={handleConfirm}>
             <div className="medical-modal-body">
               {errorMessage && (
-                <div
-                  className="medical-notice-box"
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                    borderColor: 'var(--danger, #dc2626)',
-                    color: 'var(--danger, #dc2626)',
-                  }}
-                >
-                  <AlertTriangle size={20} style={{ flexShrink: 0 }} aria-hidden="true" />
+                <div className="medical-notice-box consent-error-box">
+                  <AlertTriangle size={20} className="consent-error-icon" aria-hidden="true" />
                   <div>{errorMessage}</div>
                 </div>
               )}

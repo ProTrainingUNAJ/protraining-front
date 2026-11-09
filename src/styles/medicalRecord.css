@@ -238,3 +238,26 @@
     opacity: 1;
   }
 }
+
+/* ── Estado de Error y Feedback del Consentimiento (KAN-326) ── */
+.consent-error-box {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+.consent-error-icon {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.consent-error-help-text {
+  margin: 0.75rem 0 0.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.consent-retry-btn {
+  width: 100%;
+  justify-content: center;
+}
