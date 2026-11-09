@@ -10,7 +10,6 @@ import {
   Eye,
   ClipboardList,
 } from 'lucide-react';
-import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
 import {
@@ -153,15 +152,15 @@ export const DailyLoadPage: React.FC = () => {
     setIs404(false);
     try {
       const data = await getDailyLoad(id);
-      setTodayLoad(data);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
+      if (data === null) {
         setIs404(true);
         setTodayLoad(null);
       } else {
-        setTodayError(err instanceof Error ? err.message : 'Error al obtener la carga del día.');
-        setTodayLoad(null);
+        setTodayLoad(data);
       }
+    } catch (err: unknown) {
+      setTodayError(err instanceof Error ? err.message : 'Error al obtener la carga del día.');
+      setTodayLoad(null);
     } finally {
       setIsLoadingToday(false);
     }
@@ -288,14 +287,7 @@ export const DailyLoadPage: React.FC = () => {
           <div className="dl-result-total">
             <p className="dl-result-total-value">{result.totalMinutes} min</p>
             <p className="dl-result-total-label">Total del día · {result.date}</p>
-            <p className="dl-result-total-label">
-              Carga del día:{' '}
-              {result.totalLoad ??
-                ACTIVITIES.reduce(
-                  (acc, { key }) => acc + (result[key]?.minutes ?? 0) * (result[key]?.rpe ?? 0),
-                  0,
-                )}
-            </p>
+            <p className="dl-result-total-label">Carga del día: {result.totalLoad}</p>
           </div>
           <ul className="dl-result-list">
             {ACTIVITIES.map(({ key, label }) => (
@@ -393,15 +385,7 @@ export const DailyLoadPage: React.FC = () => {
                 <div className="dl-result-total">
                   <p className="dl-result-total-value">{todayLoad.totalMinutes} min</p>
                   <p className="dl-result-total-label">Total del día · {todayLoad.date}</p>
-                  <p className="dl-result-total-label">
-                    Carga del día:{' '}
-                    {todayLoad.totalLoad ??
-                      ACTIVITIES.reduce(
-                        (acc, { key }) =>
-                          acc + (todayLoad[key]?.minutes ?? 0) * (todayLoad[key]?.rpe ?? 0),
-                        0,
-                      )}
-                  </p>
+                  <p className="dl-result-total-label">Carga del día: {todayLoad.totalLoad}</p>
                 </div>
 
                 {/* Listado (sin filtro) */}
