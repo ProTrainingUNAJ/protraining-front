@@ -302,11 +302,6 @@
   color: var(--celebration-purple);
 }
 
-.dl-widget__chip--more {
-  background: transparent;
-  color: var(--text-muted);
-}
-
 /* Estado Vacío (Aún sin carga hoy) con halo animado */
 .dl-widget__empty {
   display: flex;

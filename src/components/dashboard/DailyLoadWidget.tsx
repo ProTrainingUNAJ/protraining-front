@@ -262,7 +262,7 @@ export const DailyLoadWidget: React.FC = () => {
             {/* Activity chips with distinctive colors */}
             {registeredActivities.length > 0 && (
               <div className="dl-widget__activities-list" aria-label="Actividades registradas">
-                {registeredActivities.slice(0, 3).map((act) => (
+                {registeredActivities.map((act) => (
                   <span key={act.key} className={`dl-widget__activity-chip ${act.themeClass}`}>
                     <span className="dl-widget__chip-icon" aria-hidden="true">
                       {act.icon}
@@ -272,11 +272,6 @@ export const DailyLoadWidget: React.FC = () => {
                     {act.rpe !== null && <span className="dl-widget__chip-rpe">RPE {act.rpe}</span>}
                   </span>
                 ))}
-                {registeredActivities.length > 3 && (
-                  <span className="dl-widget__activity-chip dl-widget__chip--more">
-                    +{registeredActivities.length - 3} más
-                  </span>
-                )}
               </div>
             )}
           </div>
