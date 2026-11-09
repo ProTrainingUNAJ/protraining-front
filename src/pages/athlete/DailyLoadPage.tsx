@@ -513,7 +513,7 @@ export const DailyLoadPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Responsive grid of activity cards */}
+                  {/* Responsive grid of activity cards con la misma estética y colores del carrusel */}
                   <div className="dl-cards-grid">
                     {ACTIVITIES.map(({ key, label, icon, hint }) => {
                       const data = todayLoad[key as keyof DailyLoadSubmitResponse] as
@@ -522,18 +522,37 @@ export const DailyLoadPage: React.FC = () => {
                       return (
                         <div
                           key={key}
-                          className={`dl-summary-card ${hasMinutes ? 'dl-summary-card--active' : ''}`}
+                          className={`dl-summary-card dl-summary-card--${key} ${hasMinutes ? 'dl-summary-card--active' : ''}`}
                         >
-                          <div className="dl-summary-icon" aria-hidden="true">
+                          <div className="dl-card-badge-row">
+                            {hasMinutes ? (
+                              <span
+                                className="dl-card-badge dl-card-badge--done"
+                                title="Carga registrada hoy"
+                              >
+                                ✓ {data?.minutes}m
+                              </span>
+                            ) : (
+                              <span className="dl-card-badge dl-card-badge--pending">0m</span>
+                            )}
+                          </div>
+
+                          <div className="dl-card-icon-wrap" aria-hidden="true">
                             {icon}
                           </div>
-                          <div className="dl-summary-body">
-                            <p className="dl-summary-label">{label}</p>
-                            <p className="dl-summary-hint">{hint}</p>
-                            <p className="dl-summary-value">
+
+                          <span className="dl-card-label">{label}</span>
+                          <span className="dl-card-hint">{hint}</span>
+
+                          <div className="dl-summary-value-wrap">
+                            <span
+                              className={`dl-summary-value-chip ${hasMinutes ? 'dl-summary-value-chip--active' : ''}`}
+                            >
                               {data?.minutes ?? 0} min · RPE {data?.rpe ?? '—'}
-                            </p>
+                            </span>
                           </div>
+
+                          <div className="dl-card-glow-bar" aria-hidden="true" />
                         </div>
                       );
                     })}

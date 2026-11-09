@@ -317,12 +317,14 @@
 /* ── Temas y Colores Específicos por Actividad (Dopamina Visual) ── */
 
 /* 1. Gimnasio (Azul eléctrico) */
-.dl-carousel-card--gym .dl-card-icon-wrap {
+.dl-carousel-card--gym .dl-card-icon-wrap,
+.dl-summary-card--gym .dl-card-icon-wrap {
   background: color-mix(in srgb, var(--celebration-blue) 14%, transparent);
   color: var(--celebration-blue);
 }
 
-.dl-carousel-card--gym.dl-carousel-card--active {
+.dl-carousel-card--gym.dl-carousel-card--active,
+.dl-summary-card--gym.dl-summary-card--active {
   border-color: var(--celebration-blue);
   background: linear-gradient(
     180deg,
@@ -330,6 +332,9 @@
     var(--bg-card)
   );
   box-shadow: 0 8px 24px color-mix(in srgb, var(--celebration-blue) 25%, transparent);
+}
+
+.dl-carousel-card--gym.dl-carousel-card--active {
   transform: translateY(-4px) scale(1.02);
 }
 
@@ -339,17 +344,20 @@
   box-shadow: 0 4px 14px color-mix(in srgb, var(--celebration-blue) 40%, transparent);
 }
 
-.dl-carousel-card--gym .dl-card-glow-bar {
+.dl-carousel-card--gym .dl-card-glow-bar,
+.dl-summary-card--gym .dl-card-glow-bar {
   background: var(--celebration-blue);
 }
 
 /* 2. Entrenamiento del Deporte (Verde esmeralda triunfo) */
-.dl-carousel-card--sportTraining .dl-card-icon-wrap {
+.dl-carousel-card--sportTraining .dl-card-icon-wrap,
+.dl-summary-card--sportTraining .dl-card-icon-wrap {
   background: color-mix(in srgb, var(--celebration-green) 14%, transparent);
   color: var(--celebration-green);
 }
 
-.dl-carousel-card--sportTraining.dl-carousel-card--active {
+.dl-carousel-card--sportTraining.dl-carousel-card--active,
+.dl-summary-card--sportTraining.dl-summary-card--active {
   border-color: var(--celebration-green);
   background: linear-gradient(
     180deg,
@@ -357,6 +365,9 @@
     var(--bg-card)
   );
   box-shadow: 0 8px 24px color-mix(in srgb, var(--celebration-green) 25%, transparent);
+}
+
+.dl-carousel-card--sportTraining.dl-carousel-card--active {
   transform: translateY(-4px) scale(1.02);
 }
 
@@ -366,17 +377,20 @@
   box-shadow: 0 4px 14px color-mix(in srgb, var(--celebration-green) 40%, transparent);
 }
 
-.dl-carousel-card--sportTraining .dl-card-glow-bar {
+.dl-carousel-card--sportTraining .dl-card-glow-bar,
+.dl-summary-card--sportTraining .dl-card-glow-bar {
   background: var(--celebration-green);
 }
 
 /* 3. Partido 1 (Dorado trofeo / Ámbar) */
-.dl-carousel-card--match1 .dl-card-icon-wrap {
+.dl-carousel-card--match1 .dl-card-icon-wrap,
+.dl-summary-card--match1 .dl-card-icon-wrap {
   background: color-mix(in srgb, var(--celebration-amber) 14%, transparent);
   color: var(--celebration-amber);
 }
 
-.dl-carousel-card--match1.dl-carousel-card--active {
+.dl-carousel-card--match1.dl-carousel-card--active,
+.dl-summary-card--match1.dl-summary-card--active {
   border-color: var(--celebration-amber);
   background: linear-gradient(
     180deg,
@@ -384,6 +398,9 @@
     var(--bg-card)
   );
   box-shadow: 0 8px 24px color-mix(in srgb, var(--celebration-amber) 25%, transparent);
+}
+
+.dl-carousel-card--match1.dl-carousel-card--active {
   transform: translateY(-4px) scale(1.02);
 }
 
@@ -393,17 +410,20 @@
   box-shadow: 0 4px 14px color-mix(in srgb, var(--celebration-amber) 40%, transparent);
 }
 
-.dl-carousel-card--match1 .dl-card-glow-bar {
+.dl-carousel-card--match1 .dl-card-glow-bar,
+.dl-summary-card--match1 .dl-card-glow-bar {
   background: var(--celebration-amber);
 }
 
 /* 4. Partido 2 (Naranja fuego / Coral) */
-.dl-carousel-card--match2 .dl-card-icon-wrap {
+.dl-carousel-card--match2 .dl-card-icon-wrap,
+.dl-summary-card--match2 .dl-card-icon-wrap {
   background: color-mix(in srgb, var(--celebration-coral) 14%, transparent);
   color: var(--celebration-coral);
 }
 
-.dl-carousel-card--match2.dl-carousel-card--active {
+.dl-carousel-card--match2.dl-carousel-card--active,
+.dl-summary-card--match2.dl-summary-card--active {
   border-color: var(--celebration-coral);
   background: linear-gradient(
     180deg,
@@ -411,6 +431,9 @@
     var(--bg-card)
   );
   box-shadow: 0 8px 24px color-mix(in srgb, var(--celebration-coral) 25%, transparent);
+}
+
+.dl-carousel-card--match2.dl-carousel-card--active {
   transform: translateY(-4px) scale(1.02);
 }
 
@@ -420,17 +443,20 @@
   box-shadow: 0 4px 14px color-mix(in srgb, var(--celebration-coral) 40%, transparent);
 }
 
-.dl-carousel-card--match2 .dl-card-glow-bar {
+.dl-carousel-card--match2 .dl-card-glow-bar,
+.dl-summary-card--match2 .dl-card-glow-bar {
   background: var(--celebration-coral);
 }
 
 /* 5. Trabajo Individual (Púrpura / Fuchsia energía) */
-.dl-carousel-card--individualWork .dl-card-icon-wrap {
+.dl-carousel-card--individualWork .dl-card-icon-wrap,
+.dl-summary-card--individualWork .dl-card-icon-wrap {
   background: color-mix(in srgb, var(--celebration-purple) 14%, transparent);
   color: var(--celebration-purple);
 }
 
-.dl-carousel-card--individualWork.dl-carousel-card--active {
+.dl-carousel-card--individualWork.dl-carousel-card--active,
+.dl-summary-card--individualWork.dl-summary-card--active {
   border-color: var(--celebration-purple);
   background: linear-gradient(
     180deg,
@@ -438,6 +464,9 @@
     var(--bg-card)
   );
   box-shadow: 0 8px 24px color-mix(in srgb, var(--celebration-purple) 25%, transparent);
+}
+
+.dl-carousel-card--individualWork.dl-carousel-card--active {
   transform: translateY(-4px) scale(1.02);
 }
 
@@ -447,7 +476,8 @@
   box-shadow: 0 4px 14px color-mix(in srgb, var(--celebration-purple) 40%, transparent);
 }
 
-.dl-carousel-card--individualWork .dl-card-glow-bar {
+.dl-carousel-card--individualWork .dl-card-glow-bar,
+.dl-summary-card--individualWork .dl-card-glow-bar {
   background: var(--celebration-purple);
 }
 
@@ -1178,67 +1208,68 @@
 
 .dl-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.85rem;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .dl-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .dl-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .dl-summary-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  padding: 1rem 1.15rem;
-  transition: all 0.2s ease;
-}
-
-.dl-summary-card--active {
+  text-align: center;
+  gap: 0.35rem;
+  padding: 1.15rem 0.85rem 0.95rem;
+  border-radius: 1.25rem;
+  border: 2px solid var(--border);
   background: var(--bg-card);
-  border-color: var(--primary);
+  color: var(--text-muted);
+  position: relative;
+  overflow: hidden;
   box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.dl-summary-icon {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+.dl-summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.dl-summary-value-wrap {
+  width: 100%;
   display: flex;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+
+.dl-summary-value-chip {
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.dl-summary-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  overflow: hidden;
-}
-
-.dl-summary-label {
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-main);
-}
-
-.dl-summary-hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dl-summary-value {
-  font-size: 0.825rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0.15rem 0 0;
+.dl-summary-value-chip--active {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-weight: 800;
 }
 
 /* ── Pantalla de Confirmación / Celebración ── */
