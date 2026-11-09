@@ -4,12 +4,12 @@ import { AppShell } from '../components/shell/AppShell';
 import { AthleteConsentModal } from '../components/athlete/AthleteConsentModal';
 import { useAuth } from '../context/AuthContext';
 import { structureService } from '../api/structureService';
-import { AthleteConsentStatus } from '../types/structure';
+import type { GetMyConsentResponse } from '../api/generated/estructura';
 import '../styles/medicalRecord.css';
 
 export function AthleteLayout() {
   const { user } = useAuth();
-  const [consentStatus, setConsentStatus] = useState<AthleteConsentStatus | null>(null);
+  const [consentStatus, setConsentStatus] = useState<GetMyConsentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,40 +99,22 @@ export function AthleteLayout() {
           >
             <div className="medical-modal-header">
               <h2 id="consent-error-title" className="medical-modal-title">
-                <AlertTriangle
-                  size={22}
-                  style={{ color: 'var(--danger, #dc2626)' }}
-                  aria-hidden="true"
-                />
+                <AlertTriangle size={22} className="consent-error-icon" aria-hidden="true" />
                 <span>Error al verificar consentimiento</span>
               </h2>
             </div>
             <div className="medical-modal-body">
-              <div
-                className="medical-notice-box"
-                style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                  borderColor: 'var(--danger, #dc2626)',
-                  color: 'var(--danger, #dc2626)',
-                }}
-              >
+              <div className="medical-notice-box consent-error-box">
                 <div>{fetchError}</div>
               </div>
-              <p
-                style={{
-                  margin: '0.75rem 0 0.25rem 0',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.9rem',
-                }}
-              >
+              <p className="consent-error-help-text">
                 Es necesario validar tu consentimiento legal antes de acceder a la plataforma.
               </p>
             </div>
             <div className="medical-modal-footer">
               <button
                 type="button"
-                className="btn btn-primary"
-                style={{ width: '100%', justifyContent: 'center' }}
+                className="btn btn-primary consent-retry-btn"
                 onClick={handleRetry}
               >
                 <RefreshCw size={18} aria-hidden="true" />

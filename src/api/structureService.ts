@@ -3,6 +3,8 @@ import { matchesApi } from './matches';
 import {
   getMyConsent as getMyConsentApi,
   registerMyConsent as registerMyConsentApi,
+  type GetMyConsentResponse,
+  type RegisterAdultConsentRequest,
 } from './generated/estructura';
 import {
   Organization,
@@ -12,8 +14,6 @@ import {
   Athlete,
   CreateAthleteRequest,
   AthleteMe,
-  AthleteConsentStatus,
-  RegisterAdultConsentRequest,
   Match,
   CreateMatchRequest,
   CompetitiveEvent,
@@ -325,10 +325,10 @@ export const structureService = {
   /**
    * Obtiene el estado del consentimiento digital del atleta autenticado (KAN-326) usando SDK OpenAPI.
    */
-  async getMyConsent(): Promise<AthleteConsentStatus> {
+  async getMyConsent(): Promise<GetMyConsentResponse> {
     try {
       const { data } = await getMyConsentApi({ throwOnError: true });
-      return data as AthleteConsentStatus;
+      return data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
@@ -337,13 +337,13 @@ export const structureService = {
   /**
    * Registra el consentimiento digital para un atleta adulto autenticado (KAN-326) usando SDK OpenAPI.
    */
-  async registerMyConsent(data: RegisterAdultConsentRequest): Promise<AthleteConsentStatus> {
+  async registerMyConsent(data: RegisterAdultConsentRequest): Promise<GetMyConsentResponse> {
     try {
       const { data: responseData } = await registerMyConsentApi({
         body: data,
         throwOnError: true,
       });
-      return responseData as AthleteConsentStatus;
+      return responseData;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
