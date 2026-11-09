@@ -1668,7 +1668,6 @@
   color: var(--stat-green);
 }
 
-
 /* Acciones en el modal de éxito (KAN-571) */
 .dl-result-actions {
   display: flex;
@@ -1746,4 +1745,3 @@
   border-color: color-mix(in srgb, var(--stat-green) 35%, transparent);
   color: var(--stat-green);
 }
-

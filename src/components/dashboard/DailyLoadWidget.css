@@ -115,7 +115,8 @@
 }
 
 @keyframes dlDotPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -329,7 +330,8 @@
 }
 
 @keyframes dlHaloFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
 
@@ -432,7 +434,8 @@
 }
 
 @keyframes dlPulseSkeleton {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.35;
   }
 

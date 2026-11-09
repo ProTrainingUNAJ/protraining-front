@@ -154,8 +154,7 @@ export const DailyLoadWidget: React.FC = () => {
     return Object.entries(ACTIVITY_METAS)
       .map(([key, meta]) => {
         const val = loadData[key as keyof DailyLoadSubmitResponse] as
-          | { minutes?: number; rpe?: number | null }
-          | undefined;
+          { minutes?: number; rpe?: number | null } | undefined;
         return {
           key,
           label: meta.label,
@@ -183,12 +182,18 @@ export const DailyLoadWidget: React.FC = () => {
         </span>
 
         {hasRecordedLoad ? (
-          <span className="dl-widget__badge dl-widget__badge--done" title="Carga registrada para hoy">
+          <span
+            className="dl-widget__badge dl-widget__badge--done"
+            title="Carga registrada para hoy"
+          >
             <span className="dl-widget__dot dl-widget__dot--pulse" />
             <span>Hoy · Registrada</span>
           </span>
         ) : (
-          <span className="dl-widget__badge dl-widget__badge--pending" title="Aún no se registró carga hoy">
+          <span
+            className="dl-widget__badge dl-widget__badge--pending"
+            title="Aún no se registró carga hoy"
+          >
             <span className="dl-widget__dot dl-widget__dot--amber" />
             <span>Pendiente hoy</span>
           </span>
@@ -258,18 +263,13 @@ export const DailyLoadWidget: React.FC = () => {
             {registeredActivities.length > 0 && (
               <div className="dl-widget__activities-list" aria-label="Actividades registradas">
                 {registeredActivities.slice(0, 3).map((act) => (
-                  <span
-                    key={act.key}
-                    className={`dl-widget__activity-chip ${act.themeClass}`}
-                  >
+                  <span key={act.key} className={`dl-widget__activity-chip ${act.themeClass}`}>
                     <span className="dl-widget__chip-icon" aria-hidden="true">
                       {act.icon}
                     </span>
                     <span>{act.label}:</span>
                     <strong>{act.minutes}m</strong>
-                    {act.rpe !== null && (
-                      <span className="dl-widget__chip-rpe">RPE {act.rpe}</span>
-                    )}
+                    {act.rpe !== null && <span className="dl-widget__chip-rpe">RPE {act.rpe}</span>}
                   </span>
                 ))}
                 {registeredActivities.length > 3 && (

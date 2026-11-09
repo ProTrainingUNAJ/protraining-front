@@ -31,10 +31,7 @@ import type { AthleteWeek } from '../../types/seguimiento';
 import { WeekCompletionStrip } from '../../components/athlete/WeekCompletionStrip';
 import { ConfettiCelebration } from '../../components/athlete/checkin/ConfettiCelebration';
 import { structureService } from '../../api/structureService';
-import {
-  isDailyLoadWidgetPinned,
-  pinDailyLoadWidget,
-} from '../../utils/athleteDashboardLayout';
+import { isDailyLoadWidgetPinned, pinDailyLoadWidget } from '../../utils/athleteDashboardLayout';
 import './DailyLoadPage.css';
 
 const getCachedAthleteId = (userId?: string): string | null => {
@@ -99,16 +96,66 @@ interface RpeLevelMeta {
 }
 
 const RPE_LEVELS: RpeLevelMeta[] = [
-  { val: 1, title: 'Muy liviano', desc: 'Recuperación activa, casi sin esfuerzo perceptible.', tier: 'easy' },
-  { val: 2, title: 'Liviano', desc: 'Esfuerzo suave, respiración cómoda y tranquila.', tier: 'easy' },
-  { val: 3, title: 'Moderado', desc: 'Ritmo aeróbico cómodo, podés mantener una conversación fluida.', tier: 'moderate' },
-  { val: 4, title: 'Algo duro', desc: 'Respiración algo acelerada pero completamente bajo control.', tier: 'moderate' },
-  { val: 5, title: 'Duro', desc: 'Esfuerzo constante, empieza a sentirse el trabajo muscular sostenido.', tier: 'demanding' },
-  { val: 6, title: 'Exigente', desc: 'Fatiga progresiva, requiere concentración mental para sostener.', tier: 'demanding' },
-  { val: 7, title: 'Muy duro', desc: 'Alta exigencia física, respiración agitada y pulsaciones altas.', tier: 'hard' },
-  { val: 8, title: 'Muy intenso', desc: 'Esfuerzo límite, solo frases entrecortadas y gran demanda aeróbica.', tier: 'hard' },
-  { val: 9, title: 'Casi máximo', desc: 'Esfuerzo extremo, muy difícil sostener el ritmo sin pausas.', tier: 'max' },
-  { val: 10, title: 'Máximo absoluto', desc: 'Agotamiento total, diste el 100% absoluto de tu capacidad.', tier: 'max' },
+  {
+    val: 1,
+    title: 'Muy liviano',
+    desc: 'Recuperación activa, casi sin esfuerzo perceptible.',
+    tier: 'easy',
+  },
+  {
+    val: 2,
+    title: 'Liviano',
+    desc: 'Esfuerzo suave, respiración cómoda y tranquila.',
+    tier: 'easy',
+  },
+  {
+    val: 3,
+    title: 'Moderado',
+    desc: 'Ritmo aeróbico cómodo, podés mantener una conversación fluida.',
+    tier: 'moderate',
+  },
+  {
+    val: 4,
+    title: 'Algo duro',
+    desc: 'Respiración algo acelerada pero completamente bajo control.',
+    tier: 'moderate',
+  },
+  {
+    val: 5,
+    title: 'Duro',
+    desc: 'Esfuerzo constante, empieza a sentirse el trabajo muscular sostenido.',
+    tier: 'demanding',
+  },
+  {
+    val: 6,
+    title: 'Exigente',
+    desc: 'Fatiga progresiva, requiere concentración mental para sostener.',
+    tier: 'demanding',
+  },
+  {
+    val: 7,
+    title: 'Muy duro',
+    desc: 'Alta exigencia física, respiración agitada y pulsaciones altas.',
+    tier: 'hard',
+  },
+  {
+    val: 8,
+    title: 'Muy intenso',
+    desc: 'Esfuerzo límite, solo frases entrecortadas y gran demanda aeróbica.',
+    tier: 'hard',
+  },
+  {
+    val: 9,
+    title: 'Casi máximo',
+    desc: 'Esfuerzo extremo, muy difícil sostener el ritmo sin pausas.',
+    tier: 'max',
+  },
+  {
+    val: 10,
+    title: 'Máximo absoluto',
+    desc: 'Agotamiento total, diste el 100% absoluto de tu capacidad.',
+    tier: 'max',
+  },
 ];
 
 const MINUTE_PRESETS = [15, 30, 45, 60, 90, 120];
@@ -431,8 +478,7 @@ export const DailyLoadPage: React.FC = () => {
 
   // Check if current activity has already been saved today
   const existingActivityData = todayLoad?.[selectedActivity as keyof DailyLoadSubmitResponse] as
-    | { minutes: number; rpe: number | null }
-    | undefined;
+    { minutes: number; rpe: number | null } | undefined;
   const hasExistingRecord = (existingActivityData?.minutes ?? 0) > 0;
 
   // Completed days count for weekly streak gamification
@@ -572,7 +618,9 @@ export const DailyLoadPage: React.FC = () => {
                   <div className="dl-view-summary-banner">
                     <div className="dl-summary-metric">
                       <span className="dl-summary-metric-val">{todayLoad.totalMinutes} min</span>
-                      <span className="dl-summary-metric-lbl">Total minutos · {todayLoad.date}</span>
+                      <span className="dl-summary-metric-lbl">
+                        Total minutos · {todayLoad.date}
+                      </span>
                     </div>
                     <div className="dl-summary-divider" aria-hidden="true" />
                     <div className="dl-summary-metric">
@@ -667,8 +715,7 @@ export const DailyLoadPage: React.FC = () => {
                 >
                   {ACTIVITIES.map(({ key, label, icon, hint }) => {
                     const data = todayLoad?.[key as keyof DailyLoadSubmitResponse] as
-                      | { minutes: number; rpe: number | null }
-                      | undefined;
+                      { minutes: number; rpe: number | null } | undefined;
                     const hasMinutes = (data?.minutes ?? 0) > 0;
                     const isSelected = selectedActivity === key;
                     return (
@@ -873,7 +920,8 @@ export const DailyLoadPage: React.FC = () => {
                           </span>
                         </div>
                         <p className="dl-rpe-feedback-desc">
-                          Tocá un número del 1 al 10 según la intensidad física sentida en la sesión.
+                          Tocá un número del 1 al 10 según la intensidad física sentida en la
+                          sesión.
                         </p>
                       </>
                     )}

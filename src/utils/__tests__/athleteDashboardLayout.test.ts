@@ -57,4 +57,3 @@ describe('athleteDashboardLayout', () => {
     expect(row2.cards[1].type).toBe('empty');
   });
 });
-

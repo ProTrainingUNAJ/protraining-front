@@ -101,4 +101,3 @@ describe('DailyLoadWidget (KAN-571)', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/athlete/daily-load');
   });
 });
-
