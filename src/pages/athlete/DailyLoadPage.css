@@ -627,16 +627,19 @@
   border-radius: 9999px;
 }
 
-/* Minutos input container */
+/* Minutos input container (alineado con la barra de RPE) */
 .dl-minutes-input-wrap {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  height: 2.85rem;
+  width: 100%;
 }
 
 .dl-minutes-input {
   flex: 1;
-  padding: 0.75rem 1rem;
+  height: 100%;
+  padding: 0.45rem 1rem;
   border-radius: 0.85rem;
   border: 1.5px solid var(--border);
   background: var(--bg-card);
@@ -646,6 +649,7 @@
   text-align: center;
   outline: none;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .dl-minutes-input:focus {
@@ -659,28 +663,63 @@
   color: var(--text-muted);
 }
 
-/* Quick presets */
-.dl-presets-wrap {
+/* Caja gemela de Quick presets para alineación con el feedback de RPE */
+.dl-minutes-presets-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  padding: 0.65rem 0.95rem;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.45rem;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 4.65rem;
+  height: 4.65rem;
+  box-sizing: border-box;
 }
 
-.dl-presets-label {
-  font-size: 0.775rem;
+.dl-presets-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dl-presets-box-title {
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
-  margin-right: 0.25rem;
+  margin: 0;
+}
+
+.dl-presets-box-tag {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.dl-presets-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .dl-preset-btn {
-  padding: 0.35rem 0.75rem;
-  border-radius: 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  flex: 1;
+  text-align: center;
+  padding: 0.25rem 0;
+  border-radius: 0.55rem;
+  font-size: 0.775rem;
+  font-weight: 700;
   border: 1px solid var(--border);
-  background: var(--bg-card);
+  background: var(--bg-subtle);
   color: var(--text-main);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -689,7 +728,6 @@
 .dl-preset-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
-  transform: translateY(-1px);
 }
 
 .dl-preset-btn--active {
@@ -698,22 +736,31 @@
   border-color: var(--primary);
 }
 
-/* ── Escala de RPE Interactiva (1 a 10 con Dopamina y Feedback) ── */
+/* ── Escala de RPE Interactiva (1 a 10 alineada con Minutos) ── */
+.dl-rpe-bar-wrap {
+  height: 2.85rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
 .dl-rpe-bar {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 0.4rem;
+  gap: 0.35rem;
   width: 100%;
+  height: 100%;
 }
 
 @media (max-width: 540px) {
   .dl-rpe-bar {
-    gap: 0.25rem;
+    gap: 0.2rem;
   }
 }
 
 .dl-rpe-btn {
-  aspect-ratio: 1;
+  height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -726,6 +773,7 @@
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   padding: 0;
+  box-sizing: border-box;
 }
 
 .dl-rpe-btn:hover {

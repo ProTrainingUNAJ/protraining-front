@@ -704,21 +704,27 @@ export const DailyLoadPage: React.FC = () => {
                     <span className="dl-minutes-unit">min</span>
                   </div>
 
-                  <div className="dl-presets-wrap">
-                    <span className="dl-presets-label">Atajos rápidos:</span>
-                    {MINUTE_PRESETS.map((preset) => (
-                      <button
-                        key={preset}
-                        type="button"
-                        className={`dl-preset-btn ${regMinutes === preset ? 'dl-preset-btn--active' : ''}`}
-                        onClick={() => {
-                          setRegMinutes(preset);
-                          setErrorMessage(null);
-                        }}
-                      >
-                        {preset}m
-                      </button>
-                    ))}
+                  {/* Caja gemela de atajos rápidos alineada simétricamente con RPE */}
+                  <div className="dl-minutes-presets-box">
+                    <div className="dl-presets-box-header">
+                      <span className="dl-presets-box-title">Atajos rápidos</span>
+                      <span className="dl-presets-box-tag">Sugeridos</span>
+                    </div>
+                    <div className="dl-presets-wrap">
+                      {MINUTE_PRESETS.map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          className={`dl-preset-btn ${regMinutes === preset ? 'dl-preset-btn--active' : ''}`}
+                          onClick={() => {
+                            setRegMinutes(preset);
+                            setErrorMessage(null);
+                          }}
+                        >
+                          {preset}m
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -750,24 +756,26 @@ export const DailyLoadPage: React.FC = () => {
                   />
 
                   {/* Barra interactiva de 10 botones táctiles */}
-                  <div className="dl-rpe-bar" role="group" aria-label="Escala de esfuerzo">
-                    {RPE_LEVELS.map(({ val, tier }) => {
-                      const isSelected = regRpe === val;
-                      return (
-                        <button
-                          key={val}
-                          type="button"
-                          className={`dl-rpe-btn dl-rpe-btn--${tier} ${isSelected ? 'dl-rpe-btn--selected' : ''}`}
-                          onClick={() => {
-                            setRegRpe(val);
-                            setErrorMessage(null);
-                          }}
-                          aria-label={`Nivel ${val}`}
-                        >
-                          {val}
-                        </button>
-                      );
-                    })}
+                  <div className="dl-rpe-bar-wrap">
+                    <div className="dl-rpe-bar" role="group" aria-label="Escala de esfuerzo">
+                      {RPE_LEVELS.map(({ val, tier }) => {
+                        const isSelected = regRpe === val;
+                        return (
+                          <button
+                            key={val}
+                            type="button"
+                            className={`dl-rpe-btn dl-rpe-btn--${tier} ${isSelected ? 'dl-rpe-btn--selected' : ''}`}
+                            onClick={() => {
+                              setRegRpe(val);
+                              setErrorMessage(null);
+                            }}
+                            aria-label={`Nivel ${val}`}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Tarjeta de feedback explicativa según el RPE (altura y estructura idéntica con o sin selección) */}
