@@ -1150,7 +1150,7 @@
 .dl-gauge-ruler {
   position: relative;
   width: 100%;
-  height: 2.85rem;
+  height: 1.85rem;
   user-select: none;
 }
 
@@ -1180,7 +1180,7 @@
   height: 0.55rem;
   background: color-mix(in srgb, var(--text-muted) 55%, transparent);
   border-radius: 1px;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
 .dl-ruler-line--main {
@@ -1197,29 +1197,19 @@
   transform: translateX(-50%);
 }
 
-.dl-ruler-val {
+.dl-ruler-tag {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-main);
-  line-height: 1.1;
-}
-
-.dl-ruler-tag {
-  font-size: 0.675rem;
-  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   line-height: 1.2;
 }
 
 @media (max-width: 520px) {
   .dl-ruler-tag {
-    display: none;
-  }
-
-  .dl-gauge-ruler {
-    height: 1.75rem;
+    font-size: 0.65rem;
+    letter-spacing: 0;
   }
 }
 

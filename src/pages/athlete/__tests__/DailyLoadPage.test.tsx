@@ -227,12 +227,10 @@ describe('DailyLoadPage (KAN-571)', () => {
       expect(screen.getByText('480')).toBeDefined();
       expect(screen.getByText('UA')).toBeDefined();
       expect(screen.getByText(/60 min × RPE 8/i)).toBeDefined();
-      expect(screen.getByText('0 UA')).toBeDefined();
-      expect(screen.getByText('200 UA')).toBeDefined();
-      expect(screen.getByText('400 UA')).toBeDefined();
-      expect(screen.getByText('600 UA')).toBeDefined();
-      expect(screen.getByText('800+ UA')).toBeDefined();
       expect(screen.getByText('Mínimo')).toBeDefined();
+      expect(screen.getByText('Suave')).toBeDefined();
+      expect(screen.getByText('Moderado')).toBeDefined();
+      expect(screen.getByText('Alto')).toBeDefined();
       expect(screen.getByText('Máximo')).toBeDefined();
       expect(container.querySelector('.dl-gauge-ruler')).toBeDefined();
     });

@@ -865,35 +865,30 @@ export const DailyLoadPage: React.FC = () => {
                       />
                     </div>
 
-                    {/* Regla con medidas visuales (Ticks + Valores + Categorías) */}
+                    {/* Regla con medidas visuales (Ticks + Categorías) */}
                     <div className="dl-gauge-ruler" aria-hidden="true">
                       <div className="dl-ruler-tick" style={{ left: '0%' }}>
                         <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-val">0 UA</span>
                         <span className="dl-ruler-tag">Mínimo</span>
                       </div>
                       <div className="dl-ruler-subtick" style={{ left: '12.5%' }} />
                       <div className="dl-ruler-tick" style={{ left: '25%' }}>
                         <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-val">200 UA</span>
                         <span className="dl-ruler-tag">Suave</span>
                       </div>
                       <div className="dl-ruler-subtick" style={{ left: '37.5%' }} />
                       <div className="dl-ruler-tick" style={{ left: '50%' }}>
                         <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-val">400 UA</span>
                         <span className="dl-ruler-tag">Moderado</span>
                       </div>
                       <div className="dl-ruler-subtick" style={{ left: '62.5%' }} />
                       <div className="dl-ruler-tick" style={{ left: '75%' }}>
                         <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-val">600 UA</span>
                         <span className="dl-ruler-tag">Alto</span>
                       </div>
                       <div className="dl-ruler-subtick" style={{ left: '87.5%' }} />
                       <div className="dl-ruler-tick" style={{ left: '100%' }}>
                         <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-val">800+ UA</span>
                         <span className="dl-ruler-tag">Máximo</span>
                       </div>
                     </div>
