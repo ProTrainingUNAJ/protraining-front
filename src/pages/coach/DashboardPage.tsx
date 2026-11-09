@@ -13,6 +13,7 @@ import runnerImg from '../../assets/protraining-3d-runner.jpg';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
+import { DailyLoadWidget } from '../../components/dashboard/DailyLoadWidget';
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
@@ -35,7 +36,8 @@ export type DashboardCardType =
   | 'checkin-progress'
   | 'pain-alerts'
   | 'progress-chart'
-  | 'epley-proposals';
+  | 'epley-proposals'
+  | 'daily-load';
 
 export interface WireframeCardItem {
   id: string;
@@ -110,7 +112,7 @@ const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
     name: 'Fila 2 · Mi Estado y Rutina',
     className: 'wireframe-row-2',
     cards: [
-      { id: 'a-r2-1', name: 'Módulo 2-A', colSpan: 1, type: 'empty' },
+      { id: 'a-daily-load', name: 'Carga del Día', colSpan: 1, type: 'daily-load' },
       { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
       { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
     ],
@@ -200,6 +202,24 @@ export const DashboardPage: React.FC = () => {
                   name: 'Propuestas de Récord Epley',
                   colSpan: 1,
                   type: 'epley-proposals',
+                };
+              }
+            }
+          } else {
+            // Athlete: ensure the daily load widget is available in row 2 (KAN-571)
+            const hasDailyLoad = parsed.some((r: DashboardRow) =>
+              r.cards.some((c: WireframeCardItem) => c.type === 'daily-load'),
+            );
+            if (!hasDailyLoad) {
+              const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');
+              if (row2 && Array.isArray(row2.cards)) {
+                const emptyIdx = row2.cards.findIndex((c: WireframeCardItem) => c.type === 'empty');
+                const targetIdx = emptyIdx !== -1 ? emptyIdx : 0;
+                row2.cards[targetIdx] = {
+                  id: 'a-daily-load',
+                  name: 'Carga del Día',
+                  colSpan: 1,
+                  type: 'daily-load',
                 };
               }
             }
@@ -297,6 +317,28 @@ export const DashboardPage: React.FC = () => {
       // Ignore quota errors
     }
   }, [rows, storageKey]);
+
+  // Sync layout when a widget is pinned or unpinned externally (KAN-571)
+  useEffect(() => {
+    const handleLayoutChanged = () => {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRows(parsed);
+          }
+        }
+      } catch {
+        // Ignorar
+      }
+    };
+
+    window.addEventListener('protraining-dashboard-layout-changed', handleLayoutChanged);
+    return () => {
+      window.removeEventListener('protraining-dashboard-layout-changed', handleLayoutChanged);
+    };
+  }, [storageKey]);
 
   // Inter-row drag and drop state
   const [dragSource, setDragSource] = useState<{
@@ -407,6 +449,8 @@ export const DashboardPage: React.FC = () => {
   // Card inner content renderer
   const renderCardContent = (card: WireframeCardItem) => {
     switch (card.type) {
+      case 'daily-load':
+        return <DailyLoadWidget />;
       case 'training-session':
         return <TrainingSessionWidget />;
       case 'traffic-light-summary':

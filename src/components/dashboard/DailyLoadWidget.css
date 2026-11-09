@@ -1,0 +1,442 @@
+/* ============================================================================
+   DailyLoadWidget.css — Widget transparente, colorido y animado de Carga del Día (KAN-571)
+   Fondo 100% transparente integrado naturalmente a la wireframe-card del Bento
+   ============================================================================ */
+
+.dl-widget {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  padding: 1.15rem 1.25rem;
+  background: transparent;
+  border: none;
+  box-sizing: border-box;
+  animation: dlWidgetFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dlWidgetFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header superior del widget */
+.dl-widget__header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.dl-widget__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.dl-widget__icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  transition: transform 0.25s ease;
+}
+
+.dl-widget:hover .dl-widget__icon-wrap {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.dl-widget__icon {
+  color: var(--primary);
+}
+
+.dl-widget__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.22rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.dl-widget__badge--done {
+  background: color-mix(in srgb, var(--stat-green) 12%, transparent);
+  border-color: color-mix(in srgb, var(--stat-green) 40%, transparent);
+  color: var(--stat-green);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--stat-green) 16%, transparent);
+}
+
+.dl-widget__badge--pending {
+  background: color-mix(in srgb, var(--celebration-amber) 10%, transparent);
+  border-color: color-mix(in srgb, var(--celebration-amber) 35%, transparent);
+  color: var(--celebration-amber);
+}
+
+.dl-widget__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dl-widget__dot--pulse {
+  box-shadow: 0 0 8px currentColor;
+  animation: dlDotPulse 1.8s infinite;
+}
+
+.dl-widget__dot--amber {
+  background: var(--celebration-amber);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--celebration-amber) 60%, transparent);
+}
+
+@keyframes dlDotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.35);
+    opacity: 0.75;
+  }
+}
+
+/* Cuerpo del widget */
+.dl-widget__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.dl-widget__content-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Caja de métricas con fondo transparente y borde limpio */
+.dl-widget__metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.95rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  transition: border-color 0.25s ease;
+}
+
+.dl-widget:hover .dl-widget__metrics-row {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+
+.dl-widget__metric-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.dl-widget__metric-item--right {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.dl-widget__metric-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+.dl-widget__metric-val {
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  line-height: 1.05;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+}
+
+.dl-widget__metric-val--primary {
+  color: var(--primary);
+}
+
+.dl-widget__metric-unit {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dl-widget__metric-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.15rem;
+}
+
+/* Barra de progreso mini multicolor animada */
+.dl-widget__progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--border) 60%, transparent);
+  overflow: hidden;
+}
+
+.dl-widget__progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--stat-green) 0%,
+    var(--celebration-blue) 40%,
+    var(--celebration-purple) 75%,
+    var(--celebration-amber) 100%
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, var(--celebration-purple) 40%, transparent);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: dlFillGrow 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dlFillGrow {
+  from {
+    width: 0;
+  }
+}
+
+/* Chips de actividades animadas con colores distintivos sobre fondo transparente */
+.dl-widget__activities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.dl-widget__activity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.22rem 0.55rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dl-widget__activity-chip:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.dl-widget__chip-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.dl-widget__chip-rpe {
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
+
+/* Colores temáticos por actividad con fondo transparente suave */
+.dl-widget__chip--gym {
+  background: color-mix(in srgb, var(--celebration-blue) 10%, transparent);
+  border-color: color-mix(in srgb, var(--celebration-blue) 35%, transparent);
+  color: var(--celebration-blue);
+}
+
+.dl-widget__chip--sport {
+  background: color-mix(in srgb, var(--celebration-green) 10%, transparent);
+  border-color: color-mix(in srgb, var(--celebration-green) 35%, transparent);
+  color: var(--celebration-green);
+}
+
+.dl-widget__chip--match1 {
+  background: color-mix(in srgb, var(--celebration-amber) 10%, transparent);
+  border-color: color-mix(in srgb, var(--celebration-amber) 35%, transparent);
+  color: var(--celebration-amber);
+}
+
+.dl-widget__chip--match2 {
+  background: color-mix(in srgb, var(--celebration-coral) 10%, transparent);
+  border-color: color-mix(in srgb, var(--celebration-coral) 35%, transparent);
+  color: var(--celebration-coral);
+}
+
+.dl-widget__chip--individual {
+  background: color-mix(in srgb, var(--celebration-purple) 10%, transparent);
+  border-color: color-mix(in srgb, var(--celebration-purple) 35%, transparent);
+  color: var(--celebration-purple);
+}
+
+.dl-widget__chip--more {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* Estado Vacío (Aún sin carga hoy) con halo animado */
+.dl-widget__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.dl-widget__empty-icon-halo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 15%, transparent);
+  animation: dlHaloFloat 3s ease-in-out infinite;
+}
+
+@keyframes dlHaloFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-3px) scale(1.05);
+  }
+}
+
+.dl-widget__empty-sparkle {
+  color: var(--primary);
+}
+
+.dl-widget__empty-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.dl-widget__empty-desc {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin: 0;
+  max-width: 260px;
+}
+
+/* Footer con acción y micro-animación en hover */
+.dl-widget__footer {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.65rem;
+  display: flex;
+  justify-content: stretch;
+}
+
+.dl-widget__btn-action {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.dl-widget__btn-action--detail:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.dl-widget__btn-arrow {
+  transition: transform 0.24s ease;
+}
+
+.dl-widget__btn-action--detail:hover .dl-widget__btn-arrow {
+  transform: translateX(4px);
+}
+
+.dl-widget__btn-action--primary {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 85%, var(--celebration-purple))
+  );
+  border-color: transparent;
+  color: var(--white);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+.dl-widget__btn-action--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 36%, transparent);
+  color: var(--white);
+}
+
+/* Skeleton de carga */
+.dl-widget__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.dl-widget__skeleton-line {
+  height: 16px;
+  border-radius: 4px;
+  background: var(--border);
+  opacity: 0.5;
+  animation: dlPulseSkeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes dlPulseSkeleton {
+  0%, 100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}

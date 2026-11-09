@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  LayoutGrid,
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +31,10 @@ import type { AthleteWeek } from '../../types/seguimiento';
 import { WeekCompletionStrip } from '../../components/athlete/WeekCompletionStrip';
 import { ConfettiCelebration } from '../../components/athlete/checkin/ConfettiCelebration';
 import { structureService } from '../../api/structureService';
+import {
+  isDailyLoadWidgetPinned,
+  pinDailyLoadWidget,
+} from '../../utils/athleteDashboardLayout';
 import './DailyLoadPage.css';
 
 const getCachedAthleteId = (userId?: string): string | null => {
@@ -176,6 +181,24 @@ export const DailyLoadPage: React.FC = () => {
         });
     }
   }, [user?.id]);
+
+  // Pinned home widget state (KAN-571)
+  const [isWidgetPinned, setIsWidgetPinned] = useState<boolean>(() => isDailyLoadWidgetPinned());
+
+  useEffect(() => {
+    const handleLayoutSync = () => {
+      setIsWidgetPinned(isDailyLoadWidgetPinned());
+    };
+    window.addEventListener('protraining-dashboard-layout-changed', handleLayoutSync);
+    return () => {
+      window.removeEventListener('protraining-dashboard-layout-changed', handleLayoutSync);
+    };
+  }, []);
+
+  const handlePinWidget = () => {
+    pinDailyLoadWidget();
+    setIsWidgetPinned(true);
+  };
 
   // Mode: register vs view today's load
   const [viewMode, setViewMode] = useState<ViewMode>('register');
@@ -557,6 +580,31 @@ export const DailyLoadPage: React.FC = () => {
                         {todayLoad.totalLoad}
                       </span>
                       <span className="dl-summary-metric-lbl">Carga del día (minutos × RPE)</span>
+                    </div>
+                    <div className="dl-summary-divider" aria-hidden="true" />
+                    <div className="dl-summary-action-wrap">
+                      <button
+                        type="button"
+                        onClick={handlePinWidget}
+                        className={`dl-view-home-pin-btn ${isWidgetPinned ? 'dl-view-home-pin-btn--pinned' : ''}`}
+                        title={
+                          isWidgetPinned
+                            ? 'El widget está activo en la fila 2 de tu Inicio'
+                            : 'Fijar el widget de Carga del Día en tu pantalla de Inicio'
+                        }
+                      >
+                        {isWidgetPinned ? (
+                          <>
+                            <CheckCircle2 size={15} style={{ color: 'var(--stat-green)' }} />
+                            <span>En tu Inicio</span>
+                          </>
+                        ) : (
+                          <>
+                            <LayoutGrid size={15} />
+                            <span>Agregar al Inicio</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -959,19 +1007,45 @@ export const DailyLoadPage: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <button
-              type="button"
-              onClick={() => {
-                setResult(null);
-                setShowConfetti(false);
-                setRegMinutes(0);
-                setRegRpe(null);
-                setErrorMessage(null);
-              }}
-              className="dl-btn dl-btn-primary"
-            >
-              Registrar otra actividad
-            </button>
+
+            <div className="dl-result-actions">
+              <button
+                type="button"
+                onClick={handlePinWidget}
+                className={`dl-btn-home-widget ${isWidgetPinned ? 'dl-btn-home-widget--pinned' : ''}`}
+                title={
+                  isWidgetPinned
+                    ? 'El widget ya está en la segunda fila de tu pantalla de Inicio'
+                    : 'Fijar el widget de Carga del Día en la segunda fila de tu Inicio'
+                }
+              >
+                {isWidgetPinned ? (
+                  <>
+                    <CheckCircle2 size={16} style={{ color: 'var(--stat-green)' }} />
+                    <span>✓ Widget en tu Inicio</span>
+                  </>
+                ) : (
+                  <>
+                    <LayoutGrid size={16} />
+                    <span>Agregar widget al Inicio</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setResult(null);
+                  setShowConfetti(false);
+                  setRegMinutes(0);
+                  setRegRpe(null);
+                  setErrorMessage(null);
+                }}
+                className="dl-btn dl-btn-primary"
+              >
+                Registrar otra actividad
+              </button>
+            </div>
           </div>
         </div>
       )}
