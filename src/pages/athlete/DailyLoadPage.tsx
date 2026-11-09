@@ -59,25 +59,25 @@ const ACTIVITIES: {
   icon: React.ReactNode;
   hint: string;
 }[] = [
-  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={22} />, hint: 'Fuerza, pesas, movilidad' },
+  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={22} />, hint: 'Fuerza y movilidad' },
   {
     key: 'sportTraining',
     label: 'Entrenamiento del deporte',
     icon: <Activity size={22} />,
-    hint: 'Práctica técnica/táctica',
+    hint: 'Técnica y táctica',
   },
-  { key: 'match1', label: 'Partido 1', icon: <Trophy size={22} />, hint: 'Primer partido del día' },
+  { key: 'match1', label: 'Partido 1', icon: <Trophy size={22} />, hint: 'Primer partido' },
   {
     key: 'match2',
     label: 'Partido 2',
     icon: <Trophy size={22} />,
-    hint: 'Segundo partido del día',
+    hint: 'Segundo partido',
   },
   {
     key: 'individualWork',
     label: 'Trabajo individual',
     icon: <User size={22} />,
-    hint: 'Extra, recuperación, técnica',
+    hint: 'Extra y preventivo',
   },
 ];
 
@@ -341,6 +341,9 @@ export const DailyLoadPage: React.FC = () => {
     | undefined;
   const hasExistingRecord = (existingActivityData?.minutes ?? 0) > 0;
 
+  // Completed days count for weekly streak gamification
+  const completedDaysCount = week?.days ? week.days.filter((d) => d.completed).length : 0;
+
   // Result screen after successful registration
   if (result) {
     return (
@@ -402,23 +405,31 @@ export const DailyLoadPage: React.FC = () => {
           </div>
         )}
 
-        {/* Week completion strip card (KAN-446) */}
-        <section className="dl-week-card" aria-label="Semana del atleta">
-          <div className="dl-week-header">
-            <h2 className="dl-week-title">Tu semana</h2>
-            <span className="dl-week-subtitle">Días con carga registrada</span>
-          </div>
-          <WeekCompletionStrip days={week?.days ?? []} isLoading={isLoadingWeek} />
-          {!isLoadingWeek && (!week || week.days.length === 0) && (
-            <p className="dl-week-empty">
-              No se pudo cargar la semana. Reintentá en unos segundos.
-            </p>
-          )}
-        </section>
-
-        {/* ── BURBUJA CONTENEDORA PRINCIPAL (TARJETA MAESTRA UNIFICADA) ── */}
+        {/* ── BURBUJA PRINCIPAL UNIFICADA (INTEGRA SEMANA + CARGA DE ENTRENAMIENTO) ── */}
         <div className="dl-main-card">
-          {/* Segmented Control Interno ADENTRO de la burbuja */}
+          {/* 1. SECCIÓN SUPERIOR: TU SEMANA (INTEGRADA ADENTRO DE LA BURBUJA) */}
+          <section className="dl-bubble-week-section" aria-label="Semana del atleta">
+            <div className="dl-bubble-week-header">
+              <div className="dl-week-title-wrap">
+                <h2 className="dl-week-title">Tu semana</h2>
+                <span className="dl-week-subtitle">Días con carga registrada</span>
+              </div>
+              {completedDaysCount > 0 && (
+                <div className="dl-week-streak-badge">
+                  <Flame size={15} className="dl-streak-icon" />
+                  <span>{completedDaysCount} de 7 días completados</span>
+                </div>
+              )}
+            </div>
+            <WeekCompletionStrip days={week?.days ?? []} isLoading={isLoadingWeek} />
+            {!isLoadingWeek && (!week || week.days.length === 0) && (
+              <p className="dl-week-empty">
+                No se pudo cargar la semana. Reintentá en unos segundos.
+              </p>
+            )}
+          </section>
+
+          {/* 2. TOGGLE DE MODO (REGISTRAR VS VER HOY) */}
           <div className="dl-tab-segmented" role="tablist" aria-label="Modo de vista">
             <button
               type="button"
@@ -516,9 +527,13 @@ export const DailyLoadPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-6 w-full">
-              {/* Selector de actividades ADENTRO de la burbuja */}
-              <div className="dl-activities-selector" role="group" aria-label="Seleccionar actividad">
-                {ACTIVITIES.map(({ key, label, icon }) => {
+              {/* 3. REORGANIZACIÓN: GRID DE 5 TILES SIMÉTRICOS DE ACTIVIDAD */}
+              <div
+                className="dl-activity-tiles-grid"
+                role="group"
+                aria-label="Seleccionar actividad"
+              >
+                {ACTIVITIES.map(({ key, label, icon, hint }) => {
                   const data = todayLoad?.[key as keyof DailyLoadSubmitResponse] as
                     | { minutes: number; rpe: number | null }
                     | undefined;
@@ -528,16 +543,22 @@ export const DailyLoadPage: React.FC = () => {
                     <button
                       key={key}
                       type="button"
-                      className={`dl-activity-chip ${isSelected ? 'dl-activity-chip--active' : ''} ${hasMinutes ? 'dl-activity-chip--completed' : ''}`}
+                      aria-label={label}
+                      className={`dl-activity-tile ${isSelected ? 'dl-activity-tile--active' : ''} ${hasMinutes ? 'dl-activity-tile--completed' : ''}`}
                       onClick={() => setSelectedActivity(key)}
                     >
-                      <span className="dl-chip-icon" aria-hidden="true">
+                      <div className="dl-tile-icon-wrap" aria-hidden="true">
                         {icon}
-                      </span>
-                      <span>{label}</span>
-                      {hasMinutes && (
-                        <span className="dl-chip-badge" title="Ya registrado hoy">
+                      </div>
+                      <span className="dl-tile-label">{label}</span>
+                      <span className="dl-tile-hint">{hint}</span>
+                      {hasMinutes ? (
+                        <span className="dl-tile-badge dl-tile-badge--done" title="Ya registrado hoy">
                           ✓ {data?.minutes}m
+                        </span>
+                      ) : (
+                        <span className="dl-tile-badge dl-tile-badge--pending">
+                          {isSelected ? 'Cargando' : '0m'}
                         </span>
                       )}
                     </button>
@@ -545,7 +566,7 @@ export const DailyLoadPage: React.FC = () => {
                 })}
               </div>
 
-              {/* Hero visual de la actividad activa */}
+              {/* 4. Hero visual de la actividad activa */}
               <div className="dl-hero-active">
                 <div className="dl-hero-icon-wrap">
                   <div className="dl-hero-icon" aria-hidden="true">
@@ -567,7 +588,7 @@ export const DailyLoadPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Inputs y controles de dopamina */}
+              {/* 5. Inputs y controles con máxima dopamina */}
               <div className="dl-inputs-section">
                 {/* 1. Minutos de entrenamiento con Quick Presets */}
                 <div className="dl-field-block">

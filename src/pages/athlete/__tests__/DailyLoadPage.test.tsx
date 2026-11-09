@@ -191,8 +191,9 @@ describe('DailyLoadPage (KAN-571)', () => {
     await waitFor(() => {
       const mainCard = container.querySelector('.dl-main-card');
       expect(mainCard).toBeDefined();
+      expect(mainCard?.querySelector('.dl-bubble-week-section')).toBeDefined();
       expect(mainCard?.querySelector('.dl-tab-segmented')).toBeDefined();
-      expect(mainCard?.querySelector('.dl-activities-selector')).toBeDefined();
+      expect(mainCard?.querySelector('.dl-activity-tiles-grid')).toBeDefined();
     });
   });
 

@@ -7,45 +7,7 @@
   width: 100%;
 }
 
-/* Week completion card */
-.dl-week-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.dl-week-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.dl-week-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-}
-
-.dl-week-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.dl-week-empty {
-  font-size: 0.825rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-/* ── BURBUJA CONTENEDORA PRINCIPAL UNIFICADA (TARJETA MAESTRA) ── */
+/* ── BURBUJA CONTENEDORA PRINCIPAL UNIFICADA (INTEGRA SEMANA + CARGA) ── */
 .dl-main-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -56,7 +18,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 48rem;
+  max-width: 52rem;
   margin: 0 auto;
   position: relative;
   overflow: hidden;
@@ -71,7 +33,70 @@
   }
 }
 
-/* ── Segmented Control Interno (Tabs dentro de la burbuja) ── */
+/* ── 1. Sección de Semana Integrada en la Cabecera de la Burbuja ── */
+.dl-bubble-week-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 1.15rem 1.35rem;
+}
+
+.dl-bubble-week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dl-week-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dl-week-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.dl-week-subtitle {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+.dl-week-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: var(--celebration-coral);
+  background: color-mix(in srgb, var(--celebration-coral) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--celebration-coral) 25%, transparent);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.dl-streak-icon {
+  color: var(--celebration-coral);
+  animation: dlFlamePulse 2s infinite ease-in-out;
+}
+
+.dl-week-empty {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── 2. Segmented Control Interno (Tabs dentro de la burbuja) ── */
 .dl-tab-segmented {
   display: flex;
   background: var(--bg-subtle);
@@ -114,88 +139,147 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ── Selector de Actividades Integrado ADENTRO de la Burbuja ── */
-.dl-activities-selector {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+/* ── 3. REORGANIZACIÓN: Grid de 5 Tiles Simétricos de Actividad ── */
+.dl-activity-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.65rem;
   width: 100%;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px dashed var(--border);
 }
 
-.dl-activity-chip {
-  display: inline-flex;
+@media (max-width: 860px) {
+  .dl-activity-tiles-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .dl-activity-tiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dl-activity-tile {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 0.85rem 0.65rem;
+  border-radius: 1.15rem;
   border: 1.5px solid var(--border);
   background: var(--bg-subtle);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.dl-activity-chip:hover {
-  color: var(--text-main);
+.dl-activity-tile:hover {
   border-color: var(--primary);
   background: var(--bg-card);
-  transform: translateY(-1px);
-}
-
-.dl-activity-chip--active {
-  background: var(--primary);
-  color: var(--bg-main);
-  border-color: var(--primary);
+  color: var(--text-main);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
-.dl-activity-chip--active:hover {
+.dl-activity-tile--active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.dl-activity-tile--active:hover {
   background: var(--primary-hover);
-  color: var(--bg-main);
+  color: var(--white);
   border-color: var(--primary-hover);
 }
 
-.dl-activity-chip--completed:not(.dl-activity-chip--active) {
+.dl-activity-tile--completed:not(.dl-activity-tile--active) {
   border-color: var(--success);
   background: var(--success-bg);
   color: var(--success-text);
 }
 
-.dl-chip-icon {
+.dl-tile-icon-wrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  transition: transform 0.2s ease;
 }
 
-.dl-chip-badge {
-  font-size: 0.725rem;
+.dl-activity-tile:hover .dl-tile-icon-wrap {
+  transform: scale(1.08);
+}
+
+.dl-activity-tile--active .dl-tile-icon-wrap {
+  background: color-mix(in srgb, var(--white) 22%, transparent);
+  color: var(--white);
+}
+
+.dl-activity-tile--completed:not(.dl-activity-tile--active) .dl-tile-icon-wrap {
+  background: var(--success-bg-strong);
+  color: var(--success);
+}
+
+.dl-tile-label {
+  font-size: 0.825rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0.15rem;
+}
+
+.dl-tile-hint {
+  font-size: 0.685rem;
+  line-height: 1.15;
+  opacity: 0.75;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dl-tile-badge {
+  font-size: 0.7rem;
   font-weight: 700;
   padding: 0.15rem 0.45rem;
   border-radius: 9999px;
+  margin-top: 0.2rem;
+}
+
+.dl-tile-badge--done {
   background: var(--success-bg-strong);
   color: var(--success-text);
-  margin-left: 0.2rem;
 }
 
-.dl-activity-chip--active .dl-chip-badge {
+.dl-tile-badge--pending {
+  background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+  color: var(--text-muted);
+}
+
+.dl-activity-tile--active .dl-tile-badge--done,
+.dl-activity-tile--active .dl-tile-badge--pending {
   background: color-mix(in srgb, var(--white) 25%, transparent);
-  color: var(--bg-main);
+  color: var(--white);
 }
 
-/* ── Hero de la Actividad Activa ── */
+/* ── 4. Hero de la Actividad Activa ── */
 .dl-hero-active {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0 0.25rem;
+  gap: 0.35rem;
+  padding: 0.35rem 0;
 }
 
 .dl-hero-icon-wrap {
@@ -221,7 +305,7 @@
 }
 
 .dl-hero-title {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--text-main);
   margin: 0;
@@ -244,14 +328,14 @@
   padding: 0.45rem 0.85rem;
   border-radius: 0.75rem;
   font-size: 0.825rem;
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
 }
 
-/* ── Panel de Entradas (Minutos y RPE) ── */
+/* ── 5. Panel de Entradas (Minutos y RPE) ── */
 .dl-inputs-section {
   display: flex;
   flex-direction: column;
-  gap: 1.35rem;
+  gap: 1.25rem;
   width: 100%;
 }
 
@@ -349,7 +433,7 @@
 }
 
 .dl-preset-btn {
-  padding: 0.35rem 0.7rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 0.65rem;
   font-size: 0.8rem;
   font-weight: 600;
@@ -368,7 +452,7 @@
 
 .dl-preset-btn--active {
   background: var(--primary);
-  color: var(--bg-main);
+  color: var(--white);
   border-color: var(--primary);
 }
 
@@ -407,7 +491,7 @@
   color: var(--text-main);
 }
 
-/* Tiers de esfuerzo por color */
+/* Tiers de esfuerzo por color con tokens semánticos */
 .dl-rpe-btn--easy:hover,
 .dl-rpe-btn--easy.dl-rpe-btn--selected {
   background: var(--celebration-blue);
@@ -448,7 +532,7 @@
   box-shadow: 0 4px 12px color-mix(in srgb, var(--danger) 35%, transparent);
 }
 
-/* Input oculto/accesible para RPE */
+/* Input sincronizado para accesibilidad */
 .dl-rpe-input-hidden {
   position: absolute;
   width: 1px;
@@ -702,7 +786,7 @@
 
 .dl-btn-primary {
   background: var(--primary);
-  color: var(--bg-main);
+  color: var(--white);
 }
 
 .dl-btn-primary:hover:not(:disabled) {
@@ -811,7 +895,7 @@
 
 .dl-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 0.85rem;
 }
 
