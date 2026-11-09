@@ -635,27 +635,19 @@ export const DailyLoadPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 4. Hero visual de la actividad activa */}
-              <div className="dl-hero-active">
-                <div className="dl-hero-icon-wrap">
-                  <div className="dl-hero-icon" aria-hidden="true">
-                    {selectedMeta.icon}
-                  </div>
-                </div>
-                <h2 className="dl-hero-title">{selectedMeta.label}</h2>
-                <p className="dl-hero-subtitle">{selectedMeta.hint}</p>
-
-                {hasExistingRecord && (
+              {/* Banner si ya fue registrada hoy */}
+              {hasExistingRecord && (
+                <div className="flex justify-center w-full">
                   <div className="dl-already-banner">
                     <CheckCircle2 size={16} />
                     <span>
                       Ya registraste <strong>{existingActivityData?.minutes} min</strong> (RPE{' '}
-                      <strong>{existingActivityData?.rpe ?? '—'}</strong>) hoy. Modificá los datos si
-                      querés actualizarla.
+                      <strong>{existingActivityData?.rpe ?? '—'}</strong>) hoy en{' '}
+                      {selectedMeta.label.toLowerCase()}. Modificá los datos si querés actualizarla.
                     </span>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* 5. Inputs y controles con máxima dopamina */}
               <div className="dl-inputs-section">

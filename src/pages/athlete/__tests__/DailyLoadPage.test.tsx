@@ -88,16 +88,16 @@ describe('DailyLoadPage (KAN-571)', () => {
   it('permite cambiar entre los chips de actividad y actualiza la tarjeta', async () => {
     renderComponent();
 
+    const gymCard = screen.getByRole('button', { name: 'Gimnasio' });
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Gimnasio' })).toBeDefined();
+      expect(gymCard.className).toContain('dl-carousel-card--active');
     });
 
     const sportChip = screen.getByRole('button', { name: 'Entrenamiento del deporte' });
     fireEvent.click(sportChip);
 
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Entrenamiento del deporte' }),
-    ).toBeDefined();
+    expect(sportChip.className).toContain('dl-carousel-card--active');
+    expect(gymCard.className).not.toContain('dl-carousel-card--active');
   });
 
   it('valida que no se envíen minutos 0 y RPE vacío', async () => {
@@ -200,16 +200,17 @@ describe('DailyLoadPage (KAN-571)', () => {
   it('permite navegar entre actividades usando las flechas del carrusel', async () => {
     renderComponent();
 
+    const gymCard = screen.getByRole('button', { name: 'Gimnasio' });
     await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 2, name: 'Gimnasio' })).toBeDefined();
+      expect(gymCard.className).toContain('dl-carousel-card--active');
     });
 
     const nextBtn = screen.getByRole('button', { name: /Actividad siguiente/i });
     fireEvent.click(nextBtn);
 
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Entrenamiento del deporte' }),
-    ).toBeDefined();
+    const sportCard = screen.getByRole('button', { name: 'Entrenamiento del deporte' });
+    expect(sportCard.className).toContain('dl-carousel-card--active');
+    expect(gymCard.className).not.toContain('dl-carousel-card--active');
   });
 
   it('permite usar presets rápidos de minutos y botones de RPE mostrando la carga en vivo (UA)', async () => {
