@@ -96,7 +96,23 @@
   margin: 0;
 }
 
-/* ── 2. Segmented Control Interno (Tabs de Modo) ── */
+/* ── 2. Barra Unificada de Control y Navegación (Tabs + Eyebrow + Flechas) ── */
+.dl-control-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.dl-control-nav-left {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
 .dl-tab-segmented {
   display: flex;
   background: var(--bg-subtle);
@@ -104,9 +120,23 @@
   border-radius: 1rem;
   padding: 0.35rem;
   width: 100%;
-  max-width: 28rem;
-  margin: 0 auto;
+  max-width: 26rem;
+  flex: 0 1 26rem;
+  margin: 0;
   box-sizing: border-box;
+}
+
+.dl-control-nav-right {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.dl-control-nav-spacer {
+  width: 4.95rem;
+  height: 2.25rem;
 }
 
 .dl-tab-btn {
@@ -208,6 +238,28 @@
 }
 
 @media (max-width: 860px) {
+  .dl-control-nav-bar {
+    flex-wrap: wrap;
+    gap: 0.85rem;
+  }
+
+  .dl-tab-segmented {
+    order: 1;
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .dl-control-nav-left {
+    order: 2;
+    flex: 1;
+  }
+
+  .dl-control-nav-right {
+    order: 3;
+    flex: 0 0 auto;
+  }
+
   .dl-carousel-track {
     display: flex;
     overflow-x: auto;

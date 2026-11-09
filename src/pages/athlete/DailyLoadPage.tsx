@@ -451,28 +451,69 @@ export const DailyLoadPage: React.FC = () => {
             )}
           </section>
 
-          {/* 2. TOGGLE DE MODO (REGISTRAR VS VER HOY) */}
-          <div className="dl-tab-segmented" role="tablist" aria-label="Modo de vista">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={viewMode === 'register'}
-              className={`dl-tab-btn ${viewMode === 'register' ? 'dl-tab-btn--active' : ''}`}
-              onClick={() => setViewMode('register')}
-            >
-              <ClipboardList size={16} />
-              <span>Registrar actividad</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={viewMode === 'view'}
-              className={`dl-tab-btn ${viewMode === 'view' ? 'dl-tab-btn--active' : ''}`}
-              onClick={() => setViewMode('view')}
-            >
-              <Eye size={16} />
-              <span>Ver carga de hoy</span>
-            </button>
+          {/* 2. BARRA DE CONTROL Y NAVEGACIÓN UNIFICADA (TÍTULO + TABS + FLECHAS) */}
+          <div className="dl-control-nav-bar">
+            <div className="dl-control-nav-left">
+              {viewMode === 'register' ? (
+                <span className="dl-carousel-eyebrow">
+                  <Sparkles size={15} className="dl-sparkle-icon" />
+                  <span>Seleccioná tu actividad</span>
+                </span>
+              ) : (
+                <span className="dl-carousel-eyebrow">
+                  <Sparkles size={15} className="dl-sparkle-icon" />
+                  <span>Resumen de actividades</span>
+                </span>
+              )}
+            </div>
+
+            <div className="dl-tab-segmented" role="tablist" aria-label="Modo de vista">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === 'register'}
+                className={`dl-tab-btn ${viewMode === 'register' ? 'dl-tab-btn--active' : ''}`}
+                onClick={() => setViewMode('register')}
+              >
+                <ClipboardList size={16} />
+                <span>Registrar actividad</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === 'view'}
+                className={`dl-tab-btn ${viewMode === 'view' ? 'dl-tab-btn--active' : ''}`}
+                onClick={() => setViewMode('view')}
+              >
+                <Eye size={16} />
+                <span>Ver carga de hoy</span>
+              </button>
+            </div>
+
+            <div className="dl-control-nav-right">
+              {viewMode === 'register' ? (
+                <div className="dl-carousel-arrows">
+                  <button
+                    type="button"
+                    className="dl-carousel-arrow-btn"
+                    onClick={handlePrevActivity}
+                    aria-label="Actividad anterior"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    className="dl-carousel-arrow-btn"
+                    onClick={handleNextActivity}
+                    aria-label="Actividad siguiente"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              ) : (
+                <div className="dl-control-nav-spacer" aria-hidden="true" />
+              )}
+            </div>
           </div>
 
           {viewMode === 'view' ? (
@@ -570,31 +611,6 @@ export const DailyLoadPage: React.FC = () => {
             <div className="dl-register-flow">
               {/* 3. CARRUSEL INTERACTIVO, COLORIDO Y SIMÉTRICO DE ACTIVIDADES */}
               <div className="dl-carousel-container" aria-label="Carrusel de actividades">
-                <div className="dl-carousel-header">
-                  <span className="dl-carousel-eyebrow">
-                    <Sparkles size={15} className="dl-sparkle-icon" />
-                    <span>Seleccioná tu actividad</span>
-                  </span>
-                  <div className="dl-carousel-arrows">
-                    <button
-                      type="button"
-                      className="dl-carousel-arrow-btn"
-                      onClick={handlePrevActivity}
-                      aria-label="Actividad anterior"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    <button
-                      type="button"
-                      className="dl-carousel-arrow-btn"
-                      onClick={handleNextActivity}
-                      aria-label="Actividad siguiente"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-                </div>
-
                 <div
                   ref={carouselTrackRef}
                   className="dl-carousel-track"
