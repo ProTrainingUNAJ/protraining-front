@@ -483,6 +483,15 @@
   box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
+/* ── Slot reservado para el banner (preserva la separación idéntica con o sin cartel) ── */
+.dl-banner-slot {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 /* ── Banner si la actividad ya fue cargada hoy ── */
 .dl-already-banner {
   display: inline-flex;
@@ -494,7 +503,7 @@
   padding: 0.55rem 1rem;
   border-radius: 0.85rem;
   font-size: 0.85rem;
-  margin: 0.25rem 0;
+  margin: 0;
 }
 
 /* ── 5. Panel de Entradas (Minutos a la izquierda y RPE a la derecha) ── */
@@ -787,19 +796,19 @@
   margin: 0;
 }
 
-/* ── Widget de Carga de Sesión en Vivo (UA - Pura Dopamina) ── */
+/* ── Widget de Carga de Sesión en Vivo (UA - Ancho Completo con Regla Graduada) ── */
 .dl-live-gauge {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--primary) 10%, var(--bg-subtle)),
-    color-mix(in srgb, var(--primary) 4%, var(--bg-card))
+    color-mix(in srgb, var(--primary) 8%, var(--bg-subtle)),
+    color-mix(in srgb, var(--primary) 3%, var(--bg-card))
   );
-  border: 1.5px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 22%, transparent);
   border-radius: 1.15rem;
-  padding: 1.25rem 1.5rem;
+  padding: 1.35rem 1.65rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
   box-shadow: var(--shadow-sm);
   animation: dlPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   width: 100%;
@@ -829,7 +838,7 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -857,16 +866,25 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-main);
+  box-shadow: var(--shadow-sm);
 }
 
 .dl-live-gauge-metrics {
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dl-live-gauge-main-val {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
 }
 
 .dl-live-gauge-number {
-  font-size: 2.25rem;
+  font-size: 2.35rem;
   font-weight: 900;
   line-height: 1;
   color: var(--primary);
@@ -874,24 +892,33 @@
 }
 
 .dl-live-gauge-unit {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-muted);
 }
 
 .dl-live-gauge-formula {
-  font-size: 0.825rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-muted);
-  margin-left: auto;
+}
+
+/* Envoltorio de la Barra y la Regla Graduada */
+.dl-gauge-bar-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .dl-live-gauge-progress {
   width: 100%;
-  height: 0.5rem;
+  height: 0.75rem;
   border-radius: 9999px;
-  background: var(--bg-card);
+  background: color-mix(in srgb, var(--border) 45%, var(--bg-card));
   overflow: hidden;
   border: 1px solid var(--border);
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .dl-live-gauge-fill {
@@ -899,16 +926,94 @@
   border-radius: 9999px;
   background: linear-gradient(
     90deg,
-    var(--celebration-blue),
-    var(--success),
-    var(--warning),
-    var(--danger)
+    var(--celebration-blue) 0%,
+    var(--success) 30%,
+    var(--warning) 65%,
+    var(--danger) 100%
   );
-  transition: width 0.4s ease;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 28%, transparent);
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Regla métrica de UA con marcas y niveles */
+.dl-gauge-ruler {
+  position: relative;
+  width: 100%;
+  height: 2.85rem;
+  user-select: none;
+}
+
+.dl-ruler-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.dl-ruler-tick:first-child {
+  transform: translateX(0);
+  align-items: flex-start;
+}
+
+.dl-ruler-tick:last-child {
+  transform: translateX(-100%);
+  align-items: flex-end;
+}
+
+.dl-ruler-line {
+  width: 1.5px;
+  height: 0.55rem;
+  background: color-mix(in srgb, var(--text-muted) 55%, transparent);
+  border-radius: 1px;
+  margin-bottom: 0.2rem;
+}
+
+.dl-ruler-line--main {
+  height: 0.65rem;
+  background: var(--text-main);
+}
+
+.dl-ruler-subtick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 0.35rem;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+  transform: translateX(-50%);
+}
+
+.dl-ruler-val {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.dl-ruler-tag {
+  font-size: 0.675rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+@media (max-width: 520px) {
+  .dl-ruler-tag {
+    display: none;
+  }
+
+  .dl-gauge-ruler {
+    height: 1.75rem;
+  }
 }
 
 .dl-live-gauge-footer {
-  font-size: 0.8rem;
+  font-size: 0.825rem;
   font-weight: 600;
   color: var(--text-main);
   margin: 0;

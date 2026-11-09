@@ -635,9 +635,9 @@ export const DailyLoadPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Banner si ya fue registrada hoy */}
-              {hasExistingRecord && (
-                <div className="flex justify-center w-full">
+              {/* Slot reservado para preservar la separación uniforme con o sin cartel verde */}
+              <div className="dl-banner-slot">
+                {hasExistingRecord && (
                   <div className="dl-already-banner">
                     <CheckCircle2 size={16} />
                     <span>
@@ -646,8 +646,8 @@ export const DailyLoadPage: React.FC = () => {
                       {selectedMeta.label.toLowerCase()}. Modificá los datos si querés actualizarla.
                     </span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* 5. Inputs y controles con máxima dopamina */}
               <div className="dl-inputs-section">
@@ -771,26 +771,31 @@ export const DailyLoadPage: React.FC = () => {
                     )}
                   </div>
                 </div>
+              </div>
 
-                {/* 3. WIDGET DE IMPACTO / CARGA EN VIVO (UA - PURA DOPAMINA) */}
-                {sessionLoad > 0 && (
-                  <div className="dl-live-gauge">
-                    <div className="dl-live-gauge-top">
-                      <div className="dl-live-gauge-label">
-                        <Zap size={18} className="dl-live-gauge-icon" />
-                        <span>Carga estimada de la sesión</span>
-                      </div>
-                      <span className="dl-live-gauge-badge">{loadMotivation.badge}</span>
+              {/* 6. WIDGET DE IMPACTO / CARGA EN VIVO (UA - ANCHO COMPLETO CON REGLA GRADUADA) */}
+              {sessionLoad > 0 && (
+                <div className="dl-live-gauge" aria-label="Carga estimada de la sesión">
+                  <div className="dl-live-gauge-top">
+                    <div className="dl-live-gauge-label">
+                      <Zap size={18} className="dl-live-gauge-icon" />
+                      <span>Carga estimada de la sesión</span>
                     </div>
+                    <span className="dl-live-gauge-badge">{loadMotivation.badge}</span>
+                  </div>
 
-                    <div className="dl-live-gauge-metrics">
+                  <div className="dl-live-gauge-metrics">
+                    <div className="dl-live-gauge-main-val">
                       <span className="dl-live-gauge-number">{sessionLoad}</span>
                       <span className="dl-live-gauge-unit">UA</span>
-                      <span className="dl-live-gauge-formula">
-                        {regMinutes} min × RPE {regRpe}
-                      </span>
                     </div>
+                    <span className="dl-live-gauge-formula">
+                      {regMinutes} min × RPE {regRpe}
+                    </span>
+                  </div>
 
+                  {/* Barra de progreso y regla métrica graduada (Mínimo a Máximo) */}
+                  <div className="dl-gauge-bar-wrapper">
                     <div className="dl-live-gauge-progress" aria-hidden="true">
                       <div
                         className="dl-live-gauge-fill"
@@ -800,10 +805,43 @@ export const DailyLoadPage: React.FC = () => {
                       />
                     </div>
 
-                    <p className="dl-live-gauge-footer">{loadMotivation.text}</p>
+                    {/* Regla con medidas visuales (Ticks + Valores + Categorías) */}
+                    <div className="dl-gauge-ruler" aria-hidden="true">
+                      <div className="dl-ruler-tick" style={{ left: '0%' }}>
+                        <span className="dl-ruler-line dl-ruler-line--main" />
+                        <span className="dl-ruler-val">0 UA</span>
+                        <span className="dl-ruler-tag">Mínimo</span>
+                      </div>
+                      <div className="dl-ruler-subtick" style={{ left: '12.5%' }} />
+                      <div className="dl-ruler-tick" style={{ left: '25%' }}>
+                        <span className="dl-ruler-line dl-ruler-line--main" />
+                        <span className="dl-ruler-val">200 UA</span>
+                        <span className="dl-ruler-tag">Suave</span>
+                      </div>
+                      <div className="dl-ruler-subtick" style={{ left: '37.5%' }} />
+                      <div className="dl-ruler-tick" style={{ left: '50%' }}>
+                        <span className="dl-ruler-line dl-ruler-line--main" />
+                        <span className="dl-ruler-val">400 UA</span>
+                        <span className="dl-ruler-tag">Moderado</span>
+                      </div>
+                      <div className="dl-ruler-subtick" style={{ left: '62.5%' }} />
+                      <div className="dl-ruler-tick" style={{ left: '75%' }}>
+                        <span className="dl-ruler-line dl-ruler-line--main" />
+                        <span className="dl-ruler-val">600 UA</span>
+                        <span className="dl-ruler-tag">Alto</span>
+                      </div>
+                      <div className="dl-ruler-subtick" style={{ left: '87.5%' }} />
+                      <div className="dl-ruler-tick" style={{ left: '100%' }}>
+                        <span className="dl-ruler-line dl-ruler-line--main" />
+                        <span className="dl-ruler-val">800+ UA</span>
+                        <span className="dl-ruler-tag">Máximo</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  <p className="dl-live-gauge-footer">{loadMotivation.text}</p>
+                </div>
+              )}
 
               {errorMessage && (
                 <div className="dl-error" role="alert">
