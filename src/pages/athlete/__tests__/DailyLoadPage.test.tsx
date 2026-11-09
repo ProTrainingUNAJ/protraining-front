@@ -193,8 +193,23 @@ describe('DailyLoadPage (KAN-571)', () => {
       expect(mainCard).toBeDefined();
       expect(mainCard?.querySelector('.dl-bubble-week-section')).toBeDefined();
       expect(mainCard?.querySelector('.dl-tab-segmented')).toBeDefined();
-      expect(mainCard?.querySelector('.dl-activity-tiles-grid')).toBeDefined();
+      expect(mainCard?.querySelector('.dl-carousel-container')).toBeDefined();
     });
+  });
+
+  it('permite navegar entre actividades usando las flechas del carrusel', async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 2, name: 'Gimnasio' })).toBeDefined();
+    });
+
+    const nextBtn = screen.getByRole('button', { name: /Actividad siguiente/i });
+    fireEvent.click(nextBtn);
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Entrenamiento del deporte' }),
+    ).toBeDefined();
   });
 
   it('permite usar presets rápidos de minutos y botones de RPE mostrando la carga en vivo (UA)', async () => {

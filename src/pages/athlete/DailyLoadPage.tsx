@@ -12,6 +12,9 @@ import {
   Zap,
   Clock,
   Flame,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -59,24 +62,24 @@ const ACTIVITIES: {
   icon: React.ReactNode;
   hint: string;
 }[] = [
-  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={22} />, hint: 'Fuerza y movilidad' },
+  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={24} />, hint: 'Fuerza y movilidad' },
   {
     key: 'sportTraining',
     label: 'Entrenamiento del deporte',
-    icon: <Activity size={22} />,
+    icon: <Activity size={24} />,
     hint: 'Técnica y táctica',
   },
-  { key: 'match1', label: 'Partido 1', icon: <Trophy size={22} />, hint: 'Primer partido' },
+  { key: 'match1', label: 'Partido 1', icon: <Trophy size={24} />, hint: 'Primer partido' },
   {
     key: 'match2',
     label: 'Partido 2',
-    icon: <Trophy size={22} />,
+    icon: <Trophy size={24} />,
     hint: 'Segundo partido',
   },
   {
     key: 'individualWork',
     label: 'Trabajo individual',
-    icon: <User size={22} />,
+    icon: <User size={24} />,
     hint: 'Extra y preventivo',
   },
 ];
@@ -264,6 +267,19 @@ export const DailyLoadPage: React.FC = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Carousel navigation between activities
+  const currentActivityIndex = ACTIVITIES.findIndex((a) => a.key === selectedActivity);
+
+  const handlePrevActivity = () => {
+    const nextIdx = (currentActivityIndex - 1 + ACTIVITIES.length) % ACTIVITIES.length;
+    setSelectedActivity(ACTIVITIES[nextIdx].key);
+  };
+
+  const handleNextActivity = () => {
+    const nextIdx = (currentActivityIndex + 1) % ACTIVITIES.length;
+    setSelectedActivity(ACTIVITIES[nextIdx].key);
+  };
+
   // Prefill inputs when selected activity or today's load changes
   useEffect(() => {
     let isMounted = true;
@@ -405,7 +421,7 @@ export const DailyLoadPage: React.FC = () => {
           </div>
         )}
 
-        {/* ── BURBUJA PRINCIPAL UNIFICADA (INTEGRA SEMANA + CARGA DE ENTRENAMIENTO) ── */}
+        {/* ── BURBUJA PRINCIPAL UNIFICADA (ANCHO COMPLETO IGUAL QUE MI RUTINA) ── */}
         <div className="dl-main-card">
           {/* 1. SECCIÓN SUPERIOR: TU SEMANA (INTEGRADA ADENTRO DE LA BURBUJA) */}
           <section className="dl-bubble-week-section" aria-label="Semana del atleta">
@@ -527,43 +543,96 @@ export const DailyLoadPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-6 w-full">
-              {/* 3. REORGANIZACIÓN: GRID DE 5 TILES SIMÉTRICOS DE ACTIVIDAD */}
-              <div
-                className="dl-activity-tiles-grid"
-                role="group"
-                aria-label="Seleccionar actividad"
-              >
-                {ACTIVITIES.map(({ key, label, icon, hint }) => {
-                  const data = todayLoad?.[key as keyof DailyLoadSubmitResponse] as
-                    | { minutes: number; rpe: number | null }
-                    | undefined;
-                  const hasMinutes = (data?.minutes ?? 0) > 0;
-                  const isSelected = selectedActivity === key;
-                  return (
+              {/* 3. CARRUSEL INTERACTIVO, COLORIDO Y SIMÉTRICO DE ACTIVIDADES */}
+              <div className="dl-carousel-container" aria-label="Carrusel de actividades">
+                <div className="dl-carousel-header">
+                  <span className="dl-carousel-eyebrow">
+                    <Sparkles size={15} className="dl-sparkle-icon" />
+                    <span>Seleccioná tu actividad</span>
+                  </span>
+                  <div className="dl-carousel-arrows">
+                    <button
+                      type="button"
+                      className="dl-carousel-arrow-btn"
+                      onClick={handlePrevActivity}
+                      aria-label="Actividad anterior"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      className="dl-carousel-arrow-btn"
+                      onClick={handleNextActivity}
+                      aria-label="Actividad siguiente"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  className="dl-carousel-track"
+                  role="group"
+                  aria-label="Seleccionar actividad"
+                >
+                  {ACTIVITIES.map(({ key, label, icon, hint }) => {
+                    const data = todayLoad?.[key as keyof DailyLoadSubmitResponse] as
+                      | { minutes: number; rpe: number | null }
+                      | undefined;
+                    const hasMinutes = (data?.minutes ?? 0) > 0;
+                    const isSelected = selectedActivity === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-label={label}
+                        className={`dl-carousel-card dl-carousel-card--${key} ${isSelected ? 'dl-carousel-card--active' : ''} ${hasMinutes ? 'dl-carousel-card--completed' : ''}`}
+                        onClick={() => setSelectedActivity(key)}
+                      >
+                        <div className="dl-card-badge-row">
+                          {hasMinutes ? (
+                            <span
+                              className="dl-card-badge dl-card-badge--done"
+                              title="Ya registrado hoy"
+                            >
+                              ✓ {data?.minutes}m
+                            </span>
+                          ) : (
+                            <span className="dl-card-badge dl-card-badge--pending">
+                              {isSelected ? 'Activo' : '0m'}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="dl-card-icon-wrap" aria-hidden="true">
+                          {icon}
+                        </div>
+
+                        <span className="dl-card-label">{label}</span>
+                        <span className="dl-card-hint">{hint}</span>
+
+                        <div className="dl-card-glow-bar" aria-hidden="true" />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Dots del Carrusel */}
+                <div
+                  className="dl-carousel-dots"
+                  role="tablist"
+                  aria-label="Indicadores del carrusel"
+                >
+                  {ACTIVITIES.map(({ key, label }) => (
                     <button
                       key={key}
                       type="button"
-                      aria-label={label}
-                      className={`dl-activity-tile ${isSelected ? 'dl-activity-tile--active' : ''} ${hasMinutes ? 'dl-activity-tile--completed' : ''}`}
+                      className={`dl-carousel-dot ${selectedActivity === key ? 'dl-carousel-dot--active' : ''}`}
                       onClick={() => setSelectedActivity(key)}
-                    >
-                      <div className="dl-tile-icon-wrap" aria-hidden="true">
-                        {icon}
-                      </div>
-                      <span className="dl-tile-label">{label}</span>
-                      <span className="dl-tile-hint">{hint}</span>
-                      {hasMinutes ? (
-                        <span className="dl-tile-badge dl-tile-badge--done" title="Ya registrado hoy">
-                          ✓ {data?.minutes}m
-                        </span>
-                      ) : (
-                        <span className="dl-tile-badge dl-tile-badge--pending">
-                          {isSelected ? 'Cargando' : '0m'}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                      aria-label={`Ir a ${label}`}
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* 4. Hero visual de la actividad activa */}
