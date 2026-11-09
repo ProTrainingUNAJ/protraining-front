@@ -567,7 +567,7 @@ export const DailyLoadPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-6 w-full">
+            <div className="dl-register-flow">
               {/* 3. CARRUSEL INTERACTIVO, COLORIDO Y SIMÉTRICO DE ACTIVIDADES */}
               <div className="dl-carousel-container" aria-label="Carrusel de actividades">
                 <div className="dl-carousel-header">
@@ -894,7 +894,7 @@ export const DailyLoadPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="w-full mt-2">
+              <div className="dl-submit-wrap">
                 <button
                   type="button"
                   onClick={handleSubmit}

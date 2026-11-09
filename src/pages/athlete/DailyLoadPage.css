@@ -563,11 +563,19 @@
   margin: 0;
 }
 
+/* ── Flujo de Registro (Separación amplia y armónica entre cada burbuja) ── */
+.dl-register-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  width: 100%;
+}
+
 /* ── 5. Panel de Entradas (Minutos a la izquierda y RPE a la derecha) ── */
 .dl-inputs-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+  gap: 1.5rem;
   width: 100%;
   align-items: stretch;
 }
@@ -1166,6 +1174,12 @@
   border-radius: 0.85rem;
   font-size: 0.85rem;
   font-weight: 500;
+}
+
+/* ── Contenedor del Botón de Guardado ── */
+.dl-submit-wrap {
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
 /* ── Botón de Acción Principal ── */
