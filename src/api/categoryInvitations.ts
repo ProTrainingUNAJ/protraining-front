@@ -1,9 +1,12 @@
 import {
   generateCategoryInvitationToken,
   validateCategoryInvitationToken,
+  acceptCategoryInvitation as acceptCategoryInvitationApi,
+  type AcceptCategoryInvitationRequest,
 } from './generated/estructura';
+import axios from 'axios';
 import { extractErrorMessage } from './axiosClient';
-import { CategoryInvitation } from '../types/structure';
+import { CategoryInvitation, Athlete } from '../types/structure';
 
 // Landing path for athlete enrollment (KAN-398).
 export const INVITATION_LANDING_PATH = '/invite';
@@ -130,4 +133,43 @@ export const categoryInvitationsService = {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
   },
+
+  // Accepts an invitation for an authenticated athlete and registers their athlete profile (KAN-398 / KAN-401).
+  async accept(token: string, payload: AcceptCategoryInvitationRequest): Promise<Athlete> {
+    try {
+      const { data } = await acceptCategoryInvitationApi({
+        path: { token },
+        body: payload,
+        throwOnError: true,
+      });
+
+      return data as unknown as Athlete;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
 };
+
+/**
+ * Extracts HTTP status code from any error representation (Axios, OpenAPI client, or nested cause).
+ */
+export function getHttpErrorStatus(error: unknown): number | undefined {
+  if (axios.isAxiosError(error)) {
+    return error.response?.status;
+  }
+  if (error && typeof error === 'object') {
+    if ('status' in error && typeof (error as { status: unknown }).status === 'number') {
+      return (error as { status: number }).status;
+    }
+    if (
+      'response' in error &&
+      typeof (error as { response?: { status?: unknown } }).response?.status === 'number'
+    ) {
+      return (error as { response: { status: number } }).response.status;
+    }
+    if ('cause' in error && error.cause) {
+      return getHttpErrorStatus(error.cause);
+    }
+  }
+  return undefined;
+}

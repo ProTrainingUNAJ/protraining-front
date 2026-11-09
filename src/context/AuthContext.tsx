@@ -20,6 +20,13 @@ interface AuthContextType {
   selectedRole: RoleType;
   setSelectedRole: (role: RoleType) => void;
   login: (credentials: LoginRequest) => Promise<AuthSession>;
+  registerByInvitation: (request: {
+    email: string;
+    password: string;
+    fullName: string;
+    token: string;
+    deviceId?: string;
+  }) => Promise<AuthSession>;
   logout: () => void;
   theme: 'light' | 'dark';
   themePreference: ThemePreference;
@@ -129,6 +136,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newSession;
   }, []);
 
+  const registerByInvitation = useCallback(
+    async (request: {
+      email: string;
+      password: string;
+      fullName: string;
+      token: string;
+      deviceId?: string;
+    }): Promise<AuthSession> => {
+      const newSession = await authService.registerByInvitation(request);
+      setSession(newSession);
+      setSelectedRole('Atleta');
+      return newSession;
+    },
+    [],
+  );
+
   const logout = useCallback(() => {
     authService.logout();
     setSession(null);
@@ -144,6 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedRole,
         setSelectedRole,
         login,
+        registerByInvitation,
         logout,
         theme,
         themePreference,

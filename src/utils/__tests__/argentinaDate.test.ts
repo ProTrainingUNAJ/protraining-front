@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { dateInArgentina, todayInArgentina, formatInvitationExpiration } from '../argentinaDate';
+import {
+  dateInArgentina,
+  todayInArgentina,
+  formatInvitationExpiration,
+  isMinorInArgentina,
+} from '../argentinaDate';
 
 describe('argentinaDate', () => {
   it('todayInArgentina devuelve AAAA-MM-DD', () => {
@@ -25,5 +30,32 @@ describe('argentinaDate', () => {
 
   it('formatInvitationExpiration devuelve string vacío para fechas inválidas', () => {
     expect(formatInvitationExpiration('invalid-date')).toBe('');
+  });
+
+  describe('isMinorInArgentina', () => {
+    it('devuelve true si tiene menos de 18 años', () => {
+      const today = todayInArgentina();
+      const [year, month, day] = today.split('-').map(Number);
+      // 17 años
+      const minorDate = `${year - 17}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      expect(isMinorInArgentina(minorDate)).toBe(true);
+    });
+
+    it('devuelve false si tiene exactamente 18 años o más', () => {
+      const today = todayInArgentina();
+      const [year, month, day] = today.split('-').map(Number);
+      // 18 años exactos hoy
+      const adultDate = `${year - 18}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      expect(isMinorInArgentina(adultDate)).toBe(false);
+
+      // 25 años
+      const adultDate2 = `${year - 25}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      expect(isMinorInArgentina(adultDate2)).toBe(false);
+    });
+
+    it('devuelve false para formato inválido', () => {
+      expect(isMinorInArgentina('')).toBe(false);
+      expect(isMinorInArgentina('no-fecha')).toBe(false);
+    });
   });
 });
