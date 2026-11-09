@@ -9,6 +9,9 @@ import {
   AlertTriangle,
   Eye,
   ClipboardList,
+  Zap,
+  Clock,
+  Flame,
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -22,6 +25,7 @@ import {
 } from '../../api/seguimientoService';
 import type { AthleteWeek } from '../../types/seguimiento';
 import { WeekCompletionStrip } from '../../components/athlete/WeekCompletionStrip';
+import { ConfettiCelebration } from '../../components/athlete/checkin/ConfettiCelebration';
 import { structureService } from '../../api/structureService';
 import './DailyLoadPage.css';
 
@@ -55,27 +59,76 @@ const ACTIVITIES: {
   icon: React.ReactNode;
   hint: string;
 }[] = [
-  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={26} />, hint: 'Fuerza, pesas, movilidad' },
+  { key: 'gym', label: 'Gimnasio', icon: <Dumbbell size={22} />, hint: 'Fuerza, pesas, movilidad' },
   {
     key: 'sportTraining',
     label: 'Entrenamiento del deporte',
-    icon: <Activity size={26} />,
+    icon: <Activity size={22} />,
     hint: 'Práctica técnica/táctica',
   },
-  { key: 'match1', label: 'Partido 1', icon: <Trophy size={26} />, hint: 'Primer partido del día' },
+  { key: 'match1', label: 'Partido 1', icon: <Trophy size={22} />, hint: 'Primer partido del día' },
   {
     key: 'match2',
     label: 'Partido 2',
-    icon: <Trophy size={26} />,
+    icon: <Trophy size={22} />,
     hint: 'Segundo partido del día',
   },
   {
     key: 'individualWork',
     label: 'Trabajo individual',
-    icon: <User size={26} />,
+    icon: <User size={22} />,
     hint: 'Extra, recuperación, técnica',
   },
 ];
+
+type RpeTier = 'easy' | 'moderate' | 'demanding' | 'hard' | 'max';
+
+interface RpeLevelMeta {
+  val: number;
+  title: string;
+  desc: string;
+  tier: RpeTier;
+}
+
+const RPE_LEVELS: RpeLevelMeta[] = [
+  { val: 1, title: 'Muy liviano', desc: 'Recuperación activa, casi sin esfuerzo perceptible.', tier: 'easy' },
+  { val: 2, title: 'Liviano', desc: 'Esfuerzo suave, respiración cómoda y tranquila.', tier: 'easy' },
+  { val: 3, title: 'Moderado', desc: 'Ritmo aeróbico cómodo, podés mantener una conversación fluida.', tier: 'moderate' },
+  { val: 4, title: 'Algo duro', desc: 'Respiración algo acelerada pero completamente bajo control.', tier: 'moderate' },
+  { val: 5, title: 'Duro', desc: 'Esfuerzo constante, empieza a sentirse el trabajo muscular sostenido.', tier: 'demanding' },
+  { val: 6, title: 'Exigente', desc: 'Fatiga progresiva, requiere concentración mental para sostener.', tier: 'demanding' },
+  { val: 7, title: 'Muy duro', desc: 'Alta exigencia física, respiración agitada y pulsaciones altas.', tier: 'hard' },
+  { val: 8, title: 'Muy intenso', desc: 'Esfuerzo límite, solo frases entrecortadas y gran demanda aeróbica.', tier: 'hard' },
+  { val: 9, title: 'Casi máximo', desc: 'Esfuerzo extremo, muy difícil sostener el ritmo sin pausas.', tier: 'max' },
+  { val: 10, title: 'Máximo absoluto', desc: 'Agotamiento total, diste el 100% absoluto de tu capacidad.', tier: 'max' },
+];
+
+const MINUTE_PRESETS = [15, 30, 45, 60, 90, 120];
+
+const getLoadMotivation = (load: number) => {
+  if (load >= 650) {
+    return {
+      badge: 'Impacto colosal',
+      text: '¡Sesión titánica! Gran estímulo para tus adaptaciones competitivas. Cuidá tu hidratación y descanso.',
+    };
+  }
+  if (load >= 400) {
+    return {
+      badge: 'Alta intensidad',
+      text: '¡Tremendo entrenamiento! Suma clave para elevar tu potencia y condición física.',
+    };
+  }
+  if (load >= 180) {
+    return {
+      badge: 'Buen volumen',
+      text: '¡Muy buen trabajo cumplido! Acumulaste minutos de gran calidad para tu rendimiento.',
+    };
+  }
+  return {
+    badge: 'Recuperación / Activación',
+    text: 'Estímulo suave y controlado para regenerar o afinar detalles técnicos.',
+  };
+};
 
 type ViewMode = 'register' | 'view';
 
@@ -153,9 +206,18 @@ export const DailyLoadPage: React.FC = () => {
     setIs404(false);
     try {
       const data = await getDailyLoad(id);
-      setTodayLoad(data);
+      if (data === null) {
+        setIs404(true);
+        setTodayLoad(null);
+      } else {
+        setTodayLoad(data);
+        setIs404(false);
+      }
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
+      const status =
+        (err as { response?: { status?: number } })?.response?.status ||
+        (axios.isAxiosError(err) ? err.response?.status : undefined);
+      if (status === 404) {
         setIs404(true);
         setTodayLoad(null);
       } else {
@@ -199,6 +261,7 @@ export const DailyLoadPage: React.FC = () => {
   const [regRpe, setRegRpe] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<DailyLoadSubmitResponse | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Prefill inputs when selected activity or today's load changes
@@ -253,6 +316,7 @@ export const DailyLoadPage: React.FC = () => {
       const response = await submitDailyLoad(athleteId, payload);
       setResult(response);
       setTodayLoad(response);
+      setShowConfetti(true);
       void fetchWeek(athleteId);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al registrar la carga del día.';
@@ -264,10 +328,24 @@ export const DailyLoadPage: React.FC = () => {
 
   const selectedMeta = ACTIVITIES.find((a) => a.key === selectedActivity)!;
 
+  // Selected RPE metadata
+  const selectedRpeMeta = regRpe !== null ? RPE_LEVELS.find((l) => l.val === regRpe) : null;
+
+  // Live session training load calculation (minutes * RPE)
+  const sessionLoad = regMinutes > 0 && regRpe !== null ? regMinutes * regRpe : 0;
+  const loadMotivation = getLoadMotivation(sessionLoad);
+
+  // Check if current activity has already been saved today
+  const existingActivityData = todayLoad?.[selectedActivity as keyof DailyLoadSubmitResponse] as
+    | { minutes: number; rpe: number | null }
+    | undefined;
+  const hasExistingRecord = (existingActivityData?.minutes ?? 0) > 0;
+
   // Result screen after successful registration
   if (result) {
     return (
       <div className="app-page-container">
+        {showConfetti && <ConfettiCelebration durationMs={4500} particleCount={140} />}
         <PageHeader title="Carga del día" description="Registrá minutos y RPE por actividad" />
         <div className="app-page-body">
           <div className="dl-result-wrapper">
@@ -296,6 +374,7 @@ export const DailyLoadPage: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setResult(null);
+                  setShowConfetti(false);
                   setRegMinutes(0);
                   setRegRpe(null);
                   setErrorMessage(null);
@@ -337,145 +416,216 @@ export const DailyLoadPage: React.FC = () => {
           )}
         </section>
 
-        {/* Toggle Register / View today's load */}
-        <div className="dl-toggle-wrapper">
-          <div className="dl-toggle" role="tablist" aria-label="Modo de vista">
+        {/* ── BURBUJA CONTENEDORA PRINCIPAL (TARJETA MAESTRA UNIFICADA) ── */}
+        <div className="dl-main-card">
+          {/* Segmented Control Interno ADENTRO de la burbuja */}
+          <div className="dl-tab-segmented" role="tablist" aria-label="Modo de vista">
             <button
               type="button"
               role="tab"
               aria-selected={viewMode === 'register'}
-              className={`dl-toggle-btn ${viewMode === 'register' ? 'dl-toggle-btn-active' : ''}`}
+              className={`dl-tab-btn ${viewMode === 'register' ? 'dl-tab-btn--active' : ''}`}
               onClick={() => setViewMode('register')}
             >
-              <ClipboardList size={16} /> Registrar actividad
+              <ClipboardList size={16} />
+              <span>Registrar actividad</span>
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={viewMode === 'view'}
-              className={`dl-toggle-btn ${viewMode === 'view' ? 'dl-toggle-btn-active' : ''}`}
+              className={`dl-tab-btn ${viewMode === 'view' ? 'dl-tab-btn--active' : ''}`}
               onClick={() => setViewMode('view')}
             >
-              <Eye size={16} /> Ver carga de hoy
+              <Eye size={16} />
+              <span>Ver carga de hoy</span>
             </button>
           </div>
-        </div>
 
-        {viewMode === 'view' ? (
-          <div className="dl-view-container">
-            {isLoadingToday && <div className="dl-view-loading">Cargando carga del día…</div>}
+          {viewMode === 'view' ? (
+            <div className="dl-view-container">
+              {isLoadingToday && <div className="dl-view-loading">Cargando carga del día…</div>}
 
-            {!isLoadingToday && is404 && (
-              <div className="dl-empty-card">
-                <p className="dl-empty-text">Aún no registraste carga hoy</p>
-                <p className="dl-empty-sub">
-                  Seleccioná una actividad para comenzar a cargar tus minutos y nivel de esfuerzo.
-                </p>
-                <button
-                  type="button"
-                  className="dl-btn dl-btn-primary"
-                  onClick={() => setViewMode('register')}
-                >
-                  <ClipboardList size={16} /> Ir a registrar
-                </button>
-              </div>
-            )}
+              {!isLoadingToday && is404 && (
+                <div className="dl-empty-card">
+                  <p className="dl-empty-text">Aún no registraste carga hoy</p>
+                  <p className="dl-empty-sub">
+                    Seleccioná una actividad para comenzar a cargar tus minutos y nivel de esfuerzo.
+                  </p>
+                  <button
+                    type="button"
+                    className="dl-btn dl-btn-primary"
+                    onClick={() => setViewMode('register')}
+                  >
+                    <ClipboardList size={16} />
+                    <span>Ir a registrar</span>
+                  </button>
+                </div>
+              )}
 
-            {!isLoadingToday && todayError && (
-              <div className="dl-error" role="alert">
-                <AlertTriangle size={18} />
-                <span>{todayError}</span>
-              </div>
-            )}
+              {!isLoadingToday && todayError && (
+                <div className="dl-error" role="alert">
+                  <AlertTriangle size={18} />
+                  <span>{todayError}</span>
+                </div>
+              )}
 
-            {!isLoadingToday && todayLoad && (
-              <div className="dl-view-content">
-                <div className="dl-view-summary-banner">
-                  <div className="dl-summary-metric">
-                    <span className="dl-summary-metric-val">{todayLoad.totalMinutes} min</span>
-                    <span className="dl-summary-metric-lbl">Total minutos · {todayLoad.date}</span>
+              {!isLoadingToday && todayLoad && (
+                <div className="dl-view-container">
+                  <div className="dl-view-summary-banner">
+                    <div className="dl-summary-metric">
+                      <span className="dl-summary-metric-val">{todayLoad.totalMinutes} min</span>
+                      <span className="dl-summary-metric-lbl">Total minutos · {todayLoad.date}</span>
+                    </div>
+                    <div className="dl-summary-divider" aria-hidden="true" />
+                    <div className="dl-summary-metric">
+                      <span className="dl-summary-metric-val dl-summary-metric-val--primary">
+                        {todayLoad.totalLoad}
+                      </span>
+                      <span className="dl-summary-metric-lbl">Carga del día (minutos × RPE)</span>
+                    </div>
                   </div>
-                  <div className="dl-summary-divider" aria-hidden="true" />
-                  <div className="dl-summary-metric">
-                    <span className="dl-summary-metric-val dl-summary-metric-val--primary">
-                      {todayLoad.totalLoad}
-                    </span>
-                    <span className="dl-summary-metric-lbl">Carga del día (minutos × RPE)</span>
+
+                  {/* Responsive grid of activity cards */}
+                  <div className="dl-cards-grid">
+                    {ACTIVITIES.map(({ key, label, icon, hint }) => {
+                      const data = todayLoad[key as keyof DailyLoadSubmitResponse] as
+                        { minutes: number; rpe: number | null } | undefined;
+                      const hasMinutes = (data?.minutes ?? 0) > 0;
+                      return (
+                        <div
+                          key={key}
+                          className={`dl-summary-card ${hasMinutes ? 'dl-summary-card--active' : ''}`}
+                        >
+                          <div className="dl-summary-icon" aria-hidden="true">
+                            {icon}
+                          </div>
+                          <div className="dl-summary-body">
+                            <p className="dl-summary-label">{label}</p>
+                            <p className="dl-summary-hint">{hint}</p>
+                            <p className="dl-summary-value">
+                              {data?.minutes ?? 0} min · RPE {data?.rpe ?? '—'}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-
-                {/* Responsive grid of activity cards */}
-                <div className="dl-cards-grid">
-                  {ACTIVITIES.map(({ key, label, icon, hint }) => {
-                    const data = todayLoad[key as keyof DailyLoadSubmitResponse] as
-                      { minutes: number; rpe: number | null } | undefined;
-                    const hasMinutes = (data?.minutes ?? 0) > 0;
-                    return (
-                      <div
-                        key={key}
-                        className={`dl-summary-card ${hasMinutes ? 'dl-summary-card--active' : ''}`}
-                      >
-                        <div className="dl-summary-icon" aria-hidden="true">
-                          {icon}
-                        </div>
-                        <div className="dl-summary-body">
-                          <p className="dl-summary-label">{label}</p>
-                          <p className="dl-summary-hint">{hint}</p>
-                          <p className="dl-summary-value">
-                            {data?.minutes ?? 0} min · RPE {data?.rpe ?? '—'}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="dl-form-container">
-            {/* Activity selector chips */}
-            <div className="dl-chips" role="group" aria-label="Seleccionar actividad">
-              {ACTIVITIES.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`dl-chip ${selectedActivity === key ? 'dl-chip-active' : ''}`}
-                  onClick={() => setSelectedActivity(key)}
-                >
-                  {label}
-                </button>
-              ))}
+              )}
             </div>
-
-            <div className="dl-card">
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="dl-icon-circle" aria-hidden="true">
-                  {selectedMeta.icon}
-                </div>
-                <div>
-                  <h2 className="dl-title">{selectedMeta.label}</h2>
-                  <p className="dl-subtitle">{selectedMeta.hint}</p>
-                </div>
+          ) : (
+            <div className="flex flex-col gap-6 w-full">
+              {/* Selector de actividades ADENTRO de la burbuja */}
+              <div className="dl-activities-selector" role="group" aria-label="Seleccionar actividad">
+                {ACTIVITIES.map(({ key, label, icon }) => {
+                  const data = todayLoad?.[key as keyof DailyLoadSubmitResponse] as
+                    | { minutes: number; rpe: number | null }
+                    | undefined;
+                  const hasMinutes = (data?.minutes ?? 0) > 0;
+                  const isSelected = selectedActivity === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`dl-activity-chip ${isSelected ? 'dl-activity-chip--active' : ''} ${hasMinutes ? 'dl-activity-chip--completed' : ''}`}
+                      onClick={() => setSelectedActivity(key)}
+                    >
+                      <span className="dl-chip-icon" aria-hidden="true">
+                        {icon}
+                      </span>
+                      <span>{label}</span>
+                      {hasMinutes && (
+                        <span className="dl-chip-badge" title="Ya registrado hoy">
+                          ✓ {data?.minutes}m
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="dl-grid">
-                <div className="dl-field">
-                  <label htmlFor="dl-input-minutes">Minutos</label>
-                  <input
-                    id="dl-input-minutes"
-                    type="number"
-                    min={0}
-                    value={regMinutes}
-                    onChange={(e) => {
-                      setRegMinutes(Number(e.target.value));
-                      setErrorMessage(null);
-                    }}
-                    className="dl-input"
-                  />
+              {/* Hero visual de la actividad activa */}
+              <div className="dl-hero-active">
+                <div className="dl-hero-icon-wrap">
+                  <div className="dl-hero-icon" aria-hidden="true">
+                    {selectedMeta.icon}
+                  </div>
                 </div>
-                <div className="dl-field">
-                  <label htmlFor="dl-input-rpe">RPE (0–10)</label>
+                <h2 className="dl-hero-title">{selectedMeta.label}</h2>
+                <p className="dl-hero-subtitle">{selectedMeta.hint}</p>
+
+                {hasExistingRecord && (
+                  <div className="dl-already-banner">
+                    <CheckCircle2 size={16} />
+                    <span>
+                      Ya registraste <strong>{existingActivityData?.minutes} min</strong> (RPE{' '}
+                      <strong>{existingActivityData?.rpe ?? '—'}</strong>) hoy. Modificá los datos si
+                      querés actualizarla.
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Inputs y controles de dopamina */}
+              <div className="dl-inputs-section">
+                {/* 1. Minutos de entrenamiento con Quick Presets */}
+                <div className="dl-field-block">
+                  <div className="dl-field-header">
+                    <label htmlFor="dl-input-minutes" className="dl-field-title">
+                      <Clock size={16} className="dl-field-title-icon" />
+                      <span>Minutos dedicados</span>
+                    </label>
+                    <span className="dl-field-value-pill">{regMinutes} min</span>
+                  </div>
+
+                  <div className="dl-minutes-input-wrap">
+                    <input
+                      id="dl-input-minutes"
+                      type="number"
+                      min={0}
+                      value={regMinutes}
+                      onChange={(e) => {
+                        setRegMinutes(Number(e.target.value));
+                        setErrorMessage(null);
+                      }}
+                      className="dl-minutes-input"
+                      placeholder="0"
+                    />
+                    <span className="dl-minutes-unit">min</span>
+                  </div>
+
+                  <div className="dl-presets-wrap">
+                    <span className="dl-presets-label">Atajos rápidos:</span>
+                    {MINUTE_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        className={`dl-preset-btn ${regMinutes === preset ? 'dl-preset-btn--active' : ''}`}
+                        onClick={() => {
+                          setRegMinutes(preset);
+                          setErrorMessage(null);
+                        }}
+                      >
+                        {preset}m
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Escala Interactiva de RPE (0 a 10) con feedback táctil y descriptivo */}
+                <div className="dl-field-block">
+                  <div className="dl-field-header">
+                    <label htmlFor="dl-input-rpe" className="dl-field-title">
+                      <Flame size={16} className="dl-field-title-icon" />
+                      <span>RPE (0–10)</span>
+                    </label>
+                    <span className="dl-field-value-pill">
+                      {regRpe !== null ? `Nivel ${regRpe}` : 'Sin seleccionar'}
+                    </span>
+                  </div>
+
+                  {/* Input sincronizado para accesibilidad */}
                   <input
                     id="dl-input-rpe"
                     type="number"
@@ -487,12 +637,91 @@ export const DailyLoadPage: React.FC = () => {
                       setRegRpe(v === '' ? null : Number(v));
                       setErrorMessage(null);
                     }}
-                    className="dl-input"
+                    className="dl-rpe-input-hidden"
                   />
-                </div>
-              </div>
 
-              <p className="dl-hint">Si no hiciste esta actividad, dejá minutos en 0.</p>
+                  {/* Barra interactiva de 10 botones táctiles */}
+                  <div className="dl-rpe-bar" role="group" aria-label="Escala de esfuerzo">
+                    {RPE_LEVELS.map(({ val, tier }) => {
+                      const isSelected = regRpe === val;
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          className={`dl-rpe-btn dl-rpe-btn--${tier} ${isSelected ? 'dl-rpe-btn--selected' : ''}`}
+                          onClick={() => {
+                            setRegRpe(val);
+                            setErrorMessage(null);
+                          }}
+                          aria-label={`Nivel ${val}`}
+                        >
+                          {val}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Tarjeta de feedback explicativa según el RPE */}
+                  <div className="dl-rpe-feedback-box">
+                    {selectedRpeMeta ? (
+                      <>
+                        <div className="dl-rpe-feedback-header">
+                          <p className="dl-rpe-feedback-title">
+                            RPE {selectedRpeMeta.val} · {selectedRpeMeta.title}
+                          </p>
+                          <span
+                            className={`dl-rpe-feedback-tag dl-rpe-feedback-tag--${selectedRpeMeta.tier}`}
+                          >
+                            {selectedRpeMeta.tier === 'easy' && 'Recuperación'}
+                            {selectedRpeMeta.tier === 'moderate' && 'Moderado'}
+                            {selectedRpeMeta.tier === 'demanding' && 'Exigente'}
+                            {selectedRpeMeta.tier === 'hard' && 'Muy Duro'}
+                            {selectedRpeMeta.tier === 'max' && 'Máximo'}
+                          </span>
+                        </div>
+                        <p className="dl-rpe-feedback-desc">{selectedRpeMeta.desc}</p>
+                      </>
+                    ) : (
+                      <p className="dl-rpe-feedback-desc">
+                        Tocá un número del 1 al 10 según la intensidad física que sentiste durante la
+                        actividad.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. WIDGET DE IMPACTO / CARGA EN VIVO (UA - PURA DOPAMINA) */}
+                {sessionLoad > 0 && (
+                  <div className="dl-live-gauge">
+                    <div className="dl-live-gauge-top">
+                      <div className="dl-live-gauge-label">
+                        <Zap size={18} className="dl-live-gauge-icon" />
+                        <span>Carga estimada de la sesión</span>
+                      </div>
+                      <span className="dl-live-gauge-badge">{loadMotivation.badge}</span>
+                    </div>
+
+                    <div className="dl-live-gauge-metrics">
+                      <span className="dl-live-gauge-number">{sessionLoad}</span>
+                      <span className="dl-live-gauge-unit">UA</span>
+                      <span className="dl-live-gauge-formula">
+                        {regMinutes} min × RPE {regRpe}
+                      </span>
+                    </div>
+
+                    <div className="dl-live-gauge-progress" aria-hidden="true">
+                      <div
+                        className="dl-live-gauge-fill"
+                        style={{
+                          width: `${Math.min(100, Math.round((sessionLoad / 800) * 100))}%`,
+                        }}
+                      />
+                    </div>
+
+                    <p className="dl-live-gauge-footer">{loadMotivation.text}</p>
+                  </div>
+                )}
+              </div>
 
               {errorMessage && (
                 <div className="dl-error" role="alert">
@@ -501,7 +730,7 @@ export const DailyLoadPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="dl-nav">
+              <div className="w-full mt-2">
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -509,12 +738,18 @@ export const DailyLoadPage: React.FC = () => {
                   className="dl-btn dl-btn-primary"
                 >
                   <Send size={18} />
-                  {isSubmitting ? 'Guardando...' : 'Guardar carga'}
+                  <span>
+                    {isSubmitting
+                      ? 'Guardando carga…'
+                      : sessionLoad > 0
+                        ? `Guardar carga (${sessionLoad} UA)`
+                        : 'Guardar carga'}
+                  </span>
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

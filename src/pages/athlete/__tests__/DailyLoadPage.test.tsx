@@ -184,4 +184,32 @@ describe('DailyLoadPage (KAN-571)', () => {
     });
     expect(screen.getByRole('button', { name: /Ir a registrar/i })).toBeDefined();
   });
+
+  it('agrupa el segmented control y los selectores adentro de la tarjeta principal (.dl-main-card)', async () => {
+    const { container } = renderComponent();
+
+    await waitFor(() => {
+      const mainCard = container.querySelector('.dl-main-card');
+      expect(mainCard).toBeDefined();
+      expect(mainCard?.querySelector('.dl-tab-segmented')).toBeDefined();
+      expect(mainCard?.querySelector('.dl-activities-selector')).toBeDefined();
+    });
+  });
+
+  it('permite usar presets rápidos de minutos y botones de RPE mostrando la carga en vivo (UA)', async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '60m' })).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '60m' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nivel 8' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('480')).toBeDefined();
+      expect(screen.getByText('UA')).toBeDefined();
+      expect(screen.getByText(/60 min × RPE 8/i)).toBeDefined();
+    });
+  });
 });
