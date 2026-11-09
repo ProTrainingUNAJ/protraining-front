@@ -3,7 +3,7 @@
 .dl-page-body {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
   width: 100%;
 }
 
@@ -13,10 +13,10 @@
   border: 1px solid var(--border);
   border-radius: 1.25rem;
   box-shadow: var(--shadow-sm);
-  padding: 1.5rem 1.75rem;
+  padding: 1rem 1.35rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
   width: 100%;
   box-sizing: border-box;
   position: relative;
@@ -26,9 +26,9 @@
 
 @media (max-width: 640px) {
   .dl-main-card {
-    padding: 1.25rem 1rem;
+    padding: 0.85rem 0.75rem;
     border-radius: 1rem;
-    gap: 1.25rem;
+    gap: 0.75rem;
   }
 }
 
@@ -36,12 +36,12 @@
 .dl-bubble-week-section {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.45rem;
   width: 100%;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: 1rem;
-  padding: 1.15rem 1.35rem;
+  padding: 0.65rem 1.15rem;
 }
 
 .dl-bubble-week-header {
@@ -304,9 +304,9 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.35rem;
-  padding: 1.15rem 0.85rem 0.95rem;
-  border-radius: 1.25rem;
+  gap: 0.25rem;
+  padding: 0.75rem 0.75rem 0.65rem;
+  border-radius: 1.15rem;
   border: 2px solid var(--border);
   background: var(--bg-card);
   color: var(--text-muted);
@@ -328,13 +328,13 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  min-height: 1.4rem;
+  min-height: 1.25rem;
 }
 
 .dl-card-badge {
-  font-size: 0.725rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 0.2rem 0.55rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 9999px;
   line-height: 1;
 }
@@ -351,13 +351,13 @@
 }
 
 .dl-card-icon-wrap {
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0.25rem 0;
+  margin: 0.15rem 0;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -366,11 +366,11 @@
 }
 
 .dl-card-label {
-  font-size: 0.875rem;
+  font-size: 0.825rem;
   font-weight: 800;
   line-height: 1.2;
   color: var(--text-main);
-  margin-top: 0.15rem;
+  margin-top: 0;
 }
 
 .dl-card-hint {
@@ -594,7 +594,7 @@
 
 /* ── Slot reservado para el banner (preserva la separación idéntica con o sin cartel) ── */
 .dl-banner-slot {
-  min-height: 2.75rem;
+  min-height: 2.15rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -605,21 +605,21 @@
 .dl-already-banner {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   background: var(--success-bg);
   border: 1px solid var(--success-border);
   color: var(--success-text);
-  padding: 0.55rem 1rem;
-  border-radius: 0.85rem;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
   margin: 0;
 }
 
-/* ── Flujo de Registro (Separación amplia y armónica entre cada burbuja) ── */
+/* ── Flujo de Registro (Separación optimizada para entrar en pantalla completa) ── */
 .dl-register-flow {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 0.75rem;
   width: 100%;
 }
 
@@ -648,7 +648,7 @@
 .dl-inputs-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
   align-items: stretch;
 }
@@ -663,12 +663,12 @@
 .dl-field-block {
   background: var(--bg-subtle);
   border: 1.5px solid var(--active-act-color, var(--border));
-  border-radius: 1.15rem;
-  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  padding: 0.75rem 1.15rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 0.85rem;
+  gap: 0.5rem;
   width: 100%;
   box-sizing: border-box;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--active-act-color, transparent) 14%, transparent);
@@ -679,7 +679,7 @@
 
 @media (max-width: 640px) {
   .dl-field-block {
-    padding: 1rem 1.15rem;
+    padding: 0.75rem 0.85rem;
   }
 }
 
@@ -690,7 +690,7 @@
 }
 
 .dl-field-title {
-  font-size: 0.925rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-main);
   display: flex;
@@ -705,12 +705,12 @@
 }
 
 .dl-field-value-pill {
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--active-act-color, var(--primary));
   background: color-mix(in srgb, var(--active-act-color, var(--primary)) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--active-act-color, var(--primary)) 25%, transparent);
-  padding: 0.2rem 0.6rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 9999px;
   transition: all 0.25s ease;
 }
@@ -720,19 +720,19 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  height: 2.85rem;
+  height: 2.45rem;
   width: 100%;
 }
 
 .dl-minutes-input {
   flex: 1;
   height: 100%;
-  padding: 0.45rem 1rem;
-  border-radius: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.75rem;
   border: 1.5px solid var(--border);
   background: var(--bg-card);
   color: var(--text-main);
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 700;
   text-align: center;
   outline: none;
@@ -755,13 +755,13 @@
 .dl-minutes-presets-box {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.85rem;
-  padding: 0.65rem 0.95rem;
+  border-radius: 0.75rem;
+  padding: 0.4rem 0.75rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 4.65rem;
-  height: 4.65rem;
+  min-height: 3.85rem;
+  height: 3.85rem;
   box-sizing: border-box;
 }
 
@@ -826,7 +826,7 @@
 
 /* ── Escala de RPE Interactiva (1 a 10 alineada con Minutos) ── */
 .dl-rpe-bar-wrap {
-  height: 2.85rem;
+  height: 2.45rem;
   display: flex;
   align-items: center;
   width: 100%;
@@ -927,13 +927,14 @@
 .dl-rpe-feedback-box {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.85rem;
-  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.85rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.25rem;
-  min-height: 4.65rem;
+  gap: 0.15rem;
+  min-height: 3.85rem;
+  height: 3.85rem;
   box-sizing: border-box;
   transition: all 0.2s ease;
 }
@@ -1011,11 +1012,11 @@
     color-mix(in srgb, var(--active-act-color, var(--primary)) 3%, var(--bg-card))
   );
   border: 1.5px solid var(--active-act-color, color-mix(in srgb, var(--primary) 22%, transparent));
-  border-radius: 1.15rem;
-  padding: 1.35rem 1.65rem;
+  border-radius: 1rem;
+  padding: 0.75rem 1.15rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.45rem;
   box-shadow: 0 4px 16px color-mix(in srgb, var(--active-act-color, transparent) 15%, transparent);
   animation: dlPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   width: 100%;
@@ -1049,7 +1050,7 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -1072,7 +1073,7 @@
 .dl-live-gauge-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.2rem 0.65rem;
+  padding: 0.15rem 0.6rem;
   border-radius: 9999px;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -1091,11 +1092,11 @@
 .dl-live-gauge-main-val {
   display: flex;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .dl-live-gauge-number {
-  font-size: 2.35rem;
+  font-size: 1.95rem;
   font-weight: 900;
   line-height: 1;
   color: var(--primary);
@@ -1103,13 +1104,13 @@
 }
 
 .dl-live-gauge-unit {
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--text-muted);
 }
 
 .dl-live-gauge-formula {
-  font-size: 0.85rem;
+  font-size: 0.825rem;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -1119,12 +1120,12 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .dl-live-gauge-progress {
   width: 100%;
-  height: 0.75rem;
+  height: 0.65rem;
   border-radius: 9999px;
   background: color-mix(in srgb, var(--border) 45%, var(--bg-card));
   overflow: hidden;
@@ -1150,7 +1151,7 @@
 .dl-gauge-ruler {
   position: relative;
   width: 100%;
-  height: 1.85rem;
+  height: 1.55rem;
   user-select: none;
 }
 
@@ -1177,14 +1178,14 @@
 
 .dl-ruler-line {
   width: 1.5px;
-  height: 0.55rem;
+  height: 0.5rem;
   background: color-mix(in srgb, var(--text-muted) 55%, transparent);
   border-radius: 1px;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .dl-ruler-line--main {
-  height: 0.65rem;
+  height: 0.6rem;
   background: var(--text-main);
 }
 
@@ -1192,17 +1193,17 @@
   position: absolute;
   top: 0;
   width: 1px;
-  height: 0.35rem;
+  height: 0.3rem;
   background: color-mix(in srgb, var(--border) 80%, transparent);
   transform: translateX(-50%);
 }
 
 .dl-ruler-tag {
-  font-size: 0.75rem;
+  font-size: 0.725rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   line-height: 1.2;
 }
 
@@ -1214,7 +1215,7 @@
 }
 
 .dl-live-gauge-footer {
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-main);
   margin: 0;
@@ -1231,8 +1232,8 @@
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
   color: var(--danger-text);
-  padding: 0.85rem 1rem;
-  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -1244,8 +1245,8 @@
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
   color: var(--warning-text);
-  padding: 0.85rem 1rem;
-  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -1253,7 +1254,7 @@
 /* ── Contenedor del Botón de Guardado ── */
 .dl-submit-wrap {
   width: 100%;
-  margin-top: 0.5rem;
+  margin-top: 0.15rem;
 }
 
 /* ── Botón de Acción Principal ── */
@@ -1261,9 +1262,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  padding: 0.9rem 1.75rem;
-  border-radius: 0.95rem;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.85rem;
   font-size: 0.95rem;
   font-weight: 700;
   border: none;
