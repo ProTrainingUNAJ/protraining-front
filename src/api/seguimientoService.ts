@@ -21,7 +21,9 @@ import {
   getDailyLoad as getDailyLoadRequest,
   registerDailyLoad as registerDailyLoadRequest,
   getCategoryAttendanceToday as getCategoryAttendanceTodayRequest,
+  getCategoryTrafficLightToday as getCategoryTrafficLightTodayRequest,
   setAttendance as setAttendanceRequest,
+  type AthleteTrafficLightSummary,
   type DailyLoadActivity,
   type DailyLoadRequest,
   type DailyLoadResponse,
@@ -131,7 +133,7 @@ export async function syncPendingCheckIns(athleteId: string): Promise<number> {
     if (!record.id) continue;
     try {
       // Se manda la fecha original del check-in para que el back conserve el día
-      // en que se hizo, aunque la sincronización ocurra al día siguiente (KAN-149).
+      // en que se hizo, aunque la sincronización ocurra al día siguiente.
       await httpClient.post(`/seguimiento/api/v1/athletes/${record.athleteId}/check-in`, {
         ...record.payload,
         date: dateInArgentina(record.timestamp),
@@ -177,33 +179,16 @@ export { countPendingCheckIns, getPendingCheckIns } from '../services/checkInOff
 export type { OfflineCheckInPayload };
 
 // ---------------------------------------------------------------------------
-// Semáforo del día por categoría (KAN-365 / KAN-366)
+// Semáforo del día por categoría
 //
 // Fuente única de verdad del semáforo de la PWA: consume el microservicio de
-// seguimiento por `httpClient` (axios, patrón de todos los servicios del front)
-// y adapta el DTO del backend a los tipos de UI de las tarjetas y widgets.
-// No existen mocks: el archivo `trafficLightData.ts` fue eliminado en KAN-366.
+// seguimiento por el SDK generado (`getCategoryTrafficLightToday`), que viaja
+// sobre el mismo `httpClient` de la app (auth, refresh y timeout incluidos).
+// Los tipos de la respuesta son los del SDK, no interfaces escritas a mano,
+// para que un cambio de contrato lo marque el compilador.
+// Adapta ese DTO a los tipos de UI de las tarjetas y widgets.
+// No existen mocks: el archivo `trafficLightData.ts` fue eliminado.
 // ---------------------------------------------------------------------------
-
-export interface TrafficLightIndicatorsDto {
-  sleepHours: number;
-  sleepQuality: number;
-  effortRate?: number | null;
-  isSick: boolean;
-  hasActiveInjury: boolean;
-  painZones?: string | null;
-}
-
-export interface AthleteTrafficLightSummary {
-  athleteId: string;
-  athleteName: string;
-  trafficLight: 'Green' | 'Yellow' | 'Red';
-  trafficLightReason?: string | null;
-  hasReportedToday: boolean;
-  reportedAt?: string | null;
-  resultValue: 20 | 50 | 90;
-  indicators?: TrafficLightIndicatorsDto | null;
-}
 
 export interface TrafficLightCounts {
   all: number;
@@ -220,13 +205,13 @@ const TRAFFIC_STATUS_LABELS: Record<TrafficLightStatus, string> = {
   gray: 'Sin Check-in',
 };
 
-// Fallbacks KAN-366: si la estructura cae y llegan nombres vacíos, la UI
+// Fallbacks: si la estructura cae y llegan nombres vacíos, la UI
 // muestra estos textos en lugar de labels en blanco.
 export const CATEGORY_NAME_FALLBACK = 'Categoría sin nombre';
 export const ATHLETE_NAME_FALLBACK = 'Atleta sin nombre';
 
 // hasReportedToday=false siempre se presenta como gris "pendiente" en la PWA,
-// aunque el motor devuelva Amarillo por seguridad operativa (decisión KAN-365).
+// aunque el motor devuelva Amarillo por seguridad operativa.
 function resolveStatus(summary: AthleteTrafficLightSummary): TrafficLightStatus {
   if (!summary.hasReportedToday) return 'gray';
   if (summary.trafficLight === 'Red') return 'red';
@@ -273,7 +258,7 @@ function formatReportedAt(reportedAt?: string | null): string | undefined {
 
 /**
  * Mapea el resumen del backend (DTO del endpoint traffic-light-today) al tipo
- * de UI de las tarjetas del semáforo. Reglas KAN-365/KAN-366:
+ * de UI de las tarjetas del semáforo. Reglas:
  * - `hasReportedToday === false` → estado gris "Sin Check-in" (aunque el motor
  *   devuelva Amarillo por seguridad operativa).
  * - Nombres vacíos por caída de estructura → fallbacks exportados
@@ -314,19 +299,22 @@ export function mapTrafficLightSummaryToItem(
 
 /**
  * Consulta el semáforo tricolor de hoy de una categoría.
- * GET `/seguimiento/api/v1/categories/{id}/traffic-light-today` (gateway →
- * microservicio Seguimiento). Devuelve vacío si la respuesta es nula.
- * Errores (KAN-366): 404 → mensaje específico y en español de categoría
+ * GET `/seguimiento/api/v1/categories/{id}/traffic-light-today` vía el SDK
+ * generado `getCategoryTrafficLightToday`: el contrato y los tipos
+ * salen del OpenAPI, no de interfaces escritas a mano.
+ * Devuelve vacío si la respuesta es nula.
+ * Errores: 404 → mensaje específico y en español de categoría
  * inexistente; el resto se traduce con `extractErrorMessage` (ProblemDetails).
  */
 export async function getCategoryTrafficLightToday(
   categoryId: string,
 ): Promise<AthleteTrafficLightSummary[]> {
   try {
-    const response = await httpClient.get<AthleteTrafficLightSummary[]>(
-      `/seguimiento/api/v1/categories/${categoryId}/traffic-light-today`,
-    );
-    return response.data ?? [];
+    const { data } = await getCategoryTrafficLightTodayRequest({
+      path: { categoryId },
+      throwOnError: true,
+    });
+    return data ?? [];
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response?.status === 404) {
       throw new Error('La categoría solicitada no existe o fue eliminada.', { cause: err });
@@ -339,7 +327,7 @@ export async function getCategoryTrafficLightToday(
  * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
  * (dashboard: donas, alertas de dolor y progreso de check-in). Alimenta también
  * la deduplicación de atletas que pertenecen a más de una categoría.
- * Modo degradado (KAN-366): si la estructura de organizaciones/categorías cae o
+ * Modo degradado: si la estructura de organizaciones/categorías cae o
  * una categoría responde error, esa categoría se omite silenciosamente y el
  * resto del plantel se sigue mostrando; nunca rompe el dashboard completo.
  */
@@ -376,7 +364,7 @@ export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLi
 }
 
 /**
- * Conteo por color del plantel (KAN-365/KAN-366): alimenta las donas del
+ * Conteo por color del plantel: alimenta las donas del
  * dashboard y los chips de filtro de MonitoringPage. `gray` equivale a
  * "sin check-in hoy", base del progreso del widget CheckInProgressWidget.
  */
@@ -391,7 +379,7 @@ export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): T
 }
 
 // ---------------------------------------------------------------------------
-// Lesiones del atleta (KAN-419 / KAN-420 / KAN-421)
+// Lesiones del atleta
 //
 // Wrappers manjos sobre `httpClient` con tipos propios alineados a
 // `AthleteInjuryDto` del back y errores traducidos (ProblemDetails en español,
@@ -465,7 +453,7 @@ export async function createAthleteInjury(
 
 /**
  * Avanza el stepper de una lesión (PATCH `updateInjuryStatus`, máquina de
- * estados estricta de KAN-420). `transitionNotes` es obligatoria y el backend
+ * estados estricta). `transitionNotes` es obligatoria y el backend
  * rechaza con 400 el salto directo de `Active` a `MedicallyCleared`.
  */
 export async function updateInjuryStatus(
@@ -484,7 +472,7 @@ export async function updateInjuryStatus(
 }
 
 // ---------------------------------------------------------------------------
-// Carga del día (minutos + RPE por actividad) — KAN-442 / issue #147
+// Carga del día (minutos + RPE por actividad)
 // ---------------------------------------------------------------------------
 
 // Aliases de tipos para compatibilidad con consumidores existentes.
@@ -533,7 +521,7 @@ export async function getDailyLoad(athleteId: string): Promise<DailyLoadResponse
 }
 
 // ---------------------------------------------------------------------------
-// Semana del atleta con los días completados (KAN-446)
+// Semana del atleta con los días completados
 // ---------------------------------------------------------------------------
 
 /**
@@ -554,7 +542,7 @@ export async function getAthleteWeek(athleteId: string, date?: string): Promise<
 }
 
 // ---------------------------------------------------------------------------
-// Asistencia automática del día (KAN-445)
+// Asistencia automática del día
 // ---------------------------------------------------------------------------
 
 // AthleteAttendanceSummary y CategoryAttendanceSummary provienen del SDK generado.
@@ -587,7 +575,7 @@ export async function setAttendance(athleteId: string, present: boolean): Promis
 }
 
 // ---------------------------------------------------------------------------
-// Athlete daily check-in inquiry (KAN-547)
+// Athlete daily check-in inquiry
 // ---------------------------------------------------------------------------
 
 export type { CheckIn };
