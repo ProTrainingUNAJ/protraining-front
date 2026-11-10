@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, AlertCircle, Moon, Activity, Siren, Thermometer } from 'lucide-react';
+import { ChevronRight, AlertCircle, Moon, Activity, Siren, Thermometer, Sparkles } from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 
@@ -14,6 +14,7 @@ import { AthleteAvatar } from './AthleteAvatar';
 interface AthleteTrafficLightCardProps {
   athlete: AthleteTrafficLightItem;
   onClick: () => void;
+  onOpenAdjustment?: (athlete: AthleteTrafficLightItem) => void;
   className?: string;
 }
 
@@ -50,6 +51,7 @@ const STATUS_COLORS: Record<
 export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = ({
   athlete,
   onClick,
+  onOpenAdjustment,
   className = '',
 }) => {
   const colors = STATUS_COLORS[athlete.status];
@@ -345,6 +347,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            flex: 1,
           }}
           title={athlete.recommendation}
         >
@@ -353,6 +356,38 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               ? 'Sin check-in completado el día de hoy.'
               : 'Apto para completar el 100% de la carga planificada.')}
         </p>
+
+        {/* Botón Ver ajuste sugerido si tiene conflicto de dolor con la rutina (KAN-452) */}
+        {athlete.hasDayConflict && (
+          <button
+            type="button"
+            className="btn btn-warning"
+            data-testid={`btn-day-adjustment-${athlete.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onOpenAdjustment) {
+                onOpenAdjustment(athlete);
+              } else {
+                onClick();
+              }
+            }}
+            style={{
+              padding: '0.28rem 0.6rem',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              borderRadius: '8px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+            }}
+            title="Ver ajuste sugerido ante conflicto de dolor"
+          >
+            <Sparkles size={12} />
+            <span>Ver ajuste sugerido</span>
+          </button>
+        )}
       </div>
     </div>
   );

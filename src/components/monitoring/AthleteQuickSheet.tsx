@@ -7,6 +7,7 @@ import {
   MessageSquare,
   CheckCircle2,
   ShieldAlert,
+  Sparkles,
 } from 'lucide-react';
 import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
@@ -23,12 +24,14 @@ interface AthleteQuickSheetProps {
   athlete: AthleteTrafficLightItem | null;
   onClose: () => void;
   onAssignDifferentiated?: (athleteId: string) => void;
+  onOpenAdjustment?: (athlete: AthleteTrafficLightItem) => void;
 }
 
 export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
   athlete,
   onClose,
   onAssignDifferentiated,
+  onOpenAdjustment,
 }) => {
   // Close with Esc key
   useEffect(() => {
@@ -356,8 +359,34 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
             gap: '0.65rem',
             paddingTop: '0.85rem',
             borderTop: '1px solid var(--border)',
+            flexWrap: 'wrap',
           }}
         >
+          {athlete.hasDayConflict && (
+            <button
+              type="button"
+              className="btn btn-warning"
+              data-testid="quick-sheet-btn-day-adjustment"
+              onClick={() => {
+                onOpenAdjustment?.(athlete);
+                onClose();
+              }}
+              style={{
+                flex: 1,
+                padding: '0.6rem 1rem',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+              }}
+            >
+              <Sparkles size={15} />
+              <span>Ver ajuste sugerido</span>
+            </button>
+          )}
+
           {isRed || isYellow ? (
             <button
               type="button"

@@ -4,6 +4,8 @@ import { Activity, AlertTriangle, Loader2, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
+import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
+import { dayAdjustmentsService } from '../../api/dayAdjustments';
 import {
   AthleteTrafficLightItem,
   TrafficLightStatus,
@@ -82,6 +84,7 @@ export const MonitoringPage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
+  const [adjustmentAthlete, setAdjustmentAthlete] = useState<AthleteTrafficLightItem | null>(null);
 
   // 1. Cargar las categorías del preparador físico (orgs → categorías)
   useEffect(() => {
@@ -156,13 +159,32 @@ export const MonitoringPage: React.FC = () => {
     let active = true;
 
     getCategoryTrafficLightToday(selectedCategoryId)
-      .then((summaries) => {
+      .then(async (summaries) => {
+        if (!active) return;
+        const mapped = summaries.map((summary) =>
+          mapTrafficLightSummaryToItem(summary, selectedCategoryName),
+        );
+
+        // Para atletas con dolor/observación hoy, chequear conflictos en segundo plano
+        // para habilitar el botón "Ver ajuste sugerido" (#157 · KAN-452)
+        const athletesWithConflicts = await Promise.all(
+          mapped.map(async (athlete) => {
+            if (athlete.pains && athlete.pains.length > 0) {
+              try {
+                const conf = await dayAdjustmentsService.getAthleteDayConflicts(athlete.id);
+                return { ...athlete, hasDayConflict: Boolean(conf.hasConflicts) };
+              } catch {
+                return athlete;
+              }
+            }
+            return athlete;
+          }),
+        );
+
         if (!active) return;
         setAthletesResult({
           categoryId: selectedCategoryId,
-          athletes: summaries.map((summary) =>
-            mapTrafficLightSummaryToItem(summary, selectedCategoryName),
-          ),
+          athletes: athletesWithConflicts,
           error: null,
         });
       })
@@ -691,6 +713,7 @@ export const MonitoringPage: React.FC = () => {
                   key={athlete.id}
                   athlete={athlete}
                   onClick={() => setSelectedAthlete(athlete)}
+                  onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
                 />
               ))}
 
@@ -759,7 +782,29 @@ export const MonitoringPage: React.FC = () => {
               athlete={selectedAthlete}
               onClose={() => setSelectedAthlete(null)}
               onAssignDifferentiated={handleAssignDifferentiated}
+              onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
             />
+
+            {/* Modal de Propuesta de Ajuste del Día (#157 · KAN-452) */}
+            {adjustmentAthlete && (
+              <DayAdjustmentModal
+                athleteId={adjustmentAthlete.id}
+                athleteName={adjustmentAthlete.name}
+                isOpen={Boolean(adjustmentAthlete)}
+                onClose={() => setAdjustmentAthlete(null)}
+                onAdjustmentApplied={(adjustment) => {
+                  if (adjustment.status === 'Approved') {
+                    setStatusOverrides((prev) => ({
+                      ...prev,
+                      [adjustment.athleteId]: {
+                        hasDayConflict: false,
+                        recommendation: `Ajuste del día aprobado: ${adjustment.justification}`,
+                      },
+                    }));
+                  }
+                }}
+              />
+            )}
           </>
         ) : (
           /* Asistencia automática del día (KAN-445) */

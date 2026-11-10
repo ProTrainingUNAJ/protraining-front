@@ -14,6 +14,7 @@ import {
   Trophy,
   Play,
   Timer,
+  ShieldAlert,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { useSearchParams } from 'react-router-dom';
@@ -186,6 +187,20 @@ export const RoutinePage: React.FC = () => {
   }, [selectedExerciseForModal]);
 
   const exercises = useMemo(() => routine?.exercises ?? [], [routine]);
+
+  const displayCoachNotes = useMemo(() => {
+    const raw = routine?.coachNotes?.trim();
+    if (!raw) return null;
+    if (routine?.adjustedByCoach && routine.adjustmentNote) {
+      const note = routine.adjustmentNote.trim();
+      if (raw === note) return null;
+      const suffix = ` | ${note}`;
+      if (raw.endsWith(suffix)) {
+        return raw.slice(0, raw.length - suffix.length).trim() || null;
+      }
+    }
+    return raw;
+  }, [routine]);
 
   // Alternar completitud de una serie individual (Touch target accesible)
   const toggleSet = useCallback(
@@ -509,10 +524,26 @@ export const RoutinePage: React.FC = () => {
                       </span>
                     </span>
 
-                    {routine.routineAdapted && (
+                    {routine.routineAdapted && !routine.adjustedByCoach && (
                       <span className="badge badge-warning" style={{ gap: '0.35rem' }}>
                         <Sparkles size={13} />
                         <span>Rutina adaptada por check-in</span>
+                      </span>
+                    )}
+
+                    {routine.adjustedByCoach && (
+                      <span
+                        className="badge"
+                        style={{
+                          gap: '0.35rem',
+                          background: 'var(--traffic-yellow-bg)',
+                          color: 'var(--traffic-yellow-text)',
+                          border: '1px solid var(--traffic-yellow-border)',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <ShieldAlert size={13} />
+                        <span>Ajuste aplicado por tu PF</span>
                       </span>
                     )}
                   </div>
@@ -575,8 +606,100 @@ export const RoutinePage: React.FC = () => {
               </div>
             )}
 
-            {/* 3. Cabecera con Nota del Preparador Físico (Pizarra táctica) */}
-            {routine.coachNotes && (
+            {/* 3. Cartel de Rutina Ajustada por el PF (#157 · KAN-452) */}
+            {routine.adjustedByCoach && (
+              <div
+                className="routine-adjusted-banner"
+                data-testid="routine-adjusted-banner"
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.85rem',
+                  padding: '1rem 1.25rem',
+                  borderRadius: '14px',
+                  background: 'var(--traffic-yellow-bg)',
+                  border: '1px solid var(--traffic-yellow-border)',
+                  color: 'var(--text-main)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'var(--traffic-yellow)',
+                    color: 'var(--white)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: '2px',
+                  }}
+                >
+                  <ShieldAlert size={20} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      flexWrap: 'wrap',
+                      marginBottom: '0.2rem',
+                    }}
+                  >
+                    <strong
+                      style={{
+                        fontSize: '0.98rem',
+                        fontWeight: 800,
+                        color: 'var(--traffic-yellow-text)',
+                      }}
+                    >
+                      Tu PF ajustó la rutina de hoy
+                    </strong>
+                    <span
+                      className="badge"
+                      style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        background: 'var(--bg-card)',
+                        color: 'var(--traffic-yellow-text)',
+                        border: '1px solid var(--traffic-yellow-border)',
+                      }}
+                    >
+                      Ajuste del día
+                    </span>
+                  </div>
+                  {routine.adjustmentNote ? (
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.86rem',
+                        lineHeight: 1.45,
+                        color: 'var(--text-main)',
+                      }}
+                    >
+                      {routine.adjustmentNote}
+                    </p>
+                  ) : (
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.86rem',
+                        lineHeight: 1.45,
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      Tu preparador físico adaptó los ejercicios para cuidar tu recuperación ante
+                      las molestias registradas.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 4. Cabecera con Nota del Preparador Físico (Pizarra táctica) */}
+            {displayCoachNotes && (
               <div className="routine-coach-note-card">
                 <div className="routine-coach-note-header">
                   <div className="routine-coach-note-title-wrap">
@@ -585,7 +708,7 @@ export const RoutinePage: React.FC = () => {
                   </div>
                   <span className="badge badge-info">Nota técnica de la sesión</span>
                 </div>
-                <p className="routine-coach-note-text">"{routine.coachNotes}"</p>
+                <p className="routine-coach-note-text">"{displayCoachNotes}"</p>
               </div>
             )}
 
