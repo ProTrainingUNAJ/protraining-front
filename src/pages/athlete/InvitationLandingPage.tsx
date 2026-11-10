@@ -13,15 +13,19 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { categoryInvitationsService, getHttpErrorStatus } from '../../api/categoryInvitations';
+import { authService } from '../../api/authService';
 import { CategoryInvitation } from '../../types/structure';
+import { AuthSession } from '../../types/auth';
 import { isMinorInArgentina } from '../../utils/argentinaDate';
 import { extractErrorMessage } from '../../api/axiosClient';
 import './InvitationLandingPage.css';
 
+export type FormErrorType = 'conflict' | 'forbidden' | 'expired' | 'validation' | 'general';
+
 export const InvitationLandingPage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { registerByInvitation, isAuthenticated, user } = useAuth();
+  const { applySession, isAuthenticated, user } = useAuth();
 
   // Initial invitation token validation state
   const [isValidating, setIsValidating] = useState<boolean>(true);
@@ -50,6 +54,8 @@ export const InvitationLandingPage: React.FC = () => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<FormErrorType | null>(null);
+  const [createdSession, setCreatedSession] = useState<AuthSession | null>(null);
 
   const isMinor = isMinorInArgentina(birthDate);
 
@@ -106,42 +112,57 @@ export const InvitationLandingPage: React.FC = () => {
     };
   }, [token, validateToken]);
 
-  // Si ya está autenticado como atleta, redirigir directo
+  // Si ya está autenticado como atleta y no está en medio de un envío ni reintentando aceptación, redirigir directo
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'Atleta') {
+    if (!isSubmitting && !createdSession && isAuthenticated && user?.role === 'Atleta') {
       // If user is already authenticated as athlete, redirect to athlete dashboard
       navigate('/athlete', { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, isSubmitting, createdSession]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+    setErrorType(null);
 
     if (!token) {
       setFormError('Código de invitación no válido.');
+      setErrorType('validation');
       return;
     }
 
     // Basic personal data validation
     if (!firstName.trim() || !lastName.trim()) {
       setFormError('Por favor, ingresá tu nombre y apellido.');
+      setErrorType('validation');
       return;
     }
     if (!email.trim()) {
       setFormError('El correo electrónico es obligatorio.');
+      setErrorType('validation');
       return;
     }
-    if (!password || password.length < 6) {
-      setFormError('La contraseña debe tener al menos 6 caracteres.');
-      return;
+
+    // Regla de contraseña unificada (KAN-539): al menos 8 caracteres y al menos un número
+    if (!createdSession) {
+      const hasNumber = /\d/.test(password);
+      if (!password || password.length < 8 || !hasNumber) {
+        setFormError(
+          'La contraseña debe tener al menos 8 caracteres y contener al menos un número.',
+        );
+        setErrorType('validation');
+        return;
+      }
     }
+
     if (!phone.trim()) {
       setFormError('El número de teléfono es obligatorio.');
+      setErrorType('validation');
       return;
     }
     if (!birthDate) {
       setFormError('La fecha de nacimiento es obligatoria.');
+      setErrorType('validation');
       return;
     }
 
@@ -149,46 +170,59 @@ export const InvitationLandingPage: React.FC = () => {
     if (isMinor) {
       if (!guardianName.trim()) {
         setFormError('El nombre de tu madre, padre o tutor es obligatorio.');
+        setErrorType('validation');
         return;
       }
       if (!guardianEmail.trim() && !guardianPhone.trim()) {
         setFormError(
           'Debes proporcionar al menos un medio de contacto del tutor (correo o teléfono).',
         );
+        setErrorType('validation');
         return;
       }
       if (!allowsPhysicalTraining) {
         setFormError(
           'El tutor legal debe autorizar obligatoriamente la preparación física para continuar.',
         );
+        setErrorType('validation');
         return;
       }
     }
 
     setIsSubmitting(true);
+    let derivedErrorType: FormErrorType = 'general';
 
     try {
-      // 1. Account registration in Identidad service
-      const fullName = `${firstName.trim()} ${lastName.trim()}`;
-      try {
-        await registerByInvitation({
-          email: email.trim(),
-          password,
-          fullName,
-          token,
-        });
-      } catch (authErr: unknown) {
-        const status = getHttpErrorStatus(authErr);
-        if (status === 403) {
-          throw new Error('Este correo corresponde a un preparador físico.', { cause: authErr });
+      let activeSession = createdSession;
+
+      // 1. Account registration in Identidad service (solo si no se registró previamente)
+      if (!activeSession) {
+        const fullName = `${firstName.trim()} ${lastName.trim()}`;
+        try {
+          activeSession = await authService.registerByInvitation({
+            email: email.trim(),
+            password,
+            fullName,
+            token,
+          });
+          setCreatedSession(activeSession);
+        } catch (authErr: unknown) {
+          const status = getHttpErrorStatus(authErr);
+          if (status === 403) {
+            derivedErrorType = 'forbidden';
+            throw new Error('Este correo corresponde a un preparador físico.', { cause: authErr });
+          }
+          if (status === 409) {
+            derivedErrorType = 'conflict';
+            throw new Error('Ya tenés cuenta, iniciá sesión.', { cause: authErr });
+          }
+          if (status === 410) {
+            derivedErrorType = 'expired';
+            throw new Error('La invitación ha expirado.', { cause: authErr });
+          }
+          derivedErrorType = 'general';
+          throw authErr;
         }
-        if (status === 409) {
-          throw new Error('Ya tenés cuenta, iniciá sesión.', { cause: authErr });
-        }
-        if (status === 410) {
-          throw new Error('La invitación ha expirado.', { cause: authErr });
-        }
-        throw authErr;
       }
 
       // 2. Invitation acceptance and athlete enrollment in Estructura
@@ -211,11 +245,17 @@ export const InvitationLandingPage: React.FC = () => {
 
       await categoryInvitationsService.accept(token, acceptPayload);
 
-      // 3. Navigate to athlete dashboard
+      // 3. Activar sesión en AuthContext tras aceptar invitación exitosamente
+      if (activeSession) {
+        applySession(activeSession);
+      }
+
+      // 4. Navigate to athlete dashboard
       navigate('/athlete', { replace: true });
     } catch (err: unknown) {
       const msg = extractErrorMessage(err);
       setFormError(msg);
+      setErrorType(derivedErrorType);
       setIsSubmitting(false);
     }
   };
@@ -252,29 +292,19 @@ export const InvitationLandingPage: React.FC = () => {
           </h2>
           <p className="invitation-subtitle">{tokenError.message}</p>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              marginTop: '1rem',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-            }}
-          >
+          <div className="invitation-state-actions">
             {tokenError.type === 'general' ? (
               <button
                 type="button"
-                className="invitation-submit-btn"
+                className="invitation-submit-btn invitation-btn-auto"
                 onClick={() => void validateToken(token)}
-                style={{ width: 'auto', padding: '0.65rem 1.25rem' }}
               >
                 <RotateCcw size={16} /> Reintentar
               </button>
             ) : (
               <Link
                 to="/login"
-                className="invitation-submit-btn"
-                style={{ textDecoration: 'none', width: 'auto', padding: '0.65rem 1.25rem' }}
+                className="invitation-submit-btn invitation-btn-auto invitation-btn-link"
               >
                 Ir a iniciar sesión
               </Link>
@@ -311,9 +341,9 @@ export const InvitationLandingPage: React.FC = () => {
             <AlertTriangle size={18} className="invitation-error-icon" />
             <div>
               <span>{formError}</span>
-              {formError.includes('Ya tenés cuenta') && (
-                <div style={{ marginTop: '0.25rem' }}>
-                  <Link to="/login" className="invitation-link" style={{ fontWeight: 700 }}>
+              {errorType === 'conflict' && (
+                <div className="invitation-error-link-wrapper">
+                  <Link to="/login" className="invitation-link invitation-link--strong">
                     Hacé clic acá para iniciar sesión
                   </Link>
                 </div>
@@ -364,36 +394,39 @@ export const InvitationLandingPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu.email@ejemplo.com"
               className="invitation-input"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!createdSession}
               autoComplete="email"
             />
           </div>
 
-          <div className="invitation-field">
-            <label htmlFor="invitation-password">Contraseña</label>
-            <div className="invitation-input-wrap">
-              <input
-                id="invitation-password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                className="invitation-input"
-                disabled={isSubmitting}
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="invitation-password-toggle"
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+          {!createdSession && (
+            <div className="invitation-field">
+              <label htmlFor="invitation-password">Contraseña</label>
+              <div className="invitation-input-wrap">
+                <input
+                  id="invitation-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className="invitation-input"
+                  disabled={isSubmitting}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="invitation-password-toggle"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <p className="invitation-field-hint">Mínimo 8 caracteres y al menos un número</p>
             </div>
-          </div>
+          )}
 
           <div className="invitation-row">
             <div className="invitation-field">

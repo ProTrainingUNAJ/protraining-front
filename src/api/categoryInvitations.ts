@@ -143,7 +143,10 @@ export const categoryInvitationsService = {
         throwOnError: true,
       });
 
-      return data as unknown as Athlete;
+      if (!data) {
+        throw new Error('No se recibió la información del atleta.');
+      }
+      return data;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

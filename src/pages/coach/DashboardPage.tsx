@@ -213,24 +213,6 @@ export const DashboardPage: React.FC = () => {
               }
             }
           } else {
-            // Athlete: ensure the daily load widget is available in row 2 (KAN-571)
-            const hasDailyLoad = parsed.some((r: DashboardRow) =>
-              r.cards.some((c: WireframeCardItem) => c.type === 'daily-load'),
-            );
-            if (!hasDailyLoad) {
-              const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');
-              if (row2 && Array.isArray(row2.cards)) {
-                const emptyIdx = row2.cards.findIndex((c: WireframeCardItem) => c.type === 'empty');
-                const targetIdx = emptyIdx !== -1 ? emptyIdx : 0;
-                row2.cards[targetIdx] = {
-                  id: 'a-daily-load',
-                  name: 'Carga del Día',
-                  colSpan: 1,
-                  type: 'daily-load',
-                };
-              }
-            }
-
             // Athlete: ensure the daily traffic light widget is in row 1 next to training session (KAN-547)
             const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
             const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');

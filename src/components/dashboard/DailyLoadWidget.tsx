@@ -204,18 +204,17 @@ export const DailyLoadWidget: React.FC = () => {
       <div className="dl-widget__body">
         {isLoading ? (
           <div className="dl-widget__skeleton" aria-label="Cargando métricas de carga…">
-            <div className="dl-widget__skeleton-line" style={{ width: '60%' }} />
-            <div className="dl-widget__skeleton-line" style={{ width: '100%', height: '42px' }} />
-            <div className="dl-widget__skeleton-line" style={{ width: '80%' }} />
+            <div className="dl-widget__skeleton-line dl-widget__skeleton-line--w60" />
+            <div className="dl-widget__skeleton-line dl-widget__skeleton-line--banner" />
+            <div className="dl-widget__skeleton-line dl-widget__skeleton-line--w80" />
           </div>
         ) : error ? (
           <div className="dl-widget__empty">
             <p className="dl-widget__empty-desc">{error}</p>
             <button
               type="button"
-              className="dl-widget__btn-action"
+              className="dl-widget__btn-action dl-widget__btn-action--retry"
               onClick={() => athleteId && void fetchLoad(athleteId)}
-              style={{ width: 'auto', marginTop: '0.25rem' }}
             >
               <RotateCw size={13} />
               <span>Reintentar</span>

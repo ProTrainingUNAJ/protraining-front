@@ -8,6 +8,7 @@ import {
 import {
   changePassword as changePasswordSdk,
   resetAthletePassword as resetAthletePasswordSdk,
+  registerByInvitation as registerByInvitationSdk,
 } from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
 import {
@@ -66,37 +67,46 @@ export const authService = {
     token: string;
     deviceId?: string;
   }): Promise<AuthSession> {
-    const deviceId = request.deviceId ?? getDeviceId();
-    const response = await httpClient.post<LoginResponse>(
-      '/identidad/api/v1/auth/register-by-invitation',
-      {
-        ...request,
-        email: request.email.trim(),
-        deviceId,
-      },
-    );
+    try {
+      const deviceId = request.deviceId ?? getDeviceId();
+      const response = await registerByInvitationSdk({
+        body: {
+          email: request.email.trim(),
+          password: request.password,
+          fullName: request.fullName.trim(),
+          token: request.token,
+          deviceId,
+        },
+        throwOnError: true,
+      });
 
-    const data = response.data;
-    const expiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida del servidor al registrarse por invitación.');
+      }
+      const expiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
 
-    const session: AuthSession = {
-      accessToken: data.accessToken,
-      tokenType: data.tokenType || 'Bearer',
-      expiresAt,
-      refreshToken: data.refreshToken,
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        fullName: data.user.fullName,
-        role: data.user.role,
-        pfId: data.user.pfId ?? null,
-        phoneNumber: data.user.phoneNumber ?? null,
-        mustChangePassword: data.user.mustChangePassword ?? false,
-      },
-    };
+      const session: AuthSession = {
+        accessToken: data.accessToken,
+        tokenType: data.tokenType || 'Bearer',
+        expiresAt,
+        refreshToken: data.refreshToken,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          fullName: data.user.fullName,
+          role: data.user.role,
+          pfId: data.user.pfId ?? null,
+          phoneNumber: data.user.phoneNumber ?? null,
+          mustChangePassword: data.user.mustChangePassword ?? false,
+        },
+      };
 
-    saveStoredSession(session);
-    return session;
+      saveStoredSession(session);
+      return session;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
   },
 
   /**

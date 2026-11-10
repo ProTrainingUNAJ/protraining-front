@@ -14,8 +14,16 @@ vi.mock('react-router-dom', async () => {
 });
 
 const mockRegisterByInvitation = vi.fn();
+vi.mock('../../../api/authService', () => ({
+  authService: {
+    registerByInvitation: (...args: unknown[]) => mockRegisterByInvitation(...args),
+  },
+}));
+
+const mockApplySession = vi.fn();
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: () => ({
+    applySession: mockApplySession,
     registerByInvitation: mockRegisterByInvitation,
     isAuthenticated: false,
     user: null,
@@ -416,5 +424,121 @@ describe('InvitationLandingPage', () => {
       expect(screen.getByText('Ya tenés cuenta, iniciá sesión.')).toBeDefined();
     });
     expect(screen.getByRole('link', { name: /Hacé clic acá para iniciar sesión/i })).toBeDefined();
+  });
+
+  it('valida que la contraseña tenga mínimo 8 caracteres y al menos un número y muestra el texto explicativo', async () => {
+    vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
+      token: 'tok-123',
+      expiresAt: '2026-11-20T12:00:00Z',
+      categoryId: 'cat-1',
+      categoryName: 'Primera División',
+      invitationUrl: 'http://localhost/invite/tok-123',
+    });
+
+    renderPage('tok-123');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Nombre/i)).toBeDefined();
+    });
+
+    expect(screen.getByText('Mínimo 8 caracteres y al menos un número')).toBeDefined();
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'Lucas' } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: 'Pratto' } });
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'lucas@ejemplo.com' },
+    });
+    // Menos de 8 caracteres
+    fireEvent.change(screen.getByLabelText(/^Contraseña/i), { target: { value: 'Pass1' } });
+    fireEvent.change(screen.getByLabelText(/Teléfono celular/i), {
+      target: { value: '+5491199887766' },
+    });
+    fireEvent.change(screen.getByLabelText(/Fecha de nacimiento/i), {
+      target: { value: '1995-04-10' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    expect(
+      screen.getByText(
+        'La contraseña debe tener al menos 8 caracteres y contener al menos un número.',
+      ),
+    ).toBeDefined();
+
+    // 8 caracteres pero sin números
+    fireEvent.change(screen.getByLabelText(/^Contraseña/i), { target: { value: 'Sololetras' } });
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    expect(
+      screen.getByText(
+        'La contraseña debe tener al menos 8 caracteres y contener al menos un número.',
+      ),
+    ).toBeDefined();
+    expect(mockRegisterByInvitation).not.toHaveBeenCalled();
+  });
+
+  it('no redirige a /athlete si accept falla tras el registro y permite reintentar sin volver a registrar', async () => {
+    vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
+      token: 'tok-123',
+      expiresAt: '2026-11-20T12:00:00Z',
+      categoryId: 'cat-1',
+      categoryName: 'Primera División',
+      invitationUrl: 'http://localhost/invite/tok-123',
+    });
+
+    const mockSession = {
+      accessToken: 'jwt-123',
+      user: { id: 'u-1', role: 'Atleta' },
+    };
+    mockRegisterByInvitation.mockResolvedValueOnce(mockSession);
+
+    // Primer intento de accept falla (ej. error 400 o de validación de Estructura)
+    vi.mocked(categoryInvitationsService.accept)
+      .mockRejectedValueOnce(new Error('Datos inválidos del tutor legal.'))
+      .mockResolvedValueOnce({ id: 'ath-1' } as never);
+
+    renderPage('tok-123');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Nombre/i)).toBeDefined();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'Lucas' } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: 'Pratto' } });
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'lucas@ejemplo.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Contraseña/i), { target: { value: 'Pass1234' } });
+    fireEvent.change(screen.getByLabelText(/Teléfono celular/i), {
+      target: { value: '+5491199887766' },
+    });
+    fireEvent.change(screen.getByLabelText(/Fecha de nacimiento/i), {
+      target: { value: '1995-04-10' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    // Espera que aparezca el error en la landing
+    await waitFor(() => {
+      expect(screen.getByText('Datos inválidos del tutor legal.')).toBeDefined();
+    });
+
+    // La sesión NO debió activarse aún en el contexto ni debió navegar a /athlete
+    expect(mockApplySession).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith('/athlete', expect.anything());
+
+    // Al reintentar, ya no debe pedir contraseña y NO debe llamar nuevamente a registerByInvitation
+    expect(mockRegisterByInvitation).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    await waitFor(() => {
+      expect(categoryInvitationsService.accept).toHaveBeenCalledTimes(2);
+    });
+
+    // En el segundo intento exitoso, recién se activa la sesión y se navega
+    expect(mockRegisterByInvitation).toHaveBeenCalledTimes(1);
+    expect(mockApplySession).toHaveBeenCalledWith(mockSession);
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
   });
 });

@@ -214,7 +214,7 @@ describe('DailyLoadPage (KAN-571)', () => {
     expect(gymCard.className).not.toContain('dl-carousel-card--active');
   });
 
-  it('permite usar presets rápidos de minutos y botones de RPE mostrando la carga en vivo (UA) y regla graduada', async () => {
+  it('permite usar presets rápidos de minutos y botones de RPE mostrando la carga en vivo (UA)', async () => {
     const { container } = renderComponent();
 
     await waitFor(() => {
@@ -228,12 +228,9 @@ describe('DailyLoadPage (KAN-571)', () => {
       expect(screen.getByText('480')).toBeDefined();
       expect(screen.getByText('UA')).toBeDefined();
       expect(screen.getByText(/60 min × RPE 8/i)).toBeDefined();
-      expect(screen.getByText('Mínimo')).toBeDefined();
-      expect(screen.getByText('Suave')).toBeDefined();
-      expect(screen.getByText('Moderado')).toBeDefined();
-      expect(screen.getByText('Alto')).toBeDefined();
-      expect(screen.getByText('Máximo')).toBeDefined();
-      expect(container.querySelector('.dl-gauge-ruler')).toBeDefined();
+      expect(screen.queryByText('Mínimo')).toBeNull();
+      expect(screen.queryByText('Máximo')).toBeNull();
+      expect(container.querySelector('.dl-gauge-ruler')).toBeNull();
     });
   });
 });
