@@ -15,18 +15,21 @@ describe('athleteRecordsService.declareOnboarding', () => {
 
   it('envía las marcas y mapea los récords creados', async () => {
     vi.mocked(generatedApi.completeOnboarding).mockResolvedValueOnce({
-      data: [
-        {
-          id: 'rec-1',
-          athleteId: 'ath-1',
-          exerciseId: 'ex-1',
-          exerciseName: 'Sentadilla',
-          weightOneRepMaxKg: 120,
-          origin: 'EstimatedEpley',
-          achievedAt: '2026-11-07T10:00:00Z',
-          isCurrent: true,
-        },
-      ],
+      data: {
+        created: [
+          {
+            id: 'rec-1',
+            athleteId: 'ath-1',
+            exerciseId: 'ex-1',
+            exerciseName: 'Sentadilla',
+            weightOneRepMaxKg: 120,
+            origin: 'EstimatedEpley',
+            achievedAt: '2026-11-07T10:00:00Z',
+            isCurrent: true,
+          },
+        ],
+        skipped: [],
+      },
     } as never);
 
     const marks = [{ exerciseId: 'ex-1', weightOneRepMaxKg: 120 }];
@@ -36,26 +39,29 @@ describe('athleteRecordsService.declareOnboarding', () => {
       body: marks,
       throwOnError: true,
     });
-    expect(result).toEqual([
-      {
-        id: 'rec-1',
-        exerciseId: 'ex-1',
-        exerciseName: 'Sentadilla',
-        weightKg: 120,
-        origin: 'EstimatedEpley',
-        achievedAt: '2026-11-07T10:00:00Z',
-      },
-    ]);
+    expect(result).toEqual({
+      created: [
+        {
+          id: 'rec-1',
+          exerciseId: 'ex-1',
+          exerciseName: 'Sentadilla',
+          weightKg: 120,
+          origin: 'EstimatedEpley',
+          achievedAt: '2026-11-07T10:00:00Z',
+        },
+      ],
+      skipped: [],
+    });
   });
 
   it('devuelve [] cuando el back no creó ninguna marca', async () => {
-    vi.mocked(generatedApi.completeOnboarding).mockResolvedValueOnce({ data: [] } as never);
+    vi.mocked(generatedApi.completeOnboarding).mockResolvedValueOnce({ data: { created: [], skipped: [] } } as never);
 
     const result = await athleteRecordsService.declareOnboarding([
       { exerciseId: 'ex-1', weightOneRepMaxKg: 120 },
     ]);
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ created: [], skipped: [] });
   });
 
   it('propaga el mensaje del error del back', async () => {

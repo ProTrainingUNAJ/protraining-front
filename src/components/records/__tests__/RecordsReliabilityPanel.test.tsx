@@ -121,6 +121,7 @@ describe('RecordsReliabilityPanel - dashboard de confiabilidad (KAN-417)', () =>
     expect(detail.textContent).toContain('Sin datos (1 atleta)');
     expect(detail.textContent).toContain('Jesica');
     expect(detail.textContent).toContain('sin récords');
+    expect(detail.textContent).toContain('Recomendado: tomarle un test para tener su marca base.');
     expect(
       screen.getByRole('button', { name: 'Sin datos (1 atleta)' }).getAttribute('aria-pressed'),
     ).toBe('true');
