@@ -15,6 +15,7 @@ import {
   QrCode,
   FileText,
   TrendingUp,
+  KeyRound,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
@@ -26,6 +27,7 @@ import { AthleteBenchmarkModal } from '../../components/athletes/AthleteBenchmar
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
 import { MedicalRecordDetailModal } from '../../components/athletes/MedicalRecordDetailModal';
+import { ResetAthletePasswordModal } from '../../components/athletes/ResetAthletePasswordModal';
 import { MedicalRecord } from '../../types/medicalRecord';
 
 export const AthletesPage: React.FC = () => {
@@ -59,6 +61,7 @@ export const AthletesPage: React.FC = () => {
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
   const [showImportRecords, setShowImportRecords] = useState(false);
   const [benchmarkAthlete, setBenchmarkAthlete] = useState<Athlete | null>(null);
+  const [resetAthlete, setResetAthlete] = useState<Athlete | null>(null);
   const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
   const [justifyingAthlete, setJustifyingAthlete] = useState<Athlete | null>(null);
   const [viewingMedicalRecord, setViewingMedicalRecord] = useState<{
@@ -832,6 +835,17 @@ export const AthletesPage: React.FC = () => {
                     <FileText size={15} aria-hidden="true" />
                     <span>Ver Ficha Médica</span>
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setResetAthlete(athlete)}
+                    title="Restablecer contraseña del atleta (KAN-539)"
+                    data-testid={`reset-pwd-btn-${athlete.id}`}
+                  >
+                    <KeyRound size={15} aria-hidden="true" />
+                    <span>Resetear contraseña</span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -880,6 +894,10 @@ export const AthletesPage: React.FC = () => {
           initialCategoryId={selectedCategoryId || undefined}
           onClose={() => setBenchmarkAthlete(null)}
         />
+      )}
+
+      {resetAthlete && (
+        <ResetAthletePasswordModal athlete={resetAthlete} onClose={() => setResetAthlete(null)} />
       )}
 
       {/* Modal de Asociación N:N de Categorías (CA3) */}

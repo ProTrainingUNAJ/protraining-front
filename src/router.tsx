@@ -24,6 +24,7 @@ import { SettingsPage as AthleteSettingsPage } from './pages/athlete/SettingsPag
 import { InvitationLandingPage } from './pages/athlete/InvitationLandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
+import { ForceChangePasswordPage } from './pages/ForceChangePasswordPage';
 import { useAuth } from './context/AuthContext';
 import { RequireAuth } from './components/auth/RequireAuth';
 
@@ -37,6 +38,10 @@ function RootRedirect() {
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user.mustChangePassword) {
+    return <Navigate to="/force-change-password" replace />;
   }
 
   if (user.role === 'PreparadorFisico') {
@@ -60,6 +65,7 @@ export const router = createBrowserRouter([
       { path: 'login/atleta', element: <LoginPage /> },
       { path: 'login/pf', element: <LoginPage /> },
       { path: 'invite/:token', element: <InvitationLandingPage /> },
+      { path: 'force-change-password', element: <ForceChangePasswordPage /> },
       {
         path: 'pf',
         element: <RequireAuth allowedRole="PreparadorFisico" />,

@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { AuthSession, LoginRequest, RoleType, UserDto } from '../types/auth';
 import { authService } from '../api/authService';
-import { onAuthExpired } from '../api/axiosClient';
+import { onAuthExpired, saveStoredSession } from '../api/axiosClient';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -28,6 +28,7 @@ interface AuthContextType {
     deviceId?: string;
   }) => Promise<AuthSession>;
   logout: () => void;
+  clearMustChangePassword?: () => void;
   theme: 'light' | 'dark';
   themePreference: ThemePreference;
   setThemePreference: (preference: ThemePreference) => void;
@@ -157,6 +158,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSession(null);
   }, []);
 
+  const clearMustChangePassword = useCallback(() => {
+    setSession((prev) => {
+      if (!prev) return null;
+      const updated: AuthSession = {
+        ...prev,
+        user: {
+          ...prev.user,
+          mustChangePassword: false,
+        },
+      };
+      saveStoredSession(updated);
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -169,6 +185,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         registerByInvitation,
         logout,
+        clearMustChangePassword,
         theme,
         themePreference,
         setThemePreference,
