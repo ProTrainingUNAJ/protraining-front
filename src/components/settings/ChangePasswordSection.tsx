@@ -22,8 +22,7 @@ export const ChangePasswordSection: React.FC = () => {
 
   // Validaciones de reglas mínimas para la nueva contraseña
   const hasMinLength = newPassword.length >= 8;
-  const hasUppercase = /[A-Z]/.test(newPassword);
-  const hasSpecialChar = /[^A-Za-z0-9]/.test(newPassword);
+  const hasDigit = /\d/.test(newPassword);
   const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,10 +40,8 @@ export const ChangePasswordSection: React.FC = () => {
       return;
     }
 
-    if (!hasMinLength || !hasUppercase || !hasSpecialChar) {
-      setError(
-        'La nueva contraseña debe tener al menos 8 caracteres, una letra mayúscula y un carácter especial.',
-      );
+    if (!hasMinLength || !hasDigit) {
+      setError('La nueva contraseña debe tener al menos 8 caracteres y al menos un número.');
       return;
     }
 
@@ -300,39 +297,19 @@ export const ChangePasswordSection: React.FC = () => {
             >
               <span
                 style={{
-                  color: hasMinLength ? 'var(--success-text)' : 'var(--text-muted)',
-                  fontWeight: hasMinLength ? 600 : 400,
+                  color: hasMinLength && hasDigit ? 'var(--success-text)' : 'var(--text-muted)',
+                  fontWeight: hasMinLength && hasDigit ? 600 : 400,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.35rem',
                 }}
               >
-                <Check size={12} style={{ opacity: hasMinLength ? 1 : 0.3 }} aria-hidden="true" />
-                Mínimo 8 caracteres
-              </span>
-              <span
-                style={{
-                  color: hasUppercase ? 'var(--success-text)' : 'var(--text-muted)',
-                  fontWeight: hasUppercase ? 600 : 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <Check size={12} style={{ opacity: hasUppercase ? 1 : 0.3 }} aria-hidden="true" />
-                Al menos una letra mayúscula
-              </span>
-              <span
-                style={{
-                  color: hasSpecialChar ? 'var(--success-text)' : 'var(--text-muted)',
-                  fontWeight: hasSpecialChar ? 600 : 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <Check size={12} style={{ opacity: hasSpecialChar ? 1 : 0.3 }} aria-hidden="true" />
-                Al menos un carácter especial (!@#$%...)
+                <Check
+                  size={12}
+                  style={{ opacity: hasMinLength && hasDigit ? 1 : 0.3 }}
+                  aria-hidden="true"
+                />
+                Mínimo 8 caracteres y al menos un número
               </span>
             </div>
           </div>

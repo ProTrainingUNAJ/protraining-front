@@ -112,7 +112,7 @@ describe('ChangePasswordSection (KAN-538)', () => {
     expect(submitBtn.disabled).toBe(false);
   });
 
-  it('4. Nueva contraseña inválida: rechaza contraseñas cortas, sin mayúsculas, sin caracter especial o iguales a la actual', async () => {
+  it('4. Nueva contraseña inválida: rechaza contraseñas cortas, sin dígitos o iguales a la actual', async () => {
     render(
       <MemoryRouter>
         <ChangePasswordSection />
@@ -132,28 +132,26 @@ describe('ChangePasswordSection (KAN-538)', () => {
 
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
 
-    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i)).toBeDefined();
+    expect(
+      screen.getByText(
+        /La nueva contraseña debe tener al menos 8 caracteres y al menos un número/i,
+      ),
+    ).toBeDefined();
     expect(authService.changePassword).not.toHaveBeenCalled();
 
-    // Sin mayúscula
+    // Sin número / dígito
     fireEvent.change(screen.getByTestId('new-password-input'), {
-      target: { value: 'password123!' },
+      target: { value: 'sololetras' },
     });
     fireEvent.change(screen.getByTestId('confirm-password-input'), {
-      target: { value: 'password123!' },
+      target: { value: 'sololetras' },
     });
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
-    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i)).toBeDefined();
-
-    // Sin carácter especial
-    fireEvent.change(screen.getByTestId('new-password-input'), {
-      target: { value: 'Password123' },
-    });
-    fireEvent.change(screen.getByTestId('confirm-password-input'), {
-      target: { value: 'Password123' },
-    });
-    fireEvent.click(screen.getByTestId('change-password-submit-btn'));
-    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i)).toBeDefined();
+    expect(
+      screen.getByText(
+        /La nueva contraseña debe tener al menos 8 caracteres y al menos un número/i,
+      ),
+    ).toBeDefined();
 
     // Igual a la actual
     fireEvent.change(screen.getByTestId('new-password-input'), {

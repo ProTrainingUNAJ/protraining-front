@@ -34,8 +34,7 @@ export const ForceChangePasswordPage: React.FC = () => {
   }
 
   const hasMinLength = newPassword.length >= 8;
-  const hasUppercase = /[A-Z]/.test(newPassword);
-  const hasSpecialChar = /[^A-Za-z0-9]/.test(newPassword);
+  const hasDigit = /\d/.test(newPassword);
   const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,10 +52,8 @@ export const ForceChangePasswordPage: React.FC = () => {
       return;
     }
 
-    if (!hasMinLength || !hasUppercase || !hasSpecialChar) {
-      setError(
-        'La nueva contraseña debe tener al menos 8 caracteres, una letra mayúscula y un carácter especial.',
-      );
+    if (!hasMinLength || !hasDigit) {
+      setError('La nueva contraseña debe tener al menos 8 caracteres y al menos un número.');
       return;
     }
 
@@ -256,7 +253,7 @@ export const ForceChangePasswordPage: React.FC = () => {
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Al menos 8 caracteres, 1 mayúscula y 1 símbolo"
+                placeholder="Mínimo 8 caracteres y al menos un número"
                 required
                 disabled={loading}
                 className="input-field"
@@ -347,33 +344,11 @@ export const ForceChangePasswordPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                color: hasMinLength ? '#16a34a' : 'var(--text-muted)',
+                color: hasMinLength && hasDigit ? '#16a34a' : 'var(--text-muted)',
               }}
             >
               <Check size={14} />
-              <span>Mínimo 8 caracteres</span>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                color: hasUppercase ? '#16a34a' : 'var(--text-muted)',
-              }}
-            >
-              <Check size={14} />
-              <span>Al menos una letra mayúscula</span>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                color: hasSpecialChar ? '#16a34a' : 'var(--text-muted)',
-              }}
-            >
-              <Check size={14} />
-              <span>Al menos un carácter especial (!@#$%...)</span>
+              <span>Mínimo 8 caracteres y al menos un número</span>
             </div>
             <div
               style={{
