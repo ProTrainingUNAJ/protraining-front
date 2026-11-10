@@ -71,6 +71,17 @@ export type LoginResponse = {
     user: User;
 };
 
+export type ChangePasswordRequest = {
+    /**
+     * Contraseña actual del usuario.
+     */
+    currentPassword: string;
+    /**
+     * Nueva contraseña (mínimo 8 caracteres, al menos una mayúscula y un carácter especial).
+     */
+    newPassword: string;
+};
+
 export type RefreshRequest = {
     refreshToken: string;
     deviceId: string;
@@ -214,6 +225,35 @@ export type RegisterByInvitationResponses = {
 };
 
 export type RegisterByInvitationResponse = RegisterByInvitationResponses[keyof RegisterByInvitationResponses];
+
+export type ChangePasswordData = {
+    body: ChangePasswordRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/change-password';
+};
+
+export type ChangePasswordErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+};
+
+export type ChangePasswordError = ChangePasswordErrors[keyof ChangePasswordErrors];
+
+export type ChangePasswordResponses = {
+    /**
+     * Contraseña actualizada correctamente y sesiones activas revocadas.
+     */
+    204: void;
+};
+
+export type ChangePasswordResponse = ChangePasswordResponses[keyof ChangePasswordResponses];
 
 export type UpdateWhatsAppPhoneData = {
     body: UpdatePhoneRequest;

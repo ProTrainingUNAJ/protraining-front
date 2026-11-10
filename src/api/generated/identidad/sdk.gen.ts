@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -56,6 +56,22 @@ export const refreshToken = <ThrowOnError extends boolean = false>(options: Opti
 export const registerByInvitation = <ThrowOnError extends boolean = false>(options: Options<RegisterByInvitationData, ThrowOnError>): RequestResult<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError> => (options.client ?? client).post<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/auth/register-by-invitation',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cambiar contraseña de usuario autenticado
+ *
+ * Permite a un usuario autenticado cambiar su contraseña validando la contraseña actual y verificando las reglas de seguridad de la nueva contraseña. Revoca todos los refresh tokens activos del usuario para cerrar las sesiones abiertas.
+ *
+ */
+export const changePassword = <ThrowOnError extends boolean = false>(options: Options<ChangePasswordData, ThrowOnError>): RequestResult<ChangePasswordResponses, ChangePasswordErrors, ThrowOnError> => (options.client ?? client).post<ChangePasswordResponses, ChangePasswordErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/change-password',
     ...options,
     headers: {
         'Content-Type': 'application/json',

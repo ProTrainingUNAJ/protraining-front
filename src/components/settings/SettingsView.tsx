@@ -21,6 +21,7 @@ import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
 import { AthleteMarksSection } from './AthleteMarksSection';
+import { ChangePasswordSection } from './ChangePasswordSection';
 import {
   subscribeUserToPush,
   unsubscribeUserFromPush,
@@ -287,9 +288,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
         {activeTab === 'marks' ? (
           <AthleteMarksSection />
         ) : (
-          <form onSubmit={handleSave}>
+          <>
             {activeTab === 'profile' && (
-              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+              <>
+                <form onSubmit={handleSave}>
+                  <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
                 <h2
                   style={{
                     fontSize: '1.15rem',
@@ -530,10 +533,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   </div>
                 </div>
               </div>
-            )}
+            </form>
+            <ChangePasswordSection />
+          </>
+        )}
 
-            {activeTab === 'appearance' && (
-              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+        {activeTab === 'appearance' && (
+          <form onSubmit={handleSave}>
+            <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
                 <h2
                   style={{
                     fontSize: '1.15rem',
@@ -834,9 +841,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   </div>
                 </div>
               </div>
-            )}
+            </form>
+          )}
 
-            {activeTab === 'notifications' && (
+          {activeTab === 'notifications' && (
+            <form onSubmit={handleSave}>
               <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
                 <h2
                   style={{
@@ -1121,9 +1130,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   )}
                 </div>
               </div>
-            )}
+            </form>
+          )}
 
-            {activeTab === 'roleOptions' && (
+          {activeTab === 'roleOptions' && (
+            <form onSubmit={handleSave}>
               <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
                 <h2
                   style={{
@@ -1223,9 +1234,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   </div>
                 )}
               </div>
-            )}
-          </form>
-        )}
+            </form>
+          )}
+        </>
+      )}
       </div>
     </div>
   );
