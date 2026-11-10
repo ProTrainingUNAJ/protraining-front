@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -268,6 +268,53 @@ export const getAthleteEvolution = <ThrowOnError extends boolean = false>(option
 });
 
 /**
+ * Sesiones de test de campo de una categoría
+ *
+ * Devuelve el resumen (id, categoría, fecha, nombre y estado) de las sesiones de la categoría pedida, de la más reciente a la más antigua. Solo aparecen las sesiones del PF autenticado: las de otro PF no se devuelven. Sin tests ni resultados, para que la pantalla que elige la sesión sea liviana.
+ *
+ */
+export const listFieldTestSessions = <ThrowOnError extends boolean = false>(options: Options<ListFieldTestSessionsData, ThrowOnError>): RequestResult<ListFieldTestSessionsResponses, ListFieldTestSessionsErrors, ThrowOnError> => (options.client ?? client).get<ListFieldTestSessionsResponses, ListFieldTestSessionsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions',
+    ...options
+});
+
+/**
+ * Crear una sesión de test de campo
+ *
+ * Crea la sesión con sus pruebas del catálogo en el orden de evaluación. Estado inicial Planned. Responde 404 si la categoría no existe o es de otro PF; 400 si la lista de pruebas está vacía, si se repite una prueba o si alguna no existe en el catálogo.
+ *
+ */
+export const createFieldTestSession = <ThrowOnError extends boolean = false>(options: Options<CreateFieldTestSessionData, ThrowOnError>): RequestResult<CreateFieldTestSessionResponses, CreateFieldTestSessionErrors, ThrowOnError> => (options.client ?? client).post<CreateFieldTestSessionResponses, CreateFieldTestSessionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cambiar el estado de la sesión
+ *
+ * Avanza el estado de la sesión en orden estricto Planned -> InProgress -> Closed. Un salto (Planned -> Closed), una reapertura o repetir el estado actual responde 400 "Transición de estado no válida". La sesión no exista o sea de otro PF → 404.
+ *
+ */
+export const updateFieldTestSessionStatus = <ThrowOnError extends boolean = false>(options: Options<UpdateFieldTestSessionStatusData, ThrowOnError>): RequestResult<UpdateFieldTestSessionStatusResponses, UpdateFieldTestSessionStatusErrors, ThrowOnError> => (options.client ?? client).patch<UpdateFieldTestSessionStatusResponses, UpdateFieldTestSessionStatusErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Sesión de test de campo con sus resultados
  *
  * Devuelve la sesión de test de campo con sus tests del catálogo (en orden de evaluación) y los resultados cargados por atleta. Responde 404 si la sesión no existe o es de otro PF.
@@ -283,7 +330,7 @@ export const getFieldTestSession = <ThrowOnError extends boolean = false>(option
 /**
  * Carga rápida de un resultado de campo
  *
- * Registra el valor de un atleta para un test de la sesión. Responde 404 si la sesión no existe o es de otro PF, o si el atleta no existe o es de otro PF (en ese caso no se persiste nada). Responde 409 si el mismo (sesión, prueba, atleta e intento) ya fue cargado.
+ * Registra el valor de un atleta para un test de la sesión. Responde 404 si la sesión no existe o es de otro PF, o si el atleta no existe o es de otro PF (en ese caso no se persiste nada). Responde 409 si el mismo (sesión, prueba, atleta e intento) ya fue cargado. Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." (KAN-427).
  *
  */
 export const createFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<CreateFieldTestResultData, ThrowOnError>): RequestResult<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError>({
@@ -300,7 +347,7 @@ export const createFieldTestResult = <ThrowOnError extends boolean = false>(opti
 /**
  * Corregir un resultado de campo
  *
- * Actualiza el valor y el intento de un resultado ya cargado. Responde 404 si la sesión o el resultado no existen o son de otro PF. Responde 409 si la corrección choca con un resultado ya cargado (misma prueba, atleta e intento).
+ * Actualiza el valor y el intento de un resultado ya cargado. Responde 404 si la sesión o el resultado no existen o son de otro PF. Responde 409 si la corrección choca con un resultado ya cargado (misma prueba, atleta e intento). Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." (KAN-427).
  *
  */
 export const updateFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<UpdateFieldTestResultData, ThrowOnError>): RequestResult<UpdateFieldTestResultResponses, UpdateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).put<UpdateFieldTestResultResponses, UpdateFieldTestResultErrors, ThrowOnError>({
@@ -317,7 +364,7 @@ export const updateFieldTestResult = <ThrowOnError extends boolean = false>(opti
 /**
  * Confirmar un resultado de fuerza y sincronizar el 1RM
  *
- * Confirma un resultado de fuerza (test en kg) y envía de forma síncrona el 1RM testeado al microservicio Entrenamiento con origen TestedInSession, resolviendo el ejercicio homónimo por nombre exacto la primera vez (el GUID resuelto queda cacheado en la prueba del catálogo). Responde 404 si la sesión, el resultado o la prueba no existen o son de otro PF; 400 si el test no genera récord 1RM o si Entrenamiento no tiene un ejercicio con ese nombre; y 503 si Entrenamiento no responde tras los reintentos de Polly (la confirmación no quedó registrada allí). Re-confirmar reenvía el mismo valor (idempotente del lado de Entrenamiento).
+ * Confirma un resultado de fuerza (test en kg) y envía de forma síncrona el 1RM testeado al microservicio Entrenamiento con origen TestedInSession, resolviendo el ejercicio homónimo por nombre exacto la primera vez (el GUID resuelto queda cacheado en la prueba del catálogo). Responde 404 si la sesión, el resultado o la prueba no existen o son de otro PF; 400 si el test no genera récord 1RM o si Entrenamiento no tiene un ejercicio con ese nombre; y 503 si Entrenamiento no responde tras los reintentos de Polly (la confirmación no quedó registrada allí). Re-confirmar reenvía el mismo valor (idempotente del lado de Entrenamiento). Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." y no se envía ningún 1RM (KAN-427).
  *
  */
 export const confirmFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<ConfirmFieldTestResultData, ThrowOnError>): RequestResult<ConfirmFieldTestResultResponses, ConfirmFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<ConfirmFieldTestResultResponses, ConfirmFieldTestResultErrors, ThrowOnError>({

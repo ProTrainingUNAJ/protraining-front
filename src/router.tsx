@@ -13,6 +13,8 @@ import { AssistantDraftPage } from './pages/coach/AssistantDraftPage';
 import { TrainingPage } from './pages/coach/TrainingPage';
 import { MonitoringPage } from './pages/coach/MonitoringPage';
 import { RecordsReliabilityPage } from './pages/coach/RecordsReliabilityPage';
+import { FieldTestsPage } from './pages/coach/FieldTestsPage';
+import { FieldTestCapturePage } from './pages/coach/FieldTestCapturePage';
 import { ReportsPage } from './pages/coach/ReportsPage';
 import { SettingsPage } from './pages/coach/SettingsPage';
 import { HomePage } from './pages/athlete/HomePage';
@@ -78,6 +80,8 @@ export const router = createBrowserRouter([
               { path: 'assistant/drafts/:draftId', element: <AssistantDraftPage /> },
               { path: 'training', element: <TrainingPage /> },
               { path: 'monitoring', element: <MonitoringPage /> },
+              { path: 'field-tests', element: <FieldTestsPage /> },
+              { path: 'field-tests/:sessionId', element: <FieldTestCapturePage /> },
               { path: 'records-reliability', element: <RecordsReliabilityPage /> },
               { path: 'reports', element: <ReportsPage /> },
               { path: 'settings', element: <SettingsPage /> },
