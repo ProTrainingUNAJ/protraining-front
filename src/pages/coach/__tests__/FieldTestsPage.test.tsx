@@ -56,6 +56,23 @@ const CATALOG: FitnessTest[] = [
     difficultyLevel: 4,
     active: true,
   },
+  // KAN-458: tests de carrera del catálogo, con su unidad.
+  {
+    id: 't-3',
+    name: 'Carrera 30 m',
+    motorCapacity: 'Velocity',
+    measurementUnit: 's',
+    difficultyLevel: 2,
+    active: true,
+  },
+  {
+    id: 't-4',
+    name: 'Carrera 100 m',
+    motorCapacity: 'Velocity',
+    measurementUnit: 's',
+    difficultyLevel: 3,
+    active: true,
+  },
 ];
 
 function makeSummary(overrides: Partial<FieldTestSessionSummary> = {}): FieldTestSessionSummary {
@@ -102,6 +119,31 @@ describe('FieldTestsPage · Sesiones de test de campo (KAN-427)', () => {
     expect(screen.getByRole('button', { name: 'Abrir' })).toBeDefined();
     // Sin salto de Planned a Closed: no aparece "Cerrar".
     expect(screen.queryByRole('button', { name: /Cerrar/ })).toBeNull();
+  });
+
+  it('filtra el catálogo por velocidad y muestra los tests de 30 y 100 m (KAN-458)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+
+    // Sin filtro se lista el catálogo completo.
+    expect(screen.getByRole('button', { name: /Sentadilla 1RM/ })).toBeDefined();
+    expect(screen.getByRole('button', { name: /30-15 Test/ })).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Velocidad' }));
+
+    // CA: filtrando por velocidad aparecen los tests de 30 y 100 m con su unidad.
+    expect(screen.getByRole('button', { name: /Carrera 30 m/ })).toBeDefined();
+    const carrera100 = screen.getByRole('button', { name: /Carrera 100 m/ });
+    expect(carrera100.querySelector('.ft-test-option__unit')?.textContent).toBe('s');
+    expect(screen.queryByRole('button', { name: /Sentadilla 1RM/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /30-15 Test/ })).toBeNull();
+
+    // "Todos" vuelve al catálogo completo.
+    fireEvent.click(screen.getByRole('button', { name: 'Todos' }));
+    expect(screen.getByRole('button', { name: /Sentadilla 1RM/ })).toBeDefined();
+    expect(screen.getByRole('button', { name: /30-15 Test/ })).toBeDefined();
   });
 
   it('crea una sesión con las pruebas del catálogo en el orden elegido', async () => {

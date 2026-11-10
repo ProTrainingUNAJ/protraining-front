@@ -9,7 +9,11 @@ import {
   listFitnessTests,
   updateFieldTestSessionStatus,
 } from '../../api/fieldTestSessions';
-import type { FieldTestSessionSummary, FitnessTest } from '../../api/generated/seguimiento';
+import type {
+  FieldTestSessionSummary,
+  FitnessTest,
+  MotorCapacity,
+} from '../../api/generated/seguimiento';
 import type { Category } from '../../types/structure';
 
 // Estados de la sesión, en el mismo orden que el backend.
@@ -17,6 +21,18 @@ const STATUS_LABEL: Record<FieldTestSessionSummary['status'], string> = {
   Planned: 'Planificada',
   InProgress: 'En curso',
   Closed: 'Cerrada',
+};
+
+// Etiquetas de las capacidades motoras en el orden del enum del backend (KAN-458):
+// se usan como chips de filtro del catálogo y solo se muestran las presentes en él.
+const CAPACITY_LABEL: Record<MotorCapacity, string> = {
+  Strength: 'Fuerza',
+  Velocity: 'Velocidad',
+  Endurance: 'Resistencia',
+  Power: 'Potencia',
+  Flexibility: 'Flexibilidad',
+  Agility: 'Agilidad',
+  Coordination: 'Coordinación',
 };
 
 const todayIso = (): string => {
@@ -52,6 +68,9 @@ export const FieldTestsPage: React.FC = () => {
   const [catalogTests, setCatalogTests] = useState<FitnessTest[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
+
+  // Filtro por capacidad motora sobre el catálogo ya cargado (KAN-458).
+  const [capacityFilter, setCapacityFilter] = useState<MotorCapacity | ''>('');
 
   useEffect(() => {
     let active = true;
@@ -192,6 +211,15 @@ export const FieldTestsPage: React.FC = () => {
     );
   };
 
+  // Solo se ofrecen los filtros de capacidades que existen en el catálogo.
+  const availableCapacities = (Object.keys(CAPACITY_LABEL) as MotorCapacity[]).filter((capacity) =>
+    catalogTests.some((test) => test.motorCapacity === capacity),
+  );
+
+  const visibleTests = capacityFilter
+    ? catalogTests.filter((test) => test.motorCapacity === capacityFilter)
+    : catalogTests;
+
   return (
     <div className="app-page-container">
       <PageHeader
@@ -255,8 +283,35 @@ export const FieldTestsPage: React.FC = () => {
             <fieldset className="ft-field">
               <legend>Tests (en el orden en que se evalúan)</legend>
               {catalogError && <div className="alert-banner danger">{catalogError}</div>}
+              {catalogTests.length > 0 && (
+                <div
+                  className="ft-test-filters"
+                  role="group"
+                  aria-label="Filtrar por capacidad motora"
+                >
+                  <button
+                    type="button"
+                    className={`ft-test-filter${capacityFilter === '' ? ' ft-test-filter--active' : ''}`}
+                    aria-pressed={capacityFilter === ''}
+                    onClick={() => setCapacityFilter('')}
+                  >
+                    Todos
+                  </button>
+                  {availableCapacities.map((capacity) => (
+                    <button
+                      key={capacity}
+                      type="button"
+                      className={`ft-test-filter${capacityFilter === capacity ? ' ft-test-filter--active' : ''}`}
+                      aria-pressed={capacityFilter === capacity}
+                      onClick={() => setCapacityFilter(capacity)}
+                    >
+                      {CAPACITY_LABEL[capacity]}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="ft-test-options">
-                {catalogTests.map((test) => {
+                {visibleTests.map((test) => {
                   const order = selectedTestIds.indexOf(test.id);
                   return (
                     <button
