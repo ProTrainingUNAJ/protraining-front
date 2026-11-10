@@ -172,9 +172,10 @@ describe('AthleteMarksSection - Mis marcas (KAN-417)', () => {
   });
 
   it('envía las marcas y muestra el resultado parcial', async () => {
-    vi.mocked(athleteRecordsService.declareOnboarding).mockResolvedValueOnce([
-      createdRecord('rec-1', 'ex-1', 'Sentadilla', 100),
-    ]);
+    vi.mocked(athleteRecordsService.declareOnboarding).mockResolvedValueOnce({
+      created: [createdRecord('rec-1', 'ex-1', 'Sentadilla', 100)],
+      skipped: [{ exerciseId: 'ex-2', exerciseName: 'Peso muerto' }],
+    });
 
     render(<AthleteMarksSection />);
     await waitFor(() =>
@@ -187,7 +188,7 @@ describe('AthleteMarksSection - Mis marcas (KAN-417)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar marcas' }));
 
     await waitFor(() => expect(screen.getByRole('status').textContent).toContain('Se cargaron 1.'));
-    expect(screen.getByRole('status').textContent).toContain('Ya tenías 1.');
+    expect(screen.getByRole('status').textContent).toContain('Ya tenías: Peso muerto.');
     expect(athleteRecordsService.declareOnboarding).toHaveBeenCalledWith([
       { exerciseId: 'ex-1', weightOneRepMaxKg: 100 },
       { exerciseId: 'ex-2', weightOneRepMaxKg: 140 },
@@ -195,7 +196,10 @@ describe('AthleteMarksSection - Mis marcas (KAN-417)', () => {
   });
 
   it('avisa cuando el back no creó ninguna marca', async () => {
-    vi.mocked(athleteRecordsService.declareOnboarding).mockResolvedValueOnce([]);
+    vi.mocked(athleteRecordsService.declareOnboarding).mockResolvedValueOnce({
+      created: [],
+      skipped: [{ exerciseId: 'ex-1', exerciseName: 'Sentadilla' }],
+    });
 
     render(<AthleteMarksSection />);
     await waitFor(() =>
@@ -206,9 +210,7 @@ describe('AthleteMarksSection - Mis marcas (KAN-417)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar marcas' }));
 
     await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toContain(
-        'No se modificó ninguna: ya tenías marca en todos esos ejercicios.',
-      ),
+      expect(screen.getByRole('status').textContent).toContain('Sentadilla ya la cargó tu PF.'),
     );
   });
 

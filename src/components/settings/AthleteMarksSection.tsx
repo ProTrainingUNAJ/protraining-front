@@ -201,25 +201,29 @@ export function AthleteMarksSection() {
 
     setSaving(true);
     try {
-      const created = await athleteRecordsService.declareOnboarding(
+      const result = await athleteRecordsService.declareOnboarding(
         staged.map((mark) => ({
           exerciseId: mark.exerciseId,
           weightOneRepMaxKg: mark.weightKg,
         })),
       );
 
-      const createdCount = created.length;
-      const skipped = staged.length - createdCount;
+      const createdCount = result.created.length;
+      const skippedCount = result.skipped.length;
+      const skippedNames = result.skipped.map((item) => item.exerciseName);
 
       if (createdCount === 0) {
         setSaveFeedback({
           type: 'success',
-          message: 'No se modificó ninguna: ya tenías marca en todos esos ejercicios.',
+          message:
+            skippedNames.length === 1
+              ? `${skippedNames[0]} ya la cargó tu PF.`
+              : 'No se modificó ninguna: ya tenías marca en todos esos ejercicios.',
         });
-      } else if (skipped > 0) {
+      } else if (skippedCount > 0) {
         setSaveFeedback({
           type: 'success',
-          message: `Se cargaron ${createdCount}. Ya tenías ${skipped}.`,
+          message: `Se cargaron ${createdCount}. Ya tenías: ${skippedNames.join(', ')}.`,
         });
       } else {
         setSaveFeedback({

@@ -216,6 +216,14 @@ export type Record = {
     isCurrent: boolean;
 };
 
+export type CompleteOnboardingResponse = {
+    created?: Array<Record>;
+    skipped?: Array<{
+        exerciseId?: string;
+        exerciseName?: string;
+    }>;
+};
+
 export type RecordReliabilityAthlete = {
     athleteId: string;
     name: string;
@@ -997,10 +1005,10 @@ export type CompleteOnboardingResponses = {
      * Marcas nuevas registradas como estimadas. Puede devolver un arreglo vacío si todos los ejercicios declarados ya tenían un récord vigente.
      *
      */
-    201: Array<Record>;
+    201: CompleteOnboardingResponse;
 };
 
-export type CompleteOnboardingResponse = CompleteOnboardingResponses[keyof CompleteOnboardingResponses];
+export type CompleteOnboardingResponse2 = CompleteOnboardingResponses[keyof CompleteOnboardingResponses];
 
 export type ListRecordProposalsData = {
     body?: never;

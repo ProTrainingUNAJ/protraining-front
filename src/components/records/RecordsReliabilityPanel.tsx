@@ -160,7 +160,7 @@ export function RecordsReliabilityPanel({ categoryId, exerciseId }: RecordsRelia
                   <span>
                     <strong>{athlete.name}</strong> —{' '}
                     {selectedGroup === 'NoData'
-                      ? 'sin récords'
+                      ? 'sin récords. Recomendado: tomarle un test para tener su marca base.'
                       : pluralize(athlete.recordCount, 'récord', 'récords')}
                   </span>
                   <button
