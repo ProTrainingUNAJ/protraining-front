@@ -63,7 +63,7 @@ describe('CategoryInvitationModal (KAN-400)', () => {
     // Muestra nombre de categoría
     expect(screen.getByText('Primera División')).toBeDefined();
 
-    // Muestra código QR en SVG
+    // Muestra código QR en SVG y texto de ayuda actualizado
     const qrSvg = screen.getByLabelText('Código QR para unirse a la categoría Primera División');
     expect(qrSvg).toBeDefined();
 
@@ -226,5 +226,13 @@ describe('CategoryInvitationModal (KAN-400)', () => {
     expect(logoImage).not.toBeNull();
     const href = logoImage?.getAttribute('href') || logoImage?.getAttribute('xlink:href') || '';
     expect(href).toContain('protraining-official-isotype');
+
+    // Verifica que el QR se dibuje con el color azul corporativo desde tokens
+    const paths = qrSvg.querySelectorAll('path');
+    const fgPath = Array.from(paths).find(
+      (p) =>
+        p.getAttribute('fill')?.includes('var(--primary') || p.getAttribute('fill') === '#023050',
+    );
+    expect(fgPath).toBeDefined();
   });
 });
