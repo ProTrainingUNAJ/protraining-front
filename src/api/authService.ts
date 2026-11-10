@@ -1,4 +1,11 @@
-import { httpClient, saveStoredSession, clearStoredSession, getStoredSession } from './axiosClient';
+import {
+  httpClient,
+  saveStoredSession,
+  clearStoredSession,
+  getStoredSession,
+  extractErrorMessage,
+} from './axiosClient';
+import { changePassword as changePasswordSdk } from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
 import { AuthSession, LoginRequest, LoginResponse } from '../types/auth';
 
@@ -80,6 +87,23 @@ export const authService = {
 
     saveStoredSession(session);
     return session;
+  },
+
+  /**
+   * Cambia la contraseña del usuario autenticado a través del SDK generado de Identidad (KAN-538).
+   */
+  async changePassword(passwords: { currentPassword: string; newPassword: string }): Promise<void> {
+    try {
+      await changePasswordSdk({
+        body: {
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword,
+        },
+        throwOnError: true,
+      });
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
   },
 
   /**
