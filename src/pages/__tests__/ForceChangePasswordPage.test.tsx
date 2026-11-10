@@ -135,6 +135,30 @@ describe('ForceChangePasswordPage (KAN-539 / F-07 a F-10)', () => {
     expect(authService.changePassword).not.toHaveBeenCalled();
   });
 
+  it('valida que la nueva contraseña cumpla con mínimo 8 caracteres y al menos un número', async () => {
+    render(<ForceChangePasswordPage />);
+
+    fireEvent.change(screen.getByLabelText(/Contraseña temporal provista/i), {
+      target: { value: 'PasswordTemp123!' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Nueva contraseña/i), {
+      target: { value: 'sololetras' },
+    });
+    fireEvent.change(screen.getByLabelText(/Repetir nueva contraseña/i), {
+      target: { value: 'sololetras' },
+    });
+
+    fireEvent.click(screen.getByText('Establecer nueva contraseña'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeDefined();
+      expect(
+        screen.getByText('La nueva contraseña debe tener al menos 8 caracteres y al menos un número.'),
+      ).toBeDefined();
+    });
+    expect(authService.changePassword).not.toHaveBeenCalled();
+  });
+
   it('F-09: al completar el cambio exitosamente, limpia flag mustChangePassword y navega a la app', async () => {
     vi.mocked(authService.changePassword).mockResolvedValueOnce(undefined);
 
