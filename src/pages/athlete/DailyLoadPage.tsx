@@ -17,7 +17,6 @@ import {
   Sparkles,
   LayoutGrid,
 } from 'lucide-react';
-import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
 import {
@@ -160,31 +159,6 @@ const RPE_LEVELS: RpeLevelMeta[] = [
 
 const MINUTE_PRESETS = [15, 30, 45, 60, 90, 120];
 
-const getLoadMotivation = (load: number) => {
-  if (load >= 650) {
-    return {
-      badge: 'Impacto colosal',
-      text: '¡Sesión titánica! Gran estímulo para tus adaptaciones competitivas. Cuidá tu hidratación y descanso.',
-    };
-  }
-  if (load >= 400) {
-    return {
-      badge: 'Alta intensidad',
-      text: '¡Tremendo entrenamiento! Suma clave para elevar tu potencia y condición física.',
-    };
-  }
-  if (load >= 180) {
-    return {
-      badge: 'Buen volumen',
-      text: '¡Muy buen trabajo cumplido! Acumulaste minutos de gran calidad para tu rendimiento.',
-    };
-  }
-  return {
-    badge: 'Recuperación / Activación',
-    text: 'Estímulo suave y controlado para regenerar o afinar detalles técnicos.',
-  };
-};
-
 type ViewMode = 'register' | 'view';
 
 const activityFromLoad = (
@@ -287,9 +261,7 @@ export const DailyLoadPage: React.FC = () => {
         setIs404(false);
       }
     } catch (err: unknown) {
-      const status =
-        (err as { response?: { status?: number } })?.response?.status ||
-        (axios.isAxiosError(err) ? err.response?.status : undefined);
+      const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
         setIs404(true);
         setTodayLoad(null);
@@ -472,9 +444,9 @@ export const DailyLoadPage: React.FC = () => {
   // Selected RPE metadata
   const selectedRpeMeta = regRpe !== null ? RPE_LEVELS.find((l) => l.val === regRpe) : null;
 
-  // Live session training load calculation (minutes * RPE)
+  // Vista previa estimativa antes de guardar. El valor y clasificación real de carga
+  // deportiva lo calcula y devuelve el microservicio de seguimiento (backend).
   const sessionLoad = regMinutes > 0 && regRpe !== null ? regMinutes * regRpe : 0;
-  const loadMotivation = getLoadMotivation(sessionLoad);
 
   // Check if current activity has already been saved today
   const existingActivityData = todayLoad?.[selectedActivity as keyof DailyLoadSubmitResponse] as
@@ -643,7 +615,7 @@ export const DailyLoadPage: React.FC = () => {
                       >
                         {isWidgetPinned ? (
                           <>
-                            <CheckCircle2 size={15} style={{ color: 'var(--stat-green)' }} />
+                            <CheckCircle2 size={15} className="dl-activity-saved-icon" />
                             <span>En tu Inicio</span>
                           </>
                         ) : (
@@ -929,7 +901,7 @@ export const DailyLoadPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 6. WIDGET DE IMPACTO / CARGA EN VIVO (UA - ANCHO COMPLETO CON REGLA GRADUADA) */}
+              {/* 6. VISTA PREVIA ESTIMADA DE CARGA EN VIVO (UA) */}
               {sessionLoad > 0 && (
                 <div className="dl-live-gauge" aria-label="Carga estimada de la sesión">
                   <div className="dl-live-gauge-top">
@@ -937,7 +909,6 @@ export const DailyLoadPage: React.FC = () => {
                       <Zap size={18} className="dl-live-gauge-icon" />
                       <span>Carga estimada de la sesión</span>
                     </div>
-                    <span className="dl-live-gauge-badge">{loadMotivation.badge}</span>
                   </div>
 
                   <div className="dl-live-gauge-metrics">
@@ -949,48 +920,6 @@ export const DailyLoadPage: React.FC = () => {
                       {regMinutes} min × RPE {regRpe}
                     </span>
                   </div>
-
-                  {/* Barra de progreso y regla métrica graduada (Mínimo a Máximo) */}
-                  <div className="dl-gauge-bar-wrapper">
-                    <div className="dl-live-gauge-progress" aria-hidden="true">
-                      <div
-                        className="dl-live-gauge-fill"
-                        style={{
-                          width: `${Math.min(100, Math.round((sessionLoad / 800) * 100))}%`,
-                        }}
-                      />
-                    </div>
-
-                    {/* Regla con medidas visuales (Ticks + Categorías) */}
-                    <div className="dl-gauge-ruler" aria-hidden="true">
-                      <div className="dl-ruler-tick" style={{ left: '0%' }}>
-                        <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-tag">Mínimo</span>
-                      </div>
-                      <div className="dl-ruler-subtick" style={{ left: '12.5%' }} />
-                      <div className="dl-ruler-tick" style={{ left: '25%' }}>
-                        <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-tag">Suave</span>
-                      </div>
-                      <div className="dl-ruler-subtick" style={{ left: '37.5%' }} />
-                      <div className="dl-ruler-tick" style={{ left: '50%' }}>
-                        <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-tag">Moderado</span>
-                      </div>
-                      <div className="dl-ruler-subtick" style={{ left: '62.5%' }} />
-                      <div className="dl-ruler-tick" style={{ left: '75%' }}>
-                        <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-tag">Alto</span>
-                      </div>
-                      <div className="dl-ruler-subtick" style={{ left: '87.5%' }} />
-                      <div className="dl-ruler-tick" style={{ left: '100%' }}>
-                        <span className="dl-ruler-line dl-ruler-line--main" />
-                        <span className="dl-ruler-tag">Máximo</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="dl-live-gauge-footer">{loadMotivation.text}</p>
                 </div>
               )}
 

@@ -150,7 +150,20 @@ export const pinDailyLoadWidget = (): boolean => {
         if (emptyIdx !== -1) {
           row2.cards[emptyIdx] = { ...DAILY_LOAD_CARD };
         } else {
-          row2.cards[0] = { ...DAILY_LOAD_CARD };
+          // Si no hay lugar vacío en row-2, buscar si hay algún slot vacío en el dashboard
+          let placed = false;
+          for (const row of rows) {
+            const idx = row.cards.findIndex((c) => c.type === 'empty');
+            if (idx !== -1) {
+              row.cards[idx] = { ...DAILY_LOAD_CARD };
+              placed = true;
+              break;
+            }
+          }
+          if (!placed) {
+            // No hay espacio vacío disponible; no se reemplaza ninguna tarjeta existente
+            return false;
+          }
         }
       } else {
         rows.splice(1, 0, {
