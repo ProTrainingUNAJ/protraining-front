@@ -132,7 +132,11 @@ describe('ChangePasswordSection (KAN-538)', () => {
 
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
 
-    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres y al menos un número/i)).toBeDefined();
+    expect(
+      screen.getByText(
+        /La nueva contraseña debe tener al menos 8 caracteres y al menos un número/i,
+      ),
+    ).toBeDefined();
     expect(authService.changePassword).not.toHaveBeenCalled();
 
     // Sin número / dígito
@@ -143,7 +147,11 @@ describe('ChangePasswordSection (KAN-538)', () => {
       target: { value: 'sololetras' },
     });
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
-    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres y al menos un número/i)).toBeDefined();
+    expect(
+      screen.getByText(
+        /La nueva contraseña debe tener al menos 8 caracteres y al menos un número/i,
+      ),
+    ).toBeDefined();
 
     // Igual a la actual
     fireEvent.change(screen.getByTestId('new-password-input'), {

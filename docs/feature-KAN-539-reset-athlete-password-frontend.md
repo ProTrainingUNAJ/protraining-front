@@ -3,7 +3,7 @@
 > **Rama:** `feature/KAN-539-reset-athlete-password`  
 > **Proyecto:** `protraining-front`  
 > **Pull Request:** PR #108 (Merge a `develop`)  
-> **Fecha:** 2026-11-10  
+> **Fecha:** 2026-11-10
 
 ---
 
@@ -35,16 +35,19 @@ Esta tarea resuelve la recuperación de cuentas para atletas que no recuerdan su
 ## Criterios de Aceptación Verificados en Frontend
 
 ### CA-01: Disparador y confirmación de reseteo (Vista PF)
+
 - El botón de reseteo de contraseña solo se renderiza en las opciones de atletas asignados al PF autenticado.
 - Al hacer clic, no se envía la petición de inmediato; se solicita confirmación explícita mediante un modal accesible.
 - En caso de error de red o rechazo de permisos, se despliega una notificación de error descriptiva sin alterar la interfaz.
 
 ### CA-02: Presentación y copiado de la contraseña temporal
+
 - Al recibir la respuesta exitosa del backend (`HTTP 200 OK`), se visualiza la clave temporal generada.
 - El botón de copiado utiliza la API del portapapeles (`navigator.clipboard.writeText`) con manejo de fallos y notificación de éxito.
 - El modal permite cerrarse únicamente cuando el PF confirma haber copiado o entregado la clave.
 
 ### CA-03: Intercepción y cambio obligatorio (Vista Atleta)
+
 - Las rutas protegidas del atleta verifican si la sesión requiere cambio de clave (`user.mustChangePassword === true` o claim JWT homónimo).
 - Ante este estado, cualquier intento de navegación hacia rutas de rutina, calendario o progreso es redirigido a `/force-change-password`.
 - El formulario solicita la contraseña actual (temporal) y la nueva contraseña con su confirmación, aplicando la **política unificada de contraseñas**:
@@ -86,4 +89,3 @@ npm test --prefix protraining-front -- --run
 # 2. Levantar el servidor de desarrollo del frontend:
 npm run dev --prefix protraining-front
 ```
-

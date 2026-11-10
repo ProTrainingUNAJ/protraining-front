@@ -153,7 +153,9 @@ describe('ForceChangePasswordPage (KAN-539 / F-07 a F-10)', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeDefined();
       expect(
-        screen.getByText('La nueva contraseña debe tener al menos 8 caracteres y al menos un número.'),
+        screen.getByText(
+          'La nueva contraseña debe tener al menos 8 caracteres y al menos un número.',
+        ),
       ).toBeDefined();
     });
     expect(authService.changePassword).not.toHaveBeenCalled();

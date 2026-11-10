@@ -53,9 +53,7 @@ export const ForceChangePasswordPage: React.FC = () => {
     }
 
     if (!hasMinLength || !hasDigit) {
-      setError(
-        'La nueva contraseña debe tener al menos 8 caracteres y al menos un número.',
-      );
+      setError('La nueva contraseña debe tener al menos 8 caracteres y al menos un número.');
       return;
     }
 
