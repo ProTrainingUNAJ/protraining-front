@@ -307,11 +307,7 @@ export const ChangePasswordSection: React.FC = () => {
                   gap: '0.35rem',
                 }}
               >
-                <Check
-                  size={12}
-                  style={{ opacity: hasMinLength ? 1 : 0.3 }}
-                  aria-hidden="true"
-                />
+                <Check size={12} style={{ opacity: hasMinLength ? 1 : 0.3 }} aria-hidden="true" />
                 Mínimo 8 caracteres
               </span>
               <span
@@ -323,11 +319,7 @@ export const ChangePasswordSection: React.FC = () => {
                   gap: '0.35rem',
                 }}
               >
-                <Check
-                  size={12}
-                  style={{ opacity: hasUppercase ? 1 : 0.3 }}
-                  aria-hidden="true"
-                />
+                <Check size={12} style={{ opacity: hasUppercase ? 1 : 0.3 }} aria-hidden="true" />
                 Al menos una letra mayúscula
               </span>
               <span
@@ -339,11 +331,7 @@ export const ChangePasswordSection: React.FC = () => {
                   gap: '0.35rem',
                 }}
               >
-                <Check
-                  size={12}
-                  style={{ opacity: hasSpecialChar ? 1 : 0.3 }}
-                  aria-hidden="true"
-                />
+                <Check size={12} style={{ opacity: hasSpecialChar ? 1 : 0.3 }} aria-hidden="true" />
                 Al menos un carácter especial (!@#$%...)
               </span>
             </div>

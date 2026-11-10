@@ -132,9 +132,7 @@ describe('ChangePasswordSection (KAN-538)', () => {
 
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
 
-    expect(
-      screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i),
-    ).toBeDefined();
+    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i)).toBeDefined();
     expect(authService.changePassword).not.toHaveBeenCalled();
 
     // Sin mayúscula
@@ -145,9 +143,7 @@ describe('ChangePasswordSection (KAN-538)', () => {
       target: { value: 'password123!' },
     });
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
-    expect(
-      screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i),
-    ).toBeDefined();
+    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i)).toBeDefined();
 
     // Sin carácter especial
     fireEvent.change(screen.getByTestId('new-password-input'), {
@@ -157,9 +153,7 @@ describe('ChangePasswordSection (KAN-538)', () => {
       target: { value: 'Password123' },
     });
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
-    expect(
-      screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i),
-    ).toBeDefined();
+    expect(screen.getByText(/La nueva contraseña debe tener al menos 8 caracteres/i)).toBeDefined();
 
     // Igual a la actual
     fireEvent.change(screen.getByTestId('new-password-input'), {
@@ -169,9 +163,7 @@ describe('ChangePasswordSection (KAN-538)', () => {
       target: { value: 'PasswordActual123!' },
     });
     fireEvent.click(screen.getByTestId('change-password-submit-btn'));
-    expect(
-      screen.getByText('La nueva contraseña no puede ser igual a la anterior.'),
-    ).toBeDefined();
+    expect(screen.getByText('La nueva contraseña no puede ser igual a la anterior.')).toBeDefined();
   });
 
   it('5. Contraseñas nuevas diferentes: muestra error antes de enviar', async () => {

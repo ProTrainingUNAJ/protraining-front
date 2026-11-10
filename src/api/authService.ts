@@ -1,4 +1,10 @@
-import { httpClient, saveStoredSession, clearStoredSession, getStoredSession, extractErrorMessage } from './axiosClient';
+import {
+  httpClient,
+  saveStoredSession,
+  clearStoredSession,
+  getStoredSession,
+  extractErrorMessage,
+} from './axiosClient';
 import { changePassword as changePasswordSdk } from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
 import { AuthSession, LoginRequest, LoginResponse } from '../types/auth';
