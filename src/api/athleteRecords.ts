@@ -70,16 +70,17 @@ export const athleteRecordsService = {
 
   // Declara marcas en el onboarding (KAN-415/417). El back solo crea las de
   // ejercicios sin récord vigente y devuelve las creadas y las salteadas.
-  async declareOnboarding(
-    marks: { exerciseId: string; weightOneRepMaxKg: number }[],
-  ): Promise<{ created: AthleteRecordItem[]; skipped: { exerciseId: string; exerciseName: string }[] }> {
+  async declareOnboarding(marks: { exerciseId: string; weightOneRepMaxKg: number }[]): Promise<{
+    created: AthleteRecordItem[];
+    skipped: { exerciseId: string; exerciseName: string }[];
+  }> {
     try {
       const { data } = await completeOnboarding({ body: marks, throwOnError: true });
       return {
         created: (data.created ?? []).map(mapRecord),
-        skipped: (data.skipped ?? []).map((item: any) => ({
-          exerciseId: item.exerciseId,
-          exerciseName: item.exerciseName,
+        skipped: (data.skipped ?? []).map((item) => ({
+          exerciseId: item.exerciseId ?? '',
+          exerciseName: item.exerciseName ?? '',
         })),
       };
     } catch (error) {

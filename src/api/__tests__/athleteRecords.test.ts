@@ -55,7 +55,9 @@ describe('athleteRecordsService.declareOnboarding', () => {
   });
 
   it('devuelve [] cuando el back no creó ninguna marca', async () => {
-    vi.mocked(generatedApi.completeOnboarding).mockResolvedValueOnce({ data: { created: [], skipped: [] } } as never);
+    vi.mocked(generatedApi.completeOnboarding).mockResolvedValueOnce({
+      data: { created: [], skipped: [] },
+    } as never);
 
     const result = await athleteRecordsService.declareOnboarding([
       { exerciseId: 'ex-1', weightOneRepMaxKg: 120 },
