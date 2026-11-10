@@ -237,4 +237,89 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       expect(screen.getByText('Cumplida')).toBeTruthy();
     });
   });
+
+  describe('RoutinePage · Ajuste del día por el PF (#157 · KAN-452)', () => {
+    it('DADO un atleta con rutina ajustada CUANDO entra a "Mi rutina de hoy" ENTONCES ve el cartel "Tu PF ajustó la rutina de hoy" con la nota y el sustituto con sus kilos', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-10',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        adjustedByCoach: true,
+        adjustmentNote:
+          'Se cambian los saltos por prensa de piernas por molestia en el cuádriceps (nivel 2) reportada hoy.',
+        exercises: [
+          {
+            exerciseId: 'ex-prensa',
+            name: 'Prensa de piernas',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 10,
+            weightKg: 140,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: ['glúteos'],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('routine-adjusted-banner')).toBeTruthy();
+      });
+
+      expect(screen.getByText('Tu PF ajustó la rutina de hoy')).toBeTruthy();
+      expect(
+        screen.getByText(
+          'Se cambian los saltos por prensa de piernas por molestia en el cuádriceps (nivel 2) reportada hoy.',
+        ),
+      ).toBeTruthy();
+      expect(screen.getByText('Prensa de piernas')).toBeTruthy();
+      expect(screen.getByText('140')).toBeTruthy();
+    });
+
+    it('DADO un atleta sin ajuste del PF CUANDO entra a su rutina ENTONCES no ve el cartel de ajuste del día', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-10',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-saltos',
+            name: 'Salto al cajón',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: true,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Salto al cajón')).toBeTruthy();
+      });
+
+      expect(screen.queryByTestId('routine-adjusted-banner')).toBeNull();
+      expect(screen.queryByText('Tu PF ajustó la rutina de hoy')).toBeNull();
+    });
+  });
 });
