@@ -209,4 +209,22 @@ describe('CategoryInvitationModal (KAN-400)', () => {
     fireEvent.click(overlay);
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('renderiza el código QR con el isotipo oficial de ProTraining excavado en el centro', async () => {
+    vi.mocked(categoryInvitationsService.getOrGenerate).mockResolvedValueOnce(mockInvitation);
+
+    render(<CategoryInvitationModal {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Invitar Atletas')).toBeDefined();
+    });
+
+    const qrSvg = screen.getByLabelText('Código QR para unirse a la categoría Primera División');
+    expect(qrSvg).toBeDefined();
+
+    const logoImage = qrSvg.querySelector('image');
+    expect(logoImage).not.toBeNull();
+    const href = logoImage?.getAttribute('href') || logoImage?.getAttribute('xlink:href') || '';
+    expect(href).toContain('protraining-official-isotype');
+  });
 });
