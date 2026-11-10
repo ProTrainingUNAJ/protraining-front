@@ -407,6 +407,54 @@ export type UpdateFieldTestResultRequest = {
     attempt: number;
 };
 
+/**
+ * Resumen de sesión de test de campo para el listado por categoría (KAN-427), sin tests ni resultados. El estado viaja como texto.
+ *
+ */
+export type FieldTestSessionSummary = {
+    id: string;
+    categoryId: string;
+    date: string;
+    name: string;
+    status: 'Planned' | 'InProgress' | 'Closed';
+};
+
+/**
+ * Alta de una sesión de test de campo (KAN-427): categoría del PF, fecha, nombre y pruebas del catálogo en orden de evaluación.
+ *
+ */
+export type CreateFieldTestSessionRequest = {
+    /**
+     * Categoría del PF autenticado; si no existe o es de otra → 404.
+     */
+    categoryId: string;
+    date: string;
+    name: string;
+    /**
+     * Pruebas del catálogo en el orden en que se evalúan; sin repetidos.
+     */
+    tests: Array<FieldTestSessionTestInput>;
+};
+
+/**
+ * Prueba del catálogo pedida al crear la sesión, con su orden.
+ */
+export type FieldTestSessionTestInput = {
+    /**
+     * Debe existir en el catálogo del PF; si no → 400.
+     */
+    catalogTestId: string;
+    order: number;
+};
+
+/**
+ * Avance de estado de la sesión (KAN-427): solo Planned -> InProgress -> Closed, en orden estricto. Un salto o una reapertura → 400.
+ *
+ */
+export type UpdateFieldTestSessionStatusRequest = {
+    status: 'InProgress' | 'Closed';
+};
+
 export type SubmitCheckInData = {
     body: CheckInRequest;
     path: {
@@ -1060,6 +1108,117 @@ export type GetAthleteEvolutionResponses = {
 };
 
 export type GetAthleteEvolutionResponse = GetAthleteEvolutionResponses[keyof GetAthleteEvolutionResponses];
+
+export type ListFieldTestSessionsData = {
+    body?: never;
+    path?: never;
+    query: {
+        categoryId: string;
+    };
+    url: '/api/v1/field-test-sessions';
+};
+
+export type ListFieldTestSessionsErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+};
+
+export type ListFieldTestSessionsError = ListFieldTestSessionsErrors[keyof ListFieldTestSessionsErrors];
+
+export type ListFieldTestSessionsResponses = {
+    /**
+     * Listado obtenido con éxito.
+     */
+    200: Array<FieldTestSessionSummary>;
+};
+
+export type ListFieldTestSessionsResponse = ListFieldTestSessionsResponses[keyof ListFieldTestSessionsResponses];
+
+export type CreateFieldTestSessionData = {
+    body: CreateFieldTestSessionRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/field-test-sessions';
+};
+
+export type CreateFieldTestSessionErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type CreateFieldTestSessionError = CreateFieldTestSessionErrors[keyof CreateFieldTestSessionErrors];
+
+export type CreateFieldTestSessionResponses = {
+    /**
+     * Sesión creada con éxito (estado Planned).
+     */
+    201: FieldTestSession;
+};
+
+export type CreateFieldTestSessionResponse = CreateFieldTestSessionResponses[keyof CreateFieldTestSessionResponses];
+
+export type UpdateFieldTestSessionStatusData = {
+    body: UpdateFieldTestSessionStatusRequest;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/field-test-sessions/{sessionId}/status';
+};
+
+export type UpdateFieldTestSessionStatusErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateFieldTestSessionStatusError = UpdateFieldTestSessionStatusErrors[keyof UpdateFieldTestSessionStatusErrors];
+
+export type UpdateFieldTestSessionStatusResponses = {
+    /**
+     * Estado actualizado con éxito.
+     */
+    200: FieldTestSessionSummary;
+};
+
+export type UpdateFieldTestSessionStatusResponse = UpdateFieldTestSessionStatusResponses[keyof UpdateFieldTestSessionStatusResponses];
 
 export type GetFieldTestSessionData = {
     body?: never;

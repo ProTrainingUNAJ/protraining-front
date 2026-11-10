@@ -8,6 +8,7 @@ import {
   CalendarRange,
   Dumbbell,
   Activity,
+  Timer,
   BarChart3,
   ShieldCheck,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ export const coachMenuItems: CoachMenuItem[] = [
   { label: 'Calendario', to: '/pf/calendar', icon: Calendar },
   { label: 'Ejercicios', to: '/pf/training', icon: Dumbbell },
   { label: 'Seguimiento', to: '/pf/monitoring', icon: Activity },
+  { label: 'Tests de campo', to: '/pf/field-tests', icon: Timer },
   { label: 'Confiabilidad de récords', to: '/pf/records-reliability', icon: ShieldCheck },
   { label: 'Informes', to: '/pf/reports', icon: BarChart3 },
 ];
