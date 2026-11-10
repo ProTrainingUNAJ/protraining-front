@@ -18,7 +18,7 @@ describe('ResetAthletePasswordModal (KAN-539 / F-01 a F-06)', () => {
     lastName: 'Gómez',
     fullName: 'Mateo Gómez',
     email: 'mateo.gomez@protraining.com',
-    birthDate: '2005-04-10',
+    phone: '1123456789',
     categories: [],
   };
 
