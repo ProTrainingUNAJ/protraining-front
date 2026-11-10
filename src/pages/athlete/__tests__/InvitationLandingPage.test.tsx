@@ -251,6 +251,96 @@ describe('InvitationLandingPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
   });
 
+  it('completa el registro para un menor de edad enviando los consentimientos del tutor legal', async () => {
+    vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
+      token: 'tok-menor-123',
+      expiresAt: '2026-11-20T12:00:00Z',
+      categoryId: 'cat-juvenil',
+      categoryName: 'Juveniles Sub-17',
+      invitationUrl: 'http://localhost/invite/tok-menor-123',
+    });
+
+    mockRegisterByInvitation.mockResolvedValueOnce({
+      accessToken: 'jwt-menor-123',
+      user: { id: 'u-menor-1', role: 'Atleta' },
+    });
+
+    vi.mocked(categoryInvitationsService.accept).mockResolvedValueOnce({
+      id: 'ath-menor-1',
+      firstName: 'Tomás',
+      lastName: 'González',
+      email: 'tomas@ejemplo.com',
+    } as never);
+
+    renderPage('tok-menor-123');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Nombre/i)).toBeDefined();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'Tomás' } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: 'González' } });
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'tomas@ejemplo.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Contraseña/i), { target: { value: 'Pass1234' } });
+    fireEvent.change(screen.getByLabelText(/Teléfono celular/i), {
+      target: { value: '+5491133334444' },
+    });
+    // Menor de 16 años
+    fireEvent.change(screen.getByLabelText(/Fecha de nacimiento/i), {
+      target: { value: '2010-06-15' },
+    });
+
+    // Campos del tutor
+    fireEvent.change(screen.getByLabelText(/Nombre completo del tutor/i), {
+      target: { value: 'Mariana González' },
+    });
+    fireEvent.change(screen.getByLabelText(/Correo del tutor/i), {
+      target: { value: 'mariana@ejemplo.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Teléfono del tutor/i), {
+      target: { value: '+5491155556666' },
+    });
+
+    // Autorización obligatoria de PF
+    fireEvent.click(
+      screen.getByLabelText(
+        /Autorizo la realización de entrenamientos físicos y actividades deportivas/i,
+      ),
+    );
+    // Autorización opcional de hábitos
+    fireEvent.click(
+      screen.getByLabelText(/Autorizo a recibir recomendaciones sobre hábitos saludables/i),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    await waitFor(() => {
+      expect(mockRegisterByInvitation).toHaveBeenCalledWith({
+        email: 'tomas@ejemplo.com',
+        password: 'Pass1234',
+        fullName: 'Tomás González',
+        token: 'tok-menor-123',
+      });
+    });
+
+    expect(categoryInvitationsService.accept).toHaveBeenCalledWith('tok-menor-123', {
+      firstName: 'Tomás',
+      lastName: 'González',
+      email: 'tomas@ejemplo.com',
+      phone: '+5491133334444',
+      birthDate: '2010-06-15',
+      guardianName: 'Mariana González',
+      guardianEmail: 'mariana@ejemplo.com',
+      guardianPhone: '+5491155556666',
+      allowsPhysicalTraining: true,
+      allowsHabitsRecommendations: true,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
+  });
+
   it('muestra mensaje específico si el email corresponde a un PF (403)', async () => {
     vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
       token: 'tok-123',
