@@ -66,6 +66,36 @@
   color: var(--text-main);
 }
 
+.ft-test-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ft-test-filter {
+  min-height: 44px;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ft-test-filter:active {
+  transform: scale(0.97);
+}
+
+.ft-test-filter--active {
+  border-color: var(--secondary);
+  background: var(--primary-light);
+  color: var(--text-main);
+}
+
 .ft-test-options {
   display: flex;
   flex-wrap: wrap;
