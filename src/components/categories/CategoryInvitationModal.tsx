@@ -4,7 +4,7 @@ import { X, Copy, Check, Clock, QrCode, AlertCircle, RefreshCw } from 'lucide-re
 import { categoryInvitationsService } from '../../api/categoryInvitations';
 import { CategoryInvitation } from '../../types/structure';
 import { formatInvitationExpiration } from '../../utils/argentinaDate';
-import protrainingIsotype from '../../assets/protraining-official-isotype.png';
+import protrainingIsotype from '../../assets/protraining-official-isotype-color.png';
 import '../../styles/invitationModal.css';
 
 export interface CategoryInvitationModalProps {
@@ -186,6 +186,7 @@ export function CategoryInvitationModal({
                   value={invitation.invitationUrl || ''}
                   size={240}
                   level="Q"
+                  fgColor="var(--primary, #023050)"
                   includeMargin={true}
                   aria-label={`Código QR para unirse a la categoría ${categoryName}`}
                   role="img"
@@ -199,7 +200,7 @@ export function CategoryInvitationModal({
               </div>
               <p className="invitation-qr-hint">
                 <QrCode size={15} aria-hidden="true" />
-                <span>Proyectá este código en el vestuario para enrolamiento rápido</span>
+                <span>Comparte este QR para realizar un registro rápido</span>
               </p>
             </div>
 
