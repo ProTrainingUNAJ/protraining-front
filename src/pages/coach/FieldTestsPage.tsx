@@ -12,7 +12,7 @@ import {
 import type { FieldTestSessionSummary, FitnessTest } from '../../api/generated/seguimiento';
 import type { Category } from '../../types/structure';
 
-// Estados de la sesión, en el mismo orden que el backend (KAN-427).
+// Estados de la sesión, en el mismo orden que el backend.
 const STATUS_LABEL: Record<FieldTestSessionSummary['status'], string> = {
   Planned: 'Planificada',
   InProgress: 'En curso',
@@ -26,7 +26,7 @@ const todayIso = (): string => {
 };
 
 // Pantalla de entrada al test de campo: elegir la categoría, ver (o crear) la sesión
-// y lanzar la captura de marcas. KAN-427.
+// y lanzar la captura de marcas.
 export const FieldTestsPage: React.FC = () => {
   const navigate = useNavigate();
 

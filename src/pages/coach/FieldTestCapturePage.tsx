@@ -23,7 +23,7 @@ const NUMPAD_KEYS = ['7', '8', '9', '4', '5', '6', '1', '2', '3', ',', '0', 'bac
 const fullName = (athlete: Athlete): string =>
   athlete.fullName?.trim() || `${athlete.firstName} ${athlete.lastName}`.trim();
 
-// Toma de marcas al costado de la cancha (KAN-427): un atleta por pantalla, teclado
+// Toma de marcas al costado de la cancha: un atleta por pantalla, teclado
 // numérico gigante y Enter para registrar y avanzar al siguiente. Intentos fijos en 1.
 export const FieldTestCapturePage: React.FC = () => {
   const { sessionId = '' } = useParams();

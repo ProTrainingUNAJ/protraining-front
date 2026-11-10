@@ -16,7 +16,7 @@ import {
 } from './generated/seguimiento';
 
 // ---------------------------------------------------------------------------
-// Sesiones de test de campo (KAN-427): gestión de sesiones y carga rápida de
+// Sesiones de test de campo: gestión de sesiones y carga rápida de
 // marcas en cancha. Los errores se traducen a Error con el mensaje del backend
 // (p. ej. "La sesión ya está cerrada.").
 // ---------------------------------------------------------------------------
