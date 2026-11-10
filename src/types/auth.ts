@@ -17,6 +17,13 @@ export interface UserDto {
   role: string;
   pfId: string | null;
   phoneNumber?: string | null;
+  mustChangePassword?: boolean;
+}
+
+export interface ResetAthletePasswordResponse {
+  athleteId: string;
+  temporaryPassword: string;
+  mustChangePassword: boolean;
 }
 
 export interface LoginResponse {

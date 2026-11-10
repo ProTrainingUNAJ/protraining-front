@@ -5,9 +5,17 @@ import {
   getStoredSession,
   extractErrorMessage,
 } from './axiosClient';
-import { changePassword as changePasswordSdk } from './generated/identidad';
+import {
+  changePassword as changePasswordSdk,
+  resetAthletePassword as resetAthletePasswordSdk,
+} from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
-import { AuthSession, LoginRequest, LoginResponse } from '../types/auth';
+import {
+  AuthSession,
+  LoginRequest,
+  LoginResponse,
+  ResetAthletePasswordResponse,
+} from '../types/auth';
 
 const LOGIN_ENDPOINT = '/identidad/api/v1/auth/login';
 
@@ -40,6 +48,7 @@ export const authService = {
         role: data.user.role,
         pfId: data.user.pfId ?? null,
         phoneNumber: data.user.phoneNumber ?? null,
+        mustChangePassword: data.user.mustChangePassword ?? false,
       },
     };
 
@@ -82,6 +91,7 @@ export const authService = {
         role: data.user.role,
         pfId: data.user.pfId ?? null,
         phoneNumber: data.user.phoneNumber ?? null,
+        mustChangePassword: data.user.mustChangePassword ?? false,
       },
     };
 
@@ -101,6 +111,23 @@ export const authService = {
         },
         throwOnError: true,
       });
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Resetea la contraseña de un atleta a cargo del PF autenticado (KAN-539).
+   */
+  async resetAthletePassword(athleteId: string): Promise<ResetAthletePasswordResponse> {
+    try {
+      const response = await resetAthletePasswordSdk({
+        path: {
+          athleteId,
+        },
+        throwOnError: true,
+      });
+      return response.data as ResetAthletePasswordResponse;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

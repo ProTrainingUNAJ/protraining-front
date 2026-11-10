@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -77,6 +77,19 @@ export const changePassword = <ThrowOnError extends boolean = false>(options: Op
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Resetear contraseña de un atleta (exclusivo para Preparador Físico)
+ *
+ * Permite a un Preparador Físico restablecer la contraseña de un atleta a su cargo. Genera una contraseña temporal segura, revoca todos los refresh tokens del atleta y marca la cuenta para cambio obligatorio en el próximo inicio de sesión.
+ *
+ */
+export const resetAthletePassword = <ThrowOnError extends boolean = false>(options: Options<ResetAthletePasswordData, ThrowOnError>): RequestResult<ResetAthletePasswordResponses, ResetAthletePasswordErrors, ThrowOnError> => (options.client ?? client).post<ResetAthletePasswordResponses, ResetAthletePasswordErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/athletes/{athleteId}/reset-password',
+    ...options
 });
 
 /**

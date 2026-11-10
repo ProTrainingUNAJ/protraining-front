@@ -46,6 +46,10 @@ export type User = {
      * Número de teléfono de WhatsApp normalizado (solo dígitos).
      */
     phoneNumber?: string | null;
+    /**
+     * Indica si el usuario debe cambiar obligatoriamente su contraseña antes de acceder a la aplicación.
+     */
+    mustChangePassword?: boolean;
 };
 
 /**
@@ -80,6 +84,18 @@ export type ChangePasswordRequest = {
      * Nueva contraseña (mínimo 8 caracteres, al menos una mayúscula y un carácter especial).
      */
     newPassword: string;
+};
+
+export type ResetAthletePasswordResponse = {
+    athleteId: string;
+    /**
+     * Contraseña temporal generada que debe ser entregada al atleta.
+     */
+    temporaryPassword: string;
+    /**
+     * Flag que indica que el atleta debe cambiar su contraseña al iniciar sesión.
+     */
+    mustChangePassword: boolean;
 };
 
 export type RefreshRequest = {
@@ -254,6 +270,44 @@ export type ChangePasswordResponses = {
 };
 
 export type ChangePasswordResponse = ChangePasswordResponses[keyof ChangePasswordResponses];
+
+export type ResetAthletePasswordData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta a resetear.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/auth/athletes/{athleteId}/reset-password';
+};
+
+export type ResetAthletePasswordErrors = {
+    /**
+     * No autenticado.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta no encontrado o no pertenece al Preparador Físico autenticado.
+     */
+    404: ProblemDetails;
+};
+
+export type ResetAthletePasswordError = ResetAthletePasswordErrors[keyof ResetAthletePasswordErrors];
+
+export type ResetAthletePasswordResponses = {
+    /**
+     * Contraseña temporal generada exitosamente.
+     */
+    200: ResetAthletePasswordResponse;
+};
+
+export type ResetAthletePasswordResponse2 = ResetAthletePasswordResponses[keyof ResetAthletePasswordResponses];
 
 export type UpdateWhatsAppPhoneData = {
     body: UpdatePhoneRequest;
