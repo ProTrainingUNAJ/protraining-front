@@ -1,5 +1,13 @@
 import React from 'react';
-import { ChevronRight, AlertCircle, Moon, Activity, Siren, Thermometer, Sparkles } from 'lucide-react';
+import {
+  ChevronRight,
+  AlertCircle,
+  Moon,
+  Activity,
+  Siren,
+  Thermometer,
+  Sparkles,
+} from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 

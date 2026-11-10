@@ -63,9 +63,7 @@ describe('DayAdjustmentModal (#157 · KAN-452)', () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: /Aprobar Ajuste/i }),
-      ).toBeTruthy();
+      expect(screen.getByRole('button', { name: /Aprobar Ajuste/i })).toBeTruthy();
     });
 
     expect(screen.getByText('Ajuste Sugerido del Día')).toBeTruthy();

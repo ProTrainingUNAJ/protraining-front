@@ -8,10 +8,7 @@ import {
   Loader2,
   ChevronDown,
 } from 'lucide-react';
-import {
-  dayAdjustmentsService,
-  type DayAdjustmentResponse,
-} from '../../api/dayAdjustments';
+import { dayAdjustmentsService, type DayAdjustmentResponse } from '../../api/dayAdjustments';
 
 interface DayAdjustmentModalProps {
   athleteId: string;
@@ -126,7 +123,9 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
       });
 
       setProposal(updated);
-      setActionSuccess('La propuesta de ajuste fue rechazada. La rutina del atleta se mantiene intacta.');
+      setActionSuccess(
+        'La propuesta de ajuste fue rechazada. La rutina del atleta se mantiene intacta.',
+      );
       onAdjustmentApplied?.(updated);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al rechazar el ajuste.');
@@ -485,70 +484,72 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
                     </p>
 
                     {/* Selector de sustituto disponible (habilitado solo en Pending) */}
-                    {isPending && item.availableSubstitutes && item.availableSubstitutes.length > 0 && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          marginTop: '0.2rem',
-                        }}
-                      >
-                        <label
-                          htmlFor={`substitute-select-${item.originalExerciseId}`}
+                    {isPending &&
+                      item.availableSubstitutes &&
+                      item.availableSubstitutes.length > 0 && (
+                        <div
                           style={{
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            color: 'var(--text-muted)',
-                            whiteSpace: 'nowrap',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            marginTop: '0.2rem',
                           }}
                         >
-                          Cambiar sustituto:
-                        </label>
-                        <div style={{ position: 'relative', flex: 1 }}>
-                          <select
-                            id={`substitute-select-${item.originalExerciseId}`}
-                            value={currentChosenId}
-                            onChange={(e) =>
-                              handleSubstituteChange(item.originalExerciseId, e.target.value)
-                            }
-                            disabled={submitting}
+                          <label
+                            htmlFor={`substitute-select-${item.originalExerciseId}`}
                             style={{
-                              width: '100%',
-                              padding: '0.4rem 2rem 0.4rem 0.75rem',
-                              borderRadius: '8px',
-                              border: '1px solid var(--border)',
-                              background: 'var(--bg-subtle)',
-                              color: 'var(--text-main)',
-                              fontSize: '0.82rem',
+                              fontSize: '0.78rem',
                               fontWeight: 700,
-                              appearance: 'none',
-                              cursor: 'pointer',
+                              color: 'var(--text-muted)',
+                              whiteSpace: 'nowrap',
                             }}
                           >
-                            {item.availableSubstitutes.map((sub) => (
-                              <option key={sub.exerciseId} value={sub.exerciseId}>
-                                {sub.name}
-                                {sub.exerciseId === item.suggestedSubstituteExerciseId
-                                  ? ' (Sugerido por reglas)'
-                                  : ''}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown
-                            size={14}
-                            style={{
-                              position: 'absolute',
-                              right: '0.65rem',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              pointerEvents: 'none',
-                              color: 'var(--text-muted)',
-                            }}
-                          />
+                            Cambiar sustituto:
+                          </label>
+                          <div style={{ position: 'relative', flex: 1 }}>
+                            <select
+                              id={`substitute-select-${item.originalExerciseId}`}
+                              value={currentChosenId}
+                              onChange={(e) =>
+                                handleSubstituteChange(item.originalExerciseId, e.target.value)
+                              }
+                              disabled={submitting}
+                              style={{
+                                width: '100%',
+                                padding: '0.4rem 2rem 0.4rem 0.75rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--bg-subtle)',
+                                color: 'var(--text-main)',
+                                fontSize: '0.82rem',
+                                fontWeight: 700,
+                                appearance: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {item.availableSubstitutes.map((sub) => (
+                                <option key={sub.exerciseId} value={sub.exerciseId}>
+                                  {sub.name}
+                                  {sub.exerciseId === item.suggestedSubstituteExerciseId
+                                    ? ' (Sugerido por reglas)'
+                                    : ''}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown
+                              size={14}
+                              style={{
+                                position: 'absolute',
+                                right: '0.65rem',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                pointerEvents: 'none',
+                                color: 'var(--text-muted)',
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 );
               })}

@@ -3,7 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { MonitoringPage } from '../MonitoringPage';
 import { structureService } from '../../../api/structureService';
-import { getCategoryTrafficLightToday, getCategoryAttendanceToday } from '../../../api/seguimientoService';
+import {
+  getCategoryTrafficLightToday,
+  getCategoryAttendanceToday,
+} from '../../../api/seguimientoService';
 import { dayAdjustmentsService } from '../../../api/dayAdjustments';
 
 vi.mock('../../../api/structureService', () => ({
