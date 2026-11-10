@@ -28,6 +28,7 @@ interface AuthContextType {
     deviceId?: string;
   }) => Promise<AuthSession>;
   logout: () => void;
+  applySession: (session: AuthSession) => void;
   clearMustChangePassword?: () => void;
   theme: 'light' | 'dark';
   themePreference: ThemePreference;
@@ -158,6 +159,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSession(null);
   }, []);
 
+  const applySession = useCallback((newSession: AuthSession) => {
+    setSession(newSession);
+    setSelectedRole(newSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
+  }, []);
+
   const clearMustChangePassword = useCallback(() => {
     setSession((prev) => {
       if (!prev) return null;
@@ -184,6 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSelectedRole,
         login,
         registerByInvitation,
+        applySession,
         logout,
         clearMustChangePassword,
         theme,
