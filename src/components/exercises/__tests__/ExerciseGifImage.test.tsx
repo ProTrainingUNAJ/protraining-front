@@ -18,12 +18,12 @@ const MEDIA: ExerciseMediaDto[] = [
     license: 'RepDB Free Tier',
   },
   {
-    source: 'exercisedb',
-    kind: 'gif',
-    urls: ['https://exercisedb/squat.gif'],
-    credit: 'ExerciseDB',
-    creditUrl: 'https://exercisedb.dev',
-    license: 'Uso académico, enlazado sin redistribuir',
+    source: 'everkinetic',
+    kind: 'frames',
+    urls: ['https://ek/0001-relaxation.png', 'https://ek/0001-tension.png'],
+    credit: 'Everkinetic',
+    creditUrl: 'https://github.com/everkinetic/data',
+    license: 'CC BY-SA 4.0',
   },
 ];
 
@@ -58,14 +58,24 @@ describe('ExerciseGifImage (KAN-549)', () => {
     expect(currentSrc()).toBe('https://repdb/squat-start.webp');
   });
 
-  it('si la ilustración no carga, pasa al GIF de ExerciseDB con su crédito', () => {
+  it('si la ilustración de RepDB no carga, pasa al dibujo de Everkinetic con su crédito', () => {
     render(<ExerciseGifImage images={PHOTOS} media={MEDIA} name="Sentadilla con barra" />);
 
     fireEvent.error(screen.getByRole('img'));
 
-    expect(currentSrc()).toBe('https://exercisedb/squat.gif');
+    expect(currentSrc()).toBe('https://ek/0001-relaxation.png');
+    expect(screen.getByText('Ilustración')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Everkinetic' })).toBeTruthy();
+  });
+
+  it('un GIF (animación) se muestra sin alternar fotogramas', () => {
+    const gif: ExerciseMediaDto[] = [
+      { ...MEDIA[0], kind: 'gif', urls: ['https://repdb/squat.webp'] },
+    ];
+    render(<ExerciseGifImage images={PHOTOS} media={gif} name="Sentadilla con barra" />);
+
+    expect(currentSrc()).toBe('https://repdb/squat.webp');
     expect(screen.getByText('Animación')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'ExerciseDB' })).toBeTruthy();
   });
 
   it('si no carga ninguna ilustración, muestra las fotos de siempre, sin crédito de terceros', () => {
@@ -103,7 +113,7 @@ describe('ExerciseGifImage (KAN-549)', () => {
       <ExerciseGifImage images={PHOTOS} media={MEDIA} name="Sentadilla con barra" />,
     );
     fireEvent.error(screen.getByRole('img'));
-    expect(currentSrc()).toBe('https://exercisedb/squat.gif');
+    expect(currentSrc()).toBe('https://ek/0001-relaxation.png');
 
     const otherMedia: ExerciseMediaDto[] = [
       { ...MEDIA[0], urls: ['https://repdb/bench-start.webp', 'https://repdb/bench-peak.webp'] },
