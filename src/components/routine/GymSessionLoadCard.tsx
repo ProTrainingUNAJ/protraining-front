@@ -116,7 +116,7 @@ export function GymSessionLoadCard({ athleteId }: GymSessionLoadCardProps) {
               Finalizar sesión · Carga del entrenamiento
             </h3>
             <p className="routine-session-load-subtitle">
-              Coordinación KAN-442: Registrá minutos y RPE de gimnasio en esta misma pantalla
+              Registrá minutos y RPE de gimnasio en esta misma pantalla
             </p>
           </div>
         </div>
