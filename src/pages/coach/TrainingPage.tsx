@@ -758,7 +758,8 @@ export const TrainingPage: React.FC = () => {
               )}
 
               {/* Animación GIF si está disponible */}
-              {((shownExercise.images?.length ?? 0) > 0 || (shownExercise.media?.length ?? 0) > 0) && (
+              {((shownExercise.images?.length ?? 0) > 0 ||
+                (shownExercise.media?.length ?? 0) > 0) && (
                 <div
                   style={{
                     borderRadius: 'var(--radius)',
