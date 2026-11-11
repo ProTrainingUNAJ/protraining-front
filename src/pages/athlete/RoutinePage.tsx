@@ -1319,6 +1319,7 @@ export const RoutinePage: React.FC = () => {
               {/* Fotos del ejercicio (inicio y fin del movimiento), como en la biblioteca */}
               <ExerciseGifImage
                 images={selectedExerciseForModal.images}
+                media={selectedExerciseForModal.media}
                 name={selectedExerciseForModal.name}
               />
 
