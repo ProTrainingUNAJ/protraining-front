@@ -102,11 +102,11 @@ export type UpdateExerciseVideoRequest = {
  */
 export type ExerciseMediaDto = {
     /**
-     * Fuente de la ilustración.
+     * Fuente de la ilustración (solo dibujos).
      */
-    source: 'repdb' | 'exercisedb' | 'everkinetic';
+    source: 'repdb' | 'everkinetic';
     /**
-     * `frames`: imágenes fijas (posición inicial y final) que el front alterna para mostrar el movimiento. `gif`: una animación que se mueve sola.
+     * `frames`: imágenes fijas (posición inicial y final) que el front alterna para mostrar el movimiento. `gif`: una animación que se mueve sola (reservado para animaciones futuras; hoy no se usa).
      *
      */
     kind: 'frames' | 'gif';
