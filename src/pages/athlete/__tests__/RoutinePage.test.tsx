@@ -322,4 +322,108 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       expect(screen.queryByText('Tu PF ajustó la rutina de hoy')).toBeNull();
     });
   });
+
+  describe('RoutinePage · Persistencia de tiempo real en backend (KAN-457)', () => {
+    it('DADO un atleta con pasadas ya registradas en el backend CUANDO entra a "Mi rutina" ENTONCES lee los tiempos del backend aunque no existan en localStorage', async () => {
+      localStorage.clear();
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-11',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100m',
+            name: 'Pasadas 100m',
+            muscleGroup: 'Piernas',
+            sets: 2,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+            targetTimeSeconds: 15.6,
+            exerciseType: 'Distance',
+            performedSets: [
+              {
+                setNumber: 1,
+                timeSeconds: 15.2,
+              },
+            ],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas 100m')).toBeTruthy();
+      });
+
+      // La pasada 1 debe mostrar el tiempo hidratado del back (15.2) y el estado Cumplida
+      const input = screen.getByLabelText('Tiempo de pasada 1') as HTMLInputElement;
+      expect(input.value).toBe('15.2');
+      expect(screen.getByText(/Cumplida/i)).toBeTruthy();
+    });
+
+    it('DADO un ejercicio cronometrado CUANDO el atleta ingresa un tiempo ENTONCES llama a recordSets en el backend con exerciseId, setNumber y timeSeconds', async () => {
+      localStorage.clear();
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-11',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100m',
+            name: 'Pasadas 100m',
+            muscleGroup: 'Piernas',
+            sets: 2,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+            targetTimeSeconds: 15.6,
+            exerciseType: 'Distance',
+            performedSets: [],
+          },
+        ],
+      });
+
+      vi.mocked(todayRoutineService.recordSets).mockResolvedValue({
+        recordedSetsCount: 1,
+        proposalsGeneratedCount: 0,
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas 100m')).toBeTruthy();
+      });
+
+      const input = screen.getByLabelText('Tiempo de pasada 1');
+      fireEvent.change(input, { target: { value: '15.2' } });
+
+      await waitFor(() => {
+        expect(todayRoutineService.recordSets).toHaveBeenCalledWith([
+          {
+            exerciseId: 'ex-pasadas-100m',
+            setNumber: 1,
+            timeSeconds: 15.2,
+          },
+        ]);
+      });
+    });
+  });
 });

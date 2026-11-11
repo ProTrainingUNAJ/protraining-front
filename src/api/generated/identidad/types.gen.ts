@@ -13,6 +13,17 @@ export type LoginRequest = {
     deviceId: string;
 };
 
+export type GoogleLoginRequest = {
+    /**
+     * ID Token criptográfico emitido por Google Identity Services.
+     */
+    idToken: string;
+    /**
+     * Identificador del dispositivo cliente para vinculación de sesión y emisión de refresh token.
+     */
+    deviceId?: string;
+};
+
 export type RegisterByInvitationRequest = {
     email: string;
     password: string;
@@ -131,6 +142,30 @@ export type PfContact = {
     phoneNumber: string;
 };
 
+export type ForgotPasswordRequest = {
+    email: string;
+};
+
+export type ForgotPasswordResponse = {
+    message: string;
+};
+
+export type ResetPasswordRequest = {
+    email: string;
+    /**
+     * Token de recuperación generado por ASP.NET Core Identity.
+     */
+    token: string;
+    /**
+     * Nueva contraseña (mínimo 8 caracteres y al menos un número).
+     */
+    newPassword: string;
+};
+
+export type ResetPasswordResponse = {
+    message: string;
+};
+
 export type HealthStatus = {
     status: string;
     database?: string;
@@ -175,6 +210,35 @@ export type LoginResponses = {
 };
 
 export type LoginResponse2 = LoginResponses[keyof LoginResponses];
+
+export type GoogleLoginData = {
+    body: GoogleLoginRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google';
+};
+
+export type GoogleLoginErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de Google inválido, expirado o cuenta no autorizada.
+     */
+    401: ProblemDetails;
+};
+
+export type GoogleLoginError = GoogleLoginErrors[keyof GoogleLoginErrors];
+
+export type GoogleLoginResponses = {
+    /**
+     * Autenticación exitosa. Devuelve el token JWT y los datos del usuario.
+     */
+    200: LoginResponse;
+};
+
+export type GoogleLoginResponse = GoogleLoginResponses[keyof GoogleLoginResponses];
 
 export type RefreshTokenData = {
     body: RefreshRequest;
@@ -241,6 +305,56 @@ export type RegisterByInvitationResponses = {
 };
 
 export type RegisterByInvitationResponse = RegisterByInvitationResponses[keyof RegisterByInvitationResponses];
+
+export type ForgotPasswordData = {
+    body: ForgotPasswordRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/forgot-password';
+};
+
+export type ForgotPasswordErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+};
+
+export type ForgotPasswordError = ForgotPasswordErrors[keyof ForgotPasswordErrors];
+
+export type ForgotPasswordResponses = {
+    /**
+     * Solicitud aceptada. Mensaje genérico de confirmación.
+     */
+    202: ForgotPasswordResponse;
+};
+
+export type ForgotPasswordResponse2 = ForgotPasswordResponses[keyof ForgotPasswordResponses];
+
+export type ResetPasswordData = {
+    body: ResetPasswordRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/reset-password';
+};
+
+export type ResetPasswordErrors = {
+    /**
+     * Token inválido, vencido o contraseña que no cumple la política.
+     */
+    400: ProblemDetails;
+};
+
+export type ResetPasswordError = ResetPasswordErrors[keyof ResetPasswordErrors];
+
+export type ResetPasswordResponses = {
+    /**
+     * Contraseña restablecida exitosamente.
+     */
+    200: ResetPasswordResponse;
+};
+
+export type ResetPasswordResponse2 = ResetPasswordResponses[keyof ResetPasswordResponses];
 
 export type ChangePasswordData = {
     body: ChangePasswordRequest;
