@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Info, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../api/authService';
 import { extractErrorMessage } from '../../api/axiosClient';
 import { ThemeToggle } from './ThemeToggle';
 import { ProTrainingLogo } from '../brand/ProTrainingLogo';
@@ -29,9 +30,10 @@ const GoogleIcon: React.FC = () => (
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   // Bandera para Google Login (KAN-551). Apagada por defecto; se activa con VITE_GOOGLE_LOGIN_ENABLED=true
   const isGoogleLoginEnabled = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === 'true';
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -89,13 +91,74 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const handleGoogleClick = () => {
-    setInfoModal({
-      isOpen: true,
-      title: 'Iniciar sesión con Google',
-      content:
-        'La autenticación con Google Workspace no se encuentra disponible. Por favor, accedé con tu correo y contraseña registrados.',
-    });
+  useEffect(() => {
+    if (!isGoogleLoginEnabled || !googleClientId) return;
+
+    if (!document.getElementById('google-gsi-client')) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi-client';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, [isGoogleLoginEnabled, googleClientId]);
+
+  const handleGoogleClick = async () => {
+    setErrorMessage('');
+    if (!isGoogleLoginEnabled) return;
+
+    if (!googleClientId) {
+      setErrorMessage('La integración con Google no cuenta con Client ID configurado.');
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const google = (window as unknown as { google?: any }).google;
+    if (!google?.accounts?.id) {
+      setErrorMessage(
+        'El servicio de autenticación de Google no está disponible en este momento. Intentá nuevamente.',
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response: { credential?: string }) => {
+          if (!response?.credential) {
+            setLoading(false);
+            setErrorMessage('No se recibió la credencial de autenticación de Google.');
+            return;
+          }
+
+          try {
+            const session = await (loginWithGoogle
+              ? loginWithGoogle(response.credential)
+              : authService.loginWithGoogle(response.credential));
+            navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
+          } catch (err: unknown) {
+            const msg = extractErrorMessage(err);
+            setErrorMessage(msg);
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      google.accounts.id.prompt((notification: any) => {
+        if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
+          setLoading(false);
+        }
+      });
+    } catch (err: unknown) {
+      setLoading(false);
+      const msg = extractErrorMessage(err);
+      setErrorMessage(msg);
+    }
   };
   const handleForgotPasswordClick = () => {
     navigate('/forgot-password');
