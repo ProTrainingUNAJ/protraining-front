@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -34,6 +34,21 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
 });
 
 /**
+ * Iniciar sesión o vincular cuenta con Google (KAN-541)
+ *
+ * Autentica mediante un ID Token verificado de Google para usuarios existentes en ProTraining. No realiza auto-registro.
+ */
+export const googleLogin = <ThrowOnError extends boolean = false>(options: Options<GoogleLoginData, ThrowOnError>): RequestResult<GoogleLoginResponses, GoogleLoginErrors, ThrowOnError> => (options.client ?? client).post<GoogleLoginResponses, GoogleLoginErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/google',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Renovar token de acceso
  *
  * Renueva el access token rotando el refresh token para el dispositivo indicado.
@@ -56,6 +71,38 @@ export const refreshToken = <ThrowOnError extends boolean = false>(options: Opti
 export const registerByInvitation = <ThrowOnError extends boolean = false>(options: Options<RegisterByInvitationData, ThrowOnError>): RequestResult<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError> => (options.client ?? client).post<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/auth/register-by-invitation',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Solicitar recuperación de contraseña por correo electrónico
+ *
+ * Envía un correo con un enlace y token de recuperación si el usuario existe. Para prevenir la enumeración de cuentas, siempre devuelve HTTP 202 Accepted.
+ *
+ */
+export const forgotPassword = <ThrowOnError extends boolean = false>(options: Options<ForgotPasswordData, ThrowOnError>): RequestResult<ForgotPasswordResponses, ForgotPasswordErrors, ThrowOnError> => (options.client ?? client).post<ForgotPasswordResponses, ForgotPasswordErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/forgot-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Restablecer contraseña mediante token de recuperación
+ *
+ * Restablece la contraseña de la cuenta validando el token de recuperación recibido por correo. Aplica la política unificada de contraseñas, revoca las sesiones activas anteriores e invalida los JWT emitidos.
+ *
+ */
+export const resetPassword = <ThrowOnError extends boolean = false>(options: Options<ResetPasswordData, ThrowOnError>): RequestResult<ResetPasswordResponses, ResetPasswordErrors, ThrowOnError> => (options.client ?? client).post<ResetPasswordResponses, ResetPasswordErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/reset-password',
     ...options,
     headers: {
         'Content-Type': 'application/json',
