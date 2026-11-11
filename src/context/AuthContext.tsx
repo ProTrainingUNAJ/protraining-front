@@ -20,6 +20,7 @@ interface AuthContextType {
   selectedRole: RoleType;
   setSelectedRole: (role: RoleType) => void;
   login: (credentials: LoginRequest) => Promise<AuthSession>;
+  loginWithGoogle?: (idToken: string) => Promise<AuthSession>;
   registerByInvitation: (request: {
     email: string;
     password: string;
@@ -138,6 +139,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newSession;
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken: string): Promise<AuthSession> => {
+    const newSession = await authService.loginWithGoogle(idToken);
+    setSession(newSession);
+    setSelectedRole(newSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
+    return newSession;
+  }, []);
+
   const registerByInvitation = useCallback(
     async (request: {
       email: string;
@@ -189,6 +197,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedRole,
         setSelectedRole,
         login,
+        loginWithGoogle,
         registerByInvitation,
         applySession,
         logout,

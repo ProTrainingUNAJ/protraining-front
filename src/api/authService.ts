@@ -58,6 +58,39 @@ export const authService = {
   },
 
   /**
+   * Executes Google login against Identidad microservice through Gateway (KAN-541)
+   */
+  async loginWithGoogle(idToken: string): Promise<AuthSession> {
+    const deviceId = getDeviceId();
+    const response = await httpClient.post<LoginResponse>('/identidad/api/v1/auth/google', {
+      idToken,
+      deviceId,
+    });
+
+    const data = response.data;
+    const expiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
+
+    const session: AuthSession = {
+      accessToken: data.accessToken,
+      tokenType: data.tokenType || 'Bearer',
+      expiresAt,
+      refreshToken: data.refreshToken,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.fullName,
+        role: data.user.role,
+        pfId: data.user.pfId ?? null,
+        phoneNumber: data.user.phoneNumber ?? null,
+        mustChangePassword: data.user.mustChangePassword ?? false,
+      },
+    };
+
+    saveStoredSession(session);
+    return session;
+  },
+
+  /**
    * Registers a new athlete account using a category invitation token (KAN-398 / KAN-397).
    */
   async registerByInvitation(request: {
