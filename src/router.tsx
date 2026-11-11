@@ -27,6 +27,8 @@ import { InvitationLandingPage } from './pages/athlete/InvitationLandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { ForceChangePasswordPage } from './pages/ForceChangePasswordPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { useAuth } from './context/AuthContext';
 import { RequireAuth } from './components/auth/RequireAuth';
 
@@ -66,6 +68,8 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'login/atleta', element: <LoginPage /> },
       { path: 'login/pf', element: <LoginPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: 'invite/:token', element: <InvitationLandingPage /> },
       { path: 'force-change-password', element: <ForceChangePasswordPage /> },
       {

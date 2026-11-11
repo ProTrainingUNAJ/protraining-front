@@ -98,12 +98,7 @@ export const LoginForm: React.FC = () => {
     });
   };
   const handleForgotPasswordClick = () => {
-    setInfoModal({
-      isOpen: true,
-      title: 'Recuperación de Contraseña',
-      content:
-        'El restablecimiento de contraseña no se encuentra habilitado actualmente. Para recuperar tu acceso de forma segura, comunicate con el soporte de ProTraining.',
-    });
+    navigate('/forgot-password');
   };
 
   const handleRegisterClick = () => {
@@ -251,16 +246,15 @@ export const LoginForm: React.FC = () => {
           </button>
         )}
 
-        {/* Accesos Secundarios: deshabilitados con (Próximamente) hasta que tengan backend (KAN-551) */}
+        {/* Accesos Secundarios: Recuperación de contraseña habilitada (#KAN-540) */}
         <div className="auth-secondary-actions">
           <button
             type="button"
             onClick={handleForgotPasswordClick}
-            disabled
             className="auth-secondary-btn"
-            title="Próximamente disponible"
+            id="btn-forgot-password"
           >
-            ¿Olvidaste tu contraseña? (Próximamente)
+            Olvidé mi contraseña
           </button>
 
           <span className="auth-secondary-divider" aria-hidden="true">
