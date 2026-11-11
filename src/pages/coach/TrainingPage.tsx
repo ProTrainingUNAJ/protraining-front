@@ -7,7 +7,7 @@ import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPla
 import { ExerciseTypeBadge } from '../../components/exercises/ExerciseTypeBadge';
 import { exercisesService } from '../../api/exercises';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
-import { listExercises, Exercise } from '../../api/generated/entrenamiento';
+import { listExercises, Exercise, type ExerciseMediaDto } from '../../api/generated/entrenamiento';
 import { extractYouTubeId } from '../../utils/youtube';
 import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
@@ -21,6 +21,8 @@ interface ExerciseItem {
   videoSource?: 'Pf' | 'Catalog' | null;
   equipment: string;
   images?: string[];
+  // Ilustraciones de terceros en orden de preferencia (KAN-549).
+  media?: ExerciseMediaDto[];
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
   // Variantes (KAN-554): la etiqueta si es una variante, y las variantes si es un ejercicio base.
@@ -72,6 +74,7 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
       (item.videoUrl ? 'Catalog' : null),
     equipment: item.equipment || 'Sin equipamiento',
     images,
+    media: item.media ?? [],
     primaryMuscles:
       item.primaryMuscles && item.primaryMuscles.length > 0 ? item.primaryMuscles : [],
     secondaryMuscles: item.secondaryMuscles ?? [],
@@ -521,7 +524,7 @@ export const TrainingPage: React.FC = () => {
                   }}
                 >
                   <div>
-                    <ExerciseGifImage images={ex.images} name={ex.name} />
+                    <ExerciseGifImage images={ex.images} media={ex.media} name={ex.name} />
 
                     <div className="exercise-card-header-meta">
                       <div className="exercise-badges-group">
@@ -755,7 +758,8 @@ export const TrainingPage: React.FC = () => {
               )}
 
               {/* Animación GIF si está disponible */}
-              {shownExercise.images && shownExercise.images.length > 0 && (
+              {((shownExercise.images?.length ?? 0) > 0 ||
+                (shownExercise.media?.length ?? 0) > 0) && (
                 <div
                   style={{
                     borderRadius: 'var(--radius)',
@@ -763,7 +767,11 @@ export const TrainingPage: React.FC = () => {
                     maxHeight: '220px',
                   }}
                 >
-                  <ExerciseGifImage images={shownExercise.images} name={shownExercise.name} />
+                  <ExerciseGifImage
+                    images={shownExercise.images}
+                    media={shownExercise.media}
+                    name={shownExercise.name}
+                  />
                 </div>
               )}
 

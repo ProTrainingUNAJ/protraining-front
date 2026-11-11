@@ -1106,6 +1106,33 @@
   object-fit: contain;
 }
 
+/* KAN-549: las ilustraciones y los GIF tienen fondo claro propio; el crédito va debajo */
+.exercise-gif-wrapper {
+  margin-bottom: 0.75rem;
+}
+
+.exercise-gif-wrapper .exercise-gif-container {
+  margin-bottom: 0;
+}
+
+.exercise-gif-container--frames,
+.exercise-gif-container--gif {
+  background: var(--white);
+}
+
+.exercise-gif-credit {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: right;
+  text-decoration: none;
+}
+
+.exercise-gif-credit:hover {
+  text-decoration: underline;
+}
+
 .exercise-gif-badge {
   position: absolute;
   top: 8px;

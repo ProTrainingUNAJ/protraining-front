@@ -4,6 +4,11 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8083' | 'http://entrenamiento:8080' | (string & {});
 };
 
+export type ScheduledSessionTargetsResponse = {
+    athleteIds: Array<string>;
+    categoryIds: Array<string>;
+};
+
 export type ImportRecordPreviewRow = {
     rowNumber?: number;
     athleteName?: string;
@@ -92,6 +97,37 @@ export type UpdateExerciseVideoRequest = {
     videoUrl?: string | null;
 };
 
+/**
+ * Una ilustración o animación de un ejercicio del catálogo, con su fuente y su crédito (KAN-549).
+ */
+export type ExerciseMediaDto = {
+    /**
+     * Fuente de la ilustración.
+     */
+    source: 'repdb' | 'exercisedb' | 'everkinetic';
+    /**
+     * `frames`: imágenes fijas (posición inicial y final) que el front alterna para mostrar el movimiento. `gif`: una animación que se mueve sola.
+     *
+     */
+    kind: 'frames' | 'gif';
+    /**
+     * Las imágenes en orden (en `gif`, una sola).
+     */
+    urls: Array<string>;
+    /**
+     * Texto del crédito que hay que mostrar.
+     */
+    credit: string;
+    /**
+     * Link del crédito.
+     */
+    creditUrl: string;
+    /**
+     * Licencia de la fuente.
+     */
+    license: string;
+};
+
 export type Exercise = {
     id: string;
     name: string;
@@ -125,6 +161,28 @@ export type Exercise = {
      * URLs de las 2 fotografías técnicas del ejercicio (postura inicial y postura final).
      */
     images?: Array<string>;
+    /**
+     * Atribución de fuente y licencia de las imágenes técnicas (para ejercicios del catálogo global). Es null en ejercicios propios del preparador físico.
+     */
+    imageSource?: {
+        /**
+         * Nombre del dataset o fuente de origen.
+         */
+        name?: string;
+        /**
+         * URL del repositorio o fuente original.
+         */
+        url?: string;
+        /**
+         * Tipo de licencia de las imágenes.
+         */
+        license?: string;
+    } | null;
+    /**
+     * Ilustraciones o animaciones de terceros, en orden de preferencia (KAN-549). El front muestra la primera que cargue y, si ninguna carga, las fotos de `images`. Vacía en los ejercicios propios del preparador físico y en los del catálogo que no tienen par en ninguna fuente.
+     *
+     */
+    media?: Array<ExerciseMediaDto>;
     /**
      * Origen del ejercicio (Catálogo inicial, cargado por el PF o propuesto por la IA).
      */
@@ -322,6 +380,10 @@ export type TodayRoutineExercise = {
      * Fotos del ejercicio (inicio y fin del movimiento), las mismas que la biblioteca.
      */
     images?: Array<string>;
+    /**
+     * Ilustraciones o animaciones de terceros, en orden de preferencia, las mismas que la biblioteca (KAN-549).
+     */
+    media?: Array<ExerciseMediaDto>;
     /**
      * Grupos musculares principales involucrados en la ejecución.
      */
@@ -1865,9 +1927,9 @@ export type GetScheduledAthletesError = GetScheduledAthletesErrors[keyof GetSche
 
 export type GetScheduledAthletesResponses = {
     /**
-     * Lista de IDs de atletas con sesión programada.
+     * Atletas y categorías con sesión programada para la fecha.
      */
-    200: Array<string>;
+    200: ScheduledSessionTargetsResponse;
 };
 
 export type GetScheduledAthletesResponse = GetScheduledAthletesResponses[keyof GetScheduledAthletesResponses];
