@@ -144,6 +144,49 @@ export const authService = {
   },
 
   /**
+   * Solicita un enlace de recuperación de contraseña por correo electrónico (#KAN-540).
+   */
+  async forgotPassword(email: string): Promise<string> {
+    try {
+      const response = await httpClient.post<{ message: string }>(
+        '/identidad/api/v1/auth/forgot-password',
+        {
+          email: email.trim(),
+        },
+      );
+      return (
+        response.data?.message ||
+        'Si el correo está registrado, recibirás un enlace para recuperar tu contraseña.'
+      );
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Restablece la contraseña de una cuenta utilizando el token recibido por correo (#KAN-540).
+   */
+  async resetPassword(payload: {
+    email: string;
+    token: string;
+    newPassword: string;
+  }): Promise<string> {
+    try {
+      const response = await httpClient.post<{ message: string }>(
+        '/identidad/api/v1/auth/reset-password',
+        {
+          email: payload.email.trim(),
+          token: payload.token,
+          newPassword: payload.newPassword,
+        },
+      );
+      return response.data?.message || 'Contraseña actualizada exitosamente.';
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
    * Logs out current user and clears session storage
    */
   logout() {

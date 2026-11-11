@@ -1,7 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LoginForm } from '../LoginForm';
+
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 // Mock de useAuth para evitar montar AuthProvider y su matchMedia
 vi.mock('../../../context/AuthContext', () => ({
@@ -43,7 +53,7 @@ describe('LoginForm - Google Login Flag (KAN-551)', () => {
     expect(googleBtn).toBeDefined();
   });
 
-  it('muestra los accesos secundarios deshabilitados con (Próximamente)', () => {
+  it('habilita el botón Olvidé mi contraseña (#KAN-540) y navega a /forgot-password al pulsar', () => {
     render(
       <MemoryRouter>
         <LoginForm />
@@ -51,14 +61,17 @@ describe('LoginForm - Google Login Flag (KAN-551)', () => {
     );
 
     const forgotBtn = screen.getByRole('button', {
-      name: /¿olvidaste tu contraseña\? \(próximamente\)/i,
+      name: /olvidé mi contraseña/i,
     });
     const registerBtn = screen.getByRole('button', {
       name: /registrarse \(próximamente\)/i,
     });
 
     expect(forgotBtn).toBeDefined();
-    expect(forgotBtn.hasAttribute('disabled')).toBe(true);
+    expect(forgotBtn.hasAttribute('disabled')).toBe(false);
+
+    fireEvent.click(forgotBtn);
+    expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
 
     expect(registerBtn).toBeDefined();
     expect(registerBtn.hasAttribute('disabled')).toBe(true);
