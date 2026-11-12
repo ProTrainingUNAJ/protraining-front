@@ -166,7 +166,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
               }}
             >
               <Zap size={16} style={{ color: currentFatigue.color }} />
@@ -180,7 +180,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 borderRadius: '9999px',
                 background: `${currentFatigue.color}15`,
                 color: currentFatigue.color,
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
               }}
             >
               {currentFatigue.value} · {currentFatigue.label}
@@ -230,7 +230,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
               fontSize: '0.8rem',
               color: 'var(--text-muted)',
               textAlign: 'center',
-              fontFamily: 'Montserrat, sans-serif',
+              fontFamily: 'var(--font-base)',
             }}
           >
             {currentFatigue.desc}
@@ -258,7 +258,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
               }}
             >
               <ShieldAlert size={16} style={{ color: currentSoreness.color }} />
@@ -272,7 +272,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 borderRadius: '9999px',
                 background: `${currentSoreness.color}15`,
                 color: currentSoreness.color,
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
               }}
             >
               {currentSoreness.value} · {currentSoreness.label}
@@ -326,7 +326,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
               fontSize: '0.8rem',
               color: 'var(--text-muted)',
               textAlign: 'center',
-              fontFamily: 'Montserrat, sans-serif',
+              fontFamily: 'var(--font-base)',
             }}
           >
             {currentSoreness.desc}

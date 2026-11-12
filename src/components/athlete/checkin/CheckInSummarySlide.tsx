@@ -300,26 +300,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
         onSubmit={onSubmit}
         style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
       >
-        <div
-          className="pixel-slide-card"
-          style={{
-            width: '100%',
-            maxWidth: '820px',
-            height: 'auto',
-            minHeight: 'auto',
-            background: 'var(--checkin-card-bg)',
-            borderRadius: '28px',
-            border: '1.5px solid var(--checkin-card-border)',
-            boxShadow: 'var(--checkin-card-shadow)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            boxSizing: 'border-box',
-            position: 'relative',
-            overflow: 'visible',
-            transition: 'background-color 0.25s ease, border-color 0.25s ease',
-          }}
-        >
+        <div className="pixel-slide-card">
           {/* ── Cabecera Superior con Botón Circular Atrás a la altura del Título ── */}
           <div
             style={{
@@ -719,7 +700,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                 marginBottom: '1.25rem',
                 textAlign: 'left',
                 boxSizing: 'border-box',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
               }}
             >
               <div style={{ marginBottom: '0.45rem' }}>
@@ -795,7 +776,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
               }}
             >
               <MessageSquare size={16} style={{ color: 'var(--checkin-title-color)' }} />
@@ -814,7 +795,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                 border: '1.5px solid var(--checkin-input-border)',
                 background: 'var(--checkin-input-bg)',
                 fontSize: '0.88rem',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'var(--font-base)',
                 color: 'var(--checkin-input-color)',
                 boxSizing: 'border-box',
                 resize: 'none',

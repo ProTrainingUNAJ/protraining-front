@@ -35,7 +35,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
       >
         <h1
           style={{
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: 'var(--font-base)',
             fontSize: '3.8rem',
             fontWeight: 900,
             color: 'var(--checkin-title-color)',
@@ -49,7 +49,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
 
         <span
           style={{
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: 'var(--font-base)',
             fontSize: '2.4rem',
             fontWeight: 300,
             color: 'var(--checkin-title-color)',
@@ -72,7 +72,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
             padding: '0.8rem 2.8rem',
             fontSize: '1.05rem',
             fontWeight: 700,
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: 'var(--font-base)',
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
@@ -97,7 +97,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
       {/* ── Pie de tarjeta inferior ── */}
       <p
         style={{
-          fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+          fontFamily: 'var(--font-base)',
           fontSize: '0.96rem',
           color: 'var(--checkin-subtitle-color)',
           textAlign: 'center',

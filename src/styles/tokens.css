@@ -306,7 +306,7 @@
   --status-success-bg: var(--success-bg-strong);
   --status-success-text: var(--success-text);
 
-  --font-base: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-base: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system, sans-serif;
 
   /* Muscle map hit transparent token */
   --muscle-hit-transparent: rgb(255 255 255 / 0.001);
