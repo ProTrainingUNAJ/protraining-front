@@ -60,9 +60,9 @@ export const METRIC_PRESENTATION: Record<MetricKey, MetricPresentation> = {
     lowerIsBetter: true,
   },
   yoyo: {
-    shortName: 'Test Yo-Yo',
+    shortName: 'Resistencia',
     category: 'Resistencia',
-    description: 'Distancia recorrida en el test de resistencia intermitente.',
+    description: 'Distancia recorrida en los tests de resistencia (Yo-Yo intermitente o Cooper).',
     lowerIsBetter: false,
   },
 };
@@ -132,10 +132,13 @@ export function buildEvolutionMetrics(
   const findTest = (pattern: RegExp) =>
     tests.find((t) => matches(`${t.testName} ${t.motorCapacity}`, pattern));
 
-  const yoyo = findTest(/yo-?yo|intermitente|resistencia/);
+  // La capacidad llega del catálogo de Seguimiento en inglés (Velocity, Endurance…); el nombre, en español.
+  // Resistencia: solo tests que se miden en distancia (Yo-Yo, Cooper), para que "más" siempre sea mejora.
+  const yoyo = findTest(/yo-?yo|intermitente|cooper/);
   const cmj = findTest(/salto|cmj|jump/);
   const sprint = tests.find(
-    (t) => t !== yoyo && matches(`${t.testName} ${t.motorCapacity}`, /sprint|velocidad/),
+    (t) =>
+      t !== yoyo && matches(`${t.testName} ${t.motorCapacity}`, /sprint|velocidad|velocity|speed/),
   );
 
   if (cmj) add(buildMetric('cmj', cmj.testName, cmj.unit, cmj.points));
