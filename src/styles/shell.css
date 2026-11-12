@@ -533,7 +533,7 @@
 }
 
 .shell-calendar-cell.is-today {
-  background-color: var(--secondary);
+  background-color: var(--brand-blue);
   color: var(--on-primary);
   font-weight: 800;
 }
@@ -552,8 +552,10 @@
   color: var(--primary);
 }
 
+/* Hoy siempre se ve relleno, aunque el día sea tocable (si no, el número blanco queda sobre fondo blanco) */
+.shell-calendar-cell.is-clickable.is-today,
 .shell-calendar-cell.is-clickable.is-today:hover {
-  background-color: var(--secondary);
+  background-color: var(--brand-blue);
   color: var(--on-primary);
 }
 

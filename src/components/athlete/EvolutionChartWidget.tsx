@@ -72,6 +72,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
   }
 
   const deltaColor = metric.isPositiveImprovement ? 'var(--success-text)' : 'var(--danger-text)';
+  const hasChange = metric.data.length > 1;
 
   // Compact dashboard card render (colSpan: 1)
   if (isCompact) {
@@ -141,19 +142,21 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span
-              style={{
-                fontSize: '0.68rem',
-                fontWeight: 800,
-                color: deltaColor,
-                background: `color-mix(in srgb, ${deltaColor} 10%, transparent)`,
-                padding: '0.15rem 0.45rem',
-                borderRadius: '6px',
-                letterSpacing: '0.02em',
-              }}
-            >
-              {metric.deltaPercent}
-            </span>
+            {hasChange && (
+              <span
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  color: deltaColor,
+                  background: `color-mix(in srgb, ${deltaColor} 10%, transparent)`,
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {metric.deltaPercent}
+              </span>
+            )}
 
             {onRemove && (
               <button
@@ -362,16 +365,18 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700 }}>
               {metric.unit}
             </span>
-            <span
-              style={{
-                marginLeft: '0.35rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                color: deltaColor,
-              }}
-            >
-              ({metric.deltaPercent})
-            </span>
+            {hasChange && (
+              <span
+                style={{
+                  marginLeft: '0.35rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: deltaColor,
+                }}
+              >
+                ({metric.deltaPercent})
+              </span>
+            )}
           </div>
 
           {onExportClick && (
@@ -526,9 +531,15 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
             Cambio en el período
           </span>
-          <strong style={{ display: 'block', fontSize: '0.95rem', color: deltaColor }}>
-            {metric.deltaAbsolute} ({metric.deltaPercent})
-          </strong>
+          {hasChange ? (
+            <strong style={{ display: 'block', fontSize: '0.95rem', color: deltaColor }}>
+              {metric.deltaAbsolute} ({metric.deltaPercent})
+            </strong>
+          ) : (
+            <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-muted)' }}>
+              Una sola medición
+            </strong>
+          )}
         </div>
       </div>
     </div>

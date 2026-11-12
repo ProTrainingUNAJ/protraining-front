@@ -64,11 +64,10 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
           setError(null);
         }
       })
-      .catch((err: unknown) => {
+      .catch(() => {
+        // El detalle del back puede ser técnico (permisos entre servicios): al atleta se le muestra un mensaje propio
         if (isMounted) {
-          const msg =
-            err instanceof Error ? err.message : 'No se pudo cargar la comparación grupal.';
-          setError(msg);
+          setError('No pudimos cargar la comparación con tu grupo. Probá de nuevo más tarde.');
         }
       })
       .finally(() => {
