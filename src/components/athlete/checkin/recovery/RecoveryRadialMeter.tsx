@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   MetricKey,
   METRIC_CONFIGS,
@@ -8,7 +8,10 @@ import {
   CY,
   BADGE_X,
   STROKE_WIDTH,
+  ACTIVE_STROKE_WIDTH,
+  HIT_TEST_STROKE_WIDTH,
   describeArc,
+  getMetricFromPoint,
 } from './recovery.types';
 import {
   getSleepColor,
@@ -38,6 +41,87 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
   onSelectMetric,
   getArcEndAngle,
 }) => {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const isPointerDownRef = useRef<boolean>(false);
+
+  // ── Subtle haptic vibration for mobile tactile confirmation ──
+  const triggerHaptic = () => {
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        'vibrate' in navigator &&
+        typeof navigator.vibrate === 'function'
+      ) {
+        navigator.vibrate(10);
+      }
+    } catch {
+      // Ignore in environments where vibration is unsupported or blocked
+    }
+  };
+
+  const handleSelectWithFeedback = (key: MetricKey) => {
+    if (key !== activeMetric) {
+      triggerHaptic();
+      onSelectMetric(key);
+    }
+  };
+
+  // ── Screen coordinates to SVG viewBox conversion ──
+  const getSvgCoordinates = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+
+    try {
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const ctm = svg.getScreenCTM();
+      if (ctm) {
+        const transformed = pt.matrixTransform(ctm.inverse());
+        return { x: transformed.x, y: transformed.y };
+      }
+    } catch {
+      // Fallback
+    }
+
+    const rect = svg.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    return {
+      x: ((clientX - rect.left) / rect.width) * SVG_WIDTH,
+      y: ((clientY - rect.top) / rect.height) * SVG_HEIGHT,
+    };
+  };
+
+  // ── Intelligent touch detection via radial hit-testing ──
+  const processPointer = (clientX: number, clientY: number) => {
+    const coords = getSvgCoordinates(clientX, clientY);
+    if (!coords) return;
+
+    const matched = getMetricFromPoint(coords.x, coords.y, activeMetric);
+    if (matched) {
+      handleSelectWithFeedback(matched);
+    }
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    // If touch originates directly from an item label button, let its handler handle it
+    const target = e.target as Element | null;
+    if (target?.closest('.checkin-recovery-label-group')) {
+      return;
+    }
+    isPointerDownRef.current = true;
+    processPointer(e.clientX, e.clientY);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!isPointerDownRef.current) return;
+    processPointer(e.clientX, e.clientY);
+  };
+
+  const handlePointerUp = () => {
+    isPointerDownRef.current = false;
+  };
+
   const isMetricAnswered = (key: MetricKey): boolean => {
     switch (key) {
       case 'sleepHours':
@@ -150,32 +234,74 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
 
   return (
     <div className="recovery-meter-wrap">
-      <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} className="recovery-meter-svg">
-        {/* 1. ARCOS DE FONDO (CARRILES BASE) */}
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        className="recovery-meter-svg"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        style={{ touchAction: 'none' }}
+      >
+        {/* ── 1. HIT-BOXES TÁCTILES AMPLIADAS PARA CADA ANILLO (48-52px de ancho) ── */}
+        {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
+          const cfg = METRIC_CONFIGS[key];
+          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, 222);
+
+          return (
+            <path
+              key={`hitbox-${key}`}
+              d={pathD}
+              fill="none"
+              stroke="transparent"
+              strokeWidth={HIT_TEST_STROKE_WIDTH}
+              strokeLinecap="round"
+              className="recovery-touch-hitbox"
+              onClick={() => handleSelectWithFeedback(key)}
+              aria-label={`Seleccionar ${cfg.name}`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelectWithFeedback(key);
+                }
+              }}
+            />
+          );
+        })}
+
+        {/* ── 2. CARRILES BASE DE FONDO CON SEPARACIÓN RADIAL AMPLIA ── */}
         {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
           const cfg = METRIC_CONFIGS[key];
           const isActive = activeMetric === key;
+          const currentStroke = isActive ? ACTIVE_STROKE_WIDTH : STROKE_WIDTH;
           const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, 222);
 
           return (
             <g key={`track-group-${key}`}>
+              {/* Carril base */}
               <path
                 d={pathD}
                 fill="none"
                 stroke="var(--checkin-track-base)"
-                strokeWidth={STROKE_WIDTH}
+                strokeWidth={currentStroke}
                 strokeLinecap="round"
-                className="recovery-track-arc"
-                onClick={() => onSelectMetric(key)}
+                className={`recovery-track-arc ${isActive ? 'is-active' : ''}`}
+                onClick={() => handleSelectWithFeedback(key)}
               />
+
+              {/* Resplandor y borde suave del anillo seleccionado */}
               {isActive && (
                 <path
                   d={pathD}
                   fill="none"
                   stroke="var(--cyan-accent)"
-                  strokeWidth={STROKE_WIDTH + 2.5}
+                  strokeWidth={ACTIVE_STROKE_WIDTH + 4}
                   strokeLinecap="round"
-                  opacity={0.7}
+                  opacity={0.35}
                   className="recovery-track-highlight"
                 />
               )}
@@ -183,7 +309,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
           );
         })}
 
-        {/* 2. ARCOS DE PROGRESO DINÁMICOS */}
+        {/* ── 3. ARCOS DE PROGRESO DINÁMICOS ── */}
         {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
           if (!isMetricAnswered(key)) return null;
           const cfg = METRIC_CONFIGS[key];
@@ -191,6 +317,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
           const endDeg = getArcEndAngle(key);
           const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, endDeg);
           const dynamicColor = getMetricCurrentColor(key, getMetricVal(key));
+          const currentStroke = isActive ? ACTIVE_STROKE_WIDTH : STROKE_WIDTH;
 
           return (
             <path
@@ -198,15 +325,15 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
               d={pathD}
               fill="none"
               stroke={dynamicColor}
-              strokeWidth={isActive ? STROKE_WIDTH + 1 : STROKE_WIDTH}
+              strokeWidth={currentStroke}
               strokeLinecap="round"
               className={`recovery-progress-arc ${isActive ? 'is-active' : ''}`}
-              onClick={() => onSelectMetric(key)}
+              onClick={() => handleSelectWithFeedback(key)}
             />
           );
         })}
 
-        {/* 3. ETIQUETAS E INSIGNIAS CIRCULARES */}
+        {/* ── 4. ETIQUETAS E INSIGNIAS ACCESIBLES SINCRONIZADAS (Touch target >= 48px) ── */}
         {metricBadges.map((item) => {
           const cfg = METRIC_CONFIGS[item.key];
           const isActive = activeMetric === item.key;
@@ -215,15 +342,32 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
           return (
             <g
               key={`label-group-${item.key}`}
-              className="checkin-recovery-label-group"
-              onClick={() => onSelectMetric(item.key)}
+              className={`checkin-recovery-label-group ${isActive ? 'is-active' : ''}`}
+              onClick={() => handleSelectWithFeedback(item.key)}
               role="button"
-              tabIndex={-1}
-              aria-label={`Seleccionar ${item.label}`}
+              tabIndex={0}
+              aria-label={`Seleccionar indicador ${item.label}`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelectWithFeedback(item.key);
+                }
+              }}
             >
+              {/* Hit target transparente envolvente de toda la fila para selección táctil con una mano */}
+              <rect
+                x={0}
+                y={posY - 26}
+                width={BADGE_X + 26}
+                height={52}
+                fill="transparent"
+                className="recovery-label-touch-target"
+              />
+
+              {/* Texto del nombre del indicador */}
               <text
-                x={BADGE_X - 18}
-                y={posY + 5}
+                x={BADGE_X - 22}
+                y={posY + 5.5}
                 textAnchor="end"
                 className={`recovery-badge-text ${isActive ? 'is-active' : ''}`}
                 fill={
@@ -243,19 +387,20 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
                 <circle
                   cx={BADGE_X}
                   cy={posY}
-                  r="14"
+                  r="16"
                   fill="none"
                   stroke="var(--cyan-accent)"
+                  strokeWidth="2"
                   className="recovery-badge-halo"
                 />
               )}
 
-              {/* Grupo del logo */}
+              {/* Grupo del logo / insignia */}
               <g className={isActive ? 'recovery-badge-blinking' : undefined}>
                 <circle
                   cx={BADGE_X}
                   cy={posY}
-                  r="14"
+                  r="15"
                   fill={item.isAnswered ? item.color : 'var(--checkin-counter-bg)'}
                   stroke={
                     isActive

@@ -1722,10 +1722,12 @@
 
 .recovery-meter-wrap {
   width: 100%;
-  max-width: 510px;
+  max-width: 560px;
   height: auto;
   position: relative;
   user-select: none;
+  -webkit-user-select: none;
+  margin: 0 auto;
 }
 
 .recovery-meter-svg {
@@ -1733,20 +1735,30 @@
   height: auto;
   display: block;
   overflow: visible;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.recovery-touch-hitbox {
+  cursor: pointer;
+  outline: none;
+  pointer-events: stroke;
 }
 
 .recovery-track-arc {
   cursor: pointer;
   outline: none;
   transition:
-    stroke 0.2s ease,
-    stroke-width 0.2s ease;
+    stroke 0.25s ease,
+    stroke-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .recovery-track-highlight {
   pointer-events: none;
   transition:
     stroke 0.25s ease,
+    stroke-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.25s ease;
 }
 
@@ -1755,8 +1767,8 @@
   outline: none;
   transition:
     stroke 0.28s ease,
-    stroke-width 0.2s ease,
-    opacity 0.2s ease;
+    stroke-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease;
   opacity: 0.95;
 }
 
@@ -1768,6 +1780,17 @@
 .checkin-recovery-label-group {
   cursor: pointer;
   outline: none;
+  transition: opacity 0.2s ease;
+}
+
+.checkin-recovery-label-group:hover,
+.checkin-recovery-label-group:focus-visible {
+  opacity: 0.92;
+}
+
+.recovery-label-touch-target {
+  pointer-events: all;
+  cursor: pointer;
 }
 
 .recovery-badge-text {
@@ -1777,12 +1800,14 @@
     -apple-system,
     sans-serif;
   font-size: 14.5px;
-  font-weight: 700;
-  transition: all 0.18s ease;
+  font-weight: 600;
+  transition:
+    font-weight 0.2s ease,
+    fill 0.2s ease;
 }
 
 .recovery-badge-text.is-active {
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .recovery-badge-halo {
@@ -1797,7 +1822,8 @@
 .recovery-badge-circle {
   transition:
     fill 0.28s ease,
-    stroke 0.2s ease;
+    stroke 0.2s ease,
+    r 0.25s ease;
 }
 
 /* Modales de recuperación */
