@@ -1505,21 +1505,6 @@
    RECOVERY SLIDE & RADIAL METER
    ========================================================================== */
 
-@keyframes logoHaloPulse {
-  0% {
-    transform: scale(0.9);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.4);
-    opacity: 0.2;
-  }
-  100% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
-}
-
 @keyframes logoBlink {
   0%,
   100% {
@@ -1725,6 +1710,7 @@
   max-width: 480px;
   height: auto;
   position: relative;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   margin: 0 auto;
@@ -1746,7 +1732,14 @@
   pointer-events: stroke;
 }
 
+.recovery-thumb-hitbox {
+  cursor: grab;
+  outline: none;
+  pointer-events: all;
+}
+
 .recovery-slider-thumb {
+  cursor: grab;
   filter: var(--shadow-sm);
   transition:
     transform 0.15s ease,
@@ -1815,11 +1808,6 @@
 
 .recovery-badge-text.is-active {
   font-weight: 800;
-}
-
-.recovery-badge-halo {
-  transform-origin: center;
-  animation: logoHaloPulse 1.4s ease-out infinite;
 }
 
 .recovery-badge-blinking {

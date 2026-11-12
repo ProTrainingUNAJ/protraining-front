@@ -33,7 +33,7 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
 
   describe('1. Geometría y dimensiones optimizadas para dedos', () => {
     it('los anillos tienen una separación radial amplia y grosor ergonómico', () => {
-      expect(STROKE_WIDTH).toBeGreaterThanOrEqual(22);
+      expect(STROKE_WIDTH).toBeGreaterThanOrEqual(20);
       expect(ACTIVE_STROKE_WIDTH).toBeGreaterThan(STROKE_WIDTH);
 
       const rSleepHours = METRIC_CONFIGS.sleepHours.radius;
@@ -55,7 +55,7 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
       const { container } = render(<RecoveryRadialMeter {...defaultProps} />);
       const svg = container.querySelector('.recovery-meter-svg');
       expect(svg).toBeTruthy();
-      expect(svg?.getAttribute('viewBox')).toBe('0 0 550 465');
+      expect(svg?.getAttribute('viewBox')).toBe('0 0 520 465');
 
       expect(screen.getByText(/Horas de sueño/i)).toBeDefined();
       expect(screen.getByText(/Calidad del descanso/i)).toBeDefined();
@@ -66,14 +66,14 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
 
   describe('2. Detección táctil inteligente por hit-testing radial (getMetricFromPoint)', () => {
     it('detecta correctamente cada anillo según la distancia radial al centro', () => {
-      // sleepHours (anillo exterior, R=210)
-      expect(getMetricFromPoint(CX + 210, CY)).toBe('sleepHours');
-      // sleepQuality (R=164)
-      expect(getMetricFromPoint(CX + 164, CY)).toBe('sleepQuality');
-      // fatigueLevel (R=118)
-      expect(getMetricFromPoint(CX + 118, CY)).toBe('fatigueLevel');
-      // muscleSoreness (anillo interior, R=72)
-      expect(getMetricFromPoint(CX + 72, CY)).toBe('muscleSoreness');
+      // sleepHours (anillo exterior, R=205)
+      expect(getMetricFromPoint(CX + 205, CY)).toBe('sleepHours');
+      // sleepQuality (R=157)
+      expect(getMetricFromPoint(CX + 157, CY)).toBe('sleepQuality');
+      // fatigueLevel (R=109)
+      expect(getMetricFromPoint(CX + 109, CY)).toBe('fatigueLevel');
+      // muscleSoreness (anillo interior, R=61)
+      expect(getMetricFromPoint(CX + 61, CY)).toBe('muscleSoreness');
     });
 
     it('devuelve null si el toque ocurre fuera del área de los anillos (centro o muy lejos)', () => {
@@ -86,15 +86,15 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
     });
 
     it('aplica histéresis en zonas ambiguas para evitar saltos erráticos por temblor del dedo', () => {
-      // Frontera entre fatiga (118) y dolor (72) está nominalmente en 95.
-      // Si el usuario ya tiene seleccionada la fatiga, a 93px mantiene fatiga (gracias a la histéresis de 8px)
-      expect(getMetricFromPoint(CX + 93, CY, 'fatigueLevel')).toBe('fatigueLevel');
+      // Frontera entre fatiga (109) y dolor (61) está nominalmente en 85.
+      // Si el usuario ya tiene seleccionada la fatiga, a 83px mantiene fatiga (gracias a la histéresis de 8px)
+      expect(getMetricFromPoint(CX + 83, CY, 'fatigueLevel')).toBe('fatigueLevel');
 
-      // Si el usuario ya tenía seleccionado dolor muscular, a 93px mantiene dolor muscular
-      expect(getMetricFromPoint(CX + 93, CY, 'muscleSoreness')).toBe('muscleSoreness');
+      // Si el usuario ya tenía seleccionado dolor muscular, a 83px mantiene dolor muscular
+      expect(getMetricFromPoint(CX + 83, CY, 'muscleSoreness')).toBe('muscleSoreness');
 
-      // Si el desplazamiento supera el umbral de histéresis (ej. 80px), conmuta a dolor muscular
-      expect(getMetricFromPoint(CX + 80, CY, 'fatigueLevel')).toBe('muscleSoreness');
+      // Si el desplazamiento supera el umbral de histéresis (ej. 70px), conmuta a dolor muscular
+      expect(getMetricFromPoint(CX + 70, CY, 'fatigueLevel')).toBe('muscleSoreness');
     });
   });
 
@@ -130,18 +130,18 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
         vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
           left: 0,
           top: 0,
-          width: 550,
+          width: 520,
           height: 465,
-          right: 550,
+          right: 520,
           bottom: 465,
           x: 0,
           y: 0,
           toJSON: () => {},
         });
 
-        // Simular toque en el cuadrante derecho del anillo de horas de sueño (R=210)
+        // Simular toque en el cuadrante derecho del anillo de horas de sueño (R=205)
         fireEvent.pointerDown(svg, {
-          clientX: CX + 210,
+          clientX: CX + 205,
           clientY: CY,
           pointerId: 1,
         });

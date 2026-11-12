@@ -131,6 +131,27 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
       }
       handleSelectWithFeedback(matched);
       updateValueAtCoords(coords, matched);
+
+      // Global window listeners so dragging smoothly continues even if finger leaves SVG boundary
+      const onGlobalPointerMove = (evt: PointerEvent) => {
+        if (!isPointerDownRef.current || !activeDragMetricRef.current) return;
+        const moveCoords = getSvgCoordinates(evt.clientX, evt.clientY);
+        if (!moveCoords) return;
+        updateValueAtCoords(moveCoords, activeDragMetricRef.current);
+      };
+
+      const onGlobalPointerUp = () => {
+        window.removeEventListener('pointermove', onGlobalPointerMove);
+        window.removeEventListener('pointerup', onGlobalPointerUp);
+        window.removeEventListener('pointercancel', onGlobalPointerUp);
+        isPointerDownRef.current = false;
+        activeDragMetricRef.current = null;
+        lastValRef.current = null;
+      };
+
+      window.addEventListener('pointermove', onGlobalPointerMove, { passive: true });
+      window.addEventListener('pointerup', onGlobalPointerUp);
+      window.addEventListener('pointercancel', onGlobalPointerUp);
     }
   };
 
@@ -187,7 +208,8 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
       icon: (
         <path
           d="M 16 8 A 6.5 6.5 0 1 1 9 1.5 A 5 5 0 0 0 16 8 Z"
-          fill={sleepHours !== null ? 'var(--white)' : 'var(--input-placeholder)'}
+          fill={sleepHours !== null ? '#ffffff' : 'var(--input-placeholder)'}
+          style={{ fill: sleepHours !== null ? '#ffffff' : 'var(--input-placeholder)' }}
           transform="translate(-8.5, -8.5)"
         />
       ),
@@ -372,20 +394,26 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
             const activeColor = getMetricCurrentColor(activeMetric, getMetricVal(activeMetric));
 
             return (
-              <g
-                className="recovery-thumb-group"
-                style={{ pointerEvents: 'none' }}
-                aria-hidden="true"
-              >
+              <g className="recovery-thumb-group" aria-hidden="true">
+                {/* Hit target invisible de 56px para arrastre táctil cómodo con dedo humano */}
                 <circle
                   cx={thumbPos.x}
                   cy={thumbPos.y}
-                  r={ACTIVE_STROKE_WIDTH / 2 + 1}
-                  fill="var(--white)"
+                  r={26}
+                  fill="transparent"
+                  className="recovery-thumb-hitbox"
+                />
+                {/* Thumb exterior blanco */}
+                <circle
+                  cx={thumbPos.x}
+                  cy={thumbPos.y}
+                  r={15}
+                  fill="#ffffff"
                   stroke={activeColor}
                   strokeWidth={4.5}
                   className="recovery-slider-thumb"
                 />
+                {/* Núcleo central del color del estado */}
                 <circle cx={thumbPos.x} cy={thumbPos.y} r={5.5} fill={activeColor} />
               </g>
             );
@@ -439,19 +467,6 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
                 {item.label}
                 {!item.isAnswered ? ' (Neutro)' : ''}
               </text>
-
-              {/* Halo pulsante celeste detrás del logo si está seleccionado */}
-              {isActive && (
-                <circle
-                  cx={BADGE_X}
-                  cy={posY}
-                  r="16"
-                  fill="none"
-                  stroke="var(--cyan-accent)"
-                  strokeWidth="2"
-                  className="recovery-badge-halo"
-                />
-              )}
 
               {/* Grupo del logo / insignia */}
               <g className={isActive ? 'recovery-badge-blinking' : undefined}>

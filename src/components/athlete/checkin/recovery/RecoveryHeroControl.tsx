@@ -44,7 +44,8 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
             width="44"
             height="44"
             viewBox="0 0 24 24"
-            fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
+            fill={isAnswered ? '#ffffff' : 'var(--input-placeholder)'}
+            style={{ fill: isAnswered ? '#ffffff' : 'var(--input-placeholder)' }}
             stroke="none"
           >
             <path d="M 21 12.79 A 9 9 0 1 1 11.21 3 A 7 7 0 0 0 21 12.79 Z" />

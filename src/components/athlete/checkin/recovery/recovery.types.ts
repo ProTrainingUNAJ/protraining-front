@@ -49,19 +49,19 @@ export const COLOR_SCALE = {
   neutral: 'var(--checkin-scale-neutral)',
 };
 
-// ── SVG Mathematical Geometry (Concentric C-Shape with Generous Internal Radial Spacing) ──
-export const SVG_WIDTH = 550;
+// ── SVG Mathematical Geometry (Exact Blue-Drawn Reference: Concentric C with 28px Radial Gap & Balanced Center) ──
+export const SVG_WIDTH = 520;
 export const SVG_HEIGHT = 465;
-export const CX = 300;
+export const CX = 280;
 export const CY = 230;
-export const BADGE_X = 255;
-export const STROKE_WIDTH = 24;
-export const ACTIVE_STROKE_WIDTH = 30;
-export const HIT_TEST_STROKE_WIDTH = 48;
-export const END_ANGLE = 218;
+export const BADGE_X = 246;
+export const STROKE_WIDTH = 20;
+export const ACTIVE_STROKE_WIDTH = 26;
+export const HIT_TEST_STROKE_WIDTH = 46;
+export const END_ANGLE = 220;
 
-export const MIN_TOUCH_RADIUS = 46;
-export const MAX_TOUCH_RADIUS = 236;
+export const MIN_TOUCH_RADIUS = 36;
+export const MAX_TOUCH_RADIUS = 232;
 
 export interface MetricConfig {
   key: MetricKey;
@@ -83,7 +83,7 @@ export function calculateMetricConfig(
   max: number,
   step: number,
 ): MetricConfig {
-  const dx = CX - BADGE_X; // 45
+  const dx = CX - BADGE_X; // 34
   const dy = Math.sqrt(Math.max(0, radius * radius - dx * dx));
   const badgeY = CY - dy;
   const alphaDeg = Math.asin(dx / radius) * (180 / Math.PI);
@@ -104,20 +104,23 @@ export function calculateMetricConfig(
   };
 }
 
-// Concentric C-shape rings: outer ring compact at 210px, spacing evenly distributed internally
+// Concentric C-shape rings:
+// Outer ring restrained at 205px so component does NOT expand outward
+// Internal spacing evenly set at ΔR=48px (giving ~28px uniform visible gap between 20px strokes)
+// Inner ring R=61 leaves a comfortable ~102px diameter central hole matching the blue-drawn reference
 export const METRIC_CONFIGS: Record<MetricKey, MetricConfig> = {
-  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 210, 0, 12, 1),
-  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 164, 1, 5, 1),
-  fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 118, 1, 5, 1),
-  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 72, 1, 5, 1),
+  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 205, 0, 12, 1),
+  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 157, 1, 5, 1),
+  fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 109, 1, 5, 1),
+  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 61, 1, 5, 1),
 };
 
 // Nominal radial boundaries between rings for hit-testing
 export const RADIAL_BOUNDARIES: { min: number; max: number; key: MetricKey }[] = [
-  { min: 46, max: 95, key: 'muscleSoreness' },
-  { min: 95, max: 141, key: 'fatigueLevel' },
-  { min: 141, max: 187, key: 'sleepQuality' },
-  { min: 187, max: 236, key: 'sleepHours' },
+  { min: 36, max: 85, key: 'muscleSoreness' },
+  { min: 85, max: 133, key: 'fatigueLevel' },
+  { min: 133, max: 181, key: 'sleepQuality' },
+  { min: 181, max: 232, key: 'sleepHours' },
 ];
 
 /**
@@ -138,11 +141,11 @@ export function getMetricFromPoint(
     return null;
   }
 
-  // If point falls inside label area (x < BADGE_X - 15) in angle range 220°..315°,
+  // If point falls inside label area (x < BADGE_X - 20) in angle range 230°..325°,
   // do not intercept so label clicks work cleanly
   const polarDeg = (Math.atan2(dx, -dy) * 180) / Math.PI;
   const normPolar = polarDeg < 0 ? polarDeg + 360 : polarDeg;
-  if (svgX < BADGE_X - 15 && normPolar > 220 && normPolar < 315) {
+  if (svgX < BADGE_X - 20 && normPolar > 230 && normPolar < 325) {
     return null;
   }
 
