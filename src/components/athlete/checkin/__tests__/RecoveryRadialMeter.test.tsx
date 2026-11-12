@@ -111,7 +111,7 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
       expect(midVal).toBeLessThanOrEqual(12);
     });
 
-    it('ejecuta onValueChange al interactuar táctilmente con un anillo', () => {
+    it('al tocar otra barra primero solo la selecciona sin cambiar su valor', () => {
       const onValueChange = vi.fn();
       const onSelectMetric = vi.fn();
       const { container } = render(
@@ -146,9 +146,49 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
           pointerId: 1,
         });
 
-        // Debe seleccionar horas de sueño (porque el activo era sleepQuality)
+        // Primero debe seleccionar horas de sueño (porque el activo era sleepQuality)
         expect(onSelectMetric).toHaveBeenCalledWith('sleepHours');
-        // Debe actualizar el valor porque pasó de 0 a un valor positivo
+        // NO debe cambiar el valor en el primer toque de selección
+        expect(onValueChange).not.toHaveBeenCalled();
+      }
+    });
+
+    it('una vez marcada la barra, un segundo toque o arrastre sí modifica el valor', () => {
+      const onValueChange = vi.fn();
+      const onSelectMetric = vi.fn();
+      const { container } = render(
+        <RecoveryRadialMeter
+          {...defaultProps}
+          activeMetric="sleepHours"
+          sleepHours={0}
+          onSelectMetric={onSelectMetric}
+          onValueChange={onValueChange}
+        />,
+      );
+      const svg = container.querySelector('.recovery-meter-svg');
+      expect(svg).toBeTruthy();
+
+      if (svg) {
+        vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+          left: 0,
+          top: 0,
+          width: 520,
+          height: 465,
+          right: 520,
+          bottom: 465,
+          x: 0,
+          y: 0,
+          toJSON: () => {},
+        });
+
+        // Tocar sobre la barra que YA está activa (R=205)
+        fireEvent.pointerDown(svg, {
+          clientX: CX + 205,
+          clientY: CY,
+          pointerId: 1,
+        });
+
+        // Al estar ya activa, sí actualiza el valor según las coordenadas
         expect(onValueChange).toHaveBeenCalledWith('sleepHours', expect.any(Number));
       }
     });

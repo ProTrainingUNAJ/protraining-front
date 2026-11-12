@@ -121,6 +121,13 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
 
     const matched = getMetricFromPoint(coords.x, coords.y, activeMetric);
     if (matched) {
+      // Si se toca otra barra distinta a la activa: primero solo marcar / seleccionar sin cambiar valor
+      if (matched !== activeMetric) {
+        handleSelectWithFeedback(matched);
+        return;
+      }
+
+      // Si ya está marcada (es la activa), permitir interactuar con el slider y ajustar valor
       isPointerDownRef.current = true;
       activeDragMetricRef.current = matched;
       lastValRef.current = getMetricVal(matched);
@@ -129,7 +136,6 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
       } catch {
         // Ignored
       }
-      handleSelectWithFeedback(matched);
       updateValueAtCoords(coords, matched);
 
       // Global window listeners so dragging smoothly continues even if finger leaves SVG boundary
