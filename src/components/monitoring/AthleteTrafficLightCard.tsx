@@ -261,7 +261,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   alignItems: 'center',
                   gap: '0.2rem',
                   fontWeight: 700,
-                  color: maxPainLevel >= 4 ? 'var(--pain-level-5)' : 'var(--warning-text)',
+                  color: maxPainLevel >= 4 ? 'var(--danger-text)' : 'var(--warning-text)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
@@ -295,7 +295,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   alignItems: 'center',
                   gap: '0.2rem',
                   fontWeight: 700,
-                  color: athlete.rpe >= 8 ? 'var(--pain-level-5)' : 'var(--cyan-accent)',
+                  color: athlete.rpe >= 8 ? 'var(--danger-text)' : 'var(--info-text)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}

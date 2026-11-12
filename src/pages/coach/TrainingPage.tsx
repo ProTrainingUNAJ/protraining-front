@@ -344,13 +344,14 @@ export const TrainingPage: React.FC = () => {
           {/* Chips Táctiles PWA - Tipo de ejercicio / Modalidad (KAN-453) */}
           <div
             className="exercise-chips-scroll"
-            role="tablist"
+            role="group"
             aria-label="Filtro por modalidad de ejercicio"
           >
             {EXERCISE_TYPES.map((t) => (
               <button
                 key={t.value}
                 type="button"
+                aria-pressed={selectedType === t.value}
                 className={`touch-chip ${selectedType === t.value ? 'active' : ''}`}
                 onClick={() => setSelectedType(t.value)}
               >
@@ -362,13 +363,14 @@ export const TrainingPage: React.FC = () => {
           {/* Chips Táctiles PWA - Grupos principales */}
           <div
             className="exercise-chips-scroll"
-            role="tablist"
+            role="group"
             aria-label="Filtro por grupo muscular"
           >
             {CHIP_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 type="button"
+                aria-pressed={selectedCategory === cat}
                 className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
                 onClick={() => {
                   setSelectedCategory(cat);
@@ -384,13 +386,14 @@ export const TrainingPage: React.FC = () => {
           {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
             <div
               className="exercise-subchips-scroll"
-              role="tablist"
+              role="group"
               aria-label="Filtro por músculo puntual"
             >
               {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
                 <button
                   key={subMuscle}
                   type="button"
+                  aria-pressed={selectedMuscle === subMuscle}
                   className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
                   onClick={() =>
                     setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
@@ -441,7 +444,7 @@ export const TrainingPage: React.FC = () => {
               {error}
             </h3>
             <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Ocurrió un inconveniente al conectar con el servidor. Verifica tu conexión o intenta
+              Ocurrió un inconveniente al conectar con el servidor. Revisá tu conexión o probá
               nuevamente.
             </p>
             <button

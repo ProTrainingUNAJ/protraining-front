@@ -87,14 +87,14 @@
 .dl-widget__badge--done {
   background: color-mix(in srgb, var(--stat-green) 12%, transparent);
   border-color: color-mix(in srgb, var(--stat-green) 40%, transparent);
-  color: var(--stat-green);
+  color: var(--success-text);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--stat-green) 16%, transparent);
 }
 
 .dl-widget__badge--pending {
   background: color-mix(in srgb, var(--celebration-amber) 10%, transparent);
   border-color: color-mix(in srgb, var(--celebration-amber) 35%, transparent);
-  color: var(--celebration-amber);
+  color: var(--warning-text);
 }
 
 .dl-widget__dot {
@@ -287,7 +287,7 @@
 .dl-widget__chip--match1 {
   background: color-mix(in srgb, var(--celebration-amber) 10%, transparent);
   border-color: color-mix(in srgb, var(--celebration-amber) 35%, transparent);
-  color: var(--celebration-amber);
+  color: var(--warning-text);
 }
 
 .dl-widget__chip--match2 {
@@ -455,4 +455,13 @@
 .dl-widget__btn-action--retry {
   width: auto;
   margin-top: 0.25rem;
+}
+
+/* Si el sistema pide reducir movimiento, se apagan las animaciones en bucle */
+@media (prefers-reduced-motion: reduce) {
+  .dl-widget__dot--pulse,
+  .dl-widget__empty-icon-halo,
+  .dl-widget__skeleton-line {
+    animation: none;
+  }
 }

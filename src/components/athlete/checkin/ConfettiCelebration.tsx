@@ -44,6 +44,8 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    // Con "reducir movimiento" activado en el sistema no se lanza el confeti
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 

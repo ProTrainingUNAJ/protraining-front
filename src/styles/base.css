@@ -35,10 +35,3 @@ body {
   margin: 0 auto;
   padding: 1.5rem;
 }
-
-.text-gradient {
-  background: var(--grad-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}

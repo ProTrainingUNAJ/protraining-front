@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RotateCcw, Eye, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RotateCcw, Eye, Info, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { MuscleMapFront } from './MuscleMapFront';
 import { MuscleMapBack } from './MuscleMapBack';
 import { PainColorSelector } from './PainColorSelector';
@@ -392,7 +392,7 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
                   fontSize: '0.86rem',
                   fontWeight: 800,
                   color: 'var(--checkin-title-color)',
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                 }}
               >
                 Asignar intensidad:
@@ -411,8 +411,9 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
                   fontWeight: 700,
                 }}
                 title="Cerrar selector"
+                aria-label="Cerrar selector"
               >
-                ✕
+                <X size={14} aria-hidden="true" />
               </button>
             </div>
             <PainColorSelector
@@ -454,7 +455,7 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
                     {hoveredRegion.view === 'both' ? 'frontal y posterior' : hoveredRegion.view}.
                   </>
                 ) : (
-                  'Haz clic o toca cualquier músculo anatómico o articulación para seleccionarlo. Puedes pintar varios a la vez.'
+                  'Hacé clic o tocá cualquier músculo o articulación para seleccionarlo. Podés pintar varios a la vez.'
                 )}
               </span>
             </div>

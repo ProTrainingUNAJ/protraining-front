@@ -719,7 +719,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                 marginBottom: '1.25rem',
                 textAlign: 'left',
                 boxSizing: 'border-box',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
               }}
             >
               <div style={{ marginBottom: '0.45rem' }}>
@@ -795,7 +795,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
               }}
             >
               <MessageSquare size={16} style={{ color: 'var(--checkin-title-color)' }} />
@@ -814,7 +814,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                 border: '1.5px solid var(--checkin-input-border)',
                 background: 'var(--checkin-input-bg)',
                 fontSize: '0.88rem',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                 color: 'var(--checkin-input-color)',
                 boxSizing: 'border-box',
                 resize: 'none',

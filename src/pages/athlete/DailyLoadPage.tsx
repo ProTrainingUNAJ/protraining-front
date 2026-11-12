@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Sparkles,
   LayoutGrid,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -645,7 +646,7 @@ export const DailyLoadPage: React.FC = () => {
                                 className="dl-card-badge dl-card-badge--done"
                                 title="Carga registrada hoy"
                               >
-                                ✓ {data?.minutes}m
+                                <Check size={12} aria-hidden="true" /> {data?.minutes}m
                               </span>
                             ) : (
                               <span className="dl-card-badge dl-card-badge--pending">0m</span>
@@ -705,7 +706,7 @@ export const DailyLoadPage: React.FC = () => {
                               className="dl-card-badge dl-card-badge--done"
                               title="Ya registrado hoy"
                             >
-                              ✓ {data?.minutes}m
+                              <Check size={12} aria-hidden="true" /> {data?.minutes}m
                             </span>
                           ) : (
                             <span className="dl-card-badge dl-card-badge--pending">
@@ -730,7 +731,7 @@ export const DailyLoadPage: React.FC = () => {
                 {/* Dots del Carrusel */}
                 <div
                   className="dl-carousel-dots"
-                  role="tablist"
+                  role="group"
                   aria-label="Indicadores del carrusel"
                 >
                   {ACTIVITIES.map(({ key, label }) => (
@@ -740,6 +741,7 @@ export const DailyLoadPage: React.FC = () => {
                       className={`dl-carousel-dot ${selectedActivity === key ? 'dl-carousel-dot--active' : ''}`}
                       onClick={() => setSelectedActivity(key)}
                       aria-label={`Ir a ${label}`}
+                      aria-pressed={selectedActivity === key}
                     />
                   ))}
                 </div>

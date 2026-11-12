@@ -88,21 +88,21 @@
 .dtl-widget__badge--green {
   background: color-mix(in srgb, var(--traffic-green) 12%, transparent);
   border-color: color-mix(in srgb, var(--traffic-green) 40%, transparent);
-  color: var(--traffic-green);
+  color: var(--success-text);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--traffic-green) 16%, transparent);
 }
 
 .dtl-widget__badge--yellow {
   background: color-mix(in srgb, var(--traffic-yellow) 12%, transparent);
   border-color: color-mix(in srgb, var(--traffic-yellow) 40%, transparent);
-  color: var(--traffic-yellow);
+  color: var(--warning-text);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--traffic-yellow) 16%, transparent);
 }
 
 .dtl-widget__badge--red {
   background: color-mix(in srgb, var(--traffic-red) 12%, transparent);
   border-color: color-mix(in srgb, var(--traffic-red) 40%, transparent);
-  color: var(--traffic-red);
+  color: var(--danger-text);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--traffic-red) 16%, transparent);
 }
 
@@ -293,15 +293,15 @@
 }
 
 .dtl-widget__status-title--green {
-  color: var(--traffic-green);
+  color: var(--success-text);
 }
 
 .dtl-widget__status-title--yellow {
-  color: var(--traffic-yellow);
+  color: var(--warning-text);
 }
 
 .dtl-widget__status-title--red {
-  color: var(--traffic-red);
+  color: var(--danger-text);
 }
 
 .dtl-widget__status-desc {
@@ -424,5 +424,16 @@
 
   50% {
     opacity: 0.85;
+  }
+}
+
+/* Si el sistema pide reducir movimiento, se apagan las animaciones en bucle */
+@media (prefers-reduced-motion: reduce) {
+  .dtl-widget__dot--pulsing,
+  .dtl-bulb--red-on,
+  .dtl-bulb--yellow-on,
+  .dtl-bulb--green-on,
+  .dtl-widget__skeleton-line {
+    animation: none;
   }
 }
