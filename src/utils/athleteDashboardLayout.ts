@@ -80,7 +80,7 @@ export const DEFAULT_ATHLETE_ROWS: StoredRow[] = [
       },
       {
         id: 'a-chart-yoyo',
-        name: 'Test Yo-Yo',
+        name: 'Resistencia',
         colSpan: 1,
         type: 'progress-chart',
         chartMetric: 'yoyo',
@@ -206,7 +206,7 @@ export const pinDailyLoadWidget = (): boolean => {
             },
             {
               id: 'a-chart-yoyo',
-              name: 'Test Yo-Yo',
+              name: 'Resistencia',
               colSpan: 1,
               type: 'progress-chart',
               chartMetric: 'yoyo',

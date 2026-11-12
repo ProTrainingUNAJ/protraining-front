@@ -91,6 +91,40 @@ describe('buildEvolutionMetrics', () => {
     expect(metrics.sprint).toBeUndefined();
   });
 
+  it('reconoce los tests del catálogo real, con la capacidad en inglés', () => {
+    const metrics = buildEvolutionMetrics(
+      baseEvolution({
+        fitnessTests: [
+          {
+            catalogTestId: 't-4',
+            testName: 'Carrera 30 m',
+            motorCapacity: 'Velocity',
+            unit: 's',
+            points: [{ date: '2026-10-01', value: 4.4 }],
+          },
+          {
+            catalogTestId: 't-5',
+            testName: 'Test de Cooper (12 min)',
+            motorCapacity: 'Endurance',
+            unit: 'm',
+            points: [{ date: '2026-10-01', value: 2650 }],
+          },
+          {
+            catalogTestId: 't-6',
+            testName: 'Test de Bronco',
+            motorCapacity: 'Endurance',
+            unit: 's',
+            points: [{ date: '2026-10-01', value: 300 }],
+          },
+        ],
+      }),
+    );
+
+    expect(metrics.sprint?.name).toBe('Carrera 30 m');
+    // El Bronco se mide en tiempo: no entra en Resistencia, donde más distancia es mejor
+    expect(metrics.yoyo?.name).toBe('Test de Cooper (12 min)');
+  });
+
   it('toma la sentadilla de las series de fuerza y la fatiga del wellness', () => {
     const metrics = buildEvolutionMetrics(
       baseEvolution({
