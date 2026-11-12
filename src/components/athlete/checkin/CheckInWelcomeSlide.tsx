@@ -66,7 +66,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
             alignItems: 'center',
             gap: '0.65rem',
             boxShadow: '0 8px 24px rgba(8, 37, 74, 0.25)',
-            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease',
+            transition: 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';

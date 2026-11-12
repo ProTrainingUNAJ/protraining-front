@@ -350,13 +350,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(14, 165, 233, 0.12)',
-                  border: '2px solid rgba(14, 165, 233, 0.35)',
+                  backgroundColor: 'var(--info-bg)',
+                  border: '2px solid var(--info-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '1rem',
-                  boxShadow: '0 8px 20px rgba(14, 165, 233, 0.2)',
+                  boxShadow: 'var(--shadow)',
                   flexShrink: 0,
                 }}
                 aria-hidden="true"
@@ -513,13 +513,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(14, 165, 233, 0.12)',
-                  border: '2px solid rgba(14, 165, 233, 0.35)',
+                  backgroundColor: 'var(--info-bg)',
+                  border: '2px solid var(--info-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '1rem',
-                  boxShadow: '0 8px 20px rgba(14, 165, 233, 0.2)',
+                  boxShadow: 'var(--shadow)',
                   flexShrink: 0,
                 }}
                 aria-hidden="true"

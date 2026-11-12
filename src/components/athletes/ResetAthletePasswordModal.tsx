@@ -90,7 +90,7 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <KeyRound size={22} color="var(--primary, #0284c7)" aria-hidden="true" />
+            <KeyRound size={22} color="var(--primary)" aria-hidden="true" />
             <h2 id="reset-modal-title" style={{ margin: 0, fontSize: '1.25rem' }}>
               {step === 'success' ? 'Contraseña temporal generada' : 'Resetear contraseña'}
             </h2>
@@ -104,7 +104,7 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--text-muted, #64748b)',
+              color: 'var(--text-muted)',
             }}
           >
             <X size={20} aria-hidden="true" />
@@ -196,9 +196,9 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
             <Loader2
               size={36}
               className="animate-spin"
-              style={{ color: 'var(--primary, #0284c7)', animation: 'spin 1s linear infinite' }}
+              style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite' }}
             />
-            <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-muted, #64748b)' }}>
+            <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-muted)' }}>
               Generando contraseña temporal segura y revocando sesiones...
             </p>
           </div>
@@ -235,7 +235,7 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
                   fontSize: '0.85rem',
                   fontWeight: 600,
                   marginBottom: '0.35rem',
-                  color: 'var(--text-muted, #64748b)',
+                  color: 'var(--text-muted)',
                 }}
               >
                 Contraseña temporal
@@ -245,10 +245,10 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  backgroundColor: 'var(--surface-variant, #f1f5f9)',
+                  backgroundColor: 'var(--surface-variant)',
                   padding: '0.5rem 0.75rem',
                   borderRadius: '0.375rem',
-                  border: '1px solid var(--border, #cbd5e1)',
+                  border: '1px solid var(--border)',
                 }}
               >
                 <code
@@ -259,7 +259,7 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
                     fontSize: '1.15rem',
                     fontWeight: 700,
                     letterSpacing: '0.05em',
-                    color: 'var(--text-primary, #0f172a)',
+                    color: 'var(--text-main)',
                     userSelect: 'all',
                   }}
                 >
@@ -299,7 +299,7 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
             <p
               style={{
                 fontSize: '0.85rem',
-                color: 'var(--text-muted, #64748b)',
+                color: 'var(--text-muted)',
                 margin: '0 0 1.5rem',
               }}
             >
