@@ -770,7 +770,7 @@ export const AthletesPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <button
                     type="button"
                     className="btn btn-secondary"

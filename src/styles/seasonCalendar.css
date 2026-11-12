@@ -824,11 +824,21 @@
 
   .season-calendar-title-group {
     justify-content: space-between;
+    flex-wrap: wrap;
     min-width: auto;
   }
 
+  .season-calendar-main-title {
+    white-space: normal;
+  }
+
   .season-calendar-controls-group {
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+
+  .season-calendar-select {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
   .season-calendar-month-cell {

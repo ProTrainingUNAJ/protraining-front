@@ -63,7 +63,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
       aria-label="Contactar a mi preparador"
     >
       <MessageCircle size={18} aria-hidden="true" />
-      <span>Contactar a mi preparador</span>
+      <span className="contact-pf-label">Contactar a mi preparador</span>
     </a>
   );
 };
