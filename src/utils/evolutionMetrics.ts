@@ -138,8 +138,7 @@ export function buildEvolutionMetrics(
   const cmj = findTest(/salto|cmj|jump/);
   const sprint = tests.find(
     (t) =>
-      t !== yoyo &&
-      matches(`${t.testName} ${t.motorCapacity}`, /sprint|velocidad|velocity|speed/),
+      t !== yoyo && matches(`${t.testName} ${t.motorCapacity}`, /sprint|velocidad|velocity|speed/),
   );
 
   if (cmj) add(buildMetric('cmj', cmj.testName, cmj.unit, cmj.points));
