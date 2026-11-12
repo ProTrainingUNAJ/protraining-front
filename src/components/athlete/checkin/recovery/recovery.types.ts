@@ -51,17 +51,17 @@ export const COLOR_SCALE = {
 
 // ── SVG Mathematical Geometry (Optimized for human fingers & Touch-First ergonomics) ──
 export const SVG_WIDTH = 630;
-export const SVG_HEIGHT = 570;
-export const CX = 345;
+export const SVG_HEIGHT = 500;
+export const CX = 340;
 export const CY = 285;
-export const BADGE_X = 285;
-export const STROKE_WIDTH = 32;
-export const ACTIVE_STROKE_WIDTH = 38;
-export const HIT_TEST_STROKE_WIDTH = 52;
-export const END_ANGLE = 222;
+export const BADGE_X = 275;
+export const STROKE_WIDTH = 34;
+export const ACTIVE_STROKE_WIDTH = 40;
+export const HIT_TEST_STROKE_WIDTH = 58;
+export const END_ANGLE = 135;
 
-export const MIN_TOUCH_RADIUS = 58;
-export const MAX_TOUCH_RADIUS = 282;
+export const MIN_TOUCH_RADIUS = 55;
+export const MAX_TOUCH_RADIUS = 290;
 
 export interface MetricConfig {
   key: MetricKey;
@@ -83,7 +83,7 @@ export function calculateMetricConfig(
   max: number,
   step: number,
 ): MetricConfig {
-  const dx = CX - BADGE_X; // 60
+  const dx = CX - BADGE_X; // 65
   const dy = Math.sqrt(Math.max(0, radius * radius - dx * dx));
   const badgeY = CY - dy;
   const alphaDeg = Math.asin(dx / radius) * (180 / Math.PI);
@@ -105,18 +105,18 @@ export function calculateMetricConfig(
 }
 
 export const METRIC_CONFIGS: Record<MetricKey, MetricConfig> = {
-  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 246, 0, 12, 1),
-  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 194, 1, 5, 1),
+  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 258, 0, 12, 1),
+  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 200, 1, 5, 1),
   fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 142, 1, 5, 1),
-  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 90, 1, 5, 1),
+  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 84, 1, 5, 1),
 };
 
 // Nominal radial boundaries between rings for hit-testing
 export const RADIAL_BOUNDARIES: { min: number; max: number; key: MetricKey }[] = [
-  { min: 58, max: 116, key: 'muscleSoreness' },
-  { min: 116, max: 168, key: 'fatigueLevel' },
-  { min: 168, max: 220, key: 'sleepQuality' },
-  { min: 220, max: 282, key: 'sleepHours' },
+  { min: 55, max: 113, key: 'muscleSoreness' },
+  { min: 113, max: 171, key: 'fatigueLevel' },
+  { min: 171, max: 229, key: 'sleepQuality' },
+  { min: 229, max: 290, key: 'sleepHours' },
 ];
 
 /**
@@ -137,11 +137,11 @@ export function getMetricFromPoint(
     return null;
   }
 
-  // If point falls inside label area (x < BADGE_X - 15) in angle range 222°..318°,
+  // If point falls inside label area (x < BADGE_X - 15) in angle range 220°..315°,
   // do not intercept so label clicks work cleanly
   const polarDeg = (Math.atan2(dx, -dy) * 180) / Math.PI;
   const normPolar = polarDeg < 0 ? polarDeg + 360 : polarDeg;
-  if (svgX < BADGE_X - 15 && normPolar > 222 && normPolar < 318) {
+  if (svgX < BADGE_X - 15 && normPolar > 220 && normPolar < 315) {
     return null;
   }
 
@@ -171,6 +171,53 @@ export function getMetricFromPoint(
   }
 
   return closestKey;
+}
+
+/**
+ * Calculates the metric value corresponding to an SVG coordinate for a given metric.
+ * Maps the angular sweep along the arc to the metric value range.
+ */
+export function getValueFromPoint(svgX: number, svgY: number, key: MetricKey): number {
+  const cfg = METRIC_CONFIGS[key];
+  const dx = svgX - CX;
+  const dy = svgY - CY;
+  const polarDeg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const normPolar = polarDeg < 0 ? polarDeg + 360 : polarDeg;
+
+  // Sweep from startAngle clockwise
+  let sweep = (normPolar - cfg.startAngle) % 360;
+  if (sweep < 0) sweep += 360;
+
+  let pct: number;
+  if (sweep <= cfg.totalSweep) {
+    pct = sweep / cfg.totalSweep;
+  } else {
+    // In dead zone: if closer to totalSweep clamp 1, if closer to 360 clamp 0
+    const deadZone = 360 - cfg.totalSweep;
+    const pastEnd = sweep - cfg.totalSweep;
+    pct = pastEnd < deadZone / 2 ? 1 : 0;
+  }
+
+  switch (key) {
+    case 'sleepHours': {
+      const val = Math.round(pct * 12);
+      return Math.max(0, Math.min(12, val));
+    }
+    case 'sleepQuality': {
+      const val = Math.round(1 + pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+    case 'fatigueLevel': {
+      // Higher arc fill = less fatigue (better condition)
+      const val = Math.round(5 - pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+    case 'muscleSoreness': {
+      // Higher arc fill = less soreness (better condition)
+      const val = Math.round(5 - pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+  }
 }
 
 // Polar to cartesian conversion (0° = 12 o'clock, clockwise)

@@ -1555,16 +1555,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.25rem;
-  margin-top: 0.35rem;
-  margin-bottom: 0.65rem;
+  gap: 1rem;
+  margin-top: 0.15rem;
+  margin-bottom: 0.35rem;
   position: relative;
   z-index: 2;
 }
 
 .recovery-stepper-btn {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--checkin-counter-bg);
   border: 1.5px solid var(--checkin-counter-border);
@@ -1599,17 +1599,17 @@
 
 .recovery-hero-circle-wrap {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .recovery-hero-circle {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1626,7 +1626,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  min-height: 46px;
+  min-height: 38px;
   justify-content: center;
 }
 
@@ -1636,7 +1636,7 @@
     system-ui,
     -apple-system,
     sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--input-placeholder);
   letter-spacing: -0.02em;
@@ -1722,7 +1722,7 @@
 
 .recovery-meter-wrap {
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   height: auto;
   position: relative;
   user-select: none;
@@ -1744,6 +1744,13 @@
   cursor: pointer;
   outline: none;
   pointer-events: stroke;
+}
+
+.recovery-slider-thumb {
+  filter: var(--shadow-sm);
+  transition:
+    transform 0.15s ease,
+    stroke 0.25s ease;
 }
 
 .recovery-track-arc {
