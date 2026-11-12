@@ -658,11 +658,8 @@
 }
 
 .records-reliability-group-card.needs-testing {
-  border-left: 3px solid var(--warning);
-}
-
-.records-reliability-group-card:not(.needs-testing) {
-  border-left: 3px solid var(--border);
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
 }
 
 .records-reliability-group-header {
@@ -852,7 +849,6 @@
 .records-reliability-detail {
   margin: 0;
   padding: 1rem 1.25rem;
-  border-left: 3px solid var(--secondary);
 }
 
 .records-reliability-detail-header {
@@ -1118,7 +1114,7 @@
 
 .evolution-range-btn.active {
   background: var(--bg-card);
-  color: var(--primary);
+  color: var(--text-main);
   box-shadow: var(--shadow-sm);
 }
 

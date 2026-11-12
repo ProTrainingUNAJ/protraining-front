@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle2, Circle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/shell/PageHeader';
 import {
@@ -665,7 +665,7 @@ export const CheckInPage: React.FC = () => {
                   fontSize: '0.72rem',
                   padding: '0.2rem 0.5rem',
                 }}
-                title="Presiona para sincronizar con el servidor"
+                title="Tocá para sincronizar ahora"
               >
                 <RefreshCw
                   size={11}
@@ -679,7 +679,7 @@ export const CheckInPage: React.FC = () => {
               style={{
                 fontSize: '0.85rem',
                 fontWeight: 700,
-                color: submissionResult ? 'var(--checkin-scale-green)' : 'var(--stat-cyan)',
+                color: submissionResult ? 'var(--success-text)' : 'var(--info-text)',
                 background: submissionResult ? 'var(--success-bg)' : 'var(--stat-cyan-bg)',
                 border: submissionResult
                   ? '1px solid var(--success-border)'
@@ -688,9 +688,20 @@ export const CheckInPage: React.FC = () => {
                 borderRadius: '9999px',
                 margin: 0,
                 whiteSpace: 'nowrap',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
               }}
             >
-              {submissionResult ? '✓ Completado' : '● Pendiente de hoy'}
+              {submissionResult ? (
+                <>
+                  <CheckCircle2 size={14} aria-hidden="true" /> Completado
+                </>
+              ) : (
+                <>
+                  <Circle size={10} aria-hidden="true" /> Pendiente de hoy
+                </>
+              )}
             </span>
           </div>
         }

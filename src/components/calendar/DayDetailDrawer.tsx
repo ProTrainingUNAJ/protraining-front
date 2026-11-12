@@ -312,7 +312,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                 <p>No hay entrenamientos planificados para este día.</p>
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="btn btn-secondary"
                   style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}
                   onClick={handleGoToPlanning}
                 >
@@ -322,11 +322,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 {sessions.map((s) => (
-                  <div
-                    key={s.assignmentId}
-                    className="day-detail-match-card"
-                    style={{ borderLeft: '3px solid var(--season-training-bg)' }}
-                  >
+                  <div key={s.assignmentId} className="day-detail-match-card">
                     <div
                       style={{
                         display: 'flex',
@@ -336,9 +332,16 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                     >
                       <span
                         className="season-event-block is-training"
-                        style={{ width: 'auto', padding: '0.25rem 0.5rem', display: 'inline-flex' }}
+                        style={{
+                          width: 'auto',
+                          padding: '0.25rem 0.5rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                        }}
                       >
-                        🏋️‍♂️ {s.planName}
+                        <Dumbbell size={12} aria-hidden="true" />
+                        {s.planName}
                       </span>
                       {s.sessionTime && (
                         <span
@@ -351,7 +354,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                       )}
                       <button
                         type="button"
-                        className="btn-secondary"
+                        className="btn btn-secondary"
                         style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem' }}
                         onClick={() => handleOpenPlanEditor(s.trainingPlanId)}
                         title="Ver rutina en el editor de planificación"

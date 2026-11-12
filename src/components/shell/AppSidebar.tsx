@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import officialLogo from '../../assets/protraining-official-isotype.png';
-import logoDark from '../../assets/protraining-logo-dark.png';
+import officialLogo from '../../assets/protraining-official-isotype.webp';
+import logoDark from '../../assets/protraining-logo-dark.webp';
 import { coachMenuItems } from '../../layouts/CoachMenu';
 import { athleteMenuItems } from '../../layouts/AthleteMenu';
 import { UserSidebarProfile } from './UserSidebarProfile';

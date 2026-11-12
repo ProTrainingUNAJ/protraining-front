@@ -2,15 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import coachAvatarImg from '../../assets/avatars/user-1.webp';
-import athleteAvatarImg from '../../assets/avatars/user-2.webp';
 
 export const UserSidebarProfile: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isAthlete = location.pathname.startsWith('/athlete');
@@ -30,13 +27,10 @@ export const UserSidebarProfile: React.FC = () => {
     };
   }, [open]);
 
-  const defaultName = isAthlete ? 'Lucía Martínez' : 'Julián Pérez';
-  const defaultRole = isAthlete ? 'Atleta' : 'Preparador Físico';
-  const defaultEmail = isAthlete ? 'lucia@protraining.com' : 'profesor@protraining.com';
-
-  const fullName = user?.fullName || defaultName;
-  const roleName = user?.role || defaultRole;
-  const email = user?.email || defaultEmail;
+  // Todavía no hay foto de perfil propia: se muestran las iniciales del usuario logueado
+  const fullName = user?.fullName ?? '';
+  const roleName = isAthlete ? 'Atleta' : 'Preparador físico';
+  const email = user?.email ?? '';
 
   const initials =
     fullName
@@ -45,8 +39,6 @@ export const UserSidebarProfile: React.FC = () => {
       .slice(0, 2)
       .map((w) => w[0].toUpperCase())
       .join('') || (isAthlete ? 'AT' : 'PF');
-
-  const avatarSrc = isAthlete ? athleteAvatarImg : coachAvatarImg;
 
   const handleLogout = () => {
     logout();
@@ -66,16 +58,7 @@ export const UserSidebarProfile: React.FC = () => {
         aria-expanded={open}
       >
         <span className="shell-sidebar-avatar" aria-hidden="true">
-          {!imgError ? (
-            <img
-              src={avatarSrc}
-              alt={fullName}
-              className="shell-sidebar-avatar-img"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <span className="shell-sidebar-avatar-initials">{initials}</span>
-          )}
+          <span className="shell-sidebar-avatar-initials">{initials}</span>
         </span>
         <span className="shell-sidebar-avatar-label">Mi Perfil</span>
       </button>

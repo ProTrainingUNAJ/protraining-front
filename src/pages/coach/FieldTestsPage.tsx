@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarClock, Plus, Play, CheckCircle2, ClipboardList } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { EmptyState } from '../../components/EmptyState';
+import { formatIsoDate } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
 import {
   createFieldTestSession,
@@ -90,9 +92,6 @@ export const FieldTestsPage: React.FC = () => {
         setCategories(all);
         setSelectedCategoryId((current) => current || all[0]?.id || '');
         setCategoriesLoading(false);
-        if (all.length === 0) {
-          setCategoriesError('No se encontraron categorías disponibles para tu cuenta.');
-        }
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -242,6 +241,23 @@ export const FieldTestsPage: React.FC = () => {
         {categoriesLoading && <p className="ft-muted">Cargando categorías…</p>}
         {categoriesError && <div className="alert-banner danger">{categoriesError}</div>}
 
+        {!categoriesLoading && !categoriesError && categories.length === 0 && (
+          <EmptyState
+            icon={ClipboardList}
+            title="Todavía no tenés planteles"
+            description="Para tomar tests de campo primero creá una organización y una categoría con atletas."
+            action={
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => navigate('/pf/organizations')}
+              >
+                Ir a Organizaciones
+              </button>
+            }
+          />
+        )}
+
         {!categoriesLoading && !categoriesError && categories.length > 0 && (
           <div className="card ft-toolbar">
             <label className="ft-field">
@@ -372,7 +388,7 @@ export const FieldTestsPage: React.FC = () => {
                 <h3>{session.name}</h3>
                 <p className="ft-muted">
                   <CalendarClock size={14} aria-hidden="true" />{' '}
-                  {new Date(`${session.date}T00:00:00`).toLocaleDateString('es-AR')}
+                  {formatIsoDate(session.date.slice(0, 10))}
                 </p>
               </div>
 

@@ -126,26 +126,26 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
 
   return (
     <div
-      className="create-match-modal-overlay"
+      className="season-modal-backdrop"
       role="presentation"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="create-match-modal"
+        className="season-modal-panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-match-title"
       >
-        <div className="create-match-modal-header">
-          <h2 id="create-match-title" className="create-match-modal-title">
+        <div className="season-modal-header">
+          <h2 id="create-match-title" className="season-modal-title season-modal-title-group">
             <Calendar size={20} aria-hidden="true" />
             <span>Programar Partido Oficial</span>
           </h2>
           <button
             type="button"
-            className="create-match-modal-close-btn"
+            className="season-modal-close-btn"
             onClick={onClose}
             aria-label="Cerrar modal"
           >
@@ -153,7 +153,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="create-match-form" noValidate>
+        <form onSubmit={handleSubmit} className="season-modal-form" noValidate>
           {errorMessage && (
             <div className="form-error-banner" role="alert">
               <AlertCircle size={16} />
@@ -162,19 +162,19 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           )}
 
           {/* Categoría */}
-          <div className="form-group">
-            <label htmlFor="match-category-select" className="form-label">
+          <div className="season-modal-field">
+            <label htmlFor="match-category-select" className="season-modal-label">
               Categoría / División <span className="required-mark">*</span>
             </label>
             <select
               id="match-category-select"
-              className="form-select"
+              className="season-modal-select"
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               required
             >
               <option value="" disabled>
-                -- Selecciona una categoría --
+                Elegí una categoría
               </option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -185,14 +185,14 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </div>
 
           {/* Rival / Oponente */}
-          <div className="form-group">
-            <label htmlFor="match-opponent-input" className="form-label">
+          <div className="season-modal-field">
+            <label htmlFor="match-opponent-input" className="season-modal-label">
               Rival u Oponente <span className="required-mark">*</span>
             </label>
             <input
               id="match-opponent-input"
               type="text"
-              className="form-input"
+              className="season-modal-input"
               placeholder="Ej: Club San Martín, Defensores, etc."
               value={opponent}
               onChange={(e) => setOpponent(e.target.value)}
@@ -202,28 +202,28 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </div>
 
           {/* Fecha y Hora */}
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="match-date-input" className="form-label">
+          <div className="season-modal-grid-2">
+            <div className="season-modal-field">
+              <label htmlFor="match-date-input" className="season-modal-label">
                 Fecha del partido <span className="required-mark">*</span>
               </label>
               <input
                 id="match-date-input"
                 type="date"
-                className="form-input"
+                className="season-modal-input"
                 value={matchDate}
                 onChange={(e) => setMatchDate(e.target.value)}
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="match-time-input" className="form-label">
+            <div className="season-modal-field">
+              <label htmlFor="match-time-input" className="season-modal-label">
                 Horario estimado
               </label>
               <input
                 id="match-time-input"
                 type="time"
-                className="form-input"
+                className="season-modal-input"
                 value={matchTime}
                 onChange={(e) => setMatchTime(e.target.value)}
               />
@@ -231,10 +231,10 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </div>
 
           {/* Condición de Localía */}
-          <div className="form-group">
-            <label className="form-label">Condición del encuentro</label>
+          <div className="season-modal-field">
+            <label className="season-modal-label">Condición del encuentro</label>
             <div
-              className="condition-chips-container"
+              className="season-homeaway-selector"
               role="radiogroup"
               aria-label="Condición del partido"
             >
@@ -242,7 +242,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 type="button"
                 role="radio"
                 aria-checked={homeOrAway === 'Home'}
-                className={`condition-chip-btn ${homeOrAway === 'Home' ? 'is-selected' : ''}`}
+                className={`season-chip-btn ${homeOrAway === 'Home' ? 'is-active' : ''}`}
                 onClick={() => setHomeOrAway('Home')}
               >
                 <Shield size={16} />
@@ -252,7 +252,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 type="button"
                 role="radio"
                 aria-checked={homeOrAway === 'Away'}
-                className={`condition-chip-btn away ${homeOrAway === 'Away' ? 'is-selected away' : ''}`}
+                className={`season-chip-btn ${homeOrAway === 'Away' ? 'is-active' : ''}`}
                 onClick={() => setHomeOrAway('Away')}
               >
                 <MapPin size={16} />
@@ -262,7 +262,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                 type="button"
                 role="radio"
                 aria-checked={homeOrAway === 'Neutral'}
-                className={`condition-chip-btn neutral ${homeOrAway === 'Neutral' ? 'is-selected neutral' : ''}`}
+                className={`season-chip-btn ${homeOrAway === 'Neutral' ? 'is-active' : ''}`}
                 onClick={() => setHomeOrAway('Neutral')}
               >
                 <Compass size={16} />
@@ -272,13 +272,13 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </div>
 
           {/* Notas u Observaciones */}
-          <div className="form-group">
-            <label htmlFor="match-notes-input" className="form-label">
+          <div className="season-modal-field">
+            <label htmlFor="match-notes-input" className="season-modal-label">
               Notas u Observaciones (opcional)
             </label>
             <textarea
               id="match-notes-input"
-              className="form-textarea"
+              className="season-modal-textarea"
               rows={3}
               placeholder="Ej: Fecha 8 del torneo oficial. Convocatoria 1 hora antes en el predio."
               value={notes}
@@ -287,16 +287,16 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </div>
 
           {/* Acciones */}
-          <div className="create-match-modal-actions">
+          <div className="season-modal-actions">
             <button
               type="button"
-              className="btn-secondary"
+              className="season-btn-ghost"
               onClick={onClose}
               disabled={isSubmitting}
             >
               Cancelar
             </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            <button type="submit" className="season-btn-primary" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />

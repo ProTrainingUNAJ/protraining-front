@@ -17,6 +17,78 @@ export interface StoredRow {
   cards: StoredCard[];
 }
 
+// Inicio del atleta por defecto (antes de que lo personalice)
+export const DEFAULT_ATHLETE_ROWS: StoredRow[] = [
+  {
+    id: 'row-1',
+    name: 'Fila 1 · Indicadores en Vivo',
+    className: 'wireframe-row-1',
+    cards: [
+      { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+      {
+        id: 'a-daily-traffic-light',
+        name: 'Semáforo Diario',
+        colSpan: 1,
+        type: 'daily-traffic-light',
+      },
+      { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+    ],
+  },
+  {
+    id: 'row-2',
+    name: 'Fila 2 · Mi Estado y Rutina',
+    className: 'wireframe-row-2',
+    cards: [
+      { id: 'a-daily-load', name: 'Carga del Día', colSpan: 1, type: 'daily-load' },
+      { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
+      { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
+    ],
+  },
+  {
+    id: 'row-3',
+    name: 'Fila 3 · Suite y Carga',
+    className: 'wireframe-row-3',
+    cards: [
+      { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
+      {
+        id: 'a-chart-cmj',
+        name: 'Evolución Salto CMJ',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'cmj',
+      },
+    ],
+  },
+  {
+    id: 'row-4',
+    name: 'Fila 4 · Rendimiento y Métricas',
+    className: 'wireframe-row-4',
+    cards: [
+      {
+        id: 'a-chart-squat',
+        name: 'Sentadilla 1RM',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'squat',
+      },
+      {
+        id: 'a-chart-sprint',
+        name: 'Sprint 30m',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'sprint',
+      },
+      {
+        id: 'a-chart-yoyo',
+        name: 'Test Yo-Yo',
+        colSpan: 1,
+        type: 'progress-chart',
+        chartMetric: 'yoyo',
+      },
+    ],
+  },
+];
+
 export const DAILY_LOAD_CARD: StoredCard = {
   id: DAILY_LOAD_CARD_ID,
   name: 'Carga del Día',
@@ -184,5 +256,77 @@ export const pinDailyLoadWidget = (): boolean => {
     return true;
   } catch {
     return false;
+  }
+};
+
+const readAthleteRows = (): StoredRow[] | null => {
+  try {
+    const saved = localStorage.getItem(ATHLETE_DASHBOARD_STORAGE_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) && parsed.length > 0 ? (parsed as StoredRow[]) : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Gráficos de Progreso fijados en el Inicio del atleta: métrica → nombre de la tarjeta.
+ * Sin layout guardado, el Inicio usa el de defecto que recibe por parámetro.
+ */
+export const getPinnedProgressCharts = (defaultRows: StoredRow[]): Record<string, string> => {
+  if (typeof window === 'undefined' || !window.localStorage) return {};
+  const rows = readAthleteRows() ?? defaultRows;
+  const pinned: Record<string, string> = {};
+  rows.forEach((row) =>
+    row.cards?.forEach((card) => {
+      if (card.type === 'progress-chart' && card.chartMetric) {
+        pinned[card.chartMetric] = card.name;
+      }
+    }),
+  );
+  return pinned;
+};
+
+/** Lugares libres del Inicio del atleta donde se puede fijar un gráfico. */
+export const getEmptyDashboardSlots = (defaultRows: StoredRow[]): StoredCard[] => {
+  if (typeof window === 'undefined' || !window.localStorage) return [];
+  const rows = readAthleteRows() ?? defaultRows;
+  return rows.flatMap((row) => row.cards?.filter((card) => card.type === 'empty') ?? []);
+};
+
+/**
+ * Fija un gráfico de Progreso en el Inicio del atleta: en la tarjeta elegida o en el primer lugar libre.
+ * Devuelve el nombre del lugar que ocupó, o null si no había lugar.
+ */
+export const pinProgressChart = (
+  defaultRows: StoredRow[],
+  metricKey: string,
+  chartName: string,
+  targetCardId?: string,
+): string | null => {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
+  try {
+    const rows: StoredRow[] = JSON.parse(JSON.stringify(readAthleteRows() ?? defaultRows));
+    for (const row of rows) {
+      const idx = row.cards.findIndex((card) =>
+        targetCardId ? card.id === targetCardId : card.type === 'empty',
+      );
+      if (idx !== -1) {
+        const slotName = row.cards[idx].name;
+        row.cards[idx] = {
+          ...row.cards[idx],
+          type: 'progress-chart',
+          chartMetric: metricKey,
+          name: chartName,
+        };
+        localStorage.setItem(ATHLETE_DASHBOARD_STORAGE_KEY, JSON.stringify(rows));
+        window.dispatchEvent(new Event('protraining-dashboard-layout-changed'));
+        return slotName;
+      }
+    }
+    return null;
+  } catch {
+    return null;
   }
 };

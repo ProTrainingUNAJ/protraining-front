@@ -48,6 +48,8 @@ export const SubtleFireworks: React.FC<SubtleFireworksProps> = ({ active, trigge
 
   useEffect(() => {
     if (!active) return;
+    // Con "reducir movimiento" activado en el sistema no se lanzan los fuegos artificiales
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;

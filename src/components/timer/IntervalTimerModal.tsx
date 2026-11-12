@@ -142,13 +142,13 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
   const getPhaseColor = () => {
     switch (phase) {
       case 'prep':
-        return '#f59e0b';
+        return 'var(--warning)';
       case 'work':
         return 'var(--secondary, #00d26a)';
       case 'rest':
-        return '#0284c7';
+        return 'var(--secondary)';
       case 'finished':
-        return '#10b981';
+        return 'var(--success)';
       default:
         return 'var(--text-main)';
     }
@@ -284,10 +284,7 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
                           restSeconds === sec
                             ? '2px solid var(--secondary)'
                             : '1px solid var(--border)',
-                        background:
-                          restSeconds === sec
-                            ? 'var(--secondary-subtle, rgba(0, 210, 106, 0.15))'
-                            : 'var(--bg-subtle)',
+                        background: restSeconds === sec ? 'var(--success-bg)' : 'var(--bg-subtle)',
                         color: restSeconds === sec ? 'var(--secondary)' : 'var(--text-main)',
                       }}
                     >
@@ -315,7 +312,7 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
                 padding: '1rem 0',
               }}
             >
-              <CheckCircle2 size={64} style={{ color: '#10b981' }} />
+              <CheckCircle2 size={64} style={{ color: 'var(--success)' }} />
               <h2
                 style={{
                   fontSize: '1.8rem',
@@ -376,8 +373,8 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
                   style={{
                     fontSize: '0.85rem',
                     fontWeight: 700,
-                    color: '#f59e0b',
-                    background: 'rgba(245, 158, 11, 0.1)',
+                    color: 'var(--warning-text)',
+                    background: 'var(--warning-bg)',
                     padding: '0.2rem 0.6rem',
                     borderRadius: '6px',
                   }}

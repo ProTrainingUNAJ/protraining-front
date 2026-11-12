@@ -783,7 +783,7 @@
   z-index: 2;
   transition:
     background 0.25s ease,
-    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
   box-shadow: var(--shadow-sm);
 }
 
@@ -1409,7 +1409,7 @@
 .pixel-bubble-hero {
   border-radius: 50%;
   box-shadow: var(--checkin-hero-shadow);
-  animation: bubbleReaction 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: bubbleReaction 0.35s cubic-bezier(0.25, 1, 0.5, 1);
   position: relative;
   display: flex;
   align-items: center;
@@ -1454,7 +1454,7 @@
 
 .mood-needle-pivot {
   cursor: grab;
-  transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.36s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .mood-needle-pivot.is-dragging {
@@ -1573,7 +1573,7 @@
   transition:
     background-color 0.28s ease,
     box-shadow 0.28s ease;
-  animation: bubbleReaction 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: bubbleReaction 0.32s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .recovery-value-empty {
@@ -2061,4 +2061,17 @@
   border-radius: 50%;
   background: var(--traffic-reflection-bg);
   transform: rotate(-30deg);
+}
+
+/* Si el sistema pide reducir movimiento, se apagan las animaciones en bucle */
+@media (prefers-reduced-motion: reduce) {
+  .biometric-hud-pulse,
+  .mood-star-ambient-item,
+  .recovery-badge-halo,
+  .recovery-badge-blinking,
+  .checkin-traffic-bulb--red-on,
+  .checkin-traffic-bulb--yellow-on,
+  .checkin-traffic-bulb--green-on {
+    animation: none;
+  }
 }

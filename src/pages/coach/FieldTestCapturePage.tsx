@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { formatIsoDate } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
 import {
   createFieldTestResult,
@@ -226,7 +227,7 @@ export const FieldTestCapturePage: React.FC = () => {
     <div className="app-page-container">
       <PageHeader
         title={session.name}
-        description={`Test de campo · ${new Date(`${session.date}T00:00:00`).toLocaleDateString('es-AR')}`}
+        description={`Test de campo · ${formatIsoDate(session.date.slice(0, 10))}`}
         actions={
           <button
             type="button"

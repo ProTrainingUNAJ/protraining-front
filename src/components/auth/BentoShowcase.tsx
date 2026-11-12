@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, X, Info } from 'lucide-react';
-import runner3dImg from '../../assets/protraining-3d-runner.jpg';
+
+import runner3dImg from '../../assets/protraining-3d-runner.webp';
 
 export const BentoShowcase: React.FC = () => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
-  const [trialModalOpen, setTrialModalOpen] = useState(false);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -28,7 +27,7 @@ export const BentoShowcase: React.FC = () => {
   }, []);
 
   return (
-    <aside className="auth-visual-showcase" aria-label="ProTraining High Performance Showcase">
+    <aside className="auth-visual-showcase" aria-label="Presentación de ProTraining">
       {/* Imagen 3D del runner de fondo */}
       <img src={runner3dImg} alt="Escultura 3D ProTraining" className="auth-visual-bg-image" />
 
@@ -60,70 +59,12 @@ export const BentoShowcase: React.FC = () => {
 
       {/* Tarjeta inferior de vidrio esmerilado */}
       <div className="auth-glass-card">
-        {/* Fila: burbuja promocional + botón de acción alineados */}
-        <div className="promo-row">
-          <div className="promo-bubble">
-            <span className="font-extrabold">¡Pide una prueba de 30 días gratis!</span>
-          </div>
-          <button
-            type="button"
-            className="auth-glass-action-btn"
-            aria-label="Solicitar prueba gratuita de 30 días"
-            title="Solicitar prueba gratuita"
-            onClick={() => setTrialModalOpen(true)}
-          >
-            <ArrowUpRight size={17} />
-          </button>
-        </div>
-
         {/* Descripción */}
         <p className="font-medium auth-glass-desc">
           Planificación precisa de cargas, monitorización biométrica y seguimiento integral del
           deportista.
         </p>
       </div>
-
-      {/* Modal: prueba no disponible */}
-      {trialModalOpen && (
-        <div
-          className="auth-info-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="trial-modal-title"
-        >
-          <div className="auth-info-modal-card">
-            <div className="auth-info-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Info size={20} color="var(--color-primary)" />
-                <h2 id="trial-modal-title" className="font-extrabold auth-info-modal-title">
-                  Prueba gratuita de 30 días
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setTrialModalOpen(false)}
-                className="auth-info-modal-close"
-                aria-label="Cerrar"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <p className="font-medium auth-info-modal-body">
-              La prueba gratuita de 30 días no se encuentra disponible de momento. Pronto podrás
-              acceder a esta funcionalidad directamente desde la plataforma.
-            </p>
-            <div className="auth-info-modal-footer">
-              <button
-                type="button"
-                onClick={() => setTrialModalOpen(false)}
-                className="btn-pill-primary auth-info-modal-btn"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </aside>
   );
 };

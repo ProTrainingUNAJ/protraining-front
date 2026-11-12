@@ -12,6 +12,7 @@ export const NotificationsButton: React.FC = () => {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [confirmedInfo, setConfirmedInfo] = useState<{ id: string; message: string } | null>(null);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
+  const [loadError, setLoadError] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +33,7 @@ export const NotificationsButton: React.FC = () => {
       })
       .catch(() => {
         if (isMounted) {
+          setLoadError(true);
           setLoading(false);
         }
       });
@@ -86,13 +88,7 @@ export const NotificationsButton: React.FC = () => {
 
       // Activar estado de confirmación visual verde únicamente tras éxito comprobado
       setProcessingId(null);
-      const message = notice.isDemo
-        ? 'Ajuste simulado (Demo)'
-        : result.pendingArchiving
-          ? 'Ajuste aplicado (archivado pendiente)'
-          : 'Ajuste aplicado correctamente';
-
-      setConfirmedInfo({ id: notice.id, message });
+      setConfirmedInfo({ id: notice.id, message: result.message });
 
       // Mantener la confirmación visual durante 1.5s antes de archivar de la vista
       setTimeout(() => {
@@ -111,7 +107,6 @@ export const NotificationsButton: React.FC = () => {
   };
 
   const pendingCount = alerts.length;
-  const hasDemoNotices = alerts.some((a) => a.isDemo);
 
   return (
     <div className="shell-notifications-wrap" ref={containerRef}>
@@ -144,14 +139,6 @@ export const NotificationsButton: React.FC = () => {
               <h3 className="notice-center-title">Centro de Avisos</h3>
               {pendingCount > 0 && <span className="notice-center-count-pill">{pendingCount}</span>}
             </div>
-            {hasDemoNotices && (
-              <span
-                className="notice-severity-badge notice-severity-low"
-                title="Avisos de demostración visual (no impactan persistencia real)"
-              >
-                Avisos de ejemplo
-              </span>
-            )}
           </div>
 
           <div className="notice-center-body">
@@ -159,6 +146,12 @@ export const NotificationsButton: React.FC = () => {
               <div className="notice-center-empty">
                 <Loader2 size={24} className="notice-spin" aria-hidden="true" />
                 <p className="notice-empty-desc">Cargando avisos...</p>
+              </div>
+            ) : loadError ? (
+              <div className="notice-center-empty" role="alert">
+                <AlertTriangle size={32} className="notice-center-empty-icon" aria-hidden="true" />
+                <p className="notice-center-empty-title">No se pudieron cargar los avisos</p>
+                <p className="notice-empty-desc">Revisá la conexión y volvé a abrir el centro.</p>
               </div>
             ) : pendingCount === 0 ? (
               <div className="notice-center-empty">
@@ -230,23 +223,17 @@ export const NotificationsButton: React.FC = () => {
                             disabled={
                               isProcessing || Boolean(processingId) || Boolean(confirmedInfo)
                             }
-                            aria-label={`Aplicar con 1 Clic para ${notice.athleteName}`}
+                            aria-label={`${notice.actionLabel || 'Aplicar con 1 clic'}: ${notice.athleteName}`}
                           >
                             {isProcessing ? (
                               <>
                                 <Loader2 size={15} className="notice-spin" aria-hidden="true" />
-                                <span>
-                                  {notice.isDemo ? 'Simulando ajuste...' : 'Aplicando ajuste...'}
-                                </span>
+                                <span>Aplicando…</span>
                               </>
                             ) : (
                               <>
                                 <Zap size={15} aria-hidden="true" />
-                                <span>
-                                  {notice.isDemo
-                                    ? notice.actionLabel || 'Simular ajuste (Demo)'
-                                    : notice.actionLabel || 'Aplicar con 1 Clic'}
-                                </span>
+                                <span>{notice.actionLabel || 'Aplicar con 1 clic'}</span>
                               </>
                             )}
                           </button>

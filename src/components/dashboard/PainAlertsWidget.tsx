@@ -91,7 +91,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
           className="badge"
           style={{
             background: 'var(--pain-level-5-bg)',
-            color: 'var(--pain-level-5)',
+            color: 'var(--danger-text)',
             fontSize: '0.68rem',
             fontWeight: 700,
             padding: '0.15rem 0.5rem',
@@ -117,8 +117,6 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
         {/* 1. Sticky ROJO · Molestia Crítica (Movimiento Propio) */}
         <div
           onClick={() => handleOpenMonitoring('red')}
-          role="button"
-          tabIndex={0}
           title="Ver atletas con Molestia Crítica en el semáforo"
           className="pain-sticky-item pain-sticky-red"
           style={{
@@ -200,8 +198,6 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
         {/* 2. Sticky AMARILLO · Precaución (Movimiento Propio) */}
         <div
           onClick={() => handleOpenMonitoring('yellow')}
-          role="button"
-          tabIndex={0}
           title="Ver atletas con Precaución en el semáforo"
           className="pain-sticky-item pain-sticky-yellow"
           style={{
