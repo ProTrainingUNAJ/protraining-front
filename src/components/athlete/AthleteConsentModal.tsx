@@ -212,8 +212,8 @@ export const AthleteConsentModal: React.FC<AthleteConsentModalProps> = ({
                   borderRadius: '6px',
                 }}
               >
-                Firmante legal: <strong>{athleteName}</strong> · Registro digital inmutable en
-                ProTraining PWA.
+                Firmante: <strong>{athleteName}</strong> · La firma queda registrada en ProTraining
+                y no se puede modificar.
               </div>
             </div>
 
