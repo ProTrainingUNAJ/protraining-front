@@ -102,7 +102,7 @@ export const ForceChangePasswordPage: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.5rem',
-        backgroundColor: 'var(--bg-main, #0f172a)',
+        backgroundColor: 'var(--bg-main)',
       }}
     >
       <div
@@ -120,14 +120,14 @@ export const ForceChangePasswordPage: React.FC = () => {
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(2, 132, 199, 0.1)',
+              backgroundColor: 'var(--info-bg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1rem',
             }}
           >
-            <KeyRound size={26} color="var(--primary, #0284c7)" aria-hidden="true" />
+            <KeyRound size={26} color="var(--primary)" aria-hidden="true" />
           </div>
           <h1 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
             Cambio de contraseña obligatorio
@@ -135,7 +135,7 @@ export const ForceChangePasswordPage: React.FC = () => {
           <p
             style={{
               fontSize: '0.9rem',
-              color: 'var(--text-muted, #64748b)',
+              color: 'var(--text-muted)',
               margin: 0,
               lineHeight: 1.4,
             }}
@@ -152,12 +152,12 @@ export const ForceChangePasswordPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
+              backgroundColor: 'var(--danger-bg)',
+              border: '1px solid var(--danger-border)',
               borderRadius: '0.375rem',
               padding: '0.75rem',
               marginBottom: '1.25rem',
-              color: '#dc2626',
+              color: 'var(--danger-text)',
               fontSize: '0.875rem',
             }}
           >
@@ -173,12 +173,12 @@ export const ForceChangePasswordPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              backgroundColor: 'rgba(22, 163, 74, 0.1)',
-              border: '1px solid rgba(22, 163, 74, 0.3)',
+              backgroundColor: 'var(--success-bg)',
+              border: '1px solid var(--success-border)',
               borderRadius: '0.375rem',
               padding: '0.75rem',
               marginBottom: '1.25rem',
-              color: '#16a34a',
+              color: 'var(--success-text)',
               fontSize: '0.875rem',
             }}
           >
@@ -225,7 +225,7 @@ export const ForceChangePasswordPage: React.FC = () => {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--text-muted, #64748b)',
+                  color: 'var(--text-muted)',
                   display: 'flex',
                 }}
               >
@@ -271,7 +271,7 @@ export const ForceChangePasswordPage: React.FC = () => {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--text-muted, #64748b)',
+                  color: 'var(--text-muted)',
                   display: 'flex',
                 }}
               >
@@ -317,7 +317,7 @@ export const ForceChangePasswordPage: React.FC = () => {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: 'var(--text-muted, #64748b)',
+                  color: 'var(--text-muted)',
                   display: 'flex',
                 }}
               >
@@ -330,7 +330,7 @@ export const ForceChangePasswordPage: React.FC = () => {
           <div
             style={{
               padding: '0.75rem',
-              backgroundColor: 'rgba(2, 132, 199, 0.05)',
+              backgroundColor: 'var(--info-bg)',
               borderRadius: '0.375rem',
               marginBottom: '1.5rem',
               fontSize: '0.8rem',
@@ -344,7 +344,7 @@ export const ForceChangePasswordPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                color: hasMinLength && hasDigit ? '#16a34a' : 'var(--text-muted)',
+                color: hasMinLength && hasDigit ? 'var(--success-text)' : 'var(--text-muted)',
               }}
             >
               <Check size={14} />
@@ -355,7 +355,7 @@ export const ForceChangePasswordPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                color: passwordsMatch ? '#16a34a' : 'var(--text-muted)',
+                color: passwordsMatch ? 'var(--success-text)' : 'var(--text-muted)',
               }}
             >
               <Check size={14} />
@@ -388,7 +388,7 @@ export const ForceChangePasswordPage: React.FC = () => {
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--text-muted, #64748b)',
+              color: 'var(--text-muted)',
               fontSize: '0.85rem',
               cursor: 'pointer',
               display: 'inline-flex',
