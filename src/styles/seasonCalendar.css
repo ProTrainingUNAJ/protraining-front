@@ -59,6 +59,11 @@
 
 /* Category Filter Select */
 .season-calendar-select {
+  /* Anula el ancho completo y los márgenes del estilo general de select */
+  width: auto;
+  min-width: 200px;
+  max-width: 100%;
+  margin: 0;
   padding: 0.45rem 0.75rem;
   border-radius: calc(var(--radius) - 4px);
   border: 1px solid var(--border);
