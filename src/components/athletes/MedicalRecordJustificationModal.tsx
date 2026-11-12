@@ -90,8 +90,8 @@ export const MedicalRecordJustificationModal: React.FC<MedicalRecordJustificatio
                 <strong>Acceso a información confidencial de {athleteName}:</strong>
                 <div style={{ marginTop: '0.25rem' }}>
                   Por exigencia legal y auditoría inmutable, cada consulta a la ficha médica queda
-                  registrada con tu usuario y marca de tiempo. Debes declarar el motivo profesional
-                  para continuar.
+                  registrada con tu usuario y marca de tiempo. Tenés que declarar el motivo
+                  profesional para continuar.
                 </div>
               </div>
             </div>

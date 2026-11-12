@@ -35,7 +35,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
       >
         <h1
           style={{
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
             fontSize: '3.8rem',
             fontWeight: 900,
             color: 'var(--checkin-title-color)',
@@ -49,7 +49,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
 
         <span
           style={{
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
             fontSize: '2.4rem',
             fontWeight: 300,
             color: 'var(--checkin-title-color)',
@@ -72,13 +72,13 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
             padding: '0.8rem 2.8rem',
             fontSize: '1.05rem',
             fontWeight: 700,
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.65rem',
             boxShadow: '0 8px 24px rgba(8, 37, 74, 0.25)',
-            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease',
+            transition: 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
@@ -97,7 +97,7 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
       {/* ── Pie de tarjeta inferior ── */}
       <p
         style={{
-          fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+          fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
           fontSize: '0.96rem',
           color: 'var(--checkin-subtitle-color)',
           textAlign: 'center',

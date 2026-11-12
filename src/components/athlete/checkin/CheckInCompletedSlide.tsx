@@ -432,7 +432,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
             fontWeight: 800,
             fontSize: '1.05rem',
             color: badge.color,
-            fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
+            fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
             textAlign: 'center',
             letterSpacing: '-0.015em',
           }}
@@ -458,7 +458,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               alignItems: 'center',
               gap: '0.65rem',
               boxSizing: 'border-box',
-              fontFamily: 'Montserrat, sans-serif',
+              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
             }}
           >
             <AlertTriangle size={17} style={{ color: badge.color, flexShrink: 0 }} />
@@ -659,7 +659,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               marginBottom: '1.1rem',
               textAlign: 'left',
               boxSizing: 'border-box',
-              fontFamily: 'Montserrat, sans-serif',
+              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
             }}
           >
             <div
@@ -675,7 +675,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   fontSize: '0.84rem',
                   fontWeight: 800,
                   color: 'var(--checkin-title-color)',
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                 }}
               >
                 Detalle de molestias musculares ({reportedCount}):
@@ -694,7 +694,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   alignItems: 'center',
                   gap: '0.25rem',
                   padding: 0,
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                 }}
               >
                 <span>{showBodyMap ? 'Ocultar silueta' : 'Ver en silueta'}</span>
@@ -814,7 +814,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 gap: '0.45rem',
                 marginBottom: '0.25rem',
                 color: 'var(--checkin-title-color)',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
               }}
             >
               <MessageSquare size={16} style={{ color: 'var(--primary)' }} />
@@ -826,7 +826,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 fontSize: '0.84rem',
                 color: 'var(--checkin-subtitle-color)',
                 fontStyle: 'italic',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
               }}
             >
               "{notes}"

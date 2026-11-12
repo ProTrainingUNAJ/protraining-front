@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { AppSidebar } from './AppSidebar';
-import { SearchBar } from './SearchBar';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationsButton } from './NotificationsButton';
 import { CalendarButton } from './CalendarButton';
@@ -73,9 +72,6 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
               >
                 <Menu size={22} aria-hidden="true" />
               </button>
-
-              {/* A. Campo de búsqueda persistente */}
-              <SearchBar placeholder="Buscar..." />
             </div>
 
             {/* Acciones globales persistentes */}

@@ -174,9 +174,7 @@ export const InvitationLandingPage: React.FC = () => {
         return;
       }
       if (!guardianEmail.trim() && !guardianPhone.trim()) {
-        setFormError(
-          'Debes proporcionar al menos un medio de contacto del tutor (correo o teléfono).',
-        );
+        setFormError('Cargá al menos un medio de contacto del tutor (correo o teléfono).');
         setErrorType('validation');
         return;
       }

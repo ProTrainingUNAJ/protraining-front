@@ -140,12 +140,46 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
       ).toBeDefined();
     });
 
-    // Cambiar a "Mi progreso" verifica que las curvas y métricas siguen funcionando normalmente
+    // Sin mediciones en el período, "Mi progreso" lo dice en lugar de mostrar números de ejemplo
     const tabMiProgreso = screen.getByRole('tab', { name: /Mi progreso/i });
     fireEvent.click(tabMiProgreso);
 
-    expect(screen.getByText('Salto Vertical CMJ')).toBeDefined();
-    expect(screen.getByText('Carga RPE Promedio')).toBeDefined();
+    expect(screen.getByText('Todavía no hay mediciones en este período')).toBeDefined();
+  });
+
+  it('Mi progreso muestra la última medición real de cada métrica', async () => {
+    vi.spyOn(athleteEvolutionService, 'getEvolution').mockResolvedValue({
+      athleteId: 'ath-123',
+      from: '2026-08-01',
+      to: '2026-11-01',
+      strength: [],
+      fitnessTests: [
+        {
+          catalogTestId: 't-1',
+          testName: 'Salto CMJ',
+          motorCapacity: 'Potencia',
+          unit: 'cm',
+          points: [
+            { date: '2026-09-01', value: 38 },
+            { date: '2026-10-01', value: 41 },
+          ],
+        },
+      ],
+      wellness: { fatiguePoints: [], dailyPoints: [] },
+      weeklyLoads: [],
+      strengthUnavailable: false,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/athlete/progress']}>
+        <ProgressPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('+3 cm en el período')).toBeDefined();
+    });
+    expect(screen.getAllByText('Salto CMJ').length).toBeGreaterThan(0);
   });
 
   it('CRITERIO KAN-434 / KAN-435: maneja error 404 (atleta no encontrado o de otro PF) mostrando la alerta', async () => {

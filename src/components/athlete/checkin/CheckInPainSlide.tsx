@@ -184,7 +184,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             disabled={!canProceed || isScanning}
             aria-disabled={!canProceed || isScanning}
             aria-label="Ir al siguiente paso"
-            title={!canProceed ? 'Debes marcar la lesion para continuar.' : 'Siguiente paso'}
+            title={!canProceed ? 'Marcá la lesión para continuar.' : 'Siguiente paso'}
             className="checkin-circular-nav-btn next"
             style={{
               opacity: !canProceed || isScanning ? 0.45 : 1,
@@ -226,14 +226,14 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              fontFamily: 'Montserrat, sans-serif',
+              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
               animation: 'shakeNotice 0.35s ease',
               boxShadow: 'var(--shadow-sm)',
               marginBottom: '0.65rem',
             }}
           >
             <AlertTriangle size={15} style={{ flexShrink: 0 }} />
-            <span>Debes marcar la lesion para continuar.</span>
+            <span>Marcá la lesión para continuar.</span>
           </div>
         )}
 
@@ -364,13 +364,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(14, 165, 233, 0.12)',
-                  border: '2px solid rgba(14, 165, 233, 0.35)',
+                  backgroundColor: 'var(--info-bg)',
+                  border: '2px solid var(--info-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '1rem',
-                  boxShadow: '0 8px 20px rgba(14, 165, 233, 0.2)',
+                  boxShadow: 'var(--shadow)',
                   flexShrink: 0,
                 }}
                 aria-hidden="true"
@@ -422,7 +422,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               <h3
                 id="cartel-enfermo-title"
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                   fontSize: '1.35rem',
                   fontWeight: 800,
                   color: 'var(--checkin-title-color)',
@@ -436,7 +436,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               {/* Subtítulo explicativo */}
               <p
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                   fontSize: '0.94rem',
                   fontWeight: 500,
                   color: 'var(--checkin-subtitle-color)',
@@ -466,7 +466,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     border: '1.5px solid var(--border)',
                     color: 'var(--text-main)',
                     borderRadius: '9999px',
-                    fontFamily: 'Montserrat, sans-serif',
+                    fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                     fontSize: '0.95rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -486,7 +486,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     color: 'var(--checkin-next-btn-color)',
                     borderRadius: '9999px',
                     border: 'none',
-                    fontFamily: 'Montserrat, sans-serif',
+                    fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                     fontSize: '0.95rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -527,13 +527,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(14, 165, 233, 0.12)',
-                  border: '2px solid rgba(14, 165, 233, 0.35)',
+                  backgroundColor: 'var(--info-bg)',
+                  border: '2px solid var(--info-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '1rem',
-                  boxShadow: '0 8px 20px rgba(14, 165, 233, 0.2)',
+                  boxShadow: 'var(--shadow)',
                   flexShrink: 0,
                 }}
                 aria-hidden="true"
@@ -577,7 +577,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               <h3
                 id="cartel-lesion-title"
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                   fontSize: '1.35rem',
                   fontWeight: 800,
                   color: 'var(--checkin-title-color)',
@@ -591,7 +591,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               {/* Subtítulo explicativo */}
               <p
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                   fontSize: '0.94rem',
                   fontWeight: 500,
                   color: 'var(--checkin-subtitle-color)',
@@ -622,7 +622,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     border: '1.5px solid var(--border)',
                     color: 'var(--text-main)',
                     borderRadius: '9999px',
-                    fontFamily: 'Montserrat, sans-serif',
+                    fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                     fontSize: '0.95rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -642,7 +642,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
                     color: 'var(--checkin-next-btn-color)',
                     borderRadius: '9999px',
                     border: 'none',
-                    fontFamily: 'Montserrat, sans-serif',
+                    fontFamily: "'Montserrat Variable', system-ui, sans-serif",
                     fontSize: '0.95rem',
                     fontWeight: 700,
                     cursor: 'pointer',

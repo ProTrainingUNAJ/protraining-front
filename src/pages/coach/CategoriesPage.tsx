@@ -121,7 +121,7 @@ export const CategoriesPage: React.FC = () => {
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrgId) {
-      setError('Debes seleccionar una organización deportiva.');
+      setError('Elegí una organización deportiva.');
       return;
     }
 
@@ -388,7 +388,8 @@ export const CategoriesPage: React.FC = () => {
                 marginInline: 'auto',
               }}
             >
-              Para gestionar o crear categorías, primero debes registrar una organización deportiva.
+              Para gestionar o crear categorías, primero tenés que registrar una organización
+              deportiva.
             </p>
             <button
               type="button"
@@ -429,7 +430,7 @@ export const CategoriesPage: React.FC = () => {
                 marginInline: 'auto',
               }}
             >
-              Crea la primera categoría para organizar las divisiones y asociar a tus atletas.
+              Creá la primera categoría para organizar las divisiones y asociar a tus atletas.
             </p>
             <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
               <Plus size={16} aria-hidden="true" />
