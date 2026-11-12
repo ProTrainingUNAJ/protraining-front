@@ -7,19 +7,7 @@ export interface CheckInWelcomeSlideProps {
 
 export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStart }) => {
   return (
-    <div
-      style={{
-        width: '100%',
-        minHeight: '580px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '3rem 1.5rem 2rem',
-        boxSizing: 'border-box',
-        position: 'relative',
-      }}
-    >
+    <div className="pixel-slide-card pixel-welcome-card">
       {/* Espacio superior para balancear el contenido centrado */}
       <div style={{ height: '10px' }} aria-hidden="true" />
 

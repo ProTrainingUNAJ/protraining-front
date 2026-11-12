@@ -767,7 +767,7 @@ export const CheckInPage: React.FC = () => {
         {showConfetti && <ConfettiCelebration durationMs={4500} particleCount={140} />}
 
         {/* ── BURBUJA CONTENEDORA PRINCIPAL (MISMO ANCHO QUE SESIÓN DE MI RUTINA) ── */}
-        <div className="card card-static checkin-main-bubble">
+        <div className="checkin-main-bubble">
           {submissionResult ? (
             /* ── PANTALLA DE CONFIRMACIÓN FINAL (ADAPTADA AL ESTILO DE LOS SLIDES ANTERIORES) ── */
             <div className="checkin-slide-container">
@@ -802,7 +802,9 @@ export const CheckInPage: React.FC = () => {
             </div>
           ) : !hasStarted ? (
             /* ── PANTALLA DE BIENVENIDA / INICIO ANTES DEL PASO 1 ── */
-            <CheckInWelcomeSlide onStart={handleStartCheckIn} />
+            <div className="checkin-slide-container">
+              <CheckInWelcomeSlide onStart={handleStartCheckIn} />
+            </div>
           ) : (
             /* ── FLUJO DE TARJETAS TIPO SLIDE (3 PASOS + RESUMEN FINAL) ── */
             <div
