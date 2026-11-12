@@ -225,7 +225,7 @@ export const LoginForm: React.FC = () => {
                 setEmail(e.target.value);
                 if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
               }}
-              placeholder="Enter email"
+              placeholder="Correo electrónico"
               className="input-pill"
               aria-invalid={!!fieldErrors.email}
               aria-describedby={fieldErrors.email ? 'email-error' : undefined}
@@ -260,7 +260,7 @@ export const LoginForm: React.FC = () => {
                 if (fieldErrors.password)
                   setFieldErrors((prev) => ({ ...prev, password: undefined }));
               }}
-              placeholder="Password"
+              placeholder="Contraseña"
               className="input-pill has-trailing"
               aria-invalid={!!fieldErrors.password}
               aria-describedby={fieldErrors.password ? 'password-error' : undefined}

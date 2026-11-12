@@ -23,7 +23,6 @@ export interface NoticeItem {
   canApplyWithOneClick: boolean;
   actionType?: 'routine_adjustment' | 'load_reduction' | 'habits_approval';
   actionLabel?: string;
-  isDemo?: boolean;
   painZones?: string;
 }
 

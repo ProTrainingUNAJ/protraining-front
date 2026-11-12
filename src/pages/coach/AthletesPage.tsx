@@ -377,7 +377,7 @@ export const AthletesPage: React.FC = () => {
               Alta de Atleta en el Plantel
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              Ingresa los datos personales y asigna las divisiones iniciales del deportista.
+              Ingresá los datos personales y asigná las divisiones iniciales del deportista.
             </p>
 
             <form onSubmit={handleCreateAthlete}>
@@ -542,7 +542,11 @@ export const AthletesPage: React.FC = () => {
                             );
                           }}
                         >
-                          {isSelected ? '✓ ' : '+ '}
+                          {isSelected ? (
+                            <Check size={13} aria-hidden="true" />
+                          ) : (
+                            <Plus size={13} aria-hidden="true" />
+                          )}
                           {cat.name}
                         </button>
                       );
@@ -666,7 +670,7 @@ export const AthletesPage: React.FC = () => {
             >
               {searchTerm || selectedCategoryId
                 ? 'Prueba modificando el término de búsqueda o seleccionando otra división.'
-                : 'Comienza dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
+                : 'Empezá dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
             </p>
             {!searchTerm && !selectedCategoryId && (
               <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
@@ -809,7 +813,7 @@ export const AthletesPage: React.FC = () => {
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                     onClick={() => setBenchmarkAthlete(athlete)}
-                    title="Comparar rendimiento individual frente al promedio del grupo (KAN-448)"
+                    title="Comparar rendimiento individual frente al promedio del grupo"
                     data-testid={`benchmark-btn-${athlete.id}`}
                   >
                     <TrendingUp size={15} aria-hidden="true" />
@@ -820,7 +824,7 @@ export const AthletesPage: React.FC = () => {
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                     onClick={() => setInjuriesAthlete(athlete)}
-                    title="Ver sus lesiones y avanzar el stepper (KAN-421)"
+                    title="Ver historial de lesiones del atleta"
                   >
                     <HeartPulse size={15} aria-hidden="true" />
                     <span>Lesiones</span>
@@ -840,7 +844,7 @@ export const AthletesPage: React.FC = () => {
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                     onClick={() => setResetAthlete(athlete)}
-                    title="Restablecer contraseña del atleta (KAN-539)"
+                    title="Restablecer contraseña del atleta"
                     data-testid={`reset-pwd-btn-${athlete.id}`}
                   >
                     <KeyRound size={15} aria-hidden="true" />
@@ -960,7 +964,7 @@ export const AthletesPage: React.FC = () => {
             </div>
 
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              Un atleta puede competir en múltiples divisiones simultáneamente. Pulsa para asociar o
+              Un atleta puede competir en múltiples divisiones simultáneamente. Tocá para asociar o
               desvincular.
             </p>
 
