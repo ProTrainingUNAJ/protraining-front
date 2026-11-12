@@ -29,4 +29,3 @@ describe('CheckInWelcomeSlide (KAN-547)', () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 });
-
