@@ -5,6 +5,7 @@ import {
   updateFieldTestSessionStatus as statusRequest,
   getFieldTestSession as getRequest,
   createFieldTestResult as resultRequest,
+  updateFieldTestResult as updateResultRequest,
   listFitnessTests as catalogRequest,
 } from '../generated/seguimiento';
 import {
@@ -13,6 +14,7 @@ import {
   updateFieldTestSessionStatus,
   getFieldTestSession,
   createFieldTestResult,
+  updateFieldTestResult,
   listFitnessTests,
 } from '../fieldTestSessions';
 
@@ -24,6 +26,7 @@ vi.mock('../generated/seguimiento', () => ({
   updateFieldTestSessionStatus: vi.fn(),
   getFieldTestSession: vi.fn(),
   createFieldTestResult: vi.fn(),
+  updateFieldTestResult: vi.fn(),
   listFitnessTests: vi.fn(),
 }));
 
@@ -207,6 +210,39 @@ describe('wrappers de sesiones de test de campo (KAN-427)', () => {
           attempt: 1,
         }),
       ).rejects.toThrow('Esa marca ya fue cargada para este atleta.');
+    });
+  });
+
+  describe('updateFieldTestResult', () => {
+    it('hace PUT con el id del resultado y devuelve la marca corregida', async () => {
+      const updated = {
+        id: 'r-1',
+        catalogTestId: 't-1',
+        athleteId: 'a-1',
+        value: 40,
+        attempt: 1,
+        recordedAt: '2026-11-09T15:00:00',
+      };
+      vi.mocked(updateResultRequest).mockResolvedValue({ data: updated } as never);
+
+      const result = await updateFieldTestResult('s-1', 'r-1', { value: 40, attempt: 1 });
+
+      expect(updateResultRequest).toHaveBeenCalledWith({
+        path: { sessionId: 's-1', resultId: 'r-1' },
+        body: { value: 40, attempt: 1 },
+        throwOnError: true,
+      });
+      expect(result).toEqual(updated);
+    });
+
+    it('traduce el 400 de sesión cerrada al mensaje del backend', async () => {
+      vi.mocked(updateResultRequest).mockRejectedValue(
+        axiosError(400, { detail: 'La sesión ya está cerrada.' }),
+      );
+
+      await expect(updateFieldTestResult('s-1', 'r-1', { value: 40, attempt: 1 })).rejects.toThrow(
+        'La sesión ya está cerrada.',
+      );
     });
   });
 

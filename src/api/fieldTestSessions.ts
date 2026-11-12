@@ -5,12 +5,14 @@ import {
   updateFieldTestSessionStatus as updateFieldTestSessionStatusRequest,
   getFieldTestSession as getFieldTestSessionRequest,
   createFieldTestResult as createFieldTestResultRequest,
+  updateFieldTestResult as updateFieldTestResultRequest,
   listFitnessTests as listFitnessTestsRequest,
   type FieldTestSession,
   type FieldTestSessionSummary,
   type CreateFieldTestSessionRequest,
   type UpdateFieldTestSessionStatusRequest,
   type CreateFieldTestResultRequest,
+  type UpdateFieldTestResultRequest,
   type FieldTestResult,
   type FitnessTest,
 } from './generated/seguimiento';
@@ -106,6 +108,28 @@ export async function createFieldTestResult(
   try {
     const response = await createFieldTestResultRequest({
       path: { sessionId },
+      body: payload,
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Corrige una marca ya cargada (valor e intento) en la sesión (KAN-568).
+ * PUT `/api/v1/field-test-sessions/{sessionId}/results/{resultId}`.
+ * Devuelve 400 "La sesión ya está cerrada." si la sesión está en estado Closed.
+ */
+export async function updateFieldTestResult(
+  sessionId: string,
+  resultId: string,
+  payload: UpdateFieldTestResultRequest,
+): Promise<FieldTestResult> {
+  try {
+    const response = await updateFieldTestResultRequest({
+      path: { sessionId, resultId },
       body: payload,
       throwOnError: true,
     });

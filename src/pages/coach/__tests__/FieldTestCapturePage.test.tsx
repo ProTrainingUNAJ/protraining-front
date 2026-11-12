@@ -7,6 +7,7 @@ import {
   createFieldTestResult,
   getFieldTestSession,
   listFitnessTests,
+  updateFieldTestResult,
   updateFieldTestSessionStatus,
 } from '../../../api/fieldTestSessions';
 import { structureService } from '../../../api/structureService';
@@ -17,6 +18,7 @@ vi.mock('../../../api/fieldTestSessions', () => ({
   getFieldTestSession: vi.fn(),
   listFitnessTests: vi.fn(),
   createFieldTestResult: vi.fn(),
+  updateFieldTestResult: vi.fn(),
   updateFieldTestSessionStatus: vi.fn(),
 }));
 
@@ -202,5 +204,85 @@ describe('FieldTestCapturePage · Toma táctil de marcas (KAN-427)', () => {
     fireEvent.change(input, { target: { value: '10' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(createFieldTestResult).not.toHaveBeenCalled();
+  });
+
+  // KAN-568: si el atleta ya tiene una marca en este test, la corrección va por PUT
+  // (el POST chocaría con el índice único de la base → 409).
+  it('corrige una marca existente con PUT en lugar de POST', async () => {
+    vi.mocked(getFieldTestSession).mockResolvedValue(
+      makeSession({
+        results: [
+          {
+            id: 'r-9',
+            catalogTestId: 't-1',
+            athleteId: 'a-1',
+            value: 30,
+            attempt: 1,
+            recordedAt: '2026-11-09T15:00:00',
+          },
+        ],
+      }),
+    );
+    vi.mocked(updateFieldTestResult).mockResolvedValue({
+      id: 'r-9',
+      catalogTestId: 't-1',
+      athleteId: 'a-1',
+      value: 38.5,
+      attempt: 1,
+      recordedAt: '2026-11-09T15:00:00',
+    });
+
+    renderPage();
+    await screen.findAllByText('Ana Pérez');
+
+    // La marca previa (30) está visible en la lista del primer atleta.
+    expect(screen.getByText('30')).toBeDefined();
+
+    const input = screen.getByLabelText('Marca del atleta');
+    fireEvent.change(input, { target: { value: '38.5' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(updateFieldTestResult).toHaveBeenCalledWith(SESSION_ID, 'r-9', {
+        value: 38.5,
+        attempt: 1,
+      });
+    });
+    expect(createFieldTestResult).not.toHaveBeenCalled();
+
+    // La lista refleja el valor corregido (reemplaza al anterior, sin duplicar).
+    await waitFor(() => {
+      expect(screen.getByText('38.5')).toBeDefined();
+    });
+    expect(screen.queryByText('30')).toBeNull();
+  });
+
+  // KAN-568: si falla la carga de atletas se muestra el error con "Reintentar"
+  // en lugar de un vacío engañoso.
+  it('muestra error con "Reintentar" si falla la carga de atletas', async () => {
+    vi.mocked(structureService.getAthletes).mockRejectedValueOnce(
+      new Error('No se pudieron cargar los atletas de la categoría.'),
+    );
+
+    renderPage();
+
+    // Aparece el banner de error con el botón de reintento.
+    const retryButton = await screen.findByRole('button', { name: /Reintentar/ });
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toContain('No se pudieron cargar los atletas de la categoría.');
+    expect(screen.getByText('Reintentar')).toBeDefined();
+
+    // No se muestra el estado vacío (sería mentir: no sabemos si hay atletas).
+    expect(screen.queryByText('Esta categoría no tiene atletas cargados.')).toBeNull();
+    expect(screen.queryByText('Carga completa para este test')).toBeNull();
+
+    // El reintento vuelve a pedir los atletas y la pantalla se recupera.
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(structureService.getAthletes).toHaveBeenCalledTimes(2);
+    });
+    await screen.findAllByText('Ana Pérez');
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });
