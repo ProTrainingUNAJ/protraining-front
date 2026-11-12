@@ -311,26 +311,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div
-        className="pixel-slide-card"
-        style={{
-          width: '100%',
-          maxWidth: '820px',
-          height: 'auto',
-          minHeight: 'auto',
-          background: 'var(--checkin-card-bg)',
-          borderRadius: '28px',
-          border: '1.5px solid var(--checkin-card-border)',
-          boxShadow: 'var(--checkin-card-shadow)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          boxSizing: 'border-box',
-          position: 'relative',
-          overflow: 'visible',
-          transition: 'background-color 0.25s ease, border-color 0.25s ease',
-        }}
-      >
+      <div className="pixel-slide-card">
         {/* ── Cabecera Superior con Botón Circular Editar Respuestas a la altura del Título ── */}
         <div
           style={{
@@ -432,7 +413,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
             fontWeight: 800,
             fontSize: '1.05rem',
             color: badge.color,
-            fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
+            fontFamily: 'var(--font-base)',
             textAlign: 'center',
             letterSpacing: '-0.015em',
           }}
@@ -458,7 +439,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               alignItems: 'center',
               gap: '0.65rem',
               boxSizing: 'border-box',
-              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+              fontFamily: 'var(--font-base)',
             }}
           >
             <AlertTriangle size={17} style={{ color: badge.color, flexShrink: 0 }} />
@@ -659,7 +640,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               marginBottom: '1.1rem',
               textAlign: 'left',
               boxSizing: 'border-box',
-              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+              fontFamily: 'var(--font-base)',
             }}
           >
             <div
@@ -675,7 +656,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   fontSize: '0.84rem',
                   fontWeight: 800,
                   color: 'var(--checkin-title-color)',
-                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                  fontFamily: 'var(--font-base)',
                 }}
               >
                 Detalle de molestias musculares ({reportedCount}):
@@ -694,7 +675,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   alignItems: 'center',
                   gap: '0.25rem',
                   padding: 0,
-                  fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                  fontFamily: 'var(--font-base)',
                 }}
               >
                 <span>{showBodyMap ? 'Ocultar silueta' : 'Ver en silueta'}</span>
@@ -814,7 +795,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 gap: '0.45rem',
                 marginBottom: '0.25rem',
                 color: 'var(--checkin-title-color)',
-                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                fontFamily: 'var(--font-base)',
               }}
             >
               <MessageSquare size={16} style={{ color: 'var(--primary)' }} />
@@ -826,7 +807,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 fontSize: '0.84rem',
                 color: 'var(--checkin-subtitle-color)',
                 fontStyle: 'italic',
-                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                fontFamily: 'var(--font-base)',
               }}
             >
               "{notes}"

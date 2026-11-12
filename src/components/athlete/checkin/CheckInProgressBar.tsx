@@ -113,7 +113,7 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontFamily: "'Montserrat Variable', system-ui, -apple-system, sans-serif",
+                  fontFamily: 'var(--font-base)',
                   fontSize: '0.82rem',
                   fontWeight: isActive ? 800 : 700,
                   border:

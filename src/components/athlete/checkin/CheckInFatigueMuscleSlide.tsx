@@ -1,17 +1,5 @@
 import React from 'react';
-import {
-  Zap,
-  ShieldAlert,
-  BatteryFull,
-  BatteryMedium,
-  BatteryLow,
-  AlertTriangle,
-  ShieldCheck,
-  Feather,
-  Dumbbell,
-  Flame,
-  Siren,
-} from 'lucide-react';
+import { Zap, ShieldAlert } from 'lucide-react';
 
 export interface CheckInFatigueMuscleSlideProps {
   fatigueLevel: number;
@@ -26,35 +14,35 @@ const FATIGUE_OPTIONS = [
   {
     value: 1,
     label: 'Enérgico',
-    icon: Zap,
+    icon: '⚡',
     desc: 'Batería 100% · Al máximo',
     color: 'var(--traffic-green)',
   },
   {
     value: 2,
     label: 'Fresco',
-    icon: BatteryFull,
+    icon: '🔋',
     desc: 'Batería 80% · Óptima energía',
     color: 'var(--checkin-scale-green)',
   },
   {
     value: 3,
     label: 'Moderada',
-    icon: BatteryMedium,
+    icon: '🔋',
     desc: 'Batería 50% · Cansancio común',
     color: 'var(--traffic-yellow)',
   },
   {
     value: 4,
     label: 'Alta',
-    icon: BatteryLow,
+    icon: '🪫',
     desc: 'Batería 25% · Fatiga pesada',
     color: 'var(--checkin-scale-orange)',
   },
   {
     value: 5,
     label: 'Agotado',
-    icon: AlertTriangle,
+    icon: '⚠️',
     desc: 'Batería 5% · Sin energía',
     color: 'var(--traffic-red)',
   },
@@ -64,35 +52,35 @@ const SORENESS_OPTIONS = [
   {
     value: 1,
     label: 'Sin dolor',
-    icon: ShieldCheck,
+    icon: '🛡️',
     desc: 'Músculos sueltos y descansados',
     color: 'var(--traffic-green)',
   },
   {
     value: 2,
     label: 'Leve',
-    icon: Feather,
+    icon: '🧘',
     desc: 'Tirantez muscular suave',
     color: 'var(--checkin-scale-green)',
   },
   {
     value: 3,
     label: 'Molestia',
-    icon: Dumbbell,
+    icon: '🏋️',
     desc: 'Agujetas o carga moderada',
     color: 'var(--traffic-yellow)',
   },
   {
     value: 4,
     label: 'Fuerte',
-    icon: Flame,
+    icon: '⚡',
     desc: 'Músculos muy adoloridos',
     color: 'var(--checkin-scale-orange)',
   },
   {
     value: 5,
     label: 'Severo',
-    icon: Siren,
+    icon: '🚨',
     desc: 'Rigidez muscular extrema',
     color: 'var(--traffic-red)',
   },
@@ -178,7 +166,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                fontFamily: 'var(--font-base)',
               }}
             >
               <Zap size={16} style={{ color: currentFatigue.color }} />
@@ -192,7 +180,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 borderRadius: '9999px',
                 background: `${currentFatigue.color}15`,
                 color: currentFatigue.color,
-                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                fontFamily: 'var(--font-base)',
               }}
             >
               {currentFatigue.value} · {currentFatigue.label}
@@ -224,7 +212,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                     role="img"
                     aria-hidden="true"
                   >
-                    <opt.icon size={20} />
+                    {opt.icon}
                   </span>
                   <span className="checkin-scale-num" style={{ fontSize: '0.82rem' }}>
                     {opt.value}
@@ -242,7 +230,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
               fontSize: '0.8rem',
               color: 'var(--text-muted)',
               textAlign: 'center',
-              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+              fontFamily: 'var(--font-base)',
             }}
           >
             {currentFatigue.desc}
@@ -270,7 +258,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                fontFamily: 'var(--font-base)',
               }}
             >
               <ShieldAlert size={16} style={{ color: currentSoreness.color }} />
@@ -284,7 +272,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                 borderRadius: '9999px',
                 background: `${currentSoreness.color}15`,
                 color: currentSoreness.color,
-                fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+                fontFamily: 'var(--font-base)',
               }}
             >
               {currentSoreness.value} · {currentSoreness.label}
@@ -320,7 +308,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
                     role="img"
                     aria-hidden="true"
                   >
-                    <opt.icon size={20} />
+                    {opt.icon}
                   </span>
                   <span className="checkin-scale-num" style={{ fontSize: '0.82rem' }}>
                     {opt.value}
@@ -338,7 +326,7 @@ export const CheckInFatigueMuscleSlide: React.FC<CheckInFatigueMuscleSlideProps>
               fontSize: '0.8rem',
               color: 'var(--text-muted)',
               textAlign: 'center',
-              fontFamily: "'Montserrat Variable', system-ui, sans-serif",
+              fontFamily: 'var(--font-base)',
             }}
           >
             {currentSoreness.desc}

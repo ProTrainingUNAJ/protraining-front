@@ -37,8 +37,8 @@ export const SORENESS_LABELS: Record<number, string> = {
   5: 'muy intenso',
 };
 
-// ── Paleta de colores centralizada con tokens CSS ──
-// Peores: Marrón -> Naranja -> Amarillo -> Verde -> Violeta (Mejores)
+// ── Color palette tokens ──
+// Scales from worst to best: Brown -> Orange -> Yellow -> Green -> Violet
 export const COLOR_SCALE = {
   brown: 'var(--checkin-scale-brown)',
   orange: 'var(--checkin-scale-orange)',
@@ -49,14 +49,19 @@ export const COLOR_SCALE = {
   neutral: 'var(--checkin-scale-neutral)',
 };
 
-// ── Geometría SVG Matemática ──
-export const SVG_WIDTH = 510;
-export const SVG_HEIGHT = 390;
-export const CX = 310;
-export const CY = 196;
-export const BADGE_X = 265;
-export const STROKE_WIDTH = 27;
-export const END_ANGLE = 222;
+// ── SVG Mathematical Geometry (Exact Blue-Drawn Reference: Concentric C with 28px Radial Gap & Balanced Center) ──
+export const SVG_WIDTH = 520;
+export const SVG_HEIGHT = 465;
+export const CX = 280;
+export const CY = 230;
+export const BADGE_X = 246;
+export const STROKE_WIDTH = 20;
+export const ACTIVE_STROKE_WIDTH = 26;
+export const HIT_TEST_STROKE_WIDTH = 46;
+export const END_ANGLE = 220;
+
+export const MIN_TOUCH_RADIUS = 36;
+export const MAX_TOUCH_RADIUS = 232;
 
 export interface MetricConfig {
   key: MetricKey;
@@ -78,11 +83,11 @@ export function calculateMetricConfig(
   max: number,
   step: number,
 ): MetricConfig {
-  const dx = CX - BADGE_X; // 45
+  const dx = CX - BADGE_X; // 34
   const dy = Math.sqrt(Math.max(0, radius * radius - dx * dx));
   const badgeY = CY - dy;
   const alphaDeg = Math.asin(dx / radius) * (180 / Math.PI);
-  const startAngle = 360 - alphaDeg; // Ángulo polar (0° = 12 en punto, sentido horario)
+  const startAngle = 360 - alphaDeg; // Polar angle (0° = 12 o'clock, clockwise)
   let totalSweep = END_ANGLE - startAngle;
   if (totalSweep < 0) totalSweep += 360;
 
@@ -99,14 +104,127 @@ export function calculateMetricConfig(
   };
 }
 
+// Concentric C-shape rings:
+// Outer ring restrained at 205px so component does NOT expand outward
+// Internal spacing evenly set at ΔR=48px (giving ~28px uniform visible gap between 20px strokes)
+// Inner ring R=61 leaves a comfortable ~102px diameter central hole matching the blue-drawn reference
 export const METRIC_CONFIGS: Record<MetricKey, MetricConfig> = {
-  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 178, 0, 12, 1),
-  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 146, 1, 5, 1),
-  fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 114, 1, 5, 1),
-  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 82, 1, 5, 1),
+  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 205, 0, 12, 1),
+  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 157, 1, 5, 1),
+  fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 109, 1, 5, 1),
+  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 61, 1, 5, 1),
 };
 
-// Conversión polar a cartesiana (0° = 12 en punto, sentido horario)
+// Nominal radial boundaries between rings for hit-testing
+export const RADIAL_BOUNDARIES: { min: number; max: number; key: MetricKey }[] = [
+  { min: 36, max: 85, key: 'muscleSoreness' },
+  { min: 85, max: 133, key: 'fatigueLevel' },
+  { min: 133, max: 181, key: 'sleepQuality' },
+  { min: 181, max: 232, key: 'sleepHours' },
+];
+
+/**
+ * Identifies the corresponding metric for a given SVG coordinate via radial hit-testing.
+ * Includes boundary tolerance and hysteresis to prevent jitter and accidental switches on mobile touchscreens.
+ */
+export function getMetricFromPoint(
+  svgX: number,
+  svgY: number,
+  currentKey?: MetricKey,
+): MetricKey | null {
+  const dx = svgX - CX;
+  const dy = svgY - CY;
+  const dist = Math.hypot(dx, dy);
+
+  // Outside interactive circular area
+  if (dist < MIN_TOUCH_RADIUS || dist > MAX_TOUCH_RADIUS) {
+    return null;
+  }
+
+  // If point falls inside label area (x < BADGE_X - 20) in angle range 230°..325°,
+  // do not intercept so label clicks work cleanly
+  const polarDeg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const normPolar = polarDeg < 0 ? polarDeg + 360 : polarDeg;
+  if (svgX < BADGE_X - 20 && normPolar > 230 && normPolar < 325) {
+    return null;
+  }
+
+  // Hysteresis: if an indicator is already active, require an extra 8px travel before switching
+  if (currentKey) {
+    const bound = RADIAL_BOUNDARIES.find((b) => b.key === currentKey);
+    if (bound) {
+      const HYSTERESIS = 8;
+      const lower = bound.min === MIN_TOUCH_RADIUS ? bound.min : bound.min - HYSTERESIS;
+      const upper = bound.max === MAX_TOUCH_RADIUS ? bound.max : bound.max + HYSTERESIS;
+      if (dist >= lower && dist <= upper) {
+        return currentKey;
+      }
+    }
+  }
+
+  // Select closest ring geometrically
+  let closestKey: MetricKey = 'sleepHours';
+  let minDiff = Infinity;
+  for (const item of RADIAL_BOUNDARIES) {
+    const cfg = METRIC_CONFIGS[item.key];
+    const diff = Math.abs(dist - cfg.radius);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestKey = item.key;
+    }
+  }
+
+  return closestKey;
+}
+
+/**
+ * Calculates the metric value corresponding to an SVG coordinate for a given metric.
+ * Maps the angular sweep along the arc to the metric value range.
+ */
+export function getValueFromPoint(svgX: number, svgY: number, key: MetricKey): number {
+  const cfg = METRIC_CONFIGS[key];
+  const dx = svgX - CX;
+  const dy = svgY - CY;
+  const polarDeg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  const normPolar = polarDeg < 0 ? polarDeg + 360 : polarDeg;
+
+  // Sweep from startAngle clockwise
+  let sweep = (normPolar - cfg.startAngle) % 360;
+  if (sweep < 0) sweep += 360;
+
+  let pct: number;
+  if (sweep <= cfg.totalSweep) {
+    pct = sweep / cfg.totalSweep;
+  } else {
+    // In dead zone: if closer to totalSweep clamp 1, if closer to 360 clamp 0
+    const deadZone = 360 - cfg.totalSweep;
+    const pastEnd = sweep - cfg.totalSweep;
+    pct = pastEnd < deadZone / 2 ? 1 : 0;
+  }
+
+  switch (key) {
+    case 'sleepHours': {
+      const val = Math.round(pct * 12);
+      return Math.max(0, Math.min(12, val));
+    }
+    case 'sleepQuality': {
+      const val = Math.round(1 + pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+    case 'fatigueLevel': {
+      // Higher arc fill = less fatigue (better condition)
+      const val = Math.round(5 - pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+    case 'muscleSoreness': {
+      // Higher arc fill = less soreness (better condition)
+      const val = Math.round(5 - pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+  }
+}
+
+// Polar to cartesian conversion (0° = 12 o'clock, clockwise)
 export function polarToCartesian(
   centerX: number,
   centerY: number,
