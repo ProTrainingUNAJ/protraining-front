@@ -42,7 +42,7 @@ export default defineConfig({
       workbox: {
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         // Exclude non-essential heavy images from initial PWA precache
         globIgnores: ['assets/isotype-gradient.png', 'assets/body-muscles-base.png'],
         importScripts: ['/push-sw.js'],

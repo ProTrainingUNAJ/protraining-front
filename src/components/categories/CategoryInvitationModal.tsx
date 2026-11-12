@@ -4,7 +4,7 @@ import { X, Copy, Check, Clock, QrCode, AlertCircle, RefreshCw } from 'lucide-re
 import { categoryInvitationsService } from '../../api/categoryInvitations';
 import { CategoryInvitation } from '../../types/structure';
 import { formatInvitationExpiration } from '../../utils/argentinaDate';
-import protrainingIsotype from '../../assets/protraining-official-isotype-color.png';
+import protrainingIsotype from '../../assets/protraining-official-isotype-color.webp';
 import '../../styles/invitationModal.css';
 
 export interface CategoryInvitationModalProps {
