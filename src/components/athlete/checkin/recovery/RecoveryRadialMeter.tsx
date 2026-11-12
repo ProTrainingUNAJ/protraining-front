@@ -187,7 +187,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
       icon: (
         <path
           d="M 16 8 A 6.5 6.5 0 1 1 9 1.5 A 5 5 0 0 0 16 8 Z"
-          fill={sleepHours !== null ? 'var(--checkin-star-gold)' : 'var(--input-placeholder)'}
+          fill={sleepHours !== null ? 'var(--white)' : 'var(--input-placeholder)'}
           transform="translate(-8.5, -8.5)"
         />
       ),
