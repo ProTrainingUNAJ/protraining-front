@@ -49,19 +49,19 @@ export const COLOR_SCALE = {
   neutral: 'var(--checkin-scale-neutral)',
 };
 
-// ── SVG Mathematical Geometry (Optimized for human fingers & Touch-First ergonomics) ──
-export const SVG_WIDTH = 630;
-export const SVG_HEIGHT = 500;
-export const CX = 340;
-export const CY = 285;
-export const BADGE_X = 275;
-export const STROKE_WIDTH = 34;
-export const ACTIVE_STROKE_WIDTH = 40;
-export const HIT_TEST_STROKE_WIDTH = 58;
+// ── SVG Mathematical Geometry (Compact Touch-First with Internal Radial Spacing) ──
+export const SVG_WIDTH = 580;
+export const SVG_HEIGHT = 440;
+export const CX = 315;
+export const CY = 248;
+export const BADGE_X = 265;
+export const STROKE_WIDTH = 27;
+export const ACTIVE_STROKE_WIDTH = 33;
+export const HIT_TEST_STROKE_WIDTH = 52;
 export const END_ANGLE = 135;
 
-export const MIN_TOUCH_RADIUS = 55;
-export const MAX_TOUCH_RADIUS = 290;
+export const MIN_TOUCH_RADIUS = 45;
+export const MAX_TOUCH_RADIUS = 255;
 
 export interface MetricConfig {
   key: MetricKey;
@@ -83,7 +83,7 @@ export function calculateMetricConfig(
   max: number,
   step: number,
 ): MetricConfig {
-  const dx = CX - BADGE_X; // 65
+  const dx = CX - BADGE_X; // 50
   const dy = Math.sqrt(Math.max(0, radius * radius - dx * dx));
   const badgeY = CY - dy;
   const alphaDeg = Math.asin(dx / radius) * (180 / Math.PI);
@@ -104,19 +104,20 @@ export function calculateMetricConfig(
   };
 }
 
+// Compact radii: outer ring restrained to 226px, spacing directed inward
 export const METRIC_CONFIGS: Record<MetricKey, MetricConfig> = {
-  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 258, 0, 12, 1),
-  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 200, 1, 5, 1),
-  fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 142, 1, 5, 1),
-  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 84, 1, 5, 1),
+  sleepHours: calculateMetricConfig('sleepHours', 'Horas de sueño', 226, 0, 12, 1),
+  sleepQuality: calculateMetricConfig('sleepQuality', 'Calidad del descanso', 174, 1, 5, 1),
+  fatigueLevel: calculateMetricConfig('fatigueLevel', 'Nivel de fatiga muscular', 122, 1, 5, 1),
+  muscleSoreness: calculateMetricConfig('muscleSoreness', 'Dolor muscular', 70, 1, 5, 1),
 };
 
 // Nominal radial boundaries between rings for hit-testing
 export const RADIAL_BOUNDARIES: { min: number; max: number; key: MetricKey }[] = [
-  { min: 55, max: 113, key: 'muscleSoreness' },
-  { min: 113, max: 171, key: 'fatigueLevel' },
-  { min: 171, max: 229, key: 'sleepQuality' },
-  { min: 229, max: 290, key: 'sleepHours' },
+  { min: 45, max: 96, key: 'muscleSoreness' },
+  { min: 96, max: 148, key: 'fatigueLevel' },
+  { min: 148, max: 200, key: 'sleepQuality' },
+  { min: 200, max: 255, key: 'sleepHours' },
 ];
 
 /**
