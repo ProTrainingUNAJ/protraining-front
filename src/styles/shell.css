@@ -1104,6 +1104,15 @@
   .app-page-header-actions {
     flex-wrap: wrap;
     gap: 0.35rem;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Un selector con opciones largas no puede estirar el encabezado más allá de la pantalla */
+  .app-page-header-actions > *,
+  .app-page-header-actions select {
+    max-width: 100%;
+    min-width: 0;
   }
 
   .app-page-body {
@@ -1166,4 +1175,11 @@
 /* Lugar que ocupa una pantalla mientras se descarga (rutas con lazy) */
 .app-page-loading {
   min-height: 60vh;
+}
+
+/* En celulares chicos el botón de contacto queda solo con el ícono, para que entren todos los del encabezado */
+@media (max-width: 420px) {
+  .app-header-actions .contact-pf-label {
+    display: none;
+  }
 }
