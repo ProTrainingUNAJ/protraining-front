@@ -364,39 +364,37 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               ? 'Sin check-in completado el día de hoy.'
               : 'Apto para completar el 100% de la carga planificada.')}
         </p>
-
-        {/* Botón Ver ajuste sugerido si tiene conflicto de dolor con la rutina (KAN-452) */}
-        {athlete.hasDayConflict && (
-          <button
-            type="button"
-            className="btn btn-warning"
-            data-testid={`btn-day-adjustment-${athlete.id}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onOpenAdjustment) {
-                onOpenAdjustment(athlete);
-              } else {
-                onClick();
-              }
-            }}
-            style={{
-              padding: '0.28rem 0.6rem',
-              fontSize: '0.72rem',
-              fontWeight: 800,
-              borderRadius: '8px',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-            }}
-            title="Ver ajuste sugerido ante conflicto de dolor"
-          >
-            <Sparkles size={12} />
-            <span>Ver ajuste sugerido</span>
-          </button>
-        )}
       </div>
+
+      {/* Botón Ver ajuste sugerido si tiene conflicto de dolor con la rutina (KAN-452).
+          Va en su propia fila: al lado del texto lo dejaba ilegible */}
+      {athlete.hasDayConflict && (
+        <button
+          type="button"
+          className="btn btn-warning"
+          data-testid={`btn-day-adjustment-${athlete.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onOpenAdjustment) {
+              onOpenAdjustment(athlete);
+            } else {
+              onClick();
+            }
+          }}
+          style={{
+            width: '100%',
+            marginTop: '0.5rem',
+            padding: '0.45rem 0.6rem',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            borderRadius: '8px',
+          }}
+          title="Ver ajuste sugerido ante conflicto de dolor"
+        >
+          <Sparkles size={14} aria-hidden="true" />
+          <span>Ver ajuste sugerido</span>
+        </button>
+      )}
     </div>
   );
 };
