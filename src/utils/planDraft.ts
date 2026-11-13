@@ -1,5 +1,10 @@
 import { SaveTrainingPlanRequest, TrainingPlanDetail } from '../api/generated/entrenamiento';
 import {
+  PlanDraftResponse,
+  PlanDraftSession,
+  UpdatePlanDraftRequest,
+} from '../api/generated/asistente';
+import {
   CatalogExercise,
   DraftExercise,
   DraftSession,
@@ -58,16 +63,29 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
         dayOfWeek: session.dayOfWeek,
         coachNotes: session.coachNotes ?? '',
         nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
-        exercises: session.exercises.map((exercise) => ({
-          key: newKey(),
-          id: exercise.id,
-          exerciseId: exercise.exerciseId,
-          exerciseName: exercise.exerciseName,
-          order: exercise.order,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          targetPercentage: exercise.targetPercentage ?? null,
-        })),
+        exercises: session.exercises.map((exercise) => {
+          const ex = exercise as unknown as Record<string, unknown>;
+          const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+          return {
+            key: newKey(),
+            id: exercise.id,
+            exerciseId: exercise.exerciseId,
+            exerciseName: exercise.exerciseName,
+            order: exercise.order,
+            exerciseType: exType,
+            sets: exercise.sets,
+            reps: exercise.reps ?? 0,
+            targetDistanceMeters:
+              exType === 'Distance'
+                ? (exercise.reps ?? null)
+                : ((ex.targetDistanceMeters as number) ?? null),
+            targetTimeSeconds:
+              exType === 'Time'
+                ? (exercise.reps ?? null)
+                : ((ex.targetTimeSeconds as number) ?? null),
+            targetPercentage: exercise.targetPercentage ?? null,
+          };
+        }),
       })),
     })),
   };
@@ -88,14 +106,23 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
         order: session.order,
         dayOfWeek: session.dayOfWeek,
         coachNotes: session.coachNotes.trim() || null,
-        exercises: session.exercises.map((exercise) => ({
-          id: exercise.id,
-          exerciseId: exercise.exerciseId,
-          order: exercise.order,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          targetPercentage: exercise.targetPercentage,
-        })),
+        exercises: session.exercises.map((exercise) => {
+          const type = exercise.exerciseType ?? 'Weight';
+          const repsVal =
+            type === 'Distance'
+              ? (exercise.targetDistanceMeters ?? exercise.reps ?? 0)
+              : type === 'Time'
+                ? (exercise.targetTimeSeconds ?? exercise.reps ?? 0)
+                : (exercise.reps ?? 0);
+          return {
+            id: exercise.id,
+            exerciseId: exercise.exerciseId,
+            order: exercise.order,
+            sets: exercise.sets,
+            reps: repsVal,
+            targetPercentage: exercise.targetPercentage,
+          };
+        }),
       })),
     })),
   };
@@ -128,14 +155,19 @@ export function createSession(week: DraftWeek): DraftSession {
 }
 
 export function createExercise(session: DraftSession, exercise: CatalogExercise): DraftExercise {
+  const type = exercise.exerciseType ?? 'Weight';
+
   return {
     key: newKey(),
     id: null,
     exerciseId: exercise.id,
     exerciseName: exercise.name,
     order: session.nextExerciseOrder,
-    sets: 3,
-    reps: 10,
+    exerciseType: type,
+    sets: type === 'Distance' ? 6 : type === 'Time' ? 4 : 3,
+    reps: type === 'Distance' ? 100 : type === 'Time' ? 30 : 10,
+    targetDistanceMeters: type === 'Distance' ? 100 : null,
+    targetTimeSeconds: type === 'Time' ? 30 : null,
     targetPercentage: null,
   };
 }
@@ -151,11 +183,24 @@ export function validateDraft(draft: PlanDraft): string | null {
       if (!session.name.trim()) return `${where}: la sesión necesita un nombre.`;
 
       for (const exercise of session.exercises) {
+        const type = exercise.exerciseType ?? 'Weight';
         if (!Number.isInteger(exercise.sets) || exercise.sets < 1) {
-          return `${where}: las series de "${exercise.exerciseName}" tienen que ser 1 o más.`;
+          return `${where}: las series o pasadas de "${exercise.exerciseName}" tienen que ser 1 o más.`;
         }
-        if (!Number.isInteger(exercise.reps) || exercise.reps < 1) {
-          return `${where}: las repeticiones de "${exercise.exerciseName}" tienen que ser 1 o más.`;
+        if (type === 'Distance') {
+          const dist = exercise.targetDistanceMeters || exercise.reps;
+          if (!dist || dist < 1) {
+            return `${where}: la distancia de "${exercise.exerciseName}" tiene que ser 1 m o más.`;
+          }
+        } else if (type === 'Time') {
+          const time = exercise.targetTimeSeconds || exercise.reps;
+          if (!time || time < 1) {
+            return `${where}: el tiempo de "${exercise.exerciseName}" tiene que ser 1 seg o más.`;
+          }
+        } else {
+          if (!Number.isInteger(exercise.reps) || exercise.reps < 1) {
+            return `${where}: las repeticiones de "${exercise.exerciseName}" tienen que ser 1 o más.`;
+          }
         }
         const percentage = exercise.targetPercentage;
         if (percentage !== null && (percentage <= 0 || percentage > PERCENTAGE_MAX)) {
@@ -165,4 +210,174 @@ export function validateDraft(draft: PlanDraft): string | null {
     }
   }
   return null;
+}
+
+export type MoveDirection = -1 | 1;
+
+// Sube (-1) o baja (+1) un ejercicio dentro de su sesión (KAN-542). Intercambia la posición y
+// también los `order` de los dos ejercicios: así no aparece un orden repetido ni se reusa el de
+// uno que se quitó en el mismo guardado. Es el orden en que el atleta los ve en "Mi rutina".
+export function moveExercise(
+  session: DraftSession,
+  exerciseKey: string,
+  direction: MoveDirection,
+): DraftSession {
+  const from = session.exercises.findIndex((e) => e.key === exerciseKey);
+  const to = from + direction;
+  if (from < 0 || to < 0 || to >= session.exercises.length) return session;
+
+  const exercises = [...session.exercises];
+  const moving = exercises[from];
+  const other = exercises[to];
+  exercises[from] = { ...other, order: moving.order };
+  exercises[to] = { ...moving, order: other.order };
+  return { ...session, exercises };
+}
+
+// Sesiones del mismo día que `session`, en el orden en que se muestran.
+export function sameDaySessions(week: DraftWeek, dayOfWeek: number): DraftSession[] {
+  return week.sessions.filter((s) => s.dayOfWeek === dayOfWeek).sort((a, b) => a.order - b.order);
+}
+
+// Sube (-1) o baja (+1) una sesión entre las del mismo día (KAN-542): intercambia sus `order`.
+// Las de otros días no cambian, porque las sesiones se muestran por día.
+export function moveSession(
+  week: DraftWeek,
+  sessionKey: string,
+  direction: MoveDirection,
+): DraftWeek {
+  const session = week.sessions.find((s) => s.key === sessionKey);
+  if (!session) return week;
+
+  const siblings = sameDaySessions(week, session.dayOfWeek);
+  const index = siblings.findIndex((s) => s.key === sessionKey);
+  const other = siblings[index + direction];
+  if (!other) return week;
+
+  return {
+    ...week,
+    sessions: week.sessions.map((s) => {
+      if (s.key === session.key) return { ...s, order: other.order };
+      if (s.key === other.key) return { ...s, order: session.order };
+      return s;
+    }),
+  };
+}
+
+export type AssistantDayOfWeek = PlanDraftSession['dayOfWeek'];
+
+export const ASSISTANT_DAY_TO_NUMBER: Record<AssistantDayOfWeek, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
+export const NUMBER_TO_ASSISTANT_DAY: AssistantDayOfWeek[] = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+export function assistantDayToNumber(day: string): number {
+  if (day in ASSISTANT_DAY_TO_NUMBER) {
+    return ASSISTANT_DAY_TO_NUMBER[day as AssistantDayOfWeek];
+  }
+  return 1;
+}
+
+export function numberToAssistantDay(dayOfWeek: number): AssistantDayOfWeek {
+  const normalized = ((dayOfWeek % 7) + 7) % 7;
+  return NUMBER_TO_ASSISTANT_DAY[normalized] ?? 'Monday';
+}
+
+export function aiDraftToEditableDraft(
+  draft: PlanDraftResponse,
+  exerciseNames?: Record<string, string>,
+): PlanDraft {
+  return {
+    id: draft.id,
+    name: draft.name || 'Borrador generado con IA',
+    objective: draft.objective || draft.goal || '',
+    weeks: draft.weeks.map((week) => ({
+      key: newKey(),
+      id: null,
+      weekNumber: week.weekNumber,
+      nextSessionOrder: nextOrder(week.sessions.map((s) => s.order)),
+      sessions: week.sessions.map((session) => ({
+        key: newKey(),
+        id: null,
+        name: session.name,
+        order: session.order,
+        dayOfWeek: assistantDayToNumber(session.dayOfWeek),
+        coachNotes: session.coachNotes ?? '',
+        nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
+        exercises: session.exercises.map((exercise) => ({
+          key: newKey(),
+          id: null,
+          exerciseId: exercise.exerciseId,
+          exerciseName:
+            (exerciseNames && exerciseNames[exercise.exerciseId]) || `Ejercicio #${exercise.order}`,
+          order: exercise.order,
+          exerciseType: 'Weight',
+          sets: exercise.sets,
+          reps: exercise.reps,
+          targetPercentage: exercise.targetPercentage ?? null,
+        })),
+      })),
+    })),
+  };
+}
+
+export function toUpdateDraftRequest(
+  draft: PlanDraft,
+  justificationSummary: string,
+): UpdatePlanDraftRequest {
+  return {
+    name: draft.name.trim(),
+    objective: draft.objective.trim(),
+    justificationSummary: justificationSummary.trim(),
+    weeks: draft.weeks.map((week) => ({
+      weekNumber: week.weekNumber,
+      sessions: week.sessions.map((session) => ({
+        name: session.name.trim(),
+        order: session.order,
+        dayOfWeek: numberToAssistantDay(session.dayOfWeek),
+        coachNotes: session.coachNotes.trim() || null,
+        exercises: session.exercises.map((exercise) => ({
+          exerciseId: exercise.exerciseId,
+          order: exercise.order,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          targetPercentage: exercise.targetPercentage,
+        })),
+      })),
+    })),
+  };
+}
+
+export function swapExercise(
+  session: DraftSession,
+  exerciseKey: string,
+  newExercise: CatalogExercise,
+): DraftSession {
+  return {
+    ...session,
+    exercises: session.exercises.map((ex) =>
+      ex.key === exerciseKey
+        ? {
+            ...ex,
+            exerciseId: newExercise.id,
+            exerciseName: newExercise.name,
+          }
+        : ex,
+    ),
+  };
 }

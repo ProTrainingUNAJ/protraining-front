@@ -1,4 +1,11 @@
 import { httpClient, extractErrorMessage } from './axiosClient';
+import { matchesApi } from './matches';
+import {
+  getMyConsent as getMyConsentApi,
+  registerMyConsent as registerMyConsentApi,
+  type GetMyConsentResponse,
+  type RegisterAdultConsentRequest,
+} from './generated/estructura';
 import {
   Organization,
   CreateOrganizationRequest,
@@ -7,6 +14,11 @@ import {
   Athlete,
   CreateAthleteRequest,
   AthleteMe,
+  Match,
+  CreateMatchRequest,
+  CompetitiveEvent,
+  CreateCompetitiveEventRequest,
+  SeasonPhase,
 } from '../types/structure';
 
 interface RawOrganization {
@@ -264,6 +276,74 @@ export const structureService = {
     try {
       const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
       return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Obtiene los eventos competitivos oficiales registrados en Estructura (KAN-402 y KAN-403)
+   */
+  async getCategoryEvents(
+    categoryId: string,
+    params?: { from?: string; to?: string },
+  ): Promise<CompetitiveEvent[]> {
+    return matchesApi.getCategoryEvents(categoryId, params);
+  },
+
+  /**
+   * Crea un evento competitivo oficial en Estructura (KAN-402 y KAN-403)
+   */
+  async createCategoryEvent(
+    categoryId: string,
+    data: CreateCompetitiveEventRequest,
+  ): Promise<CompetitiveEvent> {
+    return matchesApi.createCategoryEvent(categoryId, data);
+  },
+
+  /**
+   * Obtiene las fases de temporada de la categoría en Estructura (KAN-402 y KAN-403)
+   */
+  async getCategorySeasonPhases(categoryId: string): Promise<SeasonPhase[]> {
+    return matchesApi.getCategorySeasonPhases(categoryId);
+  },
+
+  /**
+   * Obtiene los partidos de la categoría consumiendo los eventos competitivos de Estructura (KAN-402 / KAN-403)
+   */
+  async getCategoryMatches(categoryId: string): Promise<Match[]> {
+    return matchesApi.getCategoryMatches(categoryId);
+  },
+
+  /**
+   * Registra un partido oficial enviándolo a la API de eventos competitivos de Estructura (KAN-402 / KAN-403)
+   */
+  async createCategoryMatch(categoryId: string, data: CreateMatchRequest): Promise<Match> {
+    return matchesApi.createCategoryMatch(categoryId, data);
+  },
+
+  /**
+   * Obtiene el estado del consentimiento digital del atleta autenticado (KAN-326) usando SDK OpenAPI.
+   */
+  async getMyConsent(): Promise<GetMyConsentResponse> {
+    try {
+      const { data } = await getMyConsentApi({ throwOnError: true });
+      return data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Registra el consentimiento digital para un atleta adulto autenticado (KAN-326) usando SDK OpenAPI.
+   */
+  async registerMyConsent(data: RegisterAdultConsentRequest): Promise<GetMyConsentResponse> {
+    try {
+      const { data: responseData } = await registerMyConsentApi({
+        body: data,
+        throwOnError: true,
+      });
+      return responseData;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

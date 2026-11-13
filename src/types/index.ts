@@ -1,5 +1,6 @@
 export * from './auth';
 export * from './structure';
+export * from './performedSets';
 
 export interface UserSession {
   token: string;

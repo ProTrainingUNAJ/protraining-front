@@ -19,6 +19,11 @@ export interface CatalogExercise {
   muscleGroup: string;
   equipment: string | null;
   images: string[];
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+  // Variantes (KAN-554): la etiqueta si es una variante ("Agarre cerrado"), y sus variantes si
+  // es un ejercicio base (solo cuando se pide el catálogo agrupado).
+  variantLabel?: string | null;
+  variants?: CatalogExercise[];
 }
 
 export interface ExercisePage {
@@ -35,8 +40,11 @@ export interface DraftExercise {
   exerciseId: string;
   exerciseName: string;
   order: number;
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   sets: number;
   reps: number;
+  targetDistanceMeters?: number | null;
+  targetTimeSeconds?: number | null;
   targetPercentage: number | null;
 }
 
@@ -67,4 +75,16 @@ export interface PlanDraft {
   name: string;
   objective: string;
   weeks: DraftWeek[];
+}
+
+export interface PlanTemplateItem {
+  id: string;
+  name: string;
+  objective: string | null;
+}
+
+export interface ApplyPlanTemplatePayload {
+  startDate: string; // Formato AAAA-MM-DD
+  categoryId?: string | null;
+  athleteId?: string | null;
 }

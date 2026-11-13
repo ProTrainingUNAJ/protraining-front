@@ -7,10 +7,6 @@
   --brand-gray-light: #e3e4e6;
   --brand-gray-dark: #202429;
 
-  /* Gradientes de marca */
-  --grad-text: linear-gradient(90deg, #023050 0%, #0070c0 100%);
-  --grad-isotype: linear-gradient(135deg, #22d3ee 0%, #6a5acd 100%);
-
   /* Superficies (modo claro) */
   --bg-main: #ffffff;
   --bg-card: #ffffff;
@@ -36,7 +32,7 @@
   --primary-hover: #03446e;
   --primary-light: #e6eef4;
   --secondary: var(--brand-blue);
-  --success: #16a34a;
+  --success: #15803d;
   --warning: #d97706;
   --danger: #dc2626;
 
@@ -74,6 +70,7 @@
   --shell-panel-bg: #ffffff;
   --shell-panel-border: #cdd1d6;
   --shell-sidebar-bg: #023050;
+  --shell-sidebar-width: 82px;
   --shell-active-item-bg: #0b4570;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #f0f2f5;
@@ -84,6 +81,7 @@
 
   /* Base and utility colors */
   --white: #ffffff;
+  --color-contrast-white: #ffffff;
   --black: #000000;
   --cyan-accent: #38bdf8;
   --navy-deep: #021e33;
@@ -139,6 +137,12 @@
   --muscle-color-yellow: #ffd600;
   --muscle-color-orange: #ff7900;
   --muscle-color-red: #e50914;
+  --muscle-color-injury: #000000;
+  --muscle-pill-text: #08254a;
+  --muscle-pill-bg: #ebf3fa;
+  --muscle-pill-border: #d6e4f0;
+  --muscle-caption-color: #334e68;
+  --muscle-injury-border: #334155;
   --muscle-border-color: #ffffff;
   --muscle-outline-selected: #0070c0;
   --muscle-silhouette-fill: #e8ecf2;
@@ -146,11 +150,11 @@
   --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.08);
   --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.12);
 
-  /* Exercise muscle highlight tokens (KAN-320) */
-  --muscle-exercise-primary: #e50914;
-  --muscle-exercise-secondary: #ff7900;
-  --muscle-exercise-primary-glow: rgb(229 9 20 / 0.35);
-  --muscle-exercise-secondary-glow: rgb(255 121 0 / 0.25);
+  /* Exercise muscle highlight tokens (KAN-320: Dorado principal, Plateado secundario) */
+  --muscle-exercise-primary: #d4af37;
+  --muscle-exercise-secondary: #94a3b8;
+  --muscle-exercise-primary-glow: rgb(212 175 55 / 0.4);
+  --muscle-exercise-secondary-glow: rgb(148 163 184 / 0.3);
 
   /* Suite banner and card (Coach & Athlete Dashboard) */
   --grad-suite-card: linear-gradient(to top, rgb(2 48 80 / 0.95) 0%, rgb(2 48 80 / 0.4) 100%);
@@ -163,6 +167,18 @@
   --traffic-red-bg: rgb(239 68 68 / 0.12);
   --traffic-red-border: #f87171;
   --traffic-red-text: #b91c1c;
+
+  /* Season Calendar Tokens (KAN-404) */
+  --season-match-home-bg: #023050;
+  --season-match-home-border: #f59e0b;
+  --season-match-away-bg: #0f172a;
+  --season-match-away-border: #38bdf8;
+  --season-training-bg: #047857;
+  --season-training-border: #34d399;
+  --season-pill-bg: rgb(255 255 255 / 0.2);
+  --season-shadow-subtle: 0 1px 2px rgb(0 0 0 / 0.12);
+  --season-modal-backdrop: rgb(15 23 42 / 0.5);
+  --season-drawer-backdrop: rgb(15 23 42 / 0.4);
 
   --traffic-yellow: #f59e0b;
   --traffic-yellow-bg: rgb(245 158 11 / 0.14);
@@ -200,20 +216,17 @@
   /* Performance metrics and indicators (Light Mode) */
   --stat-cyan: #0284c7;
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
-  --stat-green: #16a34a;
+  --stat-green: #15803d;
   --stat-green-bg: rgb(22 163 74 / 0.1);
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante en :root. */
   --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
-  --stat-purple: #7c3aed;
-  --stat-purple-bg: rgb(124 58 237 / 0.1);
-  --stat-purple-border: rgb(124 58 237 / 0.25);
   --stat-amber: #d97706;
   --stat-amber-bg: rgb(217 119 6 / 0.1);
 
   /* Cyan avatar for user profile */
   --avatar-cyan-bg: #e0f2fe;
   --avatar-cyan-border: #38bdf8;
-  --avatar-cyan-text: #0284c7;
+  --avatar-cyan-text: #075985;
 
   /* Training routine and GIF viewer */
   --routine-card-hover-border: var(--secondary);
@@ -254,9 +267,6 @@
   --auth-google-dark-hover-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
   --auth-modal-overlay: rgb(2 48 80 / 0.45);
   --auth-modal-shadow: 0 20px 48px -8px rgb(2 48 80 / 0.25);
-  --auth-community-shadow: 0 10px 28px rgb(2 48 80 / 0.04);
-  --auth-community-hover-shadow: 0 14px 32px rgb(2 48 80 / 0.07);
-  --auth-avatar-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
   --auth-visual-shadow: 0 20px 48px -8px rgb(2 48 80 / 0.18);
   --auth-visual-border: rgb(255 255 255 / 0.15);
   --auth-visual-scrim: linear-gradient(
@@ -286,13 +296,180 @@
   --status-success-bg: var(--success-bg-strong);
   --status-success-text: var(--success-text);
 
-  --font-base: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-base: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system, sans-serif;
 
   /* Muscle map hit transparent token */
   --muscle-hit-transparent: rgb(255 255 255 / 0.001);
 
   /* Dashboard weather widget gradient */
   --grad-weather: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+
+  /* Check-in Slide System (modo claro) */
+  --checkin-card-bg: #ffffff;
+  --checkin-card-border: rgb(0 0 0 / 0.06);
+  --checkin-card-shadow: 0 16px 44px rgb(11 43 80 / 0.08), 0 2px 6px rgb(0 0 0 / 0.02);
+  --checkin-title-color: #08254a;
+  --checkin-subtitle-color: #556987;
+  --checkin-track-base: #edf2f7;
+  --checkin-inner-bg: #ffffff;
+  --checkin-needle-color: #1e293b;
+  --checkin-needle-hole: #ffffff;
+  --checkin-counter-bg: #ffffff;
+  --checkin-counter-border: #cbd5e1;
+  --checkin-counter-color: #08254a;
+  --checkin-prev-btn-bg: #ffffff;
+  --checkin-prev-btn-border: #cbd5e1;
+  --checkin-prev-btn-color: #08254a;
+  --checkin-next-btn-bg: #08254a;
+  --checkin-next-btn-color: #ffffff;
+  --checkin-modal-bg: #ffffff;
+  --checkin-modal-border: rgb(8 37 74 / 0.08);
+  --checkin-modal-backdrop: rgb(8 37 74 / 0.48);
+  --checkin-step-active-bg: #0077c8;
+  --checkin-step-active-halo: 0 0 0 5px rgb(0 119 200 / 0.22);
+  --checkin-progress-gradient: linear-gradient(90deg, #ea9f11 0%, #28b675 45%, #0079c6 100%);
+  --checkin-waves-stroke: #cbd5e1;
+  --checkin-radio-inactive-bg: #f8fafc;
+  --checkin-radio-inactive-border: rgb(0 0 0 / 0.08);
+  --checkin-radio-inactive-text: #475569;
+  --checkin-subtle-box-bg: #f8fafc;
+  --checkin-subtle-box-border: #e2e8f0;
+  --checkin-alert-bg: #fffbeb;
+  --checkin-alert-border: #fde68a;
+  --checkin-alert-text: #92400e;
+  --checkin-alert-icon-bg: #fef3c7;
+  --checkin-input-bg: #f8fafc;
+  --checkin-input-border: #cbd5e1;
+  --checkin-input-color: #08254a;
+
+  /* Check-in Scale and Mood System */
+  --checkin-scale-brown: #6d381e;
+  --checkin-scale-orange: #ff6b00;
+  --checkin-scale-yellow: #ffb703;
+  --checkin-scale-green: #00a859;
+  --checkin-scale-violet: #0070c0;
+  --checkin-scale-neutral: #cbd5e1;
+
+  --checkin-mood-desanimado: #5d2517;
+  --checkin-mood-regular: #f05a22;
+  --checkin-mood-neutral: #ffae19;
+  --checkin-mood-motivado: #2ca049;
+  --checkin-mood-excelente: #0070c0;
+  --checkin-mood-face-stroke: #2b1408;
+
+  --checkin-star-gold: #fbbf24;
+  --checkin-star-green: #4ade80;
+  --checkin-star-yellow: #fef08a;
+  --checkin-star-violet: #38bdf8;
+  --checkin-star-pink: #0070c0;
+
+  /* Check-in Traffic Light */
+  --traffic-shell-bg: linear-gradient(180deg, #1c222b 0%, #10141a 100%);
+  --traffic-red-border: #fca5a5;
+  --traffic-yellow-border: #fde68a;
+  --traffic-green-border: #a7f3d0;
+  --traffic-bulb-off-red: radial-gradient(circle at 35% 35%, #421414 0%, #1e0707 100%);
+  --traffic-bulb-off-yellow: radial-gradient(circle at 35% 35%, #42300b 0%, #1e1704 100%);
+  --traffic-bulb-off-green: radial-gradient(circle at 35% 35%, #0b3a23 0%, #031a0f 100%);
+
+  /* Celebration and Fireworks Tokens */
+  --celebration-coral: #ff4d4f;
+  --celebration-pink: #0070c0;
+  --celebration-fuchsia: #e879f9;
+  --celebration-green: #28b675;
+  --celebration-blue: #0077c8;
+  --celebration-amber: #ea9f11;
+  --celebration-purple: #023050;
+  --celebration-cyan: #38bdf8;
+  --celebration-white: #ffffff;
+
+  --firework-violet-light: #7dd3fc;
+  --firework-violet: #0070c0;
+  --firework-fuchsia: #e879f9;
+  --firework-pink: #38bdf8;
+  --firework-amber: #fbbf24;
+  --firework-yellow: #fde047;
+  --firework-sky: #38bdf8;
+  --firework-white: #ffffff;
+
+  /* Biometric Scanner Tokens (Celeste / Cyan) */
+  --scanner-line-color: #0284c7;
+  --scanner-line-bright: #38bdf8;
+  --scanner-line-cyan: #7dd3fc;
+  --scanner-line-glow: #0ea5e9;
+  --scanner-beam-grad: linear-gradient(
+    to top,
+    rgb(14 165 233 / 0.32) 0%,
+    rgb(56 189 248 / 0.18) 35%,
+    rgb(186 230 253 / 0.08) 65%,
+    transparent 100%
+  );
+  --scanner-line-grad: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(14 165 233 / 0.3) 8%,
+    #0284c7 20%,
+    #38bdf8 40%,
+    #bae6fd 50%,
+    #38bdf8 60%,
+    #0284c7 80%,
+    rgb(14 165 233 / 0.3) 92%,
+    transparent 100%
+  );
+  --scanner-line-shadow:
+    0 0 10px 2px #38bdf8, 0 0 20px 5px rgb(14 165 233 / 0.8), 0 0 35px 8px rgb(56 189 248 / 0.55);
+  --scanner-hud-bg: rgb(8 37 74 / 0.85);
+  --scanner-hud-border: rgb(56 189 248 / 0.6);
+  --scanner-hud-text: #38bdf8;
+  --scanner-hud-shadow: 0 0 14px rgb(14 165 233 / 0.4);
+  --scanner-glow-sm: drop-shadow(0 0 5px rgb(14 165 233 / 0.5));
+  --scanner-glow-md: drop-shadow(0 0 10px rgb(14 165 233 / 0.9))
+    drop-shadow(0 0 20px rgb(56 189 248 / 0.65));
+  --scanner-glow-lg: drop-shadow(0 0 14px rgb(14 165 233 / 0.95))
+    drop-shadow(0 0 24px rgb(56 189 248 / 0.7));
+  --scanner-glow-fade: drop-shadow(0 0 6px rgb(14 165 233 / 0.4))
+    drop-shadow(0 0 12px rgb(56 189 248 / 0.3));
+
+  /* Check-in Shadows and Effects */
+  --checkin-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+  --checkin-star-hero-glow: 0 0 26px rgb(255 255 255 / 0.4);
+  --checkin-star-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  --checkin-needle-shadow: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+  --checkin-needle-shadow-drag: drop-shadow(0 8px 16px rgb(0 0 0 / 0.45));
+  --checkin-stepper-shadow: 0 4px 10px rgb(0 0 0 / 0.08);
+  --checkin-stepper-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.12);
+  --checkin-progress-arc-glow: drop-shadow(0 0 4px rgb(14 165 233 / 0.35));
+  --checkin-alert-icon-shadow: 0 8px 20px rgb(217 119 6 / 0.18);
+  --checkin-sleep-icon-bg: rgb(142 36 170 / 0.12);
+  --checkin-sleep-icon-border: rgb(142 36 170 / 0.35);
+  --checkin-sleep-icon-shadow: 0 8px 20px rgb(142 36 170 / 0.2);
+  --checkin-btn-submit-shadow: 0 4px 14px rgb(8 37 74 / 0.25);
+  --checkin-btn-submit-shadow-hover: 0 6px 18px rgb(8 37 74 / 0.32);
+
+  /* Traffic Glow Effects */
+  --traffic-glow-red-1:
+    0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-red-2:
+    0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-yellow-1:
+    0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-yellow-2:
+    0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-green-1:
+    0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-green-2:
+    0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-shell-border: rgb(255 255 255 / 0.16);
+  --traffic-shell-shadow: 0 8px 24px rgb(0 0 0 / 0.4), inset 0 1px 2px rgb(255 255 255 / 0.2);
+  --traffic-bulb-border: rgb(0 0 0 / 0.6);
+  --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
+  --traffic-reflection-bg: rgb(255 255 255 / 0.85);
 }
 
 [data-theme='dark'] {
@@ -355,9 +532,6 @@
   --stat-green-bg: rgb(74 222 128 / 0.16);
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante oscura. */
   --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
-  --stat-purple: #c084fc;
-  --stat-purple-bg: rgb(192 132 252 / 0.18);
-  --stat-purple-border: rgb(192 132 252 / 0.35);
   --stat-amber: #fbbf24;
   --stat-amber-bg: rgb(251 191 36 / 0.16);
 
@@ -371,6 +545,7 @@
   --shell-panel-bg: #181e26;
   --shell-panel-border: #2e3846;
   --shell-sidebar-bg: #023050;
+  --shell-sidebar-width: 82px;
   --shell-active-item-bg: #0e4c7b;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #202732;
@@ -387,15 +562,20 @@
   --muscle-border-color: #272c33;
   --muscle-outline-selected: #38bdf8;
   --muscle-silhouette-fill: #1c222b;
+  --muscle-pill-text: #ffffff;
+  --muscle-pill-bg: rgb(255 255 255 / 0.08);
+  --muscle-pill-border: rgb(255 255 255 / 0.2);
+  --muscle-caption-color: #ffffff;
+  --muscle-injury-border: #64748b;
   --muscle-pain-shadow-sm: 0 2px 4px rgb(0 0 0 / 0.2);
   --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.35);
   --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.4);
 
-  /* Exercise muscle highlight tokens (KAN-320 dark mode) */
-  --muscle-exercise-primary: #f87171;
-  --muscle-exercise-secondary: #fb923c;
-  --muscle-exercise-primary-glow: rgb(248 113 113 / 0.4);
-  --muscle-exercise-secondary-glow: rgb(251 146 60 / 0.3);
+  /* Exercise muscle highlight tokens (KAN-320 dark mode: Dorado principal, Plateado secundario) */
+  --muscle-exercise-primary: #facc15;
+  --muscle-exercise-secondary: #cbd5e1;
+  --muscle-exercise-primary-glow: rgb(250 204 21 / 0.45);
+  --muscle-exercise-secondary-glow: rgb(203 213 225 / 0.35);
 
   --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.1);
@@ -429,8 +609,6 @@
   --auth-btn-primary-hover-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
   --auth-modal-overlay: rgb(0 0 0 / 0.7);
   --auth-modal-shadow: 0 20px 48px -8px rgb(0 0 0 / 0.5);
-  --auth-community-shadow: 0 10px 28px rgb(0 0 0 / 0.3);
-  --auth-community-hover-shadow: 0 14px 32px rgb(0 0 0 / 0.45);
   --auth-visual-shadow: 0 20px 48px -8px rgb(0 0 0 / 0.45);
 
   --status-danger-bg: rgb(153 27 27 / 0.25);
@@ -467,4 +645,133 @@
   --sticky-btn-hover-bg: rgb(0 0 0 / 0.28);
   --sticky-btn-text: #111827;
   --sticky-btn-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+
+  /* Check-in Slide System (modo oscuro) */
+  --checkin-card-bg: #1c222b;
+  --checkin-card-border: #2e3846;
+  --checkin-card-shadow: 0 16px 44px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.25);
+  --checkin-title-color: #f1f3f6;
+  --checkin-subtitle-color: #9da8b5;
+  --checkin-track-base: #283241;
+  --checkin-inner-bg: #1c222b;
+  --checkin-needle-color: #e2e8f0;
+  --checkin-needle-hole: #1c222b;
+  --checkin-counter-bg: #242c37;
+  --checkin-counter-border: #334155;
+  --checkin-counter-color: #f1f3f6;
+  --checkin-prev-btn-bg: #242c37;
+  --checkin-prev-btn-border: #334155;
+  --checkin-prev-btn-color: #f1f3f6;
+  --checkin-next-btn-bg: #0077c8;
+  --checkin-next-btn-color: #ffffff;
+  --checkin-modal-bg: #1c222b;
+  --checkin-modal-border: #2e3846;
+  --checkin-modal-backdrop: rgb(0 0 0 / 0.75);
+  --checkin-step-active-bg: #0077c8;
+  --checkin-step-active-halo: 0 0 0 5px rgb(0 119 200 / 0.25);
+  --checkin-progress-gradient: linear-gradient(90deg, #ea9f11 0%, #28b675 45%, #0079c6 100%);
+  --checkin-waves-stroke: #475569;
+  --checkin-radio-inactive-bg: #242c37;
+  --checkin-radio-inactive-border: #334155;
+  --checkin-radio-inactive-text: #9da8b5;
+  --checkin-subtle-box-bg: #242c37;
+  --checkin-subtle-box-border: #2e3846;
+  --checkin-alert-bg: rgb(245 158 11 / 0.12);
+  --checkin-alert-border: rgb(245 158 11 / 0.35);
+  --checkin-alert-text: #fde68a;
+  --checkin-alert-icon-bg: rgb(245 158 11 / 0.22);
+  --checkin-input-bg: #242c37;
+  --checkin-input-border: #334155;
+  --checkin-input-color: #f1f3f6;
+
+  /* Check-in Scale and Mood System (dark mode) */
+  --checkin-scale-brown: #8b4513;
+  --checkin-scale-orange: #ff781f;
+  --checkin-scale-yellow: #fbbf24;
+  --checkin-scale-green: #22c55e;
+  --checkin-scale-violet: #38bdf8;
+  --checkin-scale-neutral: #64748b;
+
+  --checkin-mood-desanimado: #7a321e;
+  --checkin-mood-regular: #ff781f;
+  --checkin-mood-neutral: #fbbf24;
+  --checkin-mood-motivado: #22c55e;
+  --checkin-mood-excelente: #38bdf8;
+  --checkin-mood-face-stroke: #1c1917;
+
+  --checkin-star-gold: #fbbf24;
+  --checkin-star-green: #4ade80;
+  --checkin-star-yellow: #fef08a;
+  --checkin-star-violet: #7dd3fc;
+  --checkin-star-pink: #38bdf8;
+
+  /* Check-in Traffic Light */
+  --traffic-shell-bg: linear-gradient(180deg, #1c222b 0%, #10141a 100%);
+  --traffic-red-border: #fca5a5;
+  --traffic-yellow-border: #fde68a;
+  --traffic-green-border: #a7f3d0;
+  --traffic-bulb-off-red: radial-gradient(circle at 35% 35%, #421414 0%, #1e0707 100%);
+  --traffic-bulb-off-yellow: radial-gradient(circle at 35% 35%, #42300b 0%, #1e1704 100%);
+  --traffic-bulb-off-green: radial-gradient(circle at 35% 35%, #0b3a23 0%, #031a0f 100%);
+
+  /* Celebration and Fireworks Tokens */
+  --celebration-coral: #ff4d4f;
+  --celebration-pink: #38bdf8;
+  --celebration-fuchsia: #e879f9;
+  --celebration-green: #28b675;
+  --celebration-blue: #0077c8;
+  --celebration-amber: #ea9f11;
+  --celebration-purple: #7dd3fc;
+  --celebration-cyan: #38bdf8;
+  --celebration-white: #ffffff;
+
+  --firework-violet-light: #bae6fd;
+  --firework-violet: #38bdf8;
+  --firework-fuchsia: #e879f9;
+  --firework-pink: #7dd3fc;
+  --firework-amber: #fbbf24;
+  --firework-yellow: #fde047;
+  --firework-sky: #38bdf8;
+  --firework-white: #ffffff;
+
+  /* Check-in Shadows and Effects */
+  --checkin-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+  --checkin-star-hero-glow: 0 0 26px rgb(255 255 255 / 0.4);
+  --checkin-star-hero-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  --checkin-needle-shadow: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+  --checkin-needle-shadow-drag: drop-shadow(0 8px 16px rgb(0 0 0 / 0.45));
+  --checkin-stepper-shadow: 0 4px 10px rgb(0 0 0 / 0.08);
+  --checkin-stepper-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.12);
+  --checkin-progress-arc-glow: drop-shadow(0 0 4px rgb(14 165 233 / 0.35));
+  --checkin-alert-icon-shadow: 0 8px 20px rgb(217 119 6 / 0.18);
+  --checkin-sleep-icon-bg: rgb(142 36 170 / 0.12);
+  --checkin-sleep-icon-border: rgb(142 36 170 / 0.35);
+  --checkin-sleep-icon-shadow: 0 8px 20px rgb(142 36 170 / 0.2);
+  --checkin-btn-submit-shadow: 0 4px 14px rgb(8 37 74 / 0.25);
+  --checkin-btn-submit-shadow-hover: 0 6px 18px rgb(8 37 74 / 0.32);
+
+  /* Traffic Glow Effects */
+  --traffic-glow-red-1:
+    0 0 14px var(--traffic-red), 0 0 24px rgb(239 68 68 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-red-2:
+    0 0 20px var(--traffic-red), 0 0 32px rgb(239 68 68 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-yellow-1:
+    0 0 14px var(--traffic-yellow), 0 0 24px rgb(245 158 11 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-yellow-2:
+    0 0 20px var(--traffic-yellow), 0 0 32px rgb(245 158 11 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-glow-green-1:
+    0 0 14px var(--traffic-green), 0 0 24px rgb(16 185 129 / 0.6),
+    inset 0 2px 4px rgb(255 255 255 / 0.6);
+  --traffic-glow-green-2:
+    0 0 20px var(--traffic-green), 0 0 32px rgb(16 185 129 / 0.85),
+    inset 0 2px 4px rgb(255 255 255 / 0.75);
+  --traffic-shell-border: rgb(255 255 255 / 0.16);
+  --traffic-shell-shadow: 0 8px 24px rgb(0 0 0 / 0.4), inset 0 1px 2px rgb(255 255 255 / 0.2);
+  --traffic-bulb-border: rgb(0 0 0 / 0.6);
+  --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
+  --traffic-reflection-bg: rgb(255 255 255 / 0.85);
 }

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, ExportStructureCsvData, ExportStructureCsvErrors, ExportStructureCsvResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteMedicalRecordData, GetAthleteMedicalRecordErrors, GetAthleteMedicalRecordResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetMeData, GetMeErrors, GetMeResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, GetVapidPublicKeyData, GetVapidPublicKeyErrors, GetVapidPublicKeyResponses, HealthCheckData, HealthCheckResponses, ListAthleteMedicalRecordAuditLogsData, ListAthleteMedicalRecordAuditLogsErrors, ListAthleteMedicalRecordAuditLogsResponses, ListAthletesByCategoryData, ListAthletesByCategoryErrors, ListAthletesByCategoryResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListMyCategoriesData, ListMyCategoriesErrors, ListMyCategoriesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RegisterPushSubscriptionData, RegisterPushSubscriptionErrors, RegisterPushSubscriptionResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UnsubscribePushData, UnsubscribePushErrors, UnsubscribePushPostData, UnsubscribePushPostErrors, UnsubscribePushPostResponses, UnsubscribePushResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteMedicalRecordData, UpdateAthleteMedicalRecordErrors, UpdateAthleteMedicalRecordResponses, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses } from './types.gen';
+import type { AcceptCategoryInvitationData, AcceptCategoryInvitationErrors, AcceptCategoryInvitationResponses, AccessAthleteMedicalRecordData, AccessAthleteMedicalRecordErrors, AccessAthleteMedicalRecordResponses, AssignCategoryData, AssignCategoryErrors, AssignCategoryResponses, CreateAthleteData, CreateAthleteErrors, CreateAthleteResponses, CreateCategoryData, CreateCategoryErrors, CreateCategoryEventData, CreateCategoryEventErrors, CreateCategoryEventResponses, CreateCategoryMatchData, CreateCategoryMatchErrors, CreateCategoryMatchResponses, CreateCategoryResponses, CreateCategorySeasonPhaseData, CreateCategorySeasonPhaseErrors, CreateCategorySeasonPhaseResponses, CreateOrganizationData, CreateOrganizationErrors, CreateOrganizationResponses, DeleteAthleteData, DeleteAthleteErrors, DeleteAthleteResponses, DeleteCategoryData, DeleteCategoryErrors, DeleteCategoryEventData, DeleteCategoryEventErrors, DeleteCategoryEventResponses, DeleteCategoryResponses, DeleteCategorySeasonPhaseData, DeleteCategorySeasonPhaseErrors, DeleteCategorySeasonPhaseResponses, DeleteOrganizationData, DeleteOrganizationErrors, DeleteOrganizationResponses, ExportStructureCsvData, ExportStructureCsvErrors, ExportStructureCsvResponses, GenerateAthleteInvitationData, GenerateAthleteInvitationErrors, GenerateAthleteInvitationResponses, GenerateCategoryInvitationTokenData, GenerateCategoryInvitationTokenErrors, GenerateCategoryInvitationTokenResponses, GetAthleteData, GetAthleteErrors, GetAthleteGuardianConsentData, GetAthleteGuardianConsentErrors, GetAthleteGuardianConsentResponses, GetAthleteResponses, GetCategoryData, GetCategoryErrors, GetCategoryResponses, GetMeData, GetMeErrors, GetMeResponses, GetMyConsentData, GetMyConsentErrors, GetMyConsentResponses, GetOrganizationData, GetOrganizationErrors, GetOrganizationResponses, GetVapidPublicKeyData, GetVapidPublicKeyErrors, GetVapidPublicKeyResponses, HealthCheckData, HealthCheckResponses, ListAthleteMedicalRecordAuditLogsData, ListAthleteMedicalRecordAuditLogsErrors, ListAthleteMedicalRecordAuditLogsResponses, ListAthletesByCategoryData, ListAthletesByCategoryErrors, ListAthletesByCategoryResponses, ListAthletesData, ListAthletesErrors, ListAthletesResponses, ListCategoriesByAthleteData, ListCategoriesByAthleteErrors, ListCategoriesByAthleteResponses, ListCategoriesData, ListCategoriesErrors, ListCategoriesResponses, ListCategoryEventsData, ListCategoryEventsErrors, ListCategoryEventsResponses, ListCategoryMatchesData, ListCategoryMatchesErrors, ListCategoryMatchesResponses, ListCategorySeasonPhasesData, ListCategorySeasonPhasesErrors, ListCategorySeasonPhasesResponses, ListMyCategoriesData, ListMyCategoriesErrors, ListMyCategoriesResponses, ListOrganizationsData, ListOrganizationsErrors, ListOrganizationsResponses, RegisterMyConsentData, RegisterMyConsentErrors, RegisterMyConsentResponses, RegisterPushSubscriptionData, RegisterPushSubscriptionErrors, RegisterPushSubscriptionResponses, RemoveCategoryData, RemoveCategoryErrors, RemoveCategoryResponses, UnsubscribePushData, UnsubscribePushErrors, UnsubscribePushPostData, UnsubscribePushPostErrors, UnsubscribePushPostResponses, UnsubscribePushResponses, UpdateAthleteData, UpdateAthleteErrors, UpdateAthleteMedicalRecordData, UpdateAthleteMedicalRecordErrors, UpdateAthleteMedicalRecordResponses, UpdateAthleteResponses, UpdateCategoryData, UpdateCategoryErrors, UpdateCategoryEventData, UpdateCategoryEventErrors, UpdateCategoryEventResponses, UpdateCategoryResponses, UpdateCategorySeasonPhaseData, UpdateCategorySeasonPhaseErrors, UpdateCategorySeasonPhaseResponses, UpdateHabitsPermissionData, UpdateHabitsPermissionErrors, UpdateHabitsPermissionResponses, UpdateOrganizationData, UpdateOrganizationErrors, UpdateOrganizationResponses, ValidateCategoryInvitationTokenData, ValidateCategoryInvitationTokenErrors, ValidateCategoryInvitationTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -114,16 +114,20 @@ export const getAthleteGuardianConsent = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Consultar ficha médica de un atleta con justificación auditada
+ * Acceder a la ficha médica de un atleta con justificación auditada
  *
- * Retorna los antecedentes médicos, cirugías, patologías y estado del apto físico del atleta. Exige declarar un motivo explícito en el parámetro `justification`, que el consentimiento digital esté firmado (por el atleta o su tutor si es menor) y registra un evento inmutable de lectura en auditoría.
+ * Retorna los antecedentes médicos, cirugías, patologías y estado del apto físico del atleta. Exige declarar un motivo explícito en el cuerpo (`justification`), que el consentimiento digital esté firmado (por el atleta o su tutor si es menor) y registra un evento inmutable de lectura en auditoría.
  *
  */
-export const getAthleteMedicalRecord = <ThrowOnError extends boolean = false>(options: Options<GetAthleteMedicalRecordData, ThrowOnError>): RequestResult<GetAthleteMedicalRecordResponses, GetAthleteMedicalRecordErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteMedicalRecordResponses, GetAthleteMedicalRecordErrors, ThrowOnError>({
+export const accessAthleteMedicalRecord = <ThrowOnError extends boolean = false>(options: Options<AccessAthleteMedicalRecordData, ThrowOnError>): RequestResult<AccessAthleteMedicalRecordResponses, AccessAthleteMedicalRecordErrors, ThrowOnError> => (options.client ?? client).post<AccessAthleteMedicalRecordResponses, AccessAthleteMedicalRecordErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/athletes/{id}/medical-record',
-    ...options
+    url: '/api/v1/athletes/{id}/medical-record/access',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**
@@ -224,6 +228,34 @@ export const listMyCategories = <ThrowOnError extends boolean = false>(options?:
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/me/categories',
     ...options
+});
+
+/**
+ * Consultar estado del consentimiento del atleta logueado
+ *
+ * Solo para el rol Atleta. Retorna el estado del consentimiento digital informado (si ya fue firmado, si el atleta es menor de edad y fecha de registro).
+ */
+export const getMyConsent = <ThrowOnError extends boolean = false>(options?: Options<GetMyConsentData, ThrowOnError>): RequestResult<GetMyConsentResponses, GetMyConsentErrors, ThrowOnError> => (options?.client ?? client).get<GetMyConsentResponses, GetMyConsentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/me/consent',
+    ...options
+});
+
+/**
+ * Registrar consentimiento digital para atleta adulto
+ *
+ * Solo para el rol Atleta mayor de edad. Registra la firma digital inmutable del consentimiento informado para preparación física y opcionalmente recomendaciones de hábitos. Si el atleta es menor de edad, devuelve 400.
+ */
+export const registerMyConsent = <ThrowOnError extends boolean = false>(options: Options<RegisterMyConsentData, ThrowOnError>): RequestResult<RegisterMyConsentResponses, RegisterMyConsentErrors, ThrowOnError> => (options.client ?? client).post<RegisterMyConsentResponses, RegisterMyConsentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/me/consent',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**
@@ -373,6 +405,45 @@ export const listAthletesByCategory = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
+ * Generar token de invitación por categoría
+ *
+ * Genera un token único con expiración a 7 días para enrolar atletas en la categoría mediante enlace o código QR.
+ */
+export const generateCategoryInvitationToken = <ThrowOnError extends boolean = false>(options: Options<GenerateCategoryInvitationTokenData, ThrowOnError>): RequestResult<GenerateCategoryInvitationTokenResponses, GenerateCategoryInvitationTokenErrors, ThrowOnError> => (options.client ?? client).post<GenerateCategoryInvitationTokenResponses, GenerateCategoryInvitationTokenErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{id}/invitation-token',
+    ...options
+});
+
+/**
+ * Validar token de invitación
+ *
+ * Endpoint público para validar un token de invitación asociado a una categoría antes del registro del atleta.
+ */
+export const validateCategoryInvitationToken = <ThrowOnError extends boolean = false>(options: Options<ValidateCategoryInvitationTokenData, ThrowOnError>): RequestResult<ValidateCategoryInvitationTokenResponses, ValidateCategoryInvitationTokenErrors, ThrowOnError> => (options.client ?? client).get<ValidateCategoryInvitationTokenResponses, ValidateCategoryInvitationTokenErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/invitations/{token}',
+    ...options
+});
+
+/**
+ * Aceptar invitación y dar de alta atleta en la categoría
+ *
+ * Endpoint protegido para que el atleta recién registrado dé de alta su ficha de atleta vinculada a su cuenta y sea enrolado en la categoría deportiva de la invitación.
+ */
+export const acceptCategoryInvitation = <ThrowOnError extends boolean = false>(options: Options<AcceptCategoryInvitationData, ThrowOnError>): RequestResult<AcceptCategoryInvitationResponses, AcceptCategoryInvitationErrors, ThrowOnError> => (options.client ?? client).post<AcceptCategoryInvitationResponses, AcceptCategoryInvitationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/invitations/{token}/accept',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Listar partidos de la temporada para una categoría
  *
  * Recupera el fixture de competencias de la división. Permite al Asistente anticipar alertas de sobrecarga.
@@ -393,6 +464,124 @@ export const createCategoryMatch = <ThrowOnError extends boolean = false>(option
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/categories/{id}/matches',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Listar eventos competitivos de una categoría
+ *
+ * Retorna los eventos competitivos activos de la categoría dentro del rango de fechas especificado. Si 'from' se omite, toma la fecha actual de calendario en la zona horaria America/Argentina/Buenos_Aires. Si 'to' se omite, toma 'from + 14 días'. Ambas cotas son inclusivas. Los resultados se ordenan cronológicamente por 'date' ascendente, 'startTime' ascendente e 'id' ascendente. Excluye eventos con borrado lógico (soft-deleted).
+ *
+ */
+export const listCategoryEvents = <ThrowOnError extends boolean = false>(options: Options<ListCategoryEventsData, ThrowOnError>): RequestResult<ListCategoryEventsResponses, ListCategoryEventsErrors, ThrowOnError> => (options.client ?? client).get<ListCategoryEventsResponses, ListCategoryEventsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/events',
+    ...options
+});
+
+/**
+ * Crear evento competitivo
+ *
+ * Registra un nuevo partido o evento competitivo asociado a la categoría. Operación restringida exclusivamente al preparador físico dueño de la categoría.
+ *
+ */
+export const createCategoryEvent = <ThrowOnError extends boolean = false>(options: Options<CreateCategoryEventData, ThrowOnError>): RequestResult<CreateCategoryEventResponses, CreateCategoryEventErrors, ThrowOnError> => (options.client ?? client).post<CreateCategoryEventResponses, CreateCategoryEventErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/events',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Eliminar evento competitivo (borrado lógico)
+ *
+ * Aplica soft-delete registrando deleted_at en el evento. No borra físicamente la fila y lo excluye de futuras consultas. Solo permitido para el preparador físico dueño de la categoría.
+ *
+ */
+export const deleteCategoryEvent = <ThrowOnError extends boolean = false>(options: Options<DeleteCategoryEventData, ThrowOnError>): RequestResult<DeleteCategoryEventResponses, DeleteCategoryEventErrors, ThrowOnError> => (options.client ?? client).delete<DeleteCategoryEventResponses, DeleteCategoryEventErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/events/{id}',
+    ...options
+});
+
+/**
+ * Actualizar evento competitivo
+ *
+ * Actualiza los detalles o reprogramación de un evento competitivo existente. Solo permitido para el preparador físico dueño de la categoría. No permite modificar eventos eliminados.
+ *
+ */
+export const updateCategoryEvent = <ThrowOnError extends boolean = false>(options: Options<UpdateCategoryEventData, ThrowOnError>): RequestResult<UpdateCategoryEventResponses, UpdateCategoryEventErrors, ThrowOnError> => (options.client ?? client).put<UpdateCategoryEventResponses, UpdateCategoryEventErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/events/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Listar fases de temporada de una categoría
+ *
+ * Retorna las fases de temporada activas asociadas a la categoría ordenadas cronológicamente por startDate ascendente. Excluye fases eliminadas lógicamente.
+ *
+ */
+export const listCategorySeasonPhases = <ThrowOnError extends boolean = false>(options: Options<ListCategorySeasonPhasesData, ThrowOnError>): RequestResult<ListCategorySeasonPhasesResponses, ListCategorySeasonPhasesErrors, ThrowOnError> => (options.client ?? client).get<ListCategorySeasonPhasesResponses, ListCategorySeasonPhasesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/season-phases',
+    ...options
+});
+
+/**
+ * Crear fase de temporada
+ *
+ * Registra una nueva fase de temporada para la categoría. Valida que endDate >= startDate y rechaza superposiciones con otras fases activas de la misma categoría (HTTP 400). Solo permitido para el preparador físico dueño de la categoría.
+ *
+ */
+export const createCategorySeasonPhase = <ThrowOnError extends boolean = false>(options: Options<CreateCategorySeasonPhaseData, ThrowOnError>): RequestResult<CreateCategorySeasonPhaseResponses, CreateCategorySeasonPhaseErrors, ThrowOnError> => (options.client ?? client).post<CreateCategorySeasonPhaseResponses, CreateCategorySeasonPhaseErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/season-phases',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Eliminar fase de temporada (borrado lógico)
+ *
+ * Aplica soft-delete registrando deleted_at en la fase de temporada. No se elimina físicamente y deja de ser tenida en cuenta en futuras validaciones de solapamiento. Solo permitido para el preparador físico dueño de la categoría.
+ *
+ */
+export const deleteCategorySeasonPhase = <ThrowOnError extends boolean = false>(options: Options<DeleteCategorySeasonPhaseData, ThrowOnError>): RequestResult<DeleteCategorySeasonPhaseResponses, DeleteCategorySeasonPhaseErrors, ThrowOnError> => (options.client ?? client).delete<DeleteCategorySeasonPhaseResponses, DeleteCategorySeasonPhaseErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/season-phases/{id}',
+    ...options
+});
+
+/**
+ * Actualizar fase de temporada
+ *
+ * Actualiza el nombre, tipo y rango de fechas de una fase de temporada. Valida que no se superponga con otras fases activas de la categoría (excluyendo la fase en edición). Solo permitido para el preparador físico dueño de la categoría.
+ *
+ */
+export const updateCategorySeasonPhase = <ThrowOnError extends boolean = false>(options: Options<UpdateCategorySeasonPhaseData, ThrowOnError>): RequestResult<UpdateCategorySeasonPhaseResponses, UpdateCategorySeasonPhaseErrors, ThrowOnError> => (options.client ?? client).put<UpdateCategorySeasonPhaseResponses, UpdateCategorySeasonPhaseErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/season-phases/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

@@ -1,5 +1,13 @@
 import React from 'react';
-import { ChevronRight, AlertCircle, Moon, Activity, Siren, Thermometer } from 'lucide-react';
+import {
+  ChevronRight,
+  AlertCircle,
+  Moon,
+  Activity,
+  Siren,
+  Thermometer,
+  Sparkles,
+} from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 
@@ -14,6 +22,7 @@ import { AthleteAvatar } from './AthleteAvatar';
 interface AthleteTrafficLightCardProps {
   athlete: AthleteTrafficLightItem;
   onClick: () => void;
+  onOpenAdjustment?: (athlete: AthleteTrafficLightItem) => void;
   className?: string;
 }
 
@@ -50,6 +59,7 @@ const STATUS_COLORS: Record<
 export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = ({
   athlete,
   onClick,
+  onOpenAdjustment,
   className = '',
 }) => {
   const colors = STATUS_COLORS[athlete.status];
@@ -251,7 +261,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   alignItems: 'center',
                   gap: '0.2rem',
                   fontWeight: 700,
-                  color: maxPainLevel >= 4 ? 'var(--pain-level-5)' : 'var(--warning-text)',
+                  color: maxPainLevel >= 4 ? 'var(--danger-text)' : 'var(--warning-text)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
@@ -285,7 +295,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                   alignItems: 'center',
                   gap: '0.2rem',
                   fontWeight: 700,
-                  color: athlete.rpe >= 8 ? 'var(--pain-level-5)' : 'var(--cyan-accent)',
+                  color: athlete.rpe >= 8 ? 'var(--danger-text)' : 'var(--info-text)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
@@ -345,6 +355,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            flex: 1,
           }}
           title={athlete.recommendation}
         >
@@ -354,6 +365,36 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               : 'Apto para completar el 100% de la carga planificada.')}
         </p>
       </div>
+
+      {/* Botón Ver ajuste sugerido si tiene conflicto de dolor con la rutina (KAN-452).
+          Va en su propia fila: al lado del texto lo dejaba ilegible */}
+      {athlete.hasDayConflict && (
+        <button
+          type="button"
+          className="btn btn-warning"
+          data-testid={`btn-day-adjustment-${athlete.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onOpenAdjustment) {
+              onOpenAdjustment(athlete);
+            } else {
+              onClick();
+            }
+          }}
+          style={{
+            width: '100%',
+            marginTop: '0.5rem',
+            padding: '0.45rem 0.6rem',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            borderRadius: '8px',
+          }}
+          title="Ver ajuste sugerido ante conflicto de dolor"
+        >
+          <Sparkles size={14} aria-hidden="true" />
+          <span>Ver ajuste sugerido</span>
+        </button>
+      )}
     </div>
   );
 };

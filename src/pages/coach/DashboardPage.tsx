@@ -1,18 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GripVertical, ChevronLeft, ChevronRight, ArrowRight, RotateCcw, Plus } from 'lucide-react';
-import runnerImg from '../../assets/protraining-3d-runner.jpg';
+import {
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  RotateCcw,
+  Plus,
+  Flame,
+} from 'lucide-react';
+import runnerImg from '../../assets/protraining-3d-runner.webp';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
+import { DailyLoadWidget } from '../../components/dashboard/DailyLoadWidget';
+import { DailyTrafficLightWidget } from '../../components/dashboard/DailyTrafficLightWidget';
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
+import { EpleyProposalsWidget } from '../../components/dashboard/EpleyProposalsWidget';
+import { RecordProposalCard } from '../../components/dashboard/RecordProposalCard';
+import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
 import {
   fetchAllCategoriesTrafficLight,
   summarizeTrafficLightCounts,
 } from '../../api/seguimientoService';
+import { recordProposalsService } from '../../api/recordProposals';
+import { RecordProposalItem } from '../../types/recordProposals';
+import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
+import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
+import { useAthleteEvolution } from '../../hooks/useAthleteEvolution';
 
 export type DashboardCardType =
   | 'empty'
@@ -21,14 +39,17 @@ export type DashboardCardType =
   | 'traffic-light-summary'
   | 'checkin-progress'
   | 'pain-alerts'
-  | 'progress-chart';
+  | 'progress-chart'
+  | 'epley-proposals'
+  | 'daily-load'
+  | 'daily-traffic-light';
 
 export interface WireframeCardItem {
   id: string;
   name: string;
   colSpan: number;
   type: DashboardCardType;
-  chartMetric?: 'cmj' | 'squat' | 'sprint' | 'rpe' | 'yoyo';
+  chartMetric?: string;
 }
 
 export interface DashboardRow {
@@ -65,7 +86,7 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
     className: 'wireframe-row-3',
     cards: [
       { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
-      { id: 'w-r3-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-epley', name: 'Propuestas de Récord Epley', colSpan: 1, type: 'epley-proposals' },
     ],
   },
   {
@@ -76,72 +97,6 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
       { id: 'w-r4-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
       { id: 'w-r4-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
       { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-    ],
-  },
-];
-
-const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
-  {
-    id: 'row-1',
-    name: 'Fila 1 · Indicadores en Vivo',
-    className: 'wireframe-row-1',
-    cards: [
-      { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
-      { id: 'a-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-      { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-    ],
-  },
-  {
-    id: 'row-2',
-    name: 'Fila 2 · Mi Estado y Rutina',
-    className: 'wireframe-row-2',
-    cards: [
-      { id: 'a-r2-1', name: 'Módulo 2-A', colSpan: 1, type: 'empty' },
-      { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
-      { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
-    ],
-  },
-  {
-    id: 'row-3',
-    name: 'Fila 3 · Suite y Carga',
-    className: 'wireframe-row-3',
-    cards: [
-      { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
-      {
-        id: 'a-chart-cmj',
-        name: 'Evolución Salto CMJ',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'cmj',
-      },
-    ],
-  },
-  {
-    id: 'row-4',
-    name: 'Fila 4 · Rendimiento y Métricas',
-    className: 'wireframe-row-4',
-    cards: [
-      {
-        id: 'a-chart-squat',
-        name: 'Sentadilla 1RM',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'squat',
-      },
-      {
-        id: 'a-chart-sprint',
-        name: 'Sprint 30m',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'sprint',
-      },
-      {
-        id: 'a-chart-yoyo',
-        name: 'Test Yo-Yo',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'yoyo',
-      },
     ],
   },
 ];
@@ -158,7 +113,11 @@ export const DashboardPage: React.FC = () => {
     ? 'protraining_bento_rows_athlete_v8'
     : 'protraining_bento_rows_coach_v8';
 
-  const defaultRows = isAthlete ? DEFAULT_ATHLETE_ROWS : DEFAULT_COACH_ROWS;
+  const defaultRows = isAthlete ? (DEFAULT_ATHLETE_ROWS as DashboardRow[]) : DEFAULT_COACH_ROWS;
+
+  // Gráficos de Progreso fijados por el atleta: usan su evolución real (últimos 3 meses)
+  const { evolution, loading: evolutionLoading } = useAthleteEvolution('3m', isAthlete);
+  const evolutionMetrics = React.useMemo(() => buildEvolutionMetrics(evolution), [evolution]);
 
   const [rows, setRows] = useState<DashboardRow[]>(() => {
     try {
@@ -175,6 +134,55 @@ export const DashboardPage: React.FC = () => {
                 { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
               ];
             }
+            const hasEpley = parsed.some((r: DashboardRow) =>
+              r.cards.some((c: WireframeCardItem) => c.type === 'epley-proposals'),
+            );
+            if (!hasEpley) {
+              const row3 = parsed.find((r: DashboardRow) => r.id === 'row-3');
+              if (row3 && row3.cards.length >= 2 && row3.cards[1].type === 'empty') {
+                row3.cards[1] = {
+                  id: 'w-epley',
+                  name: 'Propuestas de Récord Epley',
+                  colSpan: 1,
+                  type: 'epley-proposals',
+                };
+              }
+            }
+          } else {
+            // Athlete: ensure the daily traffic light widget is in row 1 next to training session (KAN-547)
+            const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
+            const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');
+
+            // If it was temporarily in row-2, remove it from row-2
+            if (row2 && Array.isArray(row2.cards)) {
+              const tlIdxInRow2 = row2.cards.findIndex(
+                (c: WireframeCardItem) => c.type === 'daily-traffic-light',
+              );
+              if (tlIdxInRow2 !== -1) {
+                row2.cards[tlIdxInRow2] = {
+                  id: 'a-r2-2',
+                  name: 'Módulo 2-B',
+                  colSpan: 1,
+                  type: 'empty',
+                };
+              }
+            }
+
+            // Place next to "Predio y Horario" in row 1
+            if (row1 && Array.isArray(row1.cards)) {
+              const tlIdxInRow1 = row1.cards.findIndex(
+                (c: WireframeCardItem) => c.type === 'daily-traffic-light',
+              );
+              if (tlIdxInRow1 === -1) {
+                const targetIdx = row1.cards.length > 1 ? 1 : 0;
+                row1.cards[targetIdx] = {
+                  id: 'a-daily-traffic-light',
+                  name: 'Semáforo Diario',
+                  colSpan: 1,
+                  type: 'daily-traffic-light',
+                };
+              }
+            }
           }
           return parsed;
         }
@@ -189,9 +197,11 @@ export const DashboardPage: React.FC = () => {
   // las donas, las alertas de dolor y el progreso de check-in del dashboard.
   // Error o vacío → conteos en cero (modo degradado, nunca rompe la grilla).
   const [trafficLightItems, setTrafficLightItems] = useState<AthleteTrafficLightItem[]>([]);
-  const [trafficLightLoading, setTrafficLightLoading] = useState(true);
+  const [trafficLightLoading, setTrafficLightLoading] = useState(!isAthlete);
 
   useEffect(() => {
+    // El semáforo de todo el plantel es solo del PF: el atleta no tiene permiso para listar organizaciones
+    if (isAthlete) return;
     let active = true;
 
     fetchAllCategoriesTrafficLight()
@@ -208,7 +218,7 @@ export const DashboardPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isAthlete]);
 
   const trafficLightCounts = React.useMemo(
     () => summarizeTrafficLightCounts(trafficLightItems),
@@ -224,6 +234,43 @@ export const DashboardPage: React.FC = () => {
     return { completed, total };
   }, [trafficLightCounts]);
 
+  // Propuestas de récord Epley para el PF (KAN-394 / #099)
+  const [pendingProposals, setPendingProposals] = useState<RecordProposalItem[]>([]);
+  const [recordsAthlete, setRecordsAthlete] = useState<{ id: string; name: string } | null>(null);
+  const [proposalsRefreshKey, setProposalsRefreshKey] = useState(0);
+
+  const refreshProposals = React.useCallback(() => {
+    setProposalsRefreshKey((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    if (isAthlete) return;
+    let active = true;
+
+    recordProposalsService
+      .listPending()
+      .then((data) => {
+        if (active) setPendingProposals(data);
+      })
+      .catch(() => {
+        if (active) setPendingProposals([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isAthlete, proposalsRefreshKey]);
+
+  const handleApproveProposal = async (id: string) => {
+    await recordProposalsService.approve(id);
+    setPendingProposals((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleDiscardProposal = async (id: string) => {
+    await recordProposalsService.discard(id);
+    setPendingProposals((prev) => prev.filter((p) => p.id !== id));
+  };
+
   // Persist rows and widgets layout to localStorage
   useEffect(() => {
     try {
@@ -232,6 +279,28 @@ export const DashboardPage: React.FC = () => {
       // Ignore quota errors
     }
   }, [rows, storageKey]);
+
+  // Sync layout when a widget is pinned or unpinned externally (KAN-571)
+  useEffect(() => {
+    const handleLayoutChanged = () => {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRows(parsed);
+          }
+        }
+      } catch {
+        // Ignorar
+      }
+    };
+
+    window.addEventListener('protraining-dashboard-layout-changed', handleLayoutChanged);
+    return () => {
+      window.removeEventListener('protraining-dashboard-layout-changed', handleLayoutChanged);
+    };
+  }, [storageKey]);
 
   // Inter-row drag and drop state
   const [dragSource, setDragSource] = useState<{
@@ -342,6 +411,10 @@ export const DashboardPage: React.FC = () => {
   // Card inner content renderer
   const renderCardContent = (card: WireframeCardItem) => {
     switch (card.type) {
+      case 'daily-load':
+        return <DailyLoadWidget />;
+      case 'daily-traffic-light':
+        return <DailyTrafficLightWidget />;
       case 'training-session':
         return <TrainingSessionWidget />;
       case 'traffic-light-summary':
@@ -358,11 +431,23 @@ export const DashboardPage: React.FC = () => {
         );
       case 'pain-alerts':
         return <PainAlertsWidget athletes={trafficLightItems} />;
+      case 'epley-proposals':
+        return (
+          <EpleyProposalsWidget
+            onOpenRecords={(athleteId, athleteName) =>
+              setRecordsAthlete({ id: athleteId, name: athleteName })
+            }
+            onCountChange={() => {
+              refreshProposals();
+            }}
+          />
+        );
       case 'progress-chart':
         return (
           <EvolutionChartWidget
             metricKey={card.chartMetric || 'cmj'}
-            onRemove={() => {}}
+            metric={evolutionMetrics[(card.chartMetric || 'cmj') as MetricKey]}
+            loading={evolutionLoading}
             variant="compact"
           />
         );
@@ -439,25 +524,50 @@ export const DashboardPage: React.FC = () => {
                   ? 'Accedé a tus rutinas asignadas y seguimiento físico.'
                   : 'Monitoreá el semáforo de tu plantel y planificá cargas con precisión.'}
               </p>
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  background: 'var(--secondary)',
-                  borderRadius: '9999px',
-                  padding: '0.45rem 1rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  boxShadow: 'var(--suite-button-shadow)',
-                }}
-                onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/monitoring')}
-              >
-                <span>{isAthlete ? 'Ver Rutina' : 'Ver Semáforo'}</span>
-                <ArrowRight size={14} />
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{
+                    background: 'var(--brand-blue)',
+                    borderRadius: '9999px',
+                    padding: '0.45rem 1rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    boxShadow: 'var(--suite-button-shadow)',
+                  }}
+                  onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/monitoring')}
+                >
+                  <span>{isAthlete ? 'Ver Rutina' : 'Ver Semáforo'}</span>
+                  <ArrowRight size={14} />
+                </button>
+
+                {isAthlete && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{
+                      borderRadius: '9999px',
+                      padding: '0.45rem 1rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      background: 'transparent',
+                      borderColor: 'var(--on-primary-border)',
+                      color: 'var(--white)',
+                    }}
+                    onClick={() => navigate('/athlete/settings?tab=marcas')}
+                  >
+                    <span>Mis marcas</span>
+                    <ArrowRight size={14} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -493,7 +603,7 @@ export const DashboardPage: React.FC = () => {
             >
               <Plus size={16} />
             </div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.65 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>
               Espacio disponible
             </span>
           </div>
@@ -538,6 +648,39 @@ export const DashboardPage: React.FC = () => {
         className="app-page-body wireframe-dashboard-container"
         style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
       >
+        {!isAthlete && pendingProposals.length > 0 && (
+          <section
+            className="epley-dashboard-banner"
+            aria-label="Propuestas pendientes de récord Epley"
+          >
+            <div className="epley-dashboard-banner-header">
+              <div className="epley-dashboard-banner-title">
+                <Flame size={20} style={{ color: 'var(--brand-blue)' }} aria-hidden="true" />
+                <div>
+                  <h3>Propuestas de nuevo récord Epley pendientes ({pendingProposals.length})</h3>
+                  <p className="epley-dashboard-banner-desc">
+                    Atletas que registraron series con 1RM estimado superior al vigente. Aprobá en 1
+                    clic para consolidar la nueva marca con origen Estimado por Epley.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="epley-dashboard-banner-grid">
+              {pendingProposals.map((proposal) => (
+                <RecordProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onApprove={handleApproveProposal}
+                  onDiscard={handleDiscardProposal}
+                  onViewRecords={(athleteId, athleteName) =>
+                    setRecordsAthlete({ id: athleteId, name: athleteName })
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {rows.map((row) => (
           <div key={row.id} className={`wireframe-row ${row.className}`}>
             {row.cards.map((card, cardIndex) => {
@@ -607,6 +750,16 @@ export const DashboardPage: React.FC = () => {
           </div>
         ))}
       </div>
+      {recordsAthlete && (
+        <AthleteRecordsModal
+          athleteId={recordsAthlete.id}
+          athleteName={recordsAthlete.name}
+          onClose={() => {
+            setRecordsAthlete(null);
+            refreshProposals();
+          }}
+        />
+      )}
     </div>
   );
 };

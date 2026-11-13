@@ -4,12 +4,69 @@ const ARGENTINA_TIME_ZONE = 'America/Argentina/Buenos_Aires';
 
 // Fecha de hoy en Argentina con formato AAAA-MM-DD (el que espera la API y un <input type="date">).
 export function todayInArgentina(): string {
-  // en-CA formatea las fechas como AAAA-MM-DD.
-  return new Intl.DateTimeFormat('en-CA', { timeZone: ARGENTINA_TIME_ZONE }).format(new Date());
+  return dateInArgentina(new Date());
+}
+
+// Fecha (AAAA-MM-DD) de un instante en Argentina. Útil para derivar el día original
+// de un check-in guardado sin conexión a partir de su timestamp UTC (KAN-149).
+export function dateInArgentina(value: string | Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ARGENTINA_TIME_ZONE }).format(
+    new Date(value),
+  );
+}
+
+// Próximo lunes en hora de Argentina con formato AAAA-MM-DD.
+export function nextMondayInArgentina(): string {
+  const [year, month, day] = todayInArgentina().split('-').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  const dayOfWeek = utcDate.getUTCDay();
+  let daysUntilMonday = (1 - dayOfWeek + 7) % 7;
+  if (daysUntilMonday === 0) {
+    daysUntilMonday = 7;
+  }
+  utcDate.setUTCDate(utcDate.getUTCDate() + daysUntilMonday);
+  return utcDate.toISOString().slice(0, 10);
 }
 
 // "2026-10-19" → "19/10/2026", sin pasar por Date para no correr el día por la zona horaria.
 export function formatIsoDate(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
   return year && month && day ? `${day}/${month}/${year}` : isoDate;
+}
+
+// Formatea un instante en hora de Argentina como "DD/MM/AAAA a las HH:mm hs" (KAN-400).
+export function formatInvitationExpiration(isoDateTime: string | Date): string {
+  const date = new Date(isoDateTime);
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+
+  const datePart = new Intl.DateTimeFormat('es-AR', {
+    timeZone: ARGENTINA_TIME_ZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+
+  const timePart = new Intl.DateTimeFormat('es-AR', {
+    timeZone: ARGENTINA_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+
+  return `${datePart} a las ${timePart} hs`;
+}
+
+// Determines if a birth date corresponds to an athlete under 18 years old according to current Argentina date.
+export function isMinorInArgentina(birthDateIso: string): boolean {
+  if (!birthDateIso || !/^\d{4}-\d{2}-\d{2}$/.test(birthDateIso)) return false;
+  const [bYear, bMonth, bDay] = birthDateIso.split('-').map(Number);
+  const [todayYear, todayMonth, todayDay] = todayInArgentina().split('-').map(Number);
+
+  let age = todayYear - bYear;
+  if (todayMonth < bMonth || (todayMonth === bMonth && todayDay < bDay)) {
+    age--;
+  }
+  return age < 18;
 }

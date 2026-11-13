@@ -4,6 +4,130 @@ export type ClientOptions = {
     baseURL: 'http://localhost:8083' | 'http://entrenamiento:8080' | (string & {});
 };
 
+export type ScheduledSessionTargetsResponse = {
+    athleteIds: Array<string>;
+    categoryIds: Array<string>;
+};
+
+export type ImportRecordPreviewRow = {
+    rowNumber?: number;
+    athleteName?: string;
+    exerciseName?: string;
+    weightText?: string;
+    dateText?: string | null;
+    sourceText?: string | null;
+    status?: 'Ok' | 'AthleteNotFound' | 'ExerciseNotFound' | 'ExerciseApproximate' | 'InvalidWeight';
+    message?: string;
+    athleteId?: string | null;
+    exerciseId?: string | null;
+    /**
+     * Nombre del ejercicio del catálogo con el que se resolvió la fila. En ExerciseApproximate es la coincidencia parcial sugerida.
+     */
+    matchedExerciseName?: string | null;
+    weightOneRepMaxKg?: number | null;
+    achievedAt?: string | null;
+    origin?: string | null;
+};
+
+export type ConfirmImportRecordRow = {
+    athleteId: string;
+    exerciseId: string;
+    weightOneRepMaxKg: number;
+    achievedAt?: string | null;
+    origin?: string | null;
+};
+
+export type ConfirmImportRecordsRequest = {
+    rows: Array<ConfirmImportRecordRow>;
+};
+
+export type CheckExerciseRestrictionsRequest = {
+    /**
+     * Zonas de dolor reportadas en el check-in (formato "zona:nivel" separadas por comas).
+     */
+    painZones?: string | null;
+    /**
+     * Lista de IDs de ejercicios a verificar.
+     */
+    exerciseIds: Array<string>;
+};
+
+export type ExerciseSubstitute = {
+    /**
+     * Identificador del ejercicio sustituto.
+     */
+    exerciseId: string;
+    /**
+     * Nombre del ejercicio sustituto.
+     */
+    name: string;
+};
+
+export type ExerciseRestrictionCheckResult = {
+    /**
+     * Identificador del ejercicio evaluado.
+     */
+    exerciseId: string;
+    /**
+     * Indica si el ejercicio debe ser restringido/reemplazado por dolor.
+     */
+    restricted: boolean;
+    /**
+     * Zona de dolor que disparó la restricción.
+     */
+    zone?: string | null;
+    /**
+     * Nivel de dolor reportado para la zona (1 a 10).
+     */
+    painLevel?: number | null;
+    /**
+     * Motivo biomecánico de la contraindicación.
+     */
+    reason?: string | null;
+    /**
+     * Lista ordenada de ejercicios sustitutos recomendados.
+     */
+    substitutes: Array<ExerciseSubstitute>;
+};
+
+export type UpdateExerciseVideoRequest = {
+    /**
+     * URL del video de YouTube o null para quitarlo.
+     */
+    videoUrl?: string | null;
+};
+
+/**
+ * Una ilustración o animación de un ejercicio del catálogo, con su fuente y su crédito (KAN-549).
+ */
+export type ExerciseMediaDto = {
+    /**
+     * Fuente de la ilustración (solo dibujos).
+     */
+    source: 'repdb' | 'everkinetic';
+    /**
+     * `frames`: imágenes fijas (posición inicial y final) que el front alterna para mostrar el movimiento. `gif`: una animación que se mueve sola (reservado para animaciones futuras; hoy no se usa).
+     *
+     */
+    kind: 'frames' | 'gif';
+    /**
+     * Las imágenes en orden (en `gif`, una sola).
+     */
+    urls: Array<string>;
+    /**
+     * Texto del crédito que hay que mostrar.
+     */
+    credit: string;
+    /**
+     * Link del crédito.
+     */
+    creditUrl: string;
+    /**
+     * Licencia de la fuente.
+     */
+    license: string;
+};
+
 export type Exercise = {
     id: string;
     name: string;
@@ -26,6 +150,10 @@ export type Exercise = {
      */
     videoUrl?: string | null;
     /**
+     * Origen del video de técnica ("Pf" si es video propio del preparador físico, "Catalog" si es sugerido por la plataforma).
+     */
+    videoSource?: 'Pf' | 'Catalog';
+    /**
      * URL del GIF/animación técnica del movimiento.
      */
     animationUrl?: string | null;
@@ -33,6 +161,60 @@ export type Exercise = {
      * URLs de las 2 fotografías técnicas del ejercicio (postura inicial y postura final).
      */
     images?: Array<string>;
+    /**
+     * Atribución de fuente y licencia de las imágenes técnicas (para ejercicios del catálogo global). Es null en ejercicios propios del preparador físico.
+     */
+    imageSource?: {
+        /**
+         * Nombre del dataset o fuente de origen.
+         */
+        name?: string;
+        /**
+         * URL del repositorio o fuente original.
+         */
+        url?: string;
+        /**
+         * Tipo de licencia de las imágenes.
+         */
+        license?: string;
+    } | null;
+    /**
+     * Ilustraciones o animaciones de terceros, en orden de preferencia (KAN-549). El front muestra la primera que cargue y, si ninguna carga, las fotos de `images`. Vacía en los ejercicios propios del preparador físico y en los del catálogo que no tienen par en ninguna fuente.
+     *
+     */
+    media?: Array<ExerciseMediaDto>;
+    /**
+     * Origen del ejercicio (Catálogo inicial, cargado por el PF o propuesto por la IA).
+     */
+    origin?: 'Catalog' | 'Coach' | 'Ai';
+    /**
+     * Modalidad o tipo de ejercicio (con carga, tiempo, distancia, repeticiones).
+     */
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+    /**
+     * Si el ejercicio es una variante, el id de su ejercicio base (KAN-554). Es null en los ejercicios base.
+     */
+    parentExerciseId?: string | null;
+    /**
+     * Qué distingue a la variante de su ejercicio base. Es null en los ejercicios base.
+     */
+    variantLabel?: string | null;
+    /**
+     * Variantes del ejercicio base. Solo viene con `groupVariants=true`; si no, es null. Cada variante conserva su id: los récords (1RM) y las planificaciones apuntan a la variante exacta.
+     *
+     */
+    variants?: Array<Exercise> | null;
+};
+
+export type CreateExerciseRequest = {
+    name: string;
+    muscleGroup: string;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    equipment?: string | null;
+    instructions?: string | null;
+    origin?: 'Catalog' | 'Coach' | 'Ai';
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
 };
 
 /**
@@ -62,6 +244,23 @@ export type PaginatedExerciseResponse = {
 };
 
 /**
+ * Propuesta de actualización de récord 1RM basada en recálculo Epley.
+ */
+export type RecordProposal = {
+    id: string;
+    athleteId: string;
+    athleteName: string;
+    exerciseId: string;
+    exerciseName: string;
+    currentWeight: number;
+    proposedWeight: number;
+    performedWeight: number;
+    performedReps: number;
+    status: 'Pending' | 'Approved' | 'Discarded';
+    createdAt: string;
+};
+
+/**
  * Objeto compartido de Récord 1RM con trazabilidad.
  */
 export type Record = {
@@ -70,15 +269,65 @@ export type Record = {
     exerciseId: string;
     exerciseName: string;
     weightOneRepMaxKg: number;
-    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley';
+    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley' | 'Epley';
     achievedAt: string;
     isCurrent: boolean;
+};
+
+export type CompleteOnboardingResponse = {
+    created?: Array<Record>;
+    skipped?: Array<{
+        exerciseId?: string;
+        exerciseName?: string;
+    }>;
+};
+
+export type RecordReliabilityAthlete = {
+    athleteId: string;
+    name: string;
+    /**
+     * Cantidad de récords vigentes del atleta en el grupo. En Sin dato siempre es 0.
+     */
+    recordCount: number;
+};
+
+export type RecordReliabilityGroup = {
+    group: 'Tested' | 'Reported' | 'Estimated' | 'NoData';
+    /**
+     * Cantidad de atletas con al menos un récord del grupo. En Sin dato, atletas sin ningún récord.
+     */
+    athleteCount: number;
+    /**
+     * Cantidad total de récords del grupo. En Sin dato siempre es 0.
+     */
+    recordCount: number;
+    /**
+     * Porcentaje de récords del grupo sobre el total. En Sin dato, porcentaje de atletas sin récords sobre el total de atletas.
+     */
+    percentage: number;
+    athletes: Array<RecordReliabilityAthlete>;
+};
+
+export type RecordReliabilitySummary = {
+    categoryId: string;
+    exerciseId?: string | null;
+    totalAthletes: number;
+    /**
+     * Cantidad total de récords vigentes considerados en el resumen.
+     */
+    totalRecords: number;
+    groups: Array<RecordReliabilityGroup>;
+};
+
+export type OnboardingRecordRequest = {
+    exerciseId: string;
+    weightOneRepMaxKg: number;
 };
 
 export type SaveRecordRequest = {
     exerciseId: string;
     weightOneRepMaxKg: number;
-    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley';
+    origin: 'TestedInSession' | 'Reported' | 'EstimatedEpley' | 'Epley';
 };
 
 export type RoutineItemRequest = {
@@ -131,6 +380,19 @@ export type TodayRoutineExercise = {
      * Fotos del ejercicio (inicio y fin del movimiento), las mismas que la biblioteca.
      */
     images?: Array<string>;
+    /**
+     * Ilustraciones o animaciones de terceros, en orden de preferencia, las mismas que la biblioteca (KAN-549).
+     */
+    media?: Array<ExerciseMediaDto>;
+    /**
+     * Grupos musculares principales involucrados en la ejecución.
+     */
+    primaryMuscles?: Array<string>;
+    /**
+     * Músculos secundarios o estabilizadores involucrados.
+     */
+    secondaryMuscles?: Array<string>;
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
     sets: number;
     reps: number;
     percentage?: number;
@@ -139,6 +401,14 @@ export type TodayRoutineExercise = {
      */
     weightKg?: number | null;
     /**
+     * Peso de la barra en kg (por defecto 20 kg en ejercicios con barra). Es null en ejercicios sin barra.
+     */
+    barWeight?: number | null;
+    /**
+     * Peso a colocar por cada lado de la barra en kg. Es 0 si el peso total es menor o igual a la barra ("solo la barra") y null si el ejercicio no es con barra.
+     */
+    weightPerSide?: number | null;
+    /**
      * Marca 1RM vigente tomada como referencia para el cálculo. Es null si el atleta no tiene récord.
      */
     current1RmKg?: number | null;
@@ -146,6 +416,14 @@ export type TodayRoutineExercise = {
      * True si el ejercicio no tiene récord previo y la serie se prescribe como de referencia para probar y registrar.
      */
     isReference: boolean;
+    /**
+     * Meta de tiempo calculada en segundos (KAN-455). Null si no tiene test.
+     */
+    targetTimeSeconds?: number | null;
+    /**
+     * Series o pasadas ya registradas hoy para este ejercicio (KAN-457).
+     */
+    performedSets?: Array<TodayRoutinePerformedSet>;
 };
 
 export type TodayRoutineResponse = {
@@ -161,7 +439,52 @@ export type TodayRoutineResponse = {
      * Indicaciones o notas del preparador físico asociadas a la sesión.
      */
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
     exercises: Array<TodayRoutineExercise>;
+    /**
+     * Identificador de la sesión de entrenamiento programada para la fecha.
+     */
+    sessionId?: string | null;
+    /**
+     * Indica si el preparador físico aprobó un ajuste de la sesión para esta fecha (KAN-452).
+     */
+    adjustedByCoach?: boolean;
+    /**
+     * Nota explicativa del ajuste aprobado por el preparador físico (KAN-452).
+     */
+    adjustmentNote?: string | null;
+};
+
+export type TodayRoutinePerformedSet = {
+    setNumber?: number | null;
+    weight?: number | null;
+    reps?: number | null;
+    /**
+     * Tiempo real registrado en segundos para la pasada (KAN-457).
+     */
+    timeSeconds?: number | null;
+};
+
+export type PerformedSetInput = {
+    exerciseId: string;
+    weight?: number | null;
+    reps?: number | null;
+    /**
+     * Tiempo real de la pasada cronometrada en segundos (KAN-457).
+     */
+    timeSeconds?: number | null;
+    /**
+     * Número de pasada o serie (1-based) (KAN-457).
+     */
+    setNumber?: number | null;
+};
+
+export type RecordPerformedSetsResponse = {
+    recordedSetsCount: number;
+    proposalsGeneratedCount: number;
 };
 
 export type LogExecutionRequest = {
@@ -203,8 +526,31 @@ export type AssignPlanRequest = {
     athleteId?: string | null;
 };
 
+/**
+ * Asignación del PF a una categoría o a un atleta, con su fin calculado y su estado.
+ */
+export type PlanAssignmentSummary = {
+    assignmentId: string;
+    trainingPlanId: string;
+    planName: string;
+    categoryId?: string | null;
+    athleteId?: string | null;
+    startDate: string;
+    endDate: string;
+    status: 'Active' | 'Finished';
+};
+
 export type AssignPlanResponse = {
     assignmentId: string;
+    startDate: string;
+    /**
+     * Último día de la asignación, calculado como inicio + semanas del plan × 7 − 1. No se guarda.
+     */
+    endDate: string;
+    /**
+     * Active hasta el último día inclusive; Finished desde el día siguiente (fecha de Argentina).
+     */
+    status: 'Active' | 'Finished';
     message: string;
 };
 
@@ -218,6 +564,36 @@ export type TrainingSession = {
      */
     dayOfWeek: number;
     coachNotes?: string | null;
+};
+
+export type ApplyAthleteSessionAdjustmentItem = {
+    originalExerciseId: string;
+    substituteExerciseId: string;
+};
+
+export type ApplyAthleteSessionAdjustmentRequest = {
+    athleteId: string;
+    date: string;
+    /**
+     * Identificador del plan de entrenamiento vigente vinculado (KAN-463).
+     */
+    trainingPlanId?: string | null;
+    note?: string | null;
+    items: Array<ApplyAthleteSessionAdjustmentItem>;
+};
+
+export type ApplyAthleteSessionAdjustmentResponse = {
+    id: string;
+    athleteId: string;
+    /**
+     * Identificador del plan de entrenamiento vigente vinculado (KAN-463).
+     */
+    trainingPlanId?: string | null;
+    sessionId: string;
+    date: string;
+    adjustedByCoach: boolean;
+    note?: string | null;
+    items: Array<ApplyAthleteSessionAdjustmentItem>;
 };
 
 export type UpdateCoachNotesRequest = {
@@ -248,6 +624,10 @@ export type TrainingSessionRequest = {
      */
     dayOfWeek: number;
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
     exercises?: Array<PrescribedExerciseRequest>;
 };
 
@@ -285,6 +665,10 @@ export type TrainingSessionDetail = {
     order: number;
     dayOfWeek: number;
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
     exercises: Array<PrescribedExerciseDetail>;
 };
 
@@ -315,6 +699,14 @@ export type ScheduledSession = {
     athleteId?: string | null;
     exerciseCount: number;
     coachNotes?: string | null;
+    /**
+     * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
+     */
+    startTime?: string | null;
+    /**
+     * Último día de la asignación (inicio + semanas del plan × 7 − 1).
+     */
+    assignmentEndDate?: string | null;
 };
 
 export type TrainingPlanSummary = {
@@ -336,9 +728,31 @@ export type ListExercisesData = {
          */
         muscleGroup?: string;
         /**
+         * Filtrar por músculo puntual en español (ej. Isquiotibiales, Cuádriceps, Glúteos, Pecho).
+         */
+        muscle?: string;
+        /**
          * Filtrar por equipamiento requerido (ej. Barra Olímpica, Mancuerna, Máquina).
          */
         equipment?: string;
+        /**
+         * Filtrar por tipo de ejercicio (Weight, Time, Distance, Reps).
+         */
+        exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+        /**
+         * Si es true, filtra únicamente los ejercicios utilizados por el PF en sus planificaciones o con récords (1RM) cargados.
+         */
+        usedByPf?: boolean;
+        /**
+         * Ejercicios puntuales por id (`?ids=a&ids=b`, hasta 100), por ejemplo para que el Asistente verifique que los ejercicios de un borrador existen en el catálogo (KAN-414). Si viene, se ignoran los demás filtros.
+         *
+         */
+        ids?: Array<string>;
+        /**
+         * Si es true, devuelve solo los ejercicios base, cada uno con sus variantes en `variants` (KAN-554). Un ejercicio base aparece si él o alguna de sus variantes cumple los filtros. Si es false, la lista es plana: base y variantes como ejercicios sueltos, cada variante con `parentExerciseId` y `variantLabel`.
+         *
+         */
+        groupVariants?: boolean;
         /**
          * Número de página para paginación de resultados.
          */
@@ -373,6 +787,162 @@ export type ListExercisesResponses = {
 
 export type ListExercisesResponse = ListExercisesResponses[keyof ListExercisesResponses];
 
+export type CreateExerciseData = {
+    body: CreateExerciseRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/exercises';
+};
+
+export type CreateExerciseErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Ya existe un ejercicio con ese nombre para este preparador físico o en el catálogo global.
+     */
+    409: {
+        /**
+         * Identificador del ejercicio existente.
+         */
+        id?: string;
+    };
+};
+
+export type CreateExerciseError = CreateExerciseErrors[keyof CreateExerciseErrors];
+
+export type CreateExerciseResponses = {
+    /**
+     * Ejercicio creado exitosamente.
+     */
+    201: Exercise;
+};
+
+export type CreateExerciseResponse = CreateExerciseResponses[keyof CreateExerciseResponses];
+
+export type UpdateExerciseVideoData = {
+    body: UpdateExerciseVideoRequest;
+    path: {
+        /**
+         * Identificador único del ejercicio
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/exercises/{id}/video';
+};
+
+export type UpdateExerciseVideoErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateExerciseVideoError = UpdateExerciseVideoErrors[keyof UpdateExerciseVideoErrors];
+
+export type UpdateExerciseVideoResponses = {
+    /**
+     * Video actualizado exitosamente. Devuelve el ejercicio actualizado.
+     */
+    200: Exercise;
+};
+
+export type UpdateExerciseVideoResponse = UpdateExerciseVideoResponses[keyof UpdateExerciseVideoResponses];
+
+export type CheckExerciseRestrictionsData = {
+    body: CheckExerciseRestrictionsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/exercises/restrictions/check';
+};
+
+export type CheckExerciseRestrictionsErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type CheckExerciseRestrictionsError = CheckExerciseRestrictionsErrors[keyof CheckExerciseRestrictionsErrors];
+
+export type CheckExerciseRestrictionsResponses = {
+    /**
+     * Chequeo de restricciones realizado exitosamente.
+     */
+    200: Array<ExerciseRestrictionCheckResult>;
+};
+
+export type CheckExerciseRestrictionsResponse = CheckExerciseRestrictionsResponses[keyof CheckExerciseRestrictionsResponses];
+
+export type GetExerciseSubstitutesData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del ejercicio restringido.
+         */
+        id: string;
+    };
+    query: {
+        /**
+         * Zona anatómica de dolor (ej. cuadriceps, espalda_baja).
+         */
+        zone: string;
+    };
+    url: '/api/v1/exercises/{id}/substitutes';
+};
+
+export type GetExerciseSubstitutesErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetExerciseSubstitutesError = GetExerciseSubstitutesErrors[keyof GetExerciseSubstitutesErrors];
+
+export type GetExerciseSubstitutesResponses = {
+    /**
+     * Lista ordenada de sustitutos obtenida exitosamente.
+     */
+    200: Array<ExerciseSubstitute>;
+};
+
+export type GetExerciseSubstitutesResponse = GetExerciseSubstitutesResponses[keyof GetExerciseSubstitutesResponses];
+
 export type GetAthleteRecordsData = {
     body?: never;
     path: {
@@ -383,6 +953,18 @@ export type GetAthleteRecordsData = {
          * Filtrar solo marcas vigentes activas.
          */
         currentOnly?: boolean;
+        /**
+         * Filtrar por un ejercicio específico para ver su evolución histórica.
+         */
+        exerciseId?: string;
+        /**
+         * Fecha inicial del rango de evolución (inclusive).
+         */
+        from?: string;
+        /**
+         * Fecha final del rango de evolución (inclusive).
+         */
+        to?: string;
     };
     url: '/api/v1/athletes/{athleteId}/records';
 };
@@ -440,6 +1022,196 @@ export type SaveRecordResponses = {
 
 export type SaveRecordResponse = SaveRecordResponses[keyof SaveRecordResponses];
 
+export type GetRecordsReliabilityData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Identificador de la categoría.
+         */
+        categoryId: string;
+        /**
+         * Filtrar la confiabilidad a un solo ejercicio.
+         */
+        exerciseId?: string;
+    };
+    url: '/api/v1/records/reliability';
+};
+
+export type GetRecordsReliabilityErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetRecordsReliabilityError = GetRecordsReliabilityErrors[keyof GetRecordsReliabilityErrors];
+
+export type GetRecordsReliabilityResponses = {
+    /**
+     * Resumen de confiabilidad obtenido con éxito.
+     */
+    200: RecordReliabilitySummary;
+};
+
+export type GetRecordsReliabilityResponse = GetRecordsReliabilityResponses[keyof GetRecordsReliabilityResponses];
+
+export type CompleteOnboardingData = {
+    body: Array<OnboardingRecordRequest>;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/onboarding';
+};
+
+export type CompleteOnboardingErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type CompleteOnboardingError = CompleteOnboardingErrors[keyof CompleteOnboardingErrors];
+
+export type CompleteOnboardingResponses = {
+    /**
+     * Marcas nuevas registradas como estimadas. Puede devolver un arreglo vacío si todos los ejercicios declarados ya tenían un récord vigente.
+     *
+     */
+    201: CompleteOnboardingResponse;
+};
+
+export type CompleteOnboardingResponse2 = CompleteOnboardingResponses[keyof CompleteOnboardingResponses];
+
+export type ListRecordProposalsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filtrar por estado de la propuesta. Por defecto Pending.
+         */
+        status?: 'Pending' | 'Approved' | 'Discarded';
+    };
+    url: '/api/v1/record-proposals';
+};
+
+export type ListRecordProposalsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ListRecordProposalsError = ListRecordProposalsErrors[keyof ListRecordProposalsErrors];
+
+export type ListRecordProposalsResponses = {
+    /**
+     * Lista de propuestas de récord obtenida exitosamente.
+     */
+    200: Array<RecordProposal>;
+};
+
+export type ListRecordProposalsResponse = ListRecordProposalsResponses[keyof ListRecordProposalsResponses];
+
+export type ApproveRecordProposalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la propuesta de récord.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/record-proposals/{id}/approve';
+};
+
+export type ApproveRecordProposalErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type ApproveRecordProposalError = ApproveRecordProposalErrors[keyof ApproveRecordProposalErrors];
+
+export type ApproveRecordProposalResponses = {
+    /**
+     * Propuesta aprobada y récord actualizado exitosamente.
+     */
+    200: Record;
+};
+
+export type ApproveRecordProposalResponse = ApproveRecordProposalResponses[keyof ApproveRecordProposalResponses];
+
+export type DiscardRecordProposalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la propuesta de récord.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/record-proposals/{id}/discard';
+};
+
+export type DiscardRecordProposalErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type DiscardRecordProposalError = DiscardRecordProposalErrors[keyof DiscardRecordProposalErrors];
+
+export type DiscardRecordProposalResponses = {
+    /**
+     * Propuesta descartada exitosamente.
+     */
+    204: void;
+};
+
+export type DiscardRecordProposalResponse = DiscardRecordProposalResponses[keyof DiscardRecordProposalResponses];
+
 export type CreateRoutineData = {
     body: CreateRoutineRequest;
     path?: never;
@@ -471,88 +1243,6 @@ export type CreateRoutineResponses = {
 };
 
 export type CreateRoutineResponse = CreateRoutineResponses[keyof CreateRoutineResponses];
-
-export type ListRoutineTemplatesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/routine-templates';
-};
-
-export type ListRoutineTemplatesErrors = {
-    /**
-     * Token de autenticación ausente o inválido.
-     */
-    401: ProblemDetails;
-};
-
-export type ListRoutineTemplatesError = ListRoutineTemplatesErrors[keyof ListRoutineTemplatesErrors];
-
-export type ListRoutineTemplatesResponses = {
-    /**
-     * Lista de plantillas recuperadas.
-     */
-    200: Array<RoutineTemplate>;
-};
-
-export type ListRoutineTemplatesResponse = ListRoutineTemplatesResponses[keyof ListRoutineTemplatesResponses];
-
-export type CreateRoutineTemplateData = {
-    body: CreateRoutineTemplateRequest;
-    path?: never;
-    query?: never;
-    url: '/api/v1/routine-templates';
-};
-
-export type CreateRoutineTemplateErrors = {
-    /**
-     * Solicitud con datos inválidos o reglas de negocio incumplidas.
-     */
-    400: ProblemDetails;
-};
-
-export type CreateRoutineTemplateError = CreateRoutineTemplateErrors[keyof CreateRoutineTemplateErrors];
-
-export type CreateRoutineTemplateResponses = {
-    /**
-     * Plantilla creada exitosamente.
-     */
-    201: RoutineTemplate;
-};
-
-export type CreateRoutineTemplateResponse = CreateRoutineTemplateResponses[keyof CreateRoutineTemplateResponses];
-
-export type ApplyRoutineTemplateData = {
-    body: {
-        categoryId?: string | null;
-        /**
-         * Opcional si se aplica a toda una categoría.
-         */
-        athleteId?: string | null;
-        dayOfWeek: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
-    };
-    path: {
-        templateId: string;
-    };
-    query?: never;
-    url: '/api/v1/routine-templates/{templateId}/apply';
-};
-
-export type ApplyRoutineTemplateErrors = {
-    /**
-     * Recurso o atleta no encontrado.
-     */
-    404: ProblemDetails;
-};
-
-export type ApplyRoutineTemplateError = ApplyRoutineTemplateErrors[keyof ApplyRoutineTemplateErrors];
-
-export type ApplyRoutineTemplateResponses = {
-    /**
-     * Rutina asignada desde la plantilla con éxito.
-     */
-    201: unknown;
-};
 
 export type GetMyTodayRoutineData = {
     body?: never;
@@ -591,6 +1281,43 @@ export type GetMyTodayRoutineResponses = {
 };
 
 export type GetMyTodayRoutineResponse = GetMyTodayRoutineResponses[keyof GetMyTodayRoutineResponses];
+
+export type RecordPerformedSetsData = {
+    body: Array<PerformedSetInput>;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/today-routine/performed-sets';
+};
+
+export type RecordPerformedSetsErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type RecordPerformedSetsError = RecordPerformedSetsErrors[keyof RecordPerformedSetsErrors];
+
+export type RecordPerformedSetsResponses = {
+    /**
+     * Series registradas correctamente
+     */
+    200: RecordPerformedSetsResponse;
+};
+
+export type RecordPerformedSetsResponse2 = RecordPerformedSetsResponses[keyof RecordPerformedSetsResponses];
 
 export type GetTodayRoutineData = {
     body?: never;
@@ -850,6 +1577,40 @@ export type GetTrainingPlanScheduleResponses = {
 
 export type GetTrainingPlanScheduleResponse = GetTrainingPlanScheduleResponses[keyof GetTrainingPlanScheduleResponses];
 
+export type ListPlanAssignmentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filtra por estado. Sin filtro devuelve todas.
+         */
+        status?: 'Active' | 'Finished';
+    };
+    url: '/api/v1/training-plans/assignments';
+};
+
+export type ListPlanAssignmentsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ListPlanAssignmentsError = ListPlanAssignmentsErrors[keyof ListPlanAssignmentsErrors];
+
+export type ListPlanAssignmentsResponses = {
+    /**
+     * Asignaciones del PF.
+     */
+    200: Array<PlanAssignmentSummary>;
+};
+
+export type ListPlanAssignmentsResponse = ListPlanAssignmentsResponses[keyof ListPlanAssignmentsResponses];
+
 export type AssignTrainingPlanData = {
     body: AssignPlanRequest;
     path?: never;
@@ -887,6 +1648,103 @@ export type AssignTrainingPlanResponses = {
 
 export type AssignTrainingPlanResponse = AssignTrainingPlanResponses[keyof AssignTrainingPlanResponses];
 
+export type SavePlanAsTemplateData = {
+    body: {
+        name: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/{id}/save-as-template';
+};
+
+export type SavePlanAsTemplateErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type SavePlanAsTemplateError = SavePlanAsTemplateErrors[keyof SavePlanAsTemplateErrors];
+
+export type SavePlanAsTemplateResponses = {
+    /**
+     * Plantilla guardada exitosamente.
+     */
+    201: TrainingPlanDetail;
+};
+
+export type SavePlanAsTemplateResponse = SavePlanAsTemplateResponses[keyof SavePlanAsTemplateResponses];
+
+export type ListPlanTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/training-plans/templates';
+};
+
+export type ListPlanTemplatesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+};
+
+export type ListPlanTemplatesError = ListPlanTemplatesErrors[keyof ListPlanTemplatesErrors];
+
+export type ListPlanTemplatesResponses = {
+    /**
+     * Lista de plantillas recuperadas.
+     */
+    200: Array<TrainingPlanSummary>;
+};
+
+export type ListPlanTemplatesResponse = ListPlanTemplatesResponses[keyof ListPlanTemplatesResponses];
+
+export type ApplyPlanTemplateData = {
+    body: {
+        startDate: string;
+        categoryId?: string | null;
+        athleteId?: string | null;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/templates/{id}/apply';
+};
+
+export type ApplyPlanTemplateErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type ApplyPlanTemplateError = ApplyPlanTemplateErrors[keyof ApplyPlanTemplateErrors];
+
+export type ApplyPlanTemplateResponses = {
+    /**
+     * Plantilla aplicada y asignada exitosamente.
+     */
+    201: AssignPlanResponse;
+};
+
+export type ApplyPlanTemplateResponse = ApplyPlanTemplateResponses[keyof ApplyPlanTemplateResponses];
+
 export type GetTrainingSessionData = {
     body?: never;
     path: {
@@ -904,6 +1762,10 @@ export type GetTrainingSessionErrors = {
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
     /**
      * Recurso o atleta no encontrado.
      */
@@ -963,16 +1825,113 @@ export type UpdateTrainingSessionNotesResponses = {
 
 export type UpdateTrainingSessionNotesResponse = UpdateTrainingSessionNotesResponses[keyof UpdateTrainingSessionNotesResponses];
 
+export type GetAthleteSessionAdjustmentData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la sesión de entrenamiento.
+         */
+        sessionId: string;
+    };
+    query: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+        /**
+         * Fecha de la sesión (por defecto hoy en hora de Argentina).
+         */
+        date?: string;
+    };
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments';
+};
+
+export type GetAthleteSessionAdjustmentErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteSessionAdjustmentError = GetAthleteSessionAdjustmentErrors[keyof GetAthleteSessionAdjustmentErrors];
+
+export type GetAthleteSessionAdjustmentResponses = {
+    /**
+     * Ajuste o variante de sesión recuperado exitosamente.
+     */
+    200: ApplyAthleteSessionAdjustmentResponse;
+};
+
+export type GetAthleteSessionAdjustmentResponse = GetAthleteSessionAdjustmentResponses[keyof GetAthleteSessionAdjustmentResponses];
+
+export type ApplyAthleteSessionAdjustmentData = {
+    body: ApplyAthleteSessionAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la sesión de entrenamiento.
+         */
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments';
+};
+
+export type ApplyAthleteSessionAdjustmentErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type ApplyAthleteSessionAdjustmentError = ApplyAthleteSessionAdjustmentErrors[keyof ApplyAthleteSessionAdjustmentErrors];
+
+export type ApplyAthleteSessionAdjustmentResponses = {
+    /**
+     * Ajuste aplicado exitosamente.
+     */
+    200: ApplyAthleteSessionAdjustmentResponse;
+};
+
+export type ApplyAthleteSessionAdjustmentResponse2 = ApplyAthleteSessionAdjustmentResponses[keyof ApplyAthleteSessionAdjustmentResponses];
+
 export type GetScheduledAthletesData = {
     body?: never;
     path?: never;
     query: {
         /**
-         * Fecha de la sesion a consultar (YYYY-MM-DD).
+         * Fecha de la sesión a consultar (YYYY-MM-DD).
          */
         date: string;
+        /**
+         * Identificador del preparador físico para aislar datos.
+         */
+        pfId: string;
     };
-    url: '/api/v1/training-sessions/scheduled-athletes';
+    url: '/api/v1/internal/training-sessions/athletes-with-session';
 };
 
 export type GetScheduledAthletesErrors = {
@@ -980,15 +1939,19 @@ export type GetScheduledAthletesErrors = {
      * Token de autenticación ausente o inválido.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
 };
 
 export type GetScheduledAthletesError = GetScheduledAthletesErrors[keyof GetScheduledAthletesErrors];
 
 export type GetScheduledAthletesResponses = {
     /**
-     * Lista de IDs de atletas con sesion programada.
+     * Atletas y categorías con sesión programada para la fecha.
      */
-    200: Array<string>;
+    200: ScheduledSessionTargetsResponse;
 };
 
 export type GetScheduledAthletesResponse = GetScheduledAthletesResponses[keyof GetScheduledAthletesResponses];
@@ -1010,3 +1973,76 @@ export type HealthCheckResponses = {
 };
 
 export type HealthCheckResponse = HealthCheckResponses[keyof HealthCheckResponses];
+
+export type PreviewRecordsImportData = {
+    body: {
+        file: Blob | File;
+        athleteColumn: string;
+        exerciseColumn: string;
+        weightColumn: string;
+        dateColumn?: string;
+        sourceColumn?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/records/import/preview';
+};
+
+export type PreviewRecordsImportErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type PreviewRecordsImportError = PreviewRecordsImportErrors[keyof PreviewRecordsImportErrors];
+
+export type PreviewRecordsImportResponses = {
+    /**
+     * Vista previa generada.
+     */
+    200: Array<ImportRecordPreviewRow>;
+};
+
+export type PreviewRecordsImportResponse = PreviewRecordsImportResponses[keyof PreviewRecordsImportResponses];
+
+export type ConfirmRecordsImportData = {
+    body: ConfirmImportRecordsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/records/import/confirm';
+};
+
+export type ConfirmRecordsImportErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type ConfirmRecordsImportError = ConfirmRecordsImportErrors[keyof ConfirmRecordsImportErrors];
+
+export type ConfirmRecordsImportResponses = {
+    /**
+     * Récords importados.
+     */
+    200: Array<Record>;
+};
+
+export type ConfirmRecordsImportResponse = ConfirmRecordsImportResponses[keyof ConfirmRecordsImportResponses];

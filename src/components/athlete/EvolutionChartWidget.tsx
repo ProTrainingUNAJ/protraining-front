@@ -8,11 +8,14 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { TrendingUp, Dumbbell, Zap, Activity, Award, Pin, X } from 'lucide-react';
-import { EVOLUTION_METRICS, MetricDefinition } from './progressMetricsData';
+import { TrendingUp, Dumbbell, Zap, Activity, Award, Pin, X, LineChart } from 'lucide-react';
+import { METRIC_PRESENTATION, MetricDefinition, MetricKey } from '../../utils/evolutionMetrics';
 
 export interface EvolutionChartWidgetProps {
-  metricKey: 'cmj' | 'squat' | 'sprint' | 'rpe' | 'yoyo';
+  metricKey: string;
+  // Métrica armada con la evolución real; si no hay mediciones, el widget lo dice
+  metric?: MetricDefinition | null;
+  loading?: boolean;
   variant?: 'full' | 'compact';
   colSpan?: number;
   onRemove?: () => void;
@@ -28,7 +31,7 @@ const getMetricIcon = (key: string, size = 16) => {
       return <Dumbbell size={size} strokeWidth={2.5} />;
     case 'sprint':
       return <Zap size={size} strokeWidth={2.5} />;
-    case 'rpe':
+    case 'fatigue':
       return <Activity size={size} strokeWidth={2.5} />;
     case 'yoyo':
       return <Award size={size} strokeWidth={2.5} />;
@@ -39,14 +42,37 @@ const getMetricIcon = (key: string, size = 16) => {
 
 export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
   metricKey,
+  metric,
+  loading = false,
   variant = 'compact',
   colSpan = 1,
   onRemove,
   onExportClick,
   isExported = false,
 }) => {
-  const metric: MetricDefinition = EVOLUTION_METRICS[metricKey] || EVOLUTION_METRICS.cmj;
   const isCompact = variant === 'compact' && colSpan === 1;
+
+  if (!metric) {
+    const presentation = METRIC_PRESENTATION[metricKey as MetricKey];
+    const title = presentation?.shortName ?? 'Evolución';
+    return (
+      <div className={`evolution-empty${isCompact ? ' is-compact' : ''}`} role="status">
+        <LineChart size={isCompact ? 22 : 32} className="evolution-empty-icon" aria-hidden="true" />
+        <strong className="evolution-empty-title">{title}</strong>
+        <p className="evolution-empty-desc">
+          {loading ? 'Cargando mediciones…' : 'Todavía no hay mediciones en este período.'}
+        </p>
+        {onRemove && (
+          <button type="button" className="btn btn-secondary" onClick={onRemove}>
+            Quitar
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const deltaColor = metric.isPositiveImprovement ? 'var(--success-text)' : 'var(--danger-text)';
+  const hasChange = metric.data.length > 1;
 
   // Compact dashboard card render (colSpan: 1)
   if (isCompact) {
@@ -79,7 +105,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                 width: '28px',
                 height: '28px',
                 borderRadius: '8px',
-                background: `${metric.color}18`,
+                background: `color-mix(in srgb, ${metric.color} 9%, transparent)`,
                 color: metric.color,
                 display: 'flex',
                 alignItems: 'center',
@@ -116,19 +142,21 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span
-              style={{
-                fontSize: '0.68rem',
-                fontWeight: 800,
-                color: metric.color,
-                background: `${metric.color}15`,
-                padding: '0.15rem 0.45rem',
-                borderRadius: '6px',
-                letterSpacing: '0.02em',
-              }}
-            >
-              {metric.deltaPercent}
-            </span>
+            {hasChange && (
+              <span
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  color: deltaColor,
+                  background: `color-mix(in srgb, ${deltaColor} 10%, transparent)`,
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {metric.deltaPercent}
+              </span>
+            )}
 
             {onRemove && (
               <button
@@ -272,7 +300,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
               width: '38px',
               height: '38px',
               borderRadius: '10px',
-              background: `${metric.color}18`,
+              background: `color-mix(in srgb, ${metric.color} 9%, transparent)`,
               color: metric.color,
               display: 'flex',
               alignItems: 'center',
@@ -337,16 +365,18 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700 }}>
               {metric.unit}
             </span>
-            <span
-              style={{
-                marginLeft: '0.35rem',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                color: metric.color,
-              }}
-            >
-              ({metric.deltaPercent})
-            </span>
+            {hasChange && (
+              <span
+                style={{
+                  marginLeft: '0.35rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: deltaColor,
+                }}
+              >
+                ({metric.deltaPercent})
+              </span>
+            )}
           </div>
 
           {onExportClick && (
@@ -360,9 +390,9 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                 gap: '0.4rem',
                 fontSize: '0.8rem',
                 padding: '0.45rem 0.85rem',
-                borderColor: isExported ? 'var(--stat-green)' : 'var(--border)',
-                color: isExported ? 'var(--stat-green)' : 'var(--text-main)',
-                background: isExported ? 'var(--stat-green-bg)' : 'var(--bg-card)',
+                borderColor: isExported ? 'var(--success-border)' : 'var(--border)',
+                color: isExported ? 'var(--success-text)' : 'var(--text-main)',
+                background: isExported ? 'var(--success-bg)' : 'var(--bg-card)',
               }}
               title="Exportar este gráfico al menú de Inicio en una burbuja Bento"
             >
@@ -477,7 +507,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           style={{ background: 'var(--bg-subtle)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}
         >
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-            REGISTRO INICIAL
+            Primera medición
           </span>
           <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-main)' }}>
             {metric.initialValue} {metric.unit}
@@ -488,9 +518,9 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           style={{ background: 'var(--bg-subtle)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}
         >
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-            MEJOR MARCA (PR)
+            Última medición
           </span>
-          <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--stat-green)' }}>
+          <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-main)' }}>
             {metric.currentValue} {metric.unit}
           </strong>
         </div>
@@ -499,11 +529,17 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           style={{ background: 'var(--bg-subtle)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}
         >
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-            GANANCIA TOTAL
+            Cambio en el período
           </span>
-          <strong style={{ display: 'block', fontSize: '0.95rem', color: metric.color }}>
-            {metric.deltaAbsolute} ({metric.deltaPercent})
-          </strong>
+          {hasChange ? (
+            <strong style={{ display: 'block', fontSize: '0.95rem', color: deltaColor }}>
+              {metric.deltaAbsolute} ({metric.deltaPercent})
+            </strong>
+          ) : (
+            <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-muted)' }}>
+              Una sola medición
+            </strong>
+          )}
         </div>
       </div>
     </div>

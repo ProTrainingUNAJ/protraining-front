@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -34,6 +34,21 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
 });
 
 /**
+ * Iniciar sesión o vincular cuenta con Google (KAN-541)
+ *
+ * Autentica mediante un ID Token verificado de Google para usuarios existentes en ProTraining. No realiza auto-registro.
+ */
+export const googleLogin = <ThrowOnError extends boolean = false>(options: Options<GoogleLoginData, ThrowOnError>): RequestResult<GoogleLoginResponses, GoogleLoginErrors, ThrowOnError> => (options.client ?? client).post<GoogleLoginResponses, GoogleLoginErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/google',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Renovar token de acceso
  *
  * Renueva el access token rotando el refresh token para el dispositivo indicado.
@@ -46,6 +61,110 @@ export const refreshToken = <ThrowOnError extends boolean = false>(options: Opti
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Registro de atleta por invitación
+ *
+ * Registra la cuenta de un nuevo atleta a partir de un token de invitación de categoría (KAN-397). Rechaza con 403 si el email ya existe con rol PreparadorFisico, responde 409 si ya existe como Atleta, y 410 o 400 si el token de invitación es inválido o venció.
+ */
+export const registerByInvitation = <ThrowOnError extends boolean = false>(options: Options<RegisterByInvitationData, ThrowOnError>): RequestResult<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError> => (options.client ?? client).post<RegisterByInvitationResponses, RegisterByInvitationErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/register-by-invitation',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Solicitar recuperación de contraseña por correo electrónico
+ *
+ * Envía un correo con un enlace y token de recuperación si el usuario existe. Para prevenir la enumeración de cuentas, siempre devuelve HTTP 202 Accepted.
+ *
+ */
+export const forgotPassword = <ThrowOnError extends boolean = false>(options: Options<ForgotPasswordData, ThrowOnError>): RequestResult<ForgotPasswordResponses, ForgotPasswordErrors, ThrowOnError> => (options.client ?? client).post<ForgotPasswordResponses, ForgotPasswordErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/forgot-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Restablecer contraseña mediante token de recuperación
+ *
+ * Restablece la contraseña de la cuenta validando el token de recuperación recibido por correo. Aplica la política unificada de contraseñas, revoca las sesiones activas anteriores e invalida los JWT emitidos.
+ *
+ */
+export const resetPassword = <ThrowOnError extends boolean = false>(options: Options<ResetPasswordData, ThrowOnError>): RequestResult<ResetPasswordResponses, ResetPasswordErrors, ThrowOnError> => (options.client ?? client).post<ResetPasswordResponses, ResetPasswordErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/reset-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cambiar contraseña de usuario autenticado
+ *
+ * Permite a un usuario autenticado cambiar su contraseña validando la contraseña actual y verificando las reglas de seguridad de la nueva contraseña. Revoca todos los refresh tokens activos del usuario para cerrar las sesiones abiertas.
+ *
+ */
+export const changePassword = <ThrowOnError extends boolean = false>(options: Options<ChangePasswordData, ThrowOnError>): RequestResult<ChangePasswordResponses, ChangePasswordErrors, ThrowOnError> => (options.client ?? client).post<ChangePasswordResponses, ChangePasswordErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/change-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Resetear contraseña de un atleta (exclusivo para Preparador Físico)
+ *
+ * Permite a un Preparador Físico restablecer la contraseña de un atleta a su cargo. Genera una contraseña temporal segura, revoca todos los refresh tokens del atleta y marca la cuenta para cambio obligatorio en el próximo inicio de sesión.
+ *
+ */
+export const resetAthletePassword = <ThrowOnError extends boolean = false>(options: Options<ResetAthletePasswordData, ThrowOnError>): RequestResult<ResetAthletePasswordResponses, ResetAthletePasswordErrors, ThrowOnError> => (options.client ?? client).post<ResetAthletePasswordResponses, ResetAthletePasswordErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/athletes/{athleteId}/reset-password',
+    ...options
+});
+
+/**
+ * Actualizar teléfono de WhatsApp del usuario
+ *
+ * Solo para el rol PreparadorFisico. Actualiza y normaliza el número de WhatsApp de la cuenta del token (claim `sub`). Responde 400 con mensaje en español si el formato es inválido y 403 si el token es de un atleta.
+ */
+export const updateWhatsAppPhone = <ThrowOnError extends boolean = false>(options: Options<UpdateWhatsAppPhoneData, ThrowOnError>): RequestResult<UpdateWhatsAppPhoneResponses, UpdateWhatsAppPhoneErrors, ThrowOnError> => (options.client ?? client).put<UpdateWhatsAppPhoneResponses, UpdateWhatsAppPhoneErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/phone',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener el WhatsApp del preparador físico del atleta
+ *
+ * Solo para el rol Atleta. Devuelve el número de WhatsApp de su preparador físico, tomado del claim `pf_id` del token, así que no se puede pedir el de otro PF. Responde 404 si el PF todavía no cargó su número.
+ */
+export const getPfContact = <ThrowOnError extends boolean = false>(options?: Options<GetPfContactData, ThrowOnError>): RequestResult<GetPfContactResponses, GetPfContactErrors, ThrowOnError> => (options?.client ?? client).get<GetPfContactResponses, GetPfContactErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/pf-contact',
+    ...options
 });
 
 /**

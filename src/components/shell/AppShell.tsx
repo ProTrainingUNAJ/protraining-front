@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { AppSidebar } from './AppSidebar';
-import { SearchBar } from './SearchBar';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationsButton } from './NotificationsButton';
 import { CalendarButton } from './CalendarButton';
+import { ContactPfButton } from '../athlete/ContactPfButton';
 
 interface AppShellProps {
   role: 'pf' | 'athlete';
@@ -72,9 +72,6 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
               >
                 <Menu size={22} aria-hidden="true" />
               </button>
-
-              {/* A. Campo de búsqueda persistente */}
-              <SearchBar placeholder="Buscar..." />
             </div>
 
             {/* Acciones globales persistentes */}
@@ -84,6 +81,9 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
 
               {/* Botón de notificaciones (Centro de Avisos exclusivo para PF) */}
               {role === 'pf' && <NotificationsButton />}
+
+              {/* Botón de WhatsApp para el atleta (solo si el PF tiene número) */}
+              {role === 'athlete' && <ContactPfButton />}
 
               {/* Botón de calendario */}
               <CalendarButton />
@@ -115,7 +115,12 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
             >
               <X size={20} aria-hidden="true" />
             </button>
-            <AppSidebar role={role} onNavigate={closeMobileMenu} className="app-sidebar-mobile" />
+            <AppSidebar
+              role={role}
+              onNavigate={closeMobileMenu}
+              className="app-sidebar-mobile"
+              isMobile={true}
+            />
           </div>
         </div>
       )}

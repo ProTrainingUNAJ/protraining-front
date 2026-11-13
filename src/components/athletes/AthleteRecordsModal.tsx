@@ -1,23 +1,34 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, Check, Dumbbell, Loader2, X } from 'lucide-react';
+import { AlertCircle, Check, Dumbbell, Loader2, TrendingUp, X } from 'lucide-react';
 import { athleteRecordsService } from '../../api/athleteRecords';
+import { athleteEvolutionService } from '../../api/athleteEvolution';
 import { ExercisePickerModal } from '../planning/ExercisePickerModal';
 import { AthleteRecordItem, RecordOrigin } from '../../types/athleteRecords';
 import { CatalogExercise } from '../../types/trainingPlans';
+import { AthleteEvolutionResponse } from '../../types/seguimiento';
+import { OneRepMaxProgressionChart } from './OneRepMaxProgressionChart';
+import { JumpVsLoadProgressionChart } from './JumpVsLoadProgressionChart';
+import { EvolutionRangeSelector } from './EvolutionRangeSelector';
+import { EvolutionRange, getEvolutionRangeOptions } from '../../utils/evolutionRange';
 
 interface AthleteRecordsModalProps {
   athleteId: string;
   athleteName: string;
   onClose: () => void;
+  initialTab?: 'records' | 'evolution';
+  // En modo lectura solo se muestran los récords; no se puede cargar uno nuevo.
+  readOnly?: boolean;
 }
 
 const ORIGIN_LABELS: Record<RecordOrigin, string> = {
   TestedInSession: 'Testeado',
   Reported: 'Reportado',
-  EstimatedEpley: 'Estimado',
+  EstimatedEpley: 'Estimado por Epley',
+  Epley: 'Estimado por Epley',
 };
 
 const WEIGHT_MAX_KG = 500;
+const TIME_MAX_SECONDS = 600;
 
 function formatDate(isoDateTime: string): string {
   return new Date(isoDateTime).toLocaleDateString('es-AR', {
@@ -25,11 +36,25 @@ function formatDate(isoDateTime: string): string {
   });
 }
 
-function formatKg(weightKg: number): string {
-  return `${weightKg.toLocaleString('es-AR', { maximumFractionDigits: 2 })} kg`;
+function isTimedExercise(exerciseName?: string, exerciseType?: string): boolean {
+  if (exerciseType === 'Distance' || exerciseType === 'Time') return true;
+  if (!exerciseName) return false;
+  return /pasadas|sprint|trote|carrera|running/i.test(exerciseName);
 }
 
-export function AthleteRecordsModal({ athleteId, athleteName, onClose }: AthleteRecordsModalProps) {
+function formatRecordValue(value: number, exerciseName?: string, exerciseType?: string): string {
+  const formatted = value.toLocaleString('es-AR', { maximumFractionDigits: 2 });
+  return isTimedExercise(exerciseName, exerciseType) ? `${formatted} s` : `${formatted} kg`;
+}
+
+export function AthleteRecordsModal({
+  athleteId,
+  athleteName,
+  onClose,
+  initialTab = 'records',
+  readOnly = false,
+}: AthleteRecordsModalProps) {
+  const [activeTab, setActiveTab] = useState<'records' | 'evolution'>(initialTab);
   const [records, setRecords] = useState<AthleteRecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +65,23 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
   const [origin, setOrigin] = useState<RecordOrigin>('TestedInSession');
   const [saving, setSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+
+  const [range, setRange] = useState<EvolutionRange>('3m');
+  const [evolutionData, setEvolutionData] = useState<AthleteEvolutionResponse | null>(null);
+  const [evolutionLoading, setEvolutionLoading] = useState(initialTab === 'evolution');
+  const [evolutionError, setEvolutionError] = useState<string | null>(null);
+
+  const handleTabSelect = (tab: 'records' | 'evolution') => {
+    setActiveTab(tab);
+    if (tab === 'evolution') {
+      setEvolutionLoading(true);
+    }
+  };
+
+  const handleRangeChange = (nextRange: EvolutionRange) => {
+    setRange(nextRange);
+    setEvolutionLoading(true);
+  };
 
   useEffect(() => {
     let active = true;
@@ -60,6 +102,33 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
       active = false;
     };
   }, [athleteId]);
+
+  useEffect(() => {
+    if (activeTab !== 'evolution') return;
+
+    let active = true;
+
+    athleteEvolutionService
+      .getEvolution(athleteId, getEvolutionRangeOptions(range))
+      .then((data) => {
+        if (active) {
+          setEvolutionData(data);
+          setEvolutionError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setEvolutionError(err instanceof Error ? err.message : 'No se pudo cargar la evolución.');
+        }
+      })
+      .finally(() => {
+        if (active) setEvolutionLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [athleteId, activeTab, range]);
 
   // Con el buscador abierto, Escape cierra solo el buscador.
   useEffect(() => {
@@ -82,6 +151,8 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
     setWeight(current ? String(current.weightKg) : '');
   };
 
+  const isTimed = isTimedExercise(exercise?.name, exercise?.exerciseType);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!exercise) {
@@ -89,8 +160,13 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
       return;
     }
     const weightKg = Number(weight);
-    if (!weight || !Number.isFinite(weightKg) || weightKg <= 0 || weightKg > WEIGHT_MAX_KG) {
-      setError(`El 1RM tiene que ser mayor a 0 y hasta ${WEIGHT_MAX_KG} kg.`);
+    const maxVal = isTimed ? TIME_MAX_SECONDS : WEIGHT_MAX_KG;
+    if (!weight || !Number.isFinite(weightKg) || weightKg <= 0 || weightKg > maxVal) {
+      setError(
+        isTimed
+          ? `El tiempo tiene que ser mayor a 0 y hasta ${TIME_MAX_SECONDS} s.`
+          : `El 1RM tiene que ser mayor a 0 y hasta ${WEIGHT_MAX_KG} kg.`,
+      );
       return;
     }
 
@@ -104,7 +180,9 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
           a.exerciseName.localeCompare(b.exerciseName, 'es'),
         ),
       );
-      setSavedMessage(`Se guardó ${formatKg(saved.weightKg)} en ${saved.exerciseName}.`);
+      setSavedMessage(
+        `Se guardó ${formatRecordValue(saved.weightKg, saved.exerciseName, exercise?.exerciseType)} en ${saved.exerciseName}.`,
+      );
       setExercise(null);
       setWeight('');
     } catch (err: unknown) {
@@ -137,113 +215,202 @@ export function AthleteRecordsModal({ athleteId, athleteName, onClose }: Athlete
             </button>
           </div>
 
-          <p className="plan-empty">
-            Con el 1RM de cada ejercicio se calcula el peso que ve el atleta en su rutina: por
-            ejemplo, 100 kg al 80% son 80 kg.
-          </p>
+          <nav
+            className="records-modal-tabs"
+            role="tablist"
+            aria-label="Secciones de récords del atleta"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'records'}
+              className={`records-modal-tab-btn ${activeTab === 'records' ? 'active' : ''}`}
+              onClick={() => handleTabSelect('records')}
+            >
+              <Dumbbell size={16} aria-hidden="true" />
+              <span>Récords</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'evolution'}
+              className={`records-modal-tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
+              onClick={() => handleTabSelect('evolution')}
+              data-testid="tab-evolucion-pf"
+            >
+              <TrendingUp size={16} aria-hidden="true" />
+              <span>Evolución</span>
+            </button>
+          </nav>
 
-          {error && (
-            <div className="alert-banner danger" role="alert">
-              <span className="plan-inline">
-                <AlertCircle size={18} aria-hidden="true" />
-                {error}
-              </span>
-            </div>
-          )}
+          {activeTab === 'evolution' ? (
+            <div className="evolution-charts-grid" data-testid="evolution-pf-container">
+              <EvolutionRangeSelector
+                value={range}
+                onChange={handleRangeChange}
+                disabled={evolutionLoading}
+              />
 
-          {savedMessage && (
-            <div className="alert-banner success" role="status">
-              <span className="plan-inline">
-                <Check size={18} aria-hidden="true" />
-                {savedMessage}
-              </span>
-            </div>
-          )}
-
-          {loading ? (
-            <p className="plan-empty plan-inline">
-              <Loader2 size={16} className="plan-spin" aria-hidden="true" />
-              Cargando récords…
-            </p>
-          ) : records.length === 0 ? (
-            <p className="plan-empty">Todavía no tiene récords cargados.</p>
-          ) : (
-            <ul className="records-list">
-              {records.map((record) => (
-                <li key={record.id} className="records-item">
-                  <span className="records-item-name">{record.exerciseName}</span>
-                  <span className="records-item-weight">{formatKg(record.weightKg)}</span>
-                  <span className="records-item-meta">
-                    {ORIGIN_LABELS[record.origin]} · {formatDate(record.achievedAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <form className="records-form" onSubmit={handleSubmit}>
-            <h3>Cargar un récord</h3>
-
-            <div className="plan-field">
-              <span>Ejercicio</span>
-              <button
-                type="button"
-                className="btn btn-secondary records-exercise-btn"
-                onClick={() => setShowPicker(true)}
-                disabled={saving}
-              >
-                <Dumbbell size={16} aria-hidden="true" />
-                <span>{exercise ? exercise.name : 'Elegir de la biblioteca'}</span>
-              </button>
-            </div>
-
-            <div className="records-form-row">
-              <label className="plan-field">
-                <span>1RM (kg)</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={0.5}
-                  max={WEIGHT_MAX_KG}
-                  step={0.5}
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  disabled={saving}
-                  placeholder="Ej. 100"
-                />
-              </label>
-              <label className="plan-field">
-                <span>Origen</span>
-                <select
-                  value={origin}
-                  onChange={(e) => setOrigin(e.target.value as RecordOrigin)}
-                  disabled={saving}
+              {evolutionData?.strengthUnavailable && (
+                <div
+                  className="alert-banner warning evolution-alert-banner"
+                  role="status"
+                  data-testid="strength-unavailable-alert"
                 >
-                  <option value="TestedInSession">Testeado</option>
-                  <option value="Reported">Reportado</option>
-                </select>
-              </label>
-            </div>
+                  <span className="plan-inline">
+                    <AlertCircle size={18} aria-hidden="true" />
+                    No pudimos cargar los récords de fuerza en este momento.
+                  </span>
+                </div>
+              )}
 
-            <div className="plan-picker-pager">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-                disabled={saving}
-              >
-                Cerrar
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={saving || !exercise}>
-                {saving && <Loader2 size={16} className="plan-spin" aria-hidden="true" />}
-                <span>{saving ? 'Guardando…' : 'Guardar récord'}</span>
-              </button>
+              <JumpVsLoadProgressionChart
+                fitnessTests={evolutionData?.fitnessTests ?? []}
+                weeklyLoads={evolutionData?.weeklyLoads ?? []}
+                isCoach={true}
+                loading={evolutionLoading}
+                error={evolutionError}
+              />
+
+              <OneRepMaxProgressionChart
+                athleteId={athleteId}
+                strengthUnavailable={evolutionData?.strengthUnavailable}
+                strengthSeries={evolutionData?.strength}
+                loading={evolutionLoading}
+                error={evolutionError}
+                suppressBanner={true}
+              />
             </div>
-          </form>
+          ) : (
+            <>
+              <p className="plan-empty">
+                Con el 1RM o marca de cada ejercicio se calcula lo que ve el atleta en su rutina:
+                por ejemplo, 100 kg al 80% son 80 kg; 14 s al 90% son 15,6 s.
+              </p>
+
+              {error && (
+                <div className="alert-banner danger" role="alert">
+                  <span className="plan-inline">
+                    <AlertCircle size={18} aria-hidden="true" />
+                    {error}
+                  </span>
+                </div>
+              )}
+
+              {savedMessage && (
+                <div className="alert-banner success" role="status">
+                  <span className="plan-inline">
+                    <Check size={18} aria-hidden="true" />
+                    {savedMessage}
+                  </span>
+                </div>
+              )}
+
+              {loading ? (
+                <p className="plan-empty plan-inline">
+                  <Loader2 size={16} className="plan-spin" aria-hidden="true" />
+                  Cargando récords…
+                </p>
+              ) : records.length === 0 ? (
+                <p className="plan-empty">Todavía no tiene récords cargados.</p>
+              ) : (
+                <ul className="records-list">
+                  {records.map((record) => (
+                    <li key={record.id} className="records-item">
+                      <span className="records-item-name">{record.exerciseName}</span>
+                      <span className="records-item-weight">
+                        {formatRecordValue(record.weightKg, record.exerciseName)}
+                      </span>
+                      <span className="records-item-meta">
+                        {ORIGIN_LABELS[record.origin]} · {formatDate(record.achievedAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {!readOnly && (
+                <form className="records-form" onSubmit={handleSubmit}>
+                  <h3>Cargar un récord</h3>
+
+                  <div className="plan-field">
+                    <span>Ejercicio</span>
+                    <button
+                      type="button"
+                      className="btn btn-secondary records-exercise-btn"
+                      onClick={() => setShowPicker(true)}
+                      disabled={saving}
+                    >
+                      <Dumbbell size={16} aria-hidden="true" />
+                      <span>{exercise ? exercise.name : 'Elegir de la biblioteca'}</span>
+                    </button>
+                  </div>
+
+                  <div className="records-form-row">
+                    <label className="plan-field">
+                      <span>{isTimed ? 'Mejor tiempo (s)' : '1RM (kg)'}</span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={0.1}
+                        max={isTimed ? TIME_MAX_SECONDS : WEIGHT_MAX_KG}
+                        step={isTimed ? 0.1 : 0.5}
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        disabled={saving}
+                        placeholder={isTimed ? 'Ej. 14.5' : 'Ej. 100'}
+                        aria-label={isTimed ? 'Mejor tiempo en segundos' : '1RM en kilogramos'}
+                      />
+                    </label>
+                    <label className="plan-field">
+                      <span>Origen</span>
+                      <select
+                        value={origin}
+                        onChange={(e) => setOrigin(e.target.value as RecordOrigin)}
+                        disabled={saving}
+                      >
+                        <option value="TestedInSession">Testeado</option>
+                        <option value="Reported">Reportado</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="plan-picker-pager">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={onClose}
+                      disabled={saving}
+                    >
+                      Cerrar
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={saving || !exercise}
+                    >
+                      {saving && <Loader2 size={16} className="plan-spin" aria-hidden="true" />}
+                      <span>{saving ? 'Guardando…' : 'Guardar récord'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {readOnly && (
+                <div className="plan-picker-pager">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>
+                    Cerrar
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      {showPicker && <ExercisePickerModal onClose={closePicker} onSelect={selectExercise} />}
+      {showPicker && (
+        <ExercisePickerModal onClose={closePicker} onSelect={selectExercise} filterUsedByPf />
+      )}
     </>
   );
 }

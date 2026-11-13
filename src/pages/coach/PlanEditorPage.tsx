@@ -1,16 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Check, Loader2, Plus, Save, UserPlus } from 'lucide-react';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Bookmark,
+  Check,
+  Loader2,
+  Plus,
+  Save,
+  UserPlus,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { WeekSection } from '../../components/planning/WeekSection';
 import { ExercisePickerModal } from '../../components/planning/ExercisePickerModal';
 import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
 import { trainingPlansService } from '../../api/trainingPlans';
 import { CatalogExercise, DraftSession, DraftWeek, PlanDraft } from '../../types/trainingPlans';
+import { SaveAsTemplateModal } from '../../components/planning/SaveAsTemplateModal';
 import {
   createExercise,
   createSession,
   createWeek,
+  moveSession,
+  type MoveDirection,
   toDraft,
   toSaveRequest,
   validateDraft,
@@ -23,6 +35,7 @@ interface PickerTarget {
 
 export function PlanEditorPage() {
   const { planId = '' } = useParams();
+  const location = useLocation();
 
   const [draft, setDraft] = useState<PlanDraft | null>(null);
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
@@ -30,9 +43,15 @@ export function PlanEditorPage() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(
+    (location.state as { message?: string } | null)?.message ?? null,
+  );
+  const [warningMessage, setWarningMessage] = useState<string | null>(
+    (location.state as { warning?: string } | null)?.warning ?? null,
+  );
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
   const [showAssign, setShowAssign] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -120,6 +139,9 @@ export function PlanEditorPage() {
       ...week,
       sessions: week.sessions.filter((s) => s.key !== sessionKey),
     }));
+
+  const reorderSession = (weekKey: string, sessionKey: string, direction: MoveDirection) =>
+    editWeek(weekKey, (week) => moveSession(week, sessionKey, direction));
 
   const addExercise = (exercise: CatalogExercise) => {
     if (!pickerTarget) return;
@@ -215,6 +237,20 @@ export function PlanEditorPage() {
             <button
               type="button"
               className="btn btn-secondary"
+              onClick={() => setShowSaveTemplate(true)}
+              disabled={saving || dirty}
+              title={
+                dirty
+                  ? 'Guardá los cambios antes de crear una plantilla'
+                  : 'Guardar esta planificación como plantilla reutilizable'
+              }
+            >
+              <Bookmark size={16} aria-hidden="true" />
+              <span>Guardar como plantilla</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
               onClick={() => setShowAssign(true)}
               disabled={saving || dirty}
               title={
@@ -255,6 +291,23 @@ export function PlanEditorPage() {
               className="plan-icon-btn"
               onClick={() => setError(null)}
               aria-label="Cerrar error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {warningMessage && (
+          <div className="alert-banner warning" role="status">
+            <span className="plan-inline">
+              <AlertCircle size={18} aria-hidden="true" />
+              {warningMessage}
+            </span>
+            <button
+              type="button"
+              className="plan-icon-btn"
+              onClick={() => setWarningMessage(null)}
+              aria-label="Cerrar aviso"
             >
               ×
             </button>
@@ -312,6 +365,9 @@ export function PlanEditorPage() {
             onSessionChange={(sessionKey, update) => editSession(week.key, sessionKey, update)}
             onRemoveSession={(sessionKey) => removeSession(week.key, sessionKey)}
             onAddExercise={(sessionKey) => setPickerTarget({ weekKey: week.key, sessionKey })}
+            onMoveSession={(sessionKey, direction) =>
+              reorderSession(week.key, sessionKey, direction)
+            }
           />
         ))}
 
@@ -331,6 +387,20 @@ export function PlanEditorPage() {
           planName={draft.name}
           onClose={closeAssign}
           onAssigned={handleAssigned}
+        />
+      )}
+
+      {showSaveTemplate && (
+        <SaveAsTemplateModal
+          planId={draft.id}
+          defaultName={draft.name}
+          onClose={() => setShowSaveTemplate(false)}
+          onSaved={(templateName) => {
+            setShowSaveTemplate(false);
+            setSavedMessage(
+              `Plantilla «${templateName}» guardada exitosamente. Ya podés encontrarla en el Catálogo de plantillas.`,
+            );
+          }}
         />
       )}
     </div>

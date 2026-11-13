@@ -1,23 +1,56 @@
 import { useEffect, useState } from 'react';
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, Plus, Search, X } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Info,
+  Loader2,
+  Plus,
+  Search,
+  X,
+} from 'lucide-react';
 import { exercisesService } from '../../api/exercises';
 import { CatalogExercise, ExercisePage } from '../../types/trainingPlans';
+import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExercisePickerModalProps {
   onClose: () => void;
   onSelect: (exercise: CatalogExercise) => void;
+  filterUsedByPf?: boolean;
+  // Filtro opcional por modalidad (KAN-417: Mis marcas solo ofrece ejercicios en kg).
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+  // Ejercicios que ya tienen marca y no deben ofrecerse (KAN-417).
+  excludedIds?: string[];
 }
 
 const PAGE_SIZE = 12;
 const SEARCH_DELAY_MS = 300;
 
-export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalProps) {
+export function ExercisePickerModal({
+  onClose,
+  onSelect,
+  filterUsedByPf = false,
+  exerciseType,
+  excludedIds,
+}: ExercisePickerModalProps) {
   const [searchText, setSearchText] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [result, setResult] = useState<ExercisePage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Modo de filtro: si es true pide solo ejercicios del PF
+  const [usedByPf, setUsedByPf] = useState(filterUsedByPf);
+  // Filtro por grupo muscular y músculo puntual
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
+  // Aviso cuando el PF no tiene planificaciones cargadas
+  const [notice, setNotice] = useState<string | null>(null);
+  // Ejercicio base con las variantes desplegadas (KAN-554)
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Espera a que el PF deje de escribir antes de buscar.
   useEffect(() => {
@@ -33,13 +66,43 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
 
   useEffect(() => {
     let active = true;
-    exercisesService
-      .search(search, page, PAGE_SIZE)
+    const catParam = selectedCategory === 'Todos' ? undefined : selectedCategory;
+    const muscleParam = selectedMuscle ? selectedMuscle.toLowerCase() : undefined;
+
+    const request = exerciseType
+      ? exercisesService.search(
+          search,
+          page,
+          PAGE_SIZE,
+          usedByPf,
+          true,
+          catParam,
+          muscleParam,
+          exerciseType,
+        )
+      : catParam || muscleParam
+        ? exercisesService.search(search, page, PAGE_SIZE, usedByPf, true, catParam, muscleParam)
+        : exercisesService.search(search, page, PAGE_SIZE, usedByPf, true);
+
+    request
       .then((data) => {
-        if (active) {
-          setResult(data);
-          setError(null);
+        if (!active) return;
+        // Si el PF todavía no tiene planificaciones (la lista viene vacía al inicio),
+        // mostrar directamente el catálogo con un aviso.
+        if (
+          usedByPf &&
+          search === '' &&
+          page === 1 &&
+          (data.totalCount === 0 || data.items.length === 0)
+        ) {
+          setNotice(
+            'Todavía no tenés ejercicios en tus planificaciones. Mostrando todo el catálogo.',
+          );
+          setUsedByPf(false);
+          return;
         }
+        setResult(data);
+        setError(null);
       })
       .catch((err: unknown) => {
         if (active) {
@@ -52,7 +115,7 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
     return () => {
       active = false;
     };
-  }, [search, page]);
+  }, [search, page, usedByPf, selectedCategory, selectedMuscle, exerciseType]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -67,7 +130,14 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
     setPage(nextPage);
   };
 
-  const items = result?.items ?? [];
+  const switchToFullCatalog = () => {
+    setLoading(true);
+    setUsedByPf(false);
+    setPage(1);
+  };
+
+  const excluded = new Set(excludedIds ?? []);
+  const items = (result?.items ?? []).filter((exercise) => !excluded.has(exercise.id));
   const totalPages = Math.max(result?.totalPages ?? 1, 1);
 
   return (
@@ -86,6 +156,15 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
           </button>
         </div>
 
+        {notice && (
+          <div className="alert-banner info" role="status">
+            <span className="plan-inline">
+              <Info size={18} aria-hidden="true" />
+              {notice}
+            </span>
+          </div>
+        )}
+
         <div className="plan-picker-search">
           <Search size={16} aria-hidden="true" />
           <input
@@ -97,6 +176,51 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
             autoFocus
           />
         </div>
+
+        {/* Chips de grupos principales */}
+        <div
+          className="exercise-chips-scroll"
+          role="tablist"
+          aria-label="Filtro por grupo muscular"
+        >
+          {CHIP_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedCategory(cat);
+                setSelectedMuscle(null);
+                setPage(1);
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Chips de submúsculos según grupo seleccionado */}
+        {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+          <div
+            className="exercise-subchips-scroll"
+            role="tablist"
+            aria-label="Filtro por músculo puntual"
+          >
+            {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
+              <button
+                key={subMuscle}
+                type="button"
+                className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle));
+                  setPage(1);
+                }}
+              >
+                {subMuscle}
+              </button>
+            ))}
+          </div>
+        )}
 
         {error && (
           <div className="alert-banner danger" role="alert">
@@ -113,26 +237,73 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
             Buscando ejercicios…
           </p>
         ) : items.length === 0 && !error ? (
-          <p className="plan-empty">No encontramos ejercicios con esa búsqueda.</p>
+          <p className="plan-empty">
+            {selectedMuscle
+              ? 'No hay ejercicios para ese músculo.'
+              : 'No encontramos ejercicios con esa búsqueda.'}
+          </p>
         ) : (
           <ul className="plan-picker-list">
-            {items.map((exercise) => (
-              <li key={exercise.id}>
-                <button
-                  type="button"
-                  className="plan-picker-item"
-                  onClick={() => onSelect(exercise)}
-                >
-                  <span className="plan-picker-item-info">
-                    <strong>{exercise.name}</strong>
-                    <span>
-                      {[exercise.muscleGroup, exercise.equipment].filter(Boolean).join(' · ')}
-                    </span>
-                  </span>
-                  <Plus size={18} aria-hidden="true" />
-                </button>
-              </li>
-            ))}
+            {items.map((exercise) => {
+              const variants = exercise.variants ?? [];
+              const expanded = expandedId === exercise.id;
+              return (
+                <li key={exercise.id}>
+                  <div className="plan-picker-row">
+                    <button
+                      type="button"
+                      className="plan-picker-item"
+                      onClick={() => onSelect(exercise)}
+                    >
+                      <span className="plan-picker-item-info">
+                        <strong>{exercise.name}</strong>
+                        <span>
+                          {[exercise.muscleGroup, exercise.equipment].filter(Boolean).join(' · ')}
+                        </span>
+                      </span>
+                      <Plus size={18} aria-hidden="true" />
+                    </button>
+                    {variants.length > 0 && (
+                      <button
+                        type="button"
+                        className="plan-picker-variant-toggle"
+                        onClick={() => setExpandedId(expanded ? null : exercise.id)}
+                        aria-expanded={expanded}
+                        aria-label={`${expanded ? 'Ocultar' : 'Ver'} variantes de ${exercise.name}`}
+                      >
+                        <span>
+                          {variants.length} {variants.length === 1 ? 'variante' : 'variantes'}
+                        </span>
+                        {expanded ? (
+                          <ChevronUp size={16} aria-hidden="true" />
+                        ) : (
+                          <ChevronDown size={16} aria-hidden="true" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  {expanded && (
+                    <ul className="plan-picker-variants">
+                      {variants.map((variant) => (
+                        <li key={variant.id}>
+                          <button
+                            type="button"
+                            className="plan-picker-item plan-picker-variant"
+                            onClick={() => onSelect(variant)}
+                          >
+                            <span className="plan-picker-item-info">
+                              <strong>{variant.variantLabel ?? variant.name}</strong>
+                              <span>{variant.name}</span>
+                            </span>
+                            <Plus size={16} aria-hidden="true" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
 
@@ -159,6 +330,14 @@ export function ExercisePickerModal({ onClose, onSelect }: ExercisePickerModalPr
             <ChevronRight size={16} aria-hidden="true" />
           </button>
         </div>
+
+        {usedByPf && (
+          <div className="plan-picker-footer-link">
+            <button type="button" className="plan-picker-link" onClick={switchToFullCatalog}>
+              Buscar en todo el catálogo
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

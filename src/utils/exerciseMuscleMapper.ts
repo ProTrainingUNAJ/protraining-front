@@ -162,6 +162,132 @@ export function normalizeMuscleString(raw: string): string {
 }
 
 /**
+ * Canonical dictionary mapping normalized muscle names to official Spanish labels (KAN-557).
+ */
+export const MUSCLE_SPANISH_NAMES: Record<string, string> = {
+  // 1. Chest
+  chest: 'Pectorales',
+  pecho: 'Pectorales',
+  pectoral: 'Pectorales',
+  pectorales: 'Pectorales',
+
+  // 2. Biceps
+  biceps: 'Bíceps',
+  brazos: 'Bíceps',
+
+  // 3. Quadriceps
+  quadriceps: 'Cuádriceps',
+  cuadriceps: 'Cuádriceps',
+  piernas: 'Cuádriceps',
+  pierna: 'Cuádriceps',
+
+  // 4. Lats
+  lats: 'Dorsales',
+  dorsales: 'Dorsales',
+  dorsal: 'Dorsales',
+  espalda: 'Dorsales',
+
+  // 5. Middle back
+  'middle back': 'Espalda media',
+  'espalda media': 'Espalda media',
+  'espalda alta': 'Espalda media',
+
+  // 6. Calves
+  calves: 'Gemelos',
+  gemelos: 'Gemelos',
+  gemelo: 'Gemelos',
+  pantorrillas: 'Gemelos',
+  pantorrilla: 'Gemelos',
+
+  // 7. Glutes
+  glutes: 'Glúteos',
+  gluteos: 'Glúteos',
+  gluteo: 'Glúteos',
+
+  // 8. Hamstrings
+  hamstrings: 'Isquiotibiales',
+  isquiotibiales: 'Isquiotibiales',
+  isquiotibial: 'Isquiotibiales',
+  isquios: 'Isquiotibiales',
+  femorales: 'Isquiotibiales',
+  femoral: 'Isquiotibiales',
+
+  // 9. Abdominals
+  abdominals: 'Abdominales',
+  abdominales: 'Abdominales',
+  abdomen: 'Abdominales',
+  core: 'Abdominales',
+
+  // 10. Shoulders
+  shoulders: 'Hombros',
+  hombros: 'Hombros',
+  hombro: 'Hombros',
+  deltoides: 'Hombros',
+
+  // 11. Triceps
+  triceps: 'Tríceps',
+
+  // 12. Forearms
+  forearms: 'Antebrazos',
+  antebrazos: 'Antebrazos',
+  antebrazo: 'Antebrazos',
+
+  // 13. Traps
+  traps: 'Trapecios',
+  trapecios: 'Trapecios',
+  trapecio: 'Trapecios',
+
+  // 14. Lower back
+  'lower back': 'Espalda baja',
+  'espalda baja': 'Espalda baja',
+  lumbar: 'Espalda baja',
+  lumbares: 'Espalda baja',
+  'zona lumbar': 'Espalda baja',
+
+  // 15. Adductors
+  adductors: 'Aductores',
+  aductores: 'Aductores',
+  aductor: 'Aductores',
+
+  // 16. Abductors
+  abductors: 'Abductores',
+  abductores: 'Abductores',
+  abductor: 'Abductores',
+
+  // 17. Neck
+  neck: 'Cuello',
+  cuello: 'Cuello',
+};
+
+/**
+ * Translates an arbitrary muscle name (e.g. from API or free-exercise-db)
+ * to its standard Spanish anatomical name (KAN-557).
+ * If unknown, gracefully returns the trimmed name with first letter capitalized.
+ */
+export function getMuscleSpanishName(rawMuscle?: string | null): string {
+  if (!rawMuscle || typeof rawMuscle !== 'string') return '';
+  const trimmed = rawMuscle.trim();
+  if (!trimmed) return '';
+
+  const key = normalizeMuscleString(trimmed);
+
+  // 1. Direct match in dictionary
+  if (MUSCLE_SPANISH_NAMES[key]) {
+    return MUSCLE_SPANISH_NAMES[key];
+  }
+
+  // 2. Partial / substring match
+  for (const [dictKey, label] of Object.entries(MUSCLE_SPANISH_NAMES)) {
+    if (key.includes(dictKey) || dictKey.includes(key)) {
+      return label;
+    }
+  }
+
+  // 3. Fallback: Capitalize first letter of unknown or custom muscles
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+/**
  * Resolves a list of muscle names to SVG anatomical IDs.
  */
 export function resolveMuscleIds(muscles: string[]): string[] {

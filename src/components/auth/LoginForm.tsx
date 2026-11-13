@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Info, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../api/authService';
 import { extractErrorMessage } from '../../api/axiosClient';
 import { ThemeToggle } from './ThemeToggle';
 import { ProTrainingLogo } from '../brand/ProTrainingLogo';
@@ -29,7 +30,10 @@ const GoogleIcon: React.FC = () => (
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
+  // Bandera para Google Login (KAN-551). Apagada por defecto; se activa con VITE_GOOGLE_LOGIN_ENABLED=true
+  const isGoogleLoginEnabled = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === 'true';
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -87,21 +91,77 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const handleGoogleClick = () => {
-    setInfoModal({
-      isOpen: true,
-      title: 'Iniciar sesión con Google',
-      content:
-        'La autenticación con Google Workspace no se encuentra disponible. Por favor, accedé con tu correo y contraseña registrados.',
-    });
+  useEffect(() => {
+    if (!isGoogleLoginEnabled || !googleClientId) return;
+
+    if (!document.getElementById('google-gsi-client')) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi-client';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, [isGoogleLoginEnabled, googleClientId]);
+
+  const handleGoogleClick = async () => {
+    setErrorMessage('');
+    if (!isGoogleLoginEnabled) return;
+
+    if (!googleClientId) {
+      setErrorMessage('La integración con Google no cuenta con Client ID configurado.');
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const google = (window as unknown as { google?: any }).google;
+    if (!google?.accounts?.id) {
+      setErrorMessage(
+        'El servicio de autenticación de Google no está disponible en este momento. Intentá nuevamente.',
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response: { credential?: string }) => {
+          if (!response?.credential) {
+            setLoading(false);
+            setErrorMessage('No se recibió la credencial de autenticación de Google.');
+            return;
+          }
+
+          try {
+            const session = await (loginWithGoogle
+              ? loginWithGoogle(response.credential)
+              : authService.loginWithGoogle(response.credential));
+            navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
+          } catch (err: unknown) {
+            const msg = extractErrorMessage(err);
+            setErrorMessage(msg);
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      google.accounts.id.prompt((notification: any) => {
+        if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
+          setLoading(false);
+        }
+      });
+    } catch (err: unknown) {
+      setLoading(false);
+      const msg = extractErrorMessage(err);
+      setErrorMessage(msg);
+    }
   };
   const handleForgotPasswordClick = () => {
-    setInfoModal({
-      isOpen: true,
-      title: 'Recuperación de Contraseña',
-      content:
-        'El restablecimiento de contraseña no se encuentra habilitado actualmente. Para recuperar tu acceso de forma segura, comunicate con el soporte de ProTraining.',
-    });
+    navigate('/forgot-password');
   };
 
   const handleRegisterClick = () => {
@@ -165,7 +225,7 @@ export const LoginForm: React.FC = () => {
                 setEmail(e.target.value);
                 if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
               }}
-              placeholder="Enter email"
+              placeholder="Correo electrónico"
               className="input-pill"
               aria-invalid={!!fieldErrors.email}
               aria-describedby={fieldErrors.email ? 'email-error' : undefined}
@@ -200,7 +260,7 @@ export const LoginForm: React.FC = () => {
                 if (fieldErrors.password)
                   setFieldErrors((prev) => ({ ...prev, password: undefined }));
               }}
-              placeholder="Password"
+              placeholder="Contraseña"
               className="input-pill has-trailing"
               aria-invalid={!!fieldErrors.password}
               aria-describedby={fieldErrors.password ? 'password-error' : undefined}
@@ -235,27 +295,29 @@ export const LoginForm: React.FC = () => {
           )}
         </button>
 
-        {/* Opción de Iniciar Sesión con Google abajo de Iniciar sesión */}
-        <button
-          type="button"
-          onClick={handleGoogleClick}
-          disabled={loading}
-          className="btn-pill-google"
-          id="btn-login-google"
-        >
-          <GoogleIcon />
-          <span>Iniciar sesión con Google</span>
-        </button>
+        {/* Opción de Iniciar Sesión con Google (oculta por defecto mediante bandera KAN-551) */}
+        {isGoogleLoginEnabled && (
+          <button
+            type="button"
+            onClick={handleGoogleClick}
+            disabled={loading}
+            className="btn-pill-google"
+            id="btn-login-google"
+          >
+            <GoogleIcon />
+            <span>Iniciar sesión con Google</span>
+          </button>
+        )}
 
-        {/* Accesos Secundarios: ¿Olvidaste tu contraseña? y Registrarse */}
+        {/* Accesos Secundarios: Recuperación de contraseña habilitada (#KAN-540) */}
         <div className="auth-secondary-actions">
           <button
             type="button"
             onClick={handleForgotPasswordClick}
-            disabled={loading}
             className="auth-secondary-btn"
+            id="btn-forgot-password"
           >
-            ¿Olvidaste tu contraseña?
+            Olvidé mi contraseña
           </button>
 
           <span className="auth-secondary-divider" aria-hidden="true">
@@ -265,10 +327,11 @@ export const LoginForm: React.FC = () => {
           <button
             type="button"
             onClick={handleRegisterClick}
-            disabled={loading}
+            disabled
             className="auth-secondary-btn"
+            title="Próximamente disponible"
           >
-            Registrarse
+            Registrarse (Próximamente)
           </button>
         </div>
       </form>

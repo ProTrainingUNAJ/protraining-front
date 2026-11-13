@@ -1,16 +1,24 @@
 import {
+  applyPlanTemplate,
   assignTrainingPlan,
   createTrainingPlan,
   getTrainingPlan,
   getTrainingPlanSchedule,
+  listPlanTemplates,
   listTrainingPlans,
+  savePlanAsTemplate,
   updateTrainingPlan,
   SaveTrainingPlanRequest,
   ScheduledSession,
   TrainingPlanDetail,
 } from './generated/entrenamiento';
 import { extractErrorMessage } from './axiosClient';
-import { PlanAssignmentTarget, PlanListItem } from '../types/trainingPlans';
+import {
+  PlanListItem,
+  ApplyPlanTemplatePayload,
+  PlanAssignmentTarget,
+  PlanTemplateItem,
+} from '../types/trainingPlans';
 
 // Con throwOnError el SDK lanza el error de Axios, y extractErrorMessage puede
 // leer el ProblemDetails del back (el mensaje en español) y el código HTTP.
@@ -62,6 +70,43 @@ export const trainingPlansService = {
           categoryId: target.type === 'category' ? target.id : null,
           athleteId: target.type === 'athlete' ? target.id : null,
         },
+        throwOnError: true,
+      }),
+    );
+  },
+
+  // Listado oficial del SDK adaptado a PlanTemplateItem
+  async listTemplates(): Promise<PlanTemplateItem[]> {
+    const templates = await call(() => listPlanTemplates({ throwOnError: true }));
+    return templates.map((t) => ({
+      id: t.id,
+      name: t.name,
+      objective: t.objective ?? null,
+    }));
+  },
+
+  async applyTemplate(
+    templateId: string,
+    payload: ApplyPlanTemplatePayload,
+  ): Promise<{ assignmentId: string; message: string }> {
+    return call(() =>
+      applyPlanTemplate({
+        path: { id: templateId },
+        body: {
+          startDate: payload.startDate,
+          categoryId: payload.categoryId ?? undefined,
+          athleteId: payload.athleteId ?? undefined,
+        },
+        throwOnError: true,
+      }),
+    );
+  },
+
+  saveAsTemplate(planId: string, name: string): Promise<TrainingPlanDetail> {
+    return call(() =>
+      savePlanAsTemplate({
+        path: { id: planId },
+        body: { name },
         throwOnError: true,
       }),
     );

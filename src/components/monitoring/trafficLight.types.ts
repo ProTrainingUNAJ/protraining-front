@@ -26,4 +26,6 @@ export interface AthleteTrafficLightItem {
   /** Señales del check-in del día (KAN-365): true solo si el atleta reportó hoy. */
   isSick?: boolean;
   hasActiveInjury?: boolean;
+  /** Indica si la rutina de hoy del atleta carga una zona donde marcó dolor (KAN-451 / KAN-452). */
+  hasDayConflict?: boolean;
 }

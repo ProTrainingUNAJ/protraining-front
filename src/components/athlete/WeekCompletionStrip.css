@@ -1,0 +1,87 @@
+/* Tira de la semana del atleta (KAN-446): marca los días con carga del día. Prefijo wcs-. */
+
+.wcs-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.wcs-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.2rem;
+  border-radius: 0.65rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.wcs-day--completed {
+  color: var(--success-text);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--celebration-green) 22%, var(--bg-card)),
+    color-mix(in srgb, var(--celebration-green) 12%, var(--bg-card))
+  );
+  border-color: var(--celebration-green);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--celebration-green) 25%, transparent);
+}
+
+.wcs-day--completed .wcs-day-label {
+  color: var(--success-text);
+  font-weight: 700;
+}
+
+.wcs-day--completed .wcs-day-icon {
+  color: var(--celebration-green);
+}
+
+.wcs-day--pending {
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border-color: transparent;
+}
+
+.wcs-day--loading {
+  height: 3.5rem;
+  background: var(--bg-subtle);
+  border-radius: 0.75rem;
+  animation: wcs-pulse 1.2s ease-in-out infinite;
+}
+
+.wcs-day-label {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.wcs-day-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes wcs-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Si el sistema pide reducir movimiento, se apagan las animaciones en bucle */
+@media (prefers-reduced-motion: reduce) {
+  .wcs-day--loading {
+    animation: none;
+  }
+}

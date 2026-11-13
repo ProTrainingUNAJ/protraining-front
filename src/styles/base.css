@@ -6,6 +6,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  height: 100%;
 }
 
 body {
@@ -20,21 +21,17 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   padding-bottom: var(--safe-bottom);
+  height: 100%;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
+  height: 100%;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;
-}
-
-.text-gradient {
-  background: var(--grad-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }

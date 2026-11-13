@@ -74,3 +74,1100 @@
   margin-top: 0.35rem;
   text-align: left;
 }
+
+/* ── Tarjetas de aprobación de récords Epley para el PF (#099 / KAN-394) ── */
+
+.epley-proposals-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.15rem;
+  box-sizing: border-box;
+}
+
+.epley-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-right: 4rem;
+}
+
+.epley-widget-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.epley-widget-icon {
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+}
+
+.epley-widget-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.epley-widget-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.epley-widget-badge {
+  background: var(--stat-amber-bg);
+  color: var(--stat-amber);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
+
+.epley-widget-alert {
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.epley-alert-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: inherit;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.epley-widget-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.epley-widget-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.epley-widget-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted);
+  height: 100%;
+}
+
+.epley-empty-icon {
+  color: var(--stat-green);
+  margin-bottom: 0.45rem;
+}
+
+.epley-widget-empty h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.epley-widget-empty p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  max-width: 280px;
+}
+
+.epley-widget-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Tarjeta individual de propuesta ── */
+.epley-proposal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.epley-proposal-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.epley-proposal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.epley-proposal-athlete-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.epley-proposal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  background: var(--primary-light);
+  color: var(--primary);
+  align-self: flex-start;
+}
+
+.epley-proposal-athlete-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.epley-proposal-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.epley-proposal-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.epley-proposal-exercise-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.epley-proposal-performed {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.epley-proposal-weights-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.epley-weight-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.epley-weight-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.epley-weight-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.epley-weight-val.highlight {
+  color: var(--stat-green);
+}
+
+.epley-weights-arrow {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.epley-increment-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--success-bg-strong);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+  padding: 0.25rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.epley-proposal-error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.epley-proposal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.epley-decision-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+}
+
+.epley-records-btn {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.epley-btn-discard {
+  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.epley-btn-approve {
+  background: var(--stat-green);
+  color: var(--white);
+  border-color: var(--stat-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.epley-btn-approve:hover:not(:disabled) {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+/* ── Banner destacado en el panel de control del PF ── */
+.epley-dashboard-banner {
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-blue);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.epley-dashboard-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.epley-dashboard-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.epley-dashboard-banner-title h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.epley-dashboard-banner-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.epley-dashboard-banner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.85rem;
+}
+
+/* -- Importación de récords desde CSV (KAN-390) -- */
+
+.records-import-modal {
+  max-width: 900px;
+}
+
+.records-import-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.records-import-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.records-import-upload-icon {
+  color: var(--primary);
+  opacity: 0.75;
+}
+
+.records-import-upload-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.records-import-help {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.records-import-file-btn {
+  position: relative;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+
+.records-import-file-btn:focus-within {
+  outline: 2px solid var(--border-focus, var(--primary));
+  outline-offset: 2px;
+}
+
+.records-import-file-name {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.records-import-upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.records-import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.records-import-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.records-import-fields .plan-field {
+  margin: 0;
+}
+
+.records-import-fields .plan-field select {
+  margin-bottom: 0;
+}
+
+.records-import-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.records-import-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.records-import-table-wrap {
+  max-height: 45vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.records-import-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.records-import-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.55rem 0.65rem;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.records-import-table td {
+  padding: 0.5rem 0.65rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-main);
+  vertical-align: top;
+}
+
+.records-import-table tr.is-error td {
+  background: var(--danger-bg);
+}
+
+.records-import-empty {
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.records-import-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.records-import-done-icon {
+  color: var(--stat-green);
+}
+
+.records-import-done h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
+
+.records-import-done p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.records-import-done .plan-picker-pager {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Resumen de confiabilidad de récords (KAN-416) */
+.records-reliability-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.records-reliability-summary-card {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.records-reliability-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.records-reliability-summary-hint {
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  max-width: 80ch;
+}
+
+.records-reliability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.records-reliability-group-card {
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.records-reliability-group-card.needs-testing {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+}
+
+.records-reliability-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.records-reliability-group-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.records-reliability-group-description {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.records-reliability-athlete-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.records-reliability-empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.records-reliability-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.records-reliability-retry-button {
+  margin-top: 0.75rem;
+}
+
+.records-reliability-page-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.records-reliability-select {
+  width: auto;
+  min-width: min(220px, 100%);
+  max-width: 100%;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.records-reliability-state-card {
+  text-align: center;
+  padding: 3.5rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.records-reliability-state-icon {
+  margin: 0 auto 1rem;
+  opacity: 0.35;
+}
+
+.records-reliability-state-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.records-reliability-state-text {
+  font-size: 0.9rem;
+  max-width: 420px;
+  margin-inline: auto;
+  margin: 0;
+}
+
+.records-reliability-alert {
+  margin-bottom: 1rem;
+}
+
+/* Gráfico y detalle del resumen de confiabilidad (KAN-417) */
+.records-reliability-chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.records-reliability-chart-title {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.records-reliability-chart-description {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.records-reliability-nodata-note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.records-reliability-chart {
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+}
+
+.records-reliability-chart-segment {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.records-reliability-chart-segment:hover {
+  opacity: 0.85;
+}
+
+.records-reliability-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.records-reliability-legend-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.records-reliability-legend-btn:hover {
+  background: var(--bg-subtle);
+}
+
+.records-reliability-legend-btn.is-selected {
+  border-color: var(--secondary);
+  background: var(--bg-subtle);
+  color: var(--secondary);
+  box-shadow: inset 0 0 0 1px var(--secondary);
+}
+
+.records-reliability-legend-btn:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+.records-reliability-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.records-reliability-detail {
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.records-reliability-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.records-reliability-detail-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.records-reliability-detail-close {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.records-reliability-detail-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.records-reliability-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.records-reliability-detail-see {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.records-reliability-detail-list li + li {
+  margin-top: 0.25rem;
+}
+
+.records-reliability-group-card.is-selected {
+  box-shadow: 0 0 0 2px var(--secondary);
+}
+
+/* ── Progresión de 1RM / Evolución (KAN-436 / #141) ── */
+
+.records-modal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.records-modal-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.records-modal-tab-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.records-modal-tab-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--white);
+}
+
+.rm-evolution-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.rm-evolution-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rm-evolution-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rm-evolution-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.rm-evolution-select {
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rm-evolution-chart-wrap {
+  width: 100%;
+  min-height: 280px;
+  padding: 1rem 0.5rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  box-sizing: border-box;
+}
+
+.rm-chart-tooltip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.rm-chart-tooltip-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.rm-chart-tooltip-weight {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--secondary);
+}
+
+.rm-chart-tooltip-meta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.rm-chart-single-note {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.rm-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.rm-chart-empty-icon {
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+}
+
+.rm-chart-empty-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.rm-chart-empty-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ── Selector de rango y gráfico Salto vs. Carga (KAN-437 / #142) ── */
+
+.evolution-range-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.25rem;
+}
+
+.evolution-range-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-main);
+}
+
+.evolution-range-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.evolution-range-selector {
+  display: inline-flex;
+  background: var(--bg-subtle);
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  gap: 0.25rem;
+}
+
+.evolution-range-btn {
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.evolution-range-btn:hover {
+  color: var(--text-main);
+}
+
+.evolution-range-btn.active {
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.jump-load-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--primary);
+}
+
+.jump-load-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.jump-load-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.jump-load-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
+}
+
+.jump-load-tooltip-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.jump-load-tooltip-marker.jump-marker {
+  background: var(--primary);
+}
+
+.jump-load-tooltip-marker.load-marker {
+  background: var(--secondary);
+}
+
+.evolution-alert-banner {
+  margin-bottom: 1rem;
+}
+
+.evolution-charts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}

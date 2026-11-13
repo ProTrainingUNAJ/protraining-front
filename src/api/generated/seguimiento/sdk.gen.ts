@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -36,6 +36,35 @@ export const submitCheckIn = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
+ * Consultar atletas que completaron el check-in en una fecha
+ *
+ * Endpoint interno para microservicios con rol Servicio (worker de recordatorios). Devuelve los IDs de los atletas que ya completaron el check-in.
+ */
+export const getCompletedCheckIns = <ThrowOnError extends boolean = false>(options: Options<GetCompletedCheckInsData, ThrowOnError>): RequestResult<GetCompletedCheckInsResponses, GetCompletedCheckInsErrors, ThrowOnError> => (options.client ?? client).post<GetCompletedCheckInsResponses, GetCompletedCheckInsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/internal/check-ins/done',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener el check-in del día del atleta
+ *
+ * Devuelve el check-in registrado hoy (calculado en hora de Argentina) por el atleta, incluyendo las zonas de dolor reportadas (painZones). Exclusivo para el preparador físico autenticado; responde 404 si el atleta todavía no completó el check-in de hoy o no pertenece al PF.
+ *
+ */
+export const getTodayCheckIn = <ThrowOnError extends boolean = false>(options: Options<GetTodayCheckInData, ThrowOnError>): RequestResult<GetTodayCheckInResponses, GetTodayCheckInErrors, ThrowOnError> => (options.client ?? client).get<GetTodayCheckInResponses, GetTodayCheckInErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/check-in/today',
+    ...options
+});
+
+/**
  * Historial de check-ins de un atleta
  *
  * Devuelve los registros de bienestar diarios del atleta (por defecto los últimos 14 registros).
@@ -44,6 +73,16 @@ export const listAthleteCheckIns = <ThrowOnError extends boolean = false>(option
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/check-ins',
+    ...options
+});
+
+/**
+ * Obtener la carga del día del atleta
+ */
+export const getDailyLoad = <ThrowOnError extends boolean = false>(options: Options<GetDailyLoadData, ThrowOnError>): RequestResult<GetDailyLoadResponses, GetDailyLoadErrors, ThrowOnError> => (options.client ?? client).get<GetDailyLoadResponses, GetDailyLoadErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/daily-load',
     ...options
 });
 
@@ -57,6 +96,35 @@ export const registerDailyLoad = <ThrowOnError extends boolean = false>(options:
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/daily-load',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener la semana del atleta con los días completados
+ *
+ * Devuelve los 7 días de la semana (lunes a domingo) del atleta, marcando cuáles tienen carga del día registrada.
+ *
+ */
+export const getAthleteWeek = <ThrowOnError extends boolean = false>(options: Options<GetAthleteWeekData, ThrowOnError>): RequestResult<GetAthleteWeekResponses, GetAthleteWeekErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteWeekResponses, GetAthleteWeekErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/daily-load/week',
+    ...options
+});
+
+/**
+ * Corregir asistencia manualmente
+ *
+ * El preparador físico marca presente o ausente a un atleta cuando figura "sin registro" (no cargó su entrenamiento del día).
+ *
+ */
+export const setAttendance = <ThrowOnError extends boolean = false>(options: Options<SetAttendanceData, ThrowOnError>): RequestResult<SetAttendanceResponses, SetAttendanceErrors, ThrowOnError> => (options.client ?? client).patch<SetAttendanceResponses, SetAttendanceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/attendance',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -90,6 +158,19 @@ export const getCategoryTrafficLightToday = <ThrowOnError extends boolean = fals
 });
 
 /**
+ * Consultar promedios de tests y wellness por categoría
+ *
+ * Obtiene los promedios aritméticos agregados de tests de aptitud física y de métricas semanales de bienestar (wellness) para los atletas de una categoría específica. Garantía estricta de privacidad: no expone identificadores, nombres ni mediciones individuales.
+ *
+ */
+export const getCategoryAverages = <ThrowOnError extends boolean = false>(options: Options<GetCategoryAveragesData, ThrowOnError>): RequestResult<GetCategoryAveragesResponses, GetCategoryAveragesErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryAveragesResponses, GetCategoryAveragesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/averages',
+    ...options
+});
+
+/**
  * Consultar perfil del atleta frente al promedio de su grupo
  *
  * Retorna la evolución del atleta comparada exclusivamente contra el promedio anónimo de su categoría (garantía de seguridad: ningún atleta ve los datos individuales de sus compañeros).
@@ -105,7 +186,7 @@ export const getGroupBenchmark = <ThrowOnError extends boolean = false>(options:
 /**
  * Listar lesiones de un atleta
  *
- * Obtiene el historial de lesiones registradas para un atleta, permitiendo filtrar por su estado actual.
+ * Obtiene el historial de lesiones registradas para un atleta, permitiendo filtrar por su estado actual. Responde 404 si el atleta no existe o es de otro PF.
  */
 export const listAthleteInjuries = <ThrowOnError extends boolean = false>(options: Options<ListAthleteInjuriesData, ThrowOnError>): RequestResult<ListAthleteInjuriesResponses, ListAthleteInjuriesErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteInjuriesResponses, ListAthleteInjuriesErrors, ThrowOnError>({
     responseType: 'json',
@@ -117,7 +198,7 @@ export const listAthleteInjuries = <ThrowOnError extends boolean = false>(option
 /**
  * Registrar una nueva lesión
  *
- * Da de alta una lesión para el atleta en estado inicial 'Active'.
+ * Da de alta una lesión para el atleta en estado inicial 'Active'. Responde 404 si el atleta no existe o es de otro PF.
  */
 export const createInjury = <ThrowOnError extends boolean = false>(options: Options<CreateInjuryData, ThrowOnError>): RequestResult<CreateInjuryResponses, CreateInjuryErrors, ThrowOnError> => (options.client ?? client).post<CreateInjuryResponses, CreateInjuryErrors, ThrowOnError>({
     responseType: 'json',
@@ -157,6 +238,139 @@ export const listFitnessTests = <ThrowOnError extends boolean = false>(options?:
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/fitness-tests',
+    ...options
+});
+
+/**
+ * Historial de tests físicos de un atleta
+ *
+ * Devuelve el historial de resultados de pruebas físicas del atleta, con opción de filtrar por un test específico del catálogo y por rango de fechas.
+ *
+ */
+export const listAthleteFitnessTests = <ThrowOnError extends boolean = false>(options: Options<ListAthleteFitnessTestsData, ThrowOnError>): RequestResult<ListAthleteFitnessTestsResponses, ListAthleteFitnessTestsErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteFitnessTestsResponses, ListAthleteFitnessTestsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/fitness-tests',
+    ...options
+});
+
+/**
+ * Consultar evolución temporal unificada de un atleta
+ *
+ * Consolida en una vista temporal unificada día a día la progresión histórica de fuerza (1RM), capacidades atléticas (salto/velocidad) y fatiga/wellness a lo largo de las semanas (por defecto, los últimos 3 meses).
+ *
+ */
+export const getAthleteEvolution = <ThrowOnError extends boolean = false>(options: Options<GetAthleteEvolutionData, ThrowOnError>): RequestResult<GetAthleteEvolutionResponses, GetAthleteEvolutionErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteEvolutionResponses, GetAthleteEvolutionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/evolution',
+    ...options
+});
+
+/**
+ * Sesiones de test de campo de una categoría
+ *
+ * Devuelve el resumen (id, categoría, fecha, nombre y estado) de las sesiones de la categoría pedida, de la más reciente a la más antigua. Solo aparecen las sesiones del PF autenticado: las de otro PF no se devuelven. Sin tests ni resultados, para que la pantalla que elige la sesión sea liviana.
+ *
+ */
+export const listFieldTestSessions = <ThrowOnError extends boolean = false>(options: Options<ListFieldTestSessionsData, ThrowOnError>): RequestResult<ListFieldTestSessionsResponses, ListFieldTestSessionsErrors, ThrowOnError> => (options.client ?? client).get<ListFieldTestSessionsResponses, ListFieldTestSessionsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions',
+    ...options
+});
+
+/**
+ * Crear una sesión de test de campo
+ *
+ * Crea la sesión con sus pruebas del catálogo en el orden de evaluación. Estado inicial Planned. Responde 404 si la categoría no existe o es de otro PF; 400 si la lista de pruebas está vacía, si se repite una prueba o si alguna no existe en el catálogo.
+ *
+ */
+export const createFieldTestSession = <ThrowOnError extends boolean = false>(options: Options<CreateFieldTestSessionData, ThrowOnError>): RequestResult<CreateFieldTestSessionResponses, CreateFieldTestSessionErrors, ThrowOnError> => (options.client ?? client).post<CreateFieldTestSessionResponses, CreateFieldTestSessionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cambiar el estado de la sesión
+ *
+ * Avanza el estado de la sesión en orden estricto Planned -> InProgress -> Closed. Un salto (Planned -> Closed), una reapertura o repetir el estado actual responde 400 "Transición de estado no válida". La sesión no exista o sea de otro PF → 404.
+ *
+ */
+export const updateFieldTestSessionStatus = <ThrowOnError extends boolean = false>(options: Options<UpdateFieldTestSessionStatusData, ThrowOnError>): RequestResult<UpdateFieldTestSessionStatusResponses, UpdateFieldTestSessionStatusErrors, ThrowOnError> => (options.client ?? client).patch<UpdateFieldTestSessionStatusResponses, UpdateFieldTestSessionStatusErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Sesión de test de campo con sus resultados
+ *
+ * Devuelve la sesión de test de campo con sus tests del catálogo (en orden de evaluación) y los resultados cargados por atleta. Responde 404 si la sesión no existe o es de otro PF.
+ *
+ */
+export const getFieldTestSession = <ThrowOnError extends boolean = false>(options: Options<GetFieldTestSessionData, ThrowOnError>): RequestResult<GetFieldTestSessionResponses, GetFieldTestSessionErrors, ThrowOnError> => (options.client ?? client).get<GetFieldTestSessionResponses, GetFieldTestSessionErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}',
+    ...options
+});
+
+/**
+ * Carga rápida de un resultado de campo
+ *
+ * Registra el valor de un atleta para un test de la sesión. Responde 404 si la sesión no existe o es de otro PF, o si el atleta no existe o es de otro PF (en ese caso no se persiste nada). Responde 409 si el mismo (sesión, prueba, atleta e intento) ya fue cargado. Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." (KAN-427).
+ *
+ */
+export const createFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<CreateFieldTestResultData, ThrowOnError>): RequestResult<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/results',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Corregir un resultado de campo
+ *
+ * Actualiza el valor y el intento de un resultado ya cargado. Responde 404 si la sesión o el resultado no existen o son de otro PF. Responde 409 si la corrección choca con un resultado ya cargado (misma prueba, atleta e intento). Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." (KAN-427).
+ *
+ */
+export const updateFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<UpdateFieldTestResultData, ThrowOnError>): RequestResult<UpdateFieldTestResultResponses, UpdateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).put<UpdateFieldTestResultResponses, UpdateFieldTestResultErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/results/{resultId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Confirmar un resultado de fuerza y sincronizar el 1RM
+ *
+ * Confirma un resultado de fuerza (test en kg) y envía de forma síncrona el 1RM testeado al microservicio Entrenamiento con origen TestedInSession, resolviendo el ejercicio homónimo por nombre exacto la primera vez (el GUID resuelto queda cacheado en la prueba del catálogo). Responde 404 si la sesión, el resultado o la prueba no existen o son de otro PF; 400 si el test no genera récord 1RM o si Entrenamiento no tiene un ejercicio con ese nombre; y 503 si Entrenamiento no responde tras los reintentos de Polly (la confirmación no quedó registrada allí). Re-confirmar reenvía el mismo valor (idempotente del lado de Entrenamiento). Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." y no se envía ningún 1RM (KAN-427).
+ *
+ */
+export const confirmFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<ConfirmFieldTestResultData, ThrowOnError>): RequestResult<ConfirmFieldTestResultResponses, ConfirmFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<ConfirmFieldTestResultResponses, ConfirmFieldTestResultErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/field-test-sessions/{sessionId}/results/{resultId}/confirm',
     ...options
 });
 

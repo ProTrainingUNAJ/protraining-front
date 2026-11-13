@@ -7,6 +7,7 @@ import {
   OfflineCheckInPayload,
 } from '../services/checkInOfflineService';
 import { structureService } from './structureService';
+import { dateInArgentina, todayInArgentina } from '../utils/argentinaDate';
 import {
   AthleteTrafficLightItem,
   PainZoneReport,
@@ -14,6 +15,21 @@ import {
 } from '../components/monitoring/trafficLight.types';
 import { PROTRAINING_MUSCLES } from '../components/athlete/bodyMuscleData';
 import { Category } from '../types/structure';
+import type { AthleteWeek } from '../types/seguimiento';
+import { getAthleteWeek as getAthleteWeekRequest } from './generated/seguimiento';
+import {
+  getDailyLoad as getDailyLoadRequest,
+  registerDailyLoad as registerDailyLoadRequest,
+  getCategoryAttendanceToday as getCategoryAttendanceTodayRequest,
+  getCategoryTrafficLightToday as getCategoryTrafficLightTodayRequest,
+  setAttendance as setAttendanceRequest,
+  type AthleteTrafficLightSummary,
+  type DailyLoadActivity,
+  type DailyLoadRequest,
+  type DailyLoadResponse,
+  type CategoryAttendanceSummary,
+  type CheckIn,
+} from './generated/seguimiento';
 
 export interface CheckInSubmitRequest {
   sleepHours: number;
@@ -116,19 +132,44 @@ export async function syncPendingCheckIns(athleteId: string): Promise<number> {
   for (const record of pending) {
     if (!record.id) continue;
     try {
-      await httpClient.post(
-        `/seguimiento/api/v1/athletes/${record.athleteId}/check-in`,
-        record.payload,
-      );
+      // Se manda la fecha original del check-in para que el back conserve el día
+      // en que se hizo, aunque la sincronización ocurra al día siguiente.
+      await httpClient.post(`/seguimiento/api/v1/athletes/${record.athleteId}/check-in`, {
+        ...record.payload,
+        date: dateInArgentina(record.timestamp),
+      });
       await deletePendingCheckIn(record.id);
       syncedCount += 1;
-    } catch {
-      // If still failing, stop and keep remaining records in IndexedDB
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      // Errores terminales: el back no va a aceptar este check-in nunca (fecha inválida,
+      // atleta no vinculado, duplicado). Se descarta para no reintentar para siempre.
+      if (status === 400 || status === 404 || status === 409) {
+        await deletePendingCheckIn(record.id);
+        continue;
+      }
+      // Red caída o 5xx: se corta y se reintenta al volver a conectar.
       break;
     }
   }
 
   return syncedCount;
+}
+
+/**
+ * Descarta los check-ins pendientes de un día (p. ej. cuando el atleta ya hizo el
+ * check-in online ese mismo día), para que el pendiente viejo no pise el nuevo.
+ */
+export async function discardPendingCheckInsForDate(
+  athleteId: string,
+  date: string,
+): Promise<number> {
+  const pending = await getPendingCheckIns(athleteId);
+  const toDelete = pending.filter(
+    (record) => record.id !== undefined && dateInArgentina(record.timestamp) === date,
+  );
+  await Promise.all(toDelete.map((record) => deletePendingCheckIn(record.id as number)));
+  return toDelete.length;
 }
 
 /**
@@ -138,33 +179,16 @@ export { countPendingCheckIns, getPendingCheckIns } from '../services/checkInOff
 export type { OfflineCheckInPayload };
 
 // ---------------------------------------------------------------------------
-// Semáforo del día por categoría (KAN-365 / KAN-366)
+// Semáforo del día por categoría
 //
 // Fuente única de verdad del semáforo de la PWA: consume el microservicio de
-// seguimiento por `httpClient` (axios, patrón de todos los servicios del front)
-// y adapta el DTO del backend a los tipos de UI de las tarjetas y widgets.
-// No existen mocks: el archivo `trafficLightData.ts` fue eliminado en KAN-366.
+// seguimiento por el SDK generado (`getCategoryTrafficLightToday`), que viaja
+// sobre el mismo `httpClient` de la app (auth, refresh y timeout incluidos).
+// Los tipos de la respuesta son los del SDK, no interfaces escritas a mano,
+// para que un cambio de contrato lo marque el compilador.
+// Adapta ese DTO a los tipos de UI de las tarjetas y widgets.
+// No existen mocks: el archivo `trafficLightData.ts` fue eliminado.
 // ---------------------------------------------------------------------------
-
-export interface TrafficLightIndicatorsDto {
-  sleepHours: number;
-  sleepQuality: number;
-  effortRate?: number | null;
-  isSick: boolean;
-  hasActiveInjury: boolean;
-  painZones?: string | null;
-}
-
-export interface AthleteTrafficLightSummary {
-  athleteId: string;
-  athleteName: string;
-  trafficLight: 'Green' | 'Yellow' | 'Red';
-  trafficLightReason?: string | null;
-  hasReportedToday: boolean;
-  reportedAt?: string | null;
-  resultValue: 20 | 50 | 90;
-  indicators?: TrafficLightIndicatorsDto | null;
-}
 
 export interface TrafficLightCounts {
   all: number;
@@ -181,13 +205,13 @@ const TRAFFIC_STATUS_LABELS: Record<TrafficLightStatus, string> = {
   gray: 'Sin Check-in',
 };
 
-// Fallbacks KAN-366: si la estructura cae y llegan nombres vacíos, la UI
+// Fallbacks: si la estructura cae y llegan nombres vacíos, la UI
 // muestra estos textos en lugar de labels en blanco.
 export const CATEGORY_NAME_FALLBACK = 'Categoría sin nombre';
 export const ATHLETE_NAME_FALLBACK = 'Atleta sin nombre';
 
 // hasReportedToday=false siempre se presenta como gris "pendiente" en la PWA,
-// aunque el motor devuelva Amarillo por seguridad operativa (decisión KAN-365).
+// aunque el motor devuelva Amarillo por seguridad operativa.
 function resolveStatus(summary: AthleteTrafficLightSummary): TrafficLightStatus {
   if (!summary.hasReportedToday) return 'gray';
   if (summary.trafficLight === 'Red') return 'red';
@@ -234,7 +258,7 @@ function formatReportedAt(reportedAt?: string | null): string | undefined {
 
 /**
  * Mapea el resumen del backend (DTO del endpoint traffic-light-today) al tipo
- * de UI de las tarjetas del semáforo. Reglas KAN-365/KAN-366:
+ * de UI de las tarjetas del semáforo. Reglas:
  * - `hasReportedToday === false` → estado gris "Sin Check-in" (aunque el motor
  *   devuelva Amarillo por seguridad operativa).
  * - Nombres vacíos por caída de estructura → fallbacks exportados
@@ -275,19 +299,22 @@ export function mapTrafficLightSummaryToItem(
 
 /**
  * Consulta el semáforo tricolor de hoy de una categoría.
- * GET `/seguimiento/api/v1/categories/{id}/traffic-light-today` (gateway →
- * microservicio Seguimiento). Devuelve vacío si la respuesta es nula.
- * Errores (KAN-366): 404 → mensaje específico y en español de categoría
+ * GET `/seguimiento/api/v1/categories/{id}/traffic-light-today` vía el SDK
+ * generado `getCategoryTrafficLightToday`: el contrato y los tipos
+ * salen del OpenAPI, no de interfaces escritas a mano.
+ * Devuelve vacío si la respuesta es nula.
+ * Errores: 404 → mensaje específico y en español de categoría
  * inexistente; el resto se traduce con `extractErrorMessage` (ProblemDetails).
  */
 export async function getCategoryTrafficLightToday(
   categoryId: string,
 ): Promise<AthleteTrafficLightSummary[]> {
   try {
-    const response = await httpClient.get<AthleteTrafficLightSummary[]>(
-      `/seguimiento/api/v1/categories/${categoryId}/traffic-light-today`,
-    );
-    return response.data ?? [];
+    const { data } = await getCategoryTrafficLightTodayRequest({
+      path: { categoryId },
+      throwOnError: true,
+    });
+    return data ?? [];
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response?.status === 404) {
       throw new Error('La categoría solicitada no existe o fue eliminada.', { cause: err });
@@ -300,7 +327,7 @@ export async function getCategoryTrafficLightToday(
  * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
  * (dashboard: donas, alertas de dolor y progreso de check-in). Alimenta también
  * la deduplicación de atletas que pertenecen a más de una categoría.
- * Modo degradado (KAN-366): si la estructura de organizaciones/categorías cae o
+ * Modo degradado: si la estructura de organizaciones/categorías cae o
  * una categoría responde error, esa categoría se omite silenciosamente y el
  * resto del plantel se sigue mostrando; nunca rompe el dashboard completo.
  */
@@ -337,7 +364,7 @@ export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLi
 }
 
 /**
- * Conteo por color del plantel (KAN-365/KAN-366): alimenta las donas del
+ * Conteo por color del plantel: alimenta las donas del
  * dashboard y los chips de filtro de MonitoringPage. `gray` equivale a
  * "sin check-in hoy", base del progreso del widget CheckInProgressWidget.
  */
@@ -349,4 +376,236 @@ export function summarizeTrafficLightCounts(items: AthleteTrafficLightItem[]): T
     green: items.filter((item) => item.status === 'green').length,
     gray: items.filter((item) => item.status === 'gray').length,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Lesiones del atleta
+//
+// Wrappers manjos sobre `httpClient` con tipos propios alineados a
+// `AthleteInjuryDto` del back y errores traducidos (ProblemDetails en español,
+// 404 específico por atleta).
+// ---------------------------------------------------------------------------
+
+// Estados del dominio (InjuryStatus en .NET); viajan como texto, no como número.
+export type InjuryStatus = 'Active' | 'InRecovery' | 'MedicallyCleared';
+
+export interface AthleteInjury {
+  id: string;
+  athleteId: string;
+  zone: string;
+  description: string;
+  injuryDate: string;
+  estimatedReturnDate: string;
+  status: InjuryStatus;
+  clearedAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateInjuryPayload {
+  zone: string;
+  description: string;
+  injuryDate: string;
+  estimatedReturnDate: string;
+}
+
+export interface UpdateInjuryStatusPayload {
+  newStatus: InjuryStatus;
+  transitionNotes: string;
+}
+
+/**
+ * Historial de lesiones de un atleta (GET `listAthleteInjuries`).
+ * Un filtro sin resultados responde 200 con lista vacía (nunca 404);
+ * el 404 del endpoint significa que el atleta no existe.
+ */
+export async function listAthleteInjuries(athleteId: string): Promise<AthleteInjury[]> {
+  try {
+    const response = await httpClient.get<AthleteInjury[]>(
+      `/seguimiento/api/v1/athletes/${athleteId}/injuries`,
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
+    }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Registra una lesión (POST `createInjury`): nace en `Active` y el backend
+ * exige fecha de retorno estimada posterior a la de la lesión (400 si no).
+ */
+export async function createAthleteInjury(
+  athleteId: string,
+  payload: CreateInjuryPayload,
+): Promise<AthleteInjury> {
+  try {
+    const response = await httpClient.post<AthleteInjury>(
+      `/seguimiento/api/v1/athletes/${athleteId}/injuries`,
+      payload,
+    );
+    return response.data;
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Avanza el stepper de una lesión (PATCH `updateInjuryStatus`, máquina de
+ * estados estricta). `transitionNotes` es obligatoria y el backend
+ * rechaza con 400 el salto directo de `Active` a `MedicallyCleared`.
+ */
+export async function updateInjuryStatus(
+  injuryId: string,
+  payload: UpdateInjuryStatusPayload,
+): Promise<AthleteInjury> {
+  try {
+    const response = await httpClient.patch<AthleteInjury>(
+      `/seguimiento/api/v1/injuries/${injuryId}/status`,
+      payload,
+    );
+    return response.data;
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Carga del día (minutos + RPE por actividad)
+// ---------------------------------------------------------------------------
+
+// Aliases de tipos para compatibilidad con consumidores existentes.
+export type DailyLoadActivityPayload = DailyLoadActivity;
+export type DailyLoadSubmitRequest = DailyLoadRequest;
+export type DailyLoadSubmitResponse = DailyLoadResponse;
+
+/**
+ * Registra/actualiza la carga del día del atleta (minutos + RPE por actividad).
+ * POST `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
+ * Primera vez del día → 201, repetir → 200 (upsert).
+ */
+export async function submitDailyLoad(
+  athleteId: string,
+  payload: DailyLoadRequest,
+): Promise<DailyLoadResponse> {
+  try {
+    const response = await registerDailyLoadRequest({
+      path: { athleteId },
+      body: payload,
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Obtiene la carga del día ya registrada del atleta.
+ * GET `/seguimiento/api/v1/athletes/{athleteId}/daily-load`.
+ * Devuelve `null` si aún no se registró carga hoy (404).
+ */
+export async function getDailyLoad(athleteId: string): Promise<DailyLoadResponse | null> {
+  try {
+    const response = await getDailyLoadRequest({
+      path: { athleteId },
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status;
+    if (status === 404) return null;
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Semana del atleta con los días completados
+// ---------------------------------------------------------------------------
+
+/**
+ * Obtiene la semana del atleta (lun→dom) marcando los días con carga del día.
+ * GET `/api/v1/athletes/{athleteId}/daily-load/week`.
+ */
+export async function getAthleteWeek(athleteId: string, date?: string): Promise<AthleteWeek> {
+  try {
+    const { data } = await getAthleteWeekRequest({
+      path: { athleteId },
+      query: date ? { date } : undefined,
+      throwOnError: true,
+    });
+    return data;
+  } catch (error) {
+    throw new Error(extractErrorMessage(error), { cause: error });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Asistencia automática del día
+// ---------------------------------------------------------------------------
+
+// AthleteAttendanceSummary y CategoryAttendanceSummary provienen del SDK generado.
+export type { AthleteAttendanceSummary, CategoryAttendanceSummary } from './generated/seguimiento';
+
+export async function getCategoryAttendanceToday(
+  categoryId: string,
+): Promise<CategoryAttendanceSummary> {
+  try {
+    const response = await getCategoryAttendanceTodayRequest({
+      path: { categoryId },
+      throwOnError: true,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+export async function setAttendance(athleteId: string, present: boolean): Promise<void> {
+  try {
+    await setAttendanceRequest({
+      path: { athleteId },
+      body: { present },
+      throwOnError: true,
+    });
+  } catch (err) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Athlete daily check-in inquiry
+// ---------------------------------------------------------------------------
+
+export type { CheckIn };
+
+/**
+ * Retrieves today's check-in for the athlete (if any).
+ * Returns null if no check-in was registered for today.
+ */
+export async function getAthleteTodayCheckIn(
+  athleteId: string,
+  targetDate?: string,
+): Promise<CheckIn | null> {
+  const date = targetDate || todayInArgentina();
+  try {
+    const response = await httpClient.get<CheckIn[]>(
+      `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
+      {
+        params: {
+          from: date,
+          to: date,
+          limit: 1,
+        },
+      },
+    );
+    const list = response.data;
+    if (Array.isArray(list) && list.length > 0) {
+      return list[0];
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }

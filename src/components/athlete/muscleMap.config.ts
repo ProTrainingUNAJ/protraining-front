@@ -9,10 +9,19 @@ import {
   MUSCLE_COLORS,
 } from './muscleMap.types';
 
+export const INJURY_PALETTE_ITEM: ColorPaletteItem = {
+  id: 'injury',
+  name: 'Activa',
+  hex: MUSCLE_COLORS.injury,
+  colorVar: '#000000',
+  level: 6,
+  description: 'Zona con lesión activa registrada.',
+};
+
 export const OFFICIAL_PALETTE_ITEMS: ColorPaletteItem[] = [
   {
     id: 'white',
-    name: 'Normal / Sin dolor',
+    name: 'Sin dolor',
     hex: MUSCLE_COLORS.white,
     colorVar: 'var(--muscle-color-white)',
     level: 0,
@@ -52,20 +61,23 @@ export const OFFICIAL_PALETTE_ITEMS: ColorPaletteItem[] = [
   },
   {
     id: 'red',
-    name: 'Agudo / Máximo',
+    name: 'Máximo',
     hex: MUSCLE_COLORS.red,
     colorVar: 'var(--muscle-color-red)',
     level: 5,
-    description: 'Dolor severo / posible lesión muscular.',
+    description: 'Dolor severo / molestia máxima.',
   },
+  INJURY_PALETTE_ITEM,
 ];
 
 export const getColorByPainLevel = (level: number = 0): string => {
+  if (level === 6) return '#000000';
   const item = OFFICIAL_PALETTE_ITEMS.find((p) => p.level === level);
   return item ? item.colorVar : 'var(--muscle-color-white)';
 };
 
 export const getHexByPainLevel = (level: number = 0): string => {
+  if (level === 6) return '#000000';
   const item = OFFICIAL_PALETTE_ITEMS.find((p) => p.level === level);
   return item ? item.hex : MUSCLE_COLORS.white;
 };

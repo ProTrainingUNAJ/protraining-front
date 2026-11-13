@@ -1,36 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle } from 'lucide-react';
+import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle, Layers } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
-import { listExercises, Exercise } from '../../api/generated/entrenamiento';
+import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPlayer';
+import { ExerciseTypeBadge } from '../../components/exercises/ExerciseTypeBadge';
+import { exercisesService } from '../../api/exercises';
+import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
+import { listExercises, Exercise, type ExerciseMediaDto } from '../../api/generated/entrenamiento';
+import { extractYouTubeId } from '../../utils/youtube';
+import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExerciseItem {
   id: string;
   name: string;
   category: string;
   muscleGroup: string;
+  exerciseType?: Exercise['exerciseType'] | null;
+  videoUrl?: string | null;
+  videoSource?: 'Pf' | 'Catalog' | null;
   equipment: string;
   images?: string[];
+  // Ilustraciones de terceros en orden de preferencia (KAN-549).
+  media?: ExerciseMediaDto[];
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
+  // Variantes (KAN-554): la etiqueta si es una variante, y las variantes si es un ejercicio base.
+  variantLabel?: string | null;
+  variants: ExerciseItem[];
 }
+
+const EXERCISE_TYPES = [
+  { label: 'Todos los tipos', value: 'Todos' },
+  { label: 'Distancia', value: 'Distance' },
+  { label: 'Tiempo', value: 'Time' },
+  { label: 'Repeticiones', value: 'Reps' },
+  { label: 'Con carga', value: 'Weight' },
+] as const;
 
 const PAGE_SIZE = 20; // Cantidad de ejercicios por página
 
-const CHIP_CATEGORIES = ['Todos', 'Piernas', 'Pecho', 'Espalda', 'Hombros', 'Brazos', 'Core'];
-
-interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id'> {
+interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants' | 'exerciseType'> {
   id?: string | number;
   name?: string;
   category?: string;
   muscleGroup?: string;
+  exerciseType?: Exercise['exerciseType'] | null;
   equipment?: string | null;
   images?: string[];
   photoUrl1?: string | null;
   photoUrl2?: string | null;
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
+  variantLabel?: string | null;
+  variants?: ExerciseApiResponse[] | null;
 }
 
 const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
@@ -44,10 +67,19 @@ const mapExerciseToItem = (item: ExerciseApiResponse): ExerciseItem => {
     name: item.name ?? 'Sin nombre',
     category: item.category || 'General',
     muscleGroup: item.muscleGroup || 'Cuerpo Completo',
+    exerciseType: item.exerciseType ?? null,
+    videoUrl: item.videoUrl ?? null,
+    videoSource:
+      ((item as Record<string, unknown>).videoSource as 'Pf' | 'Catalog' | null) ??
+      (item.videoUrl ? 'Catalog' : null),
     equipment: item.equipment || 'Sin equipamiento',
     images,
-    primaryMuscles: item.primaryMuscles ?? (item.muscleGroup ? [item.muscleGroup] : []),
+    media: item.media ?? [],
+    primaryMuscles:
+      item.primaryMuscles && item.primaryMuscles.length > 0 ? item.primaryMuscles : [],
     secondaryMuscles: item.secondaryMuscles ?? [],
+    variantLabel: item.variantLabel ?? null,
+    variants: (item.variants ?? []).map(mapExerciseToItem),
   };
 };
 
@@ -68,7 +100,9 @@ function extractExerciseList(data: unknown): ExerciseApiResponse[] {
 
 export const TrainingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('Todos');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +112,87 @@ export const TrainingPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
+  // Variante elegida dentro del detalle; null muestra el ejercicio base.
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
+  const [videoInput, setVideoInput] = useState('');
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const [videoFeedback, setVideoFeedback] = useState<{ text: string; error?: boolean } | null>(
+    null,
+  );
+
+  const handleSaveVideo = async () => {
+    if (!shownExercise) return;
+
+    const trimmed = videoInput.trim();
+
+    // Validación preventiva en el cliente antes de llamar a la API
+    if (trimmed && !extractYouTubeId(trimmed)) {
+      setVideoFeedback({ text: 'El link tiene que ser un video de YouTube.', error: true });
+      return;
+    }
+
+    setIsSavingVideo(true);
+    setVideoFeedback(null);
+    try {
+      await exercisesService.updateVideoUrl(shownExercise.id, trimmed || null);
+      setModalExercise((prev) => {
+        if (!prev) return null;
+        if (activeVariantId) {
+          return {
+            ...prev,
+            variants: prev.variants.map((v) =>
+              v.id === activeVariantId
+                ? { ...v, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null }
+                : v,
+            ),
+          };
+        }
+        return { ...prev, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null };
+      });
+      setVideoFeedback({ text: '¡Video de YouTube actualizado con éxito!' });
+    } catch {
+      setVideoFeedback({ text: 'Error al guardar el video.', error: true });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
+
+  const handleRemoveVideo = async () => {
+    if (!shownExercise) return;
+    setIsSavingVideo(true);
+    setVideoFeedback(null);
+    try {
+      await exercisesService.updateVideoUrl(shownExercise.id, null);
+      setModalExercise((prev) => {
+        if (!prev) return null;
+        if (activeVariantId) {
+          return {
+            ...prev,
+            variants: prev.variants.map((v) =>
+              v.id === activeVariantId ? { ...v, videoUrl: null, videoSource: null } : v,
+            ),
+          };
+        }
+        return { ...prev, videoUrl: null, videoSource: null };
+      });
+      setVideoInput('');
+      setVideoFeedback({ text: 'Se quitó tu video y se volvió al sugerido.' });
+    } catch {
+      setVideoFeedback({ text: 'Error al quitar el video.', error: true });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
+
+  const openDetail = (exercise: ExerciseItem) => {
+    setActiveVariantId(null);
+    setModalExercise(exercise);
+    setVideoFeedback(null);
+    setVideoInput(exercise.videoUrl ?? '');
+  };
+
+  const shownExercise =
+    modalExercise?.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise;
 
   // Carga inicial y filtros por Chip o Buscador directamente al Backend
   useEffect(() => {
@@ -98,6 +213,10 @@ export const TrainingPage: React.FC = () => {
             pageSize: PAGE_SIZE,
             search: searchTerm.trim() || undefined,
             muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+            muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
+            exerciseType:
+              selectedType === 'Todos' ? undefined : (selectedType as Exercise['exerciseType']),
+            groupVariants: true,
           },
         });
 
@@ -128,7 +247,7 @@ export const TrainingPage: React.FC = () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [searchTerm, selectedCategory, retryCount]);
+  }, [searchTerm, selectedCategory, selectedMuscle, selectedType, retryCount]);
 
   // Función para pedir la siguiente página manteniendo los filtros
   const handleLoadMore = async () => {
@@ -144,6 +263,10 @@ export const TrainingPage: React.FC = () => {
           pageSize: PAGE_SIZE,
           search: searchTerm.trim() || undefined,
           muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
+          muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
+          exerciseType:
+            selectedType === 'Todos' ? undefined : (selectedType as Exercise['exerciseType']),
+          groupVariants: true,
         },
       });
 
@@ -218,23 +341,69 @@ export const TrainingPage: React.FC = () => {
             />
           </div>
 
-          {/* Chips Táctiles PWA */}
+          {/* Chips Táctiles PWA - Tipo de ejercicio / Modalidad (KAN-453) */}
           <div
             className="exercise-chips-scroll"
-            role="tablist"
+            role="group"
+            aria-label="Filtro por modalidad de ejercicio"
+          >
+            {EXERCISE_TYPES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                aria-pressed={selectedType === t.value}
+                className={`touch-chip ${selectedType === t.value ? 'active' : ''}`}
+                onClick={() => setSelectedType(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Chips Táctiles PWA - Grupos principales */}
+          <div
+            className="exercise-chips-scroll"
+            role="group"
             aria-label="Filtro por grupo muscular"
           >
             {CHIP_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 type="button"
+                aria-pressed={selectedCategory === cat}
                 className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setSelectedMuscle(null);
+                }}
               >
                 {cat}
               </button>
             ))}
           </div>
+
+          {/* Chips Táctiles PWA - Músculos puntuales según grupo seleccionado */}
+          {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+            <div
+              className="exercise-subchips-scroll"
+              role="group"
+              aria-label="Filtro por músculo puntual"
+            >
+              {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
+                <button
+                  key={subMuscle}
+                  type="button"
+                  aria-pressed={selectedMuscle === subMuscle}
+                  className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
+                  onClick={() =>
+                    setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
+                  }
+                >
+                  {subMuscle}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Indicador de carga si está conectando al backend */}
@@ -275,7 +444,7 @@ export const TrainingPage: React.FC = () => {
               {error}
             </h3>
             <p style={{ margin: '0 0 1.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Ocurrió un inconveniente al conectar con el servidor. Verifica tu conexión o intenta
+              Ocurrió un inconveniente al conectar con el servidor. Revisá tu conexión o probá
               nuevamente.
             </p>
             <button
@@ -307,10 +476,14 @@ export const TrainingPage: React.FC = () => {
                 color: 'var(--text-main)',
               }}
             >
-              No se encontraron ejercicios
+              {selectedMuscle
+                ? 'No hay ejercicios para ese músculo'
+                : 'No se encontraron ejercicios'}
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem' }}>
-              Prueba modificando el término de búsqueda o seleccionando otra categoría.
+              {selectedMuscle
+                ? 'Prueba seleccionando otro músculo o limpiando el filtro.'
+                : 'Prueba modificando el término de búsqueda o seleccionando otra categoría.'}
             </p>
           </div>
         ) : (
@@ -354,23 +527,24 @@ export const TrainingPage: React.FC = () => {
                   }}
                 >
                   <div>
-                    <ExerciseGifImage images={ex.images} name={ex.name} />
+                    <ExerciseGifImage images={ex.images} media={ex.media} name={ex.name} />
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '0.65rem',
-                      }}
-                    >
-                      <span
-                        className="badge badge-info"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                      >
-                        <Tag size={12} /> {ex.category}
-                      </span>
-                      {/* Eliminado el badge de intensidad inventada */}
+                    <div className="exercise-card-header-meta">
+                      <div className="exercise-badges-group">
+                        <span className="badge badge-info">
+                          <Tag size={12} /> {ex.category}
+                        </span>
+                        <ExerciseTypeBadge type={ex.exerciseType} />
+                      </div>
+                      {ex.variants.length > 0 && (
+                        <span
+                          className="badge badge-primary"
+                          title={ex.variants.map((v) => v.variantLabel).join(' · ')}
+                        >
+                          <Layers size={12} /> {ex.variants.length}{' '}
+                          {ex.variants.length === 1 ? 'variante' : 'variantes'}
+                        </span>
+                      )}
                     </div>
 
                     <h3
@@ -408,7 +582,7 @@ export const TrainingPage: React.FC = () => {
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      onClick={() => setModalExercise(ex)}
+                      onClick={() => openDetail(ex)}
                       style={{
                         padding: '0.2rem 0.6rem',
                         fontSize: '0.75rem',
@@ -454,7 +628,7 @@ export const TrainingPage: React.FC = () => {
         )}
 
         {/* Modal de Detalle Anatómico del Ejercicio (KAN-320) */}
-        {modalExercise && (
+        {modalExercise && shownExercise && (
           <div
             style={{
               position: 'fixed',
@@ -502,8 +676,11 @@ export const TrainingPage: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <div className="exercise-modal-badges">
                     <span className="badge badge-info">{modalExercise.category}</span>
+                    <ExerciseTypeBadge
+                      type={shownExercise.exerciseType ?? modalExercise.exerciseType}
+                    />
                   </div>
                   <h2
                     style={{
@@ -515,6 +692,17 @@ export const TrainingPage: React.FC = () => {
                   >
                     {modalExercise.name}
                   </h2>
+                  {shownExercise.variantLabel && (
+                    <p
+                      style={{
+                        margin: '0.25rem 0 0',
+                        fontSize: '0.85rem',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      Variante: {shownExercise.variantLabel}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
@@ -532,8 +720,49 @@ export const TrainingPage: React.FC = () => {
                 </button>
               </div>
 
+              {/* Variantes del ejercicio (KAN-554): cada una conserva su id, sus fotos y sus músculos */}
+              {modalExercise.variants.length > 0 && (
+                <div>
+                  <strong
+                    style={{
+                      display: 'block',
+                      fontSize: '0.85rem',
+                      color: 'var(--text-main)',
+                      marginBottom: '0.5rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Variantes:
+                  </strong>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className={`touch-chip ${activeVariantId === null ? 'active' : ''}`}
+                      onClick={() => setActiveVariantId(null)}
+                      aria-pressed={activeVariantId === null}
+                    >
+                      Principal
+                    </button>
+                    {modalExercise.variants.map((variant) => (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        className={`touch-chip ${activeVariantId === variant.id ? 'active' : ''}`}
+                        onClick={() => setActiveVariantId(variant.id)}
+                        aria-pressed={activeVariantId === variant.id}
+                        title={variant.name}
+                      >
+                        {variant.variantLabel ?? variant.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Animación GIF si está disponible */}
-              {modalExercise.images && modalExercise.images.length > 0 && (
+              {((shownExercise.images?.length ?? 0) > 0 ||
+                (shownExercise.media?.length ?? 0) > 0) && (
                 <div
                   style={{
                     borderRadius: 'var(--radius)',
@@ -541,7 +770,11 @@ export const TrainingPage: React.FC = () => {
                     maxHeight: '220px',
                   }}
                 >
-                  <ExerciseGifImage images={modalExercise.images} name={modalExercise.name} />
+                  <ExerciseGifImage
+                    images={shownExercise.images}
+                    media={shownExercise.media}
+                    name={shownExercise.name}
+                  />
                 </div>
               )}
 
@@ -560,13 +793,137 @@ export const TrainingPage: React.FC = () => {
                   Músculos Involucrados:
                 </strong>
 
+                {/* Descriptive chips for primary and secondary muscles */}
+                {((shownExercise.primaryMuscles && shownExercise.primaryMuscles.length > 0) ||
+                  (shownExercise.secondaryMuscles &&
+                    shownExercise.secondaryMuscles.length > 0)) && (
+                  <div className="exercise-muscle-chips">
+                    {shownExercise.primaryMuscles?.map((m, idx) => (
+                      <span key={`pri-${idx}`} className="badge badge-primary exercise-muscle-chip">
+                        {getMuscleSpanishName(m)} (Principal)
+                      </span>
+                    ))}
+                    {shownExercise.secondaryMuscles?.map((m, idx) => (
+                      <span key={`sec-${idx}`} className="badge badge-info exercise-muscle-chip">
+                        {getMuscleSpanishName(m)} (Secundario)
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Empty state message when no muscles are defined (Criterion 2) */}
+                {(!shownExercise.primaryMuscles || shownExercise.primaryMuscles.length === 0) &&
+                  (!shownExercise.secondaryMuscles ||
+                    shownExercise.secondaryMuscles.length === 0) && (
+                    <p
+                      style={{
+                        margin: '0.5rem 0',
+                        fontSize: '0.85rem',
+                        color: 'var(--text-muted)',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      Este ejercicio no tiene grupos musculares específicos cargados (movilidad o
+                      ejercicio general).
+                    </p>
+                  )}
+
                 {/* Mapa muscular anatómico con dos intensidades y Smart View */}
                 <ExerciseMuscleMap
-                  primaryMuscles={modalExercise.primaryMuscles}
-                  secondaryMuscles={modalExercise.secondaryMuscles}
+                  primaryMuscles={shownExercise.primaryMuscles}
+                  secondaryMuscles={shownExercise.secondaryMuscles}
                   showLegend={true}
                   showViewToggle={true}
                 />
+              </div>
+
+              {/* Campo para que el PF pegue el link de YouTube (KAN-380) */}
+              <div
+                style={{
+                  marginTop: '1rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '0.4rem',
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                      color: 'var(--text-main)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Video de Referencia (YouTube):
+                  </label>
+                  {shownExercise.videoSource && (
+                    <span
+                      className={`badge ${shownExercise.videoSource === 'Pf' ? 'badge-primary' : 'badge-info'}`}
+                    >
+                      {shownExercise.videoSource === 'Pf' ? 'Video propio' : 'Video sugerido'}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="url"
+                    className="form-input"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={videoInput}
+                    onChange={(e) => setVideoInput(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-main)',
+                      color: 'var(--text-main)',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleSaveVideo}
+                    disabled={isSavingVideo}
+                  >
+                    {isSavingVideo ? 'Guardando...' : 'Guardar'}
+                  </button>
+                  {shownExercise.videoSource === 'Pf' && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleRemoveVideo}
+                      disabled={isSavingVideo}
+                      title="Quitar video propio y volver al sugerido del catálogo"
+                    >
+                      Quitar mi video
+                    </button>
+                  )}
+                </div>
+                {videoFeedback && (
+                  <p
+                    style={{
+                      marginTop: '0.4rem',
+                      fontSize: '0.8rem',
+                      color: videoFeedback.error ? 'var(--danger)' : 'var(--success)',
+                    }}
+                  >
+                    {videoFeedback.text}
+                  </p>
+                )}
+                {shownExercise.videoUrl && (
+                  <ExerciseVideoPlayer
+                    videoUrl={shownExercise.videoUrl}
+                    exerciseName={shownExercise.name}
+                  />
+                )}
               </div>
 
               <div

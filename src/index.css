@@ -5,5 +5,10 @@
 @import './styles/coach.css';
 @import './styles/planning.css';
 @import './styles/records.css';
+@import './styles/athlete-marks.css';
+@import './styles/injuries.css';
+@import './styles/fieldTests.css';
 @import './styles/athlete.css';
+@import './styles/checkin-slide.css';
 @import './styles/login.css';
+@import './styles/exercises.css';

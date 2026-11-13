@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses } from './types.gen';
+import type { ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -87,6 +87,180 @@ export const suggestRoutineWithAi = <ThrowOnError extends boolean = false>(optio
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Generar y persistir un nuevo borrador de planificación con IA
+ *
+ * Genera un borrador de planificación multisesión a través de la cadena resiliente de IA (Ollama -> Gemini -> Reglas), validando esquema e identificadores del catálogo oficial y persistiéndolo en la base de datos bajo aislamiento multi-tenant.
+ *
+ */
+export const createPlanDraftWithAi = <ThrowOnError extends boolean = false>(options: Options<CreatePlanDraftWithAiData, ThrowOnError>): RequestResult<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError> => (options.client ?? client).post<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener un borrador de planificación por su identificador
+ *
+ * Devuelve el borrador generado por la IA siempre que pertenezca al preparador físico autenticado.
+ */
+export const getPlanDraftById = <ThrowOnError extends boolean = false>(options: Options<GetPlanDraftByIdData, ThrowOnError>): RequestResult<GetPlanDraftByIdResponses, GetPlanDraftByIdErrors, ThrowOnError> => (options.client ?? client).get<GetPlanDraftByIdResponses, GetPlanDraftByIdErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}',
+    ...options
+});
+
+/**
+ * Editar y reemplazar el contenido de un borrador de planificación
+ *
+ * Permite al preparador físico modificar cualquier parte del borrador en estado Draft. Ejecuta validaciones de esquema, existencia en el catálogo oficial, rangos deportivos y topes pre-partido, guardando además las sustituciones o eliminaciones de ejercicios en la memoria del PF.
+ *
+ */
+export const updatePlanDraft = <ThrowOnError extends boolean = false>(options: Options<UpdatePlanDraftData, ThrowOnError>): RequestResult<UpdatePlanDraftResponses, UpdatePlanDraftErrors, ThrowOnError> => (options.client ?? client).put<UpdatePlanDraftResponses, UpdatePlanDraftErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Aprobar borrador de planificación y crearlo en Entrenamiento
+ *
+ * Transforma el borrador aprobado en un SaveTrainingPlanRequest, lo crea en el microservicio de Entrenamiento reenviando el token del preparador físico y lo asigna a la categoría o atleta con la fecha de inicio configurada. Si el borrador ya estaba aprobado, devuelve el planId existente sin duplicar la planificación.
+ *
+ */
+export const approvePlanDraft = <ThrowOnError extends boolean = false>(options: Options<ApprovePlanDraftData, ThrowOnError>): RequestResult<ApprovePlanDraftResponses, ApprovePlanDraftErrors, ThrowOnError> => (options.client ?? client).post<ApprovePlanDraftResponses, ApprovePlanDraftErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}/approve',
+    ...options
+});
+
+/**
+ * Descartar un borrador de planificación generado por la IA
+ *
+ * Pasa el borrador al estado Discarded impidiendo futuras ediciones o aprobaciones.
+ */
+export const discardPlanDraft = <ThrowOnError extends boolean = false>(options: Options<DiscardPlanDraftData, ThrowOnError>): RequestResult<DiscardPlanDraftResponses, DiscardPlanDraftErrors, ThrowOnError> => (options.client ?? client).post<DiscardPlanDraftResponses, DiscardPlanDraftErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/plan-drafts/{id}/discard',
+    ...options
+});
+
+/**
+ * Detectar dolor del check-in en zonas que trabaja la rutina de hoy
+ *
+ * Cruza el dolor reportado hoy en el check-in del atleta (Seguimiento) con los ejercicios de la rutina que le toca hoy (Entrenamiento) y consulta la matriz de restricciones anatómicas para devolver los ejercicios en conflicto junto con sus sustitutos seguros. Si el atleta todavía no completó el check-in de hoy, responde 200 con hasConflicts en false y el aviso "Todavía no hizo el check-in". Si el atleta no existe o pertenece a otro PF, responde 404. Si Seguimiento o Entrenamiento no están disponibles, responde 503 sin inventar conflictos.
+ *
+ */
+export const getAthleteDayConflicts = <ThrowOnError extends boolean = false>(options: Options<GetAthleteDayConflictsData, ThrowOnError>): RequestResult<GetAthleteDayConflictsResponses, GetAthleteDayConflictsErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteDayConflictsResponses, GetAthleteDayConflictsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/day-conflicts',
+    ...options
+});
+
+/**
+ * Generar propuesta de ajuste del día a partir de los conflictos de hoy
+ *
+ * Genera y persiste la propuesta de ajuste del día (`day_adjustments`) a partir de los conflictos de dolor de hoy (KAN-451). El ejercicio sustituto se elige por reglas (el primero de la lista de sustitutos habilitados de KAN-387) y la IA solo redacta la justificación (con respaldo por reglas si Ollama y Gemini fallan o están apagados). Si ya existe una propuesta `Pending` para hoy, devuelve esa sin duplicarla.
+ *
+ */
+export const createAthleteDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<CreateAthleteDayAdjustmentData, ThrowOnError>): RequestResult<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/day-adjustments',
+    ...options
+});
+
+/**
+ * Aprobar propuesta de ajuste del día y aplicarla en Entrenamiento
+ *
+ * Aprueba la propuesta de ajuste del día (permitiendo cambiar el sustituto por otro de la lista de sustitutos habilitados de KAN-387), llama a Entrenamiento para aplicar el ajuste en la sesión del atleta y guarda la decisión en la memoria del PF (`pf_decisions`) dentro de la misma transacción.
+ *
+ */
+export const approveDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<ApproveDayAdjustmentData, ThrowOnError>): RequestResult<ApproveDayAdjustmentResponses, ApproveDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<ApproveDayAdjustmentResponses, ApproveDayAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/day-adjustments/{id}/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Rechazar propuesta de ajuste del día
+ *
+ * Rechaza la propuesta dejando la sesión sin cambios y registra la decisión en la memoria del PF (`pf_decisions`) dentro de la misma transacción.
+ *
+ */
+export const rejectDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<RejectDayAdjustmentData, ThrowOnError>): RequestResult<RejectDayAdjustmentResponses, RejectDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<RejectDayAdjustmentResponses, RejectDayAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/day-adjustments/{id}/reject',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Generar rutina contextualizada con adaptación individual
+ *
+ * Genera una propuesta de rutina para el atleta incorporando su contexto de adaptación (lesiones activas, récords vigentes y sustitutos autorizados), validando ownership del PF.
+ *
+ */
+export const generateAthleteAdaptation = <ThrowOnError extends boolean = false>(options: Options<GenerateAthleteAdaptationData, ThrowOnError>): RequestResult<GenerateAthleteAdaptationResponses, GenerateAthleteAdaptationErrors, ThrowOnError> => (options.client ?? client).post<GenerateAthleteAdaptationResponses, GenerateAthleteAdaptationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/adaptation',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener contexto de adaptación individual del atleta
+ *
+ * Reúne lesiones activas, récords vigentes y restricciones con sustitutos autorizados para preparar una adaptación individual, validando ownership del PF.
+ *
+ */
+export const getAthleteAdaptationContext = <ThrowOnError extends boolean = false>(options: Options<GetAthleteAdaptationContextData, ThrowOnError>): RequestResult<GetAthleteAdaptationContextResponses, GetAthleteAdaptationContextErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteAdaptationContextResponses, GetAthleteAdaptationContextErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/adaptation-context',
+    ...options
+});
+
+/**
+ * Consultar decisiones históricas del PF sobre propuestas del asistente
+ *
+ * Devuelve el historial reciente de decisiones (aprobaciones, cambios o rechazos) tomadas por el preparador físico autenticado sobre ejercicios sugeridos para el atleta especificado, con filtro opcional por zona anatómica y limitado a las últimas 50 decisiones. Responde 404 si el atleta no existe o no pertenece al preparador físico.
+ *
+ */
+export const getAthleteDecisions = <ThrowOnError extends boolean = false>(options: Options<GetAthleteDecisionsData, ThrowOnError>): RequestResult<GetAthleteDecisionsResponses, GetAthleteDecisionsErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteDecisionsResponses, GetAthleteDecisionsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/athletes/{athleteId}/decisions',
+    ...options
 });
 
 /**

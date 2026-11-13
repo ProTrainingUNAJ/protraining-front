@@ -1,6 +1,22 @@
-import { httpClient, saveStoredSession, clearStoredSession, getStoredSession } from './axiosClient';
+import {
+  httpClient,
+  saveStoredSession,
+  clearStoredSession,
+  getStoredSession,
+  extractErrorMessage,
+} from './axiosClient';
+import {
+  changePassword as changePasswordSdk,
+  resetAthletePassword as resetAthletePasswordSdk,
+  registerByInvitation as registerByInvitationSdk,
+} from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
-import { AuthSession, LoginRequest, LoginResponse } from '../types/auth';
+import {
+  AuthSession,
+  LoginRequest,
+  LoginResponse,
+  ResetAthletePasswordResponse,
+} from '../types/auth';
 
 const LOGIN_ENDPOINT = '/identidad/api/v1/auth/login';
 
@@ -32,11 +48,175 @@ export const authService = {
         fullName: data.user.fullName,
         role: data.user.role,
         pfId: data.user.pfId ?? null,
+        phoneNumber: data.user.phoneNumber ?? null,
+        mustChangePassword: data.user.mustChangePassword ?? false,
       },
     };
 
     saveStoredSession(session);
     return session;
+  },
+
+  /**
+   * Executes Google login against Identidad microservice through Gateway (KAN-541)
+   */
+  async loginWithGoogle(idToken: string): Promise<AuthSession> {
+    const deviceId = getDeviceId();
+    const response = await httpClient.post<LoginResponse>('/identidad/api/v1/auth/google', {
+      idToken,
+      deviceId,
+    });
+
+    const data = response.data;
+    const expiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
+
+    const session: AuthSession = {
+      accessToken: data.accessToken,
+      tokenType: data.tokenType || 'Bearer',
+      expiresAt,
+      refreshToken: data.refreshToken,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.fullName,
+        role: data.user.role,
+        pfId: data.user.pfId ?? null,
+        phoneNumber: data.user.phoneNumber ?? null,
+        mustChangePassword: data.user.mustChangePassword ?? false,
+      },
+    };
+
+    saveStoredSession(session);
+    return session;
+  },
+
+  /**
+   * Registers a new athlete account using a category invitation token (KAN-398 / KAN-397).
+   */
+  async registerByInvitation(request: {
+    email: string;
+    password: string;
+    fullName: string;
+    token: string;
+    deviceId?: string;
+  }): Promise<AuthSession> {
+    try {
+      const deviceId = request.deviceId ?? getDeviceId();
+      const response = await registerByInvitationSdk({
+        body: {
+          email: request.email.trim(),
+          password: request.password,
+          fullName: request.fullName.trim(),
+          token: request.token,
+          deviceId,
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida del servidor al registrarse por invitación.');
+      }
+      const expiresAt = Date.now() + (data.expiresIn || 3600) * 1000;
+
+      const session: AuthSession = {
+        accessToken: data.accessToken,
+        tokenType: data.tokenType || 'Bearer',
+        expiresAt,
+        refreshToken: data.refreshToken,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          fullName: data.user.fullName,
+          role: data.user.role,
+          pfId: data.user.pfId ?? null,
+          phoneNumber: data.user.phoneNumber ?? null,
+          mustChangePassword: data.user.mustChangePassword ?? false,
+        },
+      };
+
+      saveStoredSession(session);
+      return session;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Cambia la contraseña del usuario autenticado a través del SDK generado de Identidad (KAN-538).
+   */
+  async changePassword(passwords: { currentPassword: string; newPassword: string }): Promise<void> {
+    try {
+      await changePasswordSdk({
+        body: {
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword,
+        },
+        throwOnError: true,
+      });
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Resetea la contraseña de un atleta a cargo del PF autenticado (KAN-539).
+   */
+  async resetAthletePassword(athleteId: string): Promise<ResetAthletePasswordResponse> {
+    try {
+      const response = await resetAthletePasswordSdk({
+        path: {
+          athleteId,
+        },
+        throwOnError: true,
+      });
+      return response.data as ResetAthletePasswordResponse;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Solicita un enlace de recuperación de contraseña por correo electrónico (#KAN-540).
+   */
+  async forgotPassword(email: string): Promise<string> {
+    try {
+      const response = await httpClient.post<{ message: string }>(
+        '/identidad/api/v1/auth/forgot-password',
+        {
+          email: email.trim(),
+        },
+      );
+      return (
+        response.data?.message ||
+        'Si el correo está registrado, recibirás un enlace para recuperar tu contraseña.'
+      );
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Restablece la contraseña de una cuenta utilizando el token recibido por correo (#KAN-540).
+   */
+  async resetPassword(payload: {
+    email: string;
+    token: string;
+    newPassword: string;
+  }): Promise<string> {
+    try {
+      const response = await httpClient.post<{ message: string }>(
+        '/identidad/api/v1/auth/reset-password',
+        {
+          email: payload.email.trim(),
+          token: payload.token,
+          newPassword: payload.newPassword,
+        },
+      );
+      return response.data?.message || 'Contraseña actualizada exitosamente.';
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
   },
 
   /**

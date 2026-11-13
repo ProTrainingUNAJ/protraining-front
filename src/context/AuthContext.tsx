@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { AuthSession, LoginRequest, RoleType, UserDto } from '../types/auth';
 import { authService } from '../api/authService';
-import { onAuthExpired } from '../api/axiosClient';
+import { onAuthExpired, saveStoredSession } from '../api/axiosClient';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -20,7 +20,17 @@ interface AuthContextType {
   selectedRole: RoleType;
   setSelectedRole: (role: RoleType) => void;
   login: (credentials: LoginRequest) => Promise<AuthSession>;
+  loginWithGoogle?: (idToken: string) => Promise<AuthSession>;
+  registerByInvitation: (request: {
+    email: string;
+    password: string;
+    fullName: string;
+    token: string;
+    deviceId?: string;
+  }) => Promise<AuthSession>;
   logout: () => void;
+  applySession: (session: AuthSession) => void;
+  clearMustChangePassword?: () => void;
   theme: 'light' | 'dark';
   themePreference: ThemePreference;
   setThemePreference: (preference: ThemePreference) => void;
@@ -129,9 +139,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newSession;
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken: string): Promise<AuthSession> => {
+    const newSession = await authService.loginWithGoogle(idToken);
+    setSession(newSession);
+    setSelectedRole(newSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
+    return newSession;
+  }, []);
+
+  const registerByInvitation = useCallback(
+    async (request: {
+      email: string;
+      password: string;
+      fullName: string;
+      token: string;
+      deviceId?: string;
+    }): Promise<AuthSession> => {
+      const newSession = await authService.registerByInvitation(request);
+      setSession(newSession);
+      setSelectedRole('Atleta');
+      return newSession;
+    },
+    [],
+  );
+
   const logout = useCallback(() => {
     authService.logout();
     setSession(null);
+  }, []);
+
+  const applySession = useCallback((newSession: AuthSession) => {
+    setSession(newSession);
+    setSelectedRole(newSession.user.role === 'PreparadorFisico' ? 'PF' : 'Atleta');
+  }, []);
+
+  const clearMustChangePassword = useCallback(() => {
+    setSession((prev) => {
+      if (!prev) return null;
+      const updated: AuthSession = {
+        ...prev,
+        user: {
+          ...prev.user,
+          mustChangePassword: false,
+        },
+      };
+      saveStoredSession(updated);
+      return updated;
+    });
   }, []);
 
   return (
@@ -144,7 +197,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedRole,
         setSelectedRole,
         login,
+        loginWithGoogle,
+        registerByInvitation,
+        applySession,
         logout,
+        clearMustChangePassword,
         theme,
         themePreference,
         setThemePreference,

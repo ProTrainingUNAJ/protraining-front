@@ -53,6 +53,169 @@ export type SuggestRoutineResponse = {
     aiProvider: 'Ollama' | 'Gemini' | 'Rules';
 };
 
+export type GenerateAthleteAdaptationRequest = {
+    goal: string;
+    muscleGroupEmphasis?: Array<string>;
+};
+
+export type SuggestedRoutineExercise = {
+    exerciseName: string;
+    sets: number;
+    reps: number;
+    suggestedPercentage: number;
+    exerciseId?: string | null;
+    isReference?: boolean;
+};
+
+export type AdaptationChange = {
+    originalExerciseId?: string | null;
+    originalExerciseName: string;
+    finalExerciseId: string;
+    finalExerciseName: string;
+    zone: string;
+    reason: string;
+};
+
+export type RoutineAdaptationResponse = {
+    athleteId: string;
+    proposedTitle: string;
+    justificationSummary: string;
+    exercises: Array<SuggestedRoutineExercise>;
+    aiProvider: string;
+    id?: string | null;
+    wasAdapted?: boolean;
+    adaptationWarnings?: Array<string>;
+    adaptationChanges?: Array<AdaptationChange>;
+};
+
+export type ActiveInjuryContext = {
+    id: string;
+    athleteId: string;
+    zone: string;
+    description: string;
+    injuryDate: string;
+    estimatedReturnDate: string;
+    status: string;
+    clearedAt?: string | null;
+    createdAt: string;
+};
+
+export type AthleteRecordContext = {
+    id: string;
+    athleteId: string;
+    exerciseId: string;
+    exerciseName: string;
+    weightOneRepMaxKg: number;
+    origin: string;
+    achievedAt: string;
+    isCurrent: boolean;
+};
+
+export type AuthorizedSubstituteContext = {
+    exerciseId: string;
+    name: string;
+};
+
+export type ExerciseRestrictionContext = {
+    exerciseId: string;
+    zone?: string | null;
+    reason?: string | null;
+    substitutes: Array<AuthorizedSubstituteContext>;
+};
+
+export type AthleteAdaptationContextResponse = {
+    athleteId: string;
+    activeInjuries: Array<ActiveInjuryContext>;
+    currentRecords: Array<AthleteRecordContext>;
+    restrictions: Array<ExerciseRestrictionContext>;
+};
+
+export type PlanDraftExercise = {
+    exerciseId: string;
+    order: number;
+    sets: number;
+    reps: number;
+    targetPercentage?: number | null;
+};
+
+export type PlanDraftSession = {
+    name: string;
+    dayOfWeek: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+    order: number;
+    coachNotes?: string | null;
+    exercises: Array<PlanDraftExercise>;
+};
+
+export type PlanDraftWeek = {
+    weekNumber: number;
+    sessions: Array<PlanDraftSession>;
+};
+
+export type CreatePlanDraftRequest = {
+    /**
+     * Identificador del atleta destinatario (mutuamente excluyente con categoryId).
+     */
+    athleteId?: string | null;
+    /**
+     * Identificador de la categoría grupal destinataria (mutuamente excluyente con athleteId).
+     */
+    categoryId?: string | null;
+    /**
+     * Objetivo deportivo o fisiológico del ciclo de entrenamiento.
+     */
+    goal: string;
+    /**
+     * Cantidad de semanas del plan (1 a 8).
+     */
+    weeks?: number;
+    /**
+     * Frecuencia semanal de sesiones (1 a 6).
+     */
+    daysPerWeek?: number;
+    /**
+     * Días sugeridos de entrenamiento dentro de la semana.
+     */
+    trainingDays?: Array<string>;
+    /**
+     * Fecha de inicio del plan (por defecto el próximo lunes en Argentina).
+     */
+    startDate?: string | null;
+};
+
+export type UpdatePlanDraftRequest = {
+    name: string;
+    objective: string;
+    justificationSummary: string;
+    weeks: Array<PlanDraftWeek>;
+};
+
+export type PlanDraftResponse = {
+    id: string;
+    categoryId?: string | null;
+    athleteId?: string | null;
+    goal: string;
+    startDate: string;
+    status: 'Draft' | 'Approved' | 'Discarded';
+    provider: string;
+    approvedPlanId?: string | null;
+    name: string;
+    objective: string;
+    justificationSummary: string;
+    weeks: Array<PlanDraftWeek>;
+    warnings?: Array<string>;
+};
+
+export type ApprovePlanDraftResponse = {
+    id: string;
+    planId: string;
+    approvedPlanId: string;
+    status: 'Approved';
+    assigned: boolean;
+    assignmentId?: string | null;
+    warning?: string | null;
+    warnings?: Array<string>;
+};
+
 export type HabitsRecommendationResponse = {
     id: string;
     athleteId: string;
@@ -65,6 +228,85 @@ export type HabitsRecommendationResponse = {
     hydrationAndSleepGuidelines: string;
     legalDisclaimer: string;
     approvedByPf: boolean;
+};
+
+export type PfDecisionResponse = {
+    id: string;
+    athleteId?: string | null;
+    date: string;
+    source: 'DayAdjustment' | 'PlanDraft';
+    sourceId: string;
+    zone?: string | null;
+    suggestedExerciseId: string;
+    decision: 'Approved' | 'Modified' | 'Rejected';
+    finalExerciseId?: string | null;
+    finalPercentage?: number | null;
+    reason?: string | null;
+    createdAt: string;
+};
+
+export type DayConflictsResponse = {
+    hasConflicts: boolean;
+    painZones?: string | null;
+    /**
+     * Aviso informativo cuando todavía no hizo el check-in ("Todavía no hizo el check-in") o no tiene dolor/conflictos.
+     */
+    message?: string | null;
+    conflicts: Array<DayConflictItem>;
+    sessionId?: string | null;
+};
+
+export type DayAdjustmentItem = {
+    originalExerciseId: string;
+    originalExerciseName: string;
+    suggestedSubstituteExerciseId: string;
+    suggestedSubstituteExerciseName: string;
+    substituteExerciseId: string;
+    substituteExerciseName: string;
+    zone: string;
+    painLevel: number;
+    reason: string;
+    availableSubstitutes: Array<DayConflictSubstitute>;
+};
+
+export type DayAdjustmentResponse = {
+    id: string;
+    athleteId: string;
+    date: string;
+    sessionId: string;
+    status: 'Pending' | 'Approved' | 'Rejected';
+    items: Array<DayAdjustmentItem>;
+    justification: string;
+    provider: string;
+    rejectionReason?: string | null;
+    createdAt?: string | null;
+};
+
+export type ApproveDayAdjustmentItemInput = {
+    originalExerciseId: string;
+    substituteExerciseId: string;
+};
+
+export type ApproveDayAdjustmentRequest = {
+    items?: Array<ApproveDayAdjustmentItemInput> | null;
+};
+
+export type RejectDayAdjustmentRequest = {
+    reason?: string | null;
+};
+
+export type DayConflictItem = {
+    exerciseId: string;
+    name: string;
+    zone: string;
+    painLevel: number;
+    reason: string;
+    substitutes: Array<DayConflictSubstitute>;
+};
+
+export type DayConflictSubstitute = {
+    exerciseId: string;
+    name: string;
 };
 
 export type ProblemDetails = {
@@ -227,6 +469,490 @@ export type SuggestRoutineWithAiResponses = {
 };
 
 export type SuggestRoutineWithAiResponse = SuggestRoutineWithAiResponses[keyof SuggestRoutineWithAiResponses];
+
+export type CreatePlanDraftWithAiData = {
+    body: CreatePlanDraftRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts';
+};
+
+export type CreatePlanDraftWithAiErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type CreatePlanDraftWithAiError = CreatePlanDraftWithAiErrors[keyof CreatePlanDraftWithAiErrors];
+
+export type CreatePlanDraftWithAiResponses = {
+    /**
+     * Borrador de planificación generado y persistido exitosamente.
+     */
+    201: PlanDraftResponse;
+};
+
+export type CreatePlanDraftWithAiResponse = CreatePlanDraftWithAiResponses[keyof CreatePlanDraftWithAiResponses];
+
+export type GetPlanDraftByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}';
+};
+
+export type GetPlanDraftByIdErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetPlanDraftByIdError = GetPlanDraftByIdErrors[keyof GetPlanDraftByIdErrors];
+
+export type GetPlanDraftByIdResponses = {
+    /**
+     * Borrador de planificación recuperado.
+     */
+    200: PlanDraftResponse;
+};
+
+export type GetPlanDraftByIdResponse = GetPlanDraftByIdResponses[keyof GetPlanDraftByIdResponses];
+
+export type UpdatePlanDraftData = {
+    body: UpdatePlanDraftRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}';
+};
+
+export type UpdatePlanDraftErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type UpdatePlanDraftError = UpdatePlanDraftErrors[keyof UpdatePlanDraftErrors];
+
+export type UpdatePlanDraftResponses = {
+    /**
+     * Borrador actualizado exitosamente.
+     */
+    200: PlanDraftResponse;
+};
+
+export type UpdatePlanDraftResponse = UpdatePlanDraftResponses[keyof UpdatePlanDraftResponses];
+
+export type ApprovePlanDraftData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}/approve';
+};
+
+export type ApprovePlanDraftErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type ApprovePlanDraftError = ApprovePlanDraftErrors[keyof ApprovePlanDraftErrors];
+
+export type ApprovePlanDraftResponses = {
+    /**
+     * Borrador aprobado y planificación creada en Entrenamiento.
+     */
+    200: ApprovePlanDraftResponse;
+};
+
+export type ApprovePlanDraftResponse2 = ApprovePlanDraftResponses[keyof ApprovePlanDraftResponses];
+
+export type DiscardPlanDraftData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/plan-drafts/{id}/discard';
+};
+
+export type DiscardPlanDraftErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type DiscardPlanDraftError = DiscardPlanDraftErrors[keyof DiscardPlanDraftErrors];
+
+export type DiscardPlanDraftResponses = {
+    /**
+     * Borrador descartado exitosamente.
+     */
+    200: PlanDraftResponse;
+};
+
+export type DiscardPlanDraftResponse = DiscardPlanDraftResponses[keyof DiscardPlanDraftResponses];
+
+export type GetAthleteDayConflictsData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/day-conflicts';
+};
+
+export type GetAthleteDayConflictsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GetAthleteDayConflictsError = GetAthleteDayConflictsErrors[keyof GetAthleteDayConflictsErrors];
+
+export type GetAthleteDayConflictsResponses = {
+    /**
+     * Cruce de dolor del check-in con la rutina de hoy evaluado exitosamente.
+     */
+    200: DayConflictsResponse;
+};
+
+export type GetAthleteDayConflictsResponse = GetAthleteDayConflictsResponses[keyof GetAthleteDayConflictsResponses];
+
+export type CreateAthleteDayAdjustmentData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/day-adjustments';
+};
+
+export type CreateAthleteDayAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type CreateAthleteDayAdjustmentError = CreateAthleteDayAdjustmentErrors[keyof CreateAthleteDayAdjustmentErrors];
+
+export type CreateAthleteDayAdjustmentResponses = {
+    /**
+     * Propuesta de ajuste del día generada o recuperada exitosamente.
+     */
+    200: DayAdjustmentResponse;
+};
+
+export type CreateAthleteDayAdjustmentResponse = CreateAthleteDayAdjustmentResponses[keyof CreateAthleteDayAdjustmentResponses];
+
+export type ApproveDayAdjustmentData = {
+    body?: ApproveDayAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la propuesta de ajuste del día.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/day-adjustments/{id}/approve';
+};
+
+export type ApproveDayAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type ApproveDayAdjustmentError = ApproveDayAdjustmentErrors[keyof ApproveDayAdjustmentErrors];
+
+export type ApproveDayAdjustmentResponses = {
+    /**
+     * Propuesta aprobada y aplicada en la rutina del atleta.
+     */
+    200: DayAdjustmentResponse;
+};
+
+export type ApproveDayAdjustmentResponse = ApproveDayAdjustmentResponses[keyof ApproveDayAdjustmentResponses];
+
+export type RejectDayAdjustmentData = {
+    body?: RejectDayAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la propuesta de ajuste del día.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/day-adjustments/{id}/reject';
+};
+
+export type RejectDayAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type RejectDayAdjustmentError = RejectDayAdjustmentErrors[keyof RejectDayAdjustmentErrors];
+
+export type RejectDayAdjustmentResponses = {
+    /**
+     * Propuesta rechazada exitosamente.
+     */
+    200: DayAdjustmentResponse;
+};
+
+export type RejectDayAdjustmentResponse = RejectDayAdjustmentResponses[keyof RejectDayAdjustmentResponses];
+
+export type GenerateAthleteAdaptationData = {
+    body: GenerateAthleteAdaptationRequest;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/adaptation';
+};
+
+export type GenerateAthleteAdaptationErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GenerateAthleteAdaptationError = GenerateAthleteAdaptationErrors[keyof GenerateAthleteAdaptationErrors];
+
+export type GenerateAthleteAdaptationResponses = {
+    /**
+     * Propuesta de rutina adaptada generada exitosamente.
+     */
+    200: RoutineAdaptationResponse;
+};
+
+export type GenerateAthleteAdaptationResponse = GenerateAthleteAdaptationResponses[keyof GenerateAthleteAdaptationResponses];
+
+export type GetAthleteAdaptationContextData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/adaptation-context';
+};
+
+export type GetAthleteAdaptationContextErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GetAthleteAdaptationContextError = GetAthleteAdaptationContextErrors[keyof GetAthleteAdaptationContextErrors];
+
+export type GetAthleteAdaptationContextResponses = {
+    /**
+     * Contexto de adaptación recuperado exitosamente.
+     */
+    200: AthleteAdaptationContextResponse;
+};
+
+export type GetAthleteAdaptationContextResponse = GetAthleteAdaptationContextResponses[keyof GetAthleteAdaptationContextResponses];
+
+export type GetAthleteDecisionsData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: {
+        /**
+         * Filtro opcional por zona anatómica o de molestia (ej. espalda_baja).
+         */
+        zone?: string;
+    };
+    url: '/api/v1/assistant/athletes/{athleteId}/decisions';
+};
+
+export type GetAthleteDecisionsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteDecisionsError = GetAthleteDecisionsErrors[keyof GetAthleteDecisionsErrors];
+
+export type GetAthleteDecisionsResponses = {
+    /**
+     * Lista de decisiones recuperadas (hasta 50).
+     */
+    200: Array<PfDecisionResponse>;
+};
+
+export type GetAthleteDecisionsResponse = GetAthleteDecisionsResponses[keyof GetAthleteDecisionsResponses];
 
 export type GetHabitsRecommendationData = {
     body?: never;

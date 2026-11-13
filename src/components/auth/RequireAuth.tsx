@@ -21,6 +21,10 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({ allowedRole }) => {
     return <Navigate to="/login" replace />;
   }
 
+  if (user.mustChangePassword) {
+    return <Navigate to="/force-change-password" replace />;
+  }
+
   if (allowedRole && user.role !== allowedRole) {
     // Exact role match: redirect to user's assigned area if known, otherwise login
     if (user.role === 'PreparadorFisico') {
