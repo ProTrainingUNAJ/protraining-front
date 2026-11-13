@@ -47,6 +47,11 @@ function formatDate(isoDateTime: string): string {
   });
 }
 
+// La zona se carga a mano y suele venir en minúscula ("isquiotibiales")
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 // La fecha sin hora ("2026-10-27") se compara como texto: el orden ISO es
 // cronológico, igual que la regla del dominio (solo importa el día).
 function isReturnDateAfterInjuryDate(injuryDate: string, estimatedReturnDate: string): boolean {
@@ -199,7 +204,7 @@ export function AthleteInjuriesModal({
   return (
     <div className="modal-overlay" onClick={busy ? undefined : onClose}>
       <div
-        className="modal-content plan-picker"
+        className="modal-content plan-picker injury-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="athlete-injuries-title"
@@ -219,8 +224,8 @@ export function AthleteInjuriesModal({
         </div>
 
         <p className="plan-empty">
-          El stepper avanza de a un paso: de Activa a En recuperación y recién ahí a Alta médica.
-          Cada avance exige registrar las observaciones clínicas.
+          Cada lesión pasa de Activa a En recuperación y después a Alta médica, de a un paso. Para
+          avanzar tenés que registrar las observaciones clínicas.
         </p>
 
         {error && (
@@ -258,7 +263,7 @@ export function AthleteInjuriesModal({
               return (
                 <li key={injury.id} className="injury-item">
                   <div className="injury-item-header">
-                    <span className="injury-item-title">{injury.zone}</span>
+                    <span className="injury-item-title">{capitalize(injury.zone)}</span>
                     <span className={STATUS_BADGES[injury.status]}>
                       {STATUS_LABELS[injury.status]}
                     </span>
@@ -267,7 +272,7 @@ export function AthleteInjuriesModal({
                   <p className="injury-item-desc">{injury.description}</p>
 
                   <div className="injury-item-dates">
-                    <span>Lesión: {formatDate(injury.injuryDate)}</span>
+                    <span>Fecha de la lesión: {formatDate(injury.injuryDate)}</span>
                     <span>Retorno estimado: {formatDate(injury.estimatedReturnDate)}</span>
                     {injury.clearedAt && <span>Alta: {formatDate(injury.clearedAt)}</span>}
                   </div>
@@ -367,7 +372,7 @@ export function AthleteInjuriesModal({
               />
             </label>
             <label className="plan-field">
-              <span>Lesión</span>
+              <span>Fecha de la lesión</span>
               <input
                 type="date"
                 value={injuryDate}
