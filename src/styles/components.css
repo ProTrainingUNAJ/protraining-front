@@ -289,3 +289,11 @@ textarea:focus {
   max-height: 90vh;
   overflow-y: auto;
 }
+.btn-warning {
+  background: var(--warning-bg-strong);
+  color: var(--warning-text);
+  border: 1px solid var(--warning-border);
+}
+.btn-warning:hover {
+  background: var(--warning-bg);
+}
