@@ -28,6 +28,7 @@ import {
   pinProgressChart,
 } from '../../utils/athleteDashboardLayout';
 import { AthleteGroupBenchmarkSection } from '../../components/athlete/AthleteGroupBenchmarkSection';
+import { ResolvedInjuriesHistory } from '../../components/athlete/ResolvedInjuriesHistory';
 import { OneRepMaxProgressionChart } from '../../components/athletes/OneRepMaxProgressionChart';
 import { JumpVsLoadProgressionChart } from '../../components/athletes/JumpVsLoadProgressionChart';
 import { EvolutionRangeSelector } from '../../components/athletes/EvolutionRangeSelector';
@@ -368,6 +369,31 @@ export const ProgressPage: React.FC = () => {
 
             {/* Mis Números vs. Promedio del Grupo (KAN-449) */}
             {resolvedAthleteId && <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />}
+            {/* Historial de molestias resueltas */}
+            {resolvedAthleteId && (
+              <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
+                <h2
+                  style={{
+                    fontSize: '1.15rem',
+                    fontWeight: 700,
+                    marginBottom: '0.35rem',
+                    color: 'var(--text-main)',
+                  }}
+                >
+                  Historial de molestias resueltas
+                </h2>
+                <p
+                  style={{
+                    color: 'var(--text-muted)',
+                    fontSize: '0.85rem',
+                    marginBottom: '1.25rem',
+                  }}
+                >
+                  Molestias dadas de alta con su pico de dolor registrado.
+                </p>
+                <ResolvedInjuriesHistory athleteId={resolvedAthleteId} />
+              </div>
+            )}
           </>
         )}
       </div>
