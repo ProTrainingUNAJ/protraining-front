@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   MetricKey,
   METRIC_CONFIGS,
@@ -8,7 +8,13 @@ import {
   CY,
   BADGE_X,
   STROKE_WIDTH,
+  ACTIVE_STROKE_WIDTH,
+  HIT_TEST_STROKE_WIDTH,
+  END_ANGLE,
   describeArc,
+  polarToCartesian,
+  getMetricFromPoint,
+  getValueFromPoint,
 } from './recovery.types';
 import {
   getSleepColor,
@@ -26,6 +32,7 @@ interface RecoveryRadialMeterProps {
   fatigueLevel: number | null;
   muscleSoreness: number | null;
   onSelectMetric: (key: MetricKey) => void;
+  onValueChange?: (key: MetricKey, value: number) => void;
   getArcEndAngle: (key: MetricKey) => number;
 }
 
@@ -36,8 +43,142 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
   fatigueLevel,
   muscleSoreness,
   onSelectMetric,
+  onValueChange,
   getArcEndAngle,
 }) => {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const isPointerDownRef = useRef<boolean>(false);
+  const activeDragMetricRef = useRef<MetricKey | null>(null);
+  const lastValRef = useRef<number | null>(null);
+
+  // ── Subtle haptic vibration for mobile tactile confirmation ──
+  const triggerHaptic = () => {
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        'vibrate' in navigator &&
+        typeof navigator.vibrate === 'function'
+      ) {
+        navigator.vibrate(10);
+      }
+    } catch {
+      // Ignore in environments where vibration is unsupported or blocked
+    }
+  };
+
+  const handleSelectWithFeedback = (key: MetricKey) => {
+    if (key !== activeMetric) {
+      triggerHaptic();
+      onSelectMetric(key);
+    }
+  };
+
+  // ── Screen coordinates to SVG viewBox conversion ──
+  const getSvgCoordinates = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+
+    try {
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const ctm = svg.getScreenCTM();
+      if (ctm) {
+        const transformed = pt.matrixTransform(ctm.inverse());
+        return { x: transformed.x, y: transformed.y };
+      }
+    } catch {
+      // Fallback
+    }
+
+    const rect = svg.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    return {
+      x: ((clientX - rect.left) / rect.width) * SVG_WIDTH,
+      y: ((clientY - rect.top) / rect.height) * SVG_HEIGHT,
+    };
+  };
+
+  const updateValueAtCoords = (coords: { x: number; y: number }, metric: MetricKey) => {
+    if (!onValueChange) return;
+    const newVal = getValueFromPoint(coords.x, coords.y, metric);
+    if (newVal !== lastValRef.current) {
+      lastValRef.current = newVal;
+      triggerHaptic();
+      onValueChange(metric, newVal);
+    }
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    // If touch originates directly from an item label button, let its handler handle it
+    const target = e.target as Element | null;
+    if (target?.closest('.checkin-recovery-label-group')) {
+      return;
+    }
+
+    const coords = getSvgCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+
+    const matched = getMetricFromPoint(coords.x, coords.y, activeMetric);
+    if (matched) {
+      // Si se toca otra barra distinta a la activa: primero solo marcar / seleccionar sin cambiar valor
+      if (matched !== activeMetric) {
+        handleSelectWithFeedback(matched);
+        return;
+      }
+
+      // Si ya está marcada (es la activa), permitir interactuar con el slider y ajustar valor
+      isPointerDownRef.current = true;
+      activeDragMetricRef.current = matched;
+      lastValRef.current = getMetricVal(matched);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Ignored
+      }
+      updateValueAtCoords(coords, matched);
+
+      // Global window listeners so dragging smoothly continues even if finger leaves SVG boundary
+      const onGlobalPointerMove = (evt: PointerEvent) => {
+        if (!isPointerDownRef.current || !activeDragMetricRef.current) return;
+        const moveCoords = getSvgCoordinates(evt.clientX, evt.clientY);
+        if (!moveCoords) return;
+        updateValueAtCoords(moveCoords, activeDragMetricRef.current);
+      };
+
+      const onGlobalPointerUp = () => {
+        window.removeEventListener('pointermove', onGlobalPointerMove);
+        window.removeEventListener('pointerup', onGlobalPointerUp);
+        window.removeEventListener('pointercancel', onGlobalPointerUp);
+        isPointerDownRef.current = false;
+        activeDragMetricRef.current = null;
+        lastValRef.current = null;
+      };
+
+      window.addEventListener('pointermove', onGlobalPointerMove, { passive: true });
+      window.addEventListener('pointerup', onGlobalPointerUp);
+      window.addEventListener('pointercancel', onGlobalPointerUp);
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!isPointerDownRef.current || !activeDragMetricRef.current) return;
+    const coords = getSvgCoordinates(e.clientX, e.clientY);
+    if (!coords) return;
+    updateValueAtCoords(coords, activeDragMetricRef.current);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    isPointerDownRef.current = false;
+    activeDragMetricRef.current = null;
+    lastValRef.current = null;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // Ignored
+    }
+  };
+
   const isMetricAnswered = (key: MetricKey): boolean => {
     switch (key) {
       case 'sleepHours':
@@ -73,7 +214,8 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
       icon: (
         <path
           d="M 16 8 A 6.5 6.5 0 1 1 9 1.5 A 5 5 0 0 0 16 8 Z"
-          fill={sleepHours !== null ? 'var(--checkin-star-gold)' : 'var(--input-placeholder)'}
+          fill={sleepHours !== null ? '#ffffff' : 'var(--input-placeholder)'}
+          style={{ fill: sleepHours !== null ? '#ffffff' : 'var(--input-placeholder)' }}
           transform="translate(-8.5, -8.5)"
         />
       ),
@@ -150,32 +292,74 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
 
   return (
     <div className="recovery-meter-wrap">
-      <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} className="recovery-meter-svg">
-        {/* 1. ARCOS DE FONDO (CARRILES BASE) */}
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        className="recovery-meter-svg"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        style={{ touchAction: 'none' }}
+      >
+        {/* ── 1. HIT-BOXES TÁCTILES AMPLIADAS PARA CADA ANILLO (48-58px de ancho) ── */}
+        {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
+          const cfg = METRIC_CONFIGS[key];
+          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, END_ANGLE);
+
+          return (
+            <path
+              key={`hitbox-${key}`}
+              d={pathD}
+              fill="none"
+              stroke="transparent"
+              strokeWidth={HIT_TEST_STROKE_WIDTH}
+              strokeLinecap="round"
+              className="recovery-touch-hitbox"
+              onClick={() => handleSelectWithFeedback(key)}
+              aria-label={`Seleccionar ${cfg.name}`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelectWithFeedback(key);
+                }
+              }}
+            />
+          );
+        })}
+
+        {/* ── 2. CARRILES BASE DE FONDO CON SEPARACIÓN RADIAL AMPLIA ── */}
         {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
           const cfg = METRIC_CONFIGS[key];
           const isActive = activeMetric === key;
-          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, 222);
+          const currentStroke = isActive ? ACTIVE_STROKE_WIDTH : STROKE_WIDTH;
+          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, END_ANGLE);
 
           return (
             <g key={`track-group-${key}`}>
+              {/* Carril base */}
               <path
                 d={pathD}
                 fill="none"
                 stroke="var(--checkin-track-base)"
-                strokeWidth={STROKE_WIDTH}
+                strokeWidth={currentStroke}
                 strokeLinecap="round"
-                className="recovery-track-arc"
-                onClick={() => onSelectMetric(key)}
+                className={`recovery-track-arc ${isActive ? 'is-active' : ''}`}
+                onClick={() => handleSelectWithFeedback(key)}
               />
+
+              {/* Resplandor y borde suave del anillo seleccionado */}
               {isActive && (
                 <path
                   d={pathD}
                   fill="none"
                   stroke="var(--cyan-accent)"
-                  strokeWidth={STROKE_WIDTH + 2.5}
+                  strokeWidth={ACTIVE_STROKE_WIDTH + 4}
                   strokeLinecap="round"
-                  opacity={0.7}
+                  opacity={0.35}
                   className="recovery-track-highlight"
                 />
               )}
@@ -183,7 +367,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
           );
         })}
 
-        {/* 2. ARCOS DE PROGRESO DINÁMICOS */}
+        {/* ── 3. ARCOS DE PROGRESO DINÁMICOS ── */}
         {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
           if (!isMetricAnswered(key)) return null;
           const cfg = METRIC_CONFIGS[key];
@@ -191,6 +375,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
           const endDeg = getArcEndAngle(key);
           const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, endDeg);
           const dynamicColor = getMetricCurrentColor(key, getMetricVal(key));
+          const currentStroke = isActive ? ACTIVE_STROKE_WIDTH : STROKE_WIDTH;
 
           return (
             <path
@@ -198,15 +383,49 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
               d={pathD}
               fill="none"
               stroke={dynamicColor}
-              strokeWidth={isActive ? STROKE_WIDTH + 1 : STROKE_WIDTH}
+              strokeWidth={currentStroke}
               strokeLinecap="round"
               className={`recovery-progress-arc ${isActive ? 'is-active' : ''}`}
-              onClick={() => onSelectMetric(key)}
+              onClick={() => handleSelectWithFeedback(key)}
             />
           );
         })}
 
-        {/* 3. ETIQUETAS E INSIGNIAS CIRCULARES */}
+        {/* ── 4. CONTROL DESLIZADOR TÁCTIL (THUMB) EN EL EXTREMO DEL ARCO ACTIVO ── */}
+        {isMetricAnswered(activeMetric) &&
+          (() => {
+            const cfg = METRIC_CONFIGS[activeMetric];
+            const endDeg = getArcEndAngle(activeMetric);
+            const thumbPos = polarToCartesian(CX, CY, cfg.radius, endDeg);
+            const activeColor = getMetricCurrentColor(activeMetric, getMetricVal(activeMetric));
+
+            return (
+              <g className="recovery-thumb-group" aria-hidden="true">
+                {/* Hit target invisible de 56px para arrastre táctil cómodo con dedo humano */}
+                <circle
+                  cx={thumbPos.x}
+                  cy={thumbPos.y}
+                  r={26}
+                  fill="transparent"
+                  className="recovery-thumb-hitbox"
+                />
+                {/* Thumb exterior blanco */}
+                <circle
+                  cx={thumbPos.x}
+                  cy={thumbPos.y}
+                  r={15}
+                  fill="#ffffff"
+                  stroke={activeColor}
+                  strokeWidth={4.5}
+                  className="recovery-slider-thumb"
+                />
+                {/* Núcleo central del color del estado */}
+                <circle cx={thumbPos.x} cy={thumbPos.y} r={5.5} fill={activeColor} />
+              </g>
+            );
+          })()}
+
+        {/* ── 4. ETIQUETAS E INSIGNIAS ACCESIBLES SINCRONIZADAS (Touch target >= 48px) ── */}
         {metricBadges.map((item) => {
           const cfg = METRIC_CONFIGS[item.key];
           const isActive = activeMetric === item.key;
@@ -215,15 +434,32 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
           return (
             <g
               key={`label-group-${item.key}`}
-              className="checkin-recovery-label-group"
-              onClick={() => onSelectMetric(item.key)}
+              className={`checkin-recovery-label-group ${isActive ? 'is-active' : ''}`}
+              onClick={() => handleSelectWithFeedback(item.key)}
               role="button"
-              tabIndex={-1}
-              aria-label={`Seleccionar ${item.label}`}
+              tabIndex={0}
+              aria-label={`Seleccionar indicador ${item.label}`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelectWithFeedback(item.key);
+                }
+              }}
             >
+              {/* Hit target transparente envolvente de toda la fila para selección táctil con una mano */}
+              <rect
+                x={0}
+                y={posY - 26}
+                width={BADGE_X + 26}
+                height={52}
+                fill="transparent"
+                className="recovery-label-touch-target"
+              />
+
+              {/* Texto del nombre del indicador */}
               <text
-                x={BADGE_X - 18}
-                y={posY + 5}
+                x={BADGE_X - 22}
+                y={posY + 5.5}
                 textAnchor="end"
                 className={`recovery-badge-text ${isActive ? 'is-active' : ''}`}
                 fill={
@@ -238,24 +474,12 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
                 {!item.isAnswered ? ' (Neutro)' : ''}
               </text>
 
-              {/* Halo pulsante celeste detrás del logo si está seleccionado */}
-              {isActive && (
-                <circle
-                  cx={BADGE_X}
-                  cy={posY}
-                  r="14"
-                  fill="none"
-                  stroke="var(--cyan-accent)"
-                  className="recovery-badge-halo"
-                />
-              )}
-
-              {/* Grupo del logo */}
+              {/* Grupo del logo / insignia */}
               <g className={isActive ? 'recovery-badge-blinking' : undefined}>
                 <circle
                   cx={BADGE_X}
                   cy={posY}
-                  r="14"
+                  r="15"
                   fill={item.isAnswered ? item.color : 'var(--checkin-counter-bg)'}
                   stroke={
                     isActive

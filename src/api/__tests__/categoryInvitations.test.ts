@@ -288,7 +288,6 @@ describe('categoryInvitationsService', () => {
         categoryInvitationsService.accept('tok-abc', {
           firstName: 'Mateo',
           lastName: 'Fernández',
-          email: 'mateo@ejemplo.com',
           phone: '+5491112345678',
           birthDate: '2010-05-15',
         }),

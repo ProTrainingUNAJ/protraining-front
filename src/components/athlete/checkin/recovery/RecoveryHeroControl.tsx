@@ -41,10 +41,11 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
       case 'sleepHours':
         return (
           <svg
-            width="54"
-            height="54"
+            width="44"
+            height="44"
             viewBox="0 0 24 24"
-            fill={isAnswered ? 'var(--checkin-star-gold)' : 'var(--input-placeholder)'}
+            fill={isAnswered ? '#ffffff' : 'var(--input-placeholder)'}
+            style={{ fill: isAnswered ? '#ffffff' : 'var(--input-placeholder)' }}
             stroke="none"
           >
             <path d="M 21 12.79 A 9 9 0 1 1 11.21 3 A 7 7 0 0 0 21 12.79 Z" />
@@ -53,8 +54,8 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
       case 'sleepQuality':
         return (
           <svg
-            width="54"
-            height="54"
+            width="44"
+            height="44"
             viewBox="0 0 24 24"
             fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
             stroke="none"
@@ -64,7 +65,7 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
         );
       case 'fatigueLevel':
         return (
-          <svg width="54" height="54" viewBox="0 0 24 24" fill="none">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
             <rect
               x="2"
               y="6"
@@ -96,7 +97,7 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
         );
       case 'muscleSoreness':
         return renderBicepsMuscle(
-          54,
+          44,
           isAnswered ? 'rgba(0,0,0,0.22)' : 'var(--checkin-scale-neutral)',
           isAnswered ? 'var(--white)' : 'var(--input-placeholder)',
         );

@@ -4,10 +4,8 @@ import {
   User,
   Bell,
   Palette,
-  Shield,
   Check,
   Save,
-  Camera,
   Laptop,
   Sun,
   Moon,
@@ -61,23 +59,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   };
 
   // Form states
-  const [name, setName] = useState(
-    user?.fullName || (role === 'pf' ? 'Julián Pérez' : 'Lucía Martínez'),
-  );
-  const [email, setEmail] = useState(
-    user?.email || (role === 'pf' ? 'coach@protraining.com' : 'atleta@protraining.com'),
-  );
-  const [phone, setPhone] = useState(
-    user?.phoneNumber || (role === 'pf' ? '' : '+54 11 4567-8900'),
-  );
+  const name = user?.fullName ?? '';
+  const email = user?.email ?? '';
+  const [phone, setPhone] = useState(user?.phoneNumber ?? '');
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [phoneSaving, setPhoneSaving] = useState(false);
-  const [emergencyContact, setEmergencyContact] = useState('Dra. Laura Rossi (+54 11 9876-5432)');
-
-  // Notification toggles
-  const [notifySessions, setNotifySessions] = useState(true);
-  const [notifyCheckIn, setNotifyCheckIn] = useState(true);
-  const [notifyReports, setNotifyReports] = useState(role === 'pf');
 
   // Web Push device subscription state
   const [pushSupported] = useState<boolean>(() => isPushSupported());
@@ -184,13 +170,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
         title="Configuración"
         description="Preferencias del sistema, notificaciones y ajustes de cuenta."
         actions={
-          activeTab === 'marks' ? undefined : (
+          role !== 'pf' || activeTab !== 'profile' ? undefined : (
             <button
               type="button"
               className="btn btn-primary"
               onClick={handleSave}
               disabled={phoneSaving}
-              title="Guardar preferencias del sistema"
+              title="Guardar el WhatsApp"
             >
               <Save size={16} aria-hidden="true" />
               <span>{phoneSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
@@ -270,18 +256,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
               <span>Mis marcas</span>
             </button>
           )}
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'roleOptions'}
-            onClick={() => selectTab('roleOptions')}
-            className={`btn ${activeTab === 'roleOptions' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ borderRadius: '8px', fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-          >
-            <Shield size={16} />
-            <span>{role === 'pf' ? 'Ajustes del Plantel' : 'Ficha Deportiva'}</span>
-          </button>
         </div>
 
         {/* Contenido de la pestaña activa */}
@@ -357,29 +331,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             .join('')
                             .toUpperCase() || 'PT'}
                         </div>
-
-                        {/* Badge celeste de cámara para futura carga */}
-                        <div
-                          style={{
-                            position: 'absolute',
-                            bottom: '0',
-                            right: '0',
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: 'var(--secondary)',
-                            color: 'var(--on-primary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '2px solid var(--bg-card)',
-                            boxShadow: 'var(--shadow-sm)',
-                          }}
-                          title="Espacio para cargar foto de perfil"
-                          aria-label="Cámara"
-                        >
-                          <Camera size={14} />
-                        </div>
                       </div>
 
                       <div style={{ flex: 1, minWidth: '220px' }}>
@@ -401,25 +352,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             lineHeight: 1.4,
                           }}
                         >
-                          Círculo de avatar configurado. Próximamente vas a poder subir y
-                          personalizar tu foto de perfil directamente desde aquí.
+                          Por ahora se muestran tus iniciales. Próximamente vas a poder subir tu
+                          foto de perfil desde acá.
                         </p>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            color: 'var(--avatar-cyan-text)',
-                            background: 'var(--avatar-cyan-bg)',
-                            padding: '0.2rem 0.6rem',
-                            borderRadius: '6px',
-                          }}
-                        >
-                          <Camera size={12} />
-                          <span>Espacio preparado para imagen</span>
-                        </span>
                       </div>
                     </div>
 
@@ -442,13 +377,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         >
                           Nombre Completo
                         </label>
-                        <input
-                          id="set-name"
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                        />
+                        <input id="set-name" type="text" value={name} readOnly required />
                       </div>
 
                       <div>
@@ -463,13 +392,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         >
                           Correo Electrónico
                         </label>
-                        <input
-                          id="set-email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
+                        <input id="set-email" type="email" value={email} readOnly required />
                       </div>
 
                       <div>
@@ -492,7 +415,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             setPhone(e.target.value);
                             if (phoneError) setPhoneError(null);
                           }}
-                          placeholder={role === 'pf' ? '+54 9 11 2345-6789' : '+54 11 4567-8900'}
+                          placeholder={role === 'pf' ? '+54 9 11 2345-6789' : 'Sin cargar'}
+                          readOnly={role !== 'pf'}
                         />
                         {role === 'pf' && phoneError && (
                           <span
@@ -878,109 +802,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       marginBottom: '1.5rem',
                     }}
                   >
-                    Selecciona qué avisos deseas recibir en tiempo real.
+                    Activá los recordatorios en este dispositivo para recibir los avisos del día.
                   </p>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1rem',
-                      maxWidth: '540px',
-                    }}
-                  >
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={notifySessions}
-                        onChange={(e) => setNotifySessions(e.target.checked)}
-                        style={{ width: '18px', height: '18px', accentColor: 'var(--secondary)' }}
-                      />
-                      <div>
-                        <strong
-                          style={{
-                            fontSize: '0.9rem',
-                            color: 'var(--text-main)',
-                            display: 'block',
-                          }}
-                        >
-                          Entrenamientos y Planificaciones
-                        </strong>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          Avisar cuando se publiquen o modifiquen sesiones de trabajo.
-                        </span>
-                      </div>
-                    </label>
-
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={notifyCheckIn}
-                        onChange={(e) => setNotifyCheckIn(e.target.checked)}
-                        style={{ width: '18px', height: '18px', accentColor: 'var(--secondary)' }}
-                      />
-                      <div>
-                        <strong
-                          style={{
-                            fontSize: '0.9rem',
-                            color: 'var(--text-main)',
-                            display: 'block',
-                          }}
-                        >
-                          Recordatorio de Check-in Diario
-                        </strong>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          Recordar el registro de fatiga y recuperación cada mañana.
-                        </span>
-                      </div>
-                    </label>
-
-                    {role === 'pf' && (
-                      <label
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.75rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={notifyReports}
-                          onChange={(e) => setNotifyReports(e.target.checked)}
-                          style={{ width: '18px', height: '18px', accentColor: 'var(--secondary)' }}
-                        />
-                        <div>
-                          <strong
-                            style={{
-                              fontSize: '0.9rem',
-                              color: 'var(--text-main)',
-                              display: 'block',
-                            }}
-                          >
-                            Alertas de Carga y Sobreentrenamiento
-                          </strong>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            Notificar cuando un atleta supere el umbral seguro de esfuerzo.
-                          </span>
-                        </div>
-                      </label>
-                    )}
-                  </div>
 
                   {/* ── Sección de Notificaciones Web Push del Dispositivo ── */}
                   <div
@@ -1154,110 +977,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       </div>
                     )}
                   </div>
-                </div>
-              </form>
-            )}
-
-            {activeTab === 'roleOptions' && (
-              <form onSubmit={handleSave}>
-                <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-                  <h2
-                    style={{
-                      fontSize: '1.15rem',
-                      fontWeight: 700,
-                      marginBottom: '0.35rem',
-                      color: 'var(--text-main)',
-                    }}
-                  >
-                    {role === 'pf' ? 'Ajustes del Cuerpo Técnico' : 'Ficha y Contacto Médico'}
-                  </h2>
-                  <p
-                    style={{
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                      marginBottom: '1.5rem',
-                    }}
-                  >
-                    {role === 'pf'
-                      ? 'Configuración de permisos y organizaciones a tu cargo.'
-                      : 'Datos de emergencia para el protocolo de seguridad médica deportiva.'}
-                  </p>
-
-                  {role === 'pf' ? (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '1rem',
-                        maxWidth: '520px',
-                      }}
-                    >
-                      <div>
-                        <label
-                          style={{
-                            display: 'block',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            marginBottom: '0.35rem',
-                          }}
-                        >
-                          Organización Predeterminada
-                        </label>
-                        <select
-                          defaultValue="Club Social y Deportivo"
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem 0.85rem',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            background: 'var(--bg-card)',
-                            color: 'var(--text-main)',
-                            fontWeight: 600,
-                          }}
-                        >
-                          <option value="Club Social y Deportivo">Club Atlético Quilmes</option>
-                          <option value="Academia ProTraining">Academia ProTraining Central</option>
-                        </select>
-                      </div>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        Puedes gestionar más clubes desde la sección <strong>Organizaciones</strong>{' '}
-                        en la barra lateral.
-                      </p>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '1rem',
-                        maxWidth: '520px',
-                      }}
-                    >
-                      <div>
-                        <label
-                          htmlFor="set-emerg"
-                          style={{
-                            display: 'block',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            marginBottom: '0.35rem',
-                          }}
-                        >
-                          Contacto de Emergencia
-                        </label>
-                        <input
-                          id="set-emerg"
-                          type="text"
-                          value={emergencyContact}
-                          onChange={(e) => setEmergencyContact(e.target.value)}
-                        />
-                      </div>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        Esta información es visible para el cuerpo técnico en caso de requerir
-                        asistencia urgente.
-                      </p>
-                    </div>
-                  )}
                 </div>
               </form>
             )}

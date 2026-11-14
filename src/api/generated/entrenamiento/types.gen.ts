@@ -420,6 +420,10 @@ export type TodayRoutineExercise = {
      * Meta de tiempo calculada en segundos (KAN-455). Null si no tiene test.
      */
     targetTimeSeconds?: number | null;
+    /**
+     * Series o pasadas ya registradas hoy para este ejercicio (KAN-457).
+     */
+    performedSets?: Array<TodayRoutinePerformedSet>;
 };
 
 export type TodayRoutineResponse = {
@@ -454,10 +458,28 @@ export type TodayRoutineResponse = {
     adjustmentNote?: string | null;
 };
 
+export type TodayRoutinePerformedSet = {
+    setNumber?: number | null;
+    weight?: number | null;
+    reps?: number | null;
+    /**
+     * Tiempo real registrado en segundos para la pasada (KAN-457).
+     */
+    timeSeconds?: number | null;
+};
+
 export type PerformedSetInput = {
     exerciseId: string;
-    weight: number;
-    reps: number;
+    weight?: number | null;
+    reps?: number | null;
+    /**
+     * Tiempo real de la pasada cronometrada en segundos (KAN-457).
+     */
+    timeSeconds?: number | null;
+    /**
+     * Número de pasada o serie (1-based) (KAN-457).
+     */
+    setNumber?: number | null;
 };
 
 export type RecordPerformedSetsResponse = {

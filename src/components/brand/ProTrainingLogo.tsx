@@ -1,6 +1,6 @@
 import React from 'react';
-import logoLight from '../../assets/protraining-logo-light.png';
-import logoDark from '../../assets/protraining-logo-dark.png';
+import logoLight from '../../assets/protraining-logo-light.webp';
+import logoDark from '../../assets/protraining-logo-dark.webp';
 
 interface ProTrainingLogoProps {
   size?: number;

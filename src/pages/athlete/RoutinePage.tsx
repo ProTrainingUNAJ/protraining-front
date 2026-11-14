@@ -127,12 +127,35 @@ export const RoutinePage: React.FC = () => {
 
       // Cargar series guardadas si tenemos atletas y fecha identificados
       if (loadedRoutine?.date && loadedRoutine?.athleteId) {
+        const backendTimes: Record<string, number> = {};
+        const backendCompleted: Record<string, boolean> = {};
+
+        // KAN-457: Hidratar las series y tiempos realizados desde el backend
+        if (loadedRoutine.exercises) {
+          loadedRoutine.exercises.forEach((ex, exIdx) => {
+            const exKey = ex.exerciseId || `ex-${exIdx}`;
+            if (ex.performedSets && ex.performedSets.length > 0) {
+              ex.performedSets.forEach((ps) => {
+                if (ps.setNumber != null) {
+                  const setKey = `${exKey}_set_${ps.setNumber}`;
+                  backendCompleted[setKey] = true;
+                  if (ps.timeSeconds != null) {
+                    backendTimes[setKey] = ps.timeSeconds;
+                  }
+                }
+              });
+            }
+          });
+        }
+
         try {
           const key = getStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
+          let savedCompleted: Record<string, boolean> = {};
           if (key) {
             const saved = localStorage.getItem(key);
-            setCompletedSets(saved ? JSON.parse(saved) : {});
+            if (saved) savedCompleted = JSON.parse(saved);
           }
+          setCompletedSets({ ...backendCompleted, ...savedCompleted });
 
           const perfKey = getPerformedStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
           if (perfKey) {
@@ -141,16 +164,21 @@ export const RoutinePage: React.FC = () => {
           }
 
           const timesKey = `${key}_times`;
-          const savedTimes = localStorage.getItem(timesKey);
-          if (savedTimes) {
-            setPerformedSetTimes(JSON.parse(savedTimes));
+          let savedTimes: Record<string, number> = {};
+          const savedTimesRaw = localStorage.getItem(timesKey);
+          if (savedTimesRaw) {
+            savedTimes = JSON.parse(savedTimesRaw);
           }
+          setPerformedSetTimes({ ...backendTimes, ...savedTimes });
         } catch {
-          // Ignorar error de acceso a localStorage
+          // Ignorar error de acceso a localStorage y utilizar datos del backend
+          setCompletedSets(backendCompleted);
+          setPerformedSetTimes(backendTimes);
         }
       } else {
         setCompletedSets({});
         setPerformedSets({});
+        setPerformedSetTimes({});
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al consultar la rutina');
@@ -244,7 +272,7 @@ export const RoutinePage: React.FC = () => {
         return next;
       });
 
-      // Si carga un tiempo válido, también tilda la serie en completadas
+      // Si carga un tiempo válido, también tilda la serie en completadas y la registra en el backend
       if (timeSeconds !== null && timeSeconds > 0) {
         setCompletedSets((prev) => {
           const key = `${exerciseKey}_set_${setIndex}`;
@@ -259,9 +287,27 @@ export const RoutinePage: React.FC = () => {
           }
           return next;
         });
+
+        // KAN-457: Registrar la serie en el backend con su tiempo real
+        const targetExercise = exercises.find(
+          (e, idx) => (e.exerciseId || `ex-${idx}`) === exerciseKey,
+        );
+        if (targetExercise?.exerciseId) {
+          void todayRoutineService
+            .recordSets?.([
+              {
+                exerciseId: targetExercise.exerciseId,
+                setNumber: setIndex,
+                timeSeconds,
+              },
+            ])
+            ?.catch?.(() => {
+              // Si falla la red, el tiempo queda preservado localmente
+            });
+        }
       }
     },
-    [routine],
+    [routine, exercises],
   );
 
   // Manejador tras registrar serie en el back exitosamente

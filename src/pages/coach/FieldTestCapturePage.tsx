@@ -1,15 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Play, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { formatIsoDate } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
 import {
   createFieldTestResult,
   getFieldTestSession,
   listFitnessTests,
+  updateFieldTestResult,
   updateFieldTestSessionStatus,
 } from '../../api/fieldTestSessions';
-import type { FieldTestSession, FitnessTest } from '../../api/generated/seguimiento';
+import type {
+  FieldTestResult,
+  FieldTestSession,
+  FitnessTest,
+} from '../../api/generated/seguimiento';
 import type { Athlete } from '../../types/structure';
 
 const STATUS_LABEL: Record<FieldTestSession['status'], string> = {
@@ -41,6 +47,8 @@ export const FieldTestCapturePage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [athletesError, setAthletesError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -52,16 +60,24 @@ export const FieldTestCapturePage: React.FC = () => {
     ])
       .then(async ([loadedSession, tests]) => {
         if (!active) return;
+        setAthletesError(null);
         setSession(loadedSession);
         setCurrentTestId(loadedSession.tests[0]?.catalogTestId ?? '');
         setCatalog(Object.fromEntries(tests.map((test) => [test.id, test])));
-        return structureService
-          .getAthletes({ categoriaId: loadedSession.categoryId })
-          .catch(() => [] as Athlete[]);
-      })
-      .then((loadedAthletes) => {
-        if (!active || !loadedAthletes) return;
-        setAthletes(loadedAthletes);
+        try {
+          const loadedAthletes = await structureService.getAthletes({
+            categoriaId: loadedSession.categoryId,
+          });
+          if (active) setAthletes(loadedAthletes);
+        } catch (err) {
+          if (active) {
+            setAthletesError(
+              err instanceof Error
+                ? err.message
+                : 'No se pudieron cargar los atletas de la categoría.',
+            );
+          }
+        }
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -74,7 +90,7 @@ export const FieldTestCapturePage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [sessionId]);
+  }, [sessionId, reloadKey]);
 
   const orderedTests = useMemo(
     () => [...(session?.tests ?? [])].sort((a, b) => a.order - b.order),
@@ -82,12 +98,13 @@ export const FieldTestCapturePage: React.FC = () => {
   );
   const currentTest = orderedTests.find((test) => test.catalogTestId === currentTestId);
 
-  // Marcas ya cargadas del test seleccionado, por atleta.
+  // Resultados ya cargados del test seleccionado, por atleta: si ya existe, la
+  // nueva marca se corrige con PUT en vez de crear un duplicado con POST (KAN-568).
   const marks = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, FieldTestResult>();
     for (const result of session?.results ?? []) {
       if (result.catalogTestId === currentTest?.catalogTestId) {
-        map.set(result.athleteId, result.value);
+        map.set(result.athleteId, result);
       }
     }
     return map;
@@ -115,24 +132,37 @@ export const FieldTestCapturePage: React.FC = () => {
     setError(null);
     setNotice(null);
     try {
-      const result = await createFieldTestResult(session.id, {
-        catalogTestId: currentTest.catalogTestId,
-        athleteId: currentAthlete.id,
-        value: parsed,
-        attempt: 1,
+      const existing = marks.get(currentAthlete.id);
+      const result = existing
+        ? await updateFieldTestResult(session.id, existing.id, { value: parsed, attempt: 1 })
+        : await createFieldTestResult(session.id, {
+            catalogTestId: currentTest.catalogTestId,
+            athleteId: currentAthlete.id,
+            value: parsed,
+            attempt: 1,
+          });
+      setSession((previous) => {
+        if (!previous) return previous;
+        return {
+          ...previous,
+          results: existing
+            ? previous.results.map((item) => (item.id === result.id ? result : item))
+            : [...previous.results, result],
+        };
       });
-      setSession((previous) =>
-        previous ? { ...previous, results: [...previous.results, result] } : previous,
-      );
       setValue('');
-      setNotice(`Marca de ${fullName(currentAthlete)} registrada.`);
+      setNotice(
+        existing
+          ? `Marca de ${fullName(currentAthlete)} corregida.`
+          : `Marca de ${fullName(currentAthlete)} registrada.`,
+      );
       setCursor((index) => index + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo registrar la marca.');
     } finally {
       setSaving(false);
     }
-  }, [session, currentAthlete, currentTest, value]);
+  }, [session, currentAthlete, currentTest, value, marks]);
 
   const pressKey = (key: string): void => {
     if (!canSave) return;
@@ -156,6 +186,13 @@ export const FieldTestCapturePage: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la sesión.');
     }
+  };
+
+  // Reintenta la carga completa (sesión, catálogo y atletas) tras un fallo al
+  // obtener los atletas: mismo patrón de reloadKey que RecordsReliabilityPanel.
+  const retryAthletes = (): void => {
+    setLoading(true);
+    setReloadKey((key) => key + 1);
   };
 
   if (loading) {
@@ -190,7 +227,7 @@ export const FieldTestCapturePage: React.FC = () => {
     <div className="app-page-container">
       <PageHeader
         title={session.name}
-        description={`Test de campo · ${new Date(`${session.date}T00:00:00`).toLocaleDateString('es-AR')}`}
+        description={`Test de campo · ${formatIsoDate(session.date.slice(0, 10))}`}
         actions={
           <button
             type="button"
@@ -255,6 +292,15 @@ export const FieldTestCapturePage: React.FC = () => {
         )}
         {error && <div className="alert-banner danger">{error}</div>}
         {notice && <div className="alert-banner success">{notice}</div>}
+        {athletesError && (
+          <div className="alert-banner danger" role="alert">
+            <span>{athletesError}</span>
+            <button type="button" className="btn btn-secondary" onClick={retryAthletes}>
+              <RefreshCw size={16} aria-hidden="true" />
+              <span>Reintentar</span>
+            </button>
+          </div>
+        )}
 
         <div className="ft-capture__grid">
           <section className="ft-capture__main">
@@ -309,7 +355,7 @@ export const FieldTestCapturePage: React.FC = () => {
                   </button>
                 </div>
               </>
-            ) : (
+            ) : athletesError ? null : (
               <div className="ft-complete">
                 <CheckCircle2 size={40} aria-hidden="true" />
                 <h2>Carga completa para este test</h2>
@@ -338,12 +384,12 @@ export const FieldTestCapturePage: React.FC = () => {
                 >
                   <span className="ft-athlete-row__name">{fullName(athlete)}</span>
                   <span className="ft-athlete-row__mark">
-                    {mark !== undefined ? `${mark}` : '—'}
+                    {mark !== undefined ? `${mark.value}` : '—'}
                   </span>
                 </button>
               );
             })}
-            {athletes.length === 0 && (
+            {athletes.length === 0 && !athletesError && (
               <p className="ft-muted">Esta categoría no tiene atletas cargados.</p>
             )}
           </aside>

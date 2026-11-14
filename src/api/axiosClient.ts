@@ -240,19 +240,19 @@ export function extractErrorMessage(error: unknown): string {
       if (data.title) return data.title;
     }
     if (error.response?.status === 401) {
-      return 'Credenciales inválidas. Verifica tu correo y contraseña.';
+      return 'El correo o la contraseña no son correctos.';
     }
     if (error.response?.status === 403) {
-      return 'No tienes permisos para acceder a esta sección.';
+      return 'No tenés permiso para entrar a esta sección.';
     }
     if (error.response?.status === 404) {
       return 'El recurso solicitado no fue encontrado.';
     }
     if (error.response?.status && error.response.status >= 500) {
-      return 'Error interno en el servidor. Intenta nuevamente más tarde.';
+      return 'Hubo un error en el servidor. Probá de nuevo en unos minutos.';
     }
     if (error.code === 'ECONNABORTED' || !error.response) {
-      return 'No se pudo conectar con el servidor. Verifica tu conexión de red o que el servicio esté activo.';
+      return 'No se pudo conectar con el servidor. Revisá tu conexión y probá de nuevo.';
     }
   }
   if (error instanceof Error) {

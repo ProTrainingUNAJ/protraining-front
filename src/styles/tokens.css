@@ -7,10 +7,6 @@
   --brand-gray-light: #e3e4e6;
   --brand-gray-dark: #202429;
 
-  /* Gradientes de marca */
-  --grad-text: linear-gradient(90deg, #023050 0%, #0070c0 100%);
-  --grad-isotype: linear-gradient(135deg, #22d3ee 0%, #6a5acd 100%);
-
   /* Superficies (modo claro) */
   --bg-main: #ffffff;
   --bg-card: #ffffff;
@@ -36,7 +32,7 @@
   --primary-hover: #03446e;
   --primary-light: #e6eef4;
   --secondary: var(--brand-blue);
-  --success: #16a34a;
+  --success: #15803d;
   --warning: #d97706;
   --danger: #dc2626;
 
@@ -220,20 +216,17 @@
   /* Performance metrics and indicators (Light Mode) */
   --stat-cyan: #0284c7;
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
-  --stat-green: #16a34a;
+  --stat-green: #15803d;
   --stat-green-bg: rgb(22 163 74 / 0.1);
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante en :root. */
   --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
-  --stat-purple: #7c3aed;
-  --stat-purple-bg: rgb(124 58 237 / 0.1);
-  --stat-purple-border: rgb(124 58 237 / 0.25);
   --stat-amber: #d97706;
   --stat-amber-bg: rgb(217 119 6 / 0.1);
 
   /* Cyan avatar for user profile */
   --avatar-cyan-bg: #e0f2fe;
   --avatar-cyan-border: #38bdf8;
-  --avatar-cyan-text: #0284c7;
+  --avatar-cyan-text: #075985;
 
   /* Training routine and GIF viewer */
   --routine-card-hover-border: var(--secondary);
@@ -274,9 +267,6 @@
   --auth-google-dark-hover-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
   --auth-modal-overlay: rgb(2 48 80 / 0.45);
   --auth-modal-shadow: 0 20px 48px -8px rgb(2 48 80 / 0.25);
-  --auth-community-shadow: 0 10px 28px rgb(2 48 80 / 0.04);
-  --auth-community-hover-shadow: 0 14px 32px rgb(2 48 80 / 0.07);
-  --auth-avatar-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
   --auth-visual-shadow: 0 20px 48px -8px rgb(2 48 80 / 0.18);
   --auth-visual-border: rgb(255 255 255 / 0.15);
   --auth-visual-scrim: linear-gradient(
@@ -306,7 +296,7 @@
   --status-success-bg: var(--success-bg-strong);
   --status-success-text: var(--success-text);
 
-  --font-base: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-base: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system, sans-serif;
 
   /* Muscle map hit transparent token */
   --muscle-hit-transparent: rgb(255 255 255 / 0.001);
@@ -357,21 +347,21 @@
   --checkin-scale-orange: #ff6b00;
   --checkin-scale-yellow: #ffb703;
   --checkin-scale-green: #00a859;
-  --checkin-scale-violet: #8e24aa;
+  --checkin-scale-violet: #0070c0;
   --checkin-scale-neutral: #cbd5e1;
 
   --checkin-mood-desanimado: #5d2517;
   --checkin-mood-regular: #f05a22;
   --checkin-mood-neutral: #ffae19;
   --checkin-mood-motivado: #2ca049;
-  --checkin-mood-excelente: #9b26b6;
+  --checkin-mood-excelente: #0070c0;
   --checkin-mood-face-stroke: #2b1408;
 
   --checkin-star-gold: #fbbf24;
   --checkin-star-green: #4ade80;
   --checkin-star-yellow: #fef08a;
-  --checkin-star-violet: #c084fc;
-  --checkin-star-pink: #f472b6;
+  --checkin-star-violet: #38bdf8;
+  --checkin-star-pink: #0070c0;
 
   /* Check-in Traffic Light */
   --traffic-shell-bg: linear-gradient(180deg, #1c222b 0%, #10141a 100%);
@@ -384,19 +374,19 @@
 
   /* Celebration and Fireworks Tokens */
   --celebration-coral: #ff4d4f;
-  --celebration-pink: #ec4899;
+  --celebration-pink: #0070c0;
   --celebration-fuchsia: #e879f9;
   --celebration-green: #28b675;
   --celebration-blue: #0077c8;
   --celebration-amber: #ea9f11;
-  --celebration-purple: #8b5cf6;
+  --celebration-purple: #023050;
   --celebration-cyan: #38bdf8;
   --celebration-white: #ffffff;
 
-  --firework-violet-light: #c084fc;
-  --firework-violet: #a855f7;
+  --firework-violet-light: #7dd3fc;
+  --firework-violet: #0070c0;
   --firework-fuchsia: #e879f9;
-  --firework-pink: #f472b6;
+  --firework-pink: #38bdf8;
   --firework-amber: #fbbf24;
   --firework-yellow: #fde047;
   --firework-sky: #38bdf8;
@@ -542,9 +532,6 @@
   --stat-green-bg: rgb(74 222 128 / 0.16);
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante oscura. */
   --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
-  --stat-purple: #c084fc;
-  --stat-purple-bg: rgb(192 132 252 / 0.18);
-  --stat-purple-border: rgb(192 132 252 / 0.35);
   --stat-amber: #fbbf24;
   --stat-amber-bg: rgb(251 191 36 / 0.16);
 
@@ -622,8 +609,6 @@
   --auth-btn-primary-hover-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
   --auth-modal-overlay: rgb(0 0 0 / 0.7);
   --auth-modal-shadow: 0 20px 48px -8px rgb(0 0 0 / 0.5);
-  --auth-community-shadow: 0 10px 28px rgb(0 0 0 / 0.3);
-  --auth-community-hover-shadow: 0 14px 32px rgb(0 0 0 / 0.45);
   --auth-visual-shadow: 0 20px 48px -8px rgb(0 0 0 / 0.45);
 
   --status-danger-bg: rgb(153 27 27 / 0.25);
@@ -704,21 +689,21 @@
   --checkin-scale-orange: #ff781f;
   --checkin-scale-yellow: #fbbf24;
   --checkin-scale-green: #22c55e;
-  --checkin-scale-violet: #a855f7;
+  --checkin-scale-violet: #38bdf8;
   --checkin-scale-neutral: #64748b;
 
   --checkin-mood-desanimado: #7a321e;
   --checkin-mood-regular: #ff781f;
   --checkin-mood-neutral: #fbbf24;
   --checkin-mood-motivado: #22c55e;
-  --checkin-mood-excelente: #a855f7;
+  --checkin-mood-excelente: #38bdf8;
   --checkin-mood-face-stroke: #1c1917;
 
   --checkin-star-gold: #fbbf24;
   --checkin-star-green: #4ade80;
   --checkin-star-yellow: #fef08a;
-  --checkin-star-violet: #c084fc;
-  --checkin-star-pink: #f472b6;
+  --checkin-star-violet: #7dd3fc;
+  --checkin-star-pink: #38bdf8;
 
   /* Check-in Traffic Light */
   --traffic-shell-bg: linear-gradient(180deg, #1c222b 0%, #10141a 100%);
@@ -731,19 +716,19 @@
 
   /* Celebration and Fireworks Tokens */
   --celebration-coral: #ff4d4f;
-  --celebration-pink: #ec4899;
+  --celebration-pink: #38bdf8;
   --celebration-fuchsia: #e879f9;
   --celebration-green: #28b675;
   --celebration-blue: #0077c8;
   --celebration-amber: #ea9f11;
-  --celebration-purple: #8b5cf6;
+  --celebration-purple: #7dd3fc;
   --celebration-cyan: #38bdf8;
   --celebration-white: #ffffff;
 
-  --firework-violet-light: #c084fc;
-  --firework-violet: #a855f7;
+  --firework-violet-light: #bae6fd;
+  --firework-violet: #38bdf8;
   --firework-fuchsia: #e879f9;
-  --firework-pink: #f472b6;
+  --firework-pink: #7dd3fc;
   --firework-amber: #fbbf24;
   --firework-yellow: #fde047;
   --firework-sky: #38bdf8;

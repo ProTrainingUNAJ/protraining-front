@@ -37,7 +37,7 @@ export const ResetPasswordPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '1.5rem',
-          backgroundColor: 'var(--bg-main, #0f172a)',
+          backgroundColor: 'var(--bg-main)',
         }}
       >
         <div
@@ -56,12 +56,12 @@ export const ResetPasswordPage: React.FC = () => {
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              backgroundColor: 'var(--danger-bg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '1.5rem auto 1rem',
-              color: 'var(--danger-text, #ef4444)',
+              color: 'var(--danger-text)',
             }}
           >
             <AlertCircle size={28} aria-hidden="true" />
@@ -123,7 +123,7 @@ export const ResetPasswordPage: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.5rem',
-        backgroundColor: 'var(--bg-main, #0f172a)',
+        backgroundColor: 'var(--bg-main)',
       }}
     >
       <div className="auth-card" style={{ maxWidth: '440px', width: '100%' }}>
@@ -142,21 +142,7 @@ export const ResetPasswordPage: React.FC = () => {
         </div>
 
         {errorMessage && (
-          <div
-            className="auth-error-banner"
-            role="alert"
-            style={{
-              padding: '0.75rem',
-              borderRadius: '8px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              color: 'var(--danger-text, #ef4444)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '1rem',
-              fontSize: '0.85rem',
-            }}
-          >
+          <div className="alert-box alert-danger" role="alert">
             <AlertCircle size={18} aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
@@ -169,12 +155,12 @@ export const ResetPasswordPage: React.FC = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                backgroundColor: 'var(--success-bg)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1rem',
-                color: '#16a34a',
+                color: 'var(--success-text)',
               }}
             >
               <CheckCircle2 size={28} aria-hidden="true" />
@@ -206,12 +192,12 @@ export const ResetPasswordPage: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} noValidate>
             {/* Campo Nueva Contraseña */}
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label htmlFor="new-password" className="form-label">
+            <div className="form-group-pill" style={{ marginBottom: '1rem' }}>
+              <label htmlFor="new-password" className="form-label-visible">
                 Nueva contraseña
               </label>
-              <div className="input-pill-wrapper">
-                <span className="input-pill-leading-icon" aria-hidden="true">
+              <div className="input-pill-container">
+                <span className="input-pill-icon" aria-hidden="true">
                   <Lock size={18} />
                 </span>
                 <input
@@ -219,7 +205,7 @@ export const ResetPasswordPage: React.FC = () => {
                   type={showNew ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres y al menos un número"
+                  placeholder="Mínimo 8 caracteres"
                   disabled={loading}
                   required
                   className="input-pill"
@@ -238,12 +224,12 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
 
             {/* Campo Confirmar Nueva Contraseña */}
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label htmlFor="confirm-password" className="form-label">
+            <div className="form-group-pill" style={{ marginBottom: '1rem' }}>
+              <label htmlFor="confirm-password" className="form-label-visible">
                 Repetir nueva contraseña
               </label>
-              <div className="input-pill-wrapper">
-                <span className="input-pill-leading-icon" aria-hidden="true">
+              <div className="input-pill-container">
+                <span className="input-pill-icon" aria-hidden="true">
                   <Lock size={18} />
                 </span>
                 <input
@@ -276,7 +262,7 @@ export const ResetPasswordPage: React.FC = () => {
                 marginBottom: '1.25rem',
                 padding: '0.6rem 0.8rem',
                 borderRadius: '6px',
-                background: 'var(--bg-subtle, rgba(2, 132, 199, 0.05))',
+                background: 'var(--bg-subtle)',
                 fontSize: '0.78rem',
                 color: 'var(--text-muted)',
                 display: 'flex',
@@ -286,8 +272,7 @@ export const ResetPasswordPage: React.FC = () => {
             >
               <span
                 style={{
-                  color:
-                    hasMinLength && hasDigit ? 'var(--success-text, #16a34a)' : 'var(--text-muted)',
+                  color: hasMinLength && hasDigit ? 'var(--success-text)' : 'var(--text-muted)',
                   fontWeight: hasMinLength && hasDigit ? 600 : 400,
                   display: 'flex',
                   alignItems: 'center',
@@ -303,7 +288,7 @@ export const ResetPasswordPage: React.FC = () => {
               </span>
               <span
                 style={{
-                  color: passwordsMatch ? 'var(--success-text, #16a34a)' : 'var(--text-muted)',
+                  color: passwordsMatch ? 'var(--success-text)' : 'var(--text-muted)',
                   fontWeight: passwordsMatch ? 600 : 400,
                   display: 'flex',
                   alignItems: 'center',

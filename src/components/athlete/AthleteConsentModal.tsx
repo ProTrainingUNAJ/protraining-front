@@ -162,7 +162,7 @@ export const AthleteConsentModal: React.FC<AthleteConsentModalProps> = ({
                     lesiones y datos de salud consignados serán tratados con estricta
                     confidencialidad bajo los estándares de seguridad de ProTraining, y cada acceso
                     por parte del preparador físico quedará debidamente registrado en una auditoría
-                    inmutable (KAN-324 / KAN-325).
+                    inmutable.
                   </li>
                   <li>
                     <strong>Notificación Oportuna:</strong> El atleta se compromete a reportar
@@ -212,8 +212,8 @@ export const AthleteConsentModal: React.FC<AthleteConsentModalProps> = ({
                   borderRadius: '6px',
                 }}
               >
-                Firmante legal: <strong>{athleteName}</strong> · Registro digital inmutable en
-                ProTraining PWA.
+                Firmante: <strong>{athleteName}</strong> · La firma queda registrada en ProTraining
+                y no se puede modificar.
               </div>
             </div>
 

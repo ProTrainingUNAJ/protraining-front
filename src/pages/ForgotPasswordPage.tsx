@@ -59,7 +59,7 @@ export const ForgotPasswordPage: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.5rem',
-        backgroundColor: 'var(--bg-main, #0f172a)',
+        backgroundColor: 'var(--bg-main)',
       }}
     >
       <div className="auth-card" style={{ maxWidth: '440px', width: '100%' }}>
@@ -80,21 +80,7 @@ export const ForgotPasswordPage: React.FC = () => {
         </div>
 
         {errorMessage && (
-          <div
-            className="auth-error-banner"
-            role="alert"
-            style={{
-              padding: '0.75rem',
-              borderRadius: '8px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              color: 'var(--danger-text, #ef4444)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '1rem',
-              fontSize: '0.85rem',
-            }}
-          >
+          <div className="alert-box alert-danger" role="alert">
             <AlertCircle size={18} aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
@@ -107,12 +93,12 @@ export const ForgotPasswordPage: React.FC = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                backgroundColor: 'var(--success-bg)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1rem',
-                color: '#16a34a',
+                color: 'var(--success-text)',
               }}
             >
               <CheckCircle2 size={28} aria-hidden="true" />
@@ -139,12 +125,12 @@ export const ForgotPasswordPage: React.FC = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} noValidate>
-            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-              <label htmlFor="recovery-email" className="form-label">
+            <div className="form-group-pill" style={{ marginBottom: '1.25rem' }}>
+              <label htmlFor="recovery-email" className="form-label-visible">
                 Correo electrónico
               </label>
-              <div className="input-pill-wrapper">
-                <span className="input-pill-leading-icon" aria-hidden="true">
+              <div className={`input-pill-container ${fieldError ? 'error' : ''}`}>
+                <span className="input-pill-icon" aria-hidden="true">
                   <Mail size={18} />
                 </span>
                 <input
@@ -159,7 +145,7 @@ export const ForgotPasswordPage: React.FC = () => {
                   placeholder="ejemplo@protraining.app"
                   required
                   autoFocus
-                  className={`input-pill ${fieldError ? 'input-error' : ''}`}
+                  className="input-pill"
                   data-testid="recovery-email-input"
                 />
               </div>

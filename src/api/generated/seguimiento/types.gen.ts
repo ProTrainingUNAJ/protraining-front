@@ -5,6 +5,10 @@ export type ClientOptions = {
 };
 
 export type CheckInRequest = {
+    /**
+     * Horas de sueño de 0 a 12 (decimales permitidos); 13 significa "más de 12 horas". Cualquier valor mayor a 12 se guarda como 13.
+     *
+     */
     sleepHours: number;
     /**
      * Calidad de descanso de 1 (pésima) a 5 (óptima).
@@ -138,6 +142,10 @@ export type AthleteTrafficLightSummary = {
  *
  */
 export type TrafficLightIndicators = {
+    /**
+     * Horas de sueño guardadas: de 0 a 12 (decimales permitidos); 13 significa "más de 12 horas" (valores mayores se guardan como 13).
+     *
+     */
     sleepHours: number;
     sleepQuality: number;
     effortRate?: number | null;

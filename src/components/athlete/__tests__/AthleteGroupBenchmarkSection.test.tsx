@@ -248,7 +248,8 @@ describe('AthleteGroupBenchmarkSection (KAN-449 / KAN-450)', () => {
 
     render(<AthleteGroupBenchmarkSection athleteId="ath-1" />);
 
-    expect(await screen.findByText(/Error de conexión con el servicio/i)).toBeDefined();
+    expect(await screen.findByText(/No pudimos cargar la comparación con tu grupo/i)).toBeDefined();
+    expect(screen.queryByText(/Error de conexión con el servicio/i)).toBeNull();
     expect(screen.getByRole('button', { name: /Recargar métricas de comparación/i })).toBeDefined();
   });
 });

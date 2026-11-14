@@ -180,6 +180,27 @@ export const CheckInRecoverySlide: React.FC<CheckInRecoverySlideProps> = ({
     }
   };
 
+  const handleValueChange = (key: MetricKey, val: number) => {
+    switch (key) {
+      case 'sleepHours':
+        triggerStarBurstIfEligible(getSleepColor(val));
+        onSleepHoursChange(val);
+        break;
+      case 'sleepQuality':
+        triggerStarBurstIfEligible(getQualityColor(val));
+        onSleepQualityChange(val);
+        break;
+      case 'fatigueLevel':
+        triggerStarBurstIfEligible(getFatigueColor(val));
+        onFatigueChange(val);
+        break;
+      case 'muscleSoreness':
+        triggerStarBurstIfEligible(getSorenessColor(val));
+        onSorenessChange(val);
+        break;
+    }
+  };
+
   const currentVal = getMetricCurrentValue(activeMetric);
 
   const isMin = (() => {
@@ -350,6 +371,7 @@ export const CheckInRecoverySlide: React.FC<CheckInRecoverySlideProps> = ({
           fatigueLevel={fatigueLevel}
           muscleSoreness={muscleSoreness}
           onSelectMetric={handleSelectMetric}
+          onValueChange={handleValueChange}
           getArcEndAngle={getArcEndAngle}
         />
       </div>

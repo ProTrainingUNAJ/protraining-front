@@ -9,7 +9,7 @@ import {
   Plus,
   Flame,
 } from 'lucide-react';
-import runnerImg from '../../assets/protraining-3d-runner.jpg';
+import runnerImg from '../../assets/protraining-3d-runner.webp';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
 import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
@@ -28,6 +28,9 @@ import {
 } from '../../api/seguimientoService';
 import { recordProposalsService } from '../../api/recordProposals';
 import { RecordProposalItem } from '../../types/recordProposals';
+import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
+import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
+import { useAthleteEvolution } from '../../hooks/useAthleteEvolution';
 
 export type DashboardCardType =
   | 'empty'
@@ -46,7 +49,7 @@ export interface WireframeCardItem {
   name: string;
   colSpan: number;
   type: DashboardCardType;
-  chartMetric?: 'cmj' | 'squat' | 'sprint' | 'rpe' | 'yoyo';
+  chartMetric?: string;
 }
 
 export interface DashboardRow {
@@ -98,77 +101,6 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
   },
 ];
 
-const DEFAULT_ATHLETE_ROWS: DashboardRow[] = [
-  {
-    id: 'row-1',
-    name: 'Fila 1 · Indicadores en Vivo',
-    className: 'wireframe-row-1',
-    cards: [
-      { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
-      {
-        id: 'a-daily-traffic-light',
-        name: 'Semáforo Diario',
-        colSpan: 1,
-        type: 'daily-traffic-light',
-      },
-      { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-    ],
-  },
-  {
-    id: 'row-2',
-    name: 'Fila 2 · Mi Estado y Rutina',
-    className: 'wireframe-row-2',
-    cards: [
-      { id: 'a-daily-load', name: 'Carga del Día', colSpan: 1, type: 'daily-load' },
-      { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
-      { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
-    ],
-  },
-  {
-    id: 'row-3',
-    name: 'Fila 3 · Suite y Carga',
-    className: 'wireframe-row-3',
-    cards: [
-      { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
-      {
-        id: 'a-chart-cmj',
-        name: 'Evolución Salto CMJ',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'cmj',
-      },
-    ],
-  },
-  {
-    id: 'row-4',
-    name: 'Fila 4 · Rendimiento y Métricas',
-    className: 'wireframe-row-4',
-    cards: [
-      {
-        id: 'a-chart-squat',
-        name: 'Sentadilla 1RM',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'squat',
-      },
-      {
-        id: 'a-chart-sprint',
-        name: 'Sprint 30m',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'sprint',
-      },
-      {
-        id: 'a-chart-yoyo',
-        name: 'Test Yo-Yo',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'yoyo',
-      },
-    ],
-  },
-];
-
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -181,7 +113,11 @@ export const DashboardPage: React.FC = () => {
     ? 'protraining_bento_rows_athlete_v8'
     : 'protraining_bento_rows_coach_v8';
 
-  const defaultRows = isAthlete ? DEFAULT_ATHLETE_ROWS : DEFAULT_COACH_ROWS;
+  const defaultRows = isAthlete ? (DEFAULT_ATHLETE_ROWS as DashboardRow[]) : DEFAULT_COACH_ROWS;
+
+  // Gráficos de Progreso fijados por el atleta: usan su evolución real (últimos 3 meses)
+  const { evolution, loading: evolutionLoading } = useAthleteEvolution('3m', isAthlete);
+  const evolutionMetrics = React.useMemo(() => buildEvolutionMetrics(evolution), [evolution]);
 
   const [rows, setRows] = useState<DashboardRow[]>(() => {
     try {
@@ -261,9 +197,11 @@ export const DashboardPage: React.FC = () => {
   // las donas, las alertas de dolor y el progreso de check-in del dashboard.
   // Error o vacío → conteos en cero (modo degradado, nunca rompe la grilla).
   const [trafficLightItems, setTrafficLightItems] = useState<AthleteTrafficLightItem[]>([]);
-  const [trafficLightLoading, setTrafficLightLoading] = useState(true);
+  const [trafficLightLoading, setTrafficLightLoading] = useState(!isAthlete);
 
   useEffect(() => {
+    // El semáforo de todo el plantel es solo del PF: el atleta no tiene permiso para listar organizaciones
+    if (isAthlete) return;
     let active = true;
 
     fetchAllCategoriesTrafficLight()
@@ -280,7 +218,7 @@ export const DashboardPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isAthlete]);
 
   const trafficLightCounts = React.useMemo(
     () => summarizeTrafficLightCounts(trafficLightItems),
@@ -508,7 +446,8 @@ export const DashboardPage: React.FC = () => {
         return (
           <EvolutionChartWidget
             metricKey={card.chartMetric || 'cmj'}
-            onRemove={() => {}}
+            metric={evolutionMetrics[(card.chartMetric || 'cmj') as MetricKey]}
+            loading={evolutionLoading}
             variant="compact"
           />
         );
@@ -590,7 +529,7 @@ export const DashboardPage: React.FC = () => {
                   type="button"
                   className="btn btn-primary"
                   style={{
-                    background: 'var(--secondary)',
+                    background: 'var(--brand-blue)',
                     borderRadius: '9999px',
                     padding: '0.45rem 1rem',
                     fontSize: '0.8rem',
@@ -664,7 +603,7 @@ export const DashboardPage: React.FC = () => {
             >
               <Plus size={16} />
             </div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.65 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>
               Espacio disponible
             </span>
           </div>

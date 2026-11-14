@@ -53,6 +53,83 @@ export type SuggestRoutineResponse = {
     aiProvider: 'Ollama' | 'Gemini' | 'Rules';
 };
 
+export type GenerateAthleteAdaptationRequest = {
+    goal: string;
+    muscleGroupEmphasis?: Array<string>;
+};
+
+export type SuggestedRoutineExercise = {
+    exerciseName: string;
+    sets: number;
+    reps: number;
+    suggestedPercentage: number;
+    exerciseId?: string | null;
+    isReference?: boolean;
+};
+
+export type AdaptationChange = {
+    originalExerciseId?: string | null;
+    originalExerciseName: string;
+    finalExerciseId: string;
+    finalExerciseName: string;
+    zone: string;
+    reason: string;
+};
+
+export type RoutineAdaptationResponse = {
+    athleteId: string;
+    proposedTitle: string;
+    justificationSummary: string;
+    exercises: Array<SuggestedRoutineExercise>;
+    aiProvider: string;
+    id?: string | null;
+    wasAdapted?: boolean;
+    adaptationWarnings?: Array<string>;
+    adaptationChanges?: Array<AdaptationChange>;
+};
+
+export type ActiveInjuryContext = {
+    id: string;
+    athleteId: string;
+    zone: string;
+    description: string;
+    injuryDate: string;
+    estimatedReturnDate: string;
+    status: string;
+    clearedAt?: string | null;
+    createdAt: string;
+};
+
+export type AthleteRecordContext = {
+    id: string;
+    athleteId: string;
+    exerciseId: string;
+    exerciseName: string;
+    weightOneRepMaxKg: number;
+    origin: string;
+    achievedAt: string;
+    isCurrent: boolean;
+};
+
+export type AuthorizedSubstituteContext = {
+    exerciseId: string;
+    name: string;
+};
+
+export type ExerciseRestrictionContext = {
+    exerciseId: string;
+    zone?: string | null;
+    reason?: string | null;
+    substitutes: Array<AuthorizedSubstituteContext>;
+};
+
+export type AthleteAdaptationContextResponse = {
+    athleteId: string;
+    activeInjuries: Array<ActiveInjuryContext>;
+    currentRecords: Array<AthleteRecordContext>;
+    restrictions: Array<ExerciseRestrictionContext>;
+};
+
 export type PlanDraftExercise = {
     exerciseId: string;
     order: number;
@@ -753,6 +830,90 @@ export type RejectDayAdjustmentResponses = {
 };
 
 export type RejectDayAdjustmentResponse = RejectDayAdjustmentResponses[keyof RejectDayAdjustmentResponses];
+
+export type GenerateAthleteAdaptationData = {
+    body: GenerateAthleteAdaptationRequest;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/adaptation';
+};
+
+export type GenerateAthleteAdaptationErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GenerateAthleteAdaptationError = GenerateAthleteAdaptationErrors[keyof GenerateAthleteAdaptationErrors];
+
+export type GenerateAthleteAdaptationResponses = {
+    /**
+     * Propuesta de rutina adaptada generada exitosamente.
+     */
+    200: RoutineAdaptationResponse;
+};
+
+export type GenerateAthleteAdaptationResponse = GenerateAthleteAdaptationResponses[keyof GenerateAthleteAdaptationResponses];
+
+export type GetAthleteAdaptationContextData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/athletes/{athleteId}/adaptation-context';
+};
+
+export type GetAthleteAdaptationContextErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GetAthleteAdaptationContextError = GetAthleteAdaptationContextErrors[keyof GetAthleteAdaptationContextErrors];
+
+export type GetAthleteAdaptationContextResponses = {
+    /**
+     * Contexto de adaptación recuperado exitosamente.
+     */
+    200: AthleteAdaptationContextResponse;
+};
+
+export type GetAthleteAdaptationContextResponse = GetAthleteAdaptationContextResponses[keyof GetAthleteAdaptationContextResponses];
 
 export type GetAthleteDecisionsData = {
     body?: never;
