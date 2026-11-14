@@ -8,6 +8,7 @@ import {
   countPendingCheckIns,
   discardPendingCheckInsForDate,
   CheckInSubmitResponse,
+  listCheckInInjuries,
 } from '../../api/seguimientoService';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
@@ -107,6 +108,11 @@ export const CheckInPage: React.FC = () => {
     if (initialDraft) return initialDraft.hasActiveInjury;
     return false;
   });
+  const [activeInjuries, setActiveInjuries] = useState<
+    { id: string; zone: string; description: string }[]
+  >([]);
+  const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>({});
+
   const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(() => {
     if (initialCompleted) return initialCompleted.draft.healthQuestionsAnswered;
     if (initialDraft) return initialDraft.healthQuestionsAnswered;
@@ -240,6 +246,32 @@ export const CheckInPage: React.FC = () => {
         });
     }
   }, [user?.id, applyAthleteData]);
+
+  // Carga las molestias activas del atleta para exigir su puntaje (0-10) en el check-in.
+  useEffect(() => {
+    if (!athleteId || athleteId.startsWith('99eedc')) return;
+    let cancelled = false;
+    listCheckInInjuries(athleteId)
+      .then((injuries) => {
+        if (cancelled) return;
+        setActiveInjuries(
+          injuries.map((i) => ({ id: i.id, zone: i.zone, description: i.description })),
+        );
+        setInjuryScores((prev) => {
+          const next: Record<string, number | null> = { ...prev };
+          for (const injury of injuries) {
+            if (next[injury.id] === undefined) next[injury.id] = null;
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setActiveInjuries([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [athleteId]);
 
   // Persist draft to local storage on any state change if started and not yet submitted
   useEffect(() => {
@@ -482,6 +514,19 @@ export const CheckInPage: React.FC = () => {
       );
       return;
     }
+
+    // No avanzar si falta puntuar alguna molestia activa.
+    if (
+      stepNum > 3 &&
+      activeInjuries.some(
+        (injury) => injuryScores[injury.id] === null || injuryScores[injury.id] === undefined,
+      )
+    ) {
+      setErrorMessage(
+        'Debés puntuar el dolor (0 a 10) de cada molestia activa para poder avanzar.',
+      );
+      return;
+    }
     setErrorMessage(null);
     setCurrentStep(stepNum);
     setMaxReachedStep((prev) => Math.max(prev, stepNum));
@@ -587,6 +632,22 @@ export const CheckInPage: React.FC = () => {
     // Format pain zones: "Quadriceps:2,Hamstrings:1"
     const painZones = formatPainZones(musclePains);
 
+    const injuriesPayload = activeInjuries.map((injury) => ({
+      injuryId: injury.id,
+      level: injuryScores[injury.id] as number,
+    }));
+
+    // No se puede guardar sin puntuar cada molestia activa.
+    if (
+      activeInjuries.some(
+        (injury) => injuryScores[injury.id] === null || injuryScores[injury.id] === undefined,
+      )
+    ) {
+      setErrorMessage('Falta puntuar el dolor de cada molestia activa (de 0 a 10).');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await submitCheckIn(athleteId, {
         sleepHours: sleepHours ?? 8,
@@ -598,6 +659,7 @@ export const CheckInPage: React.FC = () => {
         isSick,
         painZones,
         hasActiveInjury,
+        injuries: injuriesPayload,
       });
 
       setSubmissionResult(response);
@@ -863,19 +925,64 @@ export const CheckInPage: React.FC = () => {
 
               {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud y Lesiones agrupadas) */}
               {currentStep === 3 && (
-                <CheckInPainSlide
-                  musclePains={musclePains}
-                  onPainChange={handlePainChange}
-                  onClearAll={handleClearPains}
-                  isSick={isSick}
-                  onSickChange={setIsSick}
-                  hasActiveInjury={hasActiveInjury}
-                  onInjuryChange={handleInjuryChange}
-                  healthQuestionsAnswered={healthQuestionsAnswered}
-                  onHealthQuestionsAnswered={setHealthQuestionsAnswered}
-                  onPrev={handlePrev}
-                  onNext={handleNext}
-                />
+                <>
+                  {activeInjuries.length > 0 && (
+                    <div className="checkin-injuries" style={{ padding: '1rem' }}>
+                      <h3>Molestias activas</h3>
+                      {activeInjuries.map((injury) => (
+                        <div key={injury.id} style={{ marginBottom: '0.75rem' }}>
+                          <span>
+                            {injury.zone} — {injury.description}
+                          </span>
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: '0.25rem',
+                              flexWrap: 'wrap',
+                              marginTop: '0.25rem',
+                            }}
+                          >
+                            {Array.from({ length: 11 }, (_, i) => i).map((level) => (
+                              <button
+                                key={level}
+                                type="button"
+                                onClick={() =>
+                                  setInjuryScores((prev) => ({ ...prev, [injury.id]: level }))
+                                }
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  background:
+                                    injuryScores[injury.id] === level
+                                      ? 'var(--primary)'
+                                      : 'var(--bg-secondary)',
+                                  color: injuryScores[injury.id] === level ? 'white' : 'inherit',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {level}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <CheckInPainSlide
+                    musclePains={musclePains}
+                    onPainChange={handlePainChange}
+                    onClearAll={handleClearPains}
+                    isSick={isSick}
+                    onSickChange={setIsSick}
+                    hasActiveInjury={hasActiveInjury}
+                    onInjuryChange={handleInjuryChange}
+                    healthQuestionsAnswered={healthQuestionsAnswered}
+                    onHealthQuestionsAnswered={setHealthQuestionsAnswered}
+                    onPrev={handlePrev}
+                    onNext={handleNext}
+                  />
+                </>
               )}
 
               {/* Tarjeta Final: Resumen Completo y Envío */}
