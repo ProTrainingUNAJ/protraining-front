@@ -383,11 +383,7 @@ export const ProgressPage: React.FC = () => {
                   Historial de molestias resueltas
                 </h2>
                 <p
-                  style={{
-                    color: 'var(--text-muted)',
-                    fontSize: '0.85rem',
-                    marginBottom: '1.25rem',
-                  }}
+                  style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}
                 >
                   Molestias dadas de alta con su pico de dolor registrado.
                 </p>
