@@ -188,7 +188,7 @@ export const OrganizationsPage: React.FC = () => {
               Nueva Organización Deportiva
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              Completa los datos del club para administrar sus categorías y atletas.
+              Completá los datos del club para administrar sus categorías y atletas.
             </p>
 
             <form onSubmit={handleCreate}>
@@ -292,7 +292,7 @@ export const OrganizationsPage: React.FC = () => {
                 marginInline: 'auto',
               }}
             >
-              Comienza dando de alta tu primera organización deportiva para luego gestionar sus
+              Empezá dando de alta tu primera organización deportiva para luego gestionar sus
               categorías y atletas.
             </p>
             <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>

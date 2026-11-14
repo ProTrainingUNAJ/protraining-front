@@ -105,9 +105,6 @@ export const MonitoringPage: React.FC = () => {
         setCategories(allCategories);
         setSelectedCategoryId((current) => current || allCategories[0]?.id || '');
         setCategoriesLoading(false);
-        if (allCategories.length === 0) {
-          setCategoriesError('No se encontraron planteles disponibles para tu cuenta.');
-        }
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -397,7 +394,7 @@ export const MonitoringPage: React.FC = () => {
               ))}
             </select>
             {categoriesError && (
-              <span style={{ fontSize: '0.78rem', color: 'var(--pain-level-5)' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--danger-text)' }}>
                 {categoriesError}
               </span>
             )}
@@ -450,12 +447,13 @@ export const MonitoringPage: React.FC = () => {
                 overflowX: 'auto',
                 paddingBottom: '0.25rem',
               }}
-              role="tablist"
+              role="group"
               aria-label="Filtro de atletas por color del semáforo"
             >
               {/* All */}
               <button
                 type="button"
+                aria-pressed={colorFilter === 'all'}
                 className={`touch-chip ${colorFilter === 'all' ? 'active' : ''}`}
                 onClick={() => setColorFilter('all')}
                 style={{
@@ -489,6 +487,7 @@ export const MonitoringPage: React.FC = () => {
               {/* Red - Critical Attention */}
               <button
                 type="button"
+                aria-pressed={colorFilter === 'red'}
                 className={`touch-chip ${colorFilter === 'red' ? 'active' : ''}`}
                 onClick={() => setColorFilter('red')}
                 style={{
@@ -534,6 +533,7 @@ export const MonitoringPage: React.FC = () => {
               {/* Yellow - Caution */}
               <button
                 type="button"
+                aria-pressed={colorFilter === 'yellow'}
                 className={`touch-chip ${colorFilter === 'yellow' ? 'active' : ''}`}
                 onClick={() => setColorFilter('yellow')}
                 style={{
@@ -579,6 +579,7 @@ export const MonitoringPage: React.FC = () => {
               {/* Green - Optimal */}
               <button
                 type="button"
+                aria-pressed={colorFilter === 'green'}
                 className={`touch-chip ${colorFilter === 'green' ? 'active' : ''}`}
                 onClick={() => setColorFilter('green')}
                 style={{
@@ -624,6 +625,7 @@ export const MonitoringPage: React.FC = () => {
               {/* Gray - Pending Check-in */}
               <button
                 type="button"
+                aria-pressed={colorFilter === 'gray'}
                 className={`touch-chip ${colorFilter === 'gray' ? 'active' : ''}`}
                 onClick={() => setColorFilter('gray')}
                 style={{
@@ -770,8 +772,10 @@ export const MonitoringPage: React.FC = () => {
                   >
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                       {selectedCategoryId
-                        ? 'No se encontraron atletas con los filtros seleccionados.'
-                        : 'Selecciona un plantel para ver el semáforo del día.'}
+                        ? 'No hay atletas con los filtros elegidos.'
+                        : categories.length === 0
+                          ? 'Todavía no tenés planteles. Creá una categoría desde Organizaciones para ver el semáforo.'
+                          : 'Elegí un plantel para ver el semáforo del día.'}
                     </p>
                   </div>
                 )}

@@ -16,7 +16,6 @@ export type CategoryInvitation = {
 export type AcceptCategoryInvitationRequest = {
     firstName: string;
     lastName: string;
-    email: string;
     phone: string;
     /**
      * Fecha de nacimiento del atleta (determina minoría de edad < 18 años).

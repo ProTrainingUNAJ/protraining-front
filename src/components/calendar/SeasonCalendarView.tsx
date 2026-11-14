@@ -7,6 +7,8 @@ import {
   LayoutGrid,
   Columns,
   AlertCircle,
+  Trophy,
+  Dumbbell,
 } from 'lucide-react';
 import { Category, Match } from '../../types/structure';
 import {
@@ -345,18 +347,20 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                     !day.isCurrentMonth ? 'is-other-month' : ''
                   } ${day.isToday ? 'is-today' : ''}`}
                   onClick={() => handleOpenDayDrawer(day.isoDate)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleOpenDayDrawer(day.isoDate);
-                    }
-                  }}
-                  aria-label={`Día ${day.dayNumber}, ${activities.length} actividades programadas`}
                 >
                   <div className="season-calendar-cell-header">
-                    <span className="season-calendar-day-num">{day.dayNumber}</span>
+                    {/* El número del día es el botón accesible; el clic en la celda es un atajo del mouse */}
+                    <button
+                      type="button"
+                      className="season-calendar-day-num"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDayDrawer(day.isoDate);
+                      }}
+                      aria-label={`Día ${day.dayNumber}, ${activities.length} actividades programadas`}
+                    >
+                      {day.dayNumber}
+                    </button>
                     <button
                       type="button"
                       className="season-calendar-quick-add-btn"
@@ -392,7 +396,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                             }) - ${timeDisplay}`}
                           >
                             <span className="season-event-block-title">
-                              <span>⚽</span>
+                              <Trophy size={12} aria-hidden="true" />
                               <span>VS {m.opponent}</span>
                             </span>
                             <span className="season-event-block-meta">{timeDisplay}</span>
@@ -414,7 +418,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                           }`}
                         >
                           <span className="season-event-block-title">
-                            <span>🏋️‍♂️</span>
+                            <Dumbbell size={12} aria-hidden="true" />
                             <span>
                               {s.planName}: {s.sessionName}
                             </span>
@@ -518,7 +522,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                               }}
                             >
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span>⚽</span>
+                                <Trophy size={12} aria-hidden="true" />
                                 <strong>VS {m.opponent}</strong>
                               </span>
                               {m.categoryName && (
@@ -551,7 +555,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                             }}
                           >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span>🏋️‍♂️</span>
+                              <Dumbbell size={12} aria-hidden="true" />
                               <strong>{s.planName}</strong>
                             </span>
                             <span style={{ fontSize: '0.72rem', opacity: 0.9 }}>

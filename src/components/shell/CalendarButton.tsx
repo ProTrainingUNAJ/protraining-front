@@ -10,6 +10,9 @@ import {
   Dumbbell,
   ClipboardList,
   Activity,
+  Trophy,
+  CheckCircle2,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { structureService } from '../../api/structureService';
@@ -464,7 +467,9 @@ export const CalendarButton: React.FC = () => {
                       {formatTime(m.matchDate) ? `${formatTime(m.matchDate)} hs` : 'Sin horario'}
                     </span>
                   </div>
-                  <span className="shell-calendar-agenda-plan">⚽ VS {m.opponent}</span>
+                  <span className="shell-calendar-agenda-plan">
+                    <Trophy size={13} aria-hidden="true" /> VS {m.opponent}
+                  </span>
                   {m.categoryName && (
                     <span className="shell-calendar-agenda-meta">{m.categoryName}</span>
                   )}
@@ -514,7 +519,9 @@ export const CalendarButton: React.FC = () => {
                                 : 'ejercicios'}
                             </span>
                           </div>
-                          <span className="shell-calendar-agenda-plan">🏋️‍♂️ Sesión de Gimnasio</span>
+                          <span className="shell-calendar-agenda-plan">
+                            <Dumbbell size={13} aria-hidden="true" /> Sesión de gimnasio
+                          </span>
                           {athleteSchedule.routine.coachNotes && (
                             <span className="shell-calendar-agenda-meta">
                               {athleteSchedule.routine.coachNotes}
@@ -553,7 +560,8 @@ export const CalendarButton: React.FC = () => {
                               </span>
                             </div>
                             <span className="shell-calendar-agenda-plan">
-                              🏋️‍♂️ {item.planName}: {item.sessionName}
+                              <Dumbbell size={13} aria-hidden="true" /> {item.planName}:{' '}
+                              {item.sessionName}
                             </span>
                           </button>
                         ))
@@ -588,7 +596,7 @@ export const CalendarButton: React.FC = () => {
                             Sin ejercicios asignados hoy
                           </span>
                           <span className="shell-calendar-agenda-meta">
-                            Toca para ver la rutina general
+                            Tocá para ver la rutina general
                           </span>
                         </button>
                       )}
@@ -625,9 +633,17 @@ export const CalendarButton: React.FC = () => {
                           <span className="shell-calendar-agenda-meta">Bienestar</span>
                         </div>
                         <span className="shell-calendar-agenda-plan">
-                          {athleteSchedule.isCheckInDone
-                            ? '✅ Check-in de bienestar completado'
-                            : '📋 Check-in diario de bienestar'}
+                          {athleteSchedule.isCheckInDone ? (
+                            <>
+                              <CheckCircle2 size={13} aria-hidden="true" /> Check-in de bienestar
+                              completado
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardList size={13} aria-hidden="true" /> Check-in diario de
+                              bienestar
+                            </>
+                          )}
                         </span>
                         <span className="shell-calendar-agenda-meta">
                           {athleteSchedule.isCheckInDone
@@ -662,7 +678,7 @@ export const CalendarButton: React.FC = () => {
                           <span className="shell-calendar-agenda-meta">RPE / Minutos</span>
                         </div>
                         <span className="shell-calendar-agenda-plan">
-                          ⚡ Registrar esfuerzo y duración
+                          <Zap size={13} aria-hidden="true" /> Registrar esfuerzo y duración
                         </span>
                         <span className="shell-calendar-agenda-meta">
                           Gimnasio, entrenamiento y partido

@@ -31,12 +31,12 @@ export const ChangePasswordSection: React.FC = () => {
     setSuccessMessage(null);
 
     if (!currentPassword) {
-      setError('Debes ingresar tu contraseña actual.');
+      setError('Ingresá tu contraseña actual.');
       return;
     }
 
     if (!newPassword) {
-      setError('Debes ingresar una nueva contraseña.');
+      setError('Ingresá una contraseña nueva.');
       return;
     }
 
@@ -199,7 +199,7 @@ export const ChangePasswordSection: React.FC = () => {
                 }}
                 disabled={loading}
                 required
-                placeholder="Ingresa tu contraseña actual"
+                placeholder="Ingresá tu contraseña actual"
                 style={{
                   width: '100%',
                   paddingRight: '2.5rem',
@@ -253,7 +253,7 @@ export const ChangePasswordSection: React.FC = () => {
                 }}
                 disabled={loading}
                 required
-                placeholder="Ingresa tu nueva contraseña"
+                placeholder="Ingresá tu contraseña nueva"
                 style={{
                   width: '100%',
                   paddingRight: '2.5rem',

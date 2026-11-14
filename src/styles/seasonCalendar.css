@@ -59,6 +59,11 @@
 
 /* Category Filter Select */
 .season-calendar-select {
+  /* Anula el ancho completo y los márgenes del estilo general de select */
+  width: auto;
+  min-width: 200px;
+  max-width: 100%;
+  margin: 0;
   padding: 0.45rem 0.75rem;
   border-radius: calc(var(--radius) - 4px);
   border: 1px solid var(--border);
@@ -257,11 +262,10 @@
 
 .season-calendar-month-cell.is-other-month {
   background-color: var(--bg-subtle);
-  opacity: 0.5;
 }
 
-.season-calendar-month-cell.is-other-month:hover {
-  opacity: 0.8;
+.season-calendar-month-cell.is-other-month .season-calendar-day-num {
+  color: var(--text-muted);
 }
 
 .season-calendar-month-cell.is-today {
@@ -279,15 +283,26 @@
 }
 
 .season-calendar-day-num {
+  font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-main);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  border: none;
   border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.season-calendar-day-num:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .season-calendar-month-cell.is-today .season-calendar-day-num {
@@ -809,11 +824,21 @@
 
   .season-calendar-title-group {
     justify-content: space-between;
+    flex-wrap: wrap;
     min-width: auto;
   }
 
+  .season-calendar-main-title {
+    white-space: normal;
+  }
+
   .season-calendar-controls-group {
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+
+  .season-calendar-select {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
   .season-calendar-month-cell {
