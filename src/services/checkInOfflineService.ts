@@ -14,6 +14,7 @@ export interface OfflineCheckInPayload {
   isSick: boolean;
   painZones?: string | null;
   hasActiveInjury: boolean;
+  injuries?: { injuryId: string; level: number }[];
 }
 
 export interface OfflineCheckInRecord {

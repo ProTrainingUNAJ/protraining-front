@@ -42,6 +42,7 @@ export interface CheckInSubmitRequest {
   isSick: boolean;
   painZones?: string | null;
   hasActiveInjury: boolean;
+  injuries?: { injuryId: string; level: number }[];
 }
 
 export interface CheckInEntityDto {
@@ -60,6 +61,7 @@ export interface CheckInEntityDto {
   isSick: boolean;
   painZones?: string | null;
   hasActiveInjury: boolean;
+  injuries?: { injuryId: string; zone: string; level: number }[];
 }
 
 export interface CheckInSubmitResponse {
@@ -432,6 +434,23 @@ export async function listAthleteInjuries(athleteId: string): Promise<AthleteInj
   }
 }
 
+/**
+ * Molestias activas del atleta (GET listCheckInInjuries): las que aun no fueron dadas de alta,
+ * para exigir el puntaje de dolor (0 a 10) de cada una en el check-in diario.
+ */
+export async function listCheckInInjuries(athleteId: string): Promise<AthleteInjury[]> {
+  try {
+    const response = await httpClient.get<AthleteInjury[]>(
+      '/seguimiento/api/v1/athletes/' + athleteId + '/check-in/injuries',
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
+    }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
 /**
  * Registra una lesión (POST `createInjury`): nace en `Active` y el backend
  * exige fecha de retorno estimada posterior a la de la lesión (400 si no).
