@@ -115,4 +115,7 @@ Excepciones: `pf` (preparador físico), en la ruta `/pf` y en `PF`.
 - Commits: `tipo(área): descripción (KAN-XXX)`, por ejemplo `feat(athletes): listado de atletas (KAN-313)`.
 - El PR va a **`develop`**, nunca a `main`.
 
-Para revisar una rama antes del PR, con Claude Code: `/convenciones`.
+Antes del PR, con el asistente de IA que uses (en Antigravity son _workflows_ de `.agents/workflows/`; en otro asistente, pedile "seguí las instrucciones de `.agents/skills/<comando>/SKILL.md`"):
+
+- **`/revisar-tarea`**: revisa tu tarea como la va a revisar el PM. Mira si cumple el ticket de Jira y cada criterio de aceptación, las reglas del proyecto, las convenciones, la calidad, los tests y la integración. Corre lint, Prettier, tests y build, y te da un veredicto, qué corregir y las preguntas que te pueden hacer. Lo guarda en `notas/revision-<rama>.md`, que no se sube a GitHub.
+- **`/convenciones`**: solo las convenciones de este README, con cómo corregir cada una.
