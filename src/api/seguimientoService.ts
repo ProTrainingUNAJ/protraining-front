@@ -401,6 +401,7 @@ export interface AthleteInjury {
   status: InjuryStatus;
   clearedAt?: string | null;
   createdAt: string;
+  peakPain?: number | null;
 }
 
 export interface CreateInjuryPayload {
@@ -442,6 +443,24 @@ export async function listCheckInInjuries(athleteId: string): Promise<AthleteInj
   try {
     const response = await httpClient.get<AthleteInjury[]>(
       '/seguimiento/api/v1/athletes/' + athleteId + '/check-in/injuries',
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
+    }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Molestias resueltas del atleta (GET listResolvedInjuries): las que ya fueron dadas
+ * de alta, con su pico de dolor (máximo nivel registrado durante su evolución).
+ */
+export async function listResolvedInjuries(athleteId: string): Promise<AthleteInjury[]> {
+  try {
+    const response = await httpClient.get<AthleteInjury[]>(
+      '/seguimiento/api/v1/athletes/' + athleteId + '/check-in/injuries/resolved',
     );
     return response.data ?? [];
   } catch (err: unknown) {
