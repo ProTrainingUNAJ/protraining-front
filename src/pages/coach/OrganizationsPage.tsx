@@ -440,7 +440,7 @@ export const OrganizationsPage: React.FC = () => {
       {/* Encabezado Principal Limpio */}
       <PageHeader
         title="Organizaciones"
-        description="Administrá tus clubes y planteles deportivos en un único lugar."
+        description="Administrá tus clubes y planteles deportivos."
         actions={
           <button
             type="button"
@@ -516,7 +516,7 @@ export const OrganizationsPage: React.FC = () => {
             <div className="structure-master-header">
               <h2 className="structure-master-title">
                 <Building2 size={16} color="var(--primary)" aria-hidden="true" />
-                <span>Clubes</span>
+                <span>Organizaciones</span>
               </h2>
               <span className="structure-count-bubble">{organizations.length}</span>
             </div>
@@ -657,14 +657,14 @@ export const OrganizationsPage: React.FC = () => {
                 onClick={() => setMobileView('organizations')}
               >
                 <ArrowLeft size={15} aria-hidden="true" />
-                <span>Volver a clubes</span>
+                <span>Volver a organizaciones</span>
               </button>
             </div>
 
             {selectedOrg ? (
-              <>
-                {/* Cabecera limpia y elegante del Club */}
-                <div className="structure-detail-header-card">
+              <div className="structure-detail-card">
+                {/* Cabecera limpia y elegante de la Organización */}
+                <div className="structure-detail-header">
                   <div className="structure-detail-header-top">
                     <div className="structure-club-profile">
                       <div
@@ -763,152 +763,159 @@ export const OrganizationsPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Barra de Categorías */}
-                <div className="structure-categories-bar">
-                  <div className="structure-categories-title-wrap">
-                    <h3 className="structure-categories-title">Categorías y Planteles</h3>
-                    <span className="structure-count-bubble">
-                      {filteredCategories.length}
-                    </span>
+                {/* Cuerpo del detalle: Categorías y planteles pertenecientes a la organización */}
+                <div className="structure-detail-body">
+                  {/* Barra de Categorías */}
+                  <div className="structure-categories-bar">
+                    <div className="structure-categories-title-wrap">
+                      <h3 className="structure-categories-title">Categorías y Planteles</h3>
+                      <span className="structure-count-bubble">
+                        {filteredCategories.length}
+                      </span>
+                    </div>
+                    {(categories.length > 0 || catSearch) && (
+                      <div className="structure-search-box structure-categories-search">
+                        <Search size={14} className="structure-search-icon" aria-hidden="true" />
+                        <input
+                          type="text"
+                          className="structure-search-input"
+                          placeholder="Buscar categoría…"
+                          value={catSearch}
+                          onChange={(e) => setCatSearch(e.target.value)}
+                          aria-label="Buscar categoría"
+                        />
+                        {catSearch && (
+                          <button
+                            type="button"
+                            className="structure-search-clear"
+                            onClick={() => setCatSearch('')}
+                            aria-label="Limpiar búsqueda de categoría"
+                          >
+                            <X size={13} />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {(categories.length > 0 || catSearch) && (
-                    <div className="structure-search-box structure-categories-search">
-                      <Search size={14} className="structure-search-icon" aria-hidden="true" />
-                      <input
-                        type="text"
-                        className="structure-search-input"
-                        placeholder="Buscar categoría…"
-                        value={catSearch}
-                        onChange={(e) => setCatSearch(e.target.value)}
-                        aria-label="Buscar categoría"
-                      />
-                      {catSearch && (
+
+                  {/* Grilla de Categorías */}
+                  {loadingCategories ? (
+                    <div className="structure-empty-state">
+                      <p style={{ margin: 0 }}>Cargando categorías de {selectedOrg.name}…</p>
+                    </div>
+                  ) : filteredCategories.length === 0 ? (
+                    <div className="structure-empty-state">
+                      <Layers size={36} className="structure-empty-icon" aria-hidden="true" />
+                      <h4 className="structure-empty-title">
+                        {catSearch
+                          ? 'Sin coincidencias'
+                          : `No hay categorías en ${selectedOrg.name}`}
+                      </h4>
+                      <p className="structure-empty-desc">
+                        {catSearch
+                          ? 'Probá con otro término de búsqueda.'
+                          : 'Creá la primera categoría para organizar planteles y asociar atletas.'}
+                      </p>
+                      {!catSearch && (
                         <button
                           type="button"
-                          className="structure-search-clear"
-                          onClick={() => setCatSearch('')}
-                          aria-label="Limpiar búsqueda de categoría"
+                          className="btn btn-primary"
+                          onClick={openCreateCategoryModal}
                         >
-                          <X size={13} />
+                          <Plus size={15} aria-hidden="true" />
+                          <span>Crear Primera Categoría</span>
                         </button>
                       )}
                     </div>
-                  )}
-                </div>
-
-                {/* Grilla de Categorías */}
-                {loadingCategories ? (
-                  <div className="structure-empty-state">
-                    <p style={{ margin: 0 }}>Cargando categorías de {selectedOrg.name}…</p>
-                  </div>
-                ) : filteredCategories.length === 0 ? (
-                  <div className="structure-empty-state">
-                    <Layers size={36} className="structure-empty-icon" aria-hidden="true" />
-                    <h4 className="structure-empty-title">
-                      {catSearch ? 'Sin coincidencias' : `No hay categorías en ${selectedOrg.name}`}
-                    </h4>
-                    <p className="structure-empty-desc">
-                      {catSearch
-                        ? 'Probá con otro término de búsqueda.'
-                        : 'Creá la primera categoría para organizar planteles y asociar atletas.'}
-                    </p>
-                    {!catSearch && (
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={openCreateCategoryModal}
-                      >
-                        <Plus size={15} aria-hidden="true" />
-                        <span>Crear Primera Categoría</span>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="structure-categories-grid">
-                    {filteredCategories.map((cat) => (
-                      <div key={cat.id} className="structure-category-card">
-                        <div>
-                          <div className="structure-category-top">
-                            <div className="structure-category-name-wrap">
-                              <h3 className="structure-category-name">{cat.name}</h3>
-                              <span className="structure-category-badge">
-                                <Users size={12} aria-hidden="true" />
-                                <span>
-                                  {cat.athletesCount}{' '}
-                                  {cat.athletesCount === 1 ? 'atleta' : 'atletas'}
+                  ) : (
+                    <div className="structure-categories-grid">
+                      {filteredCategories.map((cat) => (
+                        <div key={cat.id} className="structure-category-card">
+                          <div>
+                            <div className="structure-category-top">
+                              <div className="structure-category-name-wrap">
+                                <h3 className="structure-category-name">{cat.name}</h3>
+                                <span className="structure-category-badge">
+                                  <Users size={12} aria-hidden="true" />
+                                  <span>
+                                    {cat.athletesCount}{' '}
+                                    {cat.athletesCount === 1 ? 'atleta' : 'atletas'}
+                                  </span>
                                 </span>
-                              </span>
+                              </div>
+
+                              <div className="structure-category-menu-actions">
+                                <button
+                                  type="button"
+                                  className="structure-icon-btn"
+                                  title="Editar categoría"
+                                  onClick={() => openEditCategoryModal(cat)}
+                                  aria-label={`Editar ${cat.name}`}
+                                >
+                                  <Pencil size={13} aria-hidden="true" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="structure-icon-btn danger"
+                                  title="Eliminar categoría"
+                                  onClick={() => confirmDeleteCategory(cat)}
+                                  aria-label={`Eliminar ${cat.name}`}
+                                >
+                                  <Trash2 size={13} aria-hidden="true" />
+                                </button>
+                              </div>
                             </div>
 
-                            <div className="structure-category-menu-actions">
-                              <button
-                                type="button"
-                                className="structure-icon-btn"
-                                title="Editar categoría"
-                                onClick={() => openEditCategoryModal(cat)}
-                                aria-label={`Editar ${cat.name}`}
-                              >
-                                <Pencil size={13} aria-hidden="true" />
-                              </button>
-                              <button
-                                type="button"
-                                className="structure-icon-btn danger"
-                                title="Eliminar categoría"
-                                onClick={() => confirmDeleteCategory(cat)}
-                                aria-label={`Eliminar ${cat.name}`}
-                              >
-                                <Trash2 size={13} aria-hidden="true" />
-                              </button>
-                            </div>
+                            {cat.description ? (
+                              <p className="structure-category-desc">{cat.description}</p>
+                            ) : (
+                              <p className="structure-category-desc empty">
+                                Sin descripción adicional.
+                              </p>
+                            )}
                           </div>
 
-                          {cat.description ? (
-                            <p className="structure-category-desc">{cat.description}</p>
-                          ) : (
-                            <p className="structure-category-desc empty">
-                              Sin descripción adicional.
-                            </p>
-                          )}
+                          <div className="structure-category-footer">
+                            <button
+                              type="button"
+                              className="structure-btn-pill"
+                              onClick={() => setInvitingCategory(cat)}
+                              aria-label={`Invitar atletas a ${cat.name}`}
+                              title="Generar enlace o QR de invitación"
+                            >
+                              <QrCode size={14} aria-hidden="true" />
+                              <span>Invitar Atletas</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="structure-btn-pill"
+                              onClick={() => navigate(`/pf/athletes?catId=${cat.id}`)}
+                              title="Ver listado de atletas de esta división"
+                            >
+                              <Users size={14} aria-hidden="true" />
+                              <span>Ver Atletas</span>
+                            </button>
+                          </div>
                         </div>
-
-                        <div className="structure-category-footer">
-                          <button
-                            type="button"
-                            className="structure-btn-pill"
-                            onClick={() => setInvitingCategory(cat)}
-                            aria-label={`Invitar atletas a ${cat.name}`}
-                            title="Generar enlace o QR de invitación"
-                          >
-                            <QrCode size={14} aria-hidden="true" />
-                            <span>Invitar Atletas</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="structure-btn-pill"
-                            onClick={() => navigate(`/pf/athletes?catId=${cat.id}`)}
-                            title="Ver listado de atletas de esta división"
-                          >
-                            <Users size={14} aria-hidden="true" />
-                            <span>Ver Atletas</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : (
-              <div className="structure-empty-state" style={{ padding: '4rem 1.5rem' }}>
-                <Building2 size={40} className="structure-empty-icon" aria-hidden="true" />
-                <h2 className="structure-empty-title">Elegí una organización</h2>
-                <p className="structure-empty-desc">
-                  Seleccioná un club del panel lateral para ver y administrar sus categorías, o creá
-                  uno nuevo.
-                </p>
-                <button type="button" className="btn btn-primary" onClick={openCreateOrgModal}>
-                  <Plus size={15} aria-hidden="true" />
-                  <span>Crear Organización</span>
-                </button>
+              <div className="structure-detail-card">
+                <div className="structure-empty-state" style={{ padding: '4rem 1.5rem', border: 'none' }}>
+                  <Building2 size={40} className="structure-empty-icon" aria-hidden="true" />
+                  <h2 className="structure-empty-title">Elegí una organización</h2>
+                  <p className="structure-empty-desc">
+                    Seleccioná una organización del panel lateral para ver y administrar sus categorías, o creá
+                    una nueva.
+                  </p>
+                  <button type="button" className="btn btn-primary" onClick={openCreateOrgModal}>
+                    <Plus size={15} aria-hidden="true" />
+                    <span>Crear Organización</span>
+                  </button>
+                </div>
               </div>
             )}
           </main>
