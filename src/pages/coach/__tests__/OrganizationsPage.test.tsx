@@ -4,7 +4,6 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { OrganizationsPage } from '../OrganizationsPage';
 import { structureService } from '../../../api/structureService';
-import { categoryInvitationsService } from '../../../api/categoryInvitations';
 
 vi.mock('../../../api/structureService', () => ({
   structureService: {
@@ -290,7 +289,13 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
       expect(screen.getByText('Defensores del Sur')).toBeDefined();
     });
 
-    const deleteBtn = screen.getByRole('button', { name: /Eliminar Defensores del Sur/i });
+    // Seleccionar la organización a eliminar
+    const orgItem = screen.getByRole('button', { name: /Seleccionar Defensores del Sur/i });
+    fireEvent.click(orgItem);
+
+    const deleteBtn = await screen.findByRole('button', {
+      name: /Eliminar Defensores del Sur/i,
+    });
     fireEvent.click(deleteBtn);
 
     // Modal de confirmación

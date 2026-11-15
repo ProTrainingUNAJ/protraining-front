@@ -4,7 +4,6 @@ import {
   Building2,
   Layers,
   Plus,
-  RefreshCw,
   Check,
   AlertCircle,
   Search,
@@ -43,7 +42,7 @@ export const OrganizationsPage: React.FC = () => {
   const [orgSearch, setOrgSearch] = useState('');
   const [catSearch, setCatSearch] = useState('');
 
-  // Modales interactivos
+  // Modales
   const [orgModal, setOrgModal] = useState<{
     isOpen: boolean;
     mode: 'create' | 'edit';
@@ -74,10 +73,10 @@ export const OrganizationsPage: React.FC = () => {
   const [catFormName, setCatFormName] = useState('');
   const [catFormDesc, setCatFormDesc] = useState('');
 
-  // Vista mobile (master vs detail)
+  // Vista mobile
   const [mobileView, setMobileView] = useState<'organizations' | 'categories'>('organizations');
 
-  // 1. Cargar organizaciones al iniciar (una sola vez al montar)
+  // 1. Cargar organizaciones al montar (una sola vez)
   useEffect(() => {
     let isMounted = true;
 
@@ -118,53 +117,11 @@ export const OrganizationsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sincronizar selección si cambia el query param en la URL
+  // Sincronizar selección si cambia el query param en la URL (sin efecto)
   const urlOrgId = searchParams.get('orgId');
-  useEffect(() => {
-    if (urlOrgId && urlOrgId !== selectedOrgId && organizations.some((o) => o.id === urlOrgId)) {
-      setSelectedOrgId(urlOrgId);
-    }
-  }, [urlOrgId, selectedOrgId, organizations]);
-
-  // Actualizar listado manualmente
-  const handleRefresh = async () => {
-    setLoadingOrgs(true);
-    setLoadingCategories(true);
-    setError(null);
-    try {
-      const rawOrgs = await structureService.getOrganizations();
-      let fullOrgs: Organization[] = rawOrgs;
-      if (typeof structureService.withStructureCounts === 'function') {
-        fullOrgs = await structureService.withStructureCounts(rawOrgs);
-      } else if (typeof structureService.withCategoryCounts === 'function') {
-        fullOrgs = await structureService.withCategoryCounts(rawOrgs);
-      }
-      setOrganizations(fullOrgs);
-
-      const targetId = selectedOrgId || searchParams.get('orgId');
-      if (targetId && fullOrgs.some((o) => o.id === targetId)) {
-        setSelectedOrgId(targetId);
-        const rawCats = await structureService.getCategories(targetId);
-        const fullCats = await structureService.withAthleteCounts(rawCats);
-        setCategories(fullCats);
-      } else if (fullOrgs.length > 0) {
-        const firstId = fullOrgs[0].id;
-        setSelectedOrgId(firstId);
-        setSearchParams({ orgId: firstId });
-        const rawCats = await structureService.getCategories(firstId);
-        const fullCats = await structureService.withAthleteCounts(rawCats);
-        setCategories(fullCats);
-      } else {
-        setSelectedOrgId('');
-        setCategories([]);
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar la estructura.');
-    } finally {
-      setLoadingOrgs(false);
-      setLoadingCategories(false);
-    }
-  };
+  if (urlOrgId && urlOrgId !== selectedOrgId && organizations.some((o) => o.id === urlOrgId)) {
+    setSelectedOrgId(urlOrgId);
+  }
 
   // 2. Cargar categorías al cambiar la organización seleccionada
   useEffect(() => {
@@ -457,7 +414,6 @@ export const OrganizationsPage: React.FC = () => {
 
       setCategories((prev) => prev.filter((c) => c.id !== deleteModal.id));
 
-      // Actualizar conteos de la organización
       setOrganizations((prev) =>
         prev.map((o) =>
           o.id === selectedOrgId
@@ -481,37 +437,25 @@ export const OrganizationsPage: React.FC = () => {
 
   return (
     <div className="app-page-container">
-      {/* Encabezado Principal */}
+      {/* Encabezado Principal Limpio */}
       <PageHeader
         title="Organizaciones y Categorías"
-        description="Administración centralizada de clubes, divisiones y planteles deportivos."
+        description="Administrá tus clubes y planteles deportivos en un único lugar."
         actions={
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleRefresh}
-              disabled={loadingOrgs || loadingCategories || saving}
-              title="Actualizar estructura deportiva"
-            >
-              <RefreshCw size={16} aria-hidden="true" />
-              <span>Actualizar</span>
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={openCreateOrgModal}
-              disabled={saving}
-            >
-              <Plus size={16} aria-hidden="true" />
-              <span>Nueva Organización</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={openCreateOrgModal}
+            disabled={saving}
+          >
+            <Plus size={16} aria-hidden="true" />
+            <span>Nueva Organización</span>
+          </button>
         }
       />
 
       <div className="app-page-body">
-        {/* Alertas globales */}
+        {/* Alertas */}
         {successMessage && (
           <div className="alert-banner success" role="alert" style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -569,72 +513,63 @@ export const OrganizationsPage: React.FC = () => {
             }`}
             aria-label="Listado de organizaciones"
           >
-            <div className="structure-panel-header">
-              <div className="structure-panel-title-wrap">
-                <Building2 size={18} color="var(--primary)" aria-hidden="true" />
-                <h2 className="structure-panel-title">Organizaciones</h2>
-                <span className="structure-count-badge">{organizations.length}</span>
-              </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
-                onClick={openCreateOrgModal}
-                disabled={saving}
-                title="Crear nueva organización"
-              >
-                <Plus size={14} aria-hidden="true" />
-                <span>Nueva</span>
-              </button>
+            <div className="structure-master-header">
+              <h2 className="structure-master-title">
+                <Building2 size={16} color="var(--primary)" aria-hidden="true" />
+                <span>Clubes</span>
+              </h2>
+              <span className="structure-count-pill">{organizations.length}</span>
             </div>
 
             {/* Buscador de organizaciones */}
-            <div className="structure-search-box">
-              <Search size={15} className="structure-search-icon" aria-hidden="true" />
-              <input
-                type="text"
-                className="structure-search-input"
-                placeholder="Buscar organización…"
-                value={orgSearch}
-                onChange={(e) => setOrgSearch(e.target.value)}
-                aria-label="Buscar organización"
-              />
-              {orgSearch && (
-                <button
-                  type="button"
-                  className="structure-search-clear"
-                  onClick={() => setOrgSearch('')}
-                  aria-label="Limpiar búsqueda de organización"
-                >
-                  <X size={14} />
-                </button>
-              )}
+            <div className="structure-search-wrap">
+              <div className="structure-search-box">
+                <Search size={14} className="structure-search-icon" aria-hidden="true" />
+                <input
+                  type="text"
+                  className="structure-search-input"
+                  placeholder="Buscar organización…"
+                  value={orgSearch}
+                  onChange={(e) => setOrgSearch(e.target.value)}
+                  aria-label="Buscar organización"
+                />
+                {orgSearch && (
+                  <button
+                    type="button"
+                    className="structure-search-clear"
+                    onClick={() => setOrgSearch('')}
+                    aria-label="Limpiar búsqueda de organización"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Listado de organizaciones */}
+            {/* Listado de organizaciones estilo lista limpia */}
             {loadingOrgs ? (
-              <div className="structure-empty-state">
-                <p style={{ margin: 0 }}>Cargando organizaciones…</p>
+              <div className="structure-empty-state" style={{ padding: '2rem 1rem' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem' }}>Cargando organizaciones…</p>
               </div>
             ) : filteredOrganizations.length === 0 ? (
-              <div className="structure-empty-state">
-                <Building2 size={32} className="structure-empty-icon" aria-hidden="true" />
-                <h3 className="structure-empty-title">
+              <div className="structure-empty-state" style={{ padding: '2.5rem 1rem' }}>
+                <Building2 size={28} className="structure-empty-icon" aria-hidden="true" />
+                <h3 className="structure-empty-title" style={{ fontSize: '0.95rem' }}>
                   {orgSearch ? 'Sin coincidencias' : 'Sin organizaciones'}
                 </h3>
-                <p className="structure-empty-desc">
+                <p className="structure-empty-desc" style={{ fontSize: '0.8rem', marginBottom: '1rem' }}>
                   {orgSearch
-                    ? 'No se encontraron organizaciones con ese nombre.'
-                    : 'Comenzá agregando tu primera entidad o club.'}
+                    ? 'Probá con otro nombre de club.'
+                    : 'Comenzá creando tu primera organización deportiva.'}
                 </p>
                 {!orgSearch && (
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ fontSize: '0.85rem' }}
+                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem' }}
                     onClick={openCreateOrgModal}
                   >
-                    <Plus size={14} aria-hidden="true" />
+                    <Plus size={13} aria-hidden="true" />
                     <span>Crear Organización</span>
                   </button>
                 )}
@@ -643,12 +578,22 @@ export const OrganizationsPage: React.FC = () => {
               <div className="structure-org-list" role="list">
                 {filteredOrganizations.map((org) => {
                   const isSelected = org.id === selectedOrgId;
+                  const catCountText = `${org.categoriesCount} ${
+                    org.categoriesCount === 1 ? 'categoría' : 'categorías'
+                  }`;
+                  const athleteCountText =
+                    org.athletesCount !== undefined && org.athletesCount > 0
+                      ? ` · ${org.athletesCount} ${
+                          org.athletesCount === 1 ? 'atleta' : 'atletas'
+                        }`
+                      : '';
+
                   return (
                     <div
                       key={org.id}
                       role="button"
                       tabIndex={0}
-                      className={`structure-org-card ${isSelected ? 'selected' : ''}`}
+                      className={`structure-org-item ${isSelected ? 'selected' : ''}`}
                       onClick={() => handleSelectOrg(org.id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -659,96 +604,25 @@ export const OrganizationsPage: React.FC = () => {
                       aria-label={`Seleccionar ${org.name}`}
                       aria-current={isSelected ? 'true' : undefined}
                     >
-                      <div className="structure-org-card-main">
-                        <div
-                          className="structure-org-avatar-wrap"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPhotoOrg(org);
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          title="Subir o cambiar logo"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setPhotoOrg(org);
-                            }
-                          }}
-                        >
-                          <ProfileAvatar
-                            src={
-                              org.hasPhoto
-                                ? structureService.getOrganizationPhotoUrl(
-                                    org.id,
-                                    org.photoUpdatedAt,
-                                  )
-                                : null
-                            }
-                            name={org.name}
-                            size={42}
-                            shape="rounded"
-                          />
-                        </div>
-
-                        <div className="structure-org-info">
-                          <h3 className="structure-org-name">{org.name}</h3>
-                          <div className="structure-org-meta">
-                            <span className="structure-pill">
-                              <Layers size={11} aria-hidden="true" />
-                              {org.categoriesCount}{' '}
-                              {org.categoriesCount === 1 ? 'categoría' : 'categorías'}
-                            </span>
-                            {org.athletesCount !== undefined && org.athletesCount > 0 && (
-                              <span className="structure-pill">
-                                <Users size={11} aria-hidden="true" />
-                                {org.athletesCount} {org.athletesCount === 1 ? 'atleta' : 'atletas'}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                      <div className="structure-org-avatar">
+                        <ProfileAvatar
+                          src={
+                            org.hasPhoto
+                              ? structureService.getOrganizationPhotoUrl(org.id, org.photoUpdatedAt)
+                              : null
+                          }
+                          name={org.name}
+                          size={36}
+                          shape="rounded"
+                        />
                       </div>
 
-                      {org.description && <p className="structure-org-desc">{org.description}</p>}
-
-                      <div className="structure-org-actions-bar">
-                        <button
-                          type="button"
-                          className="structure-action-btn"
-                          title="Cambiar logo del club"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPhotoOrg(org);
-                          }}
-                          aria-label={`Logo de ${org.name}`}
-                        >
-                          <Camera size={14} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          className="structure-action-btn"
-                          title="Editar organización"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditOrgModal(org);
-                          }}
-                          aria-label={`Editar ${org.name}`}
-                        >
-                          <Pencil size={14} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          className="structure-action-btn danger"
-                          title="Eliminar organización"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            confirmDeleteOrganization(org);
-                          }}
-                          aria-label={`Eliminar ${org.name}`}
-                        >
-                          <Trash2 size={14} aria-hidden="true" />
-                        </button>
+                      <div className="structure-org-details">
+                        <h3 className="structure-org-name">{org.name}</h3>
+                        <p className="structure-org-subtitle">
+                          {catCountText}
+                          {athleteCountText}
+                        </p>
                       </div>
                     </div>
                   );
@@ -766,31 +640,31 @@ export const OrganizationsPage: React.FC = () => {
             }`}
             aria-label="Detalle de categorías"
           >
-            {/* Navegación Mobile para volver */}
+            {/* Navegación Mobile */}
             <div className="structure-mobile-back">
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem' }}
+                style={{ fontSize: '0.85rem', padding: '0.35rem 0.65rem' }}
                 onClick={() => setMobileView('organizations')}
               >
-                <ArrowLeft size={16} aria-hidden="true" />
-                <span>Volver a Organizaciones</span>
+                <ArrowLeft size={15} aria-hidden="true" />
+                <span>Volver a clubes</span>
               </button>
             </div>
 
             {selectedOrg ? (
               <>
-                {/* Banner de Organización Seleccionada */}
-                <div className="structure-selected-banner">
-                  <div className="structure-selected-banner-top">
-                    <div className="structure-selected-banner-left">
+                {/* Cabecera limpia y elegante del Club */}
+                <div className="structure-detail-header-card">
+                  <div className="structure-detail-header-top">
+                    <div className="structure-club-profile">
                       <div
+                        className="structure-avatar-trigger"
                         onClick={() => setPhotoOrg(selectedOrg)}
                         role="button"
                         tabIndex={0}
-                        style={{ cursor: 'pointer' }}
-                        title="Subir o cambiar logo"
+                        title="Hacé clic para cambiar el logo del club"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
@@ -808,66 +682,57 @@ export const OrganizationsPage: React.FC = () => {
                               : null
                           }
                           name={selectedOrg.name}
-                          size={54}
+                          size={52}
                           shape="rounded"
                         />
+                        <div className="structure-avatar-overlay">
+                          <Camera size={18} aria-hidden="true" />
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="structure-selected-banner-title">{selectedOrg.name}</h2>
-                        <div className="structure-selected-banner-badges">
-                          <span className="badge badge-info">
+
+                      <div className="structure-club-info">
+                        <h2 className="structure-club-title">{selectedOrg.name}</h2>
+                        <div className="structure-club-meta">
+                          <span>
                             {categories.length}{' '}
                             {categories.length === 1 ? 'categoría' : 'categorías'}
                           </span>
                           {selectedOrg.athletesCount !== undefined && (
-                            <span className="badge badge-info">
-                              {selectedOrg.athletesCount}{' '}
-                              {selectedOrg.athletesCount === 1 ? 'atleta total' : 'atletas totales'}
-                            </span>
+                            <>
+                              <span>·</span>
+                              <span>
+                                {selectedOrg.athletesCount}{' '}
+                                {selectedOrg.athletesCount === 1 ? 'atleta total' : 'atletas totales'}
+                              </span>
+                            </>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="structure-selected-actions">
+                    <div className="structure-header-actions">
                       <button
                         type="button"
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.85rem' }}
-                        onClick={() => setPhotoOrg(selectedOrg)}
-                        title="Subir o cambiar logo del club"
-                      >
-                        <Camera size={14} aria-hidden="true" />
-                        <span>Logo</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.85rem' }}
+                        className="structure-icon-btn"
                         onClick={() => openEditOrgModal(selectedOrg)}
-                        title="Editar nombre y descripción del club"
+                        title="Editar nombre o descripción"
+                        aria-label={`Editar ${selectedOrg.name}`}
                       >
-                        <Pencil size={14} aria-hidden="true" />
-                        <span>Editar</span>
+                        <Pencil size={16} aria-hidden="true" />
                       </button>
                       <button
                         type="button"
-                        className="btn btn-secondary"
-                        style={{
-                          fontSize: '0.85rem',
-                          color: 'var(--danger)',
-                          borderColor: 'var(--danger-border)',
-                        }}
+                        className="structure-icon-btn danger"
                         onClick={() => confirmDeleteOrganization(selectedOrg)}
-                        title="Eliminar esta organización"
+                        title="Eliminar club"
+                        aria-label={`Eliminar ${selectedOrg.name}`}
                       >
-                        <Trash2 size={14} aria-hidden="true" />
-                        <span>Eliminar</span>
+                        <Trash2 size={16} aria-hidden="true" />
                       </button>
                       <button
                         type="button"
                         className="btn btn-primary"
-                        style={{ fontSize: '0.85rem' }}
+                        style={{ fontSize: '0.85rem', padding: '0.45rem 0.85rem' }}
                         onClick={openCreateCategoryModal}
                       >
                         <Plus size={15} aria-hidden="true" />
@@ -876,24 +741,21 @@ export const OrganizationsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {selectedOrg.description ? (
-                    <p className="structure-selected-desc">{selectedOrg.description}</p>
-                  ) : (
-                    <p className="structure-selected-desc" style={{ fontStyle: 'italic' }}>
-                      Sin descripción especificada.
-                    </p>
+                  {selectedOrg.description && (
+                    <p className="structure-club-desc">{selectedOrg.description}</p>
                   )}
                 </div>
 
-                {/* Controles de Categorías: Buscador y Contador */}
-                <div className="structure-cat-controls">
-                  <div className="structure-cat-search-wrap">
-                    <div className="structure-search-box">
-                      <Search size={15} className="structure-search-icon" aria-hidden="true" />
+                {/* Barra de Categorías */}
+                <div className="structure-categories-bar">
+                  <h3 className="structure-categories-title">Categorías y Planteles</h3>
+                  {(categories.length > 0 || catSearch) && (
+                    <div className="structure-search-box structure-categories-search">
+                      <Search size={14} className="structure-search-icon" aria-hidden="true" />
                       <input
                         type="text"
                         className="structure-search-input"
-                        placeholder={`Buscar categoría en ${selectedOrg.name}…`}
+                        placeholder="Buscar categoría…"
                         value={catSearch}
                         onChange={(e) => setCatSearch(e.target.value)}
                         aria-label="Buscar categoría"
@@ -905,20 +767,11 @@ export const OrganizationsPage: React.FC = () => {
                           onClick={() => setCatSearch('')}
                           aria-label="Limpiar búsqueda de categoría"
                         >
-                          <X size={14} />
+                          <X size={13} />
                         </button>
                       )}
                     </div>
-                  </div>
-
-                  <span
-                    style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}
-                  >
-                    {filteredCategories.length}{' '}
-                    {filteredCategories.length === 1
-                      ? 'categoría mostrada'
-                      : 'categorías mostradas'}
-                  </span>
+                  )}
                 </div>
 
                 {/* Grilla de Categorías */}
@@ -928,14 +781,14 @@ export const OrganizationsPage: React.FC = () => {
                   </div>
                 ) : filteredCategories.length === 0 ? (
                   <div className="structure-empty-state">
-                    <Layers size={40} className="structure-empty-icon" aria-hidden="true" />
-                    <h3 className="structure-empty-title">
+                    <Layers size={36} className="structure-empty-icon" aria-hidden="true" />
+                    <h4 className="structure-empty-title">
                       {catSearch ? 'Sin coincidencias' : `No hay categorías en ${selectedOrg.name}`}
-                    </h3>
+                    </h4>
                     <p className="structure-empty-desc">
                       {catSearch
-                        ? 'No se encontraron divisiones que coincidan con la búsqueda.'
-                        : 'Creá la primera categoría para organizar las divisiones y asociar a tus atletas.'}
+                        ? 'Probá con otro término de búsqueda.'
+                        : 'Creá la primera categoría para organizar planteles y asociar atletas.'}
                     </p>
                     {!catSearch && (
                       <button
@@ -943,7 +796,7 @@ export const OrganizationsPage: React.FC = () => {
                         className="btn btn-primary"
                         onClick={openCreateCategoryModal}
                       >
-                        <Plus size={16} aria-hidden="true" />
+                        <Plus size={15} aria-hidden="true" />
                         <span>Crear Primera Categoría</span>
                       </button>
                     )}
@@ -953,67 +806,69 @@ export const OrganizationsPage: React.FC = () => {
                     {filteredCategories.map((cat) => (
                       <div key={cat.id} className="structure-category-card">
                         <div>
-                          <div className="structure-category-card-header">
-                            <h3 className="structure-category-name">{cat.name}</h3>
-                            <span className="badge badge-info">
-                              {cat.athletesCount} {cat.athletesCount === 1 ? 'atleta' : 'atletas'}
-                            </span>
+                          <div className="structure-category-top">
+                            <div className="structure-category-name-wrap">
+                              <h3 className="structure-category-name">{cat.name}</h3>
+                              <span className="structure-category-badge">
+                                <Users size={12} aria-hidden="true" />
+                                <span>
+                                  {cat.athletesCount}{' '}
+                                  {cat.athletesCount === 1 ? 'atleta' : 'atletas'}
+                                </span>
+                              </span>
+                            </div>
+
+                            <div className="structure-category-menu-actions">
+                              <button
+                                type="button"
+                                className="structure-icon-btn"
+                                title="Editar categoría"
+                                onClick={() => openEditCategoryModal(cat)}
+                                aria-label={`Editar ${cat.name}`}
+                              >
+                                <Pencil size={13} aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className="structure-icon-btn danger"
+                                title="Eliminar categoría"
+                                onClick={() => confirmDeleteCategory(cat)}
+                                aria-label={`Eliminar ${cat.name}`}
+                              >
+                                <Trash2 size={13} aria-hidden="true" />
+                              </button>
+                            </div>
                           </div>
 
                           {cat.description ? (
                             <p className="structure-category-desc">{cat.description}</p>
                           ) : (
                             <p className="structure-category-desc empty">
-                              Sin descripción especificada.
+                              Sin descripción adicional.
                             </p>
                           )}
                         </div>
 
-                        <div className="structure-category-actions">
-                          <div className="structure-cat-btn-group-left">
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem' }}
-                              onClick={() => setInvitingCategory(cat)}
-                              aria-label={`Invitar atletas a ${cat.name}`}
-                              title="Generar enlace o QR de invitación"
-                            >
-                              <QrCode size={13} aria-hidden="true" />
-                              <span>Invitar</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem' }}
-                              onClick={() => navigate(`/pf/athletes?catId=${cat.id}`)}
-                              title="Ver listado de atletas de esta división"
-                            >
-                              <Users size={13} aria-hidden="true" />
-                              <span>Atletas</span>
-                            </button>
-                          </div>
-
-                          <div className="structure-cat-btn-group-right">
-                            <button
-                              type="button"
-                              className="structure-action-btn"
-                              title="Editar categoría"
-                              onClick={() => openEditCategoryModal(cat)}
-                              aria-label={`Editar ${cat.name}`}
-                            >
-                              <Pencil size={13} aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              className="structure-action-btn danger"
-                              title="Eliminar categoría"
-                              onClick={() => confirmDeleteCategory(cat)}
-                              aria-label={`Eliminar ${cat.name}`}
-                            >
-                              <Trash2 size={13} aria-hidden="true" />
-                            </button>
-                          </div>
+                        <div className="structure-category-footer">
+                          <button
+                            type="button"
+                            className="structure-btn-pill"
+                            onClick={() => setInvitingCategory(cat)}
+                            aria-label={`Invitar atletas a ${cat.name}`}
+                            title="Generar enlace o QR de invitación"
+                          >
+                            <QrCode size={14} aria-hidden="true" />
+                            <span>Invitar Atletas</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="structure-btn-pill"
+                            onClick={() => navigate(`/pf/athletes?catId=${cat.id}`)}
+                            title="Ver listado de atletas de esta división"
+                          >
+                            <Users size={14} aria-hidden="true" />
+                            <span>Ver Atletas</span>
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1022,14 +877,14 @@ export const OrganizationsPage: React.FC = () => {
               </>
             ) : (
               <div className="structure-empty-state" style={{ padding: '4rem 1.5rem' }}>
-                <Building2 size={44} className="structure-empty-icon" aria-hidden="true" />
-                <h2 className="structure-empty-title">Ninguna organización seleccionada</h2>
+                <Building2 size={40} className="structure-empty-icon" aria-hidden="true" />
+                <h2 className="structure-empty-title">Elegí una organización</h2>
                 <p className="structure-empty-desc">
-                  Seleccioná una organización del panel lateral o creá una nueva para gestionar sus
-                  categorías y atletas.
+                  Seleccioná un club del panel lateral para ver y administrar sus categorías, o creá
+                  uno nuevo.
                 </p>
                 <button type="button" className="btn btn-primary" onClick={openCreateOrgModal}>
-                  <Plus size={16} aria-hidden="true" />
+                  <Plus size={15} aria-hidden="true" />
                   <span>Crear Organización</span>
                 </button>
               </div>
@@ -1057,7 +912,7 @@ export const OrganizationsPage: React.FC = () => {
                 <p className="structure-modal-subtitle">
                   {orgModal.mode === 'create'
                     ? 'Completá los datos del club para administrar sus categorías y atletas.'
-                    : 'Modificá los datos generales de la organización deportiva.'}
+                    : 'Modificá los datos generales del club.'}
                 </p>
               </div>
               <button

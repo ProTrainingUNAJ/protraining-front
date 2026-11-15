@@ -2,7 +2,6 @@ import type { ComponentType } from 'react';
 import {
   Home,
   Building2,
-  Layers,
   Users,
   Calendar,
   CalendarRange,
