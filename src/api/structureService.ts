@@ -29,6 +29,8 @@ interface RawOrganization {
   description?: string | null;
   categoriasCount?: number;
   categoriesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
 }
 
 interface RawCategory {
@@ -70,6 +72,8 @@ interface RawAthlete {
   contactoEmergencia?: string | null;
   emergencyContact?: string | null;
   activeInjuriesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
 }
 
 function mapOrganization(raw: RawOrganization): Organization {
@@ -78,6 +82,8 @@ function mapOrganization(raw: RawOrganization): Organization {
     name: raw.nombre ?? raw.name ?? '',
     description: raw.descripcion ?? raw.description ?? null,
     categoriesCount: raw.categoriasCount ?? raw.categoriesCount ?? 0,
+    hasPhoto: raw.hasPhoto ?? false,
+    photoUpdatedAt: raw.photoUpdatedAt ?? null,
   };
 }
 
@@ -122,6 +128,8 @@ function mapAthlete(raw: RawAthlete): Athlete {
     categoryNames,
     emergencyContact: raw.contactoEmergencia ?? raw.emergencyContact ?? null,
     activeInjuriesCount: raw.activeInjuriesCount ?? 0,
+    hasPhoto: raw.hasPhoto ?? false,
+    photoUpdatedAt: raw.photoUpdatedAt ?? null,
   };
 }
 
@@ -344,6 +352,74 @@ export const structureService = {
         throwOnError: true,
       });
       return responseData;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Devuelve la URL del endpoint de foto del atleta (WebP) con soporte de cache-busting opcional (KAN-512).
+   */
+  getAthletePhotoUrl(athleteId: string, photoUpdatedAt?: string | null): string {
+    const base = `/estructura/api/v1/athletes/${athleteId}/photo`;
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Sube una foto de perfil en formato WebP para el atleta (KAN-512).
+   */
+  async uploadAthletePhoto(athleteId: string, file: File): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      await httpClient.put(`/estructura/api/v1/athletes/${athleteId}/photo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Elimina la foto de perfil del atleta (KAN-512).
+   */
+  async deleteAthletePhoto(athleteId: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/athletes/${athleteId}/photo`);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Devuelve la URL del logo de la organización con soporte de cache-busting opcional (KAN-512).
+   */
+  getOrganizationPhotoUrl(organizationId: string, photoUpdatedAt?: string | null): string {
+    const base = `/estructura/api/v1/organizations/${organizationId}/photo`;
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Sube el logo en formato WebP para la organización (KAN-512).
+   */
+  async uploadOrganizationPhoto(organizationId: string, file: File): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      await httpClient.put(`/estructura/api/v1/organizations/${organizationId}/photo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Elimina el logo de la organización (KAN-512).
+   */
+  async deleteOrganizationPhoto(organizationId: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/organizations/${organizationId}/photo`);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

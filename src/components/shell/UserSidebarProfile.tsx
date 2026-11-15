@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { usersService } from '../../api/users';
+import { ProfileAvatar } from '../common/ProfileAvatar';
 
 export const UserSidebarProfile: React.FC = () => {
   const { user, logout } = useAuth();
@@ -27,18 +29,10 @@ export const UserSidebarProfile: React.FC = () => {
     };
   }, [open]);
 
-  // Todavía no hay foto de perfil propia: se muestran las iniciales del usuario logueado
   const fullName = user?.fullName ?? '';
   const roleName = isAthlete ? 'Atleta' : 'Preparador físico';
   const email = user?.email ?? '';
-
-  const initials =
-    fullName
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((w) => w[0].toUpperCase())
-      .join('') || (isAthlete ? 'AT' : 'PF');
+  const photoUrl = user?.id ? usersService.getMyPhotoUrl(user.id) : null;
 
   const handleLogout = () => {
     logout();
@@ -57,9 +51,12 @@ export const UserSidebarProfile: React.FC = () => {
         title={`${fullName} (${roleName})`}
         aria-expanded={open}
       >
-        <span className="shell-sidebar-avatar" aria-hidden="true">
-          <span className="shell-sidebar-avatar-initials">{initials}</span>
-        </span>
+        <ProfileAvatar
+          src={photoUrl}
+          name={fullName || (isAthlete ? 'Atleta' : 'Preparador físico')}
+          size={32}
+          className="shell-sidebar-avatar"
+        />
         <span className="shell-sidebar-avatar-label">Mi Perfil</span>
       </button>
 

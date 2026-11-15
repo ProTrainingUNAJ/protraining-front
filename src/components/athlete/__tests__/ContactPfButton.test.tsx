@@ -6,6 +6,7 @@ import { usersService } from '../../../api/users';
 vi.mock('../../../api/users', () => ({
   usersService: {
     getPfContact: vi.fn(),
+    getPfPhotoUrl: vi.fn().mockReturnValue('/identidad/api/v1/users/me/pf-photo'),
   },
 }));
 

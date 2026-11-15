@@ -4,7 +4,7 @@ import {
   type PfContact,
   type UpdatePhoneResponse,
 } from './generated/identidad';
-import { extractErrorMessage } from './axiosClient';
+import { httpClient, extractErrorMessage } from './axiosClient';
 
 /**
  * Servicio de usuarios y contacto de WhatsApp (KAN-562 / KAN-379).
@@ -55,6 +55,48 @@ export const usersService = {
         return null;
       }
 
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Devuelve la URL del endpoint de foto del usuario autenticado (WebP).
+   */
+  getMyPhotoUrl(userId?: string, photoUpdatedAt?: string | null): string {
+    const base = userId ? `/identidad/api/v1/users/${userId}/photo` : '/identidad/api/v1/users/me/photo';
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Devuelve la URL de la foto del preparador físico para el atleta (WebP).
+   */
+  getPfPhotoUrl(pfId?: string, photoUpdatedAt?: string | null): string {
+    const base = pfId ? `/identidad/api/v1/users/${pfId}/photo` : '/identidad/api/v1/users/me/pf-photo';
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Sube la foto de perfil en formato WebP para el usuario autenticado (KAN-512).
+   */
+  async uploadMyPhoto(file: File): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      await httpClient.put('/identidad/api/v1/users/me/photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Elimina la foto de perfil del usuario autenticado (KAN-512).
+   */
+  async deleteMyPhoto(): Promise<void> {
+    try {
+      await httpClient.delete('/identidad/api/v1/users/me/photo');
+    } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
   },
