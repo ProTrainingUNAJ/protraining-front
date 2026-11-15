@@ -36,9 +36,13 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadStep, setUploadStep] = useState<'idle' | 'compressing' | 'uploading' | 'success'>(
+    'idle',
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cacheBuster, setCacheBuster] = useState<number>(0);
   const [photoRemoved, setPhotoRemoved] = useState<boolean>(false);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const dimension = typeof size === 'number' ? size : SIZE_NUMBERS[size] || 96;
@@ -48,9 +52,10 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
 
   const hasPhoto = !photoRemoved && Boolean(currentPhotoUrl);
   const displayPhotoUrl =
-    hasPhoto && currentPhotoUrl
+    localPreviewUrl ||
+    (hasPhoto && currentPhotoUrl
       ? `${currentPhotoUrl}${currentPhotoUrl.includes('?') ? '&' : '?'}v=${cacheBuster || '0'}`
-      : null;
+      : null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,13 +64,31 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
     event.target.value = '';
     setErrorMessage(null);
     setIsUploading(true);
+    setUploadStep('compressing');
+
+    // Previsualización instantánea antes de subir
+    try {
+      const initialPreview = URL.createObjectURL(file);
+      setLocalPreviewUrl(initialPreview);
+    } catch {
+      // Si el entorno no soporta createObjectURL (ej. jsdom), continúa normalmente
+    }
 
     try {
+      // Paso 1: Comprimir y convertir a WebP
       const compressedWebpFile = await compressAndConvertToWebp(file);
+
+      // Paso 2: Subir al backend
+      setUploadStep('uploading');
       await onUpload(compressedWebpFile);
+
       setPhotoRemoved(false);
       setCacheBuster(Date.now());
+      setUploadStep('success');
+      setTimeout(() => setUploadStep('idle'), 3000);
     } catch (err: unknown) {
+      setLocalPreviewUrl(null);
+      setUploadStep('idle');
       const msg = err instanceof Error ? err.message : 'No se pudo subir la foto.';
       setErrorMessage(msg);
     } finally {
@@ -83,8 +106,10 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
     setIsDeleting(true);
     try {
       await onDelete();
+      setLocalPreviewUrl(null);
       setPhotoRemoved(true);
       setCacheBuster(Date.now());
+      setUploadStep('idle');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'No se pudo eliminar la foto.';
       setErrorMessage(msg);
@@ -155,7 +180,13 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
                 marginBottom: '0.25rem',
               }}
             />
-            <span>{isUploading ? 'Subiendo…' : 'Borrando…'}</span>
+            <span>
+              {uploadStep === 'compressing'
+                ? 'Comprimiendo…'
+                : isUploading
+                  ? 'Guardando…'
+                  : 'Borrando…'}
+            </span>
           </div>
         )}
 
@@ -247,6 +278,54 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
           </>
         )}
       </div>
+
+      {/* Feedback visible durante la compresión, guardado y éxito */}
+      {uploadStep === 'compressing' && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            color: 'var(--primary, #3b82f6)',
+            fontSize: '0.78rem',
+            fontWeight: 500,
+          }}
+        >
+          <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+          <span>Comprimiendo imagen a WebP…</span>
+        </div>
+      )}
+
+      {uploadStep === 'uploading' && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            color: 'var(--primary, #3b82f6)',
+            fontSize: '0.78rem',
+            fontWeight: 500,
+          }}
+        >
+          <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+          <span>Guardando foto en el perfil…</span>
+        </div>
+      )}
+
+      {uploadStep === 'success' && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            color: 'var(--success, #16a34a)',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+          }}
+        >
+          <span>✓ Foto actualizada</span>
+        </div>
+      )}
 
       {/* Mensaje de error si falla la compresión o subida */}
       {errorMessage && (

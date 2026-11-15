@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
+import { getStoredSession } from '../../api/axiosClient';
 import { usersService } from '../../api/users';
 import { buildWhatsAppLink } from '../../utils/whatsapp';
 import { ProfileAvatar } from '../common/ProfileAvatar';
@@ -54,7 +55,8 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
     return null;
   }
 
-  const pfPhotoUrl = usersService.getPfPhotoUrl();
+  const session = getStoredSession();
+  const pfPhotoUrl = usersService.getPfPhotoUrl(session?.user?.pfId ?? undefined);
 
   return (
     <a
