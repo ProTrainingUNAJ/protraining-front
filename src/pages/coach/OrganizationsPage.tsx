@@ -557,7 +557,10 @@ export const OrganizationsPage: React.FC = () => {
                 <h3 className="structure-empty-title" style={{ fontSize: '0.95rem' }}>
                   {orgSearch ? 'Sin coincidencias' : 'Sin organizaciones'}
                 </h3>
-                <p className="structure-empty-desc" style={{ fontSize: '0.8rem', marginBottom: '1rem' }}>
+                <p
+                  className="structure-empty-desc"
+                  style={{ fontSize: '0.8rem', marginBottom: '1rem' }}
+                >
                   {orgSearch
                     ? 'Probá con otro nombre de club.'
                     : 'Comenzá creando tu primera organización deportiva.'}
@@ -583,9 +586,7 @@ export const OrganizationsPage: React.FC = () => {
                   }`;
                   const athleteCountText =
                     org.athletesCount !== undefined && org.athletesCount > 0
-                      ? ` · ${org.athletesCount} ${
-                          org.athletesCount === 1 ? 'atleta' : 'atletas'
-                        }`
+                      ? ` · ${org.athletesCount} ${org.athletesCount === 1 ? 'atleta' : 'atletas'}`
                       : '';
 
                   return (
@@ -769,9 +770,7 @@ export const OrganizationsPage: React.FC = () => {
                   <div className="structure-categories-bar">
                     <div className="structure-categories-title-wrap">
                       <h3 className="structure-categories-title">Categorías y Planteles</h3>
-                      <span className="structure-count-bubble">
-                        {filteredCategories.length}
-                      </span>
+                      <span className="structure-count-bubble">{filteredCategories.length}</span>
                     </div>
                     {(categories.length > 0 || catSearch) && (
                       <div className="structure-search-box structure-categories-search">
@@ -904,12 +903,15 @@ export const OrganizationsPage: React.FC = () => {
               </div>
             ) : (
               <div className="structure-detail-card">
-                <div className="structure-empty-state" style={{ padding: '4rem 1.5rem', border: 'none' }}>
+                <div
+                  className="structure-empty-state"
+                  style={{ padding: '4rem 1.5rem', border: 'none' }}
+                >
                   <Building2 size={40} className="structure-empty-icon" aria-hidden="true" />
                   <h2 className="structure-empty-title">Elegí una organización</h2>
                   <p className="structure-empty-desc">
-                    Seleccioná una organización del panel lateral para ver y administrar sus categorías, o creá
-                    una nueva.
+                    Seleccioná una organización del panel lateral para ver y administrar sus
+                    categorías, o creá una nueva.
                   </p>
                   <button type="button" className="btn btn-primary" onClick={openCreateOrgModal}>
                     <Plus size={15} aria-hidden="true" />
@@ -1212,9 +1214,7 @@ export const OrganizationsPage: React.FC = () => {
                 const updatedAt = new Date().toISOString();
                 setOrganizations((prev) =>
                   prev.map((o) =>
-                    o.id === photoOrg.id
-                      ? { ...o, hasPhoto: true, photoUpdatedAt: updatedAt }
-                      : o,
+                    o.id === photoOrg.id ? { ...o, hasPhoto: true, photoUpdatedAt: updatedAt } : o,
                   ),
                 );
                 setPhotoOrg((prev) =>
