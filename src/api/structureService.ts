@@ -9,8 +9,10 @@ import {
 import {
   Organization,
   CreateOrganizationRequest,
+  UpdateOrganizationRequest,
   Category,
   CreateCategoryRequest,
+  UpdateCategoryRequest,
   Athlete,
   CreateAthleteRequest,
   AthleteMe,
@@ -155,6 +157,29 @@ export const structureService = {
     }
   },
 
+  async updateOrganization(id: string, req: UpdateOrganizationRequest): Promise<Organization> {
+    try {
+      const response = await httpClient.put<RawOrganization>(
+        `/estructura/api/v1/organizations/${id}`,
+        {
+          name: req.name !== undefined ? req.name.trim() : undefined,
+          description: req.description !== undefined ? req.description?.trim() || null : undefined,
+        },
+      );
+      return mapOrganization(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async deleteOrganization(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/organizations/${id}`);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   async getCategories(organizationId: string): Promise<Category[]> {
     try {
       const response = await httpClient.get<RawCategory[]>('/estructura/api/v1/categories', {
@@ -174,6 +199,26 @@ export const structureService = {
         description: req.description?.trim() || null,
       });
       return mapCategory(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async updateCategory(id: string, req: UpdateCategoryRequest): Promise<Category> {
+    try {
+      const response = await httpClient.put<RawCategory>(`/estructura/api/v1/categories/${id}`, {
+        name: req.name !== undefined ? req.name.trim() : undefined,
+        description: req.description !== undefined ? req.description?.trim() || null : undefined,
+      });
+      return mapCategory(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async deleteCategory(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/categories/${id}`);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
@@ -227,6 +272,33 @@ export const structureService = {
         ...organization,
         categoriesCount: (await this.getCategories(organization.id).catch(() => [])).length,
       })),
+    );
+  },
+
+  // Obtiene organizaciones con conteo de categorías y atletas calculados
+  async withStructureCounts(organizations: Organization[]): Promise<Organization[]> {
+    return Promise.all(
+      organizations.map(async (organization) => {
+        try {
+          const cats = await this.getCategories(organization.id).catch(() => [] as Category[]);
+          const catsWithAthletes = await this.withAthleteCounts(cats).catch(() => [] as Category[]);
+          const athletesTotal = catsWithAthletes.reduce(
+            (acc, curr) => acc + (curr.athletesCount || 0),
+            0,
+          );
+          return {
+            ...organization,
+            categoriesCount: cats.length,
+            athletesCount: athletesTotal,
+          };
+        } catch {
+          return {
+            ...organization,
+            categoriesCount: 0,
+            athletesCount: 0,
+          };
+        }
+      }),
     );
   },
 
