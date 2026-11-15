@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { DailyLoadPage } from '../DailyLoadPage';
 import * as seguimientoService from '../../../api/seguimientoService';
 import { structureService } from '../../../api/structureService';
+import * as athleteDashboardLayout from '../../../utils/athleteDashboardLayout';
 
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: () => ({
@@ -163,7 +164,7 @@ describe('DailyLoadPage (KAN-571)', () => {
     });
     expect(screen.getByText('Carga del día (minutos × RPE)')).toBeDefined();
     expect(screen.getByText('60 min · RPE 7')).toBeDefined();
-    expect(screen.getByRole('button', { name: /Agregar al Inicio/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Fijar en mi inicio/i })).toBeDefined();
   });
 
   it('muestra estado vacío si el backend devuelve 404 en "Ver carga de hoy"', async () => {
@@ -232,5 +233,32 @@ describe('DailyLoadPage (KAN-571)', () => {
       expect(screen.queryByText('Máximo')).toBeNull();
       expect(container.querySelector('.dl-gauge-ruler')).toBeNull();
     });
+  });
+
+  it('DADO un inicio sin lugares libres, CUANDO el atleta toca "Fijar en mi inicio", ENTONCES ve el aviso y el botón no cambia a "En tu Inicio"', async () => {
+    vi.spyOn(athleteDashboardLayout, 'pinDailyLoadWidget').mockReturnValue(false);
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /Ver carga de hoy/i })).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole('tab', { name: /Ver carga de hoy/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Fijar en mi inicio/i })).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Fijar en mi inicio/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No hay lugar libre en tu inicio: quitá una tarjeta primero'),
+      ).toBeDefined();
+    });
+
+    expect(screen.queryByText('En tu Inicio')).toBeNull();
+    expect(screen.getByRole('button', { name: /Fijar en mi inicio/i })).toBeDefined();
   });
 });

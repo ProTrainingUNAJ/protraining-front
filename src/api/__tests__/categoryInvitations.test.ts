@@ -263,7 +263,6 @@ describe('categoryInvitationsService', () => {
       const payload = {
         firstName: 'Mateo',
         lastName: 'Fernández',
-        email: 'mateo@ejemplo.com',
         phone: '+5491112345678',
         birthDate: '2005-05-15',
       };

@@ -489,6 +489,146 @@ export type GetPfContactResponses = {
 
 export type GetPfContactResponse = GetPfContactResponses[keyof GetPfContactResponses];
 
+export type DeleteMyPhotoData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/photo';
+};
+
+export type DeleteMyPhotoErrors = {
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+};
+
+export type DeleteMyPhotoResponses = {
+    /**
+     * Foto eliminada correctamente.
+     */
+    204: void;
+};
+
+export type DeleteMyPhotoResponse = DeleteMyPhotoResponses[keyof DeleteMyPhotoResponses];
+
+export type GetMyPhotoData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/photo';
+};
+
+export type GetMyPhotoErrors = {
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+    /**
+     * El usuario no tiene foto de perfil.
+     */
+    404: unknown;
+};
+
+export type GetMyPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetMyPhotoResponse = GetMyPhotoResponses[keyof GetMyPhotoResponses];
+
+export type UploadMyPhotoData = {
+    body: {
+        /**
+         * Archivo de imagen en formato WebP.
+         */
+        photo: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/photo';
+};
+
+export type UploadMyPhotoErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+};
+
+export type UploadMyPhotoError = UploadMyPhotoErrors[keyof UploadMyPhotoErrors];
+
+export type UploadMyPhotoResponses = {
+    /**
+     * Foto actualizada correctamente.
+     */
+    204: void;
+};
+
+export type UploadMyPhotoResponse = UploadMyPhotoResponses[keyof UploadMyPhotoResponses];
+
+export type GetUserPhotoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/users/{id}/photo';
+};
+
+export type GetUserPhotoErrors = {
+    /**
+     * El usuario no tiene foto de perfil.
+     */
+    404: unknown;
+};
+
+export type GetUserPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetUserPhotoResponse = GetUserPhotoResponses[keyof GetUserPhotoResponses];
+
+export type GetMyPfPhotoData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/pf-photo';
+};
+
+export type GetMyPfPhotoErrors = {
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+    /**
+     * El token no es de un atleta.
+     */
+    403: unknown;
+    /**
+     * El preparador físico no tiene foto de perfil.
+     */
+    404: unknown;
+};
+
+export type GetMyPfPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetMyPfPhotoResponse = GetMyPfPhotoResponses[keyof GetMyPfPhotoResponses];
+
 export type HealthCheckData = {
     body?: never;
     path?: never;

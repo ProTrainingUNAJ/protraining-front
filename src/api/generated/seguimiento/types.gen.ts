@@ -29,6 +29,14 @@ export type CheckInRequest = {
      */
     hasActiveInjury?: boolean;
     /**
+     * Puntaje de dolor (0 a 10) de cada molestia activa del atleta. Obligatorio (un item por molestia activa) si el atleta tiene molestias activas; el 0 es válido ("ya no duele").
+     *
+     */
+    injuries?: Array<{
+        injuryId: string;
+        level: number;
+    }> | null;
+    /**
      * Fecha original del check-in (dia en Argentina). La manda el front al sincronizar un check-in guardado sin conexion; si no viene, se usa la fecha del servidor.
      */
     date?: string | null;
@@ -60,6 +68,11 @@ export type CheckIn = {
     isSick: boolean;
     painZones?: string | null;
     hasActiveInjury?: boolean;
+    injuries?: Array<{
+        injuryId?: string;
+        zone?: string;
+        level?: number;
+    }>;
 };
 
 export type DailyLoadActivity = {
@@ -279,6 +292,7 @@ export type Injury = {
     estimatedReturnDate: string;
     status: 'Active' | 'InRecovery' | 'MedicallyCleared';
     clearedAt?: string | null;
+    peakPain?: number | null;
     createdAt: string;
     updatedAt?: string;
 };
@@ -505,6 +519,76 @@ export type SubmitCheckInResponses = {
 };
 
 export type SubmitCheckInResponse = SubmitCheckInResponses[keyof SubmitCheckInResponses];
+
+export type ListCheckInInjuriesData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/check-in/injuries';
+};
+
+export type ListCheckInInjuriesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type ListCheckInInjuriesError = ListCheckInInjuriesErrors[keyof ListCheckInInjuriesErrors];
+
+export type ListCheckInInjuriesResponses = {
+    /**
+     * Lista de molestias activas (puede ser vacía).
+     */
+    200: Array<Injury>;
+};
+
+export type ListCheckInInjuriesResponse = ListCheckInInjuriesResponses[keyof ListCheckInInjuriesResponses];
+
+export type ListResolvedInjuriesData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/check-in/injuries/resolved';
+};
+
+export type ListResolvedInjuriesErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type ListResolvedInjuriesError = ListResolvedInjuriesErrors[keyof ListResolvedInjuriesErrors];
+
+export type ListResolvedInjuriesResponses = {
+    /**
+     * Lista de molestias resueltas (puede ser vacía).
+     */
+    200: Array<Injury>;
+};
+
+export type ListResolvedInjuriesResponse = ListResolvedInjuriesResponses[keyof ListResolvedInjuriesResponses];
 
 export type GetCompletedCheckInsData = {
     body: {

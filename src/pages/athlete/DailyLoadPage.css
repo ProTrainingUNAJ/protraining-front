@@ -1602,8 +1602,10 @@
 }
 
 /* Botón de fijar al inicio en el banner de Ver carga de hoy */
+/* Botón de fijar al inicio en el banner de Ver carga de hoy */
 .dl-summary-action-wrap {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -1637,6 +1639,15 @@
 
 .dl-activity-saved-icon {
   color: var(--stat-green);
+}
+
+.dl-pin-warning-msg {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--danger);
+  margin-top: 0.35rem;
+  text-align: center;
+  max-width: 200px;
 }
 
 /* Acciones en el modal de éxito (KAN-571) */
@@ -1645,44 +1656,6 @@
   flex-direction: column;
   gap: 0.65rem;
   width: 100%;
-}
-
-/* Botón de fijar al inicio en el banner de Ver carga de hoy */
-.dl-summary-action-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dl-view-home-pin-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.95rem;
-  border-radius: 9999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--black) 5%, transparent);
-}
-
-.dl-view-home-pin-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.dl-view-home-pin-btn--pinned {
-  background: color-mix(in srgb, var(--stat-green) 10%, var(--bg-card));
-  border-color: color-mix(in srgb, var(--stat-green) 35%, transparent);
-  color: var(--stat-green);
-}
-
-.dl-activity-saved-icon {
-  color: var(--stat-green);
 }
 
 /* Si el sistema pide reducir movimiento, se apagan las animaciones en bucle */

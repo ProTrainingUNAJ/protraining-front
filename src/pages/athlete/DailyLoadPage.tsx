@@ -204,8 +204,9 @@ export const DailyLoadPage: React.FC = () => {
     }
   }, [user?.id]);
 
-  // Pinned home widget state (KAN-571)
+  // Pinned home widget state (KAN-571 / KAN-573)
   const [isWidgetPinned, setIsWidgetPinned] = useState<boolean>(() => isDailyLoadWidgetPinned());
+  const [pinWarning, setPinWarning] = useState<string | null>(null);
 
   useEffect(() => {
     const handleLayoutSync = () => {
@@ -218,8 +219,13 @@ export const DailyLoadPage: React.FC = () => {
   }, []);
 
   const handlePinWidget = () => {
-    pinDailyLoadWidget();
-    setIsWidgetPinned(true);
+    setPinWarning(null);
+    const pinned = pinDailyLoadWidget();
+    if (pinned) {
+      setIsWidgetPinned(true);
+    } else {
+      setPinWarning('No hay lugar libre en tu inicio: quitá una tarjeta primero');
+    }
   };
 
   // Mode: register vs view today's load
@@ -613,6 +619,7 @@ export const DailyLoadPage: React.FC = () => {
                             ? 'El widget está activo en la fila 2 de tu Inicio'
                             : 'Fijar el widget de Carga del Día en tu pantalla de Inicio'
                         }
+                        aria-label={isWidgetPinned ? 'En tu Inicio' : 'Fijar en mi inicio'}
                       >
                         {isWidgetPinned ? (
                           <>
@@ -622,10 +629,15 @@ export const DailyLoadPage: React.FC = () => {
                         ) : (
                           <>
                             <LayoutGrid size={15} />
-                            <span>Agregar al Inicio</span>
+                            <span>Fijar en mi inicio</span>
                           </>
                         )}
                       </button>
+                      {pinWarning && (
+                        <p className="dl-pin-warning-msg" role="alert">
+                          {pinWarning}
+                        </p>
+                      )}
                     </div>
                   </div>
 

@@ -11,6 +11,7 @@ import { CategoryInvitation, Athlete } from '../types/structure';
 // Landing path for athlete enrollment (KAN-398).
 export const INVITATION_LANDING_PATH = '/invite';
 export const INVITATION_STORAGE_PREFIX = 'protraining_category_invitation_';
+export const PENDING_INVITATION_TOKEN_KEY = 'protraining_pending_invitation_token';
 
 export function buildInvitationUrl(token: string): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -145,6 +146,13 @@ export const categoryInvitationsService = {
 
       if (!data) {
         throw new Error('No se recibió la información del atleta.');
+      }
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          window.localStorage.removeItem(PENDING_INVITATION_TOKEN_KEY);
+        } catch {
+          // ignore storage errors
+        }
       }
       return data;
     } catch (error) {

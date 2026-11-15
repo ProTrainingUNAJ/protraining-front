@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { AppShell } from '../components/shell/AppShell';
 import { AthleteConsentModal } from '../components/athlete/AthleteConsentModal';
 import { useAuth } from '../context/AuthContext';
 import { structureService } from '../api/structureService';
+import { getHttpErrorStatus, PENDING_INVITATION_TOKEN_KEY } from '../api/categoryInvitations';
 import type { GetMyConsentResponse } from '../api/generated/estructura';
 import '../styles/medicalRecord.css';
 
 export function AthleteLayout() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [consentStatus, setConsentStatus] = useState<GetMyConsentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [missingProfile, setMissingProfile] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadTrigger, setReloadTrigger] = useState(0);
@@ -30,10 +35,33 @@ export function AthleteLayout() {
         if (isMounted) {
           setConsentStatus(status);
           setFetchError(null);
+          setMissingProfile(false);
         }
       } catch (err: unknown) {
         console.error('Error al consultar estado de consentimiento del atleta:', err);
         if (isMounted) {
+          const status = getHttpErrorStatus(err);
+          const errStr = (err instanceof Error ? err.message : '').toLowerCase();
+          const isNotFound =
+            status === 404 || errStr.includes('no encontrado') || errStr.includes('notfound');
+
+          if (isNotFound) {
+            // Atleta con cuenta creada en Identidad pero sin perfil en Estructura (KAN-573)
+            let pendingToken: string | null = null;
+            try {
+              pendingToken = localStorage.getItem(PENDING_INVITATION_TOKEN_KEY);
+            } catch {
+              // ignore
+            }
+            if (pendingToken) {
+              setIsRedirecting(true);
+              navigate(`/invite/${pendingToken}`, { replace: true });
+              return;
+            }
+            setMissingProfile(true);
+            return;
+          }
+
           const message =
             err instanceof Error
               ? err.message
@@ -52,7 +80,7 @@ export function AthleteLayout() {
     return () => {
       isMounted = false;
     };
-  }, [user, reloadTrigger]);
+  }, [user, reloadTrigger, navigate]);
 
   const handleRetry = () => {
     setLoading(true);
@@ -83,6 +111,27 @@ export function AthleteLayout() {
       setIsSubmitting(false);
     }
   };
+
+  if (isRedirecting) {
+    return null;
+  }
+
+  if (missingProfile) {
+    return (
+      <main className="invitation-page">
+        <div className="invitation-container invitation-state-card" role="alert">
+          <div className="invitation-icon-circle invitation-icon-circle--warning">
+            <AlertTriangle size={32} />
+          </div>
+          <h1 className="invitation-title">Invitación pendiente</h1>
+          <p className="invitation-description">
+            Tu cuenta está registrada pero aún no completaste la invitación a tu categoría. Abrí el
+            enlace que te envió tu preparador físico para completar el registro.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>

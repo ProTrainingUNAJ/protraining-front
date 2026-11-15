@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Dumbbell,
@@ -12,7 +12,12 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { categoryInvitationsService, getHttpErrorStatus } from '../../api/categoryInvitations';
+import {
+  categoryInvitationsService,
+  getHttpErrorStatus,
+  PENDING_INVITATION_TOKEN_KEY,
+} from '../../api/categoryInvitations';
+import { structureService } from '../../api/structureService';
 import { authService } from '../../api/authService';
 import { CategoryInvitation } from '../../types/structure';
 import { AuthSession } from '../../types/auth';
@@ -36,9 +41,37 @@ export const InvitationLandingPage: React.FC = () => {
   } | null>(null);
 
   // Athlete personal fields
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState(() => {
+    if (user?.fullName) {
+      const parts = user.fullName.trim().split(/\s+/);
+      return parts.length > 1 ? parts.slice(0, -1).join(' ') : user.fullName;
+    }
+    return '';
+  });
+  const [lastName, setLastName] = useState(() => {
+    if (user?.fullName) {
+      const parts = user.fullName.trim().split(/\s+/);
+      return parts.length > 1 ? parts[parts.length - 1] : '';
+    }
+    return '';
+  });
+  const [email, setEmail] = useState(() => user?.email || '');
+  const [prevUser, setPrevUser] = useState(user);
+
+  if (user && user !== prevUser) {
+    setPrevUser(user);
+    if (!email && user.email) setEmail(user.email);
+    if (!firstName && !lastName && user.fullName) {
+      const parts = user.fullName.trim().split(/\s+/);
+      if (parts.length > 1) {
+        setFirstName(parts.slice(0, -1).join(' '));
+        setLastName(parts[parts.length - 1]);
+      } else {
+        setFirstName(user.fullName);
+      }
+    }
+  }
+
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -56,8 +89,13 @@ export const InvitationLandingPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<FormErrorType | null>(null);
   const [createdSession, setCreatedSession] = useState<AuthSession | null>(null);
+  const [hasAthleteProfile, setHasAthleteProfile] = useState<boolean | null>(null);
+  const profileCheckedRef = useRef(false);
 
   const isMinor = isMinorInArgentina(birthDate);
+  const isAccountCreated = Boolean(
+    createdSession || (isAuthenticated && user?.role === 'Atleta' && hasAthleteProfile === false),
+  );
 
   // Validates invitation token on mount
   const validateToken = useCallback(async (tokenToValidate?: string) => {
@@ -112,13 +150,52 @@ export const InvitationLandingPage: React.FC = () => {
     };
   }, [token, validateToken]);
 
-  // Si ya está autenticado como atleta y no está en medio de un envío ni reintentando aceptación, redirigir directo
   useEffect(() => {
-    if (!isSubmitting && !createdSession && isAuthenticated && user?.role === 'Atleta') {
-      // If user is already authenticated as athlete, redirect to athlete dashboard
-      navigate('/athlete', { replace: true });
+    if (token) {
+      try {
+        localStorage.setItem(PENDING_INVITATION_TOKEN_KEY, token);
+      } catch {
+        // ignore storage errors
+      }
     }
-  }, [isAuthenticated, user, navigate, isSubmitting, createdSession]);
+  }, [token]);
+
+  // Si ya está autenticado como atleta, verificar si ya tiene perfil en Estructura (KAN-573)
+  useEffect(() => {
+    let isMounted = true;
+    if (!isAuthenticated || user?.role !== 'Atleta' || createdSession || isSubmitting) {
+      return;
+    }
+
+    if (profileCheckedRef.current) {
+      return;
+    }
+    profileCheckedRef.current = true;
+
+    structureService
+      .getMyConsent()
+      .then(() => {
+        if (isMounted) {
+          setHasAthleteProfile(true);
+          try {
+            localStorage.removeItem(PENDING_INVITATION_TOKEN_KEY);
+          } catch {
+            // ignore
+          }
+          navigate('/athlete', { replace: true });
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          // El atleta tiene cuenta pero no perfil de atleta en Estructura (KAN-573)
+          setHasAthleteProfile(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, user, createdSession, isSubmitting, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,8 +220,8 @@ export const InvitationLandingPage: React.FC = () => {
       return;
     }
 
-    // Regla de contraseña unificada (KAN-539): al menos 8 caracteres y al menos un número
-    if (!createdSession) {
+    // Regla de contraseña unificada (KAN-539): al menos 8 caracteres y al menos un número (solo si la cuenta no fue creada aún)
+    if (!isAccountCreated) {
       const hasNumber = /\d/.test(password);
       if (!password || password.length < 8 || !hasNumber) {
         setFormError(
@@ -193,8 +270,8 @@ export const InvitationLandingPage: React.FC = () => {
     try {
       let activeSession = createdSession;
 
-      // 1. Account registration in Identidad service (solo si no se registró previamente)
-      if (!activeSession) {
+      // 1. Account registration in Identidad service (solo si no se registró previamente ni la cuenta ya existía)
+      if (!activeSession && !isAccountCreated) {
         const fullName = `${firstName.trim()} ${lastName.trim()}`;
         try {
           activeSession = await authService.registerByInvitation({
@@ -223,11 +300,10 @@ export const InvitationLandingPage: React.FC = () => {
         }
       }
 
-      // 2. Invitation acceptance and athlete enrollment in Estructura
+      // 2. Invitation acceptance and athlete enrollment in Estructura (KAN-429 / KAN-573)
       const acceptPayload = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: email.trim(),
         phone: phone.trim(),
         birthDate,
         ...(isMinor
@@ -242,6 +318,12 @@ export const InvitationLandingPage: React.FC = () => {
       };
 
       await categoryInvitationsService.accept(token, acceptPayload);
+
+      try {
+        localStorage.removeItem(PENDING_INVITATION_TOKEN_KEY);
+      } catch {
+        // ignore
+      }
 
       // 3. Activar sesión en AuthContext tras aceptar invitación exitosamente
       if (activeSession) {
@@ -392,12 +474,12 @@ export const InvitationLandingPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu.email@ejemplo.com"
               className="invitation-input"
-              disabled={isSubmitting || !!createdSession}
+              disabled={isSubmitting || isAccountCreated}
               autoComplete="email"
             />
           </div>
 
-          {!createdSession && (
+          {!isAccountCreated && (
             <div className="invitation-field">
               <label htmlFor="invitation-password">Contraseña</label>
               <div className="invitation-input-wrap">
