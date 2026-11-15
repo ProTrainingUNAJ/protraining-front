@@ -372,9 +372,7 @@ export const structureService = {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      await httpClient.put(`/estructura/api/v1/athletes/${athleteId}/photo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await httpClient.put(`/estructura/api/v1/athletes/${athleteId}/photo`, formData);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
@@ -406,9 +404,7 @@ export const structureService = {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      await httpClient.put(`/estructura/api/v1/organizations/${organizationId}/photo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await httpClient.put(`/estructura/api/v1/organizations/${organizationId}/photo`, formData);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

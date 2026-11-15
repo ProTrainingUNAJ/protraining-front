@@ -357,7 +357,11 @@ export const OrganizationsPage: React.FC = () => {
                         }}
                       >
                         <ProfileAvatar
-                          src={structureService.getOrganizationPhotoUrl(org.id, org.photoUpdatedAt)}
+                          src={
+                            org.hasPhoto
+                              ? structureService.getOrganizationPhotoUrl(org.id, org.photoUpdatedAt)
+                              : null
+                          }
                           name={org.name}
                           size={48}
                           shape="rounded"
@@ -497,10 +501,11 @@ export const OrganizationsPage: React.FC = () => {
             </div>
 
             <PhotoUploadControl
-              currentPhotoUrl={structureService.getOrganizationPhotoUrl(
-                photoOrg.id,
-                photoOrg.photoUpdatedAt,
-              )}
+              currentPhotoUrl={
+                photoOrg.hasPhoto
+                  ? structureService.getOrganizationPhotoUrl(photoOrg.id, photoOrg.photoUpdatedAt)
+                  : null
+              }
               name={photoOrg.name}
               size={112}
               shape="rounded"

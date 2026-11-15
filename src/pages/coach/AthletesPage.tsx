@@ -714,7 +714,11 @@ export const AthletesPage: React.FC = () => {
                     }}
                   >
                     <ProfileAvatar
-                      src={structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)}
+                      src={
+                        athlete.hasPhoto
+                          ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
+                          : null
+                      }
                       name={athlete.fullName || `${athlete.firstName} ${athlete.lastName}`}
                       size={44}
                     />
@@ -1158,10 +1162,14 @@ export const AthletesPage: React.FC = () => {
             </div>
 
             <PhotoUploadControl
-              currentPhotoUrl={structureService.getAthletePhotoUrl(
-                photoAthlete.id,
-                photoAthlete.photoUpdatedAt,
-              )}
+              currentPhotoUrl={
+                photoAthlete.hasPhoto
+                  ? structureService.getAthletePhotoUrl(
+                      photoAthlete.id,
+                      photoAthlete.photoUpdatedAt,
+                    )
+                  : null
+              }
               name={photoAthlete.fullName || `${photoAthlete.firstName} ${photoAthlete.lastName}`}
               size={112}
               onUpload={async (file) => {

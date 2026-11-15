@@ -43,7 +43,14 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
   const [cacheBuster, setCacheBuster] = useState<number>(0);
   const [photoRemoved, setPhotoRemoved] = useState<boolean>(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [prevPhotoUrl, setPrevPhotoUrl] = useState<string | null>(currentPhotoUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (prevPhotoUrl !== currentPhotoUrl) {
+    setPrevPhotoUrl(currentPhotoUrl);
+    setLocalPreviewUrl(null);
+    setPhotoRemoved(false);
+  }
 
   const dimension = typeof size === 'number' ? size : SIZE_NUMBERS[size] || 96;
   const badgeSize = Math.max(26, Math.round(dimension * 0.32));

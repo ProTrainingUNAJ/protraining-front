@@ -86,9 +86,7 @@ export const usersService = {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      await httpClient.put('/identidad/api/v1/users/me/photo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await httpClient.put('/identidad/api/v1/users/me/photo', formData);
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
