@@ -31,6 +31,8 @@ interface RawOrganization {
   description?: string | null;
   categoriasCount?: number;
   categoriesCount?: number;
+  atletasCount?: number;
+  athletesCount?: number;
   hasPhoto?: boolean;
   photoUpdatedAt?: string | null;
 }
@@ -84,6 +86,7 @@ function mapOrganization(raw: RawOrganization): Organization {
     name: raw.nombre ?? raw.name ?? '',
     description: raw.descripcion ?? raw.description ?? null,
     categoriesCount: raw.categoriasCount ?? raw.categoriesCount ?? 0,
+    athletesCount: raw.atletasCount ?? raw.athletesCount ?? 0,
     hasPhoto: raw.hasPhoto ?? false,
     photoUpdatedAt: raw.photoUpdatedAt ?? null,
   };
@@ -180,10 +183,10 @@ export const structureService = {
     }
   },
 
-  async getCategories(organizationId: string): Promise<Category[]> {
+  async getCategories(organizationId?: string): Promise<Category[]> {
     try {
       const response = await httpClient.get<RawCategory[]>('/estructura/api/v1/categories', {
-        params: { organizationId },
+        params: organizationId ? { organizationId } : undefined,
       });
       return (response.data || []).map(mapCategory);
     } catch (err: unknown) {
@@ -279,6 +282,14 @@ export const structureService = {
   async withStructureCounts(organizations: Organization[]): Promise<Organization[]> {
     return Promise.all(
       organizations.map(async (organization) => {
+        if (
+          typeof organization.categoriesCount === 'number' &&
+          organization.categoriesCount >= 0 &&
+          typeof organization.athletesCount === 'number' &&
+          organization.athletesCount >= 0
+        ) {
+          return organization;
+        }
         try {
           const cats = await this.getCategories(organization.id).catch(() => [] as Category[]);
           const catsWithAthletes = await this.withAthleteCounts(cats).catch(() => [] as Category[]);
@@ -294,8 +305,8 @@ export const structureService = {
         } catch {
           return {
             ...organization,
-            categoriesCount: 0,
-            athletesCount: 0,
+            categoriesCount: organization.categoriesCount || 0,
+            athletesCount: organization.athletesCount || 0,
           };
         }
       }),
