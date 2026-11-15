@@ -3,12 +3,18 @@ export interface Organization {
   name: string;
   description?: string | null;
   categoriesCount: number;
+  athletesCount?: number;
   hasPhoto?: boolean;
   photoUpdatedAt?: string | null;
 }
 
 export interface CreateOrganizationRequest {
   name: string;
+  description?: string | null;
+}
+
+export interface UpdateOrganizationRequest {
+  name?: string;
   description?: string | null;
 }
 
@@ -23,6 +29,11 @@ export interface Category {
 export interface CreateCategoryRequest {
   organizationId?: string;
   name: string;
+  description?: string | null;
+}
+
+export interface UpdateCategoryRequest {
+  name?: string;
   description?: string | null;
 }
 

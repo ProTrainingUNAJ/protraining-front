@@ -21,8 +21,7 @@ export interface CoachMenuItem {
 
 export const coachMenuItems: CoachMenuItem[] = [
   { label: 'Inicio', to: '/pf', icon: Home },
-  { label: 'Organizaciones', to: '/pf/organizations', icon: Building2 },
-  { label: 'Categorías', to: '/pf/categories', icon: Layers },
+  { label: 'Organizaciones y categorías', to: '/pf/organizations', icon: Building2 },
   { label: 'Atletas', to: '/pf/athletes', icon: Users },
   { label: 'Planificación', to: '/pf/planning', icon: CalendarRange },
   { label: 'Calendario', to: '/pf/calendar', icon: Calendar },
@@ -36,7 +35,7 @@ export const coachMenuItems: CoachMenuItem[] = [
 export const coachTabItems: CoachMenuItem[] = [
   coachMenuItems[0],
   coachMenuItems[1],
-  coachMenuItems[3],
+  coachMenuItems[2],
 ];
 
 export const coachUser = {
