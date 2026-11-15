@@ -518,7 +518,7 @@ export const OrganizationsPage: React.FC = () => {
                 <Building2 size={16} color="var(--primary)" aria-hidden="true" />
                 <span>Clubes</span>
               </h2>
-              <span className="structure-count-pill">{organizations.length}</span>
+              <span className="structure-count-bubble">{organizations.length}</span>
             </div>
 
             {/* Buscador de organizaciones */}
@@ -619,10 +619,18 @@ export const OrganizationsPage: React.FC = () => {
 
                       <div className="structure-org-details">
                         <h3 className="structure-org-name">{org.name}</h3>
-                        <p className="structure-org-subtitle">
-                          {catCountText}
-                          {athleteCountText}
-                        </p>
+                        <div className="structure-org-bubbles-row">
+                          <span className="structure-meta-bubble">
+                            <Layers size={11} aria-hidden="true" />
+                            <span>{catCountText}</span>
+                          </span>
+                          {athleteCountText && (
+                            <span className="structure-meta-bubble">
+                              <Users size={11} aria-hidden="true" />
+                              <span>{athleteCountText.replace(/^ · /, '')}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -692,43 +700,52 @@ export const OrganizationsPage: React.FC = () => {
 
                       <div className="structure-club-info">
                         <h2 className="structure-club-title">{selectedOrg.name}</h2>
-                        <div className="structure-club-meta">
-                          <span>
-                            {categories.length}{' '}
-                            {categories.length === 1 ? 'categoría' : 'categorías'}
+                        <div className="structure-bubble-row">
+                          <span className="structure-stat-bubble info">
+                            <Layers size={13} aria-hidden="true" />
+                            <span>
+                              {categories.length}{' '}
+                              {categories.length === 1 ? 'categoría' : 'categorías'}
+                            </span>
                           </span>
                           {selectedOrg.athletesCount !== undefined && (
-                            <>
-                              <span>·</span>
+                            <span className="structure-stat-bubble">
+                              <Users size={13} aria-hidden="true" />
                               <span>
                                 {selectedOrg.athletesCount}{' '}
-                                {selectedOrg.athletesCount === 1 ? 'atleta total' : 'atletas totales'}
+                                {selectedOrg.athletesCount === 1
+                                  ? 'atleta total'
+                                  : 'atletas totales'}
                               </span>
-                            </>
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
 
                     <div className="structure-header-actions">
-                      <button
-                        type="button"
-                        className="structure-icon-btn"
-                        onClick={() => openEditOrgModal(selectedOrg)}
-                        title="Editar nombre o descripción"
-                        aria-label={`Editar ${selectedOrg.name}`}
-                      >
-                        <Pencil size={16} aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        className="structure-icon-btn danger"
-                        onClick={() => confirmDeleteOrganization(selectedOrg)}
-                        title="Eliminar club"
-                        aria-label={`Eliminar ${selectedOrg.name}`}
-                      >
-                        <Trash2 size={16} aria-hidden="true" />
-                      </button>
+                      <div className="structure-actions-bubble-group">
+                        <button
+                          type="button"
+                          className="structure-bubble-btn"
+                          onClick={() => openEditOrgModal(selectedOrg)}
+                          title="Editar nombre o descripción"
+                          aria-label={`Editar ${selectedOrg.name}`}
+                        >
+                          <Pencil size={14} aria-hidden="true" />
+                          <span>Editar</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="structure-bubble-btn danger"
+                          onClick={() => confirmDeleteOrganization(selectedOrg)}
+                          title="Eliminar club"
+                          aria-label={`Eliminar ${selectedOrg.name}`}
+                        >
+                          <Trash2 size={14} aria-hidden="true" />
+                        </button>
+                      </div>
+
                       <button
                         type="button"
                         className="btn btn-primary"
@@ -748,7 +765,12 @@ export const OrganizationsPage: React.FC = () => {
 
                 {/* Barra de Categorías */}
                 <div className="structure-categories-bar">
-                  <h3 className="structure-categories-title">Categorías y Planteles</h3>
+                  <div className="structure-categories-title-wrap">
+                    <h3 className="structure-categories-title">Categorías y Planteles</h3>
+                    <span className="structure-count-bubble">
+                      {filteredCategories.length}
+                    </span>
+                  </div>
                   {(categories.length > 0 || catSearch) && (
                     <div className="structure-search-box structure-categories-search">
                       <Search size={14} className="structure-search-icon" aria-hidden="true" />
