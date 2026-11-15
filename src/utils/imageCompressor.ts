@@ -21,7 +21,7 @@ export interface CompressImageOptions {
  */
 export async function compressAndConvertToWebp(
   file: File,
-  options: CompressImageOptions = {}
+  options: CompressImageOptions = {},
 ): Promise<File> {
   const maxDimension = options.maxDimension ?? MAX_IMAGE_DIMENSION;
   const quality = options.quality ?? WEBP_QUALITY;
@@ -84,7 +84,7 @@ export async function compressAndConvertToWebp(
             resolve(webpFile);
           },
           'image/webp',
-          quality
+          quality,
         );
       };
 
@@ -94,4 +94,3 @@ export async function compressAndConvertToWebp(
     reader.readAsDataURL(file);
   });
 }
-

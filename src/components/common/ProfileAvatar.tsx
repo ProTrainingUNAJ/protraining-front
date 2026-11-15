@@ -41,14 +41,15 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   const fontSize = Math.max(10, Math.round(dimension * 0.38));
   const borderRadius = shape === 'circle' ? '50%' : '12px';
 
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase() || '?';
+  const initials =
+    name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase() || '?';
 
   const accessibleLabel = alt || `Foto de perfil de ${name}`;
 
@@ -97,4 +98,3 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     </div>
   );
 };
-

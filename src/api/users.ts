@@ -63,7 +63,9 @@ export const usersService = {
    * Devuelve la URL del endpoint de foto del usuario autenticado (WebP).
    */
   getMyPhotoUrl(userId?: string, photoUpdatedAt?: string | null): string {
-    const base = userId ? `/identidad/api/v1/users/${userId}/photo` : '/identidad/api/v1/users/me/photo';
+    const base = userId
+      ? `/identidad/api/v1/users/${userId}/photo`
+      : '/identidad/api/v1/users/me/photo';
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -71,7 +73,9 @@ export const usersService = {
    * Devuelve la URL de la foto del preparador físico para el atleta (WebP).
    */
   getPfPhotoUrl(pfId?: string, photoUpdatedAt?: string | null): string {
-    const base = pfId ? `/identidad/api/v1/users/${pfId}/photo` : '/identidad/api/v1/users/me/pf-photo';
+    const base = pfId
+      ? `/identidad/api/v1/users/${pfId}/photo`
+      : '/identidad/api/v1/users/me/pf-photo';
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 

@@ -14,7 +14,7 @@ describe('ProfileAvatar Component', () => {
       <ProfileAvatar
         name="Lucas Fernández"
         src="http://localhost:8080/identidad/api/v1/users/me/photo"
-      />
+      />,
     );
     const img = screen.getByRole('img');
     expect(img).toBeDefined();
@@ -22,12 +22,7 @@ describe('ProfileAvatar Component', () => {
   });
 
   it('falls back to initials when img onError fires', () => {
-    render(
-      <ProfileAvatar
-        name="Lucas Fernández"
-        src="http://localhost:8080/broken-image.webp"
-      />
-    );
+    render(<ProfileAvatar name="Lucas Fernández" src="http://localhost:8080/broken-image.webp" />);
     const img = screen.getByRole('img');
     fireEvent.error(img);
     expect(screen.getByText('LF')).toBeDefined();

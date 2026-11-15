@@ -11,7 +11,7 @@ describe('PhotoUploadControl Component', () => {
         name="Julián Pérez"
         onUpload={handleUpload}
         uploadButtonLabel="Cambiar foto"
-      />
+      />,
     );
 
     expect(screen.getByText('JP')).toBeDefined();
@@ -29,7 +29,7 @@ describe('PhotoUploadControl Component', () => {
         currentPhotoUrl="http://localhost:8080/identidad/api/v1/users/me/photo"
         onUpload={handleUpload}
         onDelete={handleDelete}
-      />
+      />,
     );
 
     const deleteBtn = screen.getByText('Eliminar');

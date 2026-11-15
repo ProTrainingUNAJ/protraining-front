@@ -743,58 +743,58 @@ export const AthletesPage: React.FC = () => {
                       {athlete.active && <span className="badge badge-success">Activo</span>}
                     </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '1rem',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                      marginTop: '0.35rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span>{athlete.email}</span>
-                    {athlete.phone && <span>Tel: {athlete.phone}</span>}
-                    {athlete.emergencyContact && (
-                      <span>Emergencia: {athlete.emergencyContact}</span>
-                    )}
-                  </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '1rem',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.85rem',
+                        marginTop: '0.35rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span>{athlete.email}</span>
+                      {athlete.phone && <span>Tel: {athlete.phone}</span>}
+                      {athlete.emergencyContact && (
+                        <span>Emergencia: {athlete.emergencyContact}</span>
+                      )}
+                    </div>
 
-                  {/* Categorías asignadas */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.4rem',
-                      marginTop: '0.5rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {athlete.categories && athlete.categories.length > 0 ? (
-                      athlete.categories.map((c) => (
-                        <span key={c.id} className="badge badge-info">
-                          {c.name}
+                    {/* Categorías asignadas */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '0.4rem',
+                        marginTop: '0.5rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {athlete.categories && athlete.categories.length > 0 ? (
+                        athlete.categories.map((c) => (
+                          <span key={c.id} className="badge badge-info">
+                            {c.name}
+                          </span>
+                        ))
+                      ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
+                        athlete.categoryNames.map((name, i) => (
+                          <span key={i} className="badge badge-info">
+                            {name}
+                          </span>
+                        ))
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          Sin categorías asignadas
                         </span>
-                      ))
-                    ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
-                      athlete.categoryNames.map((name, i) => (
-                        <span key={i} className="badge badge-info">
-                          {name}
-                        </span>
-                      ))
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--text-muted)',
-                          fontStyle: 'italic',
-                        }}
-                      >
-                        Sin categorías asignadas
-                      </span>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <button
@@ -1137,7 +1137,14 @@ export const AthletesPage: React.FC = () => {
                 marginBottom: '1.25rem',
               }}
             >
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  color: 'var(--text-main)',
+                }}
+              >
                 Foto de Perfil
               </h3>
               <button
@@ -1175,9 +1182,7 @@ export const AthletesPage: React.FC = () => {
                 await structureService.deleteAthletePhoto(photoAthlete.id);
                 setAthletes((prev) =>
                   prev.map((a) =>
-                    a.id === photoAthlete.id
-                      ? { ...a, hasPhoto: false, photoUpdatedAt: null }
-                      : a,
+                    a.id === photoAthlete.id ? { ...a, hasPhoto: false, photoUpdatedAt: null } : a,
                   ),
                 );
                 setPhotoAthlete((prev) =>
@@ -1194,8 +1199,8 @@ export const AthletesPage: React.FC = () => {
                 lineHeight: 1.4,
               }}
             >
-              La foto se optimiza automáticamente a WebP (máx. 500 px, ~15 KB) para reconocimiento rápido
-              en el semáforo y en los listados del plantel.
+              La foto se optimiza automáticamente a WebP (máx. 500 px, ~15 KB) para reconocimiento
+              rápido en el semáforo y en los listados del plantel.
             </p>
           </div>
         </div>

@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, RefreshCw, Check, AlertCircle, ArrowRight, Camera, X } from 'lucide-react';
+import {
+  Building2,
+  Plus,
+  RefreshCw,
+  Check,
+  AlertCircle,
+  ArrowRight,
+  Camera,
+  X,
+} from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -366,7 +375,8 @@ export const OrganizationsPage: React.FC = () => {
                           {org.name}
                         </h2>
                         <span className="badge badge-info" style={{ marginTop: '0.25rem' }}>
-                          {org.categoriesCount} {org.categoriesCount === 1 ? 'categoría' : 'categorías'}
+                          {org.categoriesCount}{' '}
+                          {org.categoriesCount === 1 ? 'categoría' : 'categorías'}
                         </span>
                       </div>
                     </div>
@@ -466,7 +476,14 @@ export const OrganizationsPage: React.FC = () => {
                 marginBottom: '1.25rem',
               }}
             >
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  color: 'var(--text-main)',
+                }}
+              >
                 Logo del Club / Organización
               </h3>
               <button
@@ -493,9 +510,7 @@ export const OrganizationsPage: React.FC = () => {
                 const updatedAt = new Date().toISOString();
                 setOrganizations((prev) =>
                   prev.map((o) =>
-                    o.id === photoOrg.id
-                      ? { ...o, hasPhoto: true, photoUpdatedAt: updatedAt }
-                      : o,
+                    o.id === photoOrg.id ? { ...o, hasPhoto: true, photoUpdatedAt: updatedAt } : o,
                   ),
                 );
                 setPhotoOrg((prev) =>
@@ -506,9 +521,7 @@ export const OrganizationsPage: React.FC = () => {
                 await structureService.deleteOrganizationPhoto(photoOrg.id);
                 setOrganizations((prev) =>
                   prev.map((o) =>
-                    o.id === photoOrg.id
-                      ? { ...o, hasPhoto: false, photoUpdatedAt: null }
-                      : o,
+                    o.id === photoOrg.id ? { ...o, hasPhoto: false, photoUpdatedAt: null } : o,
                   ),
                 );
                 setPhotoOrg((prev) =>
@@ -525,8 +538,8 @@ export const OrganizationsPage: React.FC = () => {
                 lineHeight: 1.4,
               }}
             >
-              El escudo se comprime a WebP (máx. 500 px, ~15 KB) para mostrarse en la app y distinguir tus
-              clubes de entrenamiento.
+              El escudo se comprime a WebP (máx. 500 px, ~15 KB) para mostrarse en la app y
+              distinguir tus clubes de entrenamiento.
             </p>
           </div>
         </div>

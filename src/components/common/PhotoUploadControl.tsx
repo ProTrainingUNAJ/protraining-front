@@ -175,11 +175,14 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
 
       {/* Mensaje de error si falla la compresión o subida */}
       {errorMessage && (
-        <p className="text-xs text-danger text-center max-w-xs font-medium mt-1" role="alert" style={{ color: 'var(--danger, #ef4444)' }}>
+        <p
+          className="text-xs text-danger text-center max-w-xs font-medium mt-1"
+          role="alert"
+          style={{ color: 'var(--danger, #ef4444)' }}
+        >
           {errorMessage}
         </p>
       )}
     </div>
   );
 };
-

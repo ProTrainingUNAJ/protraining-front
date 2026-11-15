@@ -60,7 +60,7 @@ describe('imageCompressor utility', () => {
   it('rejects non-image files with clear message', async () => {
     const textFile = new File(['dummy text content'], 'document.txt', { type: 'text/plain' });
     await expect(compressAndConvertToWebp(textFile)).rejects.toThrow(
-      'El archivo seleccionado debe ser una imagen'
+      'El archivo seleccionado debe ser una imagen',
     );
   });
 

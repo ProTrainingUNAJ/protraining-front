@@ -333,8 +333,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             lineHeight: 1.4,
                           }}
                         >
-                          Tu foto se comprime automáticamente a formato WebP y 500 px para cargar al instante
-                          y aparecer en la barra lateral y en la vista de tus atletas.
+                          Tu foto se comprime automáticamente a formato WebP y 500 px para cargar al
+                          instante y aparecer en la barra lateral y en la vista de tus atletas.
                         </p>
                       </div>
                     </div>
