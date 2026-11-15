@@ -810,3 +810,552 @@
   border-color: var(--brand-navy);
   color: var(--text-main);
 }
+
+/* ── Editor por Bloques con Grilla Semanal (KAN-587) ── */
+
+.plan-details-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.plan-details-name-field {
+  flex: 1;
+  margin: 0;
+}
+
+.plan-view-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.plan-view-selector-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.plan-view-selector {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-subtle);
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  gap: 0.25rem;
+}
+
+.plan-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plan-view-btn.active {
+  background: var(--bg-card);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-view-btn:hover:not(.active) {
+  color: var(--text-main);
+}
+
+/* Navegación por Días */
+.plan-days-tabs-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-days-tabs-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.plan-day-tab-item {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.plan-day-tab-item.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.plan-day-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-day-tab-item.active .plan-day-tab-btn {
+  color: var(--on-primary);
+}
+
+.plan-day-tab-icon {
+  color: var(--secondary);
+}
+
+.plan-day-tab-item.active .plan-day-tab-icon {
+  color: var(--on-primary);
+}
+
+.plan-day-tab-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+.plan-day-tab-item.active .plan-day-tab-badge {
+  color: var(--on-primary-muted);
+}
+
+.plan-day-tab-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  margin-left: 0.25rem;
+  cursor: pointer;
+}
+
+.plan-day-tab-remove:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.plan-day-tab-item.active .plan-day-tab-remove {
+  color: var(--on-primary-subtle);
+}
+
+.plan-day-tab-item.active .plan-day-tab-remove:hover {
+  background: var(--on-primary-surface);
+  color: var(--on-primary);
+}
+
+/* Menú agregar día */
+.plan-add-day-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.plan-add-day-trigger {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 9999px;
+}
+
+.plan-add-day-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  min-width: 120px;
+}
+
+.plan-add-day-option {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.plan-add-day-option:hover {
+  background: var(--bg-subtle);
+  color: var(--primary);
+}
+
+/* Cabecera del día */
+.plan-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.plan-day-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.plan-day-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.plan-add-block-btn {
+  flex-shrink: 0;
+}
+
+/* Lista de Bloques */
+.plan-blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.plan-blocks-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+
+/* Tarjeta de Bloque */
+.plan-block-card {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-block-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.plan-block-badge {
+  background: var(--info-bg);
+  color: var(--info-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.plan-block-title-input {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+.plan-block-title-input:hover {
+  border-color: var(--border);
+}
+
+.plan-block-title-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-main);
+}
+
+.plan-block-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.plan-icon-btn-danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.plan-block-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.plan-block-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.plan-block-footer {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.5rem;
+}
+
+.plan-add-exercise-to-block-btn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.85rem;
+}
+
+/* Ítem de Ejercicio en Bloque */
+.plan-exercise-block-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-main);
+  padding: 0.75rem;
+}
+
+.plan-exercise-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.plan-exercise-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.plan-exercise-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.plan-exercise-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Selector de Intensidad RPE vs RIR */
+.plan-intensity-selector {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.plan-intensity-btn {
+  border: none;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plan-intensity-btn.active {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Grilla de Progresión Semanal */
+.plan-progression-table-container {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.plan-progression-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.plan-progression-table th {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-progression-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.plan-progression-table tr:last-child td {
+  border-bottom: none;
+}
+
+.col-week {
+  width: 80px;
+}
+
+.col-sets {
+  width: 70px;
+}
+
+.col-reps {
+  width: 110px;
+}
+
+.col-pct {
+  width: 80px;
+}
+
+.col-intensity {
+  width: 95px;
+}
+
+.col-notes {
+  min-width: 140px;
+}
+
+.cell-week {
+  font-weight: 700;
+}
+
+.week-tag {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.plan-table-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.plan-table-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.plan-table-input-notes {
+  font-size: 0.8rem;
+}
+
+/* Responsividad para móviles (hasta 360px) */
+@media (max-width: 640px) {
+  .plan-details-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .plan-day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .plan-block-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .plan-block-title-group {
+    width: 100%;
+  }
+
+  .plan-block-title-input {
+    max-width: 100%;
+  }
+
+  .plan-block-actions {
+    align-self: flex-end;
+  }
+
+  .plan-exercise-block-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .plan-exercise-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .col-notes {
+    min-width: 110px;
+  }
+}

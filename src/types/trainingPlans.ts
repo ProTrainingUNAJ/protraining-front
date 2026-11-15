@@ -46,7 +46,59 @@ export interface DraftExercise {
   targetDistanceMeters?: number | null;
   targetTimeSeconds?: number | null;
   targetPercentage: number | null;
+  // Métricas avanzadas de intensidad y notas (KAN-587)
+  intensityType?: 'RPE' | 'RIR';
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  repsRange?: string | null;
+  notes?: string | null;
 }
+
+export type IntensityMetric = 'RPE' | 'RIR';
+
+export interface WeeklyExerciseProgression {
+  weekNumber: number;
+  sets: number;
+  reps: number;
+  repsRange?: string | null;
+  targetPercentage: number | null;
+  intensityType: IntensityMetric;
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  targetDistanceMeters?: number | null;
+  targetTimeSeconds?: number | null;
+  notes?: string | null;
+}
+
+export interface BlockExercise {
+  key: string;
+  exerciseId: string;
+  exerciseName: string;
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+  order: number;
+  intensityType: IntensityMetric;
+  weeklyProgression: Record<number, WeeklyExerciseProgression>;
+}
+
+export interface DayBlock {
+  key: string;
+  title: string;
+  order: number;
+  exercises: BlockExercise[];
+}
+
+export interface DayPlan {
+  dayOfWeek: number;
+  name?: string;
+  blocks: DayBlock[];
+}
+
+export const DEFAULT_BLOCK_TITLES: string[] = [
+  'Entrada en calor / Movilidad',
+  'Fuerza A',
+  'Fuerza B',
+  'Accesorios',
+];
 
 export interface DraftSession {
   key: string;

@@ -5,11 +5,17 @@ import {
   UpdatePlanDraftRequest,
 } from '../api/generated/asistente';
 import {
+  BlockExercise,
   CatalogExercise,
+  DayBlock,
+  DayPlan,
+  DEFAULT_BLOCK_TITLES,
   DraftExercise,
   DraftSession,
   DraftWeek,
+  IntensityMetric,
   PlanDraft,
+  WeeklyExerciseProgression,
 } from '../types/trainingPlans';
 
 // Días en el orden en que los ve el PF (lunes primero). El valor es el del
@@ -25,6 +31,80 @@ export const WEEK_DAYS: { value: number; label: string }[] = [
 ];
 
 export const PERCENTAGE_MAX = 150;
+
+export const META_PREFIX = '<!--PT_BLOCK_META:';
+export const META_SUFFIX = '-->';
+
+export interface ExerciseMetadataItem {
+  exerciseName?: string;
+  intensityType?: IntensityMetric;
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  repsRange?: string | null;
+  notes?: string | null;
+}
+
+export interface SessionBlockMeta {
+  exercises?: Record<string, ExerciseMetadataItem>;
+}
+
+export function packCoachNotes(cleanNotes: string, meta?: SessionBlockMeta): string {
+  const trimmed = cleanNotes.trim();
+  if (!meta || !meta.exercises || Object.keys(meta.exercises).length === 0) {
+    return trimmed;
+  }
+  const serialized = JSON.stringify(meta);
+  return trimmed
+    ? `${trimmed}\n${META_PREFIX}${serialized}${META_SUFFIX}`
+    : `${META_PREFIX}${serialized}${META_SUFFIX}`;
+}
+
+export function unpackCoachNotes(rawNotes?: string | null): {
+  cleanNotes: string;
+  meta: SessionBlockMeta;
+} {
+  if (!rawNotes) return { cleanNotes: '', meta: {} };
+  const startIdx = rawNotes.indexOf(META_PREFIX);
+  if (startIdx === -1) {
+    return { cleanNotes: rawNotes, meta: {} };
+  }
+  const endIdx = rawNotes.indexOf(META_SUFFIX, startIdx + META_PREFIX.length);
+  if (endIdx === -1) {
+    return { cleanNotes: rawNotes, meta: {} };
+  }
+  const clean = rawNotes.substring(0, startIdx).trim();
+  const jsonStr = rawNotes.substring(startIdx + META_PREFIX.length, endIdx);
+  try {
+    const meta = JSON.parse(jsonStr) as SessionBlockMeta;
+    return { cleanNotes: clean, meta };
+  } catch {
+    return { cleanNotes: rawNotes, meta: {} };
+  }
+}
+
+export function parseRepsNumber(repsRange?: string | null, fallbackReps = 10): number {
+  if (
+    repsRange &&
+    (repsRange.includes('-') || repsRange.includes('/') || repsRange.includes('a'))
+  ) {
+    const match = repsRange.match(/\d+/);
+    if (match) {
+      const parsed = parseInt(match[0], 10);
+      return parsed >= 1 ? parsed : fallbackReps;
+    }
+  }
+  if (typeof fallbackReps === 'number' && fallbackReps >= 1) {
+    return fallbackReps;
+  }
+  if (repsRange) {
+    const match = repsRange.match(/\d+/);
+    if (match) {
+      const parsed = parseInt(match[0], 10);
+      return parsed >= 1 ? parsed : 10;
+    }
+  }
+  return fallbackReps || 10;
+}
 
 let keyCounter = 0;
 function newKey(): string {
@@ -55,38 +135,47 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
       id: week.id,
       weekNumber: week.weekNumber,
       nextSessionOrder: nextOrder(week.sessions.map((s) => s.order)),
-      sessions: week.sessions.map((session) => ({
-        key: newKey(),
-        id: session.id,
-        name: session.name,
-        order: session.order,
-        dayOfWeek: session.dayOfWeek,
-        coachNotes: session.coachNotes ?? '',
-        nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
-        exercises: session.exercises.map((exercise) => {
-          const ex = exercise as unknown as Record<string, unknown>;
-          const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
-          return {
-            key: newKey(),
-            id: exercise.id,
-            exerciseId: exercise.exerciseId,
-            exerciseName: exercise.exerciseName,
-            order: exercise.order,
-            exerciseType: exType,
-            sets: exercise.sets,
-            reps: exercise.reps ?? 0,
-            targetDistanceMeters:
-              exType === 'Distance'
-                ? (exercise.reps ?? null)
-                : ((ex.targetDistanceMeters as number) ?? null),
-            targetTimeSeconds:
-              exType === 'Time'
-                ? (exercise.reps ?? null)
-                : ((ex.targetTimeSeconds as number) ?? null),
-            targetPercentage: exercise.targetPercentage ?? null,
-          };
-        }),
-      })),
+      sessions: week.sessions.map((session) => {
+        const { cleanNotes, meta } = unpackCoachNotes(session.coachNotes);
+        return {
+          key: newKey(),
+          id: session.id,
+          name: session.name,
+          order: session.order,
+          dayOfWeek: session.dayOfWeek,
+          coachNotes: cleanNotes,
+          nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
+          exercises: session.exercises.map((exercise) => {
+            const ex = exercise as unknown as Record<string, unknown>;
+            const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+            const exMeta = meta.exercises?.[exercise.exerciseId] || {};
+            return {
+              key: newKey(),
+              id: exercise.id,
+              exerciseId: exercise.exerciseId,
+              exerciseName: exercise.exerciseName || exMeta.exerciseName || '',
+              order: exercise.order,
+              exerciseType: exType,
+              sets: exercise.sets,
+              reps: exercise.reps ?? 0,
+              targetDistanceMeters:
+                exType === 'Distance'
+                  ? (exercise.reps ?? null)
+                  : ((ex.targetDistanceMeters as number) ?? null),
+              targetTimeSeconds:
+                exType === 'Time'
+                  ? (exercise.reps ?? null)
+                  : ((ex.targetTimeSeconds as number) ?? null),
+              targetPercentage: exercise.targetPercentage ?? null,
+              intensityType: exMeta.intensityType ?? 'RPE',
+              targetRpe: exMeta.targetRpe ?? null,
+              targetRir: exMeta.targetRir ?? null,
+              repsRange: exMeta.repsRange ?? (exercise.reps ? exercise.reps.toString() : null),
+              notes: exMeta.notes ?? null,
+            };
+          }),
+        };
+      }),
     })),
   };
 }
@@ -100,30 +189,54 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
     weeks: draft.weeks.map((week) => ({
       id: week.id,
       weekNumber: week.weekNumber,
-      sessions: week.sessions.map((session) => ({
-        id: session.id,
-        name: session.name.trim(),
-        order: session.order,
-        dayOfWeek: session.dayOfWeek,
-        coachNotes: session.coachNotes.trim() || null,
-        exercises: session.exercises.map((exercise) => {
-          const type = exercise.exerciseType ?? 'Weight';
-          const repsVal =
-            type === 'Distance'
-              ? (exercise.targetDistanceMeters ?? exercise.reps ?? 0)
-              : type === 'Time'
-                ? (exercise.targetTimeSeconds ?? exercise.reps ?? 0)
-                : (exercise.reps ?? 0);
-          return {
-            id: exercise.id,
-            exerciseId: exercise.exerciseId,
-            order: exercise.order,
-            sets: exercise.sets,
-            reps: repsVal,
-            targetPercentage: exercise.targetPercentage,
-          };
-        }),
-      })),
+      sessions: week.sessions.map((session) => {
+        const metaPayload: SessionBlockMeta = { exercises: {} };
+        session.exercises.forEach((ex) => {
+          if (
+            ex.intensityType ||
+            ex.targetRpe != null ||
+            ex.targetRir != null ||
+            ex.repsRange ||
+            ex.notes ||
+            ex.exerciseName
+          ) {
+            metaPayload.exercises![ex.exerciseId] = {
+              exerciseName: ex.exerciseName,
+              intensityType: ex.intensityType,
+              targetRpe: ex.targetRpe,
+              targetRir: ex.targetRir,
+              repsRange: ex.repsRange,
+              notes: ex.notes,
+            };
+          }
+        });
+        const packedNotes = packCoachNotes(session.coachNotes, metaPayload);
+
+        return {
+          id: session.id,
+          name: session.name.trim(),
+          order: session.order,
+          dayOfWeek: session.dayOfWeek,
+          coachNotes: packedNotes || null,
+          exercises: session.exercises.map((exercise) => {
+            const type = exercise.exerciseType ?? 'Weight';
+            const repsVal =
+              type === 'Distance'
+                ? (exercise.targetDistanceMeters ?? exercise.reps ?? 0)
+                : type === 'Time'
+                  ? (exercise.targetTimeSeconds ?? exercise.reps ?? 0)
+                  : (parseRepsNumber(exercise.repsRange, exercise.reps) ?? 0);
+            return {
+              id: exercise.id,
+              exerciseId: exercise.exerciseId,
+              order: exercise.order,
+              sets: exercise.sets,
+              reps: repsVal,
+              targetPercentage: exercise.targetPercentage,
+            };
+          }),
+        };
+      }),
     })),
   };
 }
@@ -311,27 +424,39 @@ export function aiDraftToEditableDraft(
       id: null,
       weekNumber: week.weekNumber,
       nextSessionOrder: nextOrder(week.sessions.map((s) => s.order)),
-      sessions: week.sessions.map((session) => ({
-        key: newKey(),
-        id: null,
-        name: session.name,
-        order: session.order,
-        dayOfWeek: assistantDayToNumber(session.dayOfWeek),
-        coachNotes: session.coachNotes ?? '',
-        nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
-        exercises: session.exercises.map((exercise) => ({
+      sessions: week.sessions.map((session) => {
+        const { cleanNotes, meta } = unpackCoachNotes(session.coachNotes);
+        return {
           key: newKey(),
           id: null,
-          exerciseId: exercise.exerciseId,
-          exerciseName:
-            (exerciseNames && exerciseNames[exercise.exerciseId]) || `Ejercicio #${exercise.order}`,
-          order: exercise.order,
-          exerciseType: 'Weight',
-          sets: exercise.sets,
-          reps: exercise.reps,
-          targetPercentage: exercise.targetPercentage ?? null,
-        })),
-      })),
+          name: session.name,
+          order: session.order,
+          dayOfWeek: assistantDayToNumber(session.dayOfWeek),
+          coachNotes: cleanNotes,
+          nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
+          exercises: session.exercises.map((exercise) => {
+            const exMeta = meta.exercises?.[exercise.exerciseId] || {};
+            return {
+              key: newKey(),
+              id: null,
+              exerciseId: exercise.exerciseId,
+              exerciseName:
+                (exerciseNames && exerciseNames[exercise.exerciseId]) ||
+                `Ejercicio #${exercise.order}`,
+              order: exercise.order,
+              exerciseType: 'Weight',
+              sets: exercise.sets,
+              reps: exercise.reps,
+              targetPercentage: exercise.targetPercentage ?? null,
+              intensityType: exMeta.intensityType ?? 'RPE',
+              targetRpe: exMeta.targetRpe ?? null,
+              targetRir: exMeta.targetRir ?? null,
+              repsRange: exMeta.repsRange ?? (exercise.reps ? exercise.reps.toString() : null),
+              notes: exMeta.notes ?? null,
+            };
+          }),
+        };
+      }),
     })),
   };
 }
@@ -346,19 +471,43 @@ export function toUpdateDraftRequest(
     justificationSummary: justificationSummary.trim(),
     weeks: draft.weeks.map((week) => ({
       weekNumber: week.weekNumber,
-      sessions: week.sessions.map((session) => ({
-        name: session.name.trim(),
-        order: session.order,
-        dayOfWeek: numberToAssistantDay(session.dayOfWeek),
-        coachNotes: session.coachNotes.trim() || null,
-        exercises: session.exercises.map((exercise) => ({
-          exerciseId: exercise.exerciseId,
-          order: exercise.order,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          targetPercentage: exercise.targetPercentage,
-        })),
-      })),
+      sessions: week.sessions.map((session) => {
+        const metaPayload: SessionBlockMeta = { exercises: {} };
+        session.exercises.forEach((ex) => {
+          if (
+            ex.intensityType ||
+            ex.targetRpe != null ||
+            ex.targetRir != null ||
+            ex.repsRange ||
+            ex.notes ||
+            ex.exerciseName
+          ) {
+            metaPayload.exercises![ex.exerciseId] = {
+              exerciseName: ex.exerciseName,
+              intensityType: ex.intensityType,
+              targetRpe: ex.targetRpe,
+              targetRir: ex.targetRir,
+              repsRange: ex.repsRange,
+              notes: ex.notes,
+            };
+          }
+        });
+        const packedNotes = packCoachNotes(session.coachNotes, metaPayload);
+
+        return {
+          name: session.name.trim(),
+          order: session.order,
+          dayOfWeek: numberToAssistantDay(session.dayOfWeek),
+          coachNotes: packedNotes || null,
+          exercises: session.exercises.map((exercise) => ({
+            exerciseId: exercise.exerciseId,
+            order: exercise.order,
+            sets: exercise.sets,
+            reps: parseRepsNumber(exercise.repsRange, exercise.reps),
+            targetPercentage: exercise.targetPercentage,
+          })),
+        };
+      }),
     })),
   };
 }
@@ -379,5 +528,327 @@ export function swapExercise(
           }
         : ex,
     ),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Block Model & Weekly Progression Grid (KAN-587)
+// ---------------------------------------------------------------------------
+
+export function createDefaultBlocks(): DayBlock[] {
+  return DEFAULT_BLOCK_TITLES.map((title, index) => ({
+    key: newKey(),
+    title,
+    order: index + 1,
+    exercises: [],
+  }));
+}
+
+export function createDayPlan(dayOfWeek: number, dayName?: string): DayPlan {
+  const label = dayLabel(dayOfWeek);
+  const plan: DayPlan = {
+    dayOfWeek,
+    name: dayName || (label ? `Día ${label}` : `Día ${dayOfWeek}`),
+    blocks: createDefaultBlocks(),
+  };
+  // Ensure default blocks have keys
+  return plan;
+}
+
+export function createBlockExercise(
+  catalogExercise: CatalogExercise,
+  order: number,
+  weekNumbers: number[],
+  intensityType: IntensityMetric = 'RPE',
+): BlockExercise {
+  const type = catalogExercise.exerciseType ?? 'Weight';
+  const defaultSets = type === 'Distance' ? 6 : type === 'Time' ? 4 : 3;
+  const defaultReps = type === 'Distance' ? 100 : type === 'Time' ? 30 : 10;
+
+  const weeklyProgression: Record<number, WeeklyExerciseProgression> = {};
+  weekNumbers.forEach((w) => {
+    weeklyProgression[w] = {
+      weekNumber: w,
+      sets: defaultSets,
+      reps: defaultReps,
+      repsRange: defaultReps.toString(),
+      targetPercentage: null,
+      intensityType,
+      targetRpe: intensityType === 'RPE' ? 8 : null,
+      targetRir: intensityType === 'RIR' ? 2 : null,
+      targetDistanceMeters: type === 'Distance' ? 100 : null,
+      targetTimeSeconds: type === 'Time' ? 30 : null,
+      notes: null,
+    };
+  });
+
+  return {
+    key: newKey(),
+    exerciseId: catalogExercise.id,
+    exerciseName: catalogExercise.name,
+    exerciseType: type,
+    order,
+    intensityType,
+    weeklyProgression,
+  };
+}
+
+export function reorderBlocks(blocks: DayBlock[], fromIndex: number, toIndex: number): DayBlock[] {
+  if (fromIndex < 0 || fromIndex >= blocks.length || toIndex < 0 || toIndex >= blocks.length) {
+    return blocks;
+  }
+  const updated = [...blocks];
+  const [moved] = updated.splice(fromIndex, 1);
+  updated.splice(toIndex, 0, moved);
+  return updated.map((b, idx) => ({ ...b, order: idx + 1 }));
+}
+
+export function duplicateBlock(block: DayBlock): DayBlock {
+  return {
+    key: newKey(),
+    title: `${block.title} (copia)`,
+    order: block.order + 1,
+    exercises: block.exercises.map((ex) => ({
+      ...ex,
+      key: newKey(),
+      weeklyProgression: Object.fromEntries(
+        Object.entries(ex.weeklyProgression).map(([weekNum, prog]) => [
+          Number(weekNum),
+          { ...prog },
+        ]),
+      ),
+    })),
+  };
+}
+
+export function planDraftToDays(draft: PlanDraft): DayPlan[] {
+  const weekCount = Math.max(1, draft.weeks.length);
+  const weekNumbers = draft.weeks.map((w) => w.weekNumber).sort((a, b) => a - b);
+  if (weekNumbers.length === 0) {
+    for (let i = 1; i <= weekCount; i++) weekNumbers.push(i);
+  }
+
+  // 1. Group sessions by day of week
+  const dayOfWeekMap = new Map<number, DraftSession[]>();
+  draft.weeks.forEach((week) => {
+    week.sessions.forEach((session) => {
+      if (!dayOfWeekMap.has(session.dayOfWeek)) {
+        dayOfWeekMap.set(session.dayOfWeek, []);
+      }
+      dayOfWeekMap.get(session.dayOfWeek)!.push(session);
+    });
+  });
+
+  // If no sessions yet, create Monday with default blocks
+  if (dayOfWeekMap.size === 0) {
+    return [createDayPlan(1, 'Lunes')];
+  }
+
+  // Sort days following Argentine calendar (Monday = 1 first)
+  const sortedDays = Array.from(dayOfWeekMap.keys()).sort(
+    (a, b) => dayPosition(a) - dayPosition(b),
+  );
+
+  return sortedDays.map((dayOfWeek) => {
+    const label = dayLabel(dayOfWeek);
+    const blockMap = new Map<
+      string,
+      { title: string; order: number; exercisesMap: Map<string, BlockExercise> }
+    >();
+
+    draft.weeks.forEach((week) => {
+      const weekSessionsForDay = week.sessions
+        .filter((s) => s.dayOfWeek === dayOfWeek)
+        .sort((a, b) => a.order - b.order);
+
+      weekSessionsForDay.forEach((session, sessionIdx) => {
+        const blockOrder = session.order || sessionIdx + 1;
+        const blockKey = `order-${blockOrder}`;
+
+        if (!blockMap.has(blockKey)) {
+          blockMap.set(blockKey, {
+            title: session.name || `Bloque ${blockOrder}`,
+            order: blockOrder,
+            exercisesMap: new Map<string, BlockExercise>(),
+          });
+        }
+
+        const blockData = blockMap.get(blockKey)!;
+        if ((!blockData.title || blockData.title.startsWith('Bloque ')) && session.name) {
+          blockData.title = session.name;
+        }
+
+        session.exercises.forEach((ex) => {
+          if (!blockData.exercisesMap.has(ex.exerciseId)) {
+            blockData.exercisesMap.set(ex.exerciseId, {
+              key: newKey(),
+              exerciseId: ex.exerciseId,
+              exerciseName: ex.exerciseName,
+              exerciseType: ex.exerciseType,
+              order: ex.order,
+              intensityType: ex.intensityType ?? 'RPE',
+              weeklyProgression: {},
+            });
+          }
+
+          const blockExercise = blockData.exercisesMap.get(ex.exerciseId)!;
+          if (ex.intensityType) {
+            blockExercise.intensityType = ex.intensityType;
+          }
+
+          blockExercise.weeklyProgression[week.weekNumber] = {
+            weekNumber: week.weekNumber,
+            sets: ex.sets,
+            reps: ex.reps,
+            repsRange: ex.repsRange ?? (ex.reps ? ex.reps.toString() : null),
+            targetPercentage: ex.targetPercentage,
+            intensityType: ex.intensityType ?? blockExercise.intensityType ?? 'RPE',
+            targetRpe: ex.targetRpe ?? null,
+            targetRir: ex.targetRir ?? null,
+            targetDistanceMeters: ex.targetDistanceMeters ?? null,
+            targetTimeSeconds: ex.targetTimeSeconds ?? null,
+            notes: ex.notes ?? null,
+          };
+        });
+      });
+    });
+
+    let dayBlocks: DayBlock[];
+    if (blockMap.size === 0) {
+      dayBlocks = createDefaultBlocks();
+    } else {
+      dayBlocks = Array.from(blockMap.values())
+        .sort((a, b) => a.order - b.order)
+        .map((b, idx) => {
+          const exercises = Array.from(b.exercisesMap.values()).sort(
+            (e1, e2) => e1.order - e2.order,
+          );
+
+          // Ensure each exercise has defined values for each week
+          exercises.forEach((ex) => {
+            weekNumbers.forEach((w) => {
+              if (!ex.weeklyProgression[w]) {
+                const baseProg = ex.weeklyProgression[1] || {
+                  weekNumber: w,
+                  sets: 3,
+                  reps: 10,
+                  repsRange: '10',
+                  targetPercentage: null,
+                  intensityType: ex.intensityType,
+                  targetRpe: null,
+                  targetRir: null,
+                  notes: null,
+                };
+                ex.weeklyProgression[w] = { ...baseProg, weekNumber: w };
+              }
+            });
+          });
+
+          return {
+            key: newKey(),
+            title: b.title,
+            order: idx + 1,
+            exercises,
+          };
+        });
+    }
+
+    return {
+      dayOfWeek,
+      name: label ? `Día ${label}` : `Día ${dayOfWeek}`,
+      blocks: dayBlocks,
+    };
+  });
+}
+
+export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): PlanDraft {
+  const weekCount = Math.max(1, existingDraft.weeks.length);
+  const weekNumbers = existingDraft.weeks.map((w) => w.weekNumber).sort((a, b) => a - b);
+  if (weekNumbers.length === 0) {
+    for (let i = 1; i <= weekCount; i++) weekNumbers.push(i);
+  }
+
+  const updatedWeeks: DraftWeek[] = weekNumbers.map((w) => {
+    const existingWeek = existingDraft.weeks.find((week) => week.weekNumber === w);
+    const weekKey = existingWeek?.key || newKey();
+    const weekId = existingWeek?.id || null;
+
+    const sessions: DraftSession[] = [];
+    let nextSessionOrder = 1;
+
+    days.forEach((day) => {
+      day.blocks.forEach((block, blockIndex) => {
+        const sessionOrder = block.order || blockIndex + 1;
+        const existingSession = existingWeek?.sessions.find(
+          (s) =>
+            s.dayOfWeek === day.dayOfWeek && (s.order === sessionOrder || s.name === block.title),
+        );
+
+        const exercises: DraftExercise[] = block.exercises.map((bEx, exIndex) => {
+          const prog = bEx.weeklyProgression[w] || {
+            weekNumber: w,
+            sets: 3,
+            reps: 10,
+            repsRange: '10',
+            targetPercentage: null,
+            intensityType: bEx.intensityType,
+            targetRpe: null,
+            targetRir: null,
+            notes: null,
+          };
+
+          const existingExercise = existingSession?.exercises.find(
+            (e) => e.exerciseId === bEx.exerciseId,
+          );
+
+          return {
+            key: existingExercise?.key || newKey(),
+            id: existingExercise?.id || null,
+            exerciseId: bEx.exerciseId,
+            exerciseName: bEx.exerciseName,
+            order: bEx.order || exIndex + 1,
+            exerciseType: bEx.exerciseType || 'Weight',
+            sets: prog.sets,
+            reps: parseRepsNumber(prog.repsRange, prog.reps),
+            targetPercentage: prog.targetPercentage,
+            targetDistanceMeters: prog.targetDistanceMeters ?? null,
+            targetTimeSeconds: prog.targetTimeSeconds ?? null,
+            intensityType: bEx.intensityType,
+            targetRpe: prog.targetRpe ?? null,
+            targetRir: prog.targetRir ?? null,
+            repsRange: prog.repsRange ?? (prog.reps ? prog.reps.toString() : null),
+            notes: prog.notes ?? null,
+          };
+        });
+
+        sessions.push({
+          key: existingSession?.key || newKey(),
+          id: existingSession?.id || null,
+          name: block.title,
+          order: sessionOrder,
+          dayOfWeek: day.dayOfWeek,
+          coachNotes: existingSession?.coachNotes || '',
+          exercises,
+          nextExerciseOrder: exercises.length + 1,
+        });
+
+        if (sessionOrder >= nextSessionOrder) {
+          nextSessionOrder = sessionOrder + 1;
+        }
+      });
+    });
+
+    return {
+      key: weekKey,
+      id: weekId,
+      weekNumber: w,
+      sessions,
+      nextSessionOrder,
+    };
+  });
+
+  return {
+    ...existingDraft,
+    weeks: updatedWeeks,
   };
 }
