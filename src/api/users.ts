@@ -64,8 +64,8 @@ export const usersService = {
    */
   getMyPhotoUrl(userId?: string, photoUpdatedAt?: string | null): string {
     const base = userId
-      ? `/identidad/api/v1/users/${userId}/photo`
-      : '/identidad/api/v1/users/me/photo';
+      ? `/api/identidad/api/v1/users/${userId}/photo`
+      : '/api/identidad/api/v1/users/me/photo';
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -74,8 +74,8 @@ export const usersService = {
    */
   getPfPhotoUrl(pfId?: string, photoUpdatedAt?: string | null): string {
     const base = pfId
-      ? `/identidad/api/v1/users/${pfId}/photo`
-      : '/identidad/api/v1/users/me/pf-photo';
+      ? `/api/identidad/api/v1/users/${pfId}/photo`
+      : '/api/identidad/api/v1/users/me/pf-photo';
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -86,9 +86,7 @@ export const usersService = {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      await httpClient.put('/identidad/api/v1/users/me/photo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await httpClient.put('/identidad/api/v1/users/me/photo', formData);
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

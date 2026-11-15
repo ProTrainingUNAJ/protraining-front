@@ -361,7 +361,7 @@ export const structureService = {
    * Devuelve la URL del endpoint de foto del atleta (WebP) con soporte de cache-busting opcional (KAN-512).
    */
   getAthletePhotoUrl(athleteId: string, photoUpdatedAt?: string | null): string {
-    const base = `/estructura/api/v1/athletes/${athleteId}/photo`;
+    const base = `/api/estructura/api/v1/athletes/${athleteId}/photo`;
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -372,9 +372,7 @@ export const structureService = {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      await httpClient.put(`/estructura/api/v1/athletes/${athleteId}/photo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await httpClient.put(`/estructura/api/v1/athletes/${athleteId}/photo`, formData);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }
@@ -395,7 +393,7 @@ export const structureService = {
    * Devuelve la URL del logo de la organización con soporte de cache-busting opcional (KAN-512).
    */
   getOrganizationPhotoUrl(organizationId: string, photoUpdatedAt?: string | null): string {
-    const base = `/estructura/api/v1/organizations/${organizationId}/photo`;
+    const base = `/api/estructura/api/v1/organizations/${organizationId}/photo`;
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -406,9 +404,7 @@ export const structureService = {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      await httpClient.put(`/estructura/api/v1/organizations/${organizationId}/photo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await httpClient.put(`/estructura/api/v1/organizations/${organizationId}/photo`, formData);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

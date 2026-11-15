@@ -59,6 +59,14 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      '/identidad': {
+        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/estructura': {
+        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
     },
   },
   preview: {
