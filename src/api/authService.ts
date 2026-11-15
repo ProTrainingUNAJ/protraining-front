@@ -11,6 +11,7 @@ import {
   registerByInvitation as registerByInvitationSdk,
 } from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
+import { PENDING_INVITATION_TOKEN_KEY } from './categoryInvitations';
 import {
   AuthSession,
   LoginRequest,
@@ -136,6 +137,13 @@ export const authService = {
       };
 
       saveStoredSession(session);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          window.localStorage.setItem(PENDING_INVITATION_TOKEN_KEY, request.token);
+        } catch {
+          // ignore storage errors
+        }
+      }
       return session;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });

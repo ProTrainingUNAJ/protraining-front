@@ -523,6 +523,96 @@ export type UpdateAthleteResponses = {
 
 export type UpdateAthleteResponse = UpdateAthleteResponses[keyof UpdateAthleteResponses];
 
+export type DeleteAthletePhotoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{id}/photo';
+};
+
+export type DeleteAthletePhotoErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteAthletePhotoError = DeleteAthletePhotoErrors[keyof DeleteAthletePhotoErrors];
+
+export type DeleteAthletePhotoResponses = {
+    /**
+     * Foto eliminada correctamente.
+     */
+    204: void;
+};
+
+export type DeleteAthletePhotoResponse = DeleteAthletePhotoResponses[keyof DeleteAthletePhotoResponses];
+
+export type GetAthletePhotoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{id}/photo';
+};
+
+export type GetAthletePhotoErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthletePhotoError = GetAthletePhotoErrors[keyof GetAthletePhotoErrors];
+
+export type GetAthletePhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetAthletePhotoResponse = GetAthletePhotoResponses[keyof GetAthletePhotoResponses];
+
+export type UploadAthletePhotoData = {
+    body: {
+        /**
+         * Archivo de imagen en formato WebP.
+         */
+        photo: Blob | File;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{id}/photo';
+};
+
+export type UploadAthletePhotoErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type UploadAthletePhotoError = UploadAthletePhotoErrors[keyof UploadAthletePhotoErrors];
+
+export type UploadAthletePhotoResponses = {
+    /**
+     * Foto actualizada correctamente.
+     */
+    204: void;
+};
+
+export type UploadAthletePhotoResponse = UploadAthletePhotoResponses[keyof UploadAthletePhotoResponses];
+
 export type UpdateHabitsPermissionData = {
     body: UpdateHabitsPermissionRequest;
     path: {
@@ -1069,6 +1159,96 @@ export type UpdateOrganizationResponses = {
 };
 
 export type UpdateOrganizationResponse = UpdateOrganizationResponses[keyof UpdateOrganizationResponses];
+
+export type DeleteOrganizationPhotoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/organizations/{id}/photo';
+};
+
+export type DeleteOrganizationPhotoErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteOrganizationPhotoError = DeleteOrganizationPhotoErrors[keyof DeleteOrganizationPhotoErrors];
+
+export type DeleteOrganizationPhotoResponses = {
+    /**
+     * Logo eliminado correctamente.
+     */
+    204: void;
+};
+
+export type DeleteOrganizationPhotoResponse = DeleteOrganizationPhotoResponses[keyof DeleteOrganizationPhotoResponses];
+
+export type GetOrganizationPhotoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/organizations/{id}/photo';
+};
+
+export type GetOrganizationPhotoErrors = {
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type GetOrganizationPhotoError = GetOrganizationPhotoErrors[keyof GetOrganizationPhotoErrors];
+
+export type GetOrganizationPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetOrganizationPhotoResponse = GetOrganizationPhotoResponses[keyof GetOrganizationPhotoResponses];
+
+export type UploadOrganizationPhotoData = {
+    body: {
+        /**
+         * Archivo de imagen en formato WebP.
+         */
+        photo: Blob | File;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/organizations/{id}/photo';
+};
+
+export type UploadOrganizationPhotoErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type UploadOrganizationPhotoError = UploadOrganizationPhotoErrors[keyof UploadOrganizationPhotoErrors];
+
+export type UploadOrganizationPhotoResponses = {
+    /**
+     * Logo actualizado correctamente.
+     */
+    204: void;
+};
+
+export type UploadOrganizationPhotoResponse = UploadOrganizationPhotoResponses[keyof UploadOrganizationPhotoResponses];
 
 export type ListCategoriesData = {
     body?: never;
