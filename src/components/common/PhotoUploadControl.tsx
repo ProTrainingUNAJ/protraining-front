@@ -15,6 +15,14 @@ export interface PhotoUploadControlProps {
   uploadButtonLabel?: string;
 }
 
+const SIZE_NUMBERS: Record<AvatarSize, number> = {
+  xs: 24,
+  sm: 32,
+  md: 48,
+  lg: 64,
+  xl: 96,
+};
+
 export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
   currentPhotoUrl,
   name,
@@ -30,29 +38,32 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cacheBuster, setCacheBuster] = useState<number>(0);
+  const [photoRemoved, setPhotoRemoved] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const displayPhotoUrl = currentPhotoUrl
-    ? `${currentPhotoUrl}${currentPhotoUrl.includes('?') ? '&' : '?'}v=${cacheBuster || '0'}`
-    : null;
+  const dimension = typeof size === 'number' ? size : SIZE_NUMBERS[size] || 96;
+  const badgeSize = Math.max(26, Math.round(dimension * 0.32));
+  const iconSize = Math.max(14, Math.round(badgeSize * 0.52));
+  const borderRadius = shape === 'circle' ? '50%' : '14px';
+
+  const hasPhoto = !photoRemoved && Boolean(currentPhotoUrl);
+  const displayPhotoUrl =
+    hasPhoto && currentPhotoUrl
+      ? `${currentPhotoUrl}${currentPhotoUrl.includes('?') ? '&' : '?'}v=${cacheBuster || '0'}`
+      : null;
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Resetear valor para permitir seleccionar el mismo archivo si fue eliminado
     event.target.value = '';
     setErrorMessage(null);
     setIsUploading(true);
 
     try {
-      // 1. Convertir y comprimir a WebP en el navegador (max 500px, quality 0.85, <= 200 KB)
       const compressedWebpFile = await compressAndConvertToWebp(file);
-
-      // 2. Subir al endpoint dedicado
       await onUpload(compressedWebpFile);
-
-      // 3. Forzar refresco visual inmediato con cache buster
+      setPhotoRemoved(false);
       setCacheBuster(Date.now());
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'No se pudo subir la foto.';
@@ -72,6 +83,7 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
     setIsDeleting(true);
     try {
       await onDelete();
+      setPhotoRemoved(true);
       setCacheBuster(Date.now());
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'No se pudo eliminar la foto.';
@@ -84,10 +96,24 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
   const isBusy = isUploading || isDeleting;
 
   return (
-    <div className={`photo-upload-control flex flex-col items-center gap-3 ${className}`}>
-      {/* Contenedor del avatar con overlay de carga interactiva */}
+    <div
+      className={`photo-upload-control ${className}`}
+      style={{
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.5rem',
+      }}
+    >
+      {/* Contenedor del avatar con botón interactivo */}
       <div
-        className="relative group cursor-pointer"
+        style={{
+          position: 'relative',
+          width: `${dimension}px`,
+          height: `${dimension}px`,
+          cursor: disabled || isBusy ? 'default' : 'pointer',
+          borderRadius,
+        }}
         onClick={() => !disabled && !isBusy && fileInputRef.current?.click()}
         title={uploadButtonLabel}
         role="button"
@@ -101,72 +127,121 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
         aria-busy={isBusy}
         aria-label={`${uploadButtonLabel} para ${name}`}
       >
-        <ProfileAvatar
-          src={displayPhotoUrl}
-          name={name}
-          size={size}
-          shape={shape}
-          className="transition-opacity group-hover:opacity-90"
-        />
+        <ProfileAvatar src={displayPhotoUrl} name={name} size={dimension} shape={shape} />
 
         {/* Overlay con spinner mientras se sube o se procesa */}
         {isBusy && (
           <div
-            className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white text-xs font-semibold rounded-full z-10 transition-opacity"
-            style={{ borderRadius: shape === 'circle' ? '50%' : '12px' }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.65)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              borderRadius,
+              zIndex: 10,
+              backdropFilter: 'blur(2px)',
+            }}
           >
-            <Loader2 className="w-6 h-6 animate-spin text-white mb-1" />
-            <span>{isUploading ? 'Subiendo...' : 'Borrando...'}</span>
+            <Loader2
+              size={22}
+              style={{
+                animation: 'spin 1s linear infinite',
+                marginBottom: '0.25rem',
+              }}
+            />
+            <span>{isUploading ? 'Subiendo…' : 'Borrando…'}</span>
           </div>
         )}
 
-        {/* Botón flotante con icono de cámara */}
+        {/* Botón flotante badge con icono de cámara */}
         {!isBusy && !disabled && (
           <div
-            className="absolute bottom-0 right-0 bg-brand-primary text-white p-2 rounded-full shadow-lg border-2 border-surface transform transition-transform group-hover:scale-110 flex items-center justify-center"
             style={{
-              backgroundColor: 'var(--brand-primary, #3b82f6)',
-              borderColor: 'var(--bg-surface, #0f172a)',
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: `${badgeSize}px`,
+              height: `${badgeSize}px`,
+              borderRadius: '50%',
+              backgroundColor: 'var(--primary, #3b82f6)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)',
+              border: '2px solid var(--bg-card, #ffffff)',
             }}
+            title={uploadButtonLabel}
           >
-            <Camera className="w-4 h-4 text-white" />
+            <Camera size={iconSize} />
           </div>
         )}
       </div>
 
-      {/* Input oculto para selección de imagen */}
+      {/* Input nativo completamente oculto */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/jpg"
-        className="hidden"
+        style={{ display: 'none' }}
         onChange={handleFileChange}
         disabled={disabled || isBusy}
       />
 
-      {/* Acciones auxiliares (Eliminar foto si ya tiene una) */}
-      <div className="flex items-center gap-2">
+      {/* Acciones auxiliares de texto (Cambiar foto / Eliminar) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          fontSize: '0.8rem',
+        }}
+      >
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isBusy}
-          className="text-xs font-medium text-brand-primary hover:underline focus:outline-none focus:ring-2 focus:ring-brand-primary/50 rounded px-1.5 py-0.5"
-          style={{ color: 'var(--brand-primary, #3b82f6)' }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--primary, #3b82f6)',
+            fontWeight: 600,
+            cursor: disabled || isBusy ? 'not-allowed' : 'pointer',
+            padding: '0.2rem 0.35rem',
+            borderRadius: '4px',
+            textDecoration: 'underline',
+          }}
         >
           {uploadButtonLabel}
         </button>
 
-        {currentPhotoUrl && onDelete && (
+        {hasPhoto && onDelete && (
           <>
-            <span className="text-muted text-xs">·</span>
+            <span style={{ color: 'var(--text-muted, #94a3b8)' }}>·</span>
             <button
               type="button"
               onClick={handleDelete}
               disabled={disabled || isBusy}
-              className="text-xs font-medium text-danger hover:underline flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-danger/50 rounded px-1.5 py-0.5"
-              style={{ color: 'var(--danger, #ef4444)' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--danger, #ef4444)',
+                fontWeight: 600,
+                cursor: disabled || isBusy ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+                padding: '0.2rem 0.35rem',
+                borderRadius: '4px',
+              }}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 size={13} />
               <span>Eliminar</span>
             </button>
           </>
@@ -176,9 +251,15 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
       {/* Mensaje de error si falla la compresión o subida */}
       {errorMessage && (
         <p
-          className="text-xs text-danger text-center max-w-xs font-medium mt-1"
           role="alert"
-          style={{ color: 'var(--danger, #ef4444)' }}
+          style={{
+            color: 'var(--danger, #ef4444)',
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            textAlign: 'center',
+            maxWidth: '220px',
+            margin: '0.1rem 0 0',
+          }}
         >
           {errorMessage}
         </p>
