@@ -190,8 +190,8 @@
 .structure-detail-header-card {
   display: flex;
   flex-direction: column;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--primary);
+  border: 1px solid var(--primary);
   border-radius: var(--radius);
   padding: 1.25rem 1.5rem;
   box-shadow: var(--shadow-sm);
@@ -243,7 +243,7 @@
 .structure-club-title {
   font-size: 1.35rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: var(--on-primary);
   margin: 0 0 0.25rem;
 }
 
@@ -251,7 +251,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--text-muted);
+  color: var(--on-primary-muted);
   font-size: 0.82rem;
   font-weight: 600;
 }
@@ -265,11 +265,79 @@
 
 .structure-club-desc {
   font-size: 0.88rem;
-  color: var(--text-muted);
+  color: var(--on-primary-muted);
   margin: 0;
   line-height: 1.45;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--on-primary-border);
   padding-top: 0.75rem;
+}
+
+/* Botones de la cabecera sobre fondo oscuro */
+.structure-detail-header-card .structure-icon-btn {
+  color: var(--on-primary-muted);
+}
+
+.structure-detail-header-card .structure-icon-btn:hover {
+  background: var(--on-primary-hover);
+  color: var(--on-primary);
+}
+
+.structure-detail-header-card .structure-icon-btn.danger:hover {
+  background: rgb(239 68 68 / 0.25);
+  color: #fca5a5;
+}
+
+.structure-detail-header-card .btn.btn-primary {
+  background: var(--on-primary);
+  color: var(--primary);
+  border-color: var(--on-primary);
+}
+
+.structure-detail-header-card .btn.btn-primary:hover {
+  background: var(--on-primary-muted);
+}
+
+/* Dark mode: cabecera celeste */
+[data-theme='dark'] .structure-detail-header-card {
+  background: var(--cyan-accent);
+  border-color: var(--cyan-accent);
+}
+
+[data-theme='dark'] .structure-detail-header-card .structure-club-title {
+  color: var(--navy-deep);
+}
+
+[data-theme='dark'] .structure-detail-header-card .structure-club-meta {
+  color: var(--brand-navy);
+}
+
+[data-theme='dark'] .structure-detail-header-card .structure-club-desc {
+  color: var(--brand-navy);
+  border-top-color: rgb(2 48 80 / 0.25);
+}
+
+[data-theme='dark'] .structure-detail-header-card .structure-icon-btn {
+  color: var(--brand-navy);
+}
+
+[data-theme='dark'] .structure-detail-header-card .structure-icon-btn:hover {
+  background: rgb(2 48 80 / 0.12);
+  color: var(--navy-deep);
+}
+
+[data-theme='dark'] .structure-detail-header-card .structure-icon-btn.danger:hover {
+  background: rgb(220 38 38 / 0.18);
+  color: #991b1b;
+}
+
+[data-theme='dark'] .structure-detail-header-card .btn.btn-primary {
+  background: var(--brand-navy);
+  color: var(--on-primary);
+  border-color: var(--brand-navy);
+}
+
+[data-theme='dark'] .structure-detail-header-card .btn.btn-primary:hover {
+  background: var(--primary-hover);
 }
 
 /* Barra de sección de categorías */

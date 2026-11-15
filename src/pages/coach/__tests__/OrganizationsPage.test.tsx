@@ -99,7 +99,7 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
 
     // Header principal
     expect(
-      screen.getByRole('heading', { level: 1, name: /Organizaciones y Categorías/i }),
+      screen.getByRole('heading', { level: 1, name: /Organizaciones/i }),
     ).toBeDefined();
 
     // Panel Master

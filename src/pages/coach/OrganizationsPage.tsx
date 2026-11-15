@@ -439,7 +439,7 @@ export const OrganizationsPage: React.FC = () => {
     <div className="app-page-container">
       {/* Encabezado Principal Limpio */}
       <PageHeader
-        title="Organizaciones y Categorías"
+        title="Organizaciones"
         description="Administrá tus clubes y planteles deportivos en un único lugar."
         actions={
           <button
