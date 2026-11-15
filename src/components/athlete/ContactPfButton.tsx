@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { usersService } from '../../api/users';
 import { buildWhatsAppLink } from '../../utils/whatsapp';
+import { ProfileAvatar } from '../common/ProfileAvatar';
 
 export interface ContactPfButtonProps {
   className?: string;
@@ -53,6 +54,8 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
     return null;
   }
 
+  const pfPhotoUrl = usersService.getPfPhotoUrl();
+
   return (
     <a
       href={link}
@@ -61,7 +64,9 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
       className={`btn btn-secondary ${className}`.trim()}
       title="Contactar a mi preparador físico por WhatsApp"
       aria-label="Contactar a mi preparador"
+      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
     >
+      <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
       <MessageCircle size={18} aria-hidden="true" />
       <span className="contact-pf-label">Contactar a mi preparador</span>
     </a>

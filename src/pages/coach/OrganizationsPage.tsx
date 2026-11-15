@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, RefreshCw, Check, AlertCircle, ArrowRight } from 'lucide-react';
+import {
+  Building2,
+  Plus,
+  RefreshCw,
+  Check,
+  AlertCircle,
+  ArrowRight,
+  Camera,
+  X,
+} from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { ProfileAvatar } from '../../components/common/ProfileAvatar';
+import { PhotoUploadControl } from '../../components/common/PhotoUploadControl';
 
 export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +24,7 @@ export const OrganizationsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [photoOrg, setPhotoOrg] = useState<Organization | null>(null);
 
   // Campos del formulario
   const [name, setName] = useState('');
@@ -326,22 +338,48 @@ export const OrganizationsPage: React.FC = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'flex-start',
-                      marginBottom: '0.5rem',
+                      marginBottom: '0.75rem',
+                      gap: '0.75rem',
                     }}
                   >
-                    <h2
-                      style={{
-                        fontSize: '1.15rem',
-                        fontWeight: 700,
-                        color: 'var(--text-main)',
-                        margin: 0,
-                      }}
-                    >
-                      {org.name}
-                    </h2>
-                    <span className="badge badge-info">
-                      {org.categoriesCount} {org.categoriesCount === 1 ? 'categoría' : 'categorías'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                      <div
+                        onClick={() => setPhotoOrg(org)}
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        title="Subir o cambiar logo del club"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setPhotoOrg(org);
+                          }
+                        }}
+                      >
+                        <ProfileAvatar
+                          src={structureService.getOrganizationPhotoUrl(org.id, org.photoUpdatedAt)}
+                          name={org.name}
+                          size={48}
+                          shape="rounded"
+                        />
+                      </div>
+                      <div>
+                        <h2
+                          style={{
+                            fontSize: '1.15rem',
+                            fontWeight: 700,
+                            color: 'var(--text-main)',
+                            margin: 0,
+                          }}
+                        >
+                          {org.name}
+                        </h2>
+                        <span className="badge badge-info" style={{ marginTop: '0.25rem' }}>
+                          {org.categoriesCount}{' '}
+                          {org.categoriesCount === 1 ? 'categoría' : 'categorías'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {org.description ? (
@@ -381,6 +419,16 @@ export const OrganizationsPage: React.FC = () => {
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setPhotoOrg(org)}
+                    title="Subir o cambiar logo de la organización"
+                  >
+                    <Camera size={14} aria-hidden="true" />
+                    <span>Logo</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
                     onClick={() => navigate(`/pf/categories?orgId=${org.id}`)}
                   >
                     <span>Ver Categorías</span>
@@ -392,6 +440,110 @@ export const OrganizationsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal interactivo para subir o cambiar el logo de la organización (WebP, KAN-512) */}
+      {photoOrg && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={() => setPhotoOrg(null)}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              padding: '1.5rem',
+              margin: 0,
+              textAlign: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.25rem',
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  color: 'var(--text-main)',
+                }}
+              >
+                Logo del Club / Organización
+              </h3>
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={() => setPhotoOrg(null)}
+                aria-label="Cerrar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <PhotoUploadControl
+              currentPhotoUrl={structureService.getOrganizationPhotoUrl(
+                photoOrg.id,
+                photoOrg.photoUpdatedAt,
+              )}
+              name={photoOrg.name}
+              size={112}
+              shape="rounded"
+              uploadButtonLabel="Cambiar logo"
+              onUpload={async (file) => {
+                await structureService.uploadOrganizationPhoto(photoOrg.id, file);
+                const updatedAt = new Date().toISOString();
+                setOrganizations((prev) =>
+                  prev.map((o) =>
+                    o.id === photoOrg.id ? { ...o, hasPhoto: true, photoUpdatedAt: updatedAt } : o,
+                  ),
+                );
+                setPhotoOrg((prev) =>
+                  prev ? { ...prev, hasPhoto: true, photoUpdatedAt: updatedAt } : null,
+                );
+              }}
+              onDelete={async () => {
+                await structureService.deleteOrganizationPhoto(photoOrg.id);
+                setOrganizations((prev) =>
+                  prev.map((o) =>
+                    o.id === photoOrg.id ? { ...o, hasPhoto: false, photoUpdatedAt: null } : o,
+                  ),
+                );
+                setPhotoOrg((prev) =>
+                  prev ? { ...prev, hasPhoto: false, photoUpdatedAt: null } : null,
+                );
+              }}
+            />
+
+            <p
+              style={{
+                marginTop: '1.25rem',
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
+              El escudo se comprime a WebP (máx. 500 px, ~15 KB) para mostrarse en la app y
+              distinguir tus clubes de entrenamiento.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

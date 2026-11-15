@@ -18,6 +18,7 @@ import {
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
+import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
 import { ChangePasswordSection } from './ChangePasswordSection';
 import {
@@ -287,13 +288,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       Datos personales asociados a tu usuario en la plataforma.
                     </p>
 
-                    {/* ── Círculo celeste para foto de perfil ── */}
+                    {/* ── Foto de perfil (WebP, KAN-512) ── */}
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '1.25rem',
-                        padding: '1.15rem 1.25rem',
+                        gap: '1.5rem',
+                        padding: '1.25rem',
                         marginBottom: '1.5rem',
                         borderRadius: '12px',
                         background: 'var(--bg-subtle)',
@@ -301,37 +302,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         flexWrap: 'wrap',
                       }}
                     >
-                      {/* Contenedor del círculo celeste */}
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
-                        <div
-                          style={{
-                            width: '84px',
-                            height: '84px',
-                            borderRadius: '50%',
-                            background: 'var(--avatar-cyan-bg)',
-                            border: '3px solid var(--avatar-cyan-border)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--avatar-cyan-text)',
-                            fontWeight: 800,
-                            fontSize: '1.65rem',
-                            letterSpacing: '-0.02em',
-                            boxShadow: 'var(--shadow)',
-                            userSelect: 'none',
-                          }}
-                          title="Foto de perfil del usuario"
-                          aria-label="Círculo de avatar de perfil"
-                        >
-                          {name
-                            .trim()
-                            .split(/\s+/)
-                            .slice(0, 2)
-                            .map((p) => p[0])
-                            .join('')
-                            .toUpperCase() || 'PT'}
-                        </div>
-                      </div>
+                      <PhotoUploadControl
+                        currentPhotoUrl={user?.id ? usersService.getMyPhotoUrl(user.id) : null}
+                        name={name || 'Usuario'}
+                        size={84}
+                        onUpload={async (file) => {
+                          await usersService.uploadMyPhoto(file);
+                        }}
+                        onDelete={async () => {
+                          await usersService.deleteMyPhoto();
+                        }}
+                      />
 
                       <div style={{ flex: 1, minWidth: '220px' }}>
                         <strong
@@ -352,8 +333,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             lineHeight: 1.4,
                           }}
                         >
-                          Por ahora se muestran tus iniciales. Próximamente vas a poder subir tu
-                          foto de perfil desde acá.
+                          Tu foto se comprime automáticamente a formato WebP y 500 px para cargar al
+                          instante y aparecer en la barra lateral y en la vista de tus atletas.
                         </p>
                       </div>
                     </div>

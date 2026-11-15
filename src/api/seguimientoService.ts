@@ -296,6 +296,7 @@ export function mapTrafficLightSummaryToItem(
     affectedMuscle: worstPain?.zone,
     isSick: indicators?.isSick,
     hasActiveInjury: indicators?.hasActiveInjury,
+    avatarUrl: `/estructura/api/v1/athletes/${summary.athleteId}/photo`,
   };
 }
 

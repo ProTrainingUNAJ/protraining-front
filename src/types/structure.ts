@@ -3,6 +3,8 @@ export interface Organization {
   name: string;
   description?: string | null;
   categoriesCount: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
 }
 
 export interface CreateOrganizationRequest {
@@ -37,6 +39,8 @@ export interface Athlete {
   categories?: Array<{ id: string; name: string }>;
   emergencyContact?: string | null;
   activeInjuriesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
 }
 
 export interface CreateAthleteRequest {

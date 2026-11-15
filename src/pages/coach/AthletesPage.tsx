@@ -16,10 +16,13 @@ import {
   FileText,
   TrendingUp,
   KeyRound,
+  Camera,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { ProfileAvatar } from '../../components/common/ProfileAvatar';
+import { PhotoUploadControl } from '../../components/common/PhotoUploadControl';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
 import { RecordsImportModal } from '../../components/athletes/RecordsImportModal';
@@ -62,6 +65,7 @@ export const AthletesPage: React.FC = () => {
   const [showImportRecords, setShowImportRecords] = useState(false);
   const [benchmarkAthlete, setBenchmarkAthlete] = useState<Athlete | null>(null);
   const [resetAthlete, setResetAthlete] = useState<Athlete | null>(null);
+  const [photoAthlete, setPhotoAthlete] = useState<Athlete | null>(null);
   const [invitingCategory, setInvitingCategory] = useState<Category | null>(null);
   const [justifyingAthlete, setJustifyingAthlete] = useState<Athlete | null>(null);
   const [viewingMedicalRecord, setViewingMedicalRecord] = useState<{
@@ -695,82 +699,114 @@ export const AthletesPage: React.FC = () => {
                   gap: '1rem',
                 }}
               >
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.6rem',
-                      flexWrap: 'wrap',
+                    onClick={() => setPhotoAthlete(athlete)}
+                    role="button"
+                    tabIndex={0}
+                    style={{ cursor: 'pointer' }}
+                    title="Subir o cambiar foto de perfil"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setPhotoAthlete(athlete);
+                      }
                     }}
                   >
-                    <h2
+                    <ProfileAvatar
+                      src={structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)}
+                      name={athlete.fullName || `${athlete.firstName} ${athlete.lastName}`}
+                      size={44}
+                    />
+                  </div>
+
+                  <div>
+                    <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        color: 'var(--text-main)',
-                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.6rem',
+                        flexWrap: 'wrap',
                       }}
                     >
-                      {athlete.fullName}
-                    </h2>
-                    {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
-                    {athlete.active && <span className="badge badge-success">Activo</span>}
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '1rem',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                      marginTop: '0.35rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span>{athlete.email}</span>
-                    {athlete.phone && <span>Tel: {athlete.phone}</span>}
-                    {athlete.emergencyContact && (
-                      <span>Emergencia: {athlete.emergencyContact}</span>
-                    )}
-                  </div>
-
-                  {/* Categorías asignadas */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.4rem',
-                      marginTop: '0.5rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {athlete.categories && athlete.categories.length > 0 ? (
-                      athlete.categories.map((c) => (
-                        <span key={c.id} className="badge badge-info">
-                          {c.name}
-                        </span>
-                      ))
-                    ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
-                      athlete.categoryNames.map((name, i) => (
-                        <span key={i} className="badge badge-info">
-                          {name}
-                        </span>
-                      ))
-                    ) : (
-                      <span
+                      <h2
                         style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--text-muted)',
-                          fontStyle: 'italic',
+                          fontSize: '1.1rem',
+                          fontWeight: 700,
+                          color: 'var(--text-main)',
+                          margin: 0,
                         }}
                       >
-                        Sin categorías asignadas
-                      </span>
-                    )}
+                        {athlete.fullName}
+                      </h2>
+                      {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
+                      {athlete.active && <span className="badge badge-success">Activo</span>}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '1rem',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.85rem',
+                        marginTop: '0.35rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span>{athlete.email}</span>
+                      {athlete.phone && <span>Tel: {athlete.phone}</span>}
+                      {athlete.emergencyContact && (
+                        <span>Emergencia: {athlete.emergencyContact}</span>
+                      )}
+                    </div>
+
+                    {/* Categorías asignadas */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '0.4rem',
+                        marginTop: '0.5rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {athlete.categories && athlete.categories.length > 0 ? (
+                        athlete.categories.map((c) => (
+                          <span key={c.id} className="badge badge-info">
+                            {c.name}
+                          </span>
+                        ))
+                      ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
+                        athlete.categoryNames.map((name, i) => (
+                          <span key={i} className="badge badge-info">
+                            {name}
+                          </span>
+                        ))
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          Sin categorías asignadas
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => setPhotoAthlete(athlete)}
+                    title="Subir o cambiar foto de perfil del atleta"
+                  >
+                    <Camera size={15} aria-hidden="true" />
+                    <span>Foto</span>
+                  </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
@@ -1064,6 +1100,110 @@ export const AthletesPage: React.FC = () => {
           justificationUsed={viewingMedicalRecord.justification}
           onClose={() => setViewingMedicalRecord(null)}
         />
+      )}
+
+      {/* Modal interactivo de subida y edición de foto de perfil (WebP, KAN-512) */}
+      {photoAthlete && (
+        <div
+          className="modal-backdrop"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={() => setPhotoAthlete(null)}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              padding: '1.5rem',
+              margin: 0,
+              textAlign: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.25rem',
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  color: 'var(--text-main)',
+                }}
+              >
+                Foto de Perfil
+              </h3>
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={() => setPhotoAthlete(null)}
+                aria-label="Cerrar modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <PhotoUploadControl
+              currentPhotoUrl={structureService.getAthletePhotoUrl(
+                photoAthlete.id,
+                photoAthlete.photoUpdatedAt,
+              )}
+              name={photoAthlete.fullName || `${photoAthlete.firstName} ${photoAthlete.lastName}`}
+              size={112}
+              onUpload={async (file) => {
+                await structureService.uploadAthletePhoto(photoAthlete.id, file);
+                const updatedAt = new Date().toISOString();
+                setAthletes((prev) =>
+                  prev.map((a) =>
+                    a.id === photoAthlete.id
+                      ? { ...a, hasPhoto: true, photoUpdatedAt: updatedAt }
+                      : a,
+                  ),
+                );
+                setPhotoAthlete((prev) =>
+                  prev ? { ...prev, hasPhoto: true, photoUpdatedAt: updatedAt } : null,
+                );
+              }}
+              onDelete={async () => {
+                await structureService.deleteAthletePhoto(photoAthlete.id);
+                setAthletes((prev) =>
+                  prev.map((a) =>
+                    a.id === photoAthlete.id ? { ...a, hasPhoto: false, photoUpdatedAt: null } : a,
+                  ),
+                );
+                setPhotoAthlete((prev) =>
+                  prev ? { ...prev, hasPhoto: false, photoUpdatedAt: null } : null,
+                );
+              }}
+            />
+
+            <p
+              style={{
+                marginTop: '1.25rem',
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
+              La foto se optimiza automáticamente a WebP (máx. 500 px, ~15 KB) para reconocimiento
+              rápido en el semáforo y en los listados del plantel.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

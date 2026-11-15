@@ -36,6 +36,9 @@ vi.mock('../../../api/authService', () => ({
 vi.mock('../../../api/users', () => ({
   usersService: {
     updateWhatsAppPhone: vi.fn().mockResolvedValue({ phoneNumber: '5491123456789' }),
+    getMyPhotoUrl: vi.fn().mockReturnValue(null),
+    uploadMyPhoto: vi.fn().mockResolvedValue(undefined),
+    deleteMyPhoto: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
