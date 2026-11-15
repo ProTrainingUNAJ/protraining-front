@@ -43,7 +43,7 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
   const [cacheBuster, setCacheBuster] = useState<number>(0);
   const [photoRemoved, setPhotoRemoved] = useState<boolean>(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
-  const [prevPhotoUrl, setPrevPhotoUrl] = useState<string | null>(currentPhotoUrl);
+  const [prevPhotoUrl, setPrevPhotoUrl] = useState<string | null | undefined>(currentPhotoUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (prevPhotoUrl !== currentPhotoUrl) {
