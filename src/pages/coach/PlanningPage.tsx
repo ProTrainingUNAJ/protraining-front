@@ -6,7 +6,6 @@ import {
   Calendar,
   CalendarPlus,
   Check,
-  ChevronRight,
   ClipboardList,
   Loader2,
   Plus,
@@ -16,6 +15,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ApplyPlanTemplateModal } from '../../components/planning/ApplyPlanTemplateModal';
+import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
+import { PlanningCard } from '../../components/planning/PlanningCard';
 import { trainingPlansService, PlanAssignmentSummary } from '../../api/trainingPlans';
 import { PlanListItem, PlanTemplateItem } from '../../types/trainingPlans';
 import { formatDayMonth } from '../../utils/argentinaDate';
@@ -39,6 +40,8 @@ export function PlanningPage() {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [objective, setObjective] = useState('');
+  const [planSearch, setPlanSearch] = useState('');
+  const [selectedPlanForAssign, setSelectedPlanForAssign] = useState<PlanListItem | null>(null);
 
   // Estados del catálogo de plantillas (KAN-440)
   const [templates, setTemplates] = useState<PlanTemplateItem[]>([]);
@@ -176,6 +179,15 @@ export function PlanningPage() {
     );
   });
 
+  const filteredPlans = plans.filter((p) => {
+    const query = planSearch.trim().toLowerCase();
+    if (!query) return true;
+    return (
+      p.name.toLowerCase().includes(query) ||
+      Boolean(p.objective && p.objective.toLowerCase().includes(query))
+    );
+  });
+
   return (
     <div className="app-page-container">
       <PageHeader
@@ -234,6 +246,9 @@ export function PlanningPage() {
           >
             <ClipboardList size={16} aria-hidden="true" />
             <span>Mis Planificaciones</span>
+            {!loadingPlans && plans.length > 0 && (
+              <span className="plan-tab-badge">{plans.length}</span>
+            )}
           </button>
           <button
             type="button"
@@ -244,6 +259,9 @@ export function PlanningPage() {
           >
             <Bookmark size={16} aria-hidden="true" />
             <span>Plantillas guardadas</span>
+            {!loadingTemplates && templates.length > 0 && (
+              <span className="plan-tab-badge">{templates.length}</span>
+            )}
           </button>
           <button
             type="button"
@@ -254,6 +272,9 @@ export function PlanningPage() {
           >
             <CalendarPlus size={16} aria-hidden="true" />
             <span>Asignaciones</span>
+            {!loadingAssignments && assignments.length > 0 && (
+              <span className="plan-tab-badge">{assignments.length}</span>
+            )}
           </button>
         </nav>
 
@@ -332,6 +353,33 @@ export function PlanningPage() {
               </form>
             )}
 
+            {/* Barra de búsqueda de planificaciones */}
+            {!loadingPlans && plans.length > 0 && (
+              <div className="plan-control-bar">
+                <div className="plan-search-wrapper">
+                  <Search size={16} className="plan-search-icon" aria-hidden="true" />
+                  <input
+                    type="search"
+                    className="plan-search-input"
+                    placeholder="Buscar por nombre u objetivo..."
+                    value={planSearch}
+                    onChange={(e) => setPlanSearch(e.target.value)}
+                    aria-label="Buscar planificación"
+                  />
+                  {planSearch && (
+                    <button
+                      type="button"
+                      className="plan-search-clear"
+                      onClick={() => setPlanSearch('')}
+                      aria-label="Borrar texto de búsqueda"
+                    >
+                      <X size={14} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {loadingPlans ? (
               <p className="plan-empty plan-inline">
                 <Loader2 size={16} className="plan-spin" aria-hidden="true" />
@@ -342,21 +390,30 @@ export function PlanningPage() {
                 Todavía no tenés planificaciones. Creá la primera con «Nueva planificación» o
                 «Generar con IA».
               </p>
+            ) : filteredPlans.length === 0 && planSearch ? (
+              <div className="plan-empty-search">
+                <p className="plan-empty">
+                  No se encontraron planificaciones que coincidan con «<strong>{planSearch}</strong>
+                  ».
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setPlanSearch('')}
+                >
+                  Limpiar búsqueda
+                </button>
+              </div>
             ) : (
-              <ul className="plan-list">
-                {plans.map((plan) => (
-                  <li key={plan.id}>
-                    <Link to={`/pf/planning/${plan.id}`} className="card plan-list-item">
-                      <ClipboardList size={20} aria-hidden="true" />
-                      <span className="plan-list-info">
-                        <strong>{plan.name}</strong>
-                        {plan.objective && <span>{plan.objective}</span>}
-                      </span>
-                      <ChevronRight size={18} aria-hidden="true" />
-                    </Link>
-                  </li>
+              <div className="plan-cards-grid" role="list" aria-label="Listado de planificaciones">
+                {filteredPlans.map((plan) => (
+                  <PlanningCard
+                    key={plan.id}
+                    plan={plan}
+                    onAssign={(p) => setSelectedPlanForAssign(p)}
+                  />
                 ))}
-              </ul>
+              </div>
             )}
           </>
         )}
@@ -514,6 +571,19 @@ export function PlanningPage() {
           onApplied={(msg) => {
             setSelectedTemplateForApply(null);
             setSuccessMessage(msg);
+          }}
+        />
+      )}
+
+      {/* Modal de asignación directa desde la tarjeta (KAN-622) */}
+      {selectedPlanForAssign && (
+        <AssignPlanModal
+          planId={selectedPlanForAssign.id}
+          planName={selectedPlanForAssign.name}
+          onClose={() => setSelectedPlanForAssign(null)}
+          onAssigned={() => {
+            setSelectedPlanForAssign(null);
+            setSuccessMessage(`Planificación asignada con éxito.`);
           }}
         />
       )}
