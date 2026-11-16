@@ -132,6 +132,18 @@ export const OrganizationsPage: React.FC = () => {
       .then((data) => {
         if (!isMounted) return;
         setCategories(data);
+        const totalAthletes = data.reduce((sum, c) => sum + (c.athletesCount || 0), 0);
+        setOrganizations((prev) =>
+          prev.map((o) =>
+            o.id === selectedOrgId
+              ? {
+                  ...o,
+                  categoriesCount: data.length,
+                  athletesCount: totalAthletes,
+                }
+              : o,
+          ),
+        );
         setLoadingCategories(false);
       })
       .catch((err: unknown) => {
@@ -162,6 +174,14 @@ export const OrganizationsPage: React.FC = () => {
     () => organizations.find((o) => o.id === selectedOrgId),
     [organizations, selectedOrgId],
   );
+
+  // Conteo total de atletas de la organización seleccionada
+  const selectedOrgAthletesCount = useMemo(() => {
+    if (categories.length > 0) {
+      return categories.reduce((sum, c) => sum + (c.athletesCount || 0), 0);
+    }
+    return selectedOrg?.athletesCount ?? 0;
+  }, [categories, selectedOrg]);
 
   // Filtrado de organizaciones
   const filteredOrganizations = useMemo(() => {
@@ -700,17 +720,13 @@ export const OrganizationsPage: React.FC = () => {
                               {categories.length === 1 ? 'categoría' : 'categorías'}
                             </span>
                           </span>
-                          {selectedOrg.athletesCount !== undefined && (
-                            <span className="structure-stat-bubble">
-                              <Users size={13} aria-hidden="true" />
-                              <span>
-                                {selectedOrg.athletesCount}{' '}
-                                {selectedOrg.athletesCount === 1
-                                  ? 'atleta total'
-                                  : 'atletas totales'}
-                              </span>
+                          <span className="structure-stat-bubble">
+                            <Users size={13} aria-hidden="true" />
+                            <span>
+                              {selectedOrgAthletesCount}{' '}
+                              {selectedOrgAthletesCount === 1 ? 'atleta total' : 'atletas totales'}
                             </span>
-                          )}
+                          </span>
                         </div>
                       </div>
                     </div>

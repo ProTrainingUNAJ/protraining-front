@@ -284,7 +284,7 @@ export const structureService = {
       organizations.map(async (organization) => {
         if (
           typeof organization.categoriesCount === 'number' &&
-          organization.categoriesCount >= 0 &&
+          organization.categoriesCount > 0 &&
           typeof organization.athletesCount === 'number' &&
           organization.athletesCount >= 0
         ) {
