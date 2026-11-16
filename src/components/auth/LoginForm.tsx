@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../api/authService';
@@ -30,6 +30,7 @@ const GoogleIcon: React.FC = () => (
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, loginWithGoogle } = useAuth();
   // Bandera para Google Login (KAN-551). Apagada por defecto; se activa con VITE_GOOGLE_LOGIN_ENABLED=true
   const isGoogleLoginEnabled = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === 'true';
@@ -44,6 +45,8 @@ export const LoginForm: React.FC = () => {
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
+  const redirectSuccessMessage =
+    (location.state as { successMessage?: string } | null)?.successMessage ?? null;
 
   // Validaciones del lado del cliente
   const validate = (): boolean => {
@@ -94,6 +97,10 @@ export const LoginForm: React.FC = () => {
 
     try {
       const session = await login({ email: email.trim(), password });
+      if (session.user.mustChangePassword) {
+        navigate('/force-change-password', { replace: true });
+        return;
+      }
       navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
     } catch (err: unknown) {
       const msg = extractErrorMessage(err);
@@ -168,6 +175,10 @@ export const LoginForm: React.FC = () => {
             const session = await (loginWithGoogle
               ? loginWithGoogle(response.credential)
               : authService.loginWithGoogle(response.credential));
+            if (session.user.mustChangePassword) {
+              navigate('/force-change-password', { replace: true });
+              return;
+            }
             navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
           } catch (err: unknown) {
             const msg = extractErrorMessage(err);
@@ -252,6 +263,14 @@ export const LoginForm: React.FC = () => {
         <div className="alert-box alert-success" role="status">
           <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>{resendSuccess}</div>
+        </div>
+      )}
+
+      {/* Alerta de Éxito redirigido (ej: contraseña cambiada) */}
+      {redirectSuccessMessage && !errorMessage && !resendSuccess && (
+        <div className="alert-box alert-success" role="status">
+          <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>{redirectSuccessMessage}</div>
         </div>
       )}
 

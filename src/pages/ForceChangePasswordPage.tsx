@@ -6,7 +6,7 @@ import { authService } from '../api/authService';
 
 export const ForceChangePasswordPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isHydrating, logout, clearMustChangePassword } = useAuth();
+  const { user, isAuthenticated, isHydrating, login, logout, clearMustChangePassword } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -74,13 +74,36 @@ export const ForceChangePasswordPage: React.FC = () => {
         newPassword,
       });
 
-      // Actualizar estado local de la sesión eliminando el bloqueo
+      // Limpiar flag en memoria por consistencia
       clearMustChangePassword?.();
       setSuccessMessage('¡Contraseña actualizada exitosamente! Ingresando a tu cuenta...');
 
-      setTimeout(() => {
-        navigate(user.role === 'PreparadorFisico' ? '/pf' : '/athlete', { replace: true });
-      }, 1200);
+      const userEmail = user.email;
+      const targetPath = user.role === 'PreparadorFisico' ? '/pf' : '/athlete';
+
+      try {
+        // Re-autenticar inmediatamente con las nuevas credenciales para obtener un JWT fresco
+        // con el nuevo SecurityStamp y sin el claim must_change_password (KAN-608).
+        await login({
+          email: userEmail,
+          password: newPassword,
+        });
+
+        setTimeout(() => {
+          navigate(targetPath, { replace: true });
+        }, 800);
+      } catch {
+        // En caso de que la reautenticación automática falle, limpiamos la sesión anterior revocada
+        // y redirigimos al login para que el usuario ingrese limpiamente con su nueva contraseña.
+        logout();
+        navigate('/login', {
+          replace: true,
+          state: {
+            successMessage:
+              'Contraseña actualizada exitosamente. Por favor iniciá sesión con tu nueva contraseña.',
+          },
+        });
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al actualizar la contraseña.';
       setError(message);
