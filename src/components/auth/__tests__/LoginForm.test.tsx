@@ -130,7 +130,7 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
       name: /olvidé mi contraseña/i,
     });
     const registerBtn = screen.getByRole('button', {
-      name: /registrarse \(próximamente\)/i,
+      name: /^registrate$/i,
     });
 
     expect(forgotBtn).toBeDefined();
@@ -140,6 +140,9 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
 
     expect(registerBtn).toBeDefined();
-    expect(registerBtn.hasAttribute('disabled')).toBe(true);
+    expect(registerBtn.hasAttribute('disabled')).toBe(false);
+
+    fireEvent.click(registerBtn);
+    expect(mockNavigate).toHaveBeenCalledWith('/registro');
   });
 });

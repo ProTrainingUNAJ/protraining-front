@@ -182,6 +182,54 @@ export type ProblemDetails = {
     };
 };
 
+export type RegisterPfRequest = {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string | null;
+    deviceId?: string | null;
+};
+
+export type RegisterPfResponse = {
+    id: string;
+    email: string;
+    fullName: string;
+    message: string;
+};
+
+export type ConfirmEmailRequest = {
+    userId: string;
+    token: string;
+};
+
+export type ConfirmEmailResponse = {
+    message: string;
+};
+
+export type ResendConfirmationRequest = {
+    email: string;
+};
+
+export type ResendConfirmationResponse = {
+    message: string;
+};
+
+export type UpdateProfileRequest = {
+    fullName: string;
+    phone?: string | null;
+};
+
+export type ProfileResponse = {
+    id: string;
+    email: string;
+    fullName: string;
+    phoneNumber?: string | null;
+};
+
+export type DeactivateAccountRequest = {
+    password: string;
+};
+
 export type LoginData = {
     body: LoginRequest;
     path?: never;
@@ -306,6 +354,85 @@ export type RegisterByInvitationResponses = {
 
 export type RegisterByInvitationResponse = RegisterByInvitationResponses[keyof RegisterByInvitationResponses];
 
+export type RegisterPfData = {
+    body: RegisterPfRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/register-pf';
+};
+
+export type RegisterPfErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Ya existe una cuenta registrada con este correo electrónico.
+     */
+    409: ProblemDetails;
+};
+
+export type RegisterPfError = RegisterPfErrors[keyof RegisterPfErrors];
+
+export type RegisterPfResponses = {
+    /**
+     * Preparador físico registrado exitosamente. Correo de confirmación enviado.
+     */
+    201: RegisterPfResponse;
+};
+
+export type RegisterPfResponse2 = RegisterPfResponses[keyof RegisterPfResponses];
+
+export type ConfirmEmailData = {
+    body: ConfirmEmailRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/confirm-email';
+};
+
+export type ConfirmEmailErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+};
+
+export type ConfirmEmailError = ConfirmEmailErrors[keyof ConfirmEmailErrors];
+
+export type ConfirmEmailResponses = {
+    /**
+     * Correo confirmado exitosamente.
+     */
+    200: ConfirmEmailResponse;
+};
+
+export type ConfirmEmailResponse2 = ConfirmEmailResponses[keyof ConfirmEmailResponses];
+
+export type ResendConfirmationData = {
+    body: ResendConfirmationRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/resend-confirmation';
+};
+
+export type ResendConfirmationErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+};
+
+export type ResendConfirmationError = ResendConfirmationErrors[keyof ResendConfirmationErrors];
+
+export type ResendConfirmationResponses = {
+    /**
+     * Solicitud recibida. Si la cuenta existe y está pendiente, se envía el correo.
+     */
+    202: ResendConfirmationResponse;
+};
+
+export type ResendConfirmationResponse2 = ResendConfirmationResponses[keyof ResendConfirmationResponses];
+
 export type ForgotPasswordData = {
     body: ForgotPasswordRequest;
     path?: never;
@@ -422,6 +549,72 @@ export type ResetAthletePasswordResponses = {
 };
 
 export type ResetAthletePasswordResponse2 = ResetAthletePasswordResponses[keyof ResetAthletePasswordResponses];
+
+export type UpdateProfileData = {
+    body: UpdateProfileRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/profile';
+};
+
+export type UpdateProfileErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+};
+
+export type UpdateProfileError = UpdateProfileErrors[keyof UpdateProfileErrors];
+
+export type UpdateProfileResponses = {
+    /**
+     * Perfil actualizado exitosamente.
+     */
+    200: ProfileResponse;
+};
+
+export type UpdateProfileResponse = UpdateProfileResponses[keyof UpdateProfileResponses];
+
+export type DeactivateAccountData = {
+    body: DeactivateAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/deactivate';
+};
+
+export type DeactivateAccountErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o contraseña incorrecta.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+};
+
+export type DeactivateAccountError = DeactivateAccountErrors[keyof DeactivateAccountErrors];
+
+export type DeactivateAccountResponses = {
+    /**
+     * Cuenta dada de baja exitosamente y sesiones revocadas.
+     */
+    204: void;
+};
+
+export type DeactivateAccountResponse = DeactivateAccountResponses[keyof DeactivateAccountResponses];
 
 export type UpdateWhatsAppPhoneData = {
     body: UpdatePhoneRequest;

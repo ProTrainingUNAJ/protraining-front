@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Info, X } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../api/authService';
 import { extractErrorMessage } from '../../api/axiosClient';
@@ -41,13 +41,9 @@ export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
-
-  // Modal informativo para funcionalidades sin soporte de backend
-  const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; content: string }>({
-    isOpen: false,
-    title: '',
-    content: '',
-  });
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState<string | null>(null);
 
   // Validaciones del lado del cliente
   const validate = (): boolean => {
@@ -70,9 +66,25 @@ export const LoginForm: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleResendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+    setResendLoading(true);
+    setResendSuccess(null);
+    try {
+      await authService.resendConfirmation(unconfirmedEmail);
+      setResendSuccess(`Te enviamos un nuevo mail a ${unconfirmedEmail}. Confirmalo para entrar.`);
+    } catch (err: unknown) {
+      setErrorMessage(extractErrorMessage(err));
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setUnconfirmedEmail(null);
+    setResendSuccess(null);
 
     if (!validate()) {
       return;
@@ -85,7 +97,25 @@ export const LoginForm: React.FC = () => {
       navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
     } catch (err: unknown) {
       const msg = extractErrorMessage(err);
-      setErrorMessage(msg);
+      const is403 =
+        (typeof err === 'object' &&
+          err !== null &&
+          'status' in err &&
+          (err as { status?: number }).status === 403) ||
+        (typeof err === 'object' &&
+          err !== null &&
+          'response' in err &&
+          (err as { response?: { status?: number } }).response?.status === 403) ||
+        msg.toLowerCase().includes('confirmá tu email') ||
+        msg.toLowerCase().includes('confirma tu email');
+
+      if (is403) {
+        setUnconfirmedEmail(email.trim());
+        setErrorMessage('Confirmá tu email para entrar');
+      } else {
+        setUnconfirmedEmail(null);
+        setErrorMessage(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -165,12 +195,7 @@ export const LoginForm: React.FC = () => {
   };
 
   const handleRegisterClick = () => {
-    setInfoModal({
-      isOpen: true,
-      title: 'Registro de Cuentas',
-      content:
-        'El registro público directo no está disponible. Las cuentas de Preparadores Físicos y Alumnos son gestionadas y dadas de alta institucionalmente por la dirección deportiva de tu club o entidad.',
-    });
+    navigate('/registro');
   };
 
   return (
@@ -198,7 +223,35 @@ export const LoginForm: React.FC = () => {
       {errorMessage && (
         <div className="alert-box alert-danger" role="alert" aria-live="assertive">
           <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>{errorMessage}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%' }}>
+            <div>{errorMessage}</div>
+            {unconfirmedEmail && (
+              <div>
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading}
+                  className="btn-pill-secondary"
+                  style={{
+                    fontSize: '0.82rem',
+                    padding: '0.25rem 0.65rem',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  {resendLoading ? 'Enviando...' : 'Reenviar mail'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Alerta de Éxito al reenviar confirmación */}
+      {resendSuccess && (
+        <div className="alert-box alert-success" role="status">
+          <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>{resendSuccess}</div>
         </div>
       )}
 
@@ -309,7 +362,7 @@ export const LoginForm: React.FC = () => {
           </button>
         )}
 
-        {/* Accesos Secundarios: Recuperación de contraseña habilitada (#KAN-540) */}
+        {/* Accesos Secundarios: Recuperación de contraseña y Registro (KAN-602) */}
         <div className="auth-secondary-actions">
           <button
             type="button"
@@ -324,56 +377,28 @@ export const LoginForm: React.FC = () => {
             •
           </span>
 
-          <button
-            type="button"
-            onClick={handleRegisterClick}
-            disabled
-            className="auth-secondary-btn"
-            title="Próximamente disponible"
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.82rem',
+              color: 'var(--color-text-muted)',
+            }}
           >
-            Registrarse (Próximamente)
-          </button>
-        </div>
-      </form>
-
-      {/* Modal Informativo para Funcionalidades Administrativas / Sin Endpoint */}
-      {infoModal.isOpen && (
-        <div
-          className="auth-info-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-info-title"
-        >
-          <div className="auth-info-modal-card">
-            <div className="auth-info-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Info size={20} color="var(--color-primary)" />
-                <h2 id="modal-info-title" className="font-extrabold auth-info-modal-title">
-                  {infoModal.title}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })}
-                className="auth-info-modal-close"
-                aria-label="Cerrar ventana informativa"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <p className="font-medium auth-info-modal-body">{infoModal.content}</p>
-            <div className="auth-info-modal-footer">
-              <button
-                type="button"
-                onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })}
-                className="btn-pill-primary auth-info-modal-btn"
-              >
-                Entendido
-              </button>
-            </div>
+            <span>¿No tenés cuenta?</span>
+            <button
+              type="button"
+              onClick={handleRegisterClick}
+              className="auth-secondary-btn"
+              id="btn-register-link"
+              style={{ fontWeight: 700, color: 'var(--color-primary)' }}
+            >
+              Registrate
+            </button>
           </div>
         </div>
-      )}
+      </form>
     </div>
   );
 };

@@ -9,6 +9,12 @@ import {
   changePassword as changePasswordSdk,
   resetAthletePassword as resetAthletePasswordSdk,
   registerByInvitation as registerByInvitationSdk,
+  registerPf as registerPfSdk,
+  confirmEmail as confirmEmailSdk,
+  resendConfirmation as resendConfirmationSdk,
+  type RegisterPfResponse,
+  type ConfirmEmailResponse,
+  type ResendConfirmationResponse,
 } from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
 import { PENDING_INVITATION_TOKEN_KEY } from './categoryInvitations';
@@ -222,6 +228,84 @@ export const authService = {
         },
       );
       return response.data?.message || 'Contraseña actualizada exitosamente.';
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Registers a new physical trainer (Preparador Físico) account (KAN-601 / KAN-602).
+   */
+  async registerPf(request: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string | null;
+    deviceId?: string;
+  }): Promise<RegisterPfResponse> {
+    try {
+      const deviceId = request.deviceId ?? getDeviceId();
+      const response = await registerPfSdk({
+        body: {
+          fullName: request.fullName.trim(),
+          email: request.email.trim(),
+          password: request.password,
+          phone: request.phone?.trim() || null,
+          deviceId,
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida del servidor al registrar preparador físico.');
+      }
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Confirms email address using verification token (KAN-601 / KAN-602).
+   */
+  async confirmEmail(request: { userId: string; token: string }): Promise<ConfirmEmailResponse> {
+    try {
+      const response = await confirmEmailSdk({
+        body: {
+          userId: request.userId,
+          token: request.token,
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida al confirmar el correo.');
+      }
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Resends email confirmation link with anti-enumeration protection (KAN-601 / KAN-602).
+   */
+  async resendConfirmation(email: string): Promise<ResendConfirmationResponse> {
+    try {
+      const response = await resendConfirmationSdk({
+        body: {
+          email: email.trim(),
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida al solicitar reenvío.');
+      }
+      return data;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

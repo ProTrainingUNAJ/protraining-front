@@ -31,6 +31,7 @@ interface AuthContextType {
   logout: () => void;
   applySession: (session: AuthSession) => void;
   clearMustChangePassword?: () => void;
+  updateCurrentUser?: (partial: Partial<UserDto>) => void;
   theme: 'light' | 'dark';
   themePreference: ThemePreference;
   setThemePreference: (preference: ThemePreference) => void;
@@ -187,6 +188,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
+  const updateCurrentUser = useCallback((partial: Partial<UserDto>) => {
+    setSession((prev) => {
+      if (!prev) return null;
+      const updated: AuthSession = {
+        ...prev,
+        user: {
+          ...prev.user,
+          ...partial,
+        },
+      };
+      saveStoredSession(updated);
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -202,6 +218,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         applySession,
         logout,
         clearMustChangePassword,
+        updateCurrentUser,
         theme,
         themePreference,
         setThemePreference,

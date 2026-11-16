@@ -14,6 +14,10 @@ import {
   RefreshCw,
   AlertTriangle,
   Award,
+  X,
+  Eye,
+  EyeOff,
+  AlertCircle,
 } from 'lucide-react';
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
@@ -37,7 +41,7 @@ interface SettingsViewProps {
 type SettingsTab = 'profile' | 'appearance' | 'notifications' | 'roleOptions' | 'marks';
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
-  const { user, themePreference, setThemePreference } = useAuth();
+  const { user, themePreference, setThemePreference, updateCurrentUser, logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   // Deep link del inicio del atleta: /athlete/settings?tab=marcas (KAN-417).
   const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
@@ -61,11 +65,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   };
 
   // Form states
-  const name = user?.fullName ?? '';
+  const [fullName, setFullName] = useState(user?.fullName ?? '');
   const email = user?.email ?? '';
   const [phone, setPhone] = useState(user?.phoneNumber ?? '');
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Modal y estado de baja lógica / desactivación de cuenta (KAN-601 / KAN-602)
+  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+  const [deactivatePassword, setDeactivatePassword] = useState('');
+  const [showDeactivatePassword, setShowDeactivatePassword] = useState(false);
+  const [deactivateLoading, setDeactivateLoading] = useState(false);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
+
+  const [prevUserId, setPrevUserId] = useState(user?.id);
+  if (user?.id !== prevUserId) {
+    setPrevUserId(user?.id);
+    if (user?.fullName) setFullName(user.fullName);
+    if (user?.phoneNumber) setPhone(user.phoneNumber);
+  }
 
   const [habitsEnabled, setHabitsEnabled] = useState(true);
   const [habitsLoading, setHabitsLoading] = useState(role === 'pf');
@@ -179,28 +198,68 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhoneError(null);
+    setProfileError(null);
 
     if (role === 'pf') {
       try {
-        setPhoneSaving(true);
-        const result = await usersService.updateWhatsAppPhone(phone);
-        // Si sale bien, mostramos el número normalizado devuelto (ej: 5491123456789)
-        setPhone(result.phoneNumber);
+        setProfileSaving(true);
+        const result = await usersService.updateProfile({
+          fullName,
+          phone: phone ? phone : null,
+        });
+
+        // Actualizamos estado local y sincronizamos con el contexto de auth
+        setFullName(result.fullName);
+        setPhone(result.phoneNumber ?? '');
+        if (updateCurrentUser) {
+          updateCurrentUser({
+            fullName: result.fullName,
+            phoneNumber: result.phoneNumber,
+          });
+        }
+
         setSavedSuccess(true);
         setTimeout(() => {
           setSavedSuccess(false);
         }, 3000);
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Error al guardar el teléfono';
-        setPhoneError(errorMsg);
+        const errorMsg =
+          err instanceof Error ? err.message : 'Error al guardar los cambios de perfil';
+        setProfileError(errorMsg);
       } finally {
-        setPhoneSaving(false);
+        setProfileSaving(false);
       }
     } else {
       setSavedSuccess(true);
       setTimeout(() => {
         setSavedSuccess(false);
       }, 3000);
+    }
+  };
+
+  const handleConfirmDeactivate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deactivatePassword) {
+      setDeactivateError('Ingresá tu contraseña para confirmar.');
+      return;
+    }
+
+    setDeactivateLoading(true);
+    setDeactivateError(null);
+
+    try {
+      await usersService.deactivateAccount(deactivatePassword);
+      setDeactivateModalOpen(false);
+      logout();
+      window.location.href = '/login';
+    } catch (err: unknown) {
+      setDeactivateError(
+        err instanceof Error
+          ? err.message
+          : 'Contraseña incorrecta o error al desactivar la cuenta.',
+      );
+    } finally {
+      setDeactivateLoading(false);
     }
   };
 
@@ -216,11 +275,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
               type="button"
               className="btn btn-primary"
               onClick={handleSave}
-              disabled={phoneSaving}
-              title="Guardar el WhatsApp"
+              disabled={profileSaving}
+              title="Guardar cambios de perfil"
             >
               <Save size={16} aria-hidden="true" />
-              <span>{phoneSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
+              <span>{profileSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
             </button>
           )
         }
@@ -344,7 +403,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                     >
                       <PhotoUploadControl
                         currentPhotoUrl={user?.id ? usersService.getMyPhotoUrl(user.id) : null}
-                        name={name || 'Usuario'}
+                        name={fullName || 'Usuario'}
                         size={84}
                         onUpload={async (file) => {
                           await usersService.uploadMyPhoto(file);
@@ -399,6 +458,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       </div>
                     </div>
 
+                    {profileError && (
+                      <div
+                        className="alert-box alert-danger"
+                        style={{ marginBottom: '1.25rem' }}
+                        role="alert"
+                      >
+                        <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>{profileError}</span>
+                      </div>
+                    )}
+
                     <div
                       style={{
                         display: 'grid',
@@ -418,7 +488,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         >
                           Nombre Completo
                         </label>
-                        <input id="set-name" type="text" value={name} readOnly required />
+                        <input
+                          id="set-name"
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => {
+                            setFullName(e.target.value);
+                            if (profileError) setProfileError(null);
+                          }}
+                          readOnly={role !== 'pf'}
+                          required
+                        />
                       </div>
 
                       <div>
@@ -580,6 +660,275 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                   )}
                 </form>
                 <ChangePasswordSection />
+
+                {/* Zona de peligro: Baja lógica / Desactivación de cuenta (KAN-601 / KAN-602) */}
+                {role === 'pf' && (
+                  <div
+                    className="card"
+                    style={{
+                      margin: '1.25rem 0 0',
+                      padding: '1.5rem',
+                      border: '1px solid var(--danger-border)',
+                      background: 'var(--bg-card)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.6rem',
+                        marginBottom: '0.35rem',
+                      }}
+                    >
+                      <AlertTriangle size={20} color="var(--danger-text)" aria-hidden="true" />
+                      <h2
+                        style={{
+                          fontSize: '1.15rem',
+                          fontWeight: 700,
+                          margin: 0,
+                          color: 'var(--danger-text)',
+                        }}
+                      >
+                        Zona de Peligro
+                      </h2>
+                    </div>
+                    <p
+                      style={{
+                        color: 'var(--text-muted)',
+                        fontSize: '0.85rem',
+                        marginBottom: '1.25rem',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      Desactivar tu cuenta revocará inmediatamente todas tus sesiones activas y tu
+                      acceso a la plataforma.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeactivateError(null);
+                        setDeactivatePassword('');
+                        setDeactivateModalOpen(true);
+                      }}
+                      className="btn"
+                      id="btn-open-deactivate-account"
+                      style={{
+                        background: 'var(--danger-bg)',
+                        color: 'var(--danger-text)',
+                        border: '1px solid var(--danger-border)',
+                        padding: '0.55rem 1.15rem',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Desactivar mi cuenta
+                    </button>
+                  </div>
+                )}
+
+                {/* Modal de confirmación de desactivación */}
+                {deactivateModalOpen && (
+                  <div
+                    className="auth-info-modal-backdrop"
+                    style={{
+                      position: 'fixed',
+                      inset: 0,
+                      background: 'var(--overlay)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '1rem',
+                      zIndex: 1000,
+                    }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="deactivate-modal-title"
+                  >
+                    <div
+                      className="card"
+                      style={{
+                        maxWidth: '440px',
+                        width: '100%',
+                        margin: 0,
+                        padding: '1.75rem',
+                        background: 'var(--bg-card)',
+                        borderRadius: 'var(--radius)',
+                        boxShadow: 'var(--shadow-lg)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '1rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <AlertTriangle size={20} color="var(--danger-text)" aria-hidden="true" />
+                          <h3
+                            id="deactivate-modal-title"
+                            style={{
+                              margin: 0,
+                              fontSize: '1.15rem',
+                              fontWeight: 700,
+                              color: 'var(--text-main)',
+                            }}
+                          >
+                            ¿Desactivar tu cuenta?
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDeactivateModalOpen(false)}
+                          disabled={deactivateLoading}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--text-muted)',
+                          }}
+                          aria-label="Cerrar modal"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+
+                      <p
+                        style={{
+                          fontSize: '0.88rem',
+                          color: 'var(--text-muted)',
+                          lineHeight: 1.45,
+                          marginBottom: '1.25rem',
+                        }}
+                      >
+                        Esta acción dará de baja tu cuenta y cerrará todas tus sesiones abiertas.
+                        Para reactivarla deberás comunicarte con el equipo de soporte.
+                      </p>
+
+                      {deactivateError && (
+                        <div
+                          className="alert-box alert-danger"
+                          style={{
+                            marginBottom: '1rem',
+                            padding: '0.65rem 0.85rem',
+                            fontSize: '0.82rem',
+                          }}
+                          role="alert"
+                        >
+                          <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <span>{deactivateError}</span>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleConfirmDeactivate}>
+                        <div style={{ marginBottom: '1.25rem' }}>
+                          <label
+                            htmlFor="deactivate-confirm-password"
+                            style={{
+                              display: 'block',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              marginBottom: '0.35rem',
+                              color: 'var(--text-main)',
+                            }}
+                          >
+                            Confirmá con tu contraseña actual
+                          </label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              id="deactivate-confirm-password"
+                              type={showDeactivatePassword ? 'text' : 'password'}
+                              value={deactivatePassword}
+                              onChange={(e) => {
+                                setDeactivatePassword(e.target.value);
+                                if (deactivateError) setDeactivateError(null);
+                              }}
+                              disabled={deactivateLoading}
+                              required
+                              placeholder="Tu contraseña"
+                              style={{
+                                width: '100%',
+                                padding: '0.6rem 2.5rem 0.6rem 0.75rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--bg-main)',
+                                color: 'var(--text-main)',
+                                fontSize: '0.9rem',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowDeactivatePassword(!showDeactivatePassword)}
+                              style={{
+                                position: 'absolute',
+                                right: '0.75rem',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--text-muted)',
+                              }}
+                              title={
+                                showDeactivatePassword ? 'Ocultar contraseña' : 'Ver contraseña'
+                              }
+                              aria-label={
+                                showDeactivatePassword ? 'Ocultar contraseña' : 'Ver contraseña'
+                              }
+                            >
+                              {showDeactivatePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: '0.75rem',
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setDeactivateModalOpen(false)}
+                            disabled={deactivateLoading}
+                            className="btn btn-secondary"
+                            style={{
+                              borderRadius: '8px',
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem',
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={deactivateLoading}
+                            className="btn"
+                            id="btn-confirm-deactivate-submit"
+                            style={{
+                              background: 'var(--danger-bg)',
+                              color: 'var(--danger-text)',
+                              border: '1px solid var(--danger-border)',
+                              borderRadius: '8px',
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {deactivateLoading ? 'Desactivando…' : 'Confirmar Desactivación'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </>
             )}
 

@@ -27,6 +27,7 @@ import {
   summarizeTrafficLightCounts,
 } from '../../api/seguimientoService';
 import { recordProposalsService } from '../../api/recordProposals';
+import { structureService } from '../../api/structureService';
 import { RecordProposalItem } from '../../types/recordProposals';
 import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
 import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
@@ -204,6 +205,18 @@ export const DashboardPage: React.FC = () => {
     if (isAthlete) return;
     let active = true;
 
+    // Si el PF no tiene organizaciones creadas (primer ingreso), llevarlo a crear su primera organización (KAN-602)
+    structureService
+      .getOrganizations()
+      .then((orgs) => {
+        if (active && (!orgs || orgs.length === 0)) {
+          navigate('/pf/organizations', { replace: true });
+        }
+      })
+      .catch(() => {
+        // En caso de fallo transitorio no interrumpir el flujo
+      });
+
     fetchAllCategoriesTrafficLight()
       .then((items) => {
         if (active) setTrafficLightItems(items);
@@ -218,7 +231,7 @@ export const DashboardPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [isAthlete]);
+  }, [isAthlete, navigate]);
 
   const trafficLightCounts = React.useMemo(
     () => summarizeTrafficLightCounts(trafficLightItems),
