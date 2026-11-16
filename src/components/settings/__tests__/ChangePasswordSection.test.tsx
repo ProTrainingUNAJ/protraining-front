@@ -39,6 +39,8 @@ vi.mock('../../../api/users', () => ({
     getMyPhotoUrl: vi.fn().mockReturnValue(null),
     uploadMyPhoto: vi.fn().mockResolvedValue(undefined),
     deleteMyPhoto: vi.fn().mockResolvedValue(undefined),
+    getPfHabitsRecommendations: vi.fn().mockResolvedValue({ enabled: true }),
+    updatePfHabitsRecommendations: vi.fn().mockResolvedValue({ enabled: true }),
   },
 }));
 
