@@ -18,6 +18,7 @@ import {
 import { Athlete } from '../../types/structure';
 import { structureService } from '../../api/structureService';
 import { authService } from '../../api/authService';
+import { usersService } from '../../api/users';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 
 interface AthleteSettingsModalProps {
@@ -234,15 +235,16 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>Foto de Perfil</h3>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-              Subí una fotografía del atleta. Se optimiza y almacena automáticamente en formato WebP
-              para máximo rendimiento.
+              Subí una fotografía del atleta.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <PhotoUploadControl
                 currentPhotoUrl={
                   athlete.hasPhoto
                     ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
-                    : null
+                    : athlete.accountId
+                      ? usersService.getMyPhotoUrl(athlete.accountId)
+                      : null
                 }
                 name={athleteName}
                 onUpload={async (file: File) => {

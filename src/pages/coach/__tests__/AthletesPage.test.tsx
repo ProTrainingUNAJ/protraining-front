@@ -201,9 +201,25 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
 
     expect(screen.getByText(/Configuración · Joaquín Díaz/i)).toBeDefined();
     expect(screen.getByRole('heading', { name: /Foto de Perfil/i })).toBeDefined();
+    expect(screen.getByText('Subí una fotografía del atleta.')).toBeDefined();
+    expect(screen.queryByText(/formato WebP para máximo rendimiento/i)).toBeNull();
     expect(screen.getByText(/Correo Electrónico \(Email\)/i)).toBeDefined();
     expect(screen.getByText(/Número de Teléfono \(Contacto\)/i)).toBeDefined();
     expect(screen.getByText(/Seguridad y Contraseña/i)).toBeDefined();
     expect(screen.getByText(/Estado de la Cuenta: Activo/i)).toBeDefined();
+  });
+
+  it('el avatar del atleta no es interactivo y solo se cambia foto desde Configuración (KAN-512)', async () => {
+    render(
+      <MemoryRouter>
+        <AthletesPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Joaquín Díaz')).toBeTruthy();
+    });
+
+    expect(screen.queryByTitle('Subir o cambiar foto de perfil')).toBeNull();
   });
 });
