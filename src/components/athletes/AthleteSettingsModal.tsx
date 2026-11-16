@@ -73,7 +73,9 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
       setEmailSuccess(true);
       setTimeout(() => setEmailSuccess(false), 3000);
     } catch (err: unknown) {
-      setEmailError(err instanceof Error ? err.message : 'No se pudo actualizar el correo electrónico.');
+      setEmailError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el correo electrónico.',
+      );
     } finally {
       setEmailSaving(false);
     }
@@ -125,7 +127,9 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
       onAthleteUpdated(merged);
       setStatusConfirming(false);
     } catch (err: unknown) {
-      setStatusError(err instanceof Error ? err.message : 'No se pudo actualizar el estado de la cuenta.');
+      setStatusError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el estado de la cuenta.',
+      );
     } finally {
       setStatusSaving(false);
     }
@@ -146,7 +150,10 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <Settings size={22} color="var(--primary)" aria-hidden="true" />
             <div>
-              <h2 id="modal-settings-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
+              <h2
+                id="modal-settings-title"
+                style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}
+              >
                 Configuración · {athleteName}
               </h2>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -154,12 +161,19 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               </p>
             </div>
           </div>
-          <button type="button" className="coach-icon-btn" onClick={onClose} aria-label="Cerrar modal">
+          <button
+            type="button"
+            className="coach-icon-btn"
+            onClick={onClose}
+            aria-label="Cerrar modal"
+          >
             <X size={18} aria-hidden="true" />
           </button>
         </div>
 
-        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div
+          style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+        >
           {/* SECCIÓN 1: FOTO DE PERFIL */}
           <div
             style={{
@@ -169,12 +183,20 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               padding: '1.25rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
               <Camera size={18} color="var(--primary)" aria-hidden="true" />
               <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>Foto de Perfil</h3>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-              Subí una fotografía del atleta. Se optimiza y almacena automáticamente en formato WebP para máximo rendimiento.
+              Subí una fotografía del atleta. Se optimiza y almacena automáticamente en formato WebP
+              para máximo rendimiento.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <PhotoUploadControl
@@ -217,16 +239,30 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               padding: '1.25rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
               <Mail size={18} color="var(--primary)" aria-hidden="true" />
-              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>Correo Electrónico (Email)</h3>
+              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                Correo Electrónico (Email)
+              </h3>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-              El correo es el identificador principal con el cual el atleta inicia sesión en la aplicación.
+              El correo es el identificador principal con el cual el atleta inicia sesión en la
+              aplicación.
             </p>
 
             {emailSuccess && (
-              <div className="alert-banner success" role="alert" style={{ marginBottom: '0.75rem' }}>
+              <div
+                className="alert-banner success"
+                role="alert"
+                style={{ marginBottom: '0.75rem' }}
+              >
                 <Check size={16} aria-hidden="true" />
                 <span>Correo electrónico actualizado exitosamente.</span>
               </div>
@@ -254,7 +290,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                   className="btn btn-primary"
                   disabled={emailSaving || email.trim() === athlete.email}
                 >
-                  {emailSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                  {emailSaving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Check size={16} />
+                  )}
                   <span>Guardar Correo</span>
                 </button>
               </div>
@@ -270,12 +310,22 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               padding: '1.25rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
               <KeyRound size={18} color="var(--primary)" aria-hidden="true" />
-              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>Seguridad y Contraseña</h3>
+              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                Seguridad y Contraseña
+              </h3>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-              Si el deportista olvidó su contraseña, podés generar una credencial temporal provisoria de un solo uso.
+              Si el deportista olvidó su contraseña, podés generar una credencial temporal
+              provisoria de un solo uso.
             </p>
 
             {resetError && (
@@ -294,7 +344,14 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                   padding: '1rem',
                 }}
               >
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    color: 'var(--primary)',
+                    marginBottom: '0.5rem',
+                  }}
+                >
                   Contraseña temporal generada con éxito:
                 </div>
                 <div
@@ -322,8 +379,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                     <span>{copied ? 'Copiada' : 'Copiar'}</span>
                   </button>
                 </div>
-                <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Comunicale esta clave al atleta. Al iniciar sesión, el sistema le exigirá definir una nueva contraseña personal.
+                <p
+                  style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                >
+                  Comunicale esta clave al atleta. Al iniciar sesión, el sistema le exigirá definir
+                  una nueva contraseña personal.
                 </p>
               </div>
             ) : (
@@ -352,7 +412,14 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               padding: '1.25rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
               {athlete.active ? (
                 <UserCheck size={18} color="var(--success)" aria-hidden="true" />
               ) : (
@@ -398,7 +465,14 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                   border: '1px solid var(--border)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.5rem',
+                  }}
+                >
                   <AlertTriangle size={18} color="var(--warning)" />
                   <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
                     {athlete.active
@@ -426,7 +500,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                     onClick={handleToggleStatus}
                     disabled={statusSaving}
                   >
-                    {statusSaving ? <Loader2 size={16} className="animate-spin" /> : <Power size={16} />}
+                    {statusSaving ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Power size={16} />
+                    )}
                     <span>{athlete.active ? 'Sí, deshabilitar' : 'Sí, reactivar'}</span>
                   </button>
                 </div>

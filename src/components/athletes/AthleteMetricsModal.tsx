@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  AlertCircle,
-  AlertTriangle,
-  Check,
-  Dumbbell,
-  Loader2,
-  TrendingUp,
-  X,
-} from 'lucide-react';
+import { AlertCircle, AlertTriangle, Check, Dumbbell, Loader2, TrendingUp, X } from 'lucide-react';
 import { athleteRecordsService } from '../../api/athleteRecords';
 import { athleteEvolutionService } from '../../api/athleteEvolution';
 import { athleteBenchmarkService } from '../../api/athleteBenchmark';
@@ -116,7 +108,9 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
       })
       .catch((err: unknown) => {
         if (active) {
-          setRecordsError(err instanceof Error ? err.message : 'No se pudieron cargar los récords.');
+          setRecordsError(
+            err instanceof Error ? err.message : 'No se pudieron cargar los récords.',
+          );
         }
       })
       .finally(() => {
@@ -348,7 +342,11 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
               )}
 
               {savedMessage && (
-                <div className="alert-banner success" role="status" style={{ marginBottom: '1rem' }}>
+                <div
+                  className="alert-banner success"
+                  role="status"
+                  style={{ marginBottom: '1rem' }}
+                >
                   <Check size={16} aria-hidden="true" />
                   <span>{savedMessage}</span>
                 </div>
@@ -378,24 +376,49 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                   }}
                 >
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        marginBottom: '0.25rem',
+                      }}
+                    >
                       Ejercicio del catálogo *
                     </label>
                     <button
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => setShowPicker(true)}
-                      style={{ width: '100%', justifyContent: 'flex-start', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      style={{
+                        width: '100%',
+                        justifyContent: 'flex-start',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
                     >
                       <Dumbbell size={15} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {exercise ? exercise.name : 'Elegir del catálogo…'}
                       </span>
                     </button>
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        marginBottom: '0.25rem',
+                      }}
+                    >
                       {exercise && isTimedExercise(exercise.name, exercise.exerciseType)
                         ? 'Tiempo récord (segundos) *'
                         : '1RM (kilogramos) *'}
@@ -404,7 +427,11 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                       type="number"
                       step="0.1"
                       min="0.1"
-                      placeholder={exercise && isTimedExercise(exercise.name, exercise.exerciseType) ? 'Ej. 14.2' : 'Ej. 110'}
+                      placeholder={
+                        exercise && isTimedExercise(exercise.name, exercise.exerciseType)
+                          ? 'Ej. 14.2'
+                          : 'Ej. 110'
+                      }
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
                       disabled={savingRecord}
@@ -414,7 +441,14 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        marginBottom: '0.25rem',
+                      }}
+                    >
                       Origen del dato *
                     </label>
                     <select
@@ -435,7 +469,11 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                     className="btn btn-primary"
                     disabled={savingRecord || !exercise || !weight}
                   >
-                    {savingRecord ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                    {savingRecord ? (
+                      <Loader2 size={15} className="animate-spin" />
+                    ) : (
+                      <Check size={15} />
+                    )}
                     <span>Guardar marca</span>
                   </button>
                 </div>
@@ -481,7 +519,9 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                           {RECORD_ORIGIN_LABELS[r.origin] || r.origin} · {formatDate(r.achievedAt)}
                         </div>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--primary)' }}>
+                      <div
+                        style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--primary)' }}
+                      >
                         {formatRecordValue(r.weightKg, r.exerciseName)}
                       </div>
                     </div>
@@ -537,8 +577,18 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
             <div>
               {/* Selector de categoría */}
               {athleteCategories.length > 1 && (
-                <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <label htmlFor="select-benchmark-cat" style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                <div
+                  style={{
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <label
+                    htmlFor="select-benchmark-cat"
+                    style={{ fontSize: '0.85rem', fontWeight: 600 }}
+                  >
                     Comparar con el grupo de:
                   </label>
                   <select
@@ -577,7 +627,9 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                   }}
                 >
                   <AlertTriangle size={32} style={{ margin: '0 auto 0.5rem', opacity: 0.4 }} />
-                  <p style={{ margin: 0 }}>No hay suficientes datos del plantel deportivo para contrastar marcas.</p>
+                  <p style={{ margin: 0 }}>
+                    No hay suficientes datos del plantel deportivo para contrastar marcas.
+                  </p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -602,7 +654,13 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                         aria-hidden="true"
                       />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, color: 'var(--warning-text)', fontSize: '0.95rem' }}>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: 'var(--warning-text)',
+                            fontSize: '0.95rem',
+                          }}
+                        >
                           Punto más débil identificado: {benchmarkSummary.weakestPoint.testName}
                         </div>
                         <p
@@ -614,11 +672,13 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                         >
                           Resultado del atleta:{' '}
                           <strong>
-                            {benchmarkSummary.weakestPoint.athleteValue} {benchmarkSummary.weakestPoint.unit}
+                            {benchmarkSummary.weakestPoint.athleteValue}{' '}
+                            {benchmarkSummary.weakestPoint.unit}
                           </strong>{' '}
                           frente al promedio grupal de{' '}
                           <strong>
-                            {benchmarkSummary.weakestPoint.groupAverage} {benchmarkSummary.weakestPoint.unit}
+                            {benchmarkSummary.weakestPoint.groupAverage}{' '}
+                            {benchmarkSummary.weakestPoint.unit}
                           </strong>{' '}
                           ({benchmarkSummary.weakestPoint.percentageDelta}% de diferencia).
                         </p>
@@ -626,8 +686,15 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                     </div>
                   )}
 
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                    Plantel de referencia: <strong>{benchmarkSummary.categoryName}</strong> ({benchmarkSummary.athleteCount} atletas evaluados).
+                  <div
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted)',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Plantel de referencia: <strong>{benchmarkSummary.categoryName}</strong> (
+                    {benchmarkSummary.athleteCount} atletas evaluados).
                   </div>
 
                   {benchmarkSummary.items.map((item) => {
@@ -649,16 +716,23 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                         }}
                       >
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.testName}</div>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                            {item.testName}
+                          </div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            Promedio del grupo: <strong>{item.groupAverage} {item.unit}</strong>
+                            Promedio del grupo:{' '}
+                            <strong>
+                              {item.groupAverage} {item.unit}
+                            </strong>
                           </div>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                           <div style={{ textAlign: 'right' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>
-                              {item.athleteValue !== null ? `${item.athleteValue} ${item.unit}` : 'Sin marca'}
+                              {item.athleteValue !== null
+                                ? `${item.athleteValue} ${item.unit}`
+                                : 'Sin marca'}
                             </div>
                             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                               {formatBenchmarkDelta(item)}

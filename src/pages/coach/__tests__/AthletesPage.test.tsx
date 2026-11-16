@@ -84,9 +84,15 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(structureService.getAthletes).mockResolvedValue(mockAthletes as unknown as Athlete[]);
-    vi.mocked(structureService.getOrganizations).mockResolvedValue(mockOrgs as unknown as Organization[]);
-    vi.mocked(structureService.getCategories).mockResolvedValue(mockCategories as unknown as Category[]);
-    vi.mocked(structureService.withCategories).mockResolvedValue(mockAthletes as unknown as Athlete[]);
+    vi.mocked(structureService.getOrganizations).mockResolvedValue(
+      mockOrgs as unknown as Organization[],
+    );
+    vi.mocked(structureService.getCategories).mockResolvedValue(
+      mockCategories as unknown as Category[],
+    );
+    vi.mocked(structureService.withCategories).mockResolvedValue(
+      mockAthletes as unknown as Athlete[],
+    );
   });
 
   it('renderiza el encabezado con el nuevo subtítulo oficial', async () => {

@@ -837,7 +837,9 @@ export const AthletesPage: React.FC = () => {
                 </div>
 
                 {/* 4 Acciones Semánticas Estandarizadas */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                <div
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}
+                >
                   <button
                     type="button"
                     className="btn btn-secondary"
@@ -898,10 +900,7 @@ export const AthletesPage: React.FC = () => {
       )}
 
       {healthAthlete && (
-        <AthleteHealthModal
-          athlete={healthAthlete}
-          onClose={() => setHealthAthlete(null)}
-        />
+        <AthleteHealthModal athlete={healthAthlete} onClose={() => setHealthAthlete(null)} />
       )}
 
       {settingsAthlete && (
@@ -1183,9 +1182,9 @@ export const AthletesPage: React.FC = () => {
               currentPhotoUrl={
                 photoAthlete.hasPhoto
                   ? structureService.getAthletePhotoUrl(
-                    photoAthlete.id,
-                    photoAthlete.photoUpdatedAt,
-                  )
+                      photoAthlete.id,
+                      photoAthlete.photoUpdatedAt,
+                    )
                   : null
               }
               name={photoAthlete.fullName || `${photoAthlete.firstName} ${photoAthlete.lastName}`}

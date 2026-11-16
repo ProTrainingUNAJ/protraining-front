@@ -136,8 +136,13 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
       setInjuriesError('Zona y descripción de la lesión son obligatorias.');
       return;
     }
-    if (!estimatedReturnDate.trim() || !isReturnDateAfterInjuryDate(injuryDate, estimatedReturnDate)) {
-      setInjuriesError('La fecha estimada de retorno es obligatoria y debe ser posterior a la fecha de lesión.');
+    if (
+      !estimatedReturnDate.trim() ||
+      !isReturnDateAfterInjuryDate(injuryDate, estimatedReturnDate)
+    ) {
+      setInjuriesError(
+        'La fecha estimada de retorno es obligatoria y debe ser posterior a la fecha de lesión.',
+      );
       return;
     }
 
@@ -188,7 +193,9 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
       setAdvancingInjuryId(null);
       setAdvancingNotes('');
     } catch (err: unknown) {
-      setInjuriesError(err instanceof Error ? err.message : 'No se pudo actualizar el estado de la lesión.');
+      setInjuriesError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el estado de la lesión.',
+      );
     } finally {
       setAdvancingSubmitting(false);
     }
@@ -226,14 +233,23 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
         aria-modal="true"
         aria-labelledby="modal-health-title"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '800px', width: '95%', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        style={{
+          maxWidth: '800px',
+          width: '95%',
+          maxHeight: '92vh',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         {/* Cabecera */}
         <div className="plan-picker-header" style={{ borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <HeartPulse size={22} color="var(--danger)" aria-hidden="true" />
             <div>
-              <h2 id="modal-health-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>
+              <h2
+                id="modal-health-title"
+                style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}
+              >
                 Salud y Ficha Médica · {athleteName}
               </h2>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -241,7 +257,12 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
               </p>
             </div>
           </div>
-          <button type="button" className="coach-icon-btn" onClick={onClose} aria-label="Cerrar modal">
+          <button
+            type="button"
+            className="coach-icon-btn"
+            onClick={onClose}
+            aria-label="Cerrar modal"
+          >
             <X size={18} aria-hidden="true" />
           </button>
         </div>
@@ -322,7 +343,14 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                     marginBottom: '1.25rem',
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--primary)' }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
+                      marginBottom: '0.75rem',
+                      color: 'var(--primary)',
+                    }}
+                  >
                     Alta de Lesión Deportiva
                   </div>
                   <div
@@ -334,7 +362,14 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                     }}
                   >
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
                         Zona afectada *
                       </label>
                       <input
@@ -347,7 +382,14 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
                         Descripción / Diagnóstico *
                       </label>
                       <input
@@ -360,7 +402,14 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
                         Fecha de la lesión *
                       </label>
                       <input
@@ -372,7 +421,14 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
                         Retorno estimado *
                       </label>
                       <input
@@ -394,7 +450,11 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       Cancelar
                     </button>
                     <button type="submit" className="btn btn-primary" disabled={injurySaving}>
-                      {injurySaving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                      {injurySaving ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <Check size={15} />
+                      )}
                       <span>Registrar Lesión</span>
                     </button>
                   </div>
@@ -418,7 +478,9 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                   }}
                 >
                   <Activity size={32} style={{ margin: '0 auto 0.5rem', opacity: 0.4 }} />
-                  <p style={{ margin: 0 }}>No hay lesiones registradas para este atleta. ¡Plantel en óptimas condiciones!</p>
+                  <p style={{ margin: 0 }}>
+                    No hay lesiones registradas para este atleta. ¡Plantel en óptimas condiciones!
+                  </p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -455,11 +517,18 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                           </div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             Ocurrida: {formatDate(inj.injuryDate)}
-                            {inj.estimatedReturnDate && ` · Retorno est.: ${formatDate(inj.estimatedReturnDate)}`}
+                            {inj.estimatedReturnDate &&
+                              ` · Retorno est.: ${formatDate(inj.estimatedReturnDate)}`}
                           </div>
                         </div>
 
-                        <div style={{ fontSize: '0.88rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                        <div
+                          style={{
+                            fontSize: '0.88rem',
+                            color: 'var(--text-main)',
+                            marginBottom: '0.5rem',
+                          }}
+                        >
                           <strong>Descripción:</strong> {inj.description}
                         </div>
 
@@ -477,7 +546,8 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                           {STATUS_ORDER.map((step, idx) => {
                             const isCurrent = inj.status === step;
                             const isPast =
-                              STATUS_ORDER.indexOf(inj.status) > idx || inj.status === 'MedicallyCleared';
+                              STATUS_ORDER.indexOf(inj.status) > idx ||
+                              inj.status === 'MedicallyCleared';
                             return (
                               <React.Fragment key={step}>
                                 <span
@@ -522,7 +592,14 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                               borderRadius: '6px',
                             }}
                           >
-                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                            <label
+                              style={{
+                                display: 'block',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                marginBottom: '0.35rem',
+                              }}
+                            >
                               Observaciones clínicas para el paso a {STATUS_LABELS[next]}:
                             </label>
                             <textarea
@@ -532,7 +609,9 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                               onChange={(e) => setAdvancingNotes(e.target.value)}
                               style={{ width: '100%', marginBottom: '0.5rem' }}
                             />
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <div
+                              style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}
+                            >
                               <button
                                 type="button"
                                 className="btn btn-secondary"
@@ -549,7 +628,11 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                                 onClick={() => handleAdvanceStatus(inj)}
                                 disabled={advancingSubmitting}
                               >
-                                {advancingSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                                {advancingSubmitting ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  <Check size={14} />
+                                )}
                                 <span>Confirmar {STATUS_LABELS[next]}</span>
                               </button>
                             </div>
@@ -576,37 +659,68 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                     padding: '1.5rem',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      marginBottom: '1rem',
+                    }}
+                  >
                     <ShieldCheck size={26} color="var(--primary)" aria-hidden="true" />
                     <div>
                       <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>
                         Acceso Médico Confidencial
                       </h3>
                       <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                        De acuerdo a las normativas de privacidad clínica de ProTraining, cada consulta de ficha médica requiere dejar asentado el motivo en la auditoría inmutable.
+                        De acuerdo a las normativas de privacidad clínica de ProTraining, cada
+                        consulta de ficha médica requiere dejar asentado el motivo en la auditoría
+                        inmutable.
                       </p>
                     </div>
                   </div>
 
                   {justificationError && (
-                    <div className="alert-banner danger" role="alert" style={{ marginBottom: '1rem' }}>
+                    <div
+                      className="alert-banner danger"
+                      role="alert"
+                      style={{ marginBottom: '1rem' }}
+                    >
                       <AlertCircle size={16} aria-hidden="true" />
                       <span>{justificationError}</span>
                     </div>
                   )}
 
                   {medicalError && (
-                    <div className="alert-banner danger" role="alert" style={{ marginBottom: '1rem' }}>
+                    <div
+                      className="alert-banner danger"
+                      role="alert"
+                      style={{ marginBottom: '1rem' }}
+                    >
                       <AlertCircle size={16} aria-hidden="true" />
                       <span>{medicalError}</span>
                     </div>
                   )}
 
                   <form onSubmit={handleRequestMedicalAccess}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        marginBottom: '0.5rem',
+                      }}
+                    >
                       Seleccioná un motivo frecuente:
                     </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.4rem',
+                        marginBottom: '1rem',
+                      }}
+                    >
                       {COMMON_JUSTIFICATIONS.map((motivo) => (
                         <button
                           key={motivo}
@@ -615,8 +729,10 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                           style={{
                             fontSize: '0.78rem',
                             padding: '0.3rem 0.6rem',
-                            border: justification === motivo ? '1.5px solid var(--primary)' : undefined,
-                            background: justification === motivo ? 'var(--primary-light)' : undefined,
+                            border:
+                              justification === motivo ? '1.5px solid var(--primary)' : undefined,
+                            background:
+                              justification === motivo ? 'var(--primary-light)' : undefined,
                           }}
                           onClick={() => setJustification(motivo)}
                         >
@@ -625,7 +741,15 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       ))}
                     </div>
 
-                    <label htmlFor="input-justification-free" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                    <label
+                      htmlFor="input-justification-free"
+                      style={{
+                        display: 'block',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        marginBottom: '0.35rem',
+                      }}
+                    >
                       O ingresá una justificación personalizada (mínimo 10 caracteres) *:
                     </label>
                     <textarea
@@ -659,7 +783,11 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {/* Banner de auditoría registrada */}
                   <div className="medical-notice-box" style={{ background: 'var(--bg-subtle)' }}>
-                    <ShieldCheck size={18} style={{ color: 'var(--success)', flexShrink: 0 }} aria-hidden="true" />
+                    <ShieldCheck
+                      size={18}
+                      style={{ color: 'var(--success)', flexShrink: 0 }}
+                      aria-hidden="true"
+                    />
                     <div style={{ fontSize: '0.82rem' }}>
                       <strong>Acceso registrado en auditoría inmutable:</strong> Motivo:{' '}
                       <em>"{authorizedJustification}"</em>.
@@ -676,19 +804,49 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       border: '1px solid var(--border)',
                     }}
                   >
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--primary)' }}>
+                    <h3
+                      style={{
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        marginBottom: '0.75rem',
+                        color: 'var(--primary)',
+                      }}
+                    >
                       Certificado de Aptitud Física
                     </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       {medicalRecord.hasPhysicalFitnessCertificate ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--success)',
+                          }}
+                        >
                           <CheckCircle2 size={18} />
                           <span style={{ fontWeight: 600 }}>Apto Físico Presentado y Vigente</span>
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--danger)' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--danger)',
+                          }}
+                        >
                           <AlertTriangle size={18} />
-                          <span style={{ fontWeight: 600 }}>Sin certificado de apto físico registrado</span>
+                          <span style={{ fontWeight: 600 }}>
+                            Sin certificado de apto físico registrado
+                          </span>
                         </div>
                       )}
 
@@ -699,7 +857,13 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       )}
                     </div>
                     {medicalRecord.physicalFitnessNotes && (
-                      <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      <p
+                        style={{
+                          marginTop: '0.5rem',
+                          fontSize: '0.85rem',
+                          color: 'var(--text-muted)',
+                        }}
+                      >
                         <strong>Observaciones:</strong> {medicalRecord.physicalFitnessNotes}
                       </p>
                     )}
@@ -715,25 +879,51 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                       border: '1px solid var(--border)',
                     }}
                   >
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--primary)' }}>
+                    <h3
+                      style={{
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        marginBottom: '0.75rem',
+                        color: 'var(--primary)',
+                      }}
+                    >
                       Antecedentes Médicos y Clínicos
                     </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        fontSize: '0.9rem',
+                      }}
+                    >
                       <div>
                         <strong>Historial Médico:</strong>{' '}
-                        <span style={{ color: medicalRecord.medicalHistory ? 'inherit' : 'var(--text-muted)' }}>
+                        <span
+                          style={{
+                            color: medicalRecord.medicalHistory ? 'inherit' : 'var(--text-muted)',
+                          }}
+                        >
                           {medicalRecord.medicalHistory || 'Sin antecedentes reportados.'}
                         </span>
                       </div>
                       <div>
                         <strong>Cirugías / Intervenciones:</strong>{' '}
-                        <span style={{ color: medicalRecord.surgeries ? 'inherit' : 'var(--text-muted)' }}>
+                        <span
+                          style={{
+                            color: medicalRecord.surgeries ? 'inherit' : 'var(--text-muted)',
+                          }}
+                        >
                           {medicalRecord.surgeries || 'Ninguna cirugía registrada.'}
                         </span>
                       </div>
                       <div>
                         <strong>Patologías / Condiciones Preexistentes:</strong>{' '}
-                        <span style={{ color: medicalRecord.pathologies ? 'inherit' : 'var(--text-muted)' }}>
+                        <span
+                          style={{
+                            color: medicalRecord.pathologies ? 'inherit' : 'var(--text-muted)',
+                          }}
+                        >
                           {medicalRecord.pathologies || 'Sin patologías activas informadas.'}
                         </span>
                       </div>
