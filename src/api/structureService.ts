@@ -389,6 +389,25 @@ export const structureService = {
     }
   },
 
+  async updateAthletePhone(athleteId: string, phone: string): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<Athlete>(
+        `/estructura/api/v1/athletes/${athleteId}/phone`,
+        { phone },
+      );
+      try {
+        await httpClient.patch(`/identidad/api/v1/users/athletes/${athleteId}/phone`, {
+          phoneNumber: phone,
+        });
+      } catch {
+        // Silencioso si el atleta aún no activó credenciales en identidad
+      }
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   async assignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
     try {
       await httpClient.post(`/estructura/api/v1/athletes/${athleteId}/categories/${categoryId}`);

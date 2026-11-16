@@ -14,6 +14,7 @@ vi.mock('../../../api/structureService', () => ({
     getAthletePhotoUrl: vi.fn(),
     updateAthleteStatus: vi.fn(),
     updateAthleteEmail: vi.fn(),
+    updateAthletePhone: vi.fn(),
   },
 }));
 
@@ -178,6 +179,11 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
     expect(screen.getByText(/Salud y Ficha Médica · Joaquín Díaz/i)).toBeDefined();
     expect(screen.getByRole('button', { name: /Historial de Lesiones/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /Ficha Médica & Apto Físico/i })).toBeDefined();
+
+    // Cambiar a pestaña de Ficha Médica
+    fireEvent.click(screen.getByRole('button', { name: /Ficha Médica & Apto Físico/i }));
+    expect(screen.getByText(/Motivo de la consulta médica \*/i)).toBeDefined();
+    expect(screen.queryByText(/Seleccioná un motivo frecuente/i)).toBeNull();
   });
 
   it('abre el modal unificado de Configuración al hacer clic en Configuración', async () => {
@@ -196,6 +202,7 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
     expect(screen.getByText(/Configuración · Joaquín Díaz/i)).toBeDefined();
     expect(screen.getByRole('heading', { name: /Foto de Perfil/i })).toBeDefined();
     expect(screen.getByText(/Correo Electrónico \(Email\)/i)).toBeDefined();
+    expect(screen.getByText(/Número de Teléfono \(Contacto\)/i)).toBeDefined();
     expect(screen.getByText(/Seguridad y Contraseña/i)).toBeDefined();
     expect(screen.getByText(/Estado de la Cuenta: Activo/i)).toBeDefined();
   });
