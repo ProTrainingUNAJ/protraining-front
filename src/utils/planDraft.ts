@@ -125,6 +125,26 @@ export function dayLabel(dayOfWeek: number): string {
   return WEEK_DAYS.find((day) => day.value === dayOfWeek)?.label ?? '';
 }
 
+// Ordena sesiones: por día (lunes primero) y, dentro del mismo día, las que tienen hora
+// van antes de las que no tienen, ordenadas de más temprano a más tarde (KAN-559).
+export function sortSessionsByDayAndTime(sessions: DraftSession[]): DraftSession[] {
+  return [...sessions].sort((a, b) => {
+    const dayDiff = dayPosition(a.dayOfWeek) - dayPosition(b.dayOfWeek);
+    if (dayDiff !== 0) return dayDiff;
+
+    if (a.startTime && b.startTime) {
+      const timeDiff = a.startTime.localeCompare(b.startTime);
+      if (timeDiff !== 0) return timeDiff;
+    } else if (a.startTime && !b.startTime) {
+      return -1;
+    } else if (!a.startTime && b.startTime) {
+      return 1;
+    }
+
+    return a.order - b.order;
+  });
+}
+
 export function toDraft(plan: TrainingPlanDetail): PlanDraft {
   return {
     id: plan.id,
@@ -144,6 +164,7 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
           order: session.order,
           dayOfWeek: session.dayOfWeek,
           coachNotes: cleanNotes,
+          startTime: session.startTime ? session.startTime.slice(0, 5) : null,
           nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
           exercises: session.exercises.map((exercise) => {
             const ex = exercise as unknown as Record<string, unknown>;
@@ -212,12 +233,19 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
         });
         const packedNotes = packCoachNotes(session.coachNotes, metaPayload);
 
+        const formattedStartTime = session.startTime
+          ? session.startTime.length === 5
+            ? `${session.startTime}:00`
+            : session.startTime
+          : null;
+
         return {
           id: session.id,
           name: session.name.trim(),
           order: session.order,
           dayOfWeek: session.dayOfWeek,
           coachNotes: packedNotes || null,
+          startTime: formattedStartTime,
           exercises: session.exercises.map((exercise) => {
             const type = exercise.exerciseType ?? 'Weight';
             const repsVal =
@@ -262,6 +290,7 @@ export function createSession(week: DraftWeek): DraftSession {
     order: week.nextSessionOrder,
     dayOfWeek: freeDay.value,
     coachNotes: '',
+    startTime: null,
     exercises: [],
     nextExerciseOrder: 1,
   };
@@ -753,9 +782,13 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
         });
     }
 
+    const sessionsForDay = dayOfWeekMap.get(dayOfWeek);
+    const dayStartTime = sessionsForDay?.find((s) => s.startTime)?.startTime || null;
+
     return {
       dayOfWeek,
       name: label ? `Día ${label}` : `Día ${dayOfWeek}`,
+      startTime: dayStartTime,
       blocks: dayBlocks,
     };
   });
@@ -828,6 +861,7 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
           order: sessionOrder,
           dayOfWeek: day.dayOfWeek,
           coachNotes: existingSession?.coachNotes || '',
+          startTime: existingSession?.startTime ?? day.startTime ?? null,
           exercises,
           nextExerciseOrder: exercises.length + 1,
         });

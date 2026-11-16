@@ -34,6 +34,12 @@ export function formatIsoDate(isoDate: string): string {
   return year && month && day ? `${day}/${month}/${year}` : isoDate;
 }
 
+// "2026-12-01" → "1/12", para rangos compactos como "Del 1/12 al 28/12" (KAN-559).
+export function formatDayMonth(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-');
+  return year && month && day ? `${parseInt(day, 10)}/${parseInt(month, 10)}` : isoDate;
+}
+
 // Formatea un instante en hora de Argentina como "DD/MM/AAAA a las HH:mm hs" (KAN-400).
 export function formatInvitationExpiration(isoDateTime: string | Date): string {
   const date = new Date(isoDateTime);

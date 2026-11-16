@@ -90,6 +90,7 @@ export interface DayBlock {
 export interface DayPlan {
   dayOfWeek: number;
   name?: string;
+  startTime?: string | null;
   blocks: DayBlock[];
 }
 
@@ -108,6 +109,7 @@ export interface DraftSession {
   // 0 = domingo, 1 = lunes, ..., 6 = sábado (igual que el contrato).
   dayOfWeek: number;
   coachNotes: string;
+  startTime?: string | null;
   exercises: DraftExercise[];
   // Próximo orden libre para un ejercicio nuevo. Nunca baja: así un ejercicio
   // nuevo no reusa el orden de uno que se quitó en el mismo guardado.

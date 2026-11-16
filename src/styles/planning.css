@@ -186,6 +186,35 @@
   min-width: 0;
 }
 
+.plan-session-time-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.plan-session-time-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.plan-session-time {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
 .plan-add-exercise {
   align-self: flex-start;
 }

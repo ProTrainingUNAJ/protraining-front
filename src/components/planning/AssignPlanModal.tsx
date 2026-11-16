@@ -107,11 +107,17 @@ export function AssignPlanModal({ planId, planName, onClose, onAssigned }: Assig
     setSaving(true);
     setError(null);
     try {
-      await trainingPlansService.assign(planId, startDate, { type: targetType, id: targetId });
+      const res = await trainingPlansService.assign(planId, startDate, {
+        type: targetType,
+        id: targetId,
+      });
       const targetLabel = options.find((option) => option.id === targetId)?.label ?? '';
-      onAssigned(
-        `«${planName}» quedó asignada a ${targetLabel} desde el ${formatIsoDate(startDate)}.`,
-      );
+      const finishText = res?.endDate ? ` Termina el ${formatIsoDate(res.endDate)}.` : '';
+      const rangeText =
+        res?.startDate && res?.endDate
+          ? ` (Del ${formatIsoDate(res.startDate)} al ${formatIsoDate(res.endDate)})`
+          : ` desde el ${formatIsoDate(startDate)}`;
+      onAssigned(`«${planName}» quedó asignada a ${targetLabel}${rangeText}.${finishText}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudo asignar la planificación.');
       setSaving(false);

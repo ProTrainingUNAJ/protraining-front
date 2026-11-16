@@ -426,4 +426,76 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       });
     });
   });
+
+  describe('Hora de la sesión en Mi Rutina (KAN-559)', () => {
+    it('muestra "Hoy · 18:00" cuando la sesión tiene startTime definido', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        startTime: '18:00:00',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/Hoy · 18:00/i)).toBeTruthy();
+      });
+    });
+
+    it('muestra solo la fecha sin errores cuando la sesión no tiene hora', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        startTime: null,
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla')).toBeTruthy();
+      });
+
+      expect(screen.queryByText(/· 18:00/i)).toBeNull();
+    });
+  });
 });

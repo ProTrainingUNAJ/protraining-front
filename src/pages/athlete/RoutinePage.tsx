@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
+  Clock,
   Dumbbell,
   Sparkles,
   AlertCircle,
@@ -563,12 +564,23 @@ export const RoutinePage: React.FC = () => {
                       flexWrap: 'wrap',
                     }}
                   >
-                    <span className="badge badge-info" style={{ gap: '0.35rem' }}>
-                      <Calendar size={13} />
-                      <span style={{ textTransform: 'capitalize' }}>
-                        {formatSpanishDate(routine.date)}
+                    {routine.startTime ? (
+                      <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                        <Clock size={13} aria-hidden="true" />
+                        <span>
+                          {!selectedDate || selectedDate === todayInArgentina()
+                            ? `Hoy · ${routine.startTime.slice(0, 5)}`
+                            : `${formatSpanishDate(routine.date)} · ${routine.startTime.slice(0, 5)}`}
+                        </span>
                       </span>
-                    </span>
+                    ) : (
+                      <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                        <Calendar size={13} />
+                        <span style={{ textTransform: 'capitalize' }}>
+                          {formatSpanishDate(routine.date)}
+                        </span>
+                      </span>
+                    )}
 
                     {routine.routineAdapted && !routine.adjustedByCoach && (
                       <span className="badge badge-warning" style={{ gap: '0.35rem' }}>
