@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TrafficLightStatus } from './trafficLight.types';
 import { TrafficRing } from './TrafficRing';
+import { ProfileAvatar } from '../common/ProfileAvatar';
 
 interface AthleteAvatarProps {
   name: string;
@@ -21,18 +22,8 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
   showRing = true,
   className = '',
 }) => {
-  const [imageError, setImageError] = useState(false);
-
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
-  const fontSize = Math.round(size * 0.32);
   const ringInset = showRing ? 5 : 0;
+  const innerSize = showRing ? size - ringInset * 2 : size;
 
   return (
     <div
@@ -63,37 +54,14 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
         style={{
           position: showRing ? 'absolute' : 'relative',
           inset: showRing ? `${ringInset}px` : 0,
-          width: showRing ? undefined : `${size}px`,
-          height: showRing ? undefined : `${size}px`,
-          borderRadius: '50%',
-          background: 'var(--bg-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontWeight: 800,
-          fontSize: `${fontSize}px`,
-          color: 'var(--text-main)',
+          borderRadius: '50%',
           overflow: 'hidden',
-          userSelect: 'none',
         }}
       >
-        {avatarUrl && !imageError ? (
-          <img
-            src={avatarUrl}
-            alt={`Foto de perfil de ${name}`}
-            loading="lazy"
-            decoding="async"
-            onError={() => setImageError(true)}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-            }}
-          />
-        ) : (
-          <span aria-label={name}>{initials}</span>
-        )}
+        <ProfileAvatar src={avatarUrl} name={name} size={innerSize} shape="circle" />
       </div>
     </div>
   );
