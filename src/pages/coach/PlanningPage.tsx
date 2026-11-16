@@ -51,7 +51,7 @@ export function PlanningPage() {
 
   // Estados de asignaciones (KAN-559)
   const [assignments, setAssignments] = useState<PlanAssignmentSummary[]>([]);
-  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [loadingAssignments, setLoadingAssignments] = useState(currentTab === 'assignments');
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
 
   const [successMessage, setSuccessMessage] = useState<string | null>(
@@ -113,8 +113,6 @@ export function PlanningPage() {
     if (currentTab !== 'assignments') return;
 
     let active = true;
-    setLoadingAssignments(true);
-    setAssignmentError(null);
 
     trainingPlansService
       .listAssignments()

@@ -156,7 +156,7 @@ describe('KAN-559 · Hora de la sesión y fin de la asignación', () => {
       };
 
       const request = toSaveRequest(draft);
-      expect(request.weeks[0].sessions[0].startTime).toBe('18:00:00');
+      expect(request.weeks?.[0]?.sessions?.[0]?.startTime).toBe('18:00:00');
     });
 
     it('toSaveRequest mantiene null si la sesión no tiene hora asignada', () => {
@@ -188,7 +188,7 @@ describe('KAN-559 · Hora de la sesión y fin de la asignación', () => {
       };
 
       const request = toSaveRequest(draft);
-      expect(request.weeks[0].sessions[0].startTime).toBeNull();
+      expect(request.weeks?.[0]?.sessions?.[0]?.startTime).toBeNull();
     });
   });
 

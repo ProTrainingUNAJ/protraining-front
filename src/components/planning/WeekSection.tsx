@@ -1,7 +1,6 @@
 import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { DraftSession, DraftWeek } from '../../types/trainingPlans';
 import {
-  dayPosition,
   type MoveDirection,
   sameDaySessions,
   sortSessionsByDayAndTime,
