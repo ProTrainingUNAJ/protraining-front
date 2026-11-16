@@ -217,7 +217,7 @@ export function AthleteMarksSection() {
           type: 'success',
           message:
             skippedNames.length === 1
-              ? `${skippedNames[0]} ya la cargó tu PF.`
+              ? `${skippedNames[0]} ya tenía una marca cargada.`
               : 'No se modificó ninguna: ya tenías marca en todos esos ejercicios.',
         });
       } else if (skippedCount > 0) {

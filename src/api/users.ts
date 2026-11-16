@@ -102,4 +102,30 @@ export const usersService = {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
   },
+
+  /**
+   * Actualiza la preferencia del PF sobre el uso de recomendaciones de hábitos y alimentación.
+   */
+  async updatePfHabitsRecommendations(enabled: boolean): Promise<{ enabled: boolean }> {
+    try {
+      const { data } = await httpClient.put('/identidad/api/v1/users/me/habits-recommendations', {
+        enabled,
+      });
+      return data as { enabled: boolean };
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Obtiene la preferencia del PF autenticado sobre el uso de recomendaciones de hábitos y alimentación.
+   */
+  async getPfHabitsRecommendations(): Promise<{ enabled: boolean }> {
+    try {
+      const { data } = await httpClient.get('/identidad/api/v1/users/me/habits-recommendations');
+      return data as { enabled: boolean };
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
 };

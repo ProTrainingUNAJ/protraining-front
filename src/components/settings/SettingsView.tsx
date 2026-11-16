@@ -66,6 +66,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [phoneSaving, setPhoneSaving] = useState(false);
 
+  const [habitsEnabled, setHabitsEnabled] = useState(true);
+  const [habitsLoading, setHabitsLoading] = useState(role === 'pf');
+  const [habitsError, setHabitsError] = useState<string | null>(null);
+
   // Web Push device subscription state
   const [pushSupported] = useState<boolean>(() => isPushSupported());
   const [pushSubscribed, setPushSubscribed] = useState(false);
@@ -133,6 +137,41 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
       setPushFeedback({ type: 'error', message: msg });
     } finally {
       setPushLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (role !== 'pf') return;
+    let isMounted = true;
+    usersService
+      .getPfHabitsRecommendations()
+      .then((result) => {
+        if (isMounted) setHabitsEnabled(result.enabled);
+      })
+      .catch((err: unknown) => {
+        if (isMounted)
+          setHabitsError(err instanceof Error ? err.message : 'Error al cargar la preferencia');
+      })
+      .finally(() => {
+        if (isMounted) setHabitsLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [role]);
+
+  const handleToggleHabits = async () => {
+    const next = !habitsEnabled;
+    setHabitsEnabled(next);
+    setHabitsError(null);
+    try {
+      const result = await usersService.updatePfHabitsRecommendations(next);
+      setHabitsEnabled(result.enabled);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err: unknown) {
+      setHabitsEnabled(!next);
+      setHabitsError(err instanceof Error ? err.message : 'Error al guardar la preferencia');
     }
   };
 
@@ -440,6 +479,84 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       </div>
                     </div>
                   </div>
+
+                  {role === 'pf' && (
+                    <div className="card" style={{ margin: '1.25rem 0 0', padding: '1.5rem' }}>
+                      <h2
+                        style={{
+                          fontSize: '1.15rem',
+                          fontWeight: 700,
+                          marginBottom: '0.35rem',
+                          color: 'var(--text-main)',
+                        }}
+                      >
+                        Recomendaciones de hábitos y alimentación
+                      </h2>
+                      <p
+                        style={{
+                          color: 'var(--text-muted)',
+                          fontSize: '0.85rem',
+                          marginBottom: '1.25rem',
+                        }}
+                      >
+                        Activá o desactivá las recomendaciones de hábitos y alimentación para tus
+                        atletas.
+                      </p>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '1rem',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <div>
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                            Recomendaciones habilitadas
+                          </strong>
+                          <p
+                            style={{
+                              margin: '0.25rem 0 0',
+                              fontSize: '0.8rem',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            {habitsLoading
+                              ? 'Cargando preferencia...'
+                              : habitsEnabled
+                                ? 'Sí'
+                                : 'No'}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleToggleHabits}
+                          disabled={habitsLoading}
+                          className={`btn ${habitsEnabled ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{ minWidth: '96px' }}
+                        >
+                          {habitsEnabled ? 'Sí' : 'No'}
+                        </button>
+                      </div>
+
+                      {habitsError && (
+                        <span
+                          style={{
+                            display: 'block',
+                            color: 'var(--danger-text)',
+                            fontSize: '0.85rem',
+                            marginTop: '0.75rem',
+                          }}
+                          role="alert"
+                        >
+                          {habitsError}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </form>
                 <ChangePasswordSection />
               </>
