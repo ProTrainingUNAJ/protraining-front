@@ -43,7 +43,7 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
             status={status}
             size={size}
             strokeWidth={3.5}
-            progress={status === 'gray' ? 50 : 100}
+            progress={100}
             color={ringColor}
           />
         </div>

@@ -174,10 +174,11 @@ export const MonitoringPage: React.FC = () => {
       .then(async ([summaries, fetchedAthletes]) => {
         if (!active) return;
         setCategoryAthletes(fetchedAthletes);
-        const athleteMap = new Map(fetchedAthletes.map((a) => [a.id, a]));
+        const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
 
         const mapped = summaries.map((summary) => {
-          const detail = athleteMap.get(summary.athleteId);
+          const summaryId = summary.athleteId?.toLowerCase();
+          const detail = athleteMap.get(summaryId);
           const photoUrl = detail
             ? detail.hasPhoto
               ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
@@ -383,7 +384,7 @@ export const MonitoringPage: React.FC = () => {
               }}
             >
               <Users size={15} />
-              <span>Asistencia</span>
+              <span>Asistencia & RPE</span>
             </button>
           </div>
         }
@@ -948,7 +949,9 @@ export const MonitoringPage: React.FC = () => {
                   {(attendanceResult.summary.athletes ?? []).map((athlete) => {
                     const status = attendanceOverrides[athlete.athleteId] ?? athlete.status;
                     const isPresent = status === 'Present';
-                    const detail = categoryAthletes.find((a) => a.id === athlete.athleteId);
+                    const detail = categoryAthletes.find(
+                      (a) => a.id.toLowerCase() === athlete.athleteId.toLowerCase(),
+                    );
                     const photoUrl = detail?.hasPhoto
                       ? structureService.getAthletePhotoUrl(detail.id, detail.photoUpdatedAt)
                       : detail?.accountId

@@ -90,7 +90,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
         flexDirection: 'column',
         justifyContent: 'space-between',
         gap: '0.75rem',
-        minHeight: '190px',
+        minHeight: '200px',
         height: '100%',
         boxSizing: 'border-box',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
@@ -182,9 +182,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '0.35rem 0.5rem',
-          minHeight: '28px',
+          gap: '0.5rem',
+          height: '32px',
+          minHeight: '32px',
           boxSizing: 'border-box',
         }}
       >
