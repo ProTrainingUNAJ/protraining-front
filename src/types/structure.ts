@@ -37,6 +37,13 @@ export interface UpdateCategoryRequest {
   description?: string | null;
 }
 
+export interface AthleteCategoryMembership {
+  id: string;
+  name: string;
+  organizationId?: string;
+  organizationName?: string;
+}
+
 export interface Athlete {
   id: string;
   firstName: string;
@@ -47,7 +54,7 @@ export interface Athlete {
   isMinor?: boolean;
   active?: boolean;
   categoryNames?: string[];
-  categories?: Array<{ id: string; name: string }>;
+  categories?: AthleteCategoryMembership[];
   emergencyContact?: string | null;
   activeInjuriesCount?: number;
   hasPhoto?: boolean;

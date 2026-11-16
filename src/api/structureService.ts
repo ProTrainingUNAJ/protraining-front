@@ -323,7 +323,12 @@ export const structureService = {
   },
 
   // El listado de atletas no trae sus categorías: se arman con los atletas de cada categoría.
-  async withCategories(athletes: Athlete[], categories: Category[]): Promise<Athlete[]> {
+  async withCategories(
+    athletes: Athlete[],
+    categories: Category[],
+    organizations?: Organization[],
+  ): Promise<Athlete[]> {
+    const orgMap = new Map((organizations || []).map((o) => [o.id, o.name]));
     const memberships = await Promise.all(
       categories.map(async (category) => ({
         category,
@@ -334,13 +339,54 @@ export const structureService = {
     return athletes.map((athlete) => {
       const athleteCategories = memberships
         .filter(({ athleteIds }) => athleteIds.includes(athlete.id))
-        .map(({ category }) => ({ id: category.id, name: category.name }));
+        .map(({ category }) => ({
+          id: category.id,
+          name: category.name,
+          organizationId: category.organizationId,
+          organizationName: orgMap.get(category.organizationId) || undefined,
+        }));
       return {
         ...athlete,
         categories: athleteCategories,
         categoryNames: athleteCategories.map((category) => category.name),
       };
     });
+  },
+
+  async updateAthleteStatus(athleteId: string, active: boolean): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<Athlete>(
+        `/estructura/api/v1/athletes/${athleteId}/status`,
+        { active },
+      );
+      try {
+        await httpClient.patch(`/identidad/api/v1/users/athletes/${athleteId}/status`, {
+          isActive: active,
+        });
+      } catch {
+        // Silencioso si el atleta aún no activó credenciales en identidad
+      }
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async updateAthleteEmail(athleteId: string, email: string): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<Athlete>(
+        `/estructura/api/v1/athletes/${athleteId}/email`,
+        { email },
+      );
+      try {
+        await httpClient.patch(`/identidad/api/v1/users/athletes/${athleteId}/email`, { email });
+      } catch {
+        // Silencioso si el atleta aún no activó credenciales en identidad
+      }
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
   },
 
   async assignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
