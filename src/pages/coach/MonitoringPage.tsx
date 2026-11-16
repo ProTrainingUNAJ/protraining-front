@@ -1,21 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import {
-  Activity,
-  AlertTriangle,
-  Dumbbell,
-  Loader2,
-  Pencil,
-  Plus,
-  Search,
-  Trophy,
-  Users,
-} from 'lucide-react';
+import { Activity, AlertTriangle, Dumbbell, Loader2, Search, Trophy, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
-import { AttendanceLoadModal } from '../../components/attendance/AttendanceLoadModal';
 import { dayAdjustmentsService } from '../../api/dayAdjustments';
 import {
   AthleteTrafficLightItem,
@@ -98,11 +87,6 @@ export const MonitoringPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
   const [adjustmentAthlete, setAdjustmentAthlete] = useState<AthleteTrafficLightItem | null>(null);
-  const [loadModalAthlete, setLoadModalAthlete] = useState<{
-    id: string;
-    name: string;
-    activities?: Array<{ type: string; name: string; minutes: number; rpe?: number | null }>;
-  } | null>(null);
 
   // 1. Cargar las categorías del preparador físico (orgs → categorías)
   useEffect(() => {
@@ -987,15 +971,15 @@ export const MonitoringPage: React.FC = () => {
                         style={{
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '0.85rem',
-                          padding: '1rem 1.15rem',
+                          gap: '1rem',
+                          padding: '1.25rem',
                           background: 'var(--bg-card)',
-                          borderRadius: '16px',
+                          borderRadius: '24px',
                           border: '1px solid var(--border)',
-                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
                         }}
                       >
-                        {/* Cabecera: Avatar del atleta (sin aro de color de semáforo), Nombre, Estado y Botón */}
+                        {/* Cabecera idéntica a diseño: Avatar, Nombre y Botón pill */}
                         <div
                           style={{
                             display: 'flex',
@@ -1004,50 +988,24 @@ export const MonitoringPage: React.FC = () => {
                             gap: '0.75rem',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                             <ProfileAvatar
                               src={photoUrl}
                               name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                              size={42}
+                              size={48}
                               shape="circle"
                               alt={`Foto de perfil de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                             />
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                              <span
-                                style={{
-                                  fontWeight: 700,
-                                  fontSize: '0.92rem',
-                                  color: 'var(--text-main)',
-                                }}
-                              >
-                                {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                              </span>
-                              <span
-                                style={{
-                                  fontSize: '0.75rem',
-                                  fontWeight: 700,
-                                  color: isPresent
-                                    ? 'var(--traffic-green-text)'
-                                    : 'var(--traffic-gray-text)',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.35rem',
-                                  marginTop: '0.15rem',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    width: '6px',
-                                    height: '6px',
-                                    borderRadius: '50%',
-                                    background: isPresent
-                                      ? 'var(--traffic-green)'
-                                      : 'var(--traffic-gray)',
-                                  }}
-                                />
-                                {isPresent ? 'Presente' : 'Sin registro'}
-                              </span>
-                            </div>
+                            <span
+                              style={{
+                                fontWeight: 800,
+                                fontSize: '1.15rem',
+                                color: 'var(--text-main)',
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
+                            </span>
                           </div>
 
                           <button
@@ -1068,119 +1026,162 @@ export const MonitoringPage: React.FC = () => {
                               }
                             }}
                             style={{
-                              padding: '0.35rem 0.75rem',
+                              padding: '0.45rem 1.05rem',
                               borderRadius: '9999px',
-                              border: '1px solid var(--border)',
+                              border: isPresent
+                                ? '1px solid var(--traffic-green-border, #a7f3d0)'
+                                : '1px solid var(--border)',
                               background: isPresent
-                                ? 'var(--traffic-green-bg)'
+                                ? 'var(--traffic-green-bg, #ecfdf5)'
                                 : 'var(--bg-subtle)',
-                              color: isPresent ? 'var(--traffic-green-text)' : 'var(--text-main)',
-                              fontSize: '0.78rem',
+                              color: isPresent
+                                ? 'var(--traffic-green-text, #047857)'
+                                : 'var(--text-main)',
+                              fontSize: '0.85rem',
                               fontWeight: 700,
                               cursor: 'pointer',
                               flexShrink: 0,
+                              transition: 'all 0.15s ease',
                             }}
                           >
                             {isPresent ? 'Marcar sin registro' : 'Marcar presente'}
                           </button>
                         </div>
 
-                        {/* Desglose de Carga del Día (con colores y cantidad de la primera imagen) */}
+                        {/* Desglose de Carga del Día idéntico a imagen 2 */}
                         {hasLoadData ? (
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '0.5rem',
-                              padding: '0.65rem 0.85rem',
-                              background: 'var(--bg-subtle)',
-                              borderRadius: '12px',
-                              border: '1px solid var(--border)',
-                            }}
-                          >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {/* Caja de métricas Tiempo Total y Carga Acumulada */}
                             <div
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-around',
                                 textAlign: 'center',
+                                padding: '0.85rem 1.25rem',
+                                background: 'var(--bg-card)',
+                                borderRadius: '16px',
+                                border: '1px solid var(--border)',
                               }}
                             >
-                              <div>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                }}
+                              >
                                 <div
                                   style={{
-                                    fontWeight: 800,
-                                    fontSize: '1.15rem',
-                                    color: 'var(--primary)',
-                                    lineHeight: 1.1,
+                                    display: 'flex',
+                                    alignItems: 'baseline',
+                                    gap: '0.25rem',
+                                    lineHeight: 1,
                                   }}
                                 >
-                                  {totalMinutes}{' '}
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>min</span>
+                                  <span
+                                    style={{
+                                      fontSize: '1.9rem',
+                                      fontWeight: 900,
+                                      color: 'var(--text-main)',
+                                    }}
+                                  >
+                                    {totalMinutes}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: '1rem',
+                                      fontWeight: 700,
+                                      color: 'var(--text-muted)',
+                                    }}
+                                  >
+                                    min
+                                  </span>
                                 </div>
-                                <div
+                                <span
                                   style={{
-                                    fontSize: '0.68rem',
-                                    fontWeight: 700,
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
                                     color: 'var(--text-muted)',
+                                    letterSpacing: '0.05em',
                                     textTransform: 'uppercase',
-                                    letterSpacing: '0.04em',
-                                    marginTop: '0.15rem',
+                                    marginTop: '0.4rem',
                                   }}
                                 >
                                   Tiempo Total
-                                </div>
+                                </span>
                               </div>
 
                               <div
                                 style={{
                                   width: '1px',
-                                  height: '24px',
+                                  height: '42px',
                                   background: 'var(--border)',
                                 }}
                               />
 
-                              <div>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                }}
+                              >
                                 <div
                                   style={{
-                                    fontWeight: 800,
-                                    fontSize: '1.15rem',
-                                    color: 'var(--primary)',
-                                    lineHeight: 1.1,
+                                    display: 'flex',
+                                    alignItems: 'baseline',
+                                    gap: '0.25rem',
+                                    lineHeight: 1,
                                   }}
                                 >
-                                  {totalLoad}{' '}
-                                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>UA</span>
+                                  <span
+                                    style={{
+                                      fontSize: '1.9rem',
+                                      fontWeight: 900,
+                                      color: 'var(--text-main)',
+                                    }}
+                                  >
+                                    {totalLoad}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: '1rem',
+                                      fontWeight: 800,
+                                      color: 'var(--text-muted)',
+                                    }}
+                                  >
+                                    UA
+                                  </span>
                                 </div>
-                                <div
+                                <span
                                   style={{
-                                    fontSize: '0.68rem',
-                                    fontWeight: 700,
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
                                     color: 'var(--text-muted)',
+                                    letterSpacing: '0.05em',
                                     textTransform: 'uppercase',
-                                    letterSpacing: '0.04em',
-                                    marginTop: '0.15rem',
+                                    marginTop: '0.4rem',
                                   }}
                                 >
                                   Carga Acumulada
-                                </div>
+                                </span>
                               </div>
                             </div>
 
-                            {/* Barra de progreso de carga horizontal (colores verde a azul/dorado como la primera imagen) */}
+                            {/* Barra de progreso de carga horizontal (verde a azul/dorado) */}
                             <div
                               style={{
                                 width: '100%',
-                                height: '6px',
+                                height: '8px',
                                 background: 'var(--border)',
                                 borderRadius: '9999px',
                                 overflow: 'hidden',
-                                marginTop: '0.2rem',
                               }}
                             >
                               <div
                                 style={{
-                                  width: `${Math.min(100, Math.max(15, (totalMinutes / 90) * 100))}%`,
+                                  width: `${Math.min(100, Math.max(8, Math.round((totalLoad / 800) * 100)))}%`,
                                   height: '100%',
                                   background:
                                     'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
@@ -1195,8 +1196,8 @@ export const MonitoringPage: React.FC = () => {
                                 style={{
                                   display: 'flex',
                                   flexWrap: 'wrap',
-                                  gap: '0.35rem',
-                                  marginTop: '0.3rem',
+                                  gap: '0.5rem',
+                                  marginTop: '0.15rem',
                                 }}
                               >
                                 {athlete.activities.map((act, i) => (
@@ -1205,27 +1206,26 @@ export const MonitoringPage: React.FC = () => {
                                     style={{
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '0.3rem',
-                                      fontSize: '0.74rem',
-                                      fontWeight: 600,
-                                      padding: '0.2rem 0.55rem',
-                                      borderRadius: '6px',
-                                      background: 'var(--primary-light)',
-                                      color: 'var(--secondary)',
-                                      border: '1px solid rgba(2, 48, 80, 0.15)',
+                                      gap: '0.45rem',
+                                      padding: '0.35rem 0.85rem',
+                                      borderRadius: '12px',
+                                      border: '1px solid var(--primary-light-border, #bae6fd)',
+                                      background: 'var(--primary-light, #f0f9ff)',
+                                      color: 'var(--primary, #0284c7)',
+                                      fontSize: '0.85rem',
                                     }}
                                   >
                                     {act.type === 'Gym' && (
-                                      <Dumbbell size={12} aria-hidden="true" />
+                                      <Dumbbell size={14} color="#0284c7" aria-hidden="true" />
                                     )}
                                     {act.type === 'SportTraining' && (
-                                      <Activity size={12} aria-hidden="true" />
+                                      <Activity size={14} color="#0284c7" aria-hidden="true" />
                                     )}
                                     {(act.type === 'Match1' || act.type === 'Match2') && (
-                                      <Trophy size={12} aria-hidden="true" />
+                                      <Trophy size={14} color="#0284c7" aria-hidden="true" />
                                     )}
                                     {act.type === 'IndividualWork' && (
-                                      <Users size={12} aria-hidden="true" />
+                                      <Users size={14} color="#0284c7" aria-hidden="true" />
                                     )}
                                     <span>
                                       {act.name}: <strong>{act.minutes}m</strong>
@@ -1237,94 +1237,29 @@ export const MonitoringPage: React.FC = () => {
                                 ))}
                               </div>
                             )}
-
-                            {/* Botón para editar la carga registrada */}
-                            <div
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                marginTop: '0.25rem',
-                              }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLoadModalAthlete({
-                                    id: athlete.athleteId,
-                                    name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                    activities: athlete.activities,
-                                  });
-                                }}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.35rem',
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: 'var(--primary)',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  padding: '0.2rem 0.4rem',
-                                  borderRadius: '6px',
-                                }}
-                              >
-                                <Pencil size={12} />
-                                <span>Editar Carga</span>
-                              </button>
-                            </div>
                           </div>
                         ) : (
                           <div
                             style={{
                               display: 'flex',
-                              flexDirection: 'column',
-                              gap: '0.6rem',
-                              padding: '0.6rem 0.75rem',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: '1.25rem 1rem',
                               background: 'var(--bg-subtle)',
-                              borderRadius: '12px',
+                              borderRadius: '16px',
                               border: '1px dashed var(--border)',
+                              textAlign: 'center',
                             }}
                           >
                             <span
                               style={{
-                                fontSize: '0.78rem',
+                                fontSize: '0.82rem',
                                 color: 'var(--text-muted)',
                                 fontStyle: 'italic',
                               }}
                             >
                               Sin carga registrada hoy (minutos y RPE pendientes).
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLoadModalAthlete({
-                                  id: athlete.athleteId,
-                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                  activities: athlete.activities,
-                                });
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.35rem',
-                                padding: '0.35rem 0.75rem',
-                                borderRadius: '8px',
-                                border:
-                                  '1px solid color-mix(in srgb, var(--primary) 35%, var(--border))',
-                                background:
-                                  'color-mix(in srgb, var(--primary) 10%, var(--bg-card))',
-                                color: 'var(--primary)',
-                                fontSize: '0.78rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              <Plus size={13} />
-                              <span>+ Cargar minutos y RPE</span>
-                            </button>
                           </div>
                         )}
                       </div>
@@ -1354,21 +1289,6 @@ export const MonitoringPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Modal de Carga de Asistencia y RPE (KAN-621) */}
-      {loadModalAthlete && (
-        <AttendanceLoadModal
-          key={loadModalAthlete.id}
-          isOpen={Boolean(loadModalAthlete)}
-          athleteId={loadModalAthlete.id}
-          athleteName={loadModalAthlete.name}
-          initialActivities={loadModalAthlete.activities}
-          onClose={() => setLoadModalAthlete(null)}
-          onSuccess={() => {
-            refreshAttendance();
-          }}
-        />
-      )}
     </div>
   );
 };
