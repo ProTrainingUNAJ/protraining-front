@@ -64,14 +64,6 @@ function isReturnDateAfterInjuryDate(injuryDate: string, estimatedReturnDate: st
   return estimatedReturnDate > injuryDate;
 }
 
-const COMMON_JUSTIFICATIONS = [
-  'Evaluación física periódica del plantel',
-  'Planificación de cargas de pretemporada',
-  'Seguimiento y evolución post-lesión',
-  'Certificado de aptitud física para torneo',
-  'Revisión médica solicitada por el atleta',
-];
-
 export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
   athlete,
   initialTab = 'injuries',
@@ -704,44 +696,6 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
 
                   <form onSubmit={handleRequestMedicalAccess}>
                     <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        marginBottom: '0.5rem',
-                      }}
-                    >
-                      Seleccioná un motivo frecuente:
-                    </label>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '0.4rem',
-                        marginBottom: '1rem',
-                      }}
-                    >
-                      {COMMON_JUSTIFICATIONS.map((motivo) => (
-                        <button
-                          key={motivo}
-                          type="button"
-                          className="btn btn-secondary"
-                          style={{
-                            fontSize: '0.78rem',
-                            padding: '0.3rem 0.6rem',
-                            border:
-                              justification === motivo ? '1.5px solid var(--primary)' : undefined,
-                            background:
-                              justification === motivo ? 'var(--primary-light)' : undefined,
-                          }}
-                          onClick={() => setJustification(motivo)}
-                        >
-                          {motivo}
-                        </button>
-                      ))}
-                    </div>
-
-                    <label
                       htmlFor="input-justification-free"
                       style={{
                         display: 'block',
@@ -750,13 +704,13 @@ export const AthleteHealthModal: React.FC<AthleteHealthModalProps> = ({
                         marginBottom: '0.35rem',
                       }}
                     >
-                      O ingresá una justificación personalizada (mínimo 10 caracteres) *:
+                      Motivo de la consulta médica *:
                     </label>
                     <textarea
                       id="input-justification-free"
                       rows={3}
                       required
-                      placeholder="Ej. Revisión de antecedentes quirúrgicos previa al plan de hipertrofia muscular."
+                      placeholder="Ej. Control de aptitud física previa al inicio de competencia / Evaluación de antecedentes por molestia muscular..."
                       value={justification}
                       onChange={(e) => setJustification(e.target.value)}
                       style={{ width: '100%', marginBottom: '1rem' }}

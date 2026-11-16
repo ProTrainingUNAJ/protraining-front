@@ -8,6 +8,7 @@ import {
   KeyRound,
   Loader2,
   Mail,
+  Phone,
   Power,
   Settings,
   UserCheck,
@@ -37,6 +38,12 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
   const [emailSaving, setEmailSaving] = useState(false);
   const [emailSuccess, setEmailSuccess] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
+
+  // --- Cambio de Teléfono ---
+  const [phone, setPhone] = useState(athlete.phone || '');
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneSuccess, setPhoneSuccess] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // --- Restablecer Contraseña ---
   const [resetStep, setResetStep] = useState<'initial' | 'loading' | 'success'>('initial');
@@ -78,6 +85,38 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
       );
     } finally {
       setEmailSaving(false);
+    }
+  };
+
+  // Guardar Teléfono
+  const handleSavePhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanPhone = phone.trim();
+    if (!cleanPhone || cleanPhone.length > 50) {
+      setPhoneError('Ingresá un número de teléfono válido (hasta 50 caracteres).');
+      return;
+    }
+    if (cleanPhone === athlete.phone) {
+      setPhoneError('El teléfono ingresado es idéntico al actual.');
+      return;
+    }
+
+    setPhoneSaving(true);
+    setPhoneError(null);
+    setPhoneSuccess(false);
+
+    try {
+      const updated = await structureService.updateAthletePhone(athlete.id, cleanPhone);
+      const merged: Athlete = { ...athlete, phone: updated.phone || cleanPhone };
+      onAthleteUpdated(merged);
+      setPhoneSuccess(true);
+      setTimeout(() => setPhoneSuccess(false), 3000);
+    } catch (err: unknown) {
+      setPhoneError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el número de teléfono.',
+      );
+    } finally {
+      setPhoneSaving(false);
     }
   };
 
@@ -301,7 +340,79 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
             </form>
           </div>
 
-          {/* SECCIÓN 3: RESTABLECER CONTRASEÑA */}
+          {/* SECCIÓN 3: NÚMERO DE TELÉFONO */}
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              padding: '1.25rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
+              <Phone size={18} color="var(--primary)" aria-hidden="true" />
+              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                Número de Teléfono (Contacto)
+              </h3>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+              Número de teléfono y contacto directo del atleta utilizado para notificaciones y
+              WhatsApp.
+            </p>
+
+            {phoneSuccess && (
+              <div
+                className="alert-banner success"
+                role="alert"
+                style={{ marginBottom: '0.75rem' }}
+              >
+                <Check size={16} aria-hidden="true" />
+                <span>Número de teléfono actualizado exitosamente.</span>
+              </div>
+            )}
+            {phoneError && (
+              <div className="alert-banner danger" role="alert" style={{ marginBottom: '0.75rem' }}>
+                <AlertCircle size={16} aria-hidden="true" />
+                <span>{phoneError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSavePhone}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Ej. +5491123456789"
+                  required
+                  disabled={phoneSaving}
+                  style={{ flex: 1, minWidth: '220px', margin: 0 }}
+                  aria-label="Número de teléfono del atleta"
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={phoneSaving || phone.trim() === (athlete.phone || '')}
+                >
+                  {phoneSaving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Check size={16} />
+                  )}
+                  <span>Guardar Teléfono</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* SECCIÓN 4: RESTABLECER CONTRASEÑA */}
           <div
             style={{
               background: 'var(--bg-card)',
