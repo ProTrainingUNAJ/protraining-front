@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   Layers,
@@ -23,7 +23,6 @@ import { PhotoUploadControl } from '../../components/common/PhotoUploadControl';
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 
 export const OrganizationsPage: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // Datos principales
@@ -93,13 +92,16 @@ export const OrganizationsPage: React.FC = () => {
         if (!isMounted) return;
         setOrganizations(fullOrgs);
 
-        const initialTargetId = new URLSearchParams(window.location.search).get('orgId');
-        if (initialTargetId && fullOrgs.some((o) => o.id === initialTargetId)) {
-          setSelectedOrgId(initialTargetId);
-        } else if (fullOrgs.length > 0) {
-          const firstId = fullOrgs[0].id;
-          setSelectedOrgId(firstId);
-          setSearchParams({ orgId: firstId });
+        if (fullOrgs.length > 0) {
+          const initialTargetId = new URLSearchParams(window.location.search).get('orgId');
+          if (initialTargetId && fullOrgs.some((o) => o.id === initialTargetId)) {
+            setSelectedOrgId(initialTargetId);
+          } else {
+            setSelectedOrgId(fullOrgs[0].id);
+          }
+          if (window.location.search.includes('orgId=')) {
+            window.history.replaceState({}, '', window.location.pathname);
+          }
         }
       } catch (err: unknown) {
         if (!isMounted) return;
@@ -114,14 +116,7 @@ export const OrganizationsPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Sincronizar selección si cambia el query param en la URL (sin efecto)
-  const urlOrgId = searchParams.get('orgId');
-  if (urlOrgId && urlOrgId !== selectedOrgId && organizations.some((o) => o.id === urlOrgId)) {
-    setSelectedOrgId(urlOrgId);
-  }
 
   // 2. Cargar categorías al cambiar la organización seleccionada
   useEffect(() => {
@@ -157,7 +152,6 @@ export const OrganizationsPage: React.FC = () => {
   // Selección de organización
   const handleSelectOrg = (orgId: string) => {
     setSelectedOrgId(orgId);
-    setSearchParams({ orgId });
     setError(null);
     setSuccessMessage(null);
     setMobileView('categories');
@@ -235,7 +229,6 @@ export const OrganizationsPage: React.FC = () => {
 
         setOrganizations((prev) => [newOrgWithCounts, ...prev]);
         setSelectedOrgId(created.id);
-        setSearchParams({ orgId: created.id });
         setCategories([]);
         setSuccessMessage('La organización se creó exitosamente.');
       } else if (orgModal.org) {
@@ -290,10 +283,8 @@ export const OrganizationsPage: React.FC = () => {
         if (nextOrgs.length > 0) {
           const nextId = nextOrgs[0].id;
           setSelectedOrgId(nextId);
-          setSearchParams({ orgId: nextId });
         } else {
           setSelectedOrgId('');
-          setSearchParams({});
           setCategories([]);
         }
       }
