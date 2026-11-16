@@ -1,10 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, AlertTriangle, Dumbbell, Loader2, Search, Trophy, Users } from 'lucide-react';
+import {
+  Activity,
+  AlertTriangle,
+  Dumbbell,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
+import { AttendanceLoadModal } from '../../components/attendance/AttendanceLoadModal';
 import { dayAdjustmentsService } from '../../api/dayAdjustments';
 import {
   AthleteTrafficLightItem,
@@ -87,6 +98,11 @@ export const MonitoringPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
   const [adjustmentAthlete, setAdjustmentAthlete] = useState<AthleteTrafficLightItem | null>(null);
+  const [loadModalAthlete, setLoadModalAthlete] = useState<{
+    id: string;
+    name: string;
+    activities?: Array<{ type: string; name: string; minutes: number; rpe?: number | null }>;
+  } | null>(null);
 
   // 1. Cargar las categorías del preparador físico (orgs → categorías)
   useEffect(() => {
@@ -1221,17 +1237,94 @@ export const MonitoringPage: React.FC = () => {
                                 ))}
                               </div>
                             )}
+
+                            {/* Botón para editar la carga registrada */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                marginTop: '0.25rem',
+                              }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoadModalAthlete({
+                                    id: athlete.athleteId,
+                                    name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                    activities: athlete.activities,
+                                  });
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.35rem',
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: 'var(--primary)',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  padding: '0.2rem 0.4rem',
+                                  borderRadius: '6px',
+                                }}
+                              >
+                                <Pencil size={12} />
+                                <span>Editar Carga</span>
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <div
                             style={{
-                              fontSize: '0.78rem',
-                              color: 'var(--text-muted)',
-                              fontStyle: 'italic',
-                              padding: '0.2rem 0',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.6rem',
+                              padding: '0.6rem 0.75rem',
+                              background: 'var(--bg-subtle)',
+                              borderRadius: '12px',
+                              border: '1px dashed var(--border)',
                             }}
                           >
-                            Sin carga registrada hoy (minutos y RPE pendientes).
+                            <span
+                              style={{
+                                fontSize: '0.78rem',
+                                color: 'var(--text-muted)',
+                                fontStyle: 'italic',
+                              }}
+                            >
+                              Sin carga registrada hoy (minutos y RPE pendientes).
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLoadModalAthlete({
+                                  id: athlete.athleteId,
+                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                  activities: athlete.activities,
+                                });
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.35rem',
+                                padding: '0.35rem 0.75rem',
+                                borderRadius: '8px',
+                                border:
+                                  '1px solid color-mix(in srgb, var(--primary) 35%, var(--border))',
+                                background:
+                                  'color-mix(in srgb, var(--primary) 10%, var(--bg-card))',
+                                color: 'var(--primary)',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              <Plus size={13} />
+                              <span>+ Cargar minutos y RPE</span>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -1261,6 +1354,21 @@ export const MonitoringPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Carga de Asistencia y RPE (KAN-621) */}
+      {loadModalAthlete && (
+        <AttendanceLoadModal
+          key={loadModalAthlete.id}
+          isOpen={Boolean(loadModalAthlete)}
+          athleteId={loadModalAthlete.id}
+          athleteName={loadModalAthlete.name}
+          initialActivities={loadModalAthlete.activities}
+          onClose={() => setLoadModalAthlete(null)}
+          onSuccess={() => {
+            refreshAttendance();
+          }}
+        />
+      )}
     </div>
   );
 };

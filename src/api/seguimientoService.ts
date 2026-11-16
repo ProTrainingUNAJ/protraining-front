@@ -518,6 +518,7 @@ export async function updateInjuryStatus(
 // ---------------------------------------------------------------------------
 
 // Aliases de tipos para compatibilidad con consumidores existentes.
+export type { DailyLoadActivity, DailyLoadRequest, DailyLoadResponse };
 export type DailyLoadActivityPayload = DailyLoadActivity;
 export type DailyLoadSubmitRequest = DailyLoadRequest;
 export type DailyLoadSubmitResponse = DailyLoadResponse;
