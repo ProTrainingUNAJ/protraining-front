@@ -18,6 +18,7 @@ import {
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
+import { structureService } from '../../api/structureService';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
 import { ChangePasswordSection } from './ChangePasswordSection';
@@ -347,9 +348,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         size={84}
                         onUpload={async (file) => {
                           await usersService.uploadMyPhoto(file);
+                          if (role === 'athlete') {
+                            try {
+                              const me = await structureService.getMe();
+                              if (me?.athleteId) {
+                                await structureService.uploadAthletePhoto(me.athleteId, file);
+                              }
+                            } catch {
+                              // Silencioso si falla la réplica a estructura
+                            }
+                          }
                         }}
                         onDelete={async () => {
                           await usersService.deleteMyPhoto();
+                          if (role === 'athlete') {
+                            try {
+                              const me = await structureService.getMe();
+                              if (me?.athleteId) {
+                                await structureService.deleteAthletePhoto(me.athleteId);
+                              }
+                            } catch {
+                              // Silencioso si falla la réplica a estructura
+                            }
+                          }
                         }}
                       />
 

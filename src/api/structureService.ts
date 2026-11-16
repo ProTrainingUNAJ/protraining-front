@@ -57,6 +57,7 @@ interface RawAthleteCategory {
 
 interface RawAthlete {
   id: string;
+  accountId?: string | null;
   nombre?: string;
   firstName?: string;
   apellido?: string;
@@ -122,6 +123,7 @@ function mapAthlete(raw: RawAthlete): Athlete {
 
   return {
     id: raw.id,
+    accountId: raw.accountId ?? null,
     firstName,
     lastName,
     fullName: fullName || 'Sin nombre',

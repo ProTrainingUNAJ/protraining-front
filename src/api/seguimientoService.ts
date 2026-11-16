@@ -588,7 +588,11 @@ export async function getAthleteWeek(athleteId: string, date?: string): Promise<
 // ---------------------------------------------------------------------------
 
 // AthleteAttendanceSummary y CategoryAttendanceSummary provienen del SDK generado.
-export type { AthleteAttendanceSummary, CategoryAttendanceSummary } from './generated/seguimiento';
+export type {
+  AthleteAttendanceSummary,
+  CategoryAttendanceSummary,
+  AttendanceActivityDetail,
+} from './generated/seguimiento';
 
 export async function getCategoryAttendanceToday(
   categoryId: string,
