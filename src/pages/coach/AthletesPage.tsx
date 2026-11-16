@@ -9,14 +9,11 @@ import {
   Tag,
   X,
   Search,
-  Dumbbell,
   HeartPulse,
   Upload,
   QrCode,
-  FileText,
   TrendingUp,
-  KeyRound,
-  Camera,
+  Settings,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
@@ -31,6 +28,9 @@ import { CategoryInvitationModal } from '../../components/categories/CategoryInv
 import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
 import { MedicalRecordDetailModal } from '../../components/athletes/MedicalRecordDetailModal';
 import { ResetAthletePasswordModal } from '../../components/athletes/ResetAthletePasswordModal';
+import { AthleteMetricsModal } from '../../components/athletes/AthleteMetricsModal';
+import { AthleteHealthModal } from '../../components/athletes/AthleteHealthModal';
+import { AthleteSettingsModal } from '../../components/athletes/AthleteSettingsModal';
 import { MedicalRecord } from '../../types/medicalRecord';
 
 export const AthletesPage: React.FC = () => {
@@ -73,6 +73,10 @@ export const AthletesPage: React.FC = () => {
   const [selectedNewAthleteCategories, setSelectedNewAthleteCategories] = useState<string[]>([]);
 
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
+  const [metricsAthlete, setMetricsAthlete] = useState<Athlete | null>(null);
+  const [healthAthlete, setHealthAthlete] = useState<Athlete | null>(null);
+  const [settingsAthlete, setSettingsAthlete] = useState<Athlete | null>(null);
+
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [recordsInitialTab, setRecordsInitialTab] = useState<'records' | 'evolution'>('records');
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
@@ -108,6 +112,7 @@ export const AthletesPage: React.FC = () => {
         const athletesWithCategories = await structureService.withCategories(
           athletesData,
           allCategories,
+          orgsData,
         );
         if (!mounted) return;
         setCategories(allCategories);
@@ -139,7 +144,7 @@ export const AthletesPage: React.FC = () => {
       );
       const allCategories = categoriesNested.flat();
       setCategories(allCategories);
-      setAthletes(await structureService.withCategories(athletesData, allCategories));
+      setAthletes(await structureService.withCategories(athletesData, allCategories, orgsData));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al consultar el plantel de atletas.');
     } finally {
@@ -273,7 +278,7 @@ export const AthletesPage: React.FC = () => {
       {/* Encabezado Estandarizado */}
       <PageHeader
         title="Atletas"
-        description="Plantel deportivo, fichas médicas y asignación de divisiones."
+        description="Plantel deportivo, métricas, salud y otras configuraciones."
         actions={
           <>
             {selectedCategoryId && (
@@ -778,7 +783,7 @@ export const AthletesPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Categorías asignadas */}
+                    {/* Organizaciones y Categorías asignadas */}
                     <div
                       style={{
                         display: 'flex',
@@ -789,8 +794,25 @@ export const AthletesPage: React.FC = () => {
                     >
                       {athlete.categories && athlete.categories.length > 0 ? (
                         athlete.categories.map((c) => (
-                          <span key={c.id} className="badge badge-info">
-                            {c.name}
+                          <span
+                            key={c.id}
+                            className="badge badge-info"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              padding: '0.25rem 0.55rem',
+                            }}
+                          >
+                            {c.organizationName ? (
+                              <>
+                                <span style={{ fontWeight: 600 }}>{c.organizationName}</span>
+                                <span style={{ opacity: 0.5 }}>•</span>
+                                <span>{c.name}</span>
+                              </>
+                            ) : (
+                              <span>{c.name}</span>
+                            )}
                           </span>
                         ))
                       ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
@@ -814,17 +836,10 @@ export const AthletesPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setPhotoAthlete(athlete)}
-                    title="Subir o cambiar foto de perfil del atleta"
-                  >
-                    <Camera size={15} aria-hidden="true" />
-                    <span>Foto</span>
-                  </button>
+                {/* 4 Acciones Semánticas Estandarizadas */}
+                <div
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}
+                >
                   <button
                     type="button"
                     className="btn btn-secondary"
@@ -839,70 +854,34 @@ export const AthletesPage: React.FC = () => {
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => {
-                      setRecordsInitialTab('records');
-                      setRecordsAthlete(athlete);
-                    }}
-                    title="Ver y cargar sus récords (1RM)"
-                  >
-                    <Dumbbell size={15} aria-hidden="true" />
-                    <span>Récords</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => {
-                      setRecordsInitialTab('evolution');
-                      setRecordsAthlete(athlete);
-                    }}
-                    title="Ver la evolución y progresión de 1RM del atleta"
-                    data-testid={`evolution-btn-${athlete.id}`}
+                    onClick={() => setMetricsAthlete(athlete)}
+                    title="Consultar Récords, Evolución y Benchmark del atleta"
+                    data-testid={`metrics-btn-${athlete.id}`}
                   >
                     <TrendingUp size={15} aria-hidden="true" />
-                    <span>Evolución</span>
+                    <span>Métricas</span>
                   </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setBenchmarkAthlete(athlete)}
-                    title="Comparar rendimiento individual frente al promedio del grupo"
-                    data-testid={`benchmark-btn-${athlete.id}`}
-                  >
-                    <TrendingUp size={15} aria-hidden="true" />
-                    <span>Benchmark</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setInjuriesAthlete(athlete)}
-                    title="Ver historial de lesiones del atleta"
+                    onClick={() => setHealthAthlete(athlete)}
+                    title="Consultar Historial de Lesiones y Ficha Médica"
+                    data-testid={`health-btn-${athlete.id}`}
                   >
                     <HeartPulse size={15} aria-hidden="true" />
-                    <span>Lesiones</span>
+                    <span>Salud</span>
                   </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
                     style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setJustifyingAthlete(athlete)}
-                    title="Ver Ficha Médica del atleta con justificación obligatoria"
+                    onClick={() => setSettingsAthlete(athlete)}
+                    title="Foto de perfil, cambiar clave, cambiar mail y deshabilitar usuario"
+                    data-testid={`settings-btn-${athlete.id}`}
                   >
-                    <FileText size={15} aria-hidden="true" />
-                    <span>Ver Ficha Médica</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setResetAthlete(athlete)}
-                    title="Restablecer contraseña del atleta"
-                    data-testid={`reset-pwd-btn-${athlete.id}`}
-                  >
-                    <KeyRound size={15} aria-hidden="true" />
-                    <span>Resetear contraseña</span>
+                    <Settings size={15} aria-hidden="true" />
+                    <span>Configuración</span>
                   </button>
                 </div>
               </div>
@@ -910,6 +889,30 @@ export const AthletesPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modales Unificados (KAN-609) */}
+      {metricsAthlete && (
+        <AthleteMetricsModal
+          athlete={metricsAthlete}
+          categories={categories}
+          onClose={() => setMetricsAthlete(null)}
+        />
+      )}
+
+      {healthAthlete && (
+        <AthleteHealthModal athlete={healthAthlete} onClose={() => setHealthAthlete(null)} />
+      )}
+
+      {settingsAthlete && (
+        <AthleteSettingsModal
+          athlete={settingsAthlete}
+          onAthleteUpdated={(updated) => {
+            setAthletes((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+            setSettingsAthlete(updated);
+          }}
+          onClose={() => setSettingsAthlete(null)}
+        />
+      )}
 
       {recordsAthlete && (
         <AthleteRecordsModal
