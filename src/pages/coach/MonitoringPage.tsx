@@ -155,12 +155,38 @@ export const MonitoringPage: React.FC = () => {
     if (!selectedCategoryId) return;
     let active = true;
 
-    getCategoryTrafficLightToday(selectedCategoryId)
-      .then(async (summaries) => {
+    const getPhotoUrl = (id: string, updatedAt?: string | null) =>
+      typeof structureService?.getAthletePhotoUrl === 'function'
+        ? structureService.getAthletePhotoUrl(id, updatedAt)
+        : `/api/estructura/api/v1/athletes/${id}/photo${updatedAt ? `?v=${encodeURIComponent(updatedAt)}` : ''}`;
+
+    const athletesPromise =
+      typeof structureService?.getAthletes === 'function'
+        ? structureService
+            .getAthletes({ categoriaId: selectedCategoryId })
+            .catch(() => [] as import('../../types/structure').Athlete[])
+        : Promise.resolve([] as import('../../types/structure').Athlete[]);
+
+    Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
+      .then(async ([summaries, categoryAthletes]) => {
         if (!active) return;
-        const mapped = summaries.map((summary) =>
-          mapTrafficLightSummaryToItem(summary, selectedCategoryName),
-        );
+        const athleteMap = new Map(categoryAthletes.map((a) => [a.id, a]));
+
+        const mapped = summaries.map((summary) => {
+          const detail = athleteMap.get(summary.athleteId);
+          const photoUrl = detail
+            ? detail.hasPhoto
+              ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
+              : undefined
+            : getPhotoUrl(summary.athleteId);
+
+          const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
+          return {
+            ...item,
+            position: item.position,
+            avatarUrl: photoUrl,
+          };
+        });
 
         // Para atletas con dolor/observación hoy, chequear conflictos en segundo plano
         // para habilitar el botón "Ver ajuste sugerido" (#157 · KAN-452)
@@ -337,7 +363,7 @@ export const MonitoringPage: React.FC = () => {
               }}
             >
               <Users size={15} />
-              <span>Asistencia & RPE</span>
+              <span>Asistencia</span>
             </button>
           </div>
         }
