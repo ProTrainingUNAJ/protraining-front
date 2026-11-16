@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { LoginForm } from '../LoginForm';
 
 const mockNavigate = vi.fn();
+const mockLogin = vi.fn();
 const mockLoginWithGoogle = vi.fn();
 
 vi.mock('react-router-dom', async () => {
@@ -17,7 +18,7 @@ vi.mock('react-router-dom', async () => {
 // Mock de useAuth para evitar montar AuthProvider y su matchMedia
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: () => ({
-    login: vi.fn(),
+    login: mockLogin,
     loginWithGoogle: mockLoginWithGoogle,
     isAuthenticated: false,
     user: null,
@@ -144,5 +145,54 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
 
     fireEvent.click(registerBtn);
     expect(mockNavigate).toHaveBeenCalledWith('/registro');
+  });
+
+  it('DADO un usuario con mustChangePassword = true CUANDO inicia sesión ENTONCES navega a /force-change-password (KAN-608)', async () => {
+    mockLogin.mockResolvedValueOnce({
+      accessToken: 'temp-jwt',
+      user: { role: 'Atleta', mustChangePassword: true },
+    });
+
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/correo electrónico/i), {
+      target: { value: 'atleta@protraining.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^contraseña/i), {
+      target: { value: 'ClaveTemporal123!' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /^iniciar sesión$/i }));
+
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith({
+        email: 'atleta@protraining.com',
+        password: 'ClaveTemporal123!',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith('/force-change-password', { replace: true });
+    });
+  });
+
+  it('DADO un state con successMessage CUANDO se monta ENTONCES muestra la alerta de éxito', () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/login',
+            state: {
+              successMessage: 'Contraseña actualizada exitosamente.',
+            },
+          },
+        ]}
+      >
+        <LoginForm />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Contraseña actualizada exitosamente.')).toBeDefined();
   });
 });
