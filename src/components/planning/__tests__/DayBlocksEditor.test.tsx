@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { DayBlocksEditor } from '../DayBlocksEditor';
 import { DayPlan } from '../../../types/trainingPlans';
 import { createDefaultBlocks } from '../../../utils/planDraft';
@@ -168,5 +168,113 @@ describe('DayBlocksEditor', () => {
     fireEvent.click(viernesBtn);
 
     expect(onAddDay).toHaveBeenCalledWith(5);
+  });
+
+  it('muestra el resumen cuantitativo de volumen del día seleccionado en tiempo real (KAN-623)', () => {
+    const daysWithExercises: DayPlan[] = [
+      {
+        dayOfWeek: 1,
+        blocks: [
+          {
+            key: 'b1',
+            title: 'Fuerza A',
+            order: 1,
+            exercises: [
+              {
+                key: 'ex-1',
+                exerciseId: 'cat-1',
+                exerciseName: 'Press Banca',
+                order: 1,
+                intensityType: 'RPE',
+                weeklyProgression: {
+                  1: {
+                    weekNumber: 1,
+                    sets: 4,
+                    reps: 8,
+                    repsRange: '8',
+                    targetPercentage: 75,
+                    intensityType: 'RPE',
+                  },
+                },
+              },
+              {
+                key: 'ex-2',
+                exerciseId: 'cat-2',
+                exerciseName: 'Dominadas',
+                order: 2,
+                intensityType: 'RPE',
+                weeklyProgression: {
+                  1: {
+                    weekNumber: 1,
+                    sets: 3,
+                    reps: 10,
+                    repsRange: '10',
+                    targetPercentage: null,
+                    intensityType: 'RPE',
+                  },
+                },
+              },
+            ],
+          },
+          {
+            key: 'b2',
+            title: 'Accesorios',
+            order: 2,
+            exercises: [
+              {
+                key: 'ex-3',
+                exerciseId: 'cat-3',
+                exerciseName: 'Bíceps',
+                order: 1,
+                intensityType: 'RPE',
+                weeklyProgression: {
+                  1: {
+                    weekNumber: 1,
+                    sets: 3,
+                    reps: 12,
+                    repsRange: '12',
+                    targetPercentage: null,
+                    intensityType: 'RPE',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    render(
+      <DayBlocksEditor
+        days={daysWithExercises}
+        selectedDayOfWeek={1}
+        weekNumbers={[1, 2, 3, 4]}
+        disabled={false}
+        onSelectDay={vi.fn()}
+        onAddDay={vi.fn()}
+        onRemoveDay={vi.fn()}
+        onAddBlock={vi.fn()}
+        onReorderBlocks={vi.fn()}
+        onRenameBlock={vi.fn()}
+        onDuplicateBlock={vi.fn()}
+        onRemoveBlock={vi.fn()}
+        onOpenExercisePicker={vi.fn()}
+        onUpdateExerciseProgression={vi.fn()}
+        onUpdateExerciseIntensity={vi.fn()}
+        onRemoveExercise={vi.fn()}
+        onMoveExercise={vi.fn()}
+      />,
+    );
+
+    const volumeSummary = screen.getByLabelText('Resumen de volumen del día');
+    expect(volumeSummary).toBeDefined();
+
+    // 2 bloques, 3 ejercicios, 10 series totales (4 + 3 + 3)
+    expect(within(volumeSummary).getByText('2')).toBeDefined();
+    expect(within(volumeSummary).getByText(/bloques/i)).toBeDefined();
+    expect(within(volumeSummary).getByText('3')).toBeDefined();
+    expect(within(volumeSummary).getByText(/ejercicios/i)).toBeDefined();
+    expect(within(volumeSummary).getByText('10')).toBeDefined();
+    expect(within(volumeSummary).getByText(/series estimadas/i)).toBeDefined();
   });
 });

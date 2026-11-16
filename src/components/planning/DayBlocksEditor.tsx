@@ -168,10 +168,41 @@ export function DayBlocksEditor({
       <div className="plan-day-content" role="tabpanel">
         <div className="plan-day-header">
           <div className="plan-day-info">
-            <h3 className="plan-day-title">
-              <Layers size={18} aria-hidden="true" />
-              <span>{dayLabel(activeDay.dayOfWeek)}</span>
-            </h3>
+            <div className="plan-day-title-row">
+              <h3 className="plan-day-title">
+                <Layers size={18} aria-hidden="true" />
+                <span>{dayLabel(activeDay.dayOfWeek)}</span>
+              </h3>
+              <div className="plan-day-volume-summary" aria-label="Resumen de volumen del día">
+                <span className="plan-volume-badge">
+                  <strong>{activeDay.blocks.length}</strong>{' '}
+                  {activeDay.blocks.length === 1 ? 'bloque' : 'bloques'}
+                </span>
+                <span className="plan-volume-badge">
+                  <strong>
+                    {activeDay.blocks.reduce((acc, b) => acc + b.exercises.length, 0)}
+                  </strong>{' '}
+                  {activeDay.blocks.reduce((acc, b) => acc + b.exercises.length, 0) === 1
+                    ? 'ejercicio'
+                    : 'ejercicios'}
+                </span>
+                <span className="plan-volume-badge">
+                  <strong>
+                    {activeDay.blocks.reduce(
+                      (acc, b) =>
+                        acc +
+                        b.exercises.reduce((exAcc, ex) => {
+                          const w1 =
+                            ex.weeklyProgression[1] || ex.weeklyProgression[weekNumbers[0]];
+                          return exAcc + (w1?.sets ?? 3);
+                        }, 0),
+                      0,
+                    )}
+                  </strong>{' '}
+                  series estimadas
+                </span>
+              </div>
+            </div>
             <p className="plan-day-subtitle">
               Configura los bloques y la progresión semana a semana para este día.
             </p>

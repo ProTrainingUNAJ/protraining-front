@@ -1518,15 +1518,15 @@
 .plan-progression-table th {
   background: var(--bg-subtle);
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 0.5rem 0.6rem;
+  padding: 0.35rem 0.5rem;
   border-bottom: 1px solid var(--border);
 }
 
 .plan-progression-table td {
-  padding: 0.4rem 0.5rem;
+  padding: 0.25rem 0.45rem;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
@@ -1636,4 +1636,183 @@
   .col-notes {
     min-width: 110px;
   }
+}
+
+/* ── Builder de planificación compacto (KAN-623) ── */
+.plan-builder-compact-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.plan-builder-header-main-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.plan-builder-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 300px;
+}
+
+.plan-builder-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.plan-builder-name-input {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.plan-builder-name-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-main);
+}
+
+.plan-builder-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.plan-builder-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.plan-builder-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.plan-builder-header-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.plan-builder-objective-input {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  background: transparent;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0;
+}
+
+.plan-builder-objective-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  border-style: solid;
+  color: var(--text-main);
+}
+
+/* ── Resumen de volumen diario (KAN-623) ── */
+.plan-day-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.plan-day-volume-summary {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.plan-volume-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  border: 1px solid var(--border);
+}
+
+.plan-volume-badge strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ── Acordeón y reducción de scroll en ejercicios (KAN-623) ── */
+.plan-exercise-block-item.collapsed {
+  padding-bottom: 0.5rem;
+}
+
+.plan-collapse-btn {
+  margin-right: 0.25rem;
+  color: var(--text-muted);
+}
+
+.plan-collapse-btn:hover {
+  color: var(--primary);
+  background: var(--bg-subtle);
+}
+
+.plan-exercise-collapsed-summary {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  margin-left: 0.5rem;
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan-copy-progression-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
