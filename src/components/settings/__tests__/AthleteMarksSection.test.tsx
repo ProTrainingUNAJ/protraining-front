@@ -210,7 +210,9 @@ describe('AthleteMarksSection - Mis marcas (KAN-417)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar marcas' }));
 
     await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toContain('Sentadilla ya la cargó tu PF.'),
+      expect(screen.getByRole('status').textContent).toContain(
+        'Sentadilla ya tenía una marca cargada.',
+      ),
     );
   });
 
