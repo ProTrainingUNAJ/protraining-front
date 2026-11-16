@@ -112,7 +112,7 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
     ).toBeDefined();
   });
 
-  it('muestra la organización y categoría en la tarjeta del atleta de forma homogénea', async () => {
+  it('muestra el logo de la organización junto a Activo y las categorías limpias en la tarjeta', async () => {
     render(
       <MemoryRouter>
         <AthletesPage />
@@ -120,7 +120,7 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByText('Club Demo')).toHaveLength(2);
+      expect(screen.getAllByLabelText('Logo de Club Demo')).toHaveLength(2);
       expect(screen.getAllByText('Primera División')).toHaveLength(3); // 2 en tarjetas de atletas + 1 en select de filtro
     });
   });

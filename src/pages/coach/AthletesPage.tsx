@@ -40,6 +40,7 @@ export const AthletesPage: React.FC = () => {
 
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,6 +116,7 @@ export const AthletesPage: React.FC = () => {
           orgsData,
         );
         if (!mounted) return;
+        setOrganizations(orgsData);
         setCategories(allCategories);
         setAthletes(athletesWithCategories);
         setLoading(false);
@@ -143,6 +145,7 @@ export const AthletesPage: React.FC = () => {
         orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
       );
       const allCategories = categoriesNested.flat();
+      setOrganizations(orgsData);
       setCategories(allCategories);
       setAthletes(await structureService.withCategories(athletesData, allCategories, orgsData));
     } catch (err: unknown) {
@@ -272,6 +275,28 @@ export const AthletesPage: React.FC = () => {
       return true;
     });
   }, [athletes, selectedCategoryId, searchTerm, categories]);
+
+  const getAthleteOrganizations = (athlete: Athlete): Organization[] => {
+    if (!athlete.categories || athlete.categories.length === 0) return [];
+    const orgMap = new Map<string, Organization>();
+    athlete.categories.forEach((cat) => {
+      const orgId = cat.organizationId || cat.organizationName;
+      if (orgId && !orgMap.has(orgId)) {
+        const found = organizations.find((o) => o.id === cat.organizationId);
+        if (found) {
+          orgMap.set(orgId, found);
+        } else if (cat.organizationName) {
+          orgMap.set(orgId, {
+            id: cat.organizationId || cat.organizationName,
+            name: cat.organizationName,
+            categoriesCount: 0,
+            hasPhoto: false,
+          });
+        }
+      }
+    });
+    return Array.from(orgMap.values());
+  };
 
   return (
     <div className="app-page-container">
@@ -764,6 +789,32 @@ export const AthletesPage: React.FC = () => {
                       </h2>
                       {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
                       {athlete.active && <span className="badge badge-success">Activo</span>}
+                      {getAthleteOrganizations(athlete).map((org) => (
+                        <div
+                          key={org.id}
+                          title={org.name}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            cursor: 'default',
+                          }}
+                        >
+                          <ProfileAvatar
+                            src={
+                              org.hasPhoto
+                                ? structureService.getOrganizationPhotoUrl(
+                                    org.id,
+                                    org.photoUpdatedAt,
+                                  )
+                                : null
+                            }
+                            name={org.name}
+                            size={22}
+                            shape="rounded"
+                            alt={`Logo de ${org.name}`}
+                          />
+                        </div>
+                      ))}
                     </div>
 
                     <div
@@ -783,7 +834,7 @@ export const AthletesPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Organizaciones y Categorías asignadas */}
+                    {/* Categorías asignadas */}
                     <div
                       style={{
                         display: 'flex',
@@ -800,19 +851,10 @@ export const AthletesPage: React.FC = () => {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '0.35rem',
                               padding: '0.25rem 0.55rem',
                             }}
                           >
-                            {c.organizationName ? (
-                              <>
-                                <span style={{ fontWeight: 600 }}>{c.organizationName}</span>
-                                <span style={{ opacity: 0.5 }}>•</span>
-                                <span>{c.name}</span>
-                              </>
-                            ) : (
-                              <span>{c.name}</span>
-                            )}
+                            <span>{c.name}</span>
                           </span>
                         ))
                       ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
