@@ -173,7 +173,7 @@ describe('MonitoringPage · Botón Ver ajuste sugerido (#157 · KAN-452)', () =>
     expect(screen.queryByText('Ver ajuste sugerido')).toBeNull();
   });
 
-  it('muestra la pestaña de Asistencia con texto limpio (sin & RPE) y renderiza las tarjetas de atletas', async () => {
+  it('muestra la pestaña de Asistencia & RPE y renderiza las tarjetas de atletas', async () => {
     vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
       {
         athleteId: 'ath-3',
@@ -196,7 +196,6 @@ describe('MonitoringPage · Botón Ver ajuste sugerido (#157 · KAN-452)', () =>
       expect(screen.getByText('Joaquín Díaz')).toBeTruthy();
     });
 
-    expect(screen.getByRole('button', { name: /Asistencia$/i })).toBeDefined();
-    expect(screen.queryByText(/Asistencia & RPE/i)).toBeNull();
+    expect(screen.getByRole('button', { name: /Asistencia & RPE/i })).toBeDefined();
   });
 });
