@@ -136,4 +136,58 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     expect(screen.getByLabelText(/Foto de perfil de Lucas Gómez/i)).toBeDefined();
     expect(screen.getByLabelText(/Foto de perfil de Joaquín Díaz/i)).toBeDefined();
   });
+
+  it('permite abrir el modal de carga al pulsar "+ Cargar minutos y RPE" en un atleta sin registro (KAN-621)', async () => {
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Asistencia/i })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Asistencia/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+    });
+
+    const loadBtn = screen.getByRole('button', { name: /\+ Cargar minutos y RPE/i });
+    expect(loadBtn).toBeDefined();
+    fireEvent.click(loadBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+      expect(screen.getByRole('heading', { name: /Carga de Entrenamiento/i })).toBeDefined();
+      expect(screen.getAllByText('Joaquín Díaz').length).toBe(2);
+    });
+  });
+
+  it('permite abrir el modal de edición al pulsar "Editar Carga" en un atleta con carga (KAN-621)', async () => {
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Asistencia/i })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Asistencia/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    const editBtn = screen.getByRole('button', { name: /Editar Carga/i });
+    expect(editBtn).toBeDefined();
+    fireEvent.click(editBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+      expect(screen.getByRole('heading', { name: /Carga de Entrenamiento/i })).toBeDefined();
+      expect(screen.getAllByText('Lucas Gómez').length).toBe(2);
+    });
+  });
 });
