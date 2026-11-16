@@ -4,10 +4,13 @@ import {
   createTrainingPlan,
   getTrainingPlan,
   getTrainingPlanSchedule,
+  listPlanAssignments,
   listPlanTemplates,
   listTrainingPlans,
   savePlanAsTemplate,
   updateTrainingPlan,
+  AssignPlanResponse,
+  PlanAssignmentSummary,
   SaveTrainingPlanRequest,
   ScheduledSession,
   TrainingPlanDetail,
@@ -61,8 +64,12 @@ export const trainingPlansService = {
   },
 
   // Se asigna a una categoría o a un atleta, nunca a los dos (el back lo rechaza).
-  async assign(planId: string, startDate: string, target: PlanAssignmentTarget): Promise<void> {
-    await call(() =>
+  async assign(
+    planId: string,
+    startDate: string,
+    target: PlanAssignmentTarget,
+  ): Promise<AssignPlanResponse> {
+    return call(() =>
       assignTrainingPlan({
         body: {
           trainingPlanId: planId,
@@ -70,6 +77,16 @@ export const trainingPlansService = {
           categoryId: target.type === 'category' ? target.id : null,
           athleteId: target.type === 'athlete' ? target.id : null,
         },
+        throwOnError: true,
+      }),
+    );
+  },
+
+  // Asignaciones del PF con su inicio, fin y estado (Active / Finished) (KAN-558 / KAN-559)
+  listAssignments(status?: 'Active' | 'Finished'): Promise<PlanAssignmentSummary[]> {
+    return call(() =>
+      listPlanAssignments({
+        query: status ? { status } : undefined,
         throwOnError: true,
       }),
     );
@@ -112,3 +129,5 @@ export const trainingPlansService = {
     );
   },
 };
+
+export type { PlanAssignmentSummary, AssignPlanResponse };

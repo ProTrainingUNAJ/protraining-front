@@ -43,7 +43,7 @@ export const seasonPlanningService = {
 
         return {
           ...s,
-          sessionTime: rawTime,
+          sessionTime: rawTime ? rawTime.slice(0, 5) : null,
         };
       });
     }

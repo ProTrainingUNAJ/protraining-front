@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import {
   AlertCircle,
   Bookmark,
+  Calendar,
   CalendarPlus,
   Check,
   ChevronRight,
@@ -15,14 +16,20 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ApplyPlanTemplateModal } from '../../components/planning/ApplyPlanTemplateModal';
-import { trainingPlansService } from '../../api/trainingPlans';
+import { trainingPlansService, PlanAssignmentSummary } from '../../api/trainingPlans';
 import { PlanListItem, PlanTemplateItem } from '../../types/trainingPlans';
+import { formatDayMonth } from '../../utils/argentinaDate';
 
 export function PlanningPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentTab = searchParams.get('tab') === 'templates' ? 'templates' : 'plans';
+  const currentTab =
+    searchParams.get('tab') === 'templates'
+      ? 'templates'
+      : searchParams.get('tab') === 'assignments'
+        ? 'assignments'
+        : 'plans';
 
   // Estados de planificaciones activas
   const [plans, setPlans] = useState<PlanListItem[]>([]);
@@ -41,6 +48,12 @@ export function PlanningPage() {
   const [selectedTemplateForApply, setSelectedTemplateForApply] = useState<PlanTemplateItem | null>(
     null,
   );
+
+  // Estados de asignaciones (KAN-559)
+  const [assignments, setAssignments] = useState<PlanAssignmentSummary[]>([]);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [assignmentError, setAssignmentError] = useState<string | null>(null);
+
   const [successMessage, setSuccessMessage] = useState<string | null>(
     (location.state as { message?: string } | null)?.message ?? null,
   );
@@ -95,12 +108,45 @@ export function PlanningPage() {
     };
   }, [currentTab]);
 
-  const handleTabChange = (tab: 'plans' | 'templates') => {
-    setSearchParams(tab === 'templates' ? { tab: 'templates' } : {});
+  // Carga de asignaciones al abrir la pestaña (KAN-559)
+  useEffect(() => {
+    if (currentTab !== 'assignments') return;
+
+    let active = true;
+    setLoadingAssignments(true);
+    setAssignmentError(null);
+
+    trainingPlansService
+      .listAssignments()
+      .then((data) => {
+        if (active) setAssignments(data);
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setAssignmentError(
+            err instanceof Error ? err.message : 'No se pudieron cargar las asignaciones.',
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoadingAssignments(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentTab]);
+
+  const handleTabChange = (tab: 'plans' | 'templates' | 'assignments') => {
+    setSearchParams(tab === 'plans' ? {} : { tab });
     setSuccessMessage(null);
     if (tab === 'templates' && templates.length === 0) {
       setLoadingTemplates(true);
       setTemplateError(null);
+    }
+    if (tab === 'assignments' && assignments.length === 0) {
+      setLoadingAssignments(true);
+      setAssignmentError(null);
     }
   };
 
@@ -135,11 +181,19 @@ export function PlanningPage() {
   return (
     <div className="app-page-container">
       <PageHeader
-        title={currentTab === 'templates' ? 'Catálogo de Plantillas' : 'Planificación'}
+        title={
+          currentTab === 'templates'
+            ? 'Catálogo de Plantillas'
+            : currentTab === 'assignments'
+              ? 'Asignaciones'
+              : 'Planificación'
+        }
         description={
           currentTab === 'templates'
             ? 'Administrá tus plantillas guardadas y aplicalas rápidamente a cualquier categoría con desplazamiento de fechas.'
-            : 'Tus planificaciones de entrenamiento. Abrí una para editar sus semanas y sesiones.'
+            : currentTab === 'assignments'
+              ? 'Planes de entrenamiento asignados a categorías y atletas con sus fechas de vigencia y estado.'
+              : 'Tus planificaciones de entrenamiento. Abrí una para editar sus semanas y sesiones.'
         }
         actions={
           currentTab === 'plans' ? (
@@ -161,12 +215,12 @@ export function PlanningPage() {
                 <span>{showForm ? 'Cancelar' : 'Nueva planificación'}</span>
               </button>
             </>
-          ) : (
+          ) : currentTab === 'templates' ? (
             <Link to="/pf/assistant/new" className="btn btn-secondary">
               <Sparkles size={16} aria-hidden="true" />
               <span>Generar con IA</span>
             </Link>
-          )
+          ) : null
         }
       />
 
@@ -192,6 +246,16 @@ export function PlanningPage() {
           >
             <Bookmark size={16} aria-hidden="true" />
             <span>Plantillas guardadas</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={currentTab === 'assignments'}
+            className={`plan-tab-btn ${currentTab === 'assignments' ? 'active' : ''}`}
+            onClick={() => handleTabChange('assignments')}
+          >
+            <CalendarPlus size={16} aria-hidden="true" />
+            <span>Asignaciones</span>
           </button>
         </nav>
 
@@ -361,6 +425,86 @@ export function PlanningPage() {
                     </div>
                   </li>
                 ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* Pestaña 3: Asignaciones (KAN-559) */}
+        {currentTab === 'assignments' && (
+          <section aria-labelledby="assignments-section-title">
+            <h2 id="assignments-section-title" className="sr-only">
+              Asignaciones de entrenamiento
+            </h2>
+
+            {loadingAssignments ? (
+              <p className="plan-empty plan-inline">
+                <Loader2 size={16} className="plan-spin" aria-hidden="true" />
+                Cargando asignaciones…
+              </p>
+            ) : assignments.length === 0 && !assignmentError ? (
+              <p className="plan-empty">
+                Todavía no tenés planificaciones asignadas. Podés asignar una desde «Mis
+                Planificaciones» abriendo el editor y seleccionando «Asignar».
+              </p>
+            ) : (
+              <ul className="plan-list">
+                {assignments.map((assignment) => {
+                  const isFinished = assignment.status === 'Finished';
+                  const rangeText = `Del ${formatDayMonth(assignment.startDate)} al ${formatDayMonth(assignment.endDate)}`;
+                  const finishText = isFinished
+                    ? 'Terminada'
+                    : `Termina el ${formatDayMonth(assignment.endDate)}`;
+
+                  return (
+                    <li key={assignment.assignmentId}>
+                      <div className="card plan-list-item" style={{ cursor: 'default' }}>
+                        <Calendar
+                          size={20}
+                          aria-hidden="true"
+                          style={{ color: isFinished ? 'var(--text-muted)' : 'var(--primary)' }}
+                        />
+                        <div className="plan-list-info" style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.65rem',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <strong>{assignment.planName}</strong>
+                            {isFinished ? (
+                              <span
+                                className="badge badge-secondary"
+                                style={{ fontSize: '0.72rem' }}
+                              >
+                                Terminada
+                              </span>
+                            ) : (
+                              <span
+                                className="badge badge-success"
+                                style={{ fontSize: '0.72rem' }}
+                              >
+                                Activa
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
+                            {rangeText} · {finishText}
+                          </span>
+                        </div>
+                        <Link
+                          to={`/pf/planning/${assignment.trainingPlanId}`}
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem' }}
+                        >
+                          Ver plan
+                        </Link>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>

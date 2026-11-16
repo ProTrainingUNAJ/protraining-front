@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Plus, Trash2 } from 'lucide-react';
 import { DraftExercise, DraftSession } from '../../types/trainingPlans';
 import { moveExercise, WEEK_DAYS } from '../../utils/planDraft';
 import { PrescribedExerciseRow } from './PrescribedExerciseRow';
@@ -73,6 +73,24 @@ export function SessionCard({
           placeholder="Nombre de la sesión"
           aria-label="Nombre de la sesión"
         />
+
+        <div className="plan-session-time-wrap" title="Hora de inicio de la sesión (opcional)">
+          <Clock size={13} className="plan-session-time-icon" aria-hidden="true" />
+          <input
+            className="plan-session-time"
+            type="time"
+            value={session.startTime ? session.startTime.slice(0, 5) : ''}
+            onChange={(e) => {
+              const val = e.target.value.trim();
+              onChange((current) => ({
+                ...current,
+                startTime: val ? val : null,
+              }));
+            }}
+            disabled={disabled}
+            aria-label="Hora de la sesión"
+          />
+        </div>
 
         {showMove && (
           <span className="plan-move">

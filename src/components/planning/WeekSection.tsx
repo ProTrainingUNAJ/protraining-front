@@ -1,6 +1,11 @@
 import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { DraftSession, DraftWeek } from '../../types/trainingPlans';
-import { dayPosition, type MoveDirection, sameDaySessions } from '../../utils/planDraft';
+import {
+  dayPosition,
+  type MoveDirection,
+  sameDaySessions,
+  sortSessionsByDayAndTime,
+} from '../../utils/planDraft';
 import { SessionCard } from './SessionCard';
 
 interface WeekSectionProps {
@@ -33,11 +38,9 @@ export function WeekSection({
   onSwapExercise,
   onMoveSession,
 }: WeekSectionProps) {
-  // Se muestran por día (lunes primero) y, dentro del día, por orden. Si hay dos o más el
-  // mismo día, se pueden reordenar con flechas (KAN-542; el back lo acepta desde la KAN-534).
-  const sessions = [...week.sessions].sort(
-    (a, b) => dayPosition(a.dayOfWeek) - dayPosition(b.dayOfWeek) || a.order - b.order,
-  );
+  // Se muestran por día (lunes primero) y, dentro del día, por hora (KAN-559).
+  // Las sesiones con hora van primero (de más temprano a más tarde); las que no tienen, al final.
+  const sessions = sortSessionsByDayAndTime(week.sessions);
   const contentId = `week-${week.key}`;
   const sessionCount = week.sessions.length === 1 ? '1 sesión' : `${week.sessions.length} sesiones`;
 

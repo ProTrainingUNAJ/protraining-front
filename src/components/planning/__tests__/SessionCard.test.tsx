@@ -98,4 +98,42 @@ describe('SessionCard', () => {
 
     expect(onSwapExercise).toHaveBeenCalledWith('squat');
   });
+
+  it('permite elegir la hora de la sesión con input de 24 hs (KAN-559)', () => {
+    const onChange = vi.fn();
+    renderCard(onChange);
+
+    const timeInput = screen.getByLabelText('Hora de la sesión') as HTMLInputElement;
+    expect(timeInput).toBeTruthy();
+    expect(timeInput.value).toBe('');
+
+    fireEvent.change(timeInput, { target: { value: '18:00' } });
+
+    const update = onChange.mock.calls[0][0] as (s: DraftSession) => DraftSession;
+    const next = update(session);
+    expect(next.startTime).toBe('18:00');
+  });
+
+  it('si se vacía el input de hora, startTime pasa a ser null (KAN-559)', () => {
+    const sessionWithTime: DraftSession = { ...session, startTime: '18:00' };
+    const onChange = vi.fn();
+    render(
+      <SessionCard
+        session={sessionWithTime}
+        disabled={false}
+        onChange={onChange}
+        onRemove={vi.fn()}
+        onAddExercise={vi.fn()}
+      />,
+    );
+
+    const timeInput = screen.getByLabelText('Hora de la sesión') as HTMLInputElement;
+    expect(timeInput.value).toBe('18:00');
+
+    fireEvent.change(timeInput, { target: { value: '' } });
+
+    const update = onChange.mock.calls[0][0] as (s: DraftSession) => DraftSession;
+    const next = update(sessionWithTime);
+    expect(next.startTime).toBeNull();
+  });
 });
