@@ -44,7 +44,54 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         // Exclude non-essential heavy images from initial PWA precache
-        globIgnores: ['assets/isotype-gradient.png', 'assets/body-muscles-base.png'],
+        globIgnores: [
+          'assets/isotype-gradient.png',
+          'assets/*Page-*.js',
+          'assets/EvolutionRangeSelector-*.js',
+          'assets/*anatomy*.webp',
+          'assets/*silhouette*.webp',
+          'assets/*runner*.webp',
+          'assets/protraining-logo*.webp',
+          'assets/protraining-official-isotype*.webp',
+          'assets/protraining-3d*.webp',
+          'assets/montserrat-cyrillic*.woff2',
+          'assets/montserrat-vietnamese*.woff2',
+        ],
+        runtimeCaching: [
+          {
+            urlPattern: /\.(?:js|css)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'static-resources',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:woff2?)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fonts',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
+        ],
         importScripts: ['/push-sw.js'],
       },
       devOptions: { enabled: false },
@@ -71,6 +118,8 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
+    // Cloudflare Tunnel expone el preview con hostnames *.trycloudflare.com.
+    // Vite 6 bloquea hosts desconocidos por defecto, por eso se permiten.
     allowedHosts: ['.trycloudflare.com'],
   },
   test: {
