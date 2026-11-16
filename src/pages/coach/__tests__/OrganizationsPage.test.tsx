@@ -5,6 +5,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { OrganizationsPage } from '../OrganizationsPage';
 import { structureService } from '../../../api/structureService';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 vi.mock('../../../api/structureService', () => ({
   structureService: {
     getOrganizations: vi.fn(),
@@ -387,5 +396,23 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
       ).toBeDefined();
       expect(screen.queryByRole('heading', { level: 3, name: 'Primera División' })).toBeNull();
     });
+  });
+
+  it('navega a /pf/athletes pasando el state con la categoría al hacer clic en "Ver Atletas"', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/organizations']}>
+        <OrganizationsPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 3, name: 'Primera División' })).toBeDefined();
+    });
+
+    const verAtletasButtons = screen.getAllByRole('button', { name: /Ver Atletas/i });
+    expect(verAtletasButtons.length).toBeGreaterThan(0);
+    fireEvent.click(verAtletasButtons[0]);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/pf/athletes', { state: { catId: 'cat-1' } });
   });
 });

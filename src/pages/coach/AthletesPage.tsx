@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import {
   Users,
   Plus,
@@ -35,6 +35,8 @@ import { MedicalRecord } from '../../types/medicalRecord';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const stateCatId = (location.state as { catId?: string } | null)?.catId;
 
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -45,9 +47,21 @@ export const AthletesPage: React.FC = () => {
 
   // Filtros
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    searchParams.get('catId') || '',
+    stateCatId || searchParams.get('catId') || '',
   );
+  const [prevLocationCatId, setPrevLocationCatId] = useState<string | undefined>(stateCatId);
   const [searchTerm, setSearchTerm] = useState('');
+
+  if (stateCatId && stateCatId !== prevLocationCatId) {
+    setPrevLocationCatId(stateCatId);
+    setSelectedCategoryId(stateCatId);
+  }
+
+  useEffect(() => {
+    if (searchParams.has('catId')) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [searchParams]);
 
   // Formulario de nuevo atleta
   const [showForm, setShowForm] = useState(false);
