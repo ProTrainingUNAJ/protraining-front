@@ -573,15 +573,51 @@ export function PlanEditorPage() {
 
   return (
     <div className="app-page-container">
-      <PageHeader
-        title={draft.name || 'Planificación'}
-        description="Armá las sesiones por bloques funcionales con progresión semanal. Los cambios se guardan con el botón Guardar."
-        actions={
-          <>
+      {/* Header Compacto y Accesible del Builder (KAN-623) */}
+      <header className="plan-builder-compact-header" aria-label="Controles de la planificación">
+        <div className="plan-builder-header-main-row">
+          <div className="plan-builder-title-group">
             {backLink}
+            <div className="plan-builder-name-wrap">
+              <input
+                type="text"
+                className="plan-builder-name-input"
+                maxLength={200}
+                value={draft.name}
+                onChange={(e) => editDraft((current) => ({ ...current, name: e.target.value }))}
+                disabled={saving}
+                placeholder="Nombre de la planificación *"
+                aria-label="Nombre de la planificación"
+              />
+              {dirty && <span className="badge badge-warning">Cambios sin guardar</span>}
+            </div>
+          </div>
+
+          <div className="plan-view-selector" role="group" aria-label="Modo de visualización">
             <button
               type="button"
-              className="btn btn-secondary"
+              className={`plan-view-btn ${viewMode === 'blocks' ? 'active' : ''}`}
+              onClick={() => setViewMode('blocks')}
+              aria-pressed={viewMode === 'blocks'}
+            >
+              <Layers size={14} aria-hidden="true" />
+              <span>Por Bloques (Semanal)</span>
+            </button>
+            <button
+              type="button"
+              className={`plan-view-btn ${viewMode === 'weeks' ? 'active' : ''}`}
+              onClick={() => setViewMode('weeks')}
+              aria-pressed={viewMode === 'weeks'}
+            >
+              <Calendar size={14} aria-hidden="true" />
+              <span>Por Semanas</span>
+            </button>
+          </div>
+
+          <div className="plan-builder-actions">
+            <button
+              type="button"
+              className="btn btn-secondary plan-builder-action-btn"
               onClick={() => setShowSaveTemplate(true)}
               disabled={saving || dirty}
               title={
@@ -590,12 +626,12 @@ export function PlanEditorPage() {
                   : 'Guardar esta planificación como plantilla reutilizable'
               }
             >
-              <Bookmark size={16} aria-hidden="true" />
-              <span>Guardar como plantilla</span>
+              <Bookmark size={15} aria-hidden="true" />
+              <span>Plantilla</span>
             </button>
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary plan-builder-action-btn"
               onClick={() => setShowAssign(true)}
               disabled={saving || dirty}
               title={
@@ -604,25 +640,38 @@ export function PlanEditorPage() {
                   : 'Asignar a una categoría o a un atleta'
               }
             >
-              <UserPlus size={16} aria-hidden="true" />
+              <UserPlus size={15} aria-hidden="true" />
               <span>Asignar</span>
             </button>
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-primary plan-builder-save-btn"
               onClick={save}
               disabled={saving || !dirty}
             >
               {saving ? (
-                <Loader2 size={16} className="plan-spin" aria-hidden="true" />
+                <Loader2 size={15} className="plan-spin" aria-hidden="true" />
               ) : (
-                <Save size={16} aria-hidden="true" />
+                <Save size={15} aria-hidden="true" />
               )}
               <span>{saving ? 'Guardando…' : 'Guardar'}</span>
             </button>
-          </>
-        }
-      />
+          </div>
+        </div>
+
+        <div className="plan-builder-header-sub-row">
+          <input
+            type="text"
+            className="plan-builder-objective-input"
+            maxLength={500}
+            value={draft.objective || ''}
+            onChange={(e) => editDraft((current) => ({ ...current, objective: e.target.value }))}
+            disabled={saving}
+            placeholder="Objetivo deportivo (opcional, ej. Pretemporada, Fuerza máxima...)"
+            aria-label="Objetivo deportivo"
+          />
+        </div>
+      </header>
 
       <div className="app-page-body">
         {error && (
@@ -667,58 +716,6 @@ export function PlanEditorPage() {
             </span>
           </div>
         )}
-
-        <section className="card card-static plan-details">
-          <div className="plan-details-top">
-            <label className="plan-field plan-details-name-field">
-              <span>Nombre</span>
-              <input
-                type="text"
-                maxLength={200}
-                value={draft.name}
-                onChange={(e) => editDraft((current) => ({ ...current, name: e.target.value }))}
-                disabled={saving}
-              />
-            </label>
-
-            <div className="plan-view-selector-container">
-              <span className="plan-view-selector-label">Modo de edición</span>
-              <div className="plan-view-selector" role="group" aria-label="Modo de visualización">
-                <button
-                  type="button"
-                  className={`plan-view-btn ${viewMode === 'blocks' ? 'active' : ''}`}
-                  onClick={() => setViewMode('blocks')}
-                  aria-pressed={viewMode === 'blocks'}
-                >
-                  <Layers size={14} aria-hidden="true" />
-                  <span>Por Bloques (Semanal)</span>
-                </button>
-                <button
-                  type="button"
-                  className={`plan-view-btn ${viewMode === 'weeks' ? 'active' : ''}`}
-                  onClick={() => setViewMode('weeks')}
-                  aria-pressed={viewMode === 'weeks'}
-                >
-                  <Calendar size={14} aria-hidden="true" />
-                  <span>Por Semanas</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <label className="plan-field" style={{ marginTop: '0.75rem' }}>
-            <span>Objetivo (opcional)</span>
-            <input
-              type="text"
-              maxLength={500}
-              value={draft.objective}
-              onChange={(e) => editDraft((current) => ({ ...current, objective: e.target.value }))}
-              disabled={saving}
-              placeholder="Ej. Pretemporada, fuerza base"
-            />
-          </label>
-          {dirty && <span className="badge badge-warning">Cambios sin guardar</span>}
-        </section>
 
         {/* Vista por Bloques (KAN-587) */}
         {viewMode === 'blocks' ? (

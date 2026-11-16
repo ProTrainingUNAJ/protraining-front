@@ -172,4 +172,82 @@ describe('ExerciseProgressionGrid', () => {
     ) as HTMLInputElement;
     expect(rirInput.value).toBe('2');
   });
+
+  it('permite colapsar el ejercicio ocultando la tabla y mostrando un resumen compacto (KAN-623)', () => {
+    render(
+      <ExerciseProgressionGrid
+        exercise={sampleExercise}
+        weekNumbers={[1, 2, 3, 4]}
+        disabled={false}
+        onUpdateProgression={vi.fn()}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    // Inicialmente expandido, la tabla está visible
+    expect(screen.getByRole('table')).toBeDefined();
+
+    // Colapsar
+    const collapseBtn = screen.getByRole('button', { name: /colapsar sentadilla trasera/i });
+    fireEvent.click(collapseBtn);
+
+    // La tabla ya no se renderiza
+    expect(screen.queryByRole('table')).toBeNull();
+
+    // Muestra el resumen compacto de una línea
+    expect(screen.getByText(/4 semanas · 3x10 · 70% RM · RPE 7.5/i)).toBeDefined();
+
+    // Expandir nuevamente
+    const expandBtn = screen.getByRole('button', { name: /expandir sentadilla trasera/i });
+    fireEvent.click(expandBtn);
+    expect(screen.getByRole('table')).toBeDefined();
+  });
+
+  it('copia los valores de la semana 1 a todas las semanas restantes al presionar Copiar Sem 1 a todas (KAN-623)', () => {
+    const onUpdateProgression = vi.fn();
+    render(
+      <ExerciseProgressionGrid
+        exercise={sampleExercise}
+        weekNumbers={[1, 2, 3, 4]}
+        disabled={false}
+        onUpdateProgression={onUpdateProgression}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    const copyBtn = screen.getByRole('button', {
+      name: /copiar semana 1 de sentadilla trasera a todas las semanas/i,
+    });
+    fireEvent.click(copyBtn);
+
+    // Debe invocar onUpdateProgression para las semanas 2, 3 y 4
+    expect(onUpdateProgression).toHaveBeenCalledTimes(3);
+    expect(onUpdateProgression).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({
+        sets: 3,
+        reps: 10,
+        repsRange: '10',
+        targetPercentage: 70,
+        targetRpe: 7.5,
+        notes: 'Semana 1 base',
+      }),
+    );
+    expect(onUpdateProgression).toHaveBeenCalledWith(
+      3,
+      expect.objectContaining({
+        sets: 3,
+        reps: 10,
+      }),
+    );
+    expect(onUpdateProgression).toHaveBeenCalledWith(
+      4,
+      expect.objectContaining({
+        sets: 3,
+        reps: 10,
+      }),
+    );
+  });
 });
