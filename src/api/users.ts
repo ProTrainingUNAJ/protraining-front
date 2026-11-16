@@ -1,8 +1,11 @@
 import {
   updateWhatsAppPhone as updatePhoneSdk,
   getPfContact as getPfContactSdk,
+  updateProfile as updateProfileSdk,
+  deactivateAccount as deactivateAccountSdk,
   type PfContact,
   type UpdatePhoneResponse,
+  type ProfileResponse,
 } from './generated/identidad';
 import { httpClient, extractErrorMessage } from './axiosClient';
 
@@ -124,6 +127,43 @@ export const usersService = {
     try {
       const { data } = await httpClient.get('/identidad/api/v1/users/me/habits-recommendations');
       return data as { enabled: boolean };
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Actualiza el perfil de nombre y teléfono del preparador físico (KAN-601 / KAN-602).
+   */
+  async updateProfile(payload: {
+    fullName: string;
+    phone?: string | null;
+  }): Promise<ProfileResponse> {
+    try {
+      const { data } = await updateProfileSdk({
+        body: {
+          fullName: payload.fullName.trim(),
+          phone: payload.phone?.trim() || null,
+        },
+        throwOnError: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Da de baja lógica la cuenta del preparador físico, validando la contraseña actual (KAN-601 / KAN-602).
+   */
+  async deactivateAccount(password: string): Promise<void> {
+    try {
+      await deactivateAccountSdk({
+        body: {
+          password,
+        },
+        throwOnError: true,
+      });
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

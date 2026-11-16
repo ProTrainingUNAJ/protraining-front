@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -79,6 +79,51 @@ export const registerByInvitation = <ThrowOnError extends boolean = false>(optio
 });
 
 /**
+ * Registro independiente de Preparador Físico (KAN-601)
+ *
+ * Registra la cuenta de un nuevo preparador físico y despacha un correo con enlace de confirmación. Responde 409 si el email ya existe.
+ */
+export const registerPf = <ThrowOnError extends boolean = false>(options: Options<RegisterPfData, ThrowOnError>): RequestResult<RegisterPfResponses, RegisterPfErrors, ThrowOnError> => (options.client ?? client).post<RegisterPfResponses, RegisterPfErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/register-pf',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Confirmación de correo electrónico (KAN-601)
+ *
+ * Activa el correo de la cuenta utilizando el token recibido por email para habilitar el inicio de sesión del PF.
+ */
+export const confirmEmail = <ThrowOnError extends boolean = false>(options: Options<ConfirmEmailData, ThrowOnError>): RequestResult<ConfirmEmailResponses, ConfirmEmailErrors, ThrowOnError> => (options.client ?? client).post<ConfirmEmailResponses, ConfirmEmailErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/confirm-email',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reenviar correo de confirmación de cuenta (KAN-601)
+ *
+ * Reenvía el correo de confirmación de cuenta de forma anti-enumeración.
+ */
+export const resendConfirmation = <ThrowOnError extends boolean = false>(options: Options<ResendConfirmationData, ThrowOnError>): RequestResult<ResendConfirmationResponses, ResendConfirmationErrors, ThrowOnError> => (options.client ?? client).post<ResendConfirmationResponses, ResendConfirmationErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/auth/resend-confirmation',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Solicitar recuperación de contraseña por correo electrónico
  *
  * Envía un correo con un enlace y token de recuperación si el usuario existe. Para prevenir la enumeración de cuentas, siempre devuelve HTTP 202 Accepted.
@@ -137,6 +182,37 @@ export const resetAthletePassword = <ThrowOnError extends boolean = false>(optio
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/auth/athletes/{athleteId}/reset-password',
     ...options
+});
+
+/**
+ * Actualizar perfil de Preparador Físico (KAN-601)
+ *
+ * Actualiza nombre completo y teléfono normalizado del preparador físico autenticado.
+ */
+export const updateProfile = <ThrowOnError extends boolean = false>(options: Options<UpdateProfileData, ThrowOnError>): RequestResult<UpdateProfileResponses, UpdateProfileErrors, ThrowOnError> => (options.client ?? client).put<UpdateProfileResponses, UpdateProfileErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/profile',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Baja lógica de cuenta del Preparador Físico (KAN-601)
+ *
+ * Da de baja la cuenta del preparador físico, validando la contraseña actual y revocando todas las sesiones activas.
+ */
+export const deactivateAccount = <ThrowOnError extends boolean = false>(options: Options<DeactivateAccountData, ThrowOnError>): RequestResult<DeactivateAccountResponses, DeactivateAccountErrors, ThrowOnError> => (options.client ?? client).post<DeactivateAccountResponses, DeactivateAccountErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/deactivate',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

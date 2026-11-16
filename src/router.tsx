@@ -101,6 +101,20 @@ const ForgotPasswordPage = lazyPage(() =>
 const ResetPasswordPage = lazyPage(() =>
   import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })),
 );
+const RegisterChoicePage = lazyPage(() =>
+  import('./pages/auth/RegisterChoicePage').then((m) => ({ default: m.RegisterChoicePage })),
+);
+const RegisterPfPage = lazyPage(() =>
+  import('./pages/auth/RegisterPfPage').then((m) => ({ default: m.RegisterPfPage })),
+);
+const RegisterAthleteInfoPage = lazyPage(() =>
+  import('./pages/auth/RegisterAthleteInfoPage').then((m) => ({
+    default: m.RegisterAthleteInfoPage,
+  })),
+);
+const ConfirmEmailPage = lazyPage(() =>
+  import('./pages/auth/ConfirmEmailPage').then((m) => ({ default: m.ConfirmEmailPage })),
+);
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootRedirect() {
@@ -138,6 +152,10 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'login/atleta', element: <LoginPage /> },
       { path: 'login/pf', element: <LoginPage /> },
+      { path: 'registro', element: <RegisterChoicePage /> },
+      { path: 'registro/pf', element: <RegisterPfPage /> },
+      { path: 'registro/atleta', element: <RegisterAthleteInfoPage /> },
+      { path: 'confirmar-email', element: <ConfirmEmailPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: 'invite/:token', element: <InvitationLandingPage /> },
