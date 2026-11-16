@@ -75,7 +75,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
     setEmailSuccess(false);
 
     try {
-      const updated = await structureService.updateAthleteEmail(athlete.id, cleanEmail);
+      const updated = await structureService.updateAthleteEmail(
+        athlete.id,
+        cleanEmail,
+        athlete.accountId,
+      );
       const merged: Athlete = { ...athlete, email: updated.email || cleanEmail };
       onAthleteUpdated(merged);
       setEmailSuccess(true);
@@ -107,7 +111,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
     setPhoneSuccess(false);
 
     try {
-      const updated = await structureService.updateAthletePhone(athlete.id, cleanPhone);
+      const updated = await structureService.updateAthletePhone(
+        athlete.id,
+        cleanPhone,
+        athlete.accountId,
+      );
       const merged: Athlete = { ...athlete, phone: updated.phone || cleanPhone };
       onAthleteUpdated(merged);
       setPhoneSuccess(true);
@@ -123,11 +131,15 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
 
   // Resetear Contraseña
   const handleResetPassword = async () => {
+    if (!athlete.accountId) {
+      setResetError('El atleta aún no ha completado el registro de su cuenta en la aplicación.');
+      return;
+    }
     setResetStep('loading');
     setResetError(null);
 
     try {
-      const res = await authService.resetAthletePassword(athlete.id);
+      const res = await authService.resetAthletePassword(athlete.accountId);
       setTempPassword(res.temporaryPassword);
       setResetStep('success');
     } catch (err: unknown) {
@@ -162,7 +174,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
     setStatusError(null);
 
     try {
-      const updated = await structureService.updateAthleteStatus(athlete.id, nextActive);
+      const updated = await structureService.updateAthleteStatus(
+        athlete.id,
+        nextActive,
+        athlete.accountId,
+      );
       const merged: Athlete = { ...athlete, active: updated.active ?? nextActive };
       onAthleteUpdated(merged);
       setStatusConfirming(false);
@@ -448,7 +464,26 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
               </div>
             )}
 
-            {resetStep === 'success' && tempPassword ? (
+            {!athlete.accountId ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.85rem 1rem',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                }}
+              >
+                <AlertCircle size={18} color="var(--text-muted)" aria-hidden="true" />
+                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  El atleta aún no ha completado el registro de su cuenta en la aplicación (está
+                  pendiente de registrarse mediante invitación). No posee credenciales para
+                  restablecer.
+                </p>
+              </div>
+            ) : resetStep === 'success' && tempPassword ? (
               <div
                 style={{
                   background: 'var(--bg-subtle)',
