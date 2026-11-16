@@ -355,18 +355,24 @@ export const structureService = {
     });
   },
 
-  async updateAthleteStatus(athleteId: string, active: boolean): Promise<Athlete> {
+  async updateAthleteStatus(
+    athleteId: string,
+    active: boolean,
+    accountId?: string | null,
+  ): Promise<Athlete> {
     try {
       const response = await httpClient.patch<Athlete>(
         `/estructura/api/v1/athletes/${athleteId}/status`,
         { active },
       );
-      try {
-        await httpClient.patch(`/identidad/api/v1/users/athletes/${athleteId}/status`, {
-          isActive: active,
-        });
-      } catch {
-        // Silencioso si el atleta aún no activó credenciales en identidad
+      if (accountId) {
+        try {
+          await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/status`, {
+            isActive: active,
+          });
+        } catch {
+          // Silencioso si falla la sincronización con identidad
+        }
       }
       return response.data;
     } catch (err: unknown) {
@@ -374,16 +380,22 @@ export const structureService = {
     }
   },
 
-  async updateAthleteEmail(athleteId: string, email: string): Promise<Athlete> {
+  async updateAthleteEmail(
+    athleteId: string,
+    email: string,
+    accountId?: string | null,
+  ): Promise<Athlete> {
     try {
       const response = await httpClient.patch<Athlete>(
         `/estructura/api/v1/athletes/${athleteId}/email`,
         { email },
       );
-      try {
-        await httpClient.patch(`/identidad/api/v1/users/athletes/${athleteId}/email`, { email });
-      } catch {
-        // Silencioso si el atleta aún no activó credenciales en identidad
+      if (accountId) {
+        try {
+          await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/email`, { email });
+        } catch {
+          // Silencioso si falla la sincronización con identidad
+        }
       }
       return response.data;
     } catch (err: unknown) {
@@ -391,18 +403,24 @@ export const structureService = {
     }
   },
 
-  async updateAthletePhone(athleteId: string, phone: string): Promise<Athlete> {
+  async updateAthletePhone(
+    athleteId: string,
+    phone: string,
+    accountId?: string | null,
+  ): Promise<Athlete> {
     try {
       const response = await httpClient.patch<Athlete>(
         `/estructura/api/v1/athletes/${athleteId}/phone`,
         { phone },
       );
-      try {
-        await httpClient.patch(`/identidad/api/v1/users/athletes/${athleteId}/phone`, {
-          phoneNumber: phone,
-        });
-      } catch {
-        // Silencioso si el atleta aún no activó credenciales en identidad
+      if (accountId) {
+        try {
+          await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/phone`, {
+            phoneNumber: phone,
+          });
+        } catch {
+          // Silencioso si falla la sincronización con identidad
+        }
       }
       return response.data;
     } catch (err: unknown) {

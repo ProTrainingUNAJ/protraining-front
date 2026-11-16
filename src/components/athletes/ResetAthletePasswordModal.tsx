@@ -20,10 +20,11 @@ export const ResetAthletePasswordModal: React.FC<ResetAthletePasswordModalProps>
   const athleteName = athlete.fullName || `${athlete.firstName} ${athlete.lastName}`.trim();
 
   const handleConfirmReset = async () => {
+    const targetUserId = athlete.accountId || athlete.id;
     setError(null);
     setStep('loading');
     try {
-      const response = await authService.resetAthletePassword(athlete.id);
+      const response = await authService.resetAthletePassword(targetUserId);
       setTemporaryPassword(response.temporaryPassword);
       setStep('success');
     } catch (err: unknown) {
