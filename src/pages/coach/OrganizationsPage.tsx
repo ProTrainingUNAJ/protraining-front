@@ -879,7 +879,7 @@ export const OrganizationsPage: React.FC = () => {
                             <button
                               type="button"
                               className="structure-btn-pill"
-                              onClick={() => navigate(`/pf/athletes?catId=${cat.id}`)}
+                              onClick={() => navigate('/pf/athletes', { state: { catId: cat.id } })}
                               title="Ver listado de atletas de esta división"
                             >
                               <Users size={14} aria-hidden="true" />
