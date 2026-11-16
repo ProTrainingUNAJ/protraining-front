@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, AlertTriangle, Loader2, Search, Users } from 'lucide-react';
+import { Activity, AlertTriangle, Dumbbell, Loader2, Search, Trophy, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
@@ -11,6 +11,8 @@ import {
   TrafficLightStatus,
 } from '../../components/monitoring/trafficLight.types';
 import { structureService } from '../../api/structureService';
+import { usersService } from '../../api/users';
+import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import {
   ATHLETE_NAME_FALLBACK,
   CATEGORY_NAME_FALLBACK,
@@ -20,7 +22,7 @@ import {
   type CategoryAttendanceSummary,
   mapTrafficLightSummaryToItem,
 } from '../../api/seguimientoService';
-import { Category } from '../../types/structure';
+import { Athlete, Category } from '../../types/structure';
 
 type FilterColor = 'all' | TrafficLightStatus;
 
@@ -136,6 +138,7 @@ export const MonitoringPage: React.FC = () => {
   const [statusOverrides, setStatusOverrides] = useState<
     Record<string, Partial<AthleteTrafficLightItem>>
   >({});
+  const [categoryAthletes, setCategoryAthletes] = useState<Athlete[]>([]);
 
   // Asistencia automática del día (KAN-445)
   const [attendanceResult, setAttendanceResult] = useState<{
@@ -164,20 +167,23 @@ export const MonitoringPage: React.FC = () => {
       typeof structureService?.getAthletes === 'function'
         ? structureService
             .getAthletes({ categoriaId: selectedCategoryId })
-            .catch(() => [] as import('../../types/structure').Athlete[])
-        : Promise.resolve([] as import('../../types/structure').Athlete[]);
+            .catch(() => [] as Athlete[])
+        : Promise.resolve([] as Athlete[]);
 
     Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
-      .then(async ([summaries, categoryAthletes]) => {
+      .then(async ([summaries, fetchedAthletes]) => {
         if (!active) return;
-        const athleteMap = new Map(categoryAthletes.map((a) => [a.id, a]));
+        setCategoryAthletes(fetchedAthletes);
+        const athleteMap = new Map(fetchedAthletes.map((a) => [a.id, a]));
 
         const mapped = summaries.map((summary) => {
           const detail = athleteMap.get(summary.athleteId);
           const photoUrl = detail
             ? detail.hasPhoto
               ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
-              : undefined
+              : detail.accountId
+                ? usersService.getMyPhotoUrl(detail.accountId)
+                : undefined
             : getPhotoUrl(summary.athleteId);
 
           const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
@@ -227,8 +233,16 @@ export const MonitoringPage: React.FC = () => {
 
   const refreshAttendance = () => {
     if (!selectedCategoryId) return;
-    getCategoryAttendanceToday(selectedCategoryId)
-      .then((summary) => {
+    Promise.all([
+      getCategoryAttendanceToday(selectedCategoryId),
+      categoryAthletes.length > 0
+        ? Promise.resolve(categoryAthletes)
+        : structureService
+            .getAthletes({ categoriaId: selectedCategoryId })
+            .catch(() => [] as Athlete[]),
+    ])
+      .then(([summary, athletesData]) => {
+        if (athletesData.length > 0) setCategoryAthletes(athletesData);
         setAttendanceResult({ categoryId: selectedCategoryId, summary, error: null });
       })
       .catch((err: unknown) => {
@@ -244,9 +258,15 @@ export const MonitoringPage: React.FC = () => {
   useEffect(() => {
     if (!selectedCategoryId || activeTab !== 'attendance') return;
     let active = true;
-    getCategoryAttendanceToday(selectedCategoryId)
-      .then((summary) => {
+    Promise.all([
+      getCategoryAttendanceToday(selectedCategoryId),
+      structureService
+        .getAthletes({ categoriaId: selectedCategoryId })
+        .catch(() => [] as Athlete[]),
+    ])
+      .then(([summary, athletesData]) => {
         if (!active) return;
+        if (athletesData.length > 0) setCategoryAthletes(athletesData);
         setAttendanceResult({ categoryId: selectedCategoryId, summary, error: null });
       })
       .catch((err: unknown) => {
@@ -921,79 +941,296 @@ export const MonitoringPage: React.FC = () => {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                    gap: '0.75rem',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+                    gap: '1rem',
                   }}
                 >
                   {(attendanceResult.summary.athletes ?? []).map((athlete) => {
                     const status = attendanceOverrides[athlete.athleteId] ?? athlete.status;
                     const isPresent = status === 'Present';
+                    const detail = categoryAthletes.find((a) => a.id === athlete.athleteId);
+                    const photoUrl = detail?.hasPhoto
+                      ? structureService.getAthletePhotoUrl(detail.id, detail.photoUpdatedAt)
+                      : detail?.accountId
+                        ? usersService.getMyPhotoUrl(detail.accountId)
+                        : undefined;
+
+                    const totalMinutes = athlete.totalMinutes ?? 0;
+                    const totalLoad = athlete.totalLoad ?? 0;
+                    const hasLoadData =
+                      totalMinutes > 0 ||
+                      totalLoad > 0 ||
+                      (athlete.activities && athlete.activities.length > 0);
+
                     return (
                       <div
                         key={athlete.athleteId}
                         style={{
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '0.75rem',
-                          padding: '0.85rem 1rem',
+                          flexDirection: 'column',
+                          gap: '0.85rem',
+                          padding: '1rem 1.15rem',
                           background: 'var(--bg-card)',
-                          borderRadius: '12px',
+                          borderRadius: '16px',
                           border: '1px solid var(--border)',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                         }}
                       >
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span
-                            style={{
-                              fontWeight: 700,
-                              fontSize: '0.9rem',
-                              color: 'var(--text-main)',
-                            }}
-                          >
-                            {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              color: isPresent
-                                ? 'var(--traffic-green-text)'
-                                : 'var(--traffic-gray-text)',
-                            }}
-                          >
-                            {isPresent ? 'Presente' : 'Sin registro'}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const next = isPresent ? 'NoRecord' : 'Present';
-                            setAttendanceOverrides((prev) => ({
-                              ...prev,
-                              [athlete.athleteId]: next,
-                            }));
-                            try {
-                              await setAttendance(athlete.athleteId, next === 'Present');
-                            } catch {
-                              setAttendanceOverrides((prev) => ({
-                                ...prev,
-                                [athlete.athleteId]: status,
-                              }));
-                            }
-                          }}
+                        {/* Cabecera: Avatar del atleta (sin aro de color de semáforo), Nombre, Estado y Botón */}
+                        <div
                           style={{
-                            padding: '0.35rem 0.75rem',
-                            borderRadius: '9999px',
-                            border: '1px solid var(--border)',
-                            background: isPresent ? 'var(--traffic-green-bg)' : 'var(--bg-subtle)',
-                            color: isPresent ? 'var(--traffic-green-text)' : 'var(--text-main)',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '0.75rem',
                           }}
                         >
-                          {isPresent ? 'Marcar sin registro' : 'Marcar presente'}
-                        </button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <ProfileAvatar
+                              src={photoUrl}
+                              name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
+                              size={42}
+                              shape="circle"
+                              alt={`Foto de perfil de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                            />
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: '0.92rem',
+                                  color: 'var(--text-main)',
+                                }}
+                              >
+                                {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  color: isPresent
+                                    ? 'var(--traffic-green-text)'
+                                    : 'var(--traffic-gray-text)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.35rem',
+                                  marginTop: '0.15rem',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    width: '6px',
+                                    height: '6px',
+                                    borderRadius: '50%',
+                                    background: isPresent
+                                      ? 'var(--traffic-green)'
+                                      : 'var(--traffic-gray)',
+                                  }}
+                                />
+                                {isPresent ? 'Presente' : 'Sin registro'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const next = isPresent ? 'NoRecord' : 'Present';
+                              setAttendanceOverrides((prev) => ({
+                                ...prev,
+                                [athlete.athleteId]: next,
+                              }));
+                              try {
+                                await setAttendance(athlete.athleteId, next === 'Present');
+                              } catch {
+                                setAttendanceOverrides((prev) => ({
+                                  ...prev,
+                                  [athlete.athleteId]: status,
+                                }));
+                              }
+                            }}
+                            style={{
+                              padding: '0.35rem 0.75rem',
+                              borderRadius: '9999px',
+                              border: '1px solid var(--border)',
+                              background: isPresent
+                                ? 'var(--traffic-green-bg)'
+                                : 'var(--bg-subtle)',
+                              color: isPresent ? 'var(--traffic-green-text)' : 'var(--text-main)',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {isPresent ? 'Marcar sin registro' : 'Marcar presente'}
+                          </button>
+                        </div>
+
+                        {/* Desglose de Carga del Día (con colores y cantidad de la primera imagen) */}
+                        {hasLoadData ? (
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.5rem',
+                              padding: '0.65rem 0.85rem',
+                              background: 'var(--bg-subtle)',
+                              borderRadius: '12px',
+                              border: '1px solid var(--border)',
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-around',
+                                textAlign: 'center',
+                              }}
+                            >
+                              <div>
+                                <div
+                                  style={{
+                                    fontWeight: 800,
+                                    fontSize: '1.15rem',
+                                    color: 'var(--primary)',
+                                    lineHeight: 1.1,
+                                  }}
+                                >
+                                  {totalMinutes}{' '}
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>min</span>
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: '0.68rem',
+                                    fontWeight: 700,
+                                    color: 'var(--text-muted)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.04em',
+                                    marginTop: '0.15rem',
+                                  }}
+                                >
+                                  Tiempo Total
+                                </div>
+                              </div>
+
+                              <div
+                                style={{
+                                  width: '1px',
+                                  height: '24px',
+                                  background: 'var(--border)',
+                                }}
+                              />
+
+                              <div>
+                                <div
+                                  style={{
+                                    fontWeight: 800,
+                                    fontSize: '1.15rem',
+                                    color: 'var(--primary)',
+                                    lineHeight: 1.1,
+                                  }}
+                                >
+                                  {totalLoad}{' '}
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>UA</span>
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: '0.68rem',
+                                    fontWeight: 700,
+                                    color: 'var(--text-muted)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.04em',
+                                    marginTop: '0.15rem',
+                                  }}
+                                >
+                                  Carga Acumulada
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Barra de progreso de carga horizontal (colores verde a azul/dorado como la primera imagen) */}
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '6px',
+                                background: 'var(--border)',
+                                borderRadius: '9999px',
+                                overflow: 'hidden',
+                                marginTop: '0.2rem',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${Math.min(100, Math.max(15, (totalMinutes / 90) * 100))}%`,
+                                  height: '100%',
+                                  background:
+                                    'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
+                                  borderRadius: '9999px',
+                                }}
+                              />
+                            </div>
+
+                            {/* Chips con actividades registradas */}
+                            {athlete.activities && athlete.activities.length > 0 && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: '0.35rem',
+                                  marginTop: '0.3rem',
+                                }}
+                              >
+                                {athlete.activities.map((act, i) => (
+                                  <span
+                                    key={i}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.3rem',
+                                      fontSize: '0.74rem',
+                                      fontWeight: 600,
+                                      padding: '0.2rem 0.55rem',
+                                      borderRadius: '6px',
+                                      background: 'var(--primary-light)',
+                                      color: 'var(--secondary)',
+                                      border: '1px solid rgba(2, 48, 80, 0.15)',
+                                    }}
+                                  >
+                                    {act.type === 'Gym' && (
+                                      <Dumbbell size={12} aria-hidden="true" />
+                                    )}
+                                    {act.type === 'SportTraining' && (
+                                      <Activity size={12} aria-hidden="true" />
+                                    )}
+                                    {(act.type === 'Match1' || act.type === 'Match2') && (
+                                      <Trophy size={12} aria-hidden="true" />
+                                    )}
+                                    {act.type === 'IndividualWork' && (
+                                      <Users size={12} aria-hidden="true" />
+                                    )}
+                                    <span>
+                                      {act.name}: <strong>{act.minutes}m</strong>
+                                      {act.rpe !== null && act.rpe !== undefined
+                                        ? ` RPE ${act.rpe}`
+                                        : ''}
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              fontSize: '0.78rem',
+                              color: 'var(--text-muted)',
+                              fontStyle: 'italic',
+                              padding: '0.2rem 0',
+                            }}
+                          >
+                            Sin carga registrada hoy (minutos y RPE pendientes).
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -46,6 +46,7 @@ export interface AthleteCategoryMembership {
 
 export interface Athlete {
   id: string;
+  accountId?: string | null;
   firstName: string;
   lastName: string;
   fullName?: string;

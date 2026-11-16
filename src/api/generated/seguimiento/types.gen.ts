@@ -126,10 +126,20 @@ export type CategoryAttendanceSummary = {
     athletes?: Array<AthleteAttendanceSummary>;
 };
 
+export type AttendanceActivityDetail = {
+    type: string;
+    name: string;
+    minutes: number;
+    rpe?: number | null;
+};
+
 export type AthleteAttendanceSummary = {
     athleteId: string;
     athleteName: string;
     status: 'Present' | 'NoRecord';
+    totalMinutes?: number;
+    totalLoad?: number;
+    activities?: Array<AttendanceActivityDetail>;
 };
 
 /**
