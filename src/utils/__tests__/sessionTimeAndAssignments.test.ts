@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  sortSessionsByDayAndTime,
-  toDraft,
-  toSaveRequest,
-} from '../planDraft';
+import { sortSessionsByDayAndTime, toDraft, toSaveRequest } from '../planDraft';
 import { formatDayMonth } from '../argentinaDate';
 import { DraftSession, PlanDraft } from '../../types/trainingPlans';
 import { TrainingPlanDetail } from '../../api/generated/entrenamiento';

@@ -480,10 +480,7 @@ export function PlanningPage() {
                                 Terminada
                               </span>
                             ) : (
-                              <span
-                                className="badge badge-success"
-                                style={{ fontSize: '0.72rem' }}
-                              >
+                              <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
                                 Activa
                               </span>
                             )}
