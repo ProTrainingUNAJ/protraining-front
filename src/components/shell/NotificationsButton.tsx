@@ -148,10 +148,13 @@ export const NotificationsButton: React.FC = () => {
                 <p className="notice-empty-desc">Cargando avisos...</p>
               </div>
             ) : loadError ? (
-              <div className="notice-center-empty" role="alert">
-                <AlertTriangle size={32} className="notice-center-empty-icon" aria-hidden="true" />
-                <p className="notice-center-empty-title">No se pudieron cargar los avisos</p>
-                <p className="notice-empty-desc">Revisá la conexión y volvé a abrir el centro.</p>
+              // Fallo del back: estado vacío amigable (sin datos de ejemplo)
+              <div className="notice-center-empty">
+                <CheckCircle2 size={32} className="notice-center-empty-icon" aria-hidden="true" />
+                <p className="notice-center-empty-title">Sin avisos pendientes por el momento</p>
+                <p className="notice-empty-desc">
+                  Cuando haya alertas preventivas para revisar, las vas a ver acá.
+                </p>
               </div>
             ) : pendingCount === 0 ? (
               <div className="notice-center-empty">

@@ -13,6 +13,7 @@ export type PreventiveAlert = {
     reason: string;
     suggestion: string;
     reviewed: boolean;
+    suggestedAdjustmentType?: 'LoadReduction' | 'RoutineAdjustment' | 'Rest';
 };
 
 export type TodayAdjustmentRequest = {
