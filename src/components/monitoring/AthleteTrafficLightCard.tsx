@@ -84,19 +84,20 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       className={`card athlete-traffic-light-card ${className}`}
       style={{
         margin: 0,
-        padding: '1.2rem',
+        padding: '1.15rem',
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: '0.75rem',
+        gap: '1rem',
         minHeight: '200px',
         height: '100%',
         boxSizing: 'border-box',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
         border: '1px solid var(--border)',
-        borderRadius: '16px',
+        borderRadius: '24px',
         background: 'var(--bg-card)',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
         position: 'relative',
       }}
       role="button"
@@ -109,28 +110,27 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       }}
       aria-label={`Ver ficha rápida de ${athlete.name}, estado ${badgeLabel}`}
     >
-      {/* 1. Sección superior: Avatar (foto o iniciales), Nombre, Posición · División y Chevron */}
+      {/* 1. Sección superior: Avatar con halo iluminado según semáforo, Nombre y División con guía de Asistencia */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.85rem',
+          gap: '0.65rem',
           width: '100%',
-          height: '52px',
           boxSizing: 'border-box',
         }}
       >
-        {/* Componente preparado para foto de perfil con fallback a iniciales */}
+        {/* Componente preparado para foto de perfil con iluminación concéntrica del semáforo */}
         <AthleteAvatar
           name={athlete.name}
           avatarUrl={athlete.avatarUrl}
           status={athlete.status}
           ringColor={colors.ring}
-          size={48}
+          size={42}
           showRing={true}
         />
 
-        {/* Datos principales: Nombre y Posición · División */}
+        {/* Datos principales: Nombre y Subtítulo con formato guía idéntico a asistencia */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
@@ -143,13 +143,13 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             <h4
               style={{
                 margin: 0,
-                fontSize: '1.02rem',
+                fontSize: '0.92rem',
                 fontWeight: 800,
                 color: 'var(--text-main)',
                 lineHeight: 1.25,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                wordBreak: 'normal',
+                overflowWrap: 'anywhere',
+                whiteSpace: 'normal',
               }}
               title={athlete.name}
             >
@@ -160,8 +160,8 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
           <p
             style={{
-              margin: '0.2rem 0 0',
-              fontSize: '0.81rem',
+              margin: '2px 0 0',
+              fontSize: '0.74rem',
               fontWeight: 600,
               color: 'var(--text-muted)',
               lineHeight: 1.25,

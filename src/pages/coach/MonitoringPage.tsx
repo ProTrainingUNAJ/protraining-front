@@ -149,6 +149,7 @@ export const MonitoringPage: React.FC = () => {
   const [attendanceOverrides, setAttendanceOverrides] = useState<
     Record<string, 'Present' | 'NoRecord'>
   >({});
+  const [attendanceFilter, setAttendanceFilter] = useState<'all' | 'present' | 'absent'>('all');
 
   const attendanceLoading =
     selectedCategoryId !== '' &&
@@ -333,6 +334,44 @@ export const MonitoringPage: React.FC = () => {
       return true;
     });
   }, [athletes, colorFilter, searchTerm]);
+
+  // Contadores reactivos para la pestaña de asistencia
+  const attendanceCounts = useMemo(() => {
+    const list = attendanceResult?.summary?.athletes ?? [];
+    let present = 0;
+    let absent = 0;
+    list.forEach((ath) => {
+      const status = attendanceOverrides[ath.athleteId] ?? ath.status;
+      if (status === 'Present') {
+        present++;
+      } else {
+        absent++;
+      }
+    });
+    return {
+      all: list.length,
+      present,
+      absent,
+    };
+  }, [attendanceResult, attendanceOverrides]);
+
+  // Lista filtrada de atletas para la pestaña de asistencia (filtro de presencia y búsqueda)
+  const filteredAttendanceAthletes = useMemo(() => {
+    const list = attendanceResult?.summary?.athletes ?? [];
+    return list.filter((ath) => {
+      const status = attendanceOverrides[ath.athleteId] ?? ath.status;
+      const isPresent = status === 'Present';
+      if (attendanceFilter === 'present' && !isPresent) return false;
+      if (attendanceFilter === 'absent' && isPresent) return false;
+
+      if (searchTerm.trim()) {
+        const query = searchTerm.toLowerCase();
+        const name = (ath.athleteName ?? '').toLowerCase();
+        return name.includes(query);
+      }
+      return true;
+    });
+  }, [attendanceResult, attendanceOverrides, attendanceFilter, searchTerm]);
 
   // Assign differentiated training regimen directly from quick sheet
   const handleAssignDifferentiated = (athleteId: string) => {
@@ -747,12 +786,11 @@ export const MonitoringPage: React.FC = () => {
               </div>
             )}
 
-            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366): datos reales
-                del endpoint traffic-light-today; sin trafficLightData.ts. */}
+            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366): guía de tamaño armonizada con asistencia (290px) */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
                 gap: '1rem',
                 alignItems: 'stretch',
               }}
@@ -939,6 +977,172 @@ export const MonitoringPage: React.FC = () => {
                   El check-in de bienestar no la marca.
                 </p>
 
+                {/* Pills de Filtro Reactivo de Asistencia (guiado por el diseño de semáforo) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {/* Todos */}
+                  <button
+                    type="button"
+                    data-testid="filter-attendance-all"
+                    aria-pressed={attendanceFilter === 'all'}
+                    className={`touch-chip ${attendanceFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setAttendanceFilter('all')}
+                    style={{
+                      padding: '0.35rem 0.85rem',
+                      fontSize: '0.8rem',
+                      borderRadius: '9999px',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      border: `1px solid ${attendanceFilter === 'all' ? 'var(--primary)' : 'var(--border)'}`,
+                      background: attendanceFilter === 'all' ? 'var(--primary)' : 'var(--bg-card)',
+                      color: attendanceFilter === 'all' ? 'var(--white)' : 'var(--text-main)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span>Todos</span>
+                    <span
+                      style={{
+                        background:
+                          attendanceFilter === 'all'
+                            ? 'var(--chip-active-count-bg)'
+                            : 'var(--bg-subtle)',
+                        color: attendanceFilter === 'all' ? 'var(--white)' : 'var(--text-muted)',
+                        padding: '0.1rem 0.45rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {attendanceCounts.all}
+                    </span>
+                  </button>
+
+                  {/* Presentes */}
+                  <button
+                    type="button"
+                    data-testid="filter-attendance-present"
+                    aria-pressed={attendanceFilter === 'present'}
+                    className={`touch-chip ${attendanceFilter === 'present' ? 'active' : ''}`}
+                    onClick={() => setAttendanceFilter('present')}
+                    style={{
+                      padding: '0.35rem 0.85rem',
+                      fontSize: '0.8rem',
+                      borderRadius: '9999px',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      border: `1px solid ${attendanceFilter === 'present' ? 'var(--traffic-green)' : 'var(--traffic-green-border)'}`,
+                      background:
+                        attendanceFilter === 'present'
+                          ? 'var(--traffic-green)'
+                          : 'var(--traffic-green-bg)',
+                      color:
+                        attendanceFilter === 'present'
+                          ? 'var(--white)'
+                          : 'var(--traffic-green-text)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background:
+                          attendanceFilter === 'present' ? 'var(--white)' : 'var(--traffic-green)',
+                      }}
+                    />
+                    <span>Presentes</span>
+                    <span
+                      style={{
+                        background:
+                          attendanceFilter === 'present'
+                            ? 'var(--chip-active-count-bg)'
+                            : 'var(--bg-card)',
+                        color:
+                          attendanceFilter === 'present'
+                            ? 'var(--white)'
+                            : 'var(--traffic-green-text)',
+                        padding: '0.1rem 0.45rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {attendanceCounts.present}
+                    </span>
+                  </button>
+
+                  {/* Sin registro */}
+                  <button
+                    type="button"
+                    data-testid="filter-attendance-absent"
+                    aria-pressed={attendanceFilter === 'absent'}
+                    className={`touch-chip ${attendanceFilter === 'absent' ? 'active' : ''}`}
+                    onClick={() => setAttendanceFilter('absent')}
+                    style={{
+                      padding: '0.35rem 0.85rem',
+                      fontSize: '0.8rem',
+                      borderRadius: '9999px',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      border: `1px solid ${attendanceFilter === 'absent' ? 'var(--traffic-gray)' : 'var(--traffic-gray-border)'}`,
+                      background:
+                        attendanceFilter === 'absent'
+                          ? 'var(--traffic-gray)'
+                          : 'var(--traffic-gray-bg)',
+                      color:
+                        attendanceFilter === 'absent'
+                          ? 'var(--white)'
+                          : 'var(--traffic-gray-text)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background:
+                          attendanceFilter === 'absent' ? 'var(--white)' : 'var(--traffic-gray)',
+                      }}
+                    />
+                    <span>Sin registro</span>
+                    <span
+                      style={{
+                        background:
+                          attendanceFilter === 'absent'
+                            ? 'var(--chip-active-count-bg)'
+                            : 'var(--bg-card)',
+                        color:
+                          attendanceFilter === 'absent'
+                            ? 'var(--white)'
+                            : 'var(--traffic-gray-text)',
+                        padding: '0.1rem 0.45rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {attendanceCounts.absent}
+                    </span>
+                  </button>
+                </div>
+
                 <div
                   style={{
                     display: 'grid',
@@ -946,7 +1150,7 @@ export const MonitoringPage: React.FC = () => {
                     gap: '1rem',
                   }}
                 >
-                  {(attendanceResult.summary.athletes ?? []).map((athlete) => {
+                  {filteredAttendanceAthletes.map((athlete) => {
                     const status = attendanceOverrides[athlete.athleteId] ?? athlete.status;
                     const isPresent = status === 'Present';
                     const detail = categoryAthletes.find(
@@ -1270,7 +1474,7 @@ export const MonitoringPage: React.FC = () => {
 
                   {!attendanceLoading &&
                     !attendanceResult?.error &&
-                    (attendanceResult?.summary?.athletes?.length ?? 0) === 0 && (
+                    filteredAttendanceAthletes.length === 0 && (
                       <div
                         style={{
                           gridColumn: '1 / -1',
@@ -1282,7 +1486,9 @@ export const MonitoringPage: React.FC = () => {
                           border: '1px dashed var(--border)',
                         }}
                       >
-                        No hay atletas para mostrar.
+                        {(attendanceResult?.summary?.athletes?.length ?? 0) === 0
+                          ? 'No hay atletas para mostrar.'
+                          : 'No hay atletas con los filtros de asistencia elegidos.'}
                       </div>
                     )}
                 </div>
