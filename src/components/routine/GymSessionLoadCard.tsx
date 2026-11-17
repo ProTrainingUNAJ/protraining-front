@@ -126,9 +126,7 @@ export function GymSessionLoadCard({
               }}
             >
               <Send size={16} />
-              <span>
-                {hasGymRegistered ? 'Modificar entrenamiento' : 'Finalizar entrenamiento'}
-              </span>
+              <span>Finalizar entrenamiento</span>
             </button>
           </div>
         </div>
