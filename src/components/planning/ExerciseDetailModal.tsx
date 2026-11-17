@@ -4,6 +4,7 @@ import { X, Dumbbell, Flame, CheckCircle, Info } from 'lucide-react';
 import { ExerciseGifImage } from '../exercises/ExerciseGifImage';
 import { ExerciseMuscleMiniMap } from './ExerciseMuscleMiniMap';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
+import type { ExerciseMediaDto } from '../../api/generated/entrenamiento';
 
 export interface ExerciseDetailModalProps {
   isOpen: boolean;
@@ -13,18 +14,30 @@ export interface ExerciseDetailModalProps {
     exerciseId?: string;
     name?: string;
     exerciseName?: string;
+    category?: string;
     muscleGroup?: string;
-    exerciseType?: string;
+    exerciseType?: string | null;
     images?: string[];
+    media?: ExerciseMediaDto[];
     primaryMuscles?: string[];
     secondaryMuscles?: string[];
+    variants?: Array<{
+      id: string;
+      name: string;
+      variantLabel?: string | null;
+    }>;
+    variantLabel?: string | null;
   } | null;
+  activeVariantId?: string | null;
+  onSelectVariant?: (variantId: string | null) => void;
 }
 
 export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   isOpen,
   onClose,
   exercise,
+  activeVariantId,
+  onSelectVariant,
 }) => {
   // Cerrar con Escape
   useEffect(() => {
@@ -40,7 +53,10 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   if (!isOpen || !exercise) return null;
 
   const title = exercise.exerciseName || exercise.name || 'Detalle del Ejercicio';
-  const hasImages = Boolean(exercise.images && exercise.images.length > 0);
+  const hasImages = Boolean(
+    (exercise.images && exercise.images.length > 0) ||
+    (exercise.media && exercise.media.length > 0),
+  );
   const primaryMuscles = exercise.primaryMuscles ?? [];
   const secondaryMuscles = exercise.secondaryMuscles ?? [];
 
@@ -71,6 +87,9 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               {exercise.exerciseType && exercise.exerciseType !== 'Weight' && (
                 <span className="badge badge-subtle">{exercise.exerciseType}</span>
               )}
+              {exercise.variantLabel && (
+                <span className="badge badge-info">Variante: {exercise.variantLabel}</span>
+              )}
             </div>
           </div>
 
@@ -84,6 +103,49 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
           </button>
         </header>
 
+        {/* Variantes si están disponibles */}
+        {exercise.variants && exercise.variants.length > 0 && onSelectVariant && (
+          <div
+            style={{
+              padding: '0.75rem 1.5rem 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: 'var(--text-muted)',
+              }}
+            >
+              Variantes:
+            </span>
+            <button
+              type="button"
+              className={`touch-chip ${!activeVariantId ? 'active' : ''}`}
+              onClick={() => onSelectVariant(null)}
+              aria-pressed={!activeVariantId}
+            >
+              Principal
+            </button>
+            {exercise.variants.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                className={`touch-chip ${activeVariantId === v.id ? 'active' : ''}`}
+                onClick={() => onSelectVariant(v.id)}
+                aria-pressed={activeVariantId === v.id}
+              >
+                {v.variantLabel ?? v.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Cuerpo del Modal */}
         <div className="exercise-detail-modal-body">
           {/* Visualización grande de fotos / técnica animada */}
@@ -93,7 +155,12 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
           >
             <div className="exercise-detail-media-wrapper">
               {hasImages ? (
-                <ExerciseGifImage images={exercise.images} name={title} intervalMs={650} />
+                <ExerciseGifImage
+                  images={exercise.images}
+                  media={exercise.media}
+                  name={title}
+                  intervalMs={650}
+                />
               ) : (
                 <div className="exercise-detail-fallback">
                   <Dumbbell size={48} className="exercise-detail-fallback-icon" />

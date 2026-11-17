@@ -187,4 +187,68 @@ describe('TrainingPage · Filtro por Músculo Puntual', () => {
     const badges = screen.getAllByText('Distancia');
     expect(badges.length).toBeGreaterThan(0);
   });
+
+  describe('Modal de Detalle Ampliado (KAN-625)', () => {
+    it('abre el modal con técnica y anatomía al hacer clic en la foto del ejercicio y lo cierra con Entendido', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      const mediaBtn = await screen.findByRole('button', {
+        name: /ver técnica y anatomía de peso muerto rumano/i,
+      });
+      fireEvent.click(mediaBtn);
+
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeTruthy();
+      expect(screen.getByText('Pautas para una buena técnica')).toBeTruthy();
+      expect(screen.getByText(/Postura y alineación:/i)).toBeTruthy();
+
+      const entendidoBtn = screen.getByRole('button', { name: /entendido/i });
+      fireEvent.click(entendidoBtn);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+      });
+    });
+
+    it('abre el modal con técnica y anatomía al hacer clic en el nombre del ejercicio', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      const titleBtn = await screen.findByTitle('Ver técnica y anatomía de Peso muerto rumano');
+      fireEvent.click(titleBtn);
+
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeTruthy();
+      expect(screen.getByText('Músculos Involucrados')).toBeTruthy();
+
+      const closeBtn = screen.getByRole('button', { name: /cerrar detalle del ejercicio/i });
+      fireEvent.click(closeBtn);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+      });
+    });
+
+    it('abre el modal con técnica y anatomía al hacer clic en el botón Anatomía', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      const anatomiaBtn = await screen.findByRole('button', { name: 'Anatomía' });
+      fireEvent.click(anatomiaBtn);
+
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeTruthy();
+      expect(screen.getByText('Pautas para una buena técnica')).toBeTruthy();
+    });
+  });
 });

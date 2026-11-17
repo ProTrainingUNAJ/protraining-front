@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle, Layers } from 'lucide-react';
+import { Search, Dumbbell, Tag, Activity, Loader2, AlertCircle, Layers } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
-import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
-import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPlayer';
+import { ExerciseDetailModal } from '../../components/exercises/ExerciseDetailModal';
 import { ExerciseTypeBadge } from '../../components/exercises/ExerciseTypeBadge';
-import { exercisesService } from '../../api/exercises';
-import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise, type ExerciseMediaDto } from '../../api/generated/entrenamiento';
-import { extractYouTubeId } from '../../utils/youtube';
 import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExerciseItem {
@@ -114,85 +110,23 @@ export const TrainingPage: React.FC = () => {
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
   // Variante elegida dentro del detalle; null muestra el ejercicio base.
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
-  const [videoInput, setVideoInput] = useState('');
-  const [isSavingVideo, setIsSavingVideo] = useState(false);
-  const [videoFeedback, setVideoFeedback] = useState<{ text: string; error?: boolean } | null>(
-    null,
-  );
-
-  const handleSaveVideo = async () => {
-    if (!shownExercise) return;
-
-    const trimmed = videoInput.trim();
-
-    // Validación preventiva en el cliente antes de llamar a la API
-    if (trimmed && !extractYouTubeId(trimmed)) {
-      setVideoFeedback({ text: 'El link tiene que ser un video de YouTube.', error: true });
-      return;
-    }
-
-    setIsSavingVideo(true);
-    setVideoFeedback(null);
-    try {
-      await exercisesService.updateVideoUrl(shownExercise.id, trimmed || null);
-      setModalExercise((prev) => {
-        if (!prev) return null;
-        if (activeVariantId) {
-          return {
-            ...prev,
-            variants: prev.variants.map((v) =>
-              v.id === activeVariantId
-                ? { ...v, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null }
-                : v,
-            ),
-          };
-        }
-        return { ...prev, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null };
-      });
-      setVideoFeedback({ text: '¡Video de YouTube actualizado con éxito!' });
-    } catch {
-      setVideoFeedback({ text: 'Error al guardar el video.', error: true });
-    } finally {
-      setIsSavingVideo(false);
-    }
-  };
-
-  const handleRemoveVideo = async () => {
-    if (!shownExercise) return;
-    setIsSavingVideo(true);
-    setVideoFeedback(null);
-    try {
-      await exercisesService.updateVideoUrl(shownExercise.id, null);
-      setModalExercise((prev) => {
-        if (!prev) return null;
-        if (activeVariantId) {
-          return {
-            ...prev,
-            variants: prev.variants.map((v) =>
-              v.id === activeVariantId ? { ...v, videoUrl: null, videoSource: null } : v,
-            ),
-          };
-        }
-        return { ...prev, videoUrl: null, videoSource: null };
-      });
-      setVideoInput('');
-      setVideoFeedback({ text: 'Se quitó tu video y se volvió al sugerido.' });
-    } catch {
-      setVideoFeedback({ text: 'Error al quitar el video.', error: true });
-    } finally {
-      setIsSavingVideo(false);
-    }
-  };
 
   const openDetail = (exercise: ExerciseItem) => {
     setActiveVariantId(null);
     setModalExercise(exercise);
-    setVideoFeedback(null);
-    setVideoInput(exercise.videoUrl ?? '');
   };
 
   const shownExercise =
-    modalExercise?.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise;
+    activeVariantId && modalExercise
+      ? (modalExercise.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise)
+      : modalExercise;
+
+  const currentExerciseForModal = shownExercise
+    ? {
+        ...shownExercise,
+        variants: modalExercise?.variants,
+      }
+    : null;
 
   // Carga inicial y filtros por Chip o Buscador directamente al Backend
   useEffect(() => {
@@ -527,7 +461,22 @@ export const TrainingPage: React.FC = () => {
                   }}
                 >
                   <div>
-                    <ExerciseGifImage images={ex.images} media={ex.media} name={ex.name} />
+                    {/* Clic en la foto abre el modal ampliado de detalle (KAN-625) */}
+                    <div
+                      className="exercise-card-media-clickable"
+                      onClick={() => openDetail(ex)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openDetail(ex);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Ver técnica y anatomía de ${ex.name}`}
+                    >
+                      <ExerciseGifImage images={ex.images} media={ex.media} name={ex.name} />
+                    </div>
 
                     <div className="exercise-card-header-meta">
                       <div className="exercise-badges-group">
@@ -547,7 +496,19 @@ export const TrainingPage: React.FC = () => {
                       )}
                     </div>
 
+                    {/* Clic en el nombre abre el modal ampliado de detalle (KAN-625) */}
                     <h3
+                      className="exercise-card-title-clickable"
+                      onClick={() => openDetail(ex)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openDetail(ex);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      title={`Ver técnica y anatomía de ${ex.name}`}
                       style={{
                         fontSize: '1.05rem',
                         fontWeight: 700,
@@ -579,6 +540,7 @@ export const TrainingPage: React.FC = () => {
                       <Activity size={14} />
                       <span>{ex.equipment}</span>
                     </div>
+                    {/* Clic en anatomía abre el modal ampliado de detalle (KAN-625) */}
                     <button
                       type="button"
                       className="btn btn-secondary"
@@ -627,324 +589,14 @@ export const TrainingPage: React.FC = () => {
           </>
         )}
 
-        {/* Modal de Detalle Anatómico del Ejercicio (KAN-320) */}
-        {modalExercise && shownExercise && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'var(--routine-modal-overlay)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
-              padding: '1rem',
-            }}
-            onClick={() => setModalExercise(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Detalle anatómico de ${modalExercise.name}`}
-          >
-            <div
-              className="card"
-              style={{
-                margin: 0,
-                padding: '1.5rem',
-                maxWidth: '650px',
-                width: '100%',
-                maxHeight: '90vh',
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.25rem',
-                background: 'var(--bg-card)',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-lg)',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  gap: '1rem',
-                }}
-              >
-                <div>
-                  <div className="exercise-modal-badges">
-                    <span className="badge badge-info">{modalExercise.category}</span>
-                    <ExerciseTypeBadge
-                      type={shownExercise.exerciseType ?? modalExercise.exerciseType}
-                    />
-                  </div>
-                  <h2
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      margin: 0,
-                      color: 'var(--text-main)',
-                    }}
-                  >
-                    {modalExercise.name}
-                  </h2>
-                  {shownExercise.variantLabel && (
-                    <p
-                      style={{
-                        margin: '0.25rem 0 0',
-                        fontSize: '0.85rem',
-                        color: 'var(--text-muted)',
-                      }}
-                    >
-                      Variante: {shownExercise.variantLabel}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalExercise(null)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    padding: '0.25rem',
-                  }}
-                  aria-label="Cerrar ventana"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Variantes del ejercicio (KAN-554): cada una conserva su id, sus fotos y sus músculos */}
-              {modalExercise.variants.length > 0 && (
-                <div>
-                  <strong
-                    style={{
-                      display: 'block',
-                      fontSize: '0.85rem',
-                      color: 'var(--text-main)',
-                      marginBottom: '0.5rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Variantes:
-                  </strong>
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className={`touch-chip ${activeVariantId === null ? 'active' : ''}`}
-                      onClick={() => setActiveVariantId(null)}
-                      aria-pressed={activeVariantId === null}
-                    >
-                      Principal
-                    </button>
-                    {modalExercise.variants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        type="button"
-                        className={`touch-chip ${activeVariantId === variant.id ? 'active' : ''}`}
-                        onClick={() => setActiveVariantId(variant.id)}
-                        aria-pressed={activeVariantId === variant.id}
-                        title={variant.name}
-                      >
-                        {variant.variantLabel ?? variant.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Animación GIF si está disponible */}
-              {((shownExercise.images?.length ?? 0) > 0 ||
-                (shownExercise.media?.length ?? 0) > 0) && (
-                <div
-                  style={{
-                    borderRadius: 'var(--radius)',
-                    overflow: 'hidden',
-                    maxHeight: '220px',
-                  }}
-                >
-                  <ExerciseGifImage
-                    images={shownExercise.images}
-                    media={shownExercise.media}
-                    name={shownExercise.name}
-                  />
-                </div>
-              )}
-
-              {/* Información de músculos y mapa anatómico KAN-320 */}
-              <div>
-                <strong
-                  style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    color: 'var(--text-main)',
-                    marginBottom: '0.5rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  Músculos Involucrados:
-                </strong>
-
-                {/* Descriptive chips for primary and secondary muscles */}
-                {((shownExercise.primaryMuscles && shownExercise.primaryMuscles.length > 0) ||
-                  (shownExercise.secondaryMuscles &&
-                    shownExercise.secondaryMuscles.length > 0)) && (
-                  <div className="exercise-muscle-chips">
-                    {shownExercise.primaryMuscles?.map((m, idx) => (
-                      <span key={`pri-${idx}`} className="badge badge-primary exercise-muscle-chip">
-                        {getMuscleSpanishName(m)} (Principal)
-                      </span>
-                    ))}
-                    {shownExercise.secondaryMuscles?.map((m, idx) => (
-                      <span key={`sec-${idx}`} className="badge badge-info exercise-muscle-chip">
-                        {getMuscleSpanishName(m)} (Secundario)
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Empty state message when no muscles are defined (Criterion 2) */}
-                {(!shownExercise.primaryMuscles || shownExercise.primaryMuscles.length === 0) &&
-                  (!shownExercise.secondaryMuscles ||
-                    shownExercise.secondaryMuscles.length === 0) && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0',
-                        fontSize: '0.85rem',
-                        color: 'var(--text-muted)',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      Este ejercicio no tiene grupos musculares específicos cargados (movilidad o
-                      ejercicio general).
-                    </p>
-                  )}
-
-                {/* Mapa muscular anatómico con dos intensidades y Smart View */}
-                <ExerciseMuscleMap
-                  primaryMuscles={shownExercise.primaryMuscles}
-                  secondaryMuscles={shownExercise.secondaryMuscles}
-                  showLegend={true}
-                  showViewToggle={true}
-                />
-              </div>
-
-              {/* Campo para que el PF pegue el link de YouTube (KAN-380) */}
-              <div
-                style={{
-                  marginTop: '1rem',
-                  paddingTop: '1rem',
-                  borderTop: '1px solid var(--border)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.4rem',
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      color: 'var(--text-main)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Video de Referencia (YouTube):
-                  </label>
-                  {shownExercise.videoSource && (
-                    <span
-                      className={`badge ${shownExercise.videoSource === 'Pf' ? 'badge-primary' : 'badge-info'}`}
-                    >
-                      {shownExercise.videoSource === 'Pf' ? 'Video propio' : 'Video sugerido'}
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="url"
-                    className="form-input"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    value={videoInput}
-                    onChange={(e) => setVideoInput(e.target.value)}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid var(--border)',
-                      background: 'var(--bg-main)',
-                      color: 'var(--text-main)',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSaveVideo}
-                    disabled={isSavingVideo}
-                  >
-                    {isSavingVideo ? 'Guardando...' : 'Guardar'}
-                  </button>
-                  {shownExercise.videoSource === 'Pf' && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleRemoveVideo}
-                      disabled={isSavingVideo}
-                      title="Quitar video propio y volver al sugerido del catálogo"
-                    >
-                      Quitar mi video
-                    </button>
-                  )}
-                </div>
-                {videoFeedback && (
-                  <p
-                    style={{
-                      marginTop: '0.4rem',
-                      fontSize: '0.8rem',
-                      color: videoFeedback.error ? 'var(--danger)' : 'var(--success)',
-                    }}
-                  >
-                    {videoFeedback.text}
-                  </p>
-                )}
-                {shownExercise.videoUrl && (
-                  <ExerciseVideoPlayer
-                    videoUrl={shownExercise.videoUrl}
-                    exerciseName={shownExercise.name}
-                  />
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  paddingTop: '0.75rem',
-                  borderTop: '1px solid var(--border)',
-                }}
-              >
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setModalExercise(null)}
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Modal ampliado de detalle del ejercicio con técnica animada, silueta anatómica y pautas (KAN-625) */}
+        <ExerciseDetailModal
+          isOpen={Boolean(modalExercise)}
+          onClose={() => setModalExercise(null)}
+          exercise={currentExerciseForModal}
+          activeVariantId={activeVariantId}
+          onSelectVariant={(variantId) => setActiveVariantId(variantId)}
+        />
       </div>
     </div>
   );
