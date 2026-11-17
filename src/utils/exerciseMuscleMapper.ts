@@ -322,6 +322,7 @@ export function resolveMuscleIds(muscles: string[]): string[] {
 export function getExerciseMuscleHighlight(
   primaryMuscles?: string[] | null,
   secondaryMuscles?: string[] | null,
+  customColors?: { primary?: string; secondary?: string },
 ): ExerciseMuscleHighlight {
   const primaryList = primaryMuscles && Array.isArray(primaryMuscles) ? primaryMuscles : [];
   const secondaryList = secondaryMuscles && Array.isArray(secondaryMuscles) ? secondaryMuscles : [];
@@ -331,13 +332,16 @@ export function getExerciseMuscleHighlight(
 
   const muscleColors: Record<string, string> = {};
 
+  const primaryColor = customColors?.primary || 'var(--muscle-exercise-primary)';
+  const secondaryColor = customColors?.secondary || 'var(--muscle-exercise-secondary)';
+
   // Secondary muscles first so primary takes visual precedence
   for (const id of secondaryIds) {
-    muscleColors[id] = 'var(--muscle-exercise-secondary)';
+    muscleColors[id] = secondaryColor;
   }
 
   for (const id of primaryIds) {
-    muscleColors[id] = 'var(--muscle-exercise-primary)';
+    muscleColors[id] = primaryColor;
   }
 
   const allActiveIds = Object.keys(muscleColors);

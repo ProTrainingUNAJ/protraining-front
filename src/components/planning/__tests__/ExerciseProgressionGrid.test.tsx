@@ -250,4 +250,35 @@ describe('ExerciseProgressionGrid', () => {
       }),
     );
   });
+
+  it('renderiza la miniatura del ejercicio y el mapa anatomico de musculos involucrados (KAN-623)', () => {
+    const exerciseWithMedia: BlockExercise = {
+      ...sampleExercise,
+      images: ['https://example.com/squat.jpg'],
+      primaryMuscles: ['quadriceps'],
+      secondaryMuscles: ['glutes', 'hamstrings'],
+    };
+
+    render(
+      <ExerciseProgressionGrid
+        exercise={exerciseWithMedia}
+        weekNumbers={[1, 2, 3, 4]}
+        disabled={false}
+        onUpdateProgression={vi.fn()}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    // Miniatura
+    const img = screen.getByRole('img', { name: /ilustración de sentadilla trasera/i });
+    expect(img).toBeDefined();
+    expect(img.getAttribute('src')).toBe('https://example.com/squat.jpg');
+
+    // Mapa anatómico
+    const muscleMap = screen.getByRole('img', {
+      name: /músculos involucrados en sentadilla trasera/i,
+    });
+    expect(muscleMap).toBeDefined();
+  });
 });

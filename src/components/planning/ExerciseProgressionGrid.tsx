@@ -7,6 +7,8 @@ import {
 } from '../../types/trainingPlans';
 import { parseRepsNumber } from '../../utils/planDraft';
 import { IntensityTypeSelector } from './IntensityTypeSelector';
+import { ExerciseThumbnail } from './ExerciseThumbnail';
+import { ExerciseMuscleMiniMap } from './ExerciseMuscleMiniMap';
 
 interface ExerciseProgressionGridProps {
   exercise: BlockExercise;
@@ -108,6 +110,8 @@ export function ExerciseProgressionGrid({
             </button>
           </span>
 
+          <ExerciseThumbnail images={exercise.images} exerciseName={label} />
+
           <span className="plan-exercise-name" title={label}>
             {label}
           </span>
@@ -170,159 +174,170 @@ export function ExerciseProgressionGrid({
       </div>
 
       {!isCollapsed && (
-        <div className="plan-progression-table-container">
-          <table
-            className="plan-progression-table"
-            aria-label={`Grilla de progresión para ${label}`}
-          >
-            <thead>
-              <tr>
-                <th scope="col" className="col-week">
-                  Semana
-                </th>
-                <th scope="col" className="col-sets">
-                  Series
-                </th>
-                <th scope="col" className="col-reps">
-                  Reps / Rango
-                </th>
-                <th scope="col" className="col-pct">
-                  %RM
-                </th>
-                <th scope="col" className="col-intensity">
-                  {exercise.intensityType === 'RPE' ? 'RPE (1-10)' : 'RIR (0-5)'}
-                </th>
-                <th scope="col" className="col-notes">
-                  Nota semanal
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {weekNumbers.map((weekNum) => {
-                const prog: WeeklyExerciseProgression = exercise.weeklyProgression[weekNum] || {
-                  weekNumber: weekNum,
-                  sets: 3,
-                  reps: 10,
-                  repsRange: '10',
-                  targetPercentage: null,
-                  intensityType: exercise.intensityType,
-                  targetRpe: exercise.intensityType === 'RPE' ? 8 : null,
-                  targetRir: exercise.intensityType === 'RIR' ? 2 : null,
-                  notes: null,
-                };
+        <div className="plan-exercise-body-layout">
+          <div className="plan-progression-table-container">
+            <table
+              className="plan-progression-table"
+              aria-label={`Grilla de progresión para ${label}`}
+            >
+              <thead>
+                <tr>
+                  <th scope="col" className="col-week">
+                    Semana
+                  </th>
+                  <th scope="col" className="col-sets">
+                    Series
+                  </th>
+                  <th scope="col" className="col-reps">
+                    Reps / Rango
+                  </th>
+                  <th scope="col" className="col-pct">
+                    %RM
+                  </th>
+                  <th scope="col" className="col-intensity">
+                    {exercise.intensityType === 'RPE' ? 'RPE (1-10)' : 'RIR (0-5)'}
+                  </th>
+                  <th scope="col" className="col-notes">
+                    Nota semanal
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {weekNumbers.map((weekNum) => {
+                  const prog: WeeklyExerciseProgression = exercise.weeklyProgression[weekNum] || {
+                    weekNumber: weekNum,
+                    sets: 3,
+                    reps: 10,
+                    repsRange: '10',
+                    targetPercentage: null,
+                    intensityType: exercise.intensityType,
+                    targetRpe: exercise.intensityType === 'RPE' ? 8 : null,
+                    targetRir: exercise.intensityType === 'RIR' ? 2 : null,
+                    notes: null,
+                  };
 
-                const repsDisplay = prog.repsRange ?? (prog.reps ? String(prog.reps) : '');
+                  const repsDisplay = prog.repsRange ?? (prog.reps ? String(prog.reps) : '');
 
-                return (
-                  <tr key={`prog-${exercise.key}-w${weekNum}`}>
-                    <td className="cell-week">
-                      <span className="week-tag">Sem {weekNum}</span>
-                    </td>
-                    <td className="cell-input">
-                      <input
-                        type="number"
-                        min={1}
-                        max={99}
-                        value={prog.sets ?? ''}
-                        onChange={(e) => {
-                          const val =
-                            e.target.value === ''
-                              ? 1
-                              : Math.max(1, parseInt(e.target.value, 10) || 1);
-                          onUpdateProgression(weekNum, { sets: val });
-                        }}
-                        disabled={disabled}
-                        aria-label={`Series de ${label} semana ${weekNum}`}
-                        className="plan-table-input"
-                      />
-                    </td>
-                    <td className="cell-input">
-                      <input
-                        type="text"
-                        maxLength={15}
-                        value={repsDisplay}
-                        onChange={(e) => {
-                          const str = e.target.value;
-                          const parsed = parseRepsNumber(str, prog.reps);
-                          onUpdateProgression(weekNum, {
-                            repsRange: str,
-                            reps: parsed,
-                          });
-                        }}
-                        disabled={disabled}
-                        placeholder="ej. 8 o 6-8"
-                        aria-label={`Repeticiones de ${label} semana ${weekNum}`}
-                        className="plan-table-input"
-                      />
-                    </td>
-                    <td className="cell-input">
-                      <input
-                        type="number"
-                        min={1}
-                        max={150}
-                        value={prog.targetPercentage ?? ''}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? null : Number(e.target.value);
-                          onUpdateProgression(weekNum, { targetPercentage: val });
-                        }}
-                        disabled={disabled}
-                        placeholder="%"
-                        aria-label={`%RM de ${label} semana ${weekNum}`}
-                        className="plan-table-input"
-                      />
-                    </td>
-                    <td className="cell-input">
-                      {exercise.intensityType === 'RPE' ? (
+                  return (
+                    <tr key={`prog-${exercise.key}-w${weekNum}`}>
+                      <td className="cell-week">
+                        <span className="week-tag">Sem {weekNum}</span>
+                      </td>
+                      <td className="cell-input">
                         <input
                           type="number"
                           min={1}
-                          max={10}
-                          step={0.5}
-                          value={prog.targetRpe ?? ''}
+                          max={99}
+                          value={prog.sets ?? ''}
                           onChange={(e) => {
-                            const val = e.target.value === '' ? null : Number(e.target.value);
-                            onUpdateProgression(weekNum, { targetRpe: val });
+                            const val =
+                              e.target.value === ''
+                                ? 1
+                                : Math.max(1, parseInt(e.target.value, 10) || 1);
+                            onUpdateProgression(weekNum, { sets: val });
                           }}
                           disabled={disabled}
-                          placeholder="1-10"
-                          aria-label={`RPE de ${label} semana ${weekNum}`}
+                          aria-label={`Series de ${label} semana ${weekNum}`}
                           className="plan-table-input"
                         />
-                      ) : (
+                      </td>
+                      <td className="cell-input">
+                        <input
+                          type="text"
+                          maxLength={15}
+                          value={repsDisplay}
+                          onChange={(e) => {
+                            const str = e.target.value;
+                            const parsed = parseRepsNumber(str, prog.reps);
+                            onUpdateProgression(weekNum, {
+                              repsRange: str,
+                              reps: parsed,
+                            });
+                          }}
+                          disabled={disabled}
+                          placeholder="ej. 8 o 6-8"
+                          aria-label={`Repeticiones de ${label} semana ${weekNum}`}
+                          className="plan-table-input"
+                        />
+                      </td>
+                      <td className="cell-input">
                         <input
                           type="number"
-                          min={0}
-                          max={5}
-                          step={0.5}
-                          value={prog.targetRir ?? ''}
+                          min={1}
+                          max={150}
+                          value={prog.targetPercentage ?? ''}
                           onChange={(e) => {
                             const val = e.target.value === '' ? null : Number(e.target.value);
-                            onUpdateProgression(weekNum, { targetRir: val });
+                            onUpdateProgression(weekNum, { targetPercentage: val });
                           }}
                           disabled={disabled}
-                          placeholder="0-5"
-                          aria-label={`RIR de ${label} semana ${weekNum}`}
+                          placeholder="%"
+                          aria-label={`%RM de ${label} semana ${weekNum}`}
                           className="plan-table-input"
                         />
-                      )}
-                    </td>
-                    <td className="cell-input">
-                      <input
-                        type="text"
-                        maxLength={150}
-                        value={prog.notes ?? ''}
-                        onChange={(e) => onUpdateProgression(weekNum, { notes: e.target.value })}
-                        disabled={disabled}
-                        placeholder="Nota técnica..."
-                        aria-label={`Nota de ${label} semana ${weekNum}`}
-                        className="plan-table-input plan-table-input-notes"
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="cell-input">
+                        {exercise.intensityType === 'RPE' ? (
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            step={0.5}
+                            value={prog.targetRpe ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? null : Number(e.target.value);
+                              onUpdateProgression(weekNum, { targetRpe: val });
+                            }}
+                            disabled={disabled}
+                            placeholder="1-10"
+                            aria-label={`RPE de ${label} semana ${weekNum}`}
+                            className="plan-table-input"
+                          />
+                        ) : (
+                          <input
+                            type="number"
+                            min={0}
+                            max={5}
+                            step={0.5}
+                            value={prog.targetRir ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? null : Number(e.target.value);
+                              onUpdateProgression(weekNum, { targetRir: val });
+                            }}
+                            disabled={disabled}
+                            placeholder="0-5"
+                            aria-label={`RIR de ${label} semana ${weekNum}`}
+                            className="plan-table-input"
+                          />
+                        )}
+                      </td>
+                      <td className="cell-input">
+                        <input
+                          type="text"
+                          maxLength={150}
+                          value={prog.notes ?? ''}
+                          onChange={(e) => onUpdateProgression(weekNum, { notes: e.target.value })}
+                          disabled={disabled}
+                          placeholder="Nota técnica..."
+                          aria-label={`Nota de ${label} semana ${weekNum}`}
+                          className="plan-table-input plan-table-input-notes"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="plan-exercise-anatomy-container">
+            <ExerciseMuscleMiniMap
+              primaryMuscles={exercise.primaryMuscles}
+              secondaryMuscles={exercise.secondaryMuscles}
+              muscleGroup={exercise.muscleGroup}
+              exerciseName={exercise.exerciseName}
+            />
+          </div>
         </div>
       )}
     </div>
