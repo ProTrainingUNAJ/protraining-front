@@ -169,4 +169,51 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     expect(screen.getAllByText('Carga Acumulada').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
   });
+
+  it('permite filtrar reactivamente a los atletas por Presentes, Sin registro y búsqueda por texto (KAN-621)', async () => {
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Asistencia/i })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Asistencia/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+    });
+
+    // 1. Filtrar solo presentes
+    const presentesBtn = screen.getByTestId('filter-attendance-present');
+    expect(presentesBtn).toBeDefined();
+    fireEvent.click(presentesBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.queryByText('Joaquín Díaz')).toBeNull();
+    });
+
+    // 2. Filtrar sin registro
+    const sinRegistroBtn = screen.getByTestId('filter-attendance-absent');
+    expect(sinRegistroBtn).toBeDefined();
+    fireEvent.click(sinRegistroBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Lucas Gómez')).toBeNull();
+      expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+    });
+
+    // 3. Volver a todos
+    const todosBtn = screen.getByTestId('filter-attendance-all');
+    fireEvent.click(todosBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+    });
+  });
 });
