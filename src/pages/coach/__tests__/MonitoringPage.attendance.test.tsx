@@ -129,7 +129,10 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     });
 
     // Verificar atleta sin registro (muestra métricas en 0 y estado Sin registro)
-    expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+    const joaquinName = screen.getByText('Joaquín Díaz');
+    expect(joaquinName).toBeDefined();
+    expect(joaquinName.style.wordBreak).toBe('normal');
+    expect(joaquinName.style.overflowWrap).toBe('anywhere');
     expect(screen.getByText('• Sin registro')).toBeDefined();
     expect(screen.getByRole('button', { name: /Marcar presente/i })).toBeDefined();
 

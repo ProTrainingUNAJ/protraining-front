@@ -968,7 +968,7 @@ export const MonitoringPage: React.FC = () => {
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '1rem',
-                          padding: '1.25rem',
+                          padding: '1.15rem',
                           background: 'var(--bg-card)',
                           borderRadius: '24px',
                           border: '1px solid var(--border)',
@@ -981,21 +981,22 @@ export const MonitoringPage: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: '0.75rem',
+                            gap: '0.5rem',
                           }}
                         >
                           <div
                             style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '0.85rem',
+                              gap: '0.65rem',
                               minWidth: 0,
+                              flex: 1,
                             }}
                           >
                             <ProfileAvatar
                               src={photoUrl}
                               name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                              size={50}
+                              size={42}
                               shape="circle"
                               alt={`Foto de perfil de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                             />
@@ -1004,25 +1005,30 @@ export const MonitoringPage: React.FC = () => {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 minWidth: 0,
+                                flex: 1,
                               }}
                             >
                               <span
                                 style={{
                                   fontWeight: 800,
-                                  fontSize: '1.15rem',
+                                  fontSize: '0.92rem',
                                   color: 'var(--text-main)',
-                                  lineHeight: 1.2,
-                                  wordBreak: 'break-word',
+                                  lineHeight: 1.25,
+                                  wordBreak: 'normal',
+                                  overflowWrap: 'anywhere',
+                                  whiteSpace: 'normal',
                                 }}
+                                title={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
                               >
                                 {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
                               </span>
                               <span
                                 style={{
-                                  fontSize: '0.78rem',
+                                  fontSize: '0.74rem',
                                   fontWeight: 600,
                                   color: isPresent ? '#10b981' : 'var(--text-muted)',
                                   marginTop: '2px',
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
                                 {isPresent ? '• Presente' : '• Sin registro'}
@@ -1048,12 +1054,12 @@ export const MonitoringPage: React.FC = () => {
                               }
                             }}
                             style={{
-                              padding: '0.45rem 1.05rem',
+                              padding: '0.28rem 0.65rem',
                               borderRadius: '9999px',
                               border: isPresent ? '1px solid #a7f3d0' : '1px solid var(--border)',
                               background: isPresent ? '#ecfdf5' : 'var(--bg-subtle)',
                               color: isPresent ? '#047857' : 'var(--text-main)',
-                              fontSize: '0.85rem',
+                              fontSize: '0.74rem',
                               fontWeight: 700,
                               cursor: 'pointer',
                               flexShrink: 0,
