@@ -1887,6 +1887,108 @@
   font-weight: 600;
 }
 
+/* ── Miniatura de ejercicios y mapa anatómico por ejercicio (KAN-623) ── */
+.plan-exercise-thumbnail {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plan-exercise-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.plan-exercise-thumbnail-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary);
+  background: var(--routine-gif-bg);
+}
+
+.plan-exercise-fallback-icon {
+  color: var(--secondary);
+}
+
+.plan-exercise-body-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.plan-exercise-body-layout .plan-progression-table-container {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.plan-exercise-anatomy-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-exercise-muscle-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 110px;
+}
+
+.plan-exercise-muscle-silhouette {
+  width: 60px;
+  max-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-exercise-muscle-silhouette svg {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .plan-exercise-body-layout {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .plan-exercise-anatomy-container {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .plan-exercise-muscle-silhouette {
+    width: 75px;
+    max-height: 140px;
+  }
+}
+
 /* ── Modal de asignación enriquecido con fotos de atleta/categoría (KAN-622) ── */
 .plan-assign-modal {
   display: flex;

@@ -20,6 +20,8 @@ export interface CatalogExercise {
   muscleGroup: string;
   equipment: string | null;
   images: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   // Variantes (KAN-554): la etiqueta si es una variante ("Agarre cerrado"), y sus variantes si
   // es un ejercicio base (solo cuando se pide el catálogo agrupado).
@@ -53,6 +55,10 @@ export interface DraftExercise {
   targetRir?: number | null;
   repsRange?: string | null;
   notes?: string | null;
+  images?: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  muscleGroup?: string;
 }
 
 export type IntensityMetric = 'RPE' | 'RIR';
@@ -79,6 +85,10 @@ export interface BlockExercise {
   order: number;
   intensityType: IntensityMetric;
   weeklyProgression: Record<number, WeeklyExerciseProgression>;
+  images?: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  muscleGroup?: string;
 }
 
 export interface DayBlock {

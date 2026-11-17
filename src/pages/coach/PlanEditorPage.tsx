@@ -18,6 +18,7 @@ import { DayBlocksEditor } from '../../components/planning/DayBlocksEditor';
 import { ExercisePickerModal } from '../../components/planning/ExercisePickerModal';
 import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
 import { trainingPlansService } from '../../api/trainingPlans';
+import { exercisesService } from '../../api/exercises';
 import {
   CatalogExercise,
   DayPlan,
@@ -91,6 +92,55 @@ export function PlanEditorPage() {
           setSelectedDayOfWeek(parsedDays[0].dayOfWeek);
         }
         setExpandedWeeks(new Set(loaded.weeks.slice(0, 1).map((w) => w.key)));
+
+        // Enriquecer ejercicios con fotos o músculos si faltasen
+        const allExercises = parsedDays.flatMap((d) => d.blocks.flatMap((b) => b.exercises));
+        const missingIds = allExercises
+          .filter(
+            (e) =>
+              !e.images ||
+              e.images.length === 0 ||
+              !e.primaryMuscles ||
+              e.primaryMuscles.length === 0,
+          )
+          .map((e) => e.exerciseId);
+
+        if (missingIds.length > 0) {
+          exercisesService
+            .getByIds(missingIds)
+            .then((catalogItems) => {
+              if (!active || catalogItems.length === 0) return;
+              const catalogMap = new Map(catalogItems.map((c) => [c.id, c]));
+              setDays((prevDays) =>
+                prevDays.map((d) => ({
+                  ...d,
+                  blocks: d.blocks.map((b) => ({
+                    ...b,
+                    exercises: b.exercises.map((e) => {
+                      const cat = catalogMap.get(e.exerciseId);
+                      if (!cat) return e;
+                      return {
+                        ...e,
+                        images: e.images && e.images.length > 0 ? e.images : (cat.images ?? []),
+                        primaryMuscles:
+                          e.primaryMuscles && e.primaryMuscles.length > 0
+                            ? e.primaryMuscles
+                            : (cat.primaryMuscles ?? []),
+                        secondaryMuscles:
+                          e.secondaryMuscles && e.secondaryMuscles.length > 0
+                            ? e.secondaryMuscles
+                            : (cat.secondaryMuscles ?? []),
+                        muscleGroup: e.muscleGroup || cat.muscleGroup,
+                      };
+                    }),
+                  })),
+                })),
+              );
+            })
+            .catch(() => {
+              // Silencioso: fallback gráfico activo
+            });
+        }
       })
       .catch((err: unknown) => {
         if (active) {
@@ -465,6 +515,10 @@ export function PlanEditorPage() {
                           exerciseId: exercise.id,
                           exerciseName: exercise.name,
                           exerciseType: exercise.exerciseType ?? 'Weight',
+                          images: exercise.images ?? [],
+                          primaryMuscles: exercise.primaryMuscles ?? [],
+                          secondaryMuscles: exercise.secondaryMuscles ?? [],
+                          muscleGroup: exercise.muscleGroup,
                         }
                       : e,
                   ),

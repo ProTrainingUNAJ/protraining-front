@@ -193,6 +193,10 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
               targetRir: exMeta.targetRir ?? null,
               repsRange: exMeta.repsRange ?? (exercise.reps ? exercise.reps.toString() : null),
               notes: exMeta.notes ?? null,
+              images: (ex.images as string[]) ?? [],
+              primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
+              secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
+              muscleGroup: (ex.muscleGroup as string) ?? undefined,
             };
           }),
         };
@@ -311,6 +315,10 @@ export function createExercise(session: DraftSession, exercise: CatalogExercise)
     targetDistanceMeters: type === 'Distance' ? 100 : null,
     targetTimeSeconds: type === 'Time' ? 30 : null,
     targetPercentage: null,
+    images: exercise.images ?? [],
+    primaryMuscles: exercise.primaryMuscles ?? [],
+    secondaryMuscles: exercise.secondaryMuscles ?? [],
+    muscleGroup: exercise.muscleGroup,
   };
 }
 
@@ -464,6 +472,7 @@ export function aiDraftToEditableDraft(
           coachNotes: cleanNotes,
           nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
           exercises: session.exercises.map((exercise) => {
+            const exRaw = exercise as unknown as Record<string, unknown>;
             const exMeta = meta.exercises?.[exercise.exerciseId] || {};
             return {
               key: newKey(),
@@ -482,6 +491,10 @@ export function aiDraftToEditableDraft(
               targetRir: exMeta.targetRir ?? null,
               repsRange: exMeta.repsRange ?? (exercise.reps ? exercise.reps.toString() : null),
               notes: exMeta.notes ?? null,
+              images: (exRaw.images as string[]) ?? [],
+              primaryMuscles: (exRaw.primaryMuscles as string[]) ?? [],
+              secondaryMuscles: (exRaw.secondaryMuscles as string[]) ?? [],
+              muscleGroup: (exRaw.muscleGroup as string) ?? undefined,
             };
           }),
         };
@@ -619,6 +632,10 @@ export function createBlockExercise(
     order,
     intensityType,
     weeklyProgression,
+    images: catalogExercise.images ?? [],
+    primaryMuscles: catalogExercise.primaryMuscles ?? [],
+    secondaryMuscles: catalogExercise.secondaryMuscles ?? [],
+    muscleGroup: catalogExercise.muscleGroup,
   };
 }
 
@@ -717,10 +734,38 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
               order: ex.order,
               intensityType: ex.intensityType ?? 'RPE',
               weeklyProgression: {},
+              images: ex.images ?? [],
+              primaryMuscles: ex.primaryMuscles ?? [],
+              secondaryMuscles: ex.secondaryMuscles ?? [],
+              muscleGroup: ex.muscleGroup,
             });
           }
 
           const blockExercise = blockData.exercisesMap.get(ex.exerciseId)!;
+          if (
+            (!blockExercise.images || blockExercise.images.length === 0) &&
+            ex.images &&
+            ex.images.length > 0
+          ) {
+            blockExercise.images = ex.images;
+          }
+          if (
+            (!blockExercise.primaryMuscles || blockExercise.primaryMuscles.length === 0) &&
+            ex.primaryMuscles &&
+            ex.primaryMuscles.length > 0
+          ) {
+            blockExercise.primaryMuscles = ex.primaryMuscles;
+          }
+          if (
+            (!blockExercise.secondaryMuscles || blockExercise.secondaryMuscles.length === 0) &&
+            ex.secondaryMuscles &&
+            ex.secondaryMuscles.length > 0
+          ) {
+            blockExercise.secondaryMuscles = ex.secondaryMuscles;
+          }
+          if (!blockExercise.muscleGroup && ex.muscleGroup) {
+            blockExercise.muscleGroup = ex.muscleGroup;
+          }
           if (ex.intensityType) {
             blockExercise.intensityType = ex.intensityType;
           }
@@ -863,6 +908,10 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             targetRir: prog.targetRir ?? null,
             repsRange: prog.repsRange ?? (prog.reps ? prog.reps.toString() : null),
             notes: prog.notes ?? null,
+            images: bEx.images ?? existingExercise?.images ?? [],
+            primaryMuscles: bEx.primaryMuscles ?? existingExercise?.primaryMuscles ?? [],
+            secondaryMuscles: bEx.secondaryMuscles ?? existingExercise?.secondaryMuscles ?? [],
+            muscleGroup: bEx.muscleGroup ?? existingExercise?.muscleGroup,
           };
         });
 

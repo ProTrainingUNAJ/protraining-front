@@ -9,6 +9,8 @@ function mapExercise(exercise: Exercise): CatalogExercise {
     muscleGroup: exercise.muscleGroup,
     equipment: exercise.equipment ?? null,
     images: exercise.images ?? [],
+    primaryMuscles: exercise.primaryMuscles ?? [],
+    secondaryMuscles: exercise.secondaryMuscles ?? [],
     exerciseType: exercise.exerciseType,
     variantLabel: exercise.variantLabel ?? null,
     variants: (exercise.variants ?? []).map(mapExercise),
