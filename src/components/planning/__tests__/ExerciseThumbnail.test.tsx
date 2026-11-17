@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ExerciseThumbnail } from '../ExerciseThumbnail';
 
@@ -38,5 +38,28 @@ describe('ExerciseThumbnail', () => {
     fireEvent.error(img);
 
     expect(screen.queryByRole('img')).toBeNull();
+  });
+
+  it('ejecuta onClick al hacer clic o al presionar Enter o Espacio cuando es interactivo', () => {
+    const onClick = vi.fn();
+    render(
+      <ExerciseThumbnail
+        images={['https://example.com/squat.jpg']}
+        exerciseName="Sentadilla"
+        onClick={onClick}
+      />,
+    );
+
+    const thumb = screen.getByRole('button', { name: /ver técnica y detalle de sentadilla/i });
+    expect(thumb).toBeDefined();
+
+    fireEvent.click(thumb);
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(thumb, { key: 'Enter' });
+    expect(onClick).toHaveBeenCalledTimes(2);
+
+    fireEvent.keyDown(thumb, { key: ' ' });
+    expect(onClick).toHaveBeenCalledTimes(3);
   });
 });

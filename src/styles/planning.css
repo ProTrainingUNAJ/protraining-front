@@ -592,6 +592,28 @@
   white-space: nowrap;
 }
 
+.plan-exercise-name-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color var(--transition-fast, 0.15s ease);
+}
+
+.plan-exercise-name-btn:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.plan-exercise-name-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .plan-exercise-actions {
   display: flex;
   align-items: center;
@@ -1906,6 +1928,25 @@
   flex-shrink: 0;
 }
 
+.plan-exercise-thumbnail.is-clickable {
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast, 0.15s ease),
+    border-color var(--transition-fast, 0.15s ease),
+    box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.plan-exercise-thumbnail.is-clickable:hover {
+  transform: scale(1.08);
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px var(--shadow-sm);
+}
+
+.plan-exercise-thumbnail.is-clickable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .plan-exercise-thumbnail-img {
   width: 100%;
   height: 100%;
@@ -2457,4 +2498,276 @@
   gap: 0.65rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border);
+}
+
+/* ── Modal de Ampliación y Técnica de Ejercicio (KAN-623) ── */
+.exercise-detail-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--routine-modal-overlay);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: exerciseDetailFadeIn 0.2s ease-out;
+}
+
+@keyframes exerciseDetailFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.exercise-detail-modal-card {
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.exercise-detail-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  gap: 1rem;
+}
+
+.exercise-detail-modal-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.exercise-detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.exercise-detail-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.exercise-detail-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exercise-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.exercise-detail-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast, 0.15s ease),
+    color var(--transition-fast, 0.15s ease),
+    transform var(--transition-fast, 0.15s ease);
+  flex-shrink: 0;
+}
+
+.exercise-detail-modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  transform: rotate(90deg);
+}
+
+.exercise-detail-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .exercise-detail-modal-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.exercise-detail-media-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.exercise-detail-media-wrapper {
+  width: 100%;
+  height: 320px;
+  background: var(--routine-gif-bg);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.exercise-detail-media-wrapper .exercise-gif-image-container {
+  width: 100%;
+  height: 100%;
+}
+
+.exercise-detail-media-wrapper .exercise-gif-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.exercise-detail-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.exercise-detail-fallback-icon {
+  color: var(--secondary);
+  opacity: 0.7;
+}
+
+.exercise-detail-media-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.exercise-detail-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.exercise-detail-anatomy-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-subtle);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.exercise-detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.exercise-detail-section-icon {
+  color: var(--primary);
+}
+
+.exercise-detail-silhouette-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+}
+
+.exercise-detail-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.exercise-detail-tips-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem;
+  background: var(--bg-subtle);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.exercise-detail-tips-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.exercise-detail-tips-list strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.exercise-detail-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.exercise-detail-close-btn {
+  min-width: 120px;
+  font-weight: 700;
+  border-radius: 10px;
 }

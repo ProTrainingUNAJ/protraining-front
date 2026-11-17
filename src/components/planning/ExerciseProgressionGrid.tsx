@@ -9,6 +9,7 @@ import { parseRepsNumber } from '../../utils/planDraft';
 import { IntensityTypeSelector } from './IntensityTypeSelector';
 import { ExerciseThumbnail } from './ExerciseThumbnail';
 import { ExerciseMuscleMiniMap } from './ExerciseMuscleMiniMap';
+import { ExerciseDetailModal } from './ExerciseDetailModal';
 
 interface ExerciseProgressionGridProps {
   exercise: BlockExercise;
@@ -34,6 +35,7 @@ export function ExerciseProgressionGrid({
   onMoveDown,
 }: ExerciseProgressionGridProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const label = exercise.exerciseName || 'Ejercicio sin nombre';
 
   // Resumen compacto de progresión (KAN-623)
@@ -110,11 +112,20 @@ export function ExerciseProgressionGrid({
             </button>
           </span>
 
-          <ExerciseThumbnail images={exercise.images} exerciseName={label} />
+          <ExerciseThumbnail
+            images={exercise.images}
+            exerciseName={label}
+            onClick={() => setIsDetailOpen(true)}
+          />
 
-          <span className="plan-exercise-name" title={label}>
+          <button
+            type="button"
+            className="plan-exercise-name plan-exercise-name-btn"
+            title={`Ver técnica y detalle de ${label}`}
+            onClick={() => setIsDetailOpen(true)}
+          >
             {label}
-          </span>
+          </button>
           {exercise.exerciseType && exercise.exerciseType !== 'Weight' && (
             <span className="plan-exercise-badge">{exercise.exerciseType}</span>
           )}
@@ -340,6 +351,12 @@ export function ExerciseProgressionGrid({
           </div>
         </div>
       )}
+
+      <ExerciseDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        exercise={exercise}
+      />
     </div>
   );
 }

@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { ArrowLeftRight, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { DraftExercise } from '../../types/trainingPlans';
 import { PERCENTAGE_MAX } from '../../utils/planDraft';
+import { ExerciseThumbnail } from './ExerciseThumbnail';
+import { ExerciseDetailModal } from './ExerciseDetailModal';
 
 interface PrescribedExerciseRowProps {
   exercise: DraftExercise;
@@ -28,6 +31,7 @@ export function PrescribedExerciseRow({
   onMoveUp,
   onMoveDown,
 }: PrescribedExerciseRowProps) {
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const label = exercise.exerciseName || 'Ejercicio sin nombre';
   const currentType = exercise.exerciseType ?? 'Weight';
 
@@ -74,9 +78,20 @@ export function PrescribedExerciseRow({
           </button>
         </span>
 
-        <span className="plan-exercise-name" title={label}>
+        <ExerciseThumbnail
+          images={exercise.images}
+          exerciseName={label}
+          onClick={() => setIsDetailOpen(true)}
+        />
+
+        <button
+          type="button"
+          className="plan-exercise-name plan-exercise-name-btn"
+          title={`Ver técnica y detalle de ${label}`}
+          onClick={() => setIsDetailOpen(true)}
+        >
           {label}
-        </span>
+        </button>
 
         <div className="plan-exercise-actions">
           {onSwap && (
@@ -213,6 +228,12 @@ export function PrescribedExerciseRow({
           </label>
         </div>
       </div>
+
+      <ExerciseDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        exercise={exercise}
+      />
     </li>
   );
 }
