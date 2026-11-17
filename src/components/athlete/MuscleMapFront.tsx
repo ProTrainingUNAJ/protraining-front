@@ -67,11 +67,11 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
             className={`muscle-map-front-svg ${className}`}
             style={{
               width: '100%',
-              height: 'auto',
-              maxHeight: '480px',
+              height: hideHeader && hideFooter ? '100%' : 'auto',
+              maxHeight: hideHeader && hideFooter ? '100%' : '480px',
               display: 'block',
               userSelect: 'none',
-              overflow: 'visible',
+              overflow: hideHeader && hideFooter ? 'hidden' : 'visible',
               background: 'transparent',
             }}
             aria-label="Mapa anatómico muscular y articular en vista frontal"
