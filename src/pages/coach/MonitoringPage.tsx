@@ -1050,15 +1050,9 @@ export const MonitoringPage: React.FC = () => {
                             style={{
                               padding: '0.45rem 1.05rem',
                               borderRadius: '9999px',
-                              border: isPresent
-                                ? '1px solid #a7f3d0'
-                                : '1px solid var(--border)',
-                              background: isPresent
-                                ? '#ecfdf5'
-                                : 'var(--bg-subtle)',
-                              color: isPresent
-                                ? '#047857'
-                                : 'var(--text-main)',
+                              border: isPresent ? '1px solid #a7f3d0' : '1px solid var(--border)',
+                              background: isPresent ? '#ecfdf5' : 'var(--bg-subtle)',
+                              color: isPresent ? '#047857' : 'var(--text-main)',
                               fontSize: '0.85rem',
                               fontWeight: 700,
                               cursor: 'pointer',
