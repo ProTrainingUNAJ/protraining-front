@@ -129,4 +129,43 @@ describe('PlanningPage (KAN-440 / KAN-622)', () => {
 
     expect(screen.getByRole('dialog', { name: /aplicar plantilla/i })).toBeDefined();
   });
+
+  it('cambia a la pestaña de asignaciones y renderiza las tarjetas en grid similar a Mis Planificaciones (KAN-623)', async () => {
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([
+      {
+        assignmentId: 'assign-1',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+      {
+        assignmentId: 'assign-2',
+        trainingPlanId: 'plan-2',
+        planName: 'Hipertrofia Piernas',
+        startDate: '2026-10-01',
+        endDate: '2026-10-31',
+        status: 'Finished',
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning?tab=assignments']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+    expect(screen.getByText('Activa')).toBeDefined();
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+    expect(screen.getByText('Terminada')).toBeDefined();
+
+    // Verificamos que tenga el buscador de asignaciones
+    const searchInput = screen.getByRole('searchbox', { name: /buscar asignación/i });
+    fireEvent.change(searchInput, { target: { value: 'Piernas' } });
+
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+    expect(screen.queryByText('Potencia Tren Superior')).toBeNull();
+  });
 });

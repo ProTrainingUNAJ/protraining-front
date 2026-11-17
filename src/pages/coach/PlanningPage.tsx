@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   Bookmark,
-  Calendar,
   CalendarPlus,
   Check,
   ClipboardList,
@@ -17,9 +16,9 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { ApplyPlanTemplateModal } from '../../components/planning/ApplyPlanTemplateModal';
 import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
 import { PlanningCard } from '../../components/planning/PlanningCard';
+import { PlanAssignmentCard } from '../../components/planning/PlanAssignmentCard';
 import { trainingPlansService, PlanAssignmentSummary } from '../../api/trainingPlans';
 import { PlanListItem, PlanTemplateItem } from '../../types/trainingPlans';
-import { formatDayMonth } from '../../utils/argentinaDate';
 
 export function PlanningPage() {
   const navigate = useNavigate();
@@ -52,10 +51,11 @@ export function PlanningPage() {
     null,
   );
 
-  // Estados de asignaciones (KAN-559)
+  // Estados de asignaciones (KAN-559, KAN-623)
   const [assignments, setAssignments] = useState<PlanAssignmentSummary[]>([]);
   const [loadingAssignments, setLoadingAssignments] = useState(currentTab === 'assignments');
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
+  const [assignmentSearch, setAssignmentSearch] = useState('');
 
   const [successMessage, setSuccessMessage] = useState<string | null>(
     (location.state as { message?: string } | null)?.message ?? null,
@@ -185,6 +185,24 @@ export function PlanningPage() {
     return (
       p.name.toLowerCase().includes(query) ||
       Boolean(p.objective && p.objective.toLowerCase().includes(query))
+    );
+  });
+
+  const plansById = useMemo(() => {
+    const map = new Map<string, PlanListItem>();
+    plans.forEach((p) => map.set(p.id, p));
+    return map;
+  }, [plans]);
+
+  const filteredAssignments = assignments.filter((a) => {
+    const query = assignmentSearch.trim().toLowerCase();
+    if (!query) return true;
+    const plan = plansById.get(a.trainingPlanId);
+    const statusText = a.status === 'Finished' ? 'terminada' : 'activa';
+    return (
+      a.planName.toLowerCase().includes(query) ||
+      statusText.includes(query) ||
+      Boolean(plan?.objective && plan.objective.toLowerCase().includes(query))
     );
   });
 
@@ -485,12 +503,39 @@ export function PlanningPage() {
           </section>
         )}
 
-        {/* Pestaña 3: Asignaciones (KAN-559) */}
+        {/* Pestaña 3: Asignaciones (KAN-559, KAN-623: Grid idéntico a Mis Planificaciones con mapa anatómico) */}
         {currentTab === 'assignments' && (
           <section aria-labelledby="assignments-section-title">
             <h2 id="assignments-section-title" className="sr-only">
               Asignaciones de entrenamiento
             </h2>
+
+            {/* Barra de control y búsqueda de asignaciones (KAN-623) */}
+            {!loadingAssignments && assignments.length > 0 && (
+              <div className="plan-control-bar">
+                <div className="plan-search-wrapper">
+                  <Search size={16} className="plan-search-icon" aria-hidden="true" />
+                  <input
+                    type="search"
+                    className="plan-search-input"
+                    placeholder="Buscar asignación por nombre o estado..."
+                    value={assignmentSearch}
+                    onChange={(e) => setAssignmentSearch(e.target.value)}
+                    aria-label="Buscar asignación"
+                  />
+                  {assignmentSearch && (
+                    <button
+                      type="button"
+                      className="plan-search-clear"
+                      onClick={() => setAssignmentSearch('')}
+                      aria-label="Borrar texto de búsqueda"
+                    >
+                      <X size={14} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {loadingAssignments ? (
               <p className="plan-empty plan-inline">
@@ -502,62 +547,34 @@ export function PlanningPage() {
                 Todavía no tenés planificaciones asignadas. Podés asignar una desde «Mis
                 Planificaciones» abriendo el editor y seleccionando «Asignar».
               </p>
+            ) : filteredAssignments.length === 0 && assignmentSearch ? (
+              <div className="plan-empty-search">
+                <p className="plan-empty">
+                  No se encontraron asignaciones que coincidan con «
+                  <strong>{assignmentSearch}</strong>».
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setAssignmentSearch('')}
+                >
+                  Limpiar búsqueda
+                </button>
+              </div>
             ) : (
-              <ul className="plan-list">
-                {assignments.map((assignment) => {
-                  const isFinished = assignment.status === 'Finished';
-                  const rangeText = `Del ${formatDayMonth(assignment.startDate)} al ${formatDayMonth(assignment.endDate)}`;
-                  const finishText = isFinished
-                    ? 'Terminada'
-                    : `Termina el ${formatDayMonth(assignment.endDate)}`;
-
-                  return (
-                    <li key={assignment.assignmentId}>
-                      <div className="card plan-list-item" style={{ cursor: 'default' }}>
-                        <Calendar
-                          size={20}
-                          aria-hidden="true"
-                          style={{ color: isFinished ? 'var(--text-muted)' : 'var(--primary)' }}
-                        />
-                        <div className="plan-list-info" style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.65rem',
-                              flexWrap: 'wrap',
-                            }}
-                          >
-                            <strong>{assignment.planName}</strong>
-                            {isFinished ? (
-                              <span
-                                className="badge badge-secondary"
-                                style={{ fontSize: '0.72rem' }}
-                              >
-                                Terminada
-                              </span>
-                            ) : (
-                              <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
-                                Activa
-                              </span>
-                            )}
-                          </div>
-                          <span style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-                            {rangeText} · {finishText}
-                          </span>
-                        </div>
-                        <Link
-                          to={`/pf/planning/${assignment.trainingPlanId}`}
-                          className="btn btn-secondary"
-                          style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem' }}
-                        >
-                          Ver plan
-                        </Link>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              <div
+                className="plan-cards-grid"
+                role="list"
+                aria-label="Listado de asignaciones de entrenamiento"
+              >
+                {filteredAssignments.map((assignment) => (
+                  <PlanAssignmentCard
+                    key={assignment.assignmentId}
+                    assignment={assignment}
+                    plan={plansById.get(assignment.trainingPlanId)}
+                  />
+                ))}
+              </div>
             )}
           </section>
         )}

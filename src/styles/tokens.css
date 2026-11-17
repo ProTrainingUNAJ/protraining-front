@@ -150,10 +150,10 @@
   --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.08);
   --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.12);
 
-  /* Exercise muscle highlight tokens (KAN-320: Dorado principal, Plateado secundario) */
-  --muscle-exercise-primary: #d4af37;
+  /* Exercise muscle highlight tokens (KAN-320, KAN-623: Celeste principal, Gris secundario) */
+  --muscle-exercise-primary: #0284c7;
   --muscle-exercise-secondary: #94a3b8;
-  --muscle-exercise-primary-glow: rgb(212 175 55 / 0.4);
+  --muscle-exercise-primary-glow: rgb(2 132 199 / 0.4);
   --muscle-exercise-secondary-glow: rgb(148 163 184 / 0.3);
 
   /* Suite banner and card (Coach & Athlete Dashboard) */
@@ -571,11 +571,11 @@
   --muscle-pain-shadow-hover: 0 6px 14px rgb(0 0 0 / 0.35);
   --muscle-pain-shadow-dot: 0 2px 4px rgb(0 0 0 / 0.4);
 
-  /* Exercise muscle highlight tokens (KAN-320 dark mode: Dorado principal, Plateado secundario) */
-  --muscle-exercise-primary: #facc15;
-  --muscle-exercise-secondary: #cbd5e1;
-  --muscle-exercise-primary-glow: rgb(250 204 21 / 0.45);
-  --muscle-exercise-secondary-glow: rgb(203 213 225 / 0.35);
+  /* Exercise muscle highlight tokens (KAN-320, KAN-623 dark mode: Celeste principal, Gris secundario) */
+  --muscle-exercise-primary: #38bdf8;
+  --muscle-exercise-secondary: #94a3b8;
+  --muscle-exercise-primary-glow: rgb(56 189 248 / 0.45);
+  --muscle-exercise-secondary-glow: rgb(148 163 184 / 0.35);
 
   --grad-suite-card: linear-gradient(to top, rgb(14 18 23 / 0.95) 0%, rgb(20 24 30 / 0.5) 100%);
   --suite-badge-bg: rgb(255 255 255 / 0.1);
