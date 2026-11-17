@@ -35,3 +35,39 @@
 .exercise-video-link:hover {
   color: var(--text-main);
 }
+
+/* Tarjeta interactiva en el catálogo de ejercicios (KAN-625) */
+.exercise-card-media-clickable {
+  cursor: pointer;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.exercise-card-media-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.exercise-card-media-clickable:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+.exercise-card-title-clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.exercise-card-title-clickable:hover {
+  color: var(--secondary) !important;
+  text-decoration: underline;
+}
+
+.exercise-card-title-clickable:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
