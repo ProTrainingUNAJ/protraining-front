@@ -4,6 +4,7 @@ import { MuscleMapBack } from '../athlete/MuscleMapBack';
 import { getExerciseMuscleHighlight } from '../../utils/exerciseMuscleMapper';
 
 export interface PlanMuscleMapProps {
+  primaryMuscles?: string[];
   targetMuscles?: string[];
   secondaryMuscles?: string[];
   name?: string;
@@ -11,6 +12,7 @@ export interface PlanMuscleMapProps {
 }
 
 export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({
+  primaryMuscles,
   targetMuscles,
   secondaryMuscles,
   name,
@@ -18,13 +20,26 @@ export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({
 }) => {
   // Obtener músculos explícitos de la API o inferir por texto si fuera necesario (KAN-623)
   const { effectivePrimary, effectiveSecondary } = useMemo(() => {
-    const hasExplicitPrimary = targetMuscles && targetMuscles.length > 0;
+    const rawPrimary = primaryMuscles && primaryMuscles.length > 0 ? primaryMuscles : targetMuscles;
+    const hasExplicitPrimary = rawPrimary && rawPrimary.length > 0;
     const hasExplicitSecondary = secondaryMuscles && secondaryMuscles.length > 0;
 
     if (hasExplicitPrimary || hasExplicitSecondary) {
+      const primaryClean = Array.from(
+        new Set((rawPrimary ?? []).map((m) => m.toLowerCase().trim()).filter(Boolean)),
+      );
+      const primarySet = new Set(primaryClean);
+      const secondaryClean = Array.from(
+        new Set(
+          (secondaryMuscles ?? [])
+            .map((m) => m.toLowerCase().trim())
+            .filter((m) => Boolean(m) && !primarySet.has(m)),
+        ),
+      );
+
       return {
-        effectivePrimary: targetMuscles ?? [],
-        effectiveSecondary: secondaryMuscles ?? [],
+        effectivePrimary: primaryClean,
+        effectiveSecondary: secondaryClean,
       };
     }
 
@@ -72,7 +87,7 @@ export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({
     }
 
     return { effectivePrimary: primary, effectiveSecondary: secondary };
-  }, [targetMuscles, secondaryMuscles, name, objective]);
+  }, [primaryMuscles, targetMuscles, secondaryMuscles, name, objective]);
 
   const highlight = useMemo(
     () =>

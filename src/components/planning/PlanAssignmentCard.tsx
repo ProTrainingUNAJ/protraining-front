@@ -59,6 +59,8 @@ export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({ assignme
 
         {/* Anatomía corporal con músculos involucrados en celeste y secundarios en gris (KAN-623) */}
         <PlanMuscleMap
+          primaryMuscles={plan?.primaryMuscles}
+          secondaryMuscles={plan?.secondaryMuscles}
           targetMuscles={plan?.targetMuscles}
           name={assignment.planName}
           objective={plan?.objective}
