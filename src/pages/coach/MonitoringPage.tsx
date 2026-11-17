@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Activity, AlertTriangle, Dumbbell, Loader2, Search, Trophy, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -155,9 +155,9 @@ export const MonitoringPage: React.FC = () => {
     selectedCategoryId !== '' &&
     (attendanceResult === null || attendanceResult.categoryId !== selectedCategoryId);
 
-  const refreshTrafficLight = useCallback(() => {
+  useEffect(() => {
     if (!selectedCategoryId) return;
-    setAthletesResult(null);
+    let active = true;
 
     const getPhotoUrl = (id: string, updatedAt?: string | null) =>
       typeof structureService?.getAthletePhotoUrl === 'function'
@@ -173,6 +173,7 @@ export const MonitoringPage: React.FC = () => {
 
     Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
       .then(async ([summaries, fetchedAthletes]) => {
+        if (!active) return;
         setCategoryAthletes(fetchedAthletes);
         const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
 
@@ -211,6 +212,79 @@ export const MonitoringPage: React.FC = () => {
           }),
         );
 
+        if (!active) return;
+        setAthletesResult({
+          categoryId: selectedCategoryId,
+          athletes: athletesWithConflicts,
+          error: null,
+        });
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        setAthletesResult({
+          categoryId: selectedCategoryId,
+          athletes: [],
+          error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedCategoryId, selectedCategoryName]);
+
+  const refreshTrafficLight = () => {
+    if (!selectedCategoryId) return;
+    const getPhotoUrl = (id: string, updatedAt?: string | null) =>
+      typeof structureService?.getAthletePhotoUrl === 'function'
+        ? structureService.getAthletePhotoUrl(id, updatedAt)
+        : `/api/estructura/api/v1/athletes/${id}/photo${updatedAt ? `?v=${encodeURIComponent(updatedAt)}` : ''}`;
+
+    const athletesPromise =
+      typeof structureService?.getAthletes === 'function'
+        ? structureService
+            .getAthletes({ categoriaId: selectedCategoryId })
+            .catch(() => [] as Athlete[])
+        : Promise.resolve([] as Athlete[]);
+
+    Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
+      .then(async ([summaries, fetchedAthletes]) => {
+        setCategoryAthletes(fetchedAthletes);
+        const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
+
+        const mapped = summaries.map((summary) => {
+          const summaryId = summary.athleteId?.toLowerCase();
+          const detail = athleteMap.get(summaryId);
+          const photoUrl = detail
+            ? detail.hasPhoto
+              ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
+              : detail.accountId
+                ? usersService.getMyPhotoUrl(detail.accountId)
+                : undefined
+            : getPhotoUrl(summary.athleteId);
+
+          const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
+          return {
+            ...item,
+            position: item.position,
+            avatarUrl: photoUrl,
+          };
+        });
+
+        const athletesWithConflicts = await Promise.all(
+          mapped.map(async (athlete) => {
+            if (athlete.pains && athlete.pains.length > 0) {
+              try {
+                const conf = await dayAdjustmentsService.getAthleteDayConflicts(athlete.id);
+                return { ...athlete, hasDayConflict: Boolean(conf.hasConflicts) };
+              } catch {
+                return athlete;
+              }
+            }
+            return athlete;
+          }),
+        );
+
         setAthletesResult({
           categoryId: selectedCategoryId,
           athletes: athletesWithConflicts,
@@ -224,11 +298,7 @@ export const MonitoringPage: React.FC = () => {
           error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
         });
       });
-  }, [selectedCategoryId, selectedCategoryName]);
-
-  useEffect(() => {
-    refreshTrafficLight();
-  }, [refreshTrafficLight]);
+  };
 
   const refreshAttendance = () => {
     if (!selectedCategoryId) return;
