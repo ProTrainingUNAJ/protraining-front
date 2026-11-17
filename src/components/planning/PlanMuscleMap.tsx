@@ -9,11 +9,7 @@ export interface PlanMuscleMapProps {
   objective?: string | null;
 }
 
-export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({
-  targetMuscles,
-  name,
-  objective,
-}) => {
+export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({ targetMuscles, name, objective }) => {
   // Obtener músculos explícitos de la API o inferir por texto si fuera necesario
   const effectiveMuscles = useMemo(() => {
     if (targetMuscles && targetMuscles.length > 0) {
@@ -34,10 +30,7 @@ export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({
     return matches;
   }, [targetMuscles, name, objective]);
 
-  const highlight = useMemo(
-    () => getExerciseMuscleHighlight(effectiveMuscles),
-    [effectiveMuscles],
-  );
+  const highlight = useMemo(() => getExerciseMuscleHighlight(effectiveMuscles), [effectiveMuscles]);
 
   return (
     <div
@@ -46,18 +39,10 @@ export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({
       role="img"
     >
       <div className="plan-card-muscle-silhouette">
-        <MuscleMapFront
-          readOnly={true}
-          hideHeader={true}
-          muscleColors={highlight.muscleColors}
-        />
+        <MuscleMapFront readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
       </div>
       <div className="plan-card-muscle-silhouette">
-        <MuscleMapBack
-          readOnly={true}
-          hideHeader={true}
-          muscleColors={highlight.muscleColors}
-        />
+        <MuscleMapBack readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
       </div>
     </div>
   );

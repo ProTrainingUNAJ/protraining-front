@@ -960,10 +960,6 @@ export const MonitoringPage: React.FC = () => {
 
                     const totalMinutes = athlete.totalMinutes ?? 0;
                     const totalLoad = athlete.totalLoad ?? 0;
-                    const hasLoadData =
-                      totalMinutes > 0 ||
-                      totalLoad > 0 ||
-                      (athlete.activities && athlete.activities.length > 0);
 
                     return (
                       <div
@@ -988,24 +984,50 @@ export const MonitoringPage: React.FC = () => {
                             gap: '0.75rem',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.85rem',
+                              minWidth: 0,
+                            }}
+                          >
                             <ProfileAvatar
                               src={photoUrl}
                               name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                              size={48}
+                              size={50}
                               shape="circle"
                               alt={`Foto de perfil de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                             />
-                            <span
+                            <div
                               style={{
-                                fontWeight: 800,
-                                fontSize: '1.15rem',
-                                color: 'var(--text-main)',
-                                lineHeight: 1.2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                minWidth: 0,
                               }}
                             >
-                              {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                            </span>
+                              <span
+                                style={{
+                                  fontWeight: 800,
+                                  fontSize: '1.15rem',
+                                  color: 'var(--text-main)',
+                                  lineHeight: 1.2,
+                                  wordBreak: 'break-word',
+                                }}
+                              >
+                                {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: '0.78rem',
+                                  fontWeight: 600,
+                                  color: isPresent ? '#10b981' : 'var(--text-muted)',
+                                  marginTop: '2px',
+                                }}
+                              >
+                                {isPresent ? '• Presente' : '• Sin registro'}
+                              </span>
+                            </div>
                           </div>
 
                           <button
@@ -1029,239 +1051,219 @@ export const MonitoringPage: React.FC = () => {
                               padding: '0.45rem 1.05rem',
                               borderRadius: '9999px',
                               border: isPresent
-                                ? '1px solid var(--traffic-green-border, #a7f3d0)'
+                                ? '1px solid #a7f3d0'
                                 : '1px solid var(--border)',
                               background: isPresent
-                                ? 'var(--traffic-green-bg, #ecfdf5)'
+                                ? '#ecfdf5'
                                 : 'var(--bg-subtle)',
                               color: isPresent
-                                ? 'var(--traffic-green-text, #047857)'
+                                ? '#047857'
                                 : 'var(--text-main)',
                               fontSize: '0.85rem',
                               fontWeight: 700,
                               cursor: 'pointer',
                               flexShrink: 0,
                               transition: 'all 0.15s ease',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {isPresent ? 'Marcar sin registro' : 'Marcar presente'}
                           </button>
                         </div>
 
-                        {/* Desglose de Carga del Día idéntico a imagen 2 */}
-                        {hasLoadData ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {/* Caja de métricas Tiempo Total y Carga Acumulada */}
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-around',
-                                textAlign: 'center',
-                                padding: '0.85rem 1.25rem',
-                                background: 'var(--bg-card)',
-                                borderRadius: '16px',
-                                border: '1px solid var(--border)',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'baseline',
-                                    gap: '0.25rem',
-                                    lineHeight: 1,
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      fontSize: '1.9rem',
-                                      fontWeight: 900,
-                                      color: 'var(--text-main)',
-                                    }}
-                                  >
-                                    {totalMinutes}
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontSize: '1rem',
-                                      fontWeight: 700,
-                                      color: 'var(--text-muted)',
-                                    }}
-                                  >
-                                    min
-                                  </span>
-                                </div>
-                                <span
-                                  style={{
-                                    fontSize: '0.72rem',
-                                    fontWeight: 800,
-                                    color: 'var(--text-muted)',
-                                    letterSpacing: '0.05em',
-                                    textTransform: 'uppercase',
-                                    marginTop: '0.4rem',
-                                  }}
-                                >
-                                  Tiempo Total
-                                </span>
-                              </div>
-
-                              <div
-                                style={{
-                                  width: '1px',
-                                  height: '42px',
-                                  background: 'var(--border)',
-                                }}
-                              />
-
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'baseline',
-                                    gap: '0.25rem',
-                                    lineHeight: 1,
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      fontSize: '1.9rem',
-                                      fontWeight: 900,
-                                      color: 'var(--text-main)',
-                                    }}
-                                  >
-                                    {totalLoad}
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontSize: '1rem',
-                                      fontWeight: 800,
-                                      color: 'var(--text-muted)',
-                                    }}
-                                  >
-                                    UA
-                                  </span>
-                                </div>
-                                <span
-                                  style={{
-                                    fontSize: '0.72rem',
-                                    fontWeight: 800,
-                                    color: 'var(--text-muted)',
-                                    letterSpacing: '0.05em',
-                                    textTransform: 'uppercase',
-                                    marginTop: '0.4rem',
-                                  }}
-                                >
-                                  Carga Acumulada
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Barra de progreso de carga horizontal (verde a azul/dorado) */}
-                            <div
-                              style={{
-                                width: '100%',
-                                height: '8px',
-                                background: 'var(--border)',
-                                borderRadius: '9999px',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: `${Math.min(100, Math.max(8, Math.round((totalLoad / 800) * 100)))}%`,
-                                  height: '100%',
-                                  background:
-                                    'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
-                                  borderRadius: '9999px',
-                                }}
-                              />
-                            </div>
-
-                            {/* Chips con actividades registradas */}
-                            {athlete.activities && athlete.activities.length > 0 && (
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  flexWrap: 'wrap',
-                                  gap: '0.5rem',
-                                  marginTop: '0.15rem',
-                                }}
-                              >
-                                {athlete.activities.map((act, i) => (
-                                  <span
-                                    key={i}
-                                    style={{
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '0.45rem',
-                                      padding: '0.35rem 0.85rem',
-                                      borderRadius: '12px',
-                                      border: '1px solid var(--primary-light-border, #bae6fd)',
-                                      background: 'var(--primary-light, #f0f9ff)',
-                                      color: 'var(--primary, #0284c7)',
-                                      fontSize: '0.85rem',
-                                    }}
-                                  >
-                                    {act.type === 'Gym' && (
-                                      <Dumbbell size={14} color="#0284c7" aria-hidden="true" />
-                                    )}
-                                    {act.type === 'SportTraining' && (
-                                      <Activity size={14} color="#0284c7" aria-hidden="true" />
-                                    )}
-                                    {(act.type === 'Match1' || act.type === 'Match2') && (
-                                      <Trophy size={14} color="#0284c7" aria-hidden="true" />
-                                    )}
-                                    {act.type === 'IndividualWork' && (
-                                      <Users size={14} color="#0284c7" aria-hidden="true" />
-                                    )}
-                                    <span>
-                                      {act.name}: <strong>{act.minutes}m</strong>
-                                      {act.rpe !== null && act.rpe !== undefined
-                                        ? ` RPE ${act.rpe}`
-                                        : ''}
-                                    </span>
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
+                        {/* Desglose de Carga del Día idéntico a imagen: siempre visible */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {/* Caja de métricas Tiempo Total y Carga Acumulada */}
                           <div
                             style={{
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              padding: '1.25rem 1rem',
-                              background: 'var(--bg-subtle)',
-                              borderRadius: '16px',
-                              border: '1px dashed var(--border)',
+                              justifyContent: 'space-around',
                               textAlign: 'center',
+                              padding: '0.85rem 1.25rem',
+                              background: 'var(--bg-card)',
+                              borderRadius: '18px',
+                              border: '1px solid var(--border)',
                             }}
                           >
-                            <span
+                            <div
                               style={{
-                                fontSize: '0.82rem',
-                                color: 'var(--text-muted)',
-                                fontStyle: 'italic',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
                               }}
                             >
-                              Sin carga registrada hoy (minutos y RPE pendientes).
-                            </span>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'baseline',
+                                  gap: '0.25rem',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: '1.9rem',
+                                    fontWeight: 900,
+                                    color: 'var(--text-main)',
+                                  }}
+                                >
+                                  {totalMinutes}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: '0.95rem',
+                                    fontWeight: 700,
+                                    color: 'var(--text-muted)',
+                                  }}
+                                >
+                                  min
+                                </span>
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  color: 'var(--text-muted)',
+                                  letterSpacing: '0.05em',
+                                  textTransform: 'uppercase',
+                                  marginTop: '0.4rem',
+                                }}
+                              >
+                                Tiempo Total
+                              </span>
+                            </div>
+
+                            <div
+                              style={{
+                                width: '1px',
+                                height: '42px',
+                                background: 'var(--border)',
+                              }}
+                            />
+
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'baseline',
+                                  gap: '0.25rem',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: '1.9rem',
+                                    fontWeight: 900,
+                                    color: 'var(--text-main)',
+                                  }}
+                                >
+                                  {totalLoad}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: '0.95rem',
+                                    fontWeight: 800,
+                                    color: 'var(--text-muted)',
+                                  }}
+                                >
+                                  UA
+                                </span>
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  color: 'var(--text-muted)',
+                                  letterSpacing: '0.05em',
+                                  textTransform: 'uppercase',
+                                  marginTop: '0.4rem',
+                                }}
+                              >
+                                Carga Acumulada
+                              </span>
+                            </div>
                           </div>
-                        )}
+
+                          {/* Barra de progreso de carga horizontal (verde a azul/dorado) */}
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '8px',
+                              background: 'var(--border)',
+                              borderRadius: '9999px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width:
+                                  totalLoad > 0
+                                    ? `${Math.min(100, Math.max(6, Math.round((totalLoad / 900) * 100)))}%`
+                                    : '0%',
+                                height: '100%',
+                                background:
+                                  'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
+                                borderRadius: '9999px',
+                                transition: 'width 0.3s ease',
+                              }}
+                            />
+                          </div>
+
+                          {/* Chips con actividades registradas */}
+                          {athlete.activities && athlete.activities.length > 0 && (
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '0.5rem',
+                                marginTop: '0.15rem',
+                              }}
+                            >
+                              {athlete.activities.map((act, i) => (
+                                <span
+                                  key={i}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.45rem',
+                                    padding: '0.35rem 0.85rem',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--primary-light-border, #bae6fd)',
+                                    background: 'var(--primary-light, #f0f9ff)',
+                                    color: 'var(--primary, #0284c7)',
+                                    fontSize: '0.85rem',
+                                  }}
+                                >
+                                  {act.type === 'Gym' && (
+                                    <Dumbbell size={14} color="#0284c7" aria-hidden="true" />
+                                  )}
+                                  {act.type === 'SportTraining' && (
+                                    <Activity size={14} color="#0284c7" aria-hidden="true" />
+                                  )}
+                                  {(act.type === 'Match1' || act.type === 'Match2') && (
+                                    <Trophy size={14} color="#0284c7" aria-hidden="true" />
+                                  )}
+                                  {act.type === 'IndividualWork' && (
+                                    <Users size={14} color="#0284c7" aria-hidden="true" />
+                                  )}
+                                  <span>
+                                    {act.name}: <strong>{act.minutes}m</strong>
+                                    {act.rpe !== null && act.rpe !== undefined
+                                      ? ` RPE ${act.rpe}`
+                                      : ''}
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

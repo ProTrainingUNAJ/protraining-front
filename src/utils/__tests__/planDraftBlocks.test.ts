@@ -385,9 +385,7 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
       id: 'plan-multi',
       name: 'Plan 3 dias',
       objective: 'Fuerza',
-      weeks: [
-        { key: 'w1', id: null, weekNumber: 1, nextSessionOrder: 1, sessions: [] },
-      ],
+      weeks: [{ key: 'w1', id: null, weekNumber: 1, nextSessionOrder: 1, sessions: [] }],
     };
 
     const result = daysToPlanDraft([thursday, monday, wednesday], baseDraft);

@@ -122,15 +122,16 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
       expect(screen.getByText('60')).toBeDefined();
       expect(screen.getByText('180')).toBeDefined();
-      expect(screen.getByText('Tiempo Total')).toBeDefined();
-      expect(screen.getByText('Carga Acumulada')).toBeDefined();
+      expect(screen.getAllByText('Tiempo Total').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Carga Acumulada').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
       expect(screen.getByText(/RPE 3/i)).toBeDefined();
     });
 
-    // Verificar atleta sin registro
+    // Verificar atleta sin registro (muestra métricas en 0 y estado Sin registro)
     expect(screen.getByText('Joaquín Díaz')).toBeDefined();
-    expect(screen.getByText(/Sin carga registrada hoy/i)).toBeDefined();
+    expect(screen.getByText('• Sin registro')).toBeDefined();
+    expect(screen.getByRole('button', { name: /Marcar presente/i })).toBeDefined();
 
     // Verificar avatares accesibles presentes
     expect(screen.getByLabelText(/Foto de perfil de Lucas Gómez/i)).toBeDefined();
@@ -161,8 +162,8 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     // Pero el PF ve la carga idéntica al diseño cuando el atleta la registró
     expect(screen.getByText('60')).toBeDefined();
     expect(screen.getByText('180')).toBeDefined();
-    expect(screen.getByText('Tiempo Total')).toBeDefined();
-    expect(screen.getByText('Carga Acumulada')).toBeDefined();
+    expect(screen.getAllByText('Tiempo Total').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Carga Acumulada').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
   });
 });
