@@ -1861,3 +1861,156 @@
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
+/* ── KAN-623: Cronómetro, cuerpo humano en hero y finalización de sesión ── */
+.routine-hero-action-group {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.routine-hero-timer-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.routine-hero-play-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.routine-hero-play-btn:hover {
+  transform: scale(1.06);
+  box-shadow: var(--shadow-lg);
+  background: var(--primary-hover);
+}
+
+.routine-hero-play-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.routine-hero-play-btn.running {
+  background: var(--secondary);
+  box-shadow: 0 0 0 4px var(--primary-subtle);
+}
+
+.routine-hero-timer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.routine-hero-timer-clock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: 0.04em;
+}
+
+.routine-hero-timer-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.routine-hero-muscle-minimap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.4rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+}
+
+.routine-hero-muscle-silhouette {
+  width: 48px;
+  max-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.routine-hero-muscle-silhouette svg {
+  width: 100%;
+  height: auto;
+  max-height: 100px;
+  display: block;
+}
+
+/* Tarjeta limpia inferior: Finalizar sesión (Imagen 2) */
+.routine-session-load-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.routine-session-load-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.routine-session-load-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.routine-finish-session-btn {
+  gap: 0.55rem;
+  padding: 0.7rem 1.35rem;
+  font-weight: 900;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.routine-finish-session-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 600px) {
+  .routine-hero-action-group {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+  }
+
+  .routine-session-load-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .routine-session-load-right {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .routine-finish-session-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

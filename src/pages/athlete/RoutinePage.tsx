@@ -14,6 +14,7 @@ import {
   Activity,
   Trophy,
   Play,
+  Pause,
   Timer,
   ShieldAlert,
 } from 'lucide-react';
@@ -30,6 +31,9 @@ import {
 import { todayRoutineService } from '../../api/todayRoutine';
 import { RecordPerformedSetModal } from '../../components/routine/RecordPerformedSetModal';
 import { GymSessionLoadCard } from '../../components/routine/GymSessionLoadCard';
+import { RoutineSessionMuscleMap } from '../../components/routine/RoutineSessionMuscleMap';
+import { FinishRoutineModal } from '../../components/routine/FinishRoutineModal';
+import { useRoutineTimer } from '../../hooks/useRoutineTimer';
 import { IntervalTimerModal } from '../../components/timer/IntervalTimerModal';
 import { evaluateTimeTarget } from '../../utils/timeTarget';
 import type { StoredPerformedSet } from '../../types';
@@ -117,6 +121,10 @@ export const RoutinePage: React.FC = () => {
 
   // Tiempos reales cargados por pasada (ejercicios de distancia o tiempo)
   const [performedSetTimes, setPerformedSetTimes] = useState<Record<string, number>>({});
+
+  // Cronómetro de sesión del día (KAN-623)
+  const routineTimer = useRoutineTimer(routine?.athleteId, routine?.date);
+  const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
 
   // Carga de la rutina del atleta autenticado
   const fetchRoutine = useCallback(async () => {
@@ -623,6 +631,47 @@ export const RoutinePage: React.FC = () => {
                       : 'Día de descanso o sin sesión activa'}
                   </p>
                 </div>
+
+                {/* Acciones de la tarjeta: Cronómetro y Siluetas anatómicas (Imagen 1) */}
+                {exercises.length > 0 && (
+                  <div className="routine-hero-action-group">
+                    <div className="routine-hero-timer-container">
+                      <button
+                        type="button"
+                        className={`routine-hero-play-btn ${routineTimer.isRunning ? 'running' : ''}`}
+                        onClick={routineTimer.toggle}
+                        title={
+                          routineTimer.isRunning
+                            ? 'Pausar cronómetro'
+                            : 'Iniciar cronómetro de entrenamiento'
+                        }
+                        aria-label={
+                          routineTimer.isRunning
+                            ? 'Pausar cronómetro'
+                            : 'Iniciar cronómetro de entrenamiento'
+                        }
+                      >
+                        {routineTimer.isRunning ? (
+                          <Pause size={24} />
+                        ) : (
+                          <Play size={24} style={{ marginLeft: '3px' }} />
+                        )}
+                      </button>
+                      {routineTimer.seconds > 0 && (
+                        <div className="routine-hero-timer-info">
+                          <span className="routine-hero-timer-clock">
+                            {routineTimer.formattedTime}
+                          </span>
+                          <span className="routine-hero-timer-status">
+                            {routineTimer.isRunning ? 'En curso' : 'Pausado'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <RoutineSessionMuscleMap exercises={exercises} />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1223,9 +1272,19 @@ export const RoutinePage: React.FC = () => {
               </div>
             )}
 
-            {/* 6. Carga de Gimnasio (Minutos y RPE en la misma pantalla) */}
+            {/* 6. Carga de Gimnasio / Finalizar sesión (Imagen 2) */}
             {exercises.length > 0 && routine.athleteId && (
-              <GymSessionLoadCard athleteId={routine.athleteId} />
+              <GymSessionLoadCard
+                athleteId={routine.athleteId}
+                timerSeconds={routineTimer.seconds}
+                exercises={exercises}
+                onOpenFinishModal={() => {
+                  if (routineTimer.isRunning) {
+                    routineTimer.pause();
+                  }
+                  setIsFinishModalOpen(true);
+                }}
+              />
             )}
           </>
         )}
@@ -1514,6 +1573,17 @@ export const RoutinePage: React.FC = () => {
             const exKey = selectedExerciseForTimer.exerciseId || 'ex-0';
             toggleSet(exKey, setNum);
           }}
+        />
+      )}
+
+      {/* Modal de Finalización de Entrenamiento y Carga de UA (KAN-623) */}
+      {isFinishModalOpen && routine?.athleteId && (
+        <FinishRoutineModal
+          isOpen={isFinishModalOpen}
+          onClose={() => setIsFinishModalOpen(false)}
+          athleteId={routine.athleteId}
+          timerSeconds={routineTimer.seconds}
+          exercises={exercises}
         />
       )}
     </div>
