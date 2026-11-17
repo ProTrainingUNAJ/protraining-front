@@ -1105,9 +1105,7 @@ export const MonitoringPage: React.FC = () => {
                           ? 'var(--traffic-gray)'
                           : 'var(--traffic-gray-bg)',
                       color:
-                        attendanceFilter === 'absent'
-                          ? 'var(--white)'
-                          : 'var(--traffic-gray-text)',
+                        attendanceFilter === 'absent' ? 'var(--white)' : 'var(--traffic-gray-text)',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                     }}
