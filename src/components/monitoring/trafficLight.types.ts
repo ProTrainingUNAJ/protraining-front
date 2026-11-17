@@ -3,7 +3,7 @@ export type TrafficLightStatus = 'red' | 'yellow' | 'green' | 'gray';
 export interface PainZoneReport {
   zone: string;
   muscleId?: string;
-  level: number; // 1 to 5
+  level: number; // 1 to 6 (6 = Lesión activa)
 }
 
 export interface AthleteTrafficLightItem {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ChevronRight,
   AlertCircle,
@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
+import { MuscleMapFront } from '../athlete/MuscleMapFront';
+import { MuscleMapBack } from '../athlete/MuscleMapBack';
+import { resolveMuscleId } from '../../utils/painMuscleResolver';
 
 /**
  * Tarjeta del atleta en MonitoringPage (KAN-365/KAN-366): adaptada al DTO real
@@ -66,6 +69,20 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
   const maxPainLevel =
     athlete.pains && athlete.pains.length > 0 ? Math.max(...athlete.pains.map((p) => p.level)) : 0;
+
+  // Mapa de dolores/lesiones resuelto a los IDs oficiales del SVG (KAN-621)
+  const musclePains = useMemo<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
+    if (athlete.pains && athlete.pains.length > 0) {
+      athlete.pains.forEach((p) => {
+        const id = resolveMuscleId(p.zone, p.muscleId);
+        if (id) {
+          map[id] = p.level;
+        }
+      });
+    }
+    return map;
+  }, [athlete.pains]);
 
   // Badge label: keeps default for green/gray; shows affected muscle or area for red/yellow
   const badgeLabel =
@@ -317,6 +334,40 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             Pendiente
           </span>
         )}
+      </div>
+
+      {/* 2.5 Sección central: Siluetas anatómicas (frente y dorso) del reporte del día (KAN-621) */}
+      <div
+        className="athlete-card-muscle-map"
+        aria-label={`Mapa anatómico de ${athlete.name}`}
+        role="img"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.65rem',
+          height: '115px',
+          width: '100%',
+          overflow: 'hidden',
+          opacity: athlete.status === 'gray' ? 0.7 : 1,
+        }}
+      >
+        <div className="athlete-card-muscle-silhouette" style={{ width: '58px', height: '115px' }}>
+          <MuscleMapFront
+            readOnly={true}
+            hideHeader={true}
+            hideFooter={true}
+            musclePains={musclePains}
+          />
+        </div>
+        <div className="athlete-card-muscle-silhouette" style={{ width: '58px', height: '115px' }}>
+          <MuscleMapBack
+            readOnly={true}
+            hideHeader={true}
+            hideFooter={true}
+            musclePains={musclePains}
+          />
+        </div>
       </div>
 
       {/* 3. Sección inferior: Estado/Recomendación con separación de color (Altura fija alineada) */}

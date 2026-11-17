@@ -233,6 +233,73 @@ export const MonitoringPage: React.FC = () => {
     };
   }, [selectedCategoryId, selectedCategoryName]);
 
+  const refreshTrafficLight = () => {
+    if (!selectedCategoryId) return;
+    const getPhotoUrl = (id: string, updatedAt?: string | null) =>
+      typeof structureService?.getAthletePhotoUrl === 'function'
+        ? structureService.getAthletePhotoUrl(id, updatedAt)
+        : `/api/estructura/api/v1/athletes/${id}/photo${updatedAt ? `?v=${encodeURIComponent(updatedAt)}` : ''}`;
+
+    const athletesPromise =
+      typeof structureService?.getAthletes === 'function'
+        ? structureService
+            .getAthletes({ categoriaId: selectedCategoryId })
+            .catch(() => [] as Athlete[])
+        : Promise.resolve([] as Athlete[]);
+
+    Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
+      .then(async ([summaries, fetchedAthletes]) => {
+        setCategoryAthletes(fetchedAthletes);
+        const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
+
+        const mapped = summaries.map((summary) => {
+          const summaryId = summary.athleteId?.toLowerCase();
+          const detail = athleteMap.get(summaryId);
+          const photoUrl = detail
+            ? detail.hasPhoto
+              ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
+              : detail.accountId
+                ? usersService.getMyPhotoUrl(detail.accountId)
+                : undefined
+            : getPhotoUrl(summary.athleteId);
+
+          const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
+          return {
+            ...item,
+            position: item.position,
+            avatarUrl: photoUrl,
+          };
+        });
+
+        const athletesWithConflicts = await Promise.all(
+          mapped.map(async (athlete) => {
+            if (athlete.pains && athlete.pains.length > 0) {
+              try {
+                const conf = await dayAdjustmentsService.getAthleteDayConflicts(athlete.id);
+                return { ...athlete, hasDayConflict: Boolean(conf.hasConflicts) };
+              } catch {
+                return athlete;
+              }
+            }
+            return athlete;
+          }),
+        );
+
+        setAthletesResult({
+          categoryId: selectedCategoryId,
+          athletes: athletesWithConflicts,
+          error: null,
+        });
+      })
+      .catch((err: unknown) => {
+        setAthletesResult({
+          categoryId: selectedCategoryId,
+          athletes: [],
+          error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
+        });
+      });
+  };
+
   const refreshAttendance = () => {
     if (!selectedCategoryId) return;
     Promise.all([
@@ -524,6 +591,52 @@ export const MonitoringPage: React.FC = () => {
 
         {activeTab === 'traffic-light' ? (
           <>
+            {/* Barra de Resumen del Semáforo y Bienestar Diario (KAN-621) */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                padding: '1rem 1.25rem',
+                background: 'var(--bg-card)',
+                borderRadius: '16px',
+                border: '1px solid var(--border)',
+                flexWrap: 'wrap',
+              }}
+            >
+              <Activity size={20} style={{ color: 'var(--primary)' }} />
+              <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+                Semáforo de Readiness y Bienestar Diario
+              </strong>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                {counts.all - counts.gray} / {counts.all} check-ins completados (
+                {(counts.all > 0 ? ((counts.all - counts.gray) / counts.all) * 100 : 0).toFixed(1)}
+                %)
+              </span>
+              <button
+                type="button"
+                data-testid="refresh-traffic-light-btn"
+                onClick={refreshTrafficLight}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '0.3rem 0.7rem',
+                  borderRadius: '9999px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Actualizar
+              </button>
+            </div>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+              El semáforo evalúa el readiness diario del atleta a través del check-in matutino de
+              bienestar, dolor muscular y presencia de lesiones.
+            </p>
+
             {/* Segmented Color Filter Chips (KAN-366 Criterion 3) */}
             <div
               style={{

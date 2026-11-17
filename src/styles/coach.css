@@ -1114,6 +1114,50 @@
   flex-shrink: 0;
 }
 
+/* ── KAN-621: Silueta anatómica en la tarjeta del Semáforo ── */
+.athlete-traffic-light-card .athlete-card-muscle-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 115px;
+  flex-shrink: 0;
+  pointer-events: none;
+  overflow: hidden;
+  margin: 0.2rem 0;
+}
+
+.athlete-traffic-light-card .athlete-card-muscle-silhouette {
+  width: 58px;
+  height: 115px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.athlete-traffic-light-card .athlete-card-muscle-silhouette .muscle-map-view-column,
+.athlete-traffic-light-card .athlete-card-muscle-silhouette .muscle-map-view-row,
+.athlete-traffic-light-card .athlete-card-muscle-silhouette .muscle-map-svg-wrapper {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.athlete-traffic-light-card .athlete-card-muscle-silhouette svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 115px !important;
+  object-fit: contain;
+  display: block;
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(100%);

@@ -216,4 +216,44 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(screen.getByText('Joaquín Díaz')).toBeDefined();
     });
   });
+
+  it('muestra la barra de resumen de readiness y bienestar diario con el conteo de check-ins y botón actualizar (KAN-621)', async () => {
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        trafficLight: 'Green',
+        hasReportedToday: true,
+        resultValue: 90,
+        trafficLightReason: 'Óptimo',
+        reportedAt: '2026-11-17T08:00:00Z',
+      },
+      {
+        athleteId: 'ath-2',
+        athleteName: 'Joaquín Díaz',
+        trafficLight: 'Yellow',
+        hasReportedToday: false,
+        resultValue: 50,
+        trafficLightReason: 'Sin reporte',
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Semáforo de Readiness y Bienestar Diario')).toBeDefined();
+      expect(screen.getByText(/1 \/ 2 check-ins completados \(50\.0%\)/i)).toBeDefined();
+      expect(screen.getByTestId('refresh-traffic-light-btn')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId('refresh-traffic-light-btn'));
+
+    await waitFor(() => {
+      expect(getCategoryTrafficLightToday).toHaveBeenCalled();
+    });
+  });
 });
