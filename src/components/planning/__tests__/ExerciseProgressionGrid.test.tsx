@@ -281,4 +281,43 @@ describe('ExerciseProgressionGrid', () => {
     });
     expect(muscleMap).toBeDefined();
   });
+
+  it('abre el modal de detalle y técnica al hacer clic en la miniatura o en el nombre (KAN-623)', () => {
+    render(
+      <ExerciseProgressionGrid
+        exercise={sampleExercise}
+        weekNumbers={[1, 2, 3, 4]}
+        disabled={false}
+        onUpdateProgression={vi.fn()}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    // Inicialmente no está abierto
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Clic en el nombre del ejercicio
+    const nameBtn = screen.getByRole('button', {
+      name: 'Sentadilla Trasera',
+    });
+    fireEvent.click(nameBtn);
+
+    // Modal abierto con título y pautas
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.getByRole('heading', { name: /sentadilla trasera/i })).toBeDefined();
+    expect(screen.getByText(/pautas para una buena técnica/i)).toBeDefined();
+
+    // Cerrar modal
+    const closeBtn = screen.getByRole('button', { name: /cerrar detalle del ejercicio/i });
+    fireEvent.click(closeBtn);
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Clic en la miniatura
+    const thumbBtn = screen.getByRole('button', {
+      name: /ver técnica y detalle de sentadilla trasera/i,
+    });
+    fireEvent.click(thumbBtn);
+    expect(screen.getByRole('dialog')).toBeDefined();
+  });
 });
