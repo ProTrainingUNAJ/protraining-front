@@ -11,6 +11,11 @@ vi.mock('../../../api/todayRoutine', () => ({
   },
 }));
 
+vi.mock('../../../api/seguimientoService', () => ({
+  getDailyLoad: vi.fn().mockResolvedValue(null),
+  submitDailyLoad: vi.fn(),
+}));
+
 describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -496,6 +501,103 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       });
 
       expect(screen.queryByText(/· 18:00/i)).toBeNull();
+    });
+  });
+
+  describe('Cronómetro, siluetas musculares y finalización de sesión (KAN-623)', () => {
+    it('muestra el botón de inicio del cronómetro y las siluetas anatómicas en la sesión del día', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: ['gluteos'],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      // 1. Botón de inicio del cronómetro (Imagen 1)
+      const playBtn = screen.getByRole('button', {
+        name: /iniciar cronómetro de entrenamiento/i,
+      });
+      expect(playBtn).toBeTruthy();
+
+      // 2. Siluetas anatómicas presentes con tooltip de músculos
+      const muscleMap = screen.getByRole('img', {
+        name: /Músculos trabajados hoy: Cuádriceps, Glúteos/i,
+      });
+      expect(muscleMap).toBeTruthy();
+
+      // 3. Tarjeta inferior con botón "Finalizar entrenamiento" (Imagen 2)
+      const finishBtn = screen.getByRole('button', {
+        name: /finalizar entrenamiento/i,
+      });
+      expect(finishBtn).toBeTruthy();
+    });
+
+    it('al tocar "Finalizar entrenamiento" se abre el modal de finalización', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      const finishBtn = screen.getByRole('button', {
+        name: /finalizar entrenamiento/i,
+      });
+      fireEvent.click(finishBtn);
+
+      // Abre el modal con el selector de RPE y músculos
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeTruthy();
+        expect(screen.getByText(/Esfuerzo percibido \(RPE 1-10\)/i)).toBeTruthy();
+      });
     });
   });
 });
