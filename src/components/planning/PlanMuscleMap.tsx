@@ -39,10 +39,20 @@ export const PlanMuscleMap: React.FC<PlanMuscleMapProps> = ({ targetMuscles, nam
       role="img"
     >
       <div className="plan-card-muscle-silhouette">
-        <MuscleMapFront readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
+        <MuscleMapFront
+          readOnly={true}
+          hideHeader={true}
+          hideFooter={true}
+          muscleColors={highlight.muscleColors}
+        />
       </div>
       <div className="plan-card-muscle-silhouette">
-        <MuscleMapBack readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
+        <MuscleMapBack
+          readOnly={true}
+          hideHeader={true}
+          hideFooter={true}
+          muscleColors={highlight.muscleColors}
+        />
       </div>
     </div>
   );

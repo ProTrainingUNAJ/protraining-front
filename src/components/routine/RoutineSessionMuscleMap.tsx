@@ -36,13 +36,23 @@ export const RoutineSessionMuscleMap: React.FC<RoutineSessionMuscleMapProps> = (
         className="routine-hero-muscle-silhouette"
         style={{ width: '48px', height: `${height}px`, display: 'flex', alignItems: 'center' }}
       >
-        <MuscleMapFront readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
+        <MuscleMapFront
+          readOnly={true}
+          hideHeader={true}
+          hideFooter={true}
+          muscleColors={highlight.muscleColors}
+        />
       </div>
       <div
         className="routine-hero-muscle-silhouette"
         style={{ width: '48px', height: `${height}px`, display: 'flex', alignItems: 'center' }}
       >
-        <MuscleMapBack readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
+        <MuscleMapBack
+          readOnly={true}
+          hideHeader={true}
+          hideFooter={true}
+          muscleColors={highlight.muscleColors}
+        />
       </div>
     </div>
   );
