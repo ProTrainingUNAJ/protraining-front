@@ -6,6 +6,7 @@ export interface PlanListItem {
   id: string;
   name: string;
   objective: string | null;
+  targetMuscles?: string[];
 }
 
 export interface PlanAssignmentTarget {

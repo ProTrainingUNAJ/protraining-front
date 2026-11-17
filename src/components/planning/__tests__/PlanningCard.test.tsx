@@ -60,4 +60,24 @@ describe('PlanningCard (KAN-622)', () => {
 
     expect(onAssign).toHaveBeenCalledWith(plan);
   });
+
+  it('renderiza el mapa muscular anatómico con los músculos involucrados de la rutina (KAN-623)', () => {
+    const planBiceps = {
+      id: 'plan-biceps',
+      name: 'Planificación quiero solo biceps',
+      objective: 'quiero solo biceps grandes',
+      targetMuscles: ['biceps'],
+    };
+
+    render(
+      <MemoryRouter>
+        <PlanningCard plan={planBiceps} />
+      </MemoryRouter>,
+    );
+
+    const muscleMap = screen.getByRole('img', {
+      name: /mapa muscular anatómico de la planificación/i,
+    });
+    expect(muscleMap).toBeDefined();
+  });
 });

@@ -37,11 +37,15 @@ async function call<T>(request: () => Promise<{ data: T }>): Promise<T> {
 export const trainingPlansService = {
   async list(): Promise<PlanListItem[]> {
     const plans = await call(() => listTrainingPlans({ throwOnError: true }));
-    return plans.map((plan) => ({
-      id: plan.id,
-      name: plan.name,
-      objective: plan.objective ?? null,
-    }));
+    return plans.map((plan) => {
+      const raw = plan as unknown as { targetMuscles?: string[] };
+      return {
+        id: plan.id,
+        name: plan.name,
+        objective: plan.objective ?? null,
+        targetMuscles: raw.targetMuscles ?? [],
+      };
+    });
   },
 
   get(id: string): Promise<TrainingPlanDetail> {
