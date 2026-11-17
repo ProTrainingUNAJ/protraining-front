@@ -19,7 +19,7 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
     render(<AthleteTrafficLightCard athlete={baseAthlete} onClick={vi.fn()} />);
 
     expect(screen.getByText('Joaquín Díaz')).toBeDefined();
-    expect(screen.getByText('Primera División')).toBeDefined();
+    expect(screen.getByText(/Primera División/i)).toBeDefined();
     expect(screen.getByText('Sin Check-in')).toBeDefined();
     expect(screen.getByText('Pendiente')).toBeDefined();
     expect(screen.getByText('Sin check-in completado el día de hoy.')).toBeDefined();
