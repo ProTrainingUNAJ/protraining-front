@@ -89,6 +89,16 @@ describe('FinishRoutineModal (KAN-623)', () => {
 
     // 60 min * 8 RPE = 480 UA
     expect(screen.getByText('480')).toBeTruthy();
+
+    // Permite ajustar minutos con botones + 5 min y - 5 min
+    const plus5Btn = screen.getByRole('button', { name: /\+ 5 min/i });
+    fireEvent.click(plus5Btn);
+    const minutesInput = screen.getByLabelText(/Minutos de sesión entrenados/i) as HTMLInputElement;
+    expect(minutesInput.value).toBe('65');
+
+    const minus5Btn = screen.getByRole('button', { name: /- 5 min/i });
+    fireEvent.click(minus5Btn);
+    expect(minutesInput.value).toBe('60');
   });
 
   it('al confirmar exitosamente lanza confeti y carga la barra de UA conseguida', async () => {

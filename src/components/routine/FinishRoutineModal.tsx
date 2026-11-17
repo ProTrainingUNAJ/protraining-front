@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Award,
@@ -60,19 +61,25 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   onFinishSuccess,
 }) => {
   // Minutos vinculados al cronómetro: si midió tiempo > 0 se redondea a minutos (mín 1), si no 60 min por defecto
-  const initialCalculatedMinutes = useMemo(() => {
-    if (timerSeconds > 0) {
-      return Math.max(1, Math.round(timerSeconds / 60));
-    }
-    return 60;
-  }, [timerSeconds]);
-
-  const [minutes, setMinutes] = useState<number>(initialCalculatedMinutes);
+  const [minutes, setMinutes] = useState<number>(() => {
+    return timerSeconds > 0 ? Math.max(1, Math.round(timerSeconds / 60)) : 60;
+  });
   const [rpe, setRpe] = useState<number>(7);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [savedResponse, setSavedResponse] = useState<DailyLoadSubmitResponse | null>(null);
+
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      const autoMinutes = timerSeconds > 0 ? Math.max(1, Math.round(timerSeconds / 60)) : 60;
+      setMinutes(autoMinutes);
+      setIsCompleted(false);
+      setErrorMessage(null);
+    }
+  }
 
   // Músculos involucrados en la sesión
   const { highlight, muscleNames } = useMemo(() => extractSessionMuscles(exercises), [exercises]);
@@ -140,26 +147,17 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
     }
   };
 
-  return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
+  const modalContent = (
+    <div
+      className="finish-routine-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="finish-routine-modal-title"
+    >
       {/* ── Disparo de Confeti al Completar Exitosamente ── */}
       {isCompleted && <ConfettiCelebration durationMs={4500} particleCount={160} />}
 
-      <div
-        className="routine-finish-modal"
-        style={{
-          maxWidth: '560px',
-          width: '94%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          borderRadius: '18px',
-          background: 'var(--bg-card)',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1.5px solid var(--border)',
-          padding: '1.5rem',
-          position: 'relative',
-        }}
-      >
+      <div className="finish-routine-modal-card">
         {/* Botón de cierre */}
         <button
           type="button"
@@ -561,20 +559,16 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               </div>
 
               <div
+                className="finish-routine-ua-progress-track"
                 style={{
                   width: '90px',
                   height: '8px',
-                  borderRadius: '9999px',
-                  background: 'var(--border)',
-                  overflow: 'hidden',
                 }}
               >
                 <div
+                  className="finish-routine-ua-progress-fill"
                   style={{
                     width: `${uaPercent}%`,
-                    height: '100%',
-                    background: 'var(--secondary)',
-                    borderRadius: '9999px',
                     transition: 'width 0.3s ease',
                   }}
                 />
@@ -735,23 +729,18 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                 </span>
               </div>
 
-              {/* Barra animada de UA */}
+              {/* Barra animada de UA con degradado multicolor (KAN-623) */}
               <div
+                className="finish-routine-ua-progress-track"
                 style={{
                   width: '100%',
                   height: '14px',
-                  borderRadius: '9999px',
-                  background: 'var(--border)',
-                  overflow: 'hidden',
-                  position: 'relative',
                 }}
               >
                 <div
+                  className="finish-routine-ua-progress-fill"
                   style={{
                     width: `${uaPercent}%`,
-                    height: '100%',
-                    borderRadius: '9999px',
-                    background: 'var(--secondary)',
                     transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                 />
@@ -860,4 +849,6 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

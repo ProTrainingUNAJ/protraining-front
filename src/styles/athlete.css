@@ -2031,3 +2031,67 @@
     justify-content: center;
   }
 }
+
+/* ── Modal Flotante de Finalización de Entrenamiento y Carga de UA (KAN-623) ── */
+.finish-routine-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--routine-modal-overlay);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+  animation: fadeInModal 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.finish-routine-modal-card {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 20px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--border);
+  padding: 1.65rem;
+  position: relative;
+  animation: zoomInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes zoomInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Barra de progreso de UA con degradado multicolor (Verde -> Azul -> Púrpura -> Ámbar) */
+.finish-routine-ua-progress-track {
+  width: 100%;
+  border-radius: 9999px;
+  background: var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.finish-routine-ua-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--stat-green) 0%,
+    var(--celebration-blue) 40%,
+    var(--celebration-purple) 75%,
+    var(--celebration-amber) 100%
+  );
+  box-shadow: 0 0 10px var(--muscle-exercise-primary-glow);
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
