@@ -283,6 +283,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   <MuscleMapFront
                     readOnly={true}
                     hideHeader={true}
+                    hideFooter={true}
                     muscleColors={highlight.muscleColors}
                   />
                 </div>
@@ -290,6 +291,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   <MuscleMapBack
                     readOnly={true}
                     hideHeader={true}
+                    hideFooter={true}
                     muscleColors={highlight.muscleColors}
                   />
                 </div>

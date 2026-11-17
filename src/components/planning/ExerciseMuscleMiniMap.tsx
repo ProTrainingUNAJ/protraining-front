@@ -84,10 +84,20 @@ export const ExerciseMuscleMiniMap: React.FC<ExerciseMuscleMiniMapProps> = ({
       role="img"
     >
       <div className="plan-exercise-muscle-silhouette">
-        <MuscleMapFront readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
+        <MuscleMapFront
+          readOnly={true}
+          hideHeader={true}
+          hideFooter={true}
+          muscleColors={highlight.muscleColors}
+        />
       </div>
       <div className="plan-exercise-muscle-silhouette">
-        <MuscleMapBack readOnly={true} hideHeader={true} muscleColors={highlight.muscleColors} />
+        <MuscleMapBack
+          readOnly={true}
+          hideHeader={true}
+          hideFooter={true}
+          muscleColors={highlight.muscleColors}
+        />
       </div>
     </div>
   );
