@@ -221,17 +221,30 @@ function resolveStatus(summary: AthleteTrafficLightSummary): TrafficLightStatus 
   return 'green';
 }
 
-// painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3").
+// painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3", nivel 6 = lesión activa).
 function parsePainZones(raw?: string | null): PainZoneReport[] {
   if (!raw?.trim()) return [];
 
   return raw.split(',').flatMap((entry): PainZoneReport[] => {
     const [muscleId, levelRaw] = entry.split(':').map((part) => part.trim());
-    const level = Number(levelRaw);
-    if (!muscleId || !Number.isFinite(level) || level <= 0) return [];
+    if (!muscleId) return [];
+
+    const isInjury =
+      levelRaw?.toLowerCase().includes('activa') ||
+      levelRaw?.toLowerCase().includes('lesion') ||
+      levelRaw?.toLowerCase().includes('injury') ||
+      levelRaw === '6';
+
+    const numLevel = Number(levelRaw);
+    const level = isInjury
+      ? 6
+      : Number.isFinite(numLevel) && numLevel > 0
+        ? Math.min(5, numLevel)
+        : 0;
+    if (level <= 0) return [];
 
     const muscle = PROTRAINING_MUSCLES.find((item) => item.id === muscleId);
-    return [{ zone: muscle?.name ?? muscleId, muscleId, level: Math.min(5, level) }];
+    return [{ zone: muscle?.name ?? muscleId, muscleId, level }];
   });
 }
 

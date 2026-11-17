@@ -4,64 +4,12 @@ import { MuscleMapBack } from '../athlete/MuscleMapBack';
 import { OFFICIAL_PALETTE_ITEMS } from '../athlete/muscleMap.config';
 import { PainZoneReport } from './trafficLight.types';
 import { Activity, CheckCircle2 } from 'lucide-react';
+import { resolveMuscleId, isBackMuscle } from '../../utils/painMuscleResolver';
 
-/**
- * Mapa corporal de dolor de la ficha rápida (KAN-365/KAN-366): renderiza las
- * zonas reportadas en el check-in real del atleta. Controles de vista y bordes
- * usan tokens de `tokens.css` (--white, --primary, --border; claro/oscuro);
- * cero literales rgba/hex en estilos (KAN-366). La escala de nivel de dolor
- * proviene de la paleta oficial `OFFICIAL_PALETTE_ITEMS` (data de negocio).
- */
 interface AthleteBodyPainMapProps {
   pains?: PainZoneReport[];
   athleteName?: string;
 }
-
-// Helper to resolve muscleId from zone name if not explicitly provided
-const resolveMuscleId = (zone: string, providedId?: string): string => {
-  if (providedId) return providedId;
-  const s = zone.toLowerCase();
-  if (s.includes('isquio'))
-    return s.includes('izq') ? 'isquiotibial_izquierdo' : 'isquiotibial_derecho';
-  if (s.includes('cuad') || s.includes('cuád'))
-    return s.includes('izq') ? 'cuadriceps_izquierdo' : 'cuadriceps_derecho';
-  if (s.includes('gemelo') || s.includes('pantorr'))
-    return s.includes('izq') ? 'gemelo_izquierdo' : 'gemelo_derecho';
-  if (s.includes('lumbar') || s.includes('erector')) return 'espalda_baja';
-  if (s.includes('dorsal') || s.includes('espalda media')) return 'espalda_media';
-  if (s.includes('espalda alta') || s.includes('trapecio'))
-    return s.includes('der') ? 'cuello_trapecio_derecho' : 'cuello_trapecio_izquierdo';
-  if (s.includes('aductor') || s.includes('ingle'))
-    return s.includes('der') ? 'aductor_derecho' : 'aductor_izquierdo';
-  if (s.includes('rodilla')) return s.includes('der') ? 'rodilla_derecha' : 'rodilla_izquierda';
-  if (s.includes('tobillo')) return s.includes('der') ? 'tobillo_derecho' : 'tobillo_izquierdo';
-  if (s.includes('hombro')) return s.includes('der') ? 'hombro_derecho' : 'hombro_izquierdo';
-  if (s.includes('bicep') || s.includes('bícep'))
-    return s.includes('der') ? 'biceps_derecho' : 'biceps_izquierdo';
-  if (s.includes('tricep') || s.includes('trícep'))
-    return s.includes('der') ? 'triceps_derecho' : 'triceps_izquierdo';
-  if (s.includes('gluteo') || s.includes('glúteo'))
-    return s.includes('der') ? 'gluteo_derecho' : 'gluteo_izquierdo';
-  if (s.includes('abdom')) return 'abdominales';
-  return '';
-};
-
-// Check if a muscle belongs primarily to the back view
-const isBackMuscle = (id: string): boolean => {
-  return [
-    'isquiotibial_derecho',
-    'isquiotibial_izquierdo',
-    'gemelo_derecho',
-    'gemelo_izquierdo',
-    'gluteo_derecho',
-    'gluteo_izquierdo',
-    'espalda_baja',
-    'espalda_media',
-    'espalda_alta',
-    'triceps_derecho',
-    'triceps_izquierdo',
-  ].includes(id);
-};
 
 export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
   pains = [],
@@ -309,12 +257,12 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                   width: '9px',
                   height: '9px',
                   borderRadius: '50%',
-                  background: item.hex,
-                  border: '1px solid var(--border)',
+                  background: item.level === 6 ? '#000000' : item.hex,
+                  border: item.level === 6 ? '1px solid #000000' : '1px solid var(--border)',
                 }}
               />
-              <span>
-                {item.level}: {item.name}
+              <span style={{ color: item.level === 6 ? 'var(--text-main)' : undefined }}>
+                {item.level === 6 ? '6: Lesión Activa' : `${item.level}: ${item.name}`}
               </span>
             </div>
           ))}
@@ -327,9 +275,14 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
           style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.15rem' }}
         >
           {pains.map((p, idx) => {
+            const isInjury = p.level === 6;
             const paletteItem = OFFICIAL_PALETTE_ITEMS.find((it) => it.level === p.level);
-            const color = paletteItem ? paletteItem.hex : 'var(--traffic-red)';
-            const desc = paletteItem ? paletteItem.name : '';
+            const color = isInjury
+              ? '#000000'
+              : paletteItem
+                ? paletteItem.hex
+                : 'var(--traffic-red)';
+            const desc = isInjury ? 'Lesión Activa' : paletteItem ? paletteItem.name : '';
 
             return (
               <div
@@ -341,7 +294,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                   padding: '0.45rem 0.75rem',
                   background: 'var(--bg-card)',
                   borderRadius: '10px',
-                  border: '1px solid var(--border)',
+                  border: isInjury ? '1.5px solid #111827' : '1px solid var(--border)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -351,6 +304,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                       height: '10px',
                       borderRadius: '50%',
                       background: color,
+                      boxShadow: isInjury ? '0 0 4px rgba(0,0,0,0.5)' : undefined,
                     }}
                   />
                   <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)' }}>
@@ -365,12 +319,12 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                       fontWeight: 800,
                       padding: '0.15rem 0.5rem',
                       borderRadius: '9999px',
-                      background: `${color}20`,
-                      color: color,
-                      border: `1px solid ${color}60`,
+                      background: isInjury ? '#111827' : `${color}20`,
+                      color: isInjury ? '#ffffff' : color,
+                      border: isInjury ? '1px solid #000000' : `1px solid ${color}60`,
                     }}
                   >
-                    Nivel {p.level}/5 · {desc}
+                    {isInjury ? 'Lesión Activa' : `Nivel ${p.level}/5 · ${desc}`}
                   </span>
                 </div>
               </div>
