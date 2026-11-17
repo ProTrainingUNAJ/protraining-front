@@ -49,8 +49,10 @@ export const PlanningCard: React.FC<PlanningCardProps> = ({ plan, onAssign }) =>
           </div>
         </div>
 
-        {/* Anatomía corporal con músculos involucrados en azul (KAN-623) */}
+        {/* Anatomía corporal con músculos involucrados en celeste y secundarios en gris (KAN-623) */}
         <PlanMuscleMap
+          primaryMuscles={plan.primaryMuscles}
+          secondaryMuscles={plan.secondaryMuscles}
           targetMuscles={plan.targetMuscles}
           name={plan.name}
           objective={plan.objective}

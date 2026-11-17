@@ -80,4 +80,29 @@ describe('PlanningCard (KAN-622)', () => {
     });
     expect(muscleMap).toBeDefined();
   });
+
+  it('diferencia los músculos primarios en celeste y los secundarios en gris (KAN-623)', () => {
+    const plan = {
+      id: 'plan-fuerza',
+      name: 'Fuerza base',
+      objective: 'Pecho y tríceps',
+      primaryMuscles: ['chest'],
+      secondaryMuscles: ['triceps'],
+    };
+
+    render(
+      <MemoryRouter>
+        <PlanningCard plan={plan} />
+      </MemoryRouter>,
+    );
+
+    const muscleMap = screen.getByRole('img', {
+      name: /mapa muscular anatómico de la planificación/i,
+    });
+    const chestPath = muscleMap.querySelector('#front-muscle-pecho_derecho');
+    const tricepsPath = muscleMap.querySelector('#back-muscle-triceps_derecho');
+
+    expect(chestPath?.getAttribute('fill')).toBe('#0284c7');
+    expect(tricepsPath?.getAttribute('fill')).toBe('#94a3b8');
+  });
 });

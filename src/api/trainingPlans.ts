@@ -38,12 +38,20 @@ export const trainingPlansService = {
   async list(): Promise<PlanListItem[]> {
     const plans = await call(() => listTrainingPlans({ throwOnError: true }));
     return plans.map((plan) => {
-      const raw = plan as unknown as { targetMuscles?: string[] };
+      const raw = plan as unknown as {
+        targetMuscles?: string[];
+        primaryMuscles?: string[];
+        secondaryMuscles?: string[];
+      };
+      const primaryMuscles = raw.primaryMuscles ?? raw.targetMuscles ?? [];
+      const secondaryMuscles = raw.secondaryMuscles ?? [];
       return {
         id: plan.id,
         name: plan.name,
         objective: plan.objective ?? null,
-        targetMuscles: raw.targetMuscles ?? [],
+        primaryMuscles,
+        secondaryMuscles,
+        targetMuscles: raw.targetMuscles ?? primaryMuscles,
       };
     });
   },
@@ -99,11 +107,23 @@ export const trainingPlansService = {
   // Listado oficial del SDK adaptado a PlanTemplateItem
   async listTemplates(): Promise<PlanTemplateItem[]> {
     const templates = await call(() => listPlanTemplates({ throwOnError: true }));
-    return templates.map((t) => ({
-      id: t.id,
-      name: t.name,
-      objective: t.objective ?? null,
-    }));
+    return templates.map((t) => {
+      const raw = t as unknown as {
+        targetMuscles?: string[];
+        primaryMuscles?: string[];
+        secondaryMuscles?: string[];
+      };
+      const primaryMuscles = raw.primaryMuscles ?? raw.targetMuscles ?? [];
+      const secondaryMuscles = raw.secondaryMuscles ?? [];
+      return {
+        id: t.id,
+        name: t.name,
+        objective: t.objective ?? null,
+        primaryMuscles,
+        secondaryMuscles,
+        targetMuscles: raw.targetMuscles ?? primaryMuscles,
+      };
+    });
   },
 
   async applyTemplate(

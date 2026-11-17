@@ -6,6 +6,8 @@ export interface PlanListItem {
   id: string;
   name: string;
   objective: string | null;
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
   targetMuscles?: string[];
 }
 
@@ -146,6 +148,9 @@ export interface PlanTemplateItem {
   id: string;
   name: string;
   objective: string | null;
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  targetMuscles?: string[];
 }
 
 export interface ApplyPlanTemplatePayload {
