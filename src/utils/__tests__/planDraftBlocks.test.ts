@@ -361,6 +361,46 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
     );
   });
 
+  it('daysToPlanDraft con multiples dias asigna ordenes unicos secuenciales por semana (evita colision IX)', () => {
+    const monday: DayPlan = {
+      dayOfWeek: 1,
+      name: 'Lunes',
+      startTime: null,
+      blocks: [{ key: 'b-mon', title: 'Piernas', order: 1, exercises: [] }],
+    };
+    const wednesday: DayPlan = {
+      dayOfWeek: 3,
+      name: 'Miércoles',
+      startTime: null,
+      blocks: [{ key: 'b-wed', title: 'Empuje', order: 1, exercises: [] }],
+    };
+    const thursday: DayPlan = {
+      dayOfWeek: 4,
+      name: 'Jueves',
+      startTime: null,
+      blocks: [{ key: 'b-thu', title: 'Tracción', order: 1, exercises: [] }],
+    };
+
+    const baseDraft: PlanDraft = {
+      id: 'plan-multi',
+      name: 'Plan 3 dias',
+      objective: 'Fuerza',
+      weeks: [{ key: 'w1', id: null, weekNumber: 1, nextSessionOrder: 1, sessions: [] }],
+    };
+
+    const result = daysToPlanDraft([thursday, monday, wednesday], baseDraft);
+    const sessions = result.weeks[0].sessions;
+
+    expect(sessions).toHaveLength(3);
+    // Deben estar ordenadas secuencialmente por semana
+    expect(sessions[0].dayOfWeek).toBe(1);
+    expect(sessions[0].order).toBe(1);
+    expect(sessions[1].dayOfWeek).toBe(3);
+    expect(sessions[1].order).toBe(2);
+    expect(sessions[2].dayOfWeek).toBe(4);
+    expect(sessions[2].order).toBe(3);
+  });
+
   it('crear bloques por defecto genera los 4 bloques esperados por el PM', () => {
     const defaultBlocks = createDefaultBlocks();
     expect(defaultBlocks.map((b) => b.title)).toEqual([

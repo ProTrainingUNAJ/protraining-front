@@ -801,21 +801,33 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
     for (let i = 1; i <= weekCount; i++) weekNumbers.push(i);
   }
 
+  // Ordenamos los días por día de la semana (1 = Lunes, ..., 7 = Domingo)
+  const sortedDays = [...days].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+
   const updatedWeeks: DraftWeek[] = weekNumbers.map((w) => {
     const existingWeek = existingDraft.weeks.find((week) => week.weekNumber === w);
     const weekKey = existingWeek?.key || newKey();
     const weekId = existingWeek?.id || null;
 
     const sessions: DraftSession[] = [];
-    let nextSessionOrder = 1;
+    let sessionCounter = 1;
 
-    days.forEach((day) => {
-      day.blocks.forEach((block, blockIndex) => {
-        const sessionOrder = block.order || blockIndex + 1;
-        const existingSession = existingWeek?.sessions.find(
-          (s) =>
-            s.dayOfWeek === day.dayOfWeek && (s.order === sessionOrder || s.name === block.title),
-        );
+    sortedDays.forEach((day) => {
+      // Bloques ordenados de este día
+      const sortedBlocks = [...day.blocks].sort((a, b) => a.order - b.order);
+
+      // Sesiones existentes de este día en la semana
+      const existingSessionsForDay = (existingWeek?.sessions || [])
+        .filter((s) => s.dayOfWeek === day.dayOfWeek)
+        .sort((a, b) => a.order - b.order);
+
+      sortedBlocks.forEach((block, blockIndex) => {
+        const sessionOrder = sessionCounter++;
+
+        // Conservar id de la sesión existente (por coincidencia de bloque en el día o por nombre)
+        const existingSession =
+          existingSessionsForDay.find((s) => s.name === block.title) ||
+          existingSessionsForDay[blockIndex];
 
         const exercises: DraftExercise[] = block.exercises.map((bEx, exIndex) => {
           const prog = bEx.weeklyProgression[w] || {
@@ -865,10 +877,6 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
           exercises,
           nextExerciseOrder: exercises.length + 1,
         });
-
-        if (sessionOrder >= nextSessionOrder) {
-          nextSessionOrder = sessionOrder + 1;
-        }
       });
     });
 
@@ -877,7 +885,7 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
       id: weekId,
       weekNumber: w,
       sessions,
-      nextSessionOrder,
+      nextSessionOrder: sessionCounter,
     };
   });
 
