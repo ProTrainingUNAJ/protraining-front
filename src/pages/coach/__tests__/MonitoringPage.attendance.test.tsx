@@ -117,16 +117,36 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     });
     fireEvent.click(screen.getByRole('button', { name: /Asistencia/i }));
 
-    // Verificar atleta presente con métricas
+    // Verificar atleta presente con métricas y sin chips amarillos en la tarjeta
     await waitFor(() => {
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
       expect(screen.getByText('60')).toBeDefined();
       expect(screen.getByText('180')).toBeDefined();
       expect(screen.getAllByText('Tiempo Total').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('Carga Acumulada').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
-      expect(screen.getByText(/RPE 3/i)).toBeDefined();
+      expect(screen.getByText('Carga del día registrada')).toBeDefined();
+      // El chip de texto suelto ya no está en la tarjeta
+      expect(screen.queryByText(/Gimnasio: 60m/i)).toBeNull();
     });
+
+    // Al hacer clic en la tarjeta o burbuja de Lucas Gómez se abre el detalle en la ficha rápida
+    const lucasCard = screen.getByRole('button', {
+      name: /ver detalle de asistencia y carga de lucas gómez/i,
+    });
+    fireEvent.click(lucasCard);
+
+    // En la ficha rápida se ve todo el detalle: minutos, RPE y dónde se hizo
+    await waitFor(() => {
+      expect(screen.getByText(/Actividades y Carga del Día/i)).toBeDefined();
+      expect(screen.getByText('Gimnasio')).toBeDefined();
+      expect(screen.getByText('Lugar / Tipo: Gimnasio')).toBeDefined();
+      expect(screen.getByText('60 min')).toBeDefined();
+      expect(screen.getByText('RPE 3')).toBeDefined();
+      expect(screen.getByText('180 UA')).toBeDefined();
+    });
+
+    // Cerrar la ficha para continuar
+    fireEvent.click(screen.getByLabelText('Cerrar ficha'));
 
     // Verificar atleta sin registro (muestra métricas en 0 y estado Sin registro)
     const joaquinName = screen.getByText('Joaquín Díaz');
@@ -167,7 +187,8 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     expect(screen.getByText('180')).toBeDefined();
     expect(screen.getAllByText('Tiempo Total').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Carga Acumulada').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
+    expect(screen.getByText('Carga del día registrada')).toBeDefined();
+    expect(screen.queryByText(/Gimnasio: 60m/i)).toBeNull();
   });
 
   it('permite filtrar reactivamente a los atletas por Presentes, Sin registro y búsqueda por texto (KAN-621)', async () => {

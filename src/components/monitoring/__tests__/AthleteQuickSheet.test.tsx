@@ -39,7 +39,9 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getAllByLabelText('Lesión activa').length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText('Enfermo').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/6\/5/i).length).toBeGreaterThan(0);
+    // La escala EVA máxima es 5/5, la lesión es una condición clínica aparte (no 6/5)
+    expect(screen.getAllByText(/5\/5/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/6\/5/i)).toBeNull();
     expect(screen.getAllByText(/4h/i).length).toBeGreaterThan(0);
 
     const closeBtn = screen.getByLabelText('Cerrar ficha');
@@ -69,5 +71,30 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     // Tarjeta de Estado de Salud
     expect(screen.getByText(/Estado de Salud/i)).toBeDefined();
     expect(screen.getByText('Lesión y Enfermedad')).toBeDefined();
+  });
+
+  it('muestra el desglose completo de actividades, minutos, RPE y lugar/tipo al tener actividades cargadas (KAN-621)', () => {
+    const athleteWithActivities: AthleteTrafficLightItem = {
+      ...athleteWithIndicators,
+      totalMinutes: 56,
+      totalLoad: 392,
+      activities: [
+        {
+          type: 'Gym',
+          name: 'Gimnasio',
+          minutes: 56,
+          rpe: 7,
+        },
+      ],
+    };
+
+    render(<AthleteQuickSheet athlete={athleteWithActivities} onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Actividades y Carga del Día/i)).toBeDefined();
+    expect(screen.getByText('Gimnasio')).toBeDefined();
+    expect(screen.getByText('Lugar / Tipo: Gimnasio')).toBeDefined();
+    expect(screen.getByText('56 min')).toBeDefined();
+    expect(screen.getByText('RPE 7')).toBeDefined();
+    expect(screen.getByText('392 UA')).toBeDefined();
   });
 });

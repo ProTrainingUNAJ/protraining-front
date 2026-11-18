@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, AlertTriangle, Dumbbell, Loader2, Search, Trophy, Users } from 'lucide-react';
+import { Activity, AlertTriangle, Loader2, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
@@ -941,7 +941,17 @@ export const MonitoringPage: React.FC = () => {
                 <AthleteTrafficLightCard
                   key={athlete.id}
                   athlete={athlete}
-                  onClick={() => setSelectedAthlete(athlete)}
+                  onClick={() => {
+                    const attendanceItem = attendanceResult?.summary?.athletes?.find(
+                      (r) => r.athleteId.toLowerCase() === athlete.id.toLowerCase(),
+                    );
+                    setSelectedAthlete({
+                      ...athlete,
+                      activities: attendanceItem?.activities ?? athlete.activities,
+                      totalMinutes: attendanceItem?.totalMinutes ?? athlete.totalMinutes,
+                      totalLoad: attendanceItem?.totalLoad ?? athlete.totalLoad,
+                    });
+                  }}
                   onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
                 />
               ))}
@@ -1295,20 +1305,80 @@ export const MonitoringPage: React.FC = () => {
                     const athleteStatus: TrafficLightStatus =
                       athleteTraffic?.status ?? (isPresent ? 'green' : 'gray');
 
+                    const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+
                     return (
                       <div
                         key={athlete.athleteId}
                         className="card athlete-attendance-card"
+                        onClick={() => {
+                          const baseItem: AthleteTrafficLightItem = athleteTraffic ?? {
+                            id: athlete.athleteId,
+                            name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                            position: '',
+                            category: selectedCategory?.name ?? 'Plantel',
+                            status: isPresent ? 'green' : 'gray',
+                            statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
+                            recommendation: isPresent
+                              ? 'Atleta presente con carga registrada en el día.'
+                              : 'Atleta sin registro de carga ni asistencia en el día.',
+                            avatarUrl: photoUrl,
+                          };
+
+                          setSelectedAthlete({
+                            ...baseItem,
+                            avatarUrl: baseItem.avatarUrl || photoUrl,
+                            activities: athlete.activities,
+                            totalMinutes: athlete.totalMinutes,
+                            totalLoad: athlete.totalLoad,
+                            rpe: baseItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
+                          });
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const baseItem: AthleteTrafficLightItem = athleteTraffic ?? {
+                              id: athlete.athleteId,
+                              name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                              position: '',
+                              category: selectedCategory?.name ?? 'Plantel',
+                              status: isPresent ? 'green' : 'gray',
+                              statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
+                              recommendation: isPresent
+                                ? 'Atleta presente con carga registrada en el día.'
+                                : 'Atleta sin registro de carga ni asistencia en el día.',
+                              avatarUrl: photoUrl,
+                            };
+                            setSelectedAthlete({
+                              ...baseItem,
+                              avatarUrl: baseItem.avatarUrl || photoUrl,
+                              activities: athlete.activities,
+                              totalMinutes: athlete.totalMinutes,
+                              totalLoad: athlete.totalLoad,
+                              rpe: baseItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
+                            });
+                          }
+                        }}
                         style={{
+                          cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
+                          justifyContent: 'space-between',
                           gap: '1rem',
                           padding: '1.15rem',
                           background: 'var(--bg-card)',
                           borderRadius: '24px',
                           border: '1px solid var(--border)',
                           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
+                          minHeight: '330px',
+                          height: '100%',
+                          boxSizing: 'border-box',
+                          transition:
+                            'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
                         }}
+                        aria-label={`Ver detalle de asistencia y carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                       >
                         {/* Cabecera idéntica a diseño: Avatar, Nombre y Botón pill */}
                         <div
@@ -1330,11 +1400,7 @@ export const MonitoringPage: React.FC = () => {
                           >
                             <div
                               className="athlete-avatar-bubble-wrap"
-                              onClick={() => {
-                                if (athleteTraffic) setSelectedAthlete(athleteTraffic);
-                              }}
                               style={{
-                                cursor: athleteTraffic ? 'pointer' : 'default',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1393,7 +1459,8 @@ export const MonitoringPage: React.FC = () => {
 
                           <button
                             type="button"
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               const next = isPresent ? 'NoRecord' : 'Present';
                               setAttendanceOverrides((prev) => ({
                                 ...prev,
@@ -1426,7 +1493,7 @@ export const MonitoringPage: React.FC = () => {
                           </button>
                         </div>
 
-                        {/* Desglose de Carga del Día idéntico a imagen: siempre visible */}
+                        {/* Desglose central de Carga del Día */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                           {/* Caja de métricas Tiempo Total y Carga Acumulada */}
                           <div
@@ -1570,54 +1637,60 @@ export const MonitoringPage: React.FC = () => {
                               }}
                             />
                           </div>
+                        </div>
 
-                          {/* Chips con actividades registradas */}
-                          {athlete.activities && athlete.activities.length > 0 && (
-                            <div
+                        {/* Sección inferior simétrica alineada con la tarjeta de Semáforo (KAN-621) */}
+                        <div
+                          style={{
+                            borderTop: '1px solid var(--border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.65rem',
+                            borderRadius: '8px',
+                            padding: '0.5rem 0.65rem',
+                            height: '54px',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '4px',
+                              height: '32px',
+                              borderRadius: '4px',
+                              backgroundColor: isPresent ? '#10b981' : 'var(--traffic-gray)',
+                              flexShrink: 0,
+                            }}
+                          />
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              minWidth: 0,
+                              flex: 1,
+                            }}
+                          >
+                            <p
                               style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '0.5rem',
-                                marginTop: '0.15rem',
+                                margin: 0,
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: isPresent ? '#047857' : 'var(--text-muted)',
+                                lineHeight: 1.25,
                               }}
                             >
-                              {athlete.activities.map((act, i) => (
-                                <span
-                                  key={i}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.45rem',
-                                    padding: '0.35rem 0.85rem',
-                                    borderRadius: '12px',
-                                    border: '1px solid var(--primary-light-border, #bae6fd)',
-                                    background: 'var(--primary-light, #f0f9ff)',
-                                    color: 'var(--primary, #0284c7)',
-                                    fontSize: '0.85rem',
-                                  }}
-                                >
-                                  {act.type === 'Gym' && (
-                                    <Dumbbell size={14} color="#0284c7" aria-hidden="true" />
-                                  )}
-                                  {act.type === 'SportTraining' && (
-                                    <Activity size={14} color="#0284c7" aria-hidden="true" />
-                                  )}
-                                  {(act.type === 'Match1' || act.type === 'Match2') && (
-                                    <Trophy size={14} color="#0284c7" aria-hidden="true" />
-                                  )}
-                                  {act.type === 'IndividualWork' && (
-                                    <Users size={14} color="#0284c7" aria-hidden="true" />
-                                  )}
-                                  <span>
-                                    {act.name}: <strong>{act.minutes}m</strong>
-                                    {act.rpe !== null && act.rpe !== undefined
-                                      ? ` RPE ${act.rpe}`
-                                      : ''}
-                                  </span>
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                              {isPresent ? 'Carga del día registrada' : 'Sin registro de carga hoy'}
+                            </p>
+                            <span
+                              style={{
+                                fontSize: '0.7rem',
+                                color: 'var(--text-muted)',
+                                marginTop: '2px',
+                              }}
+                            >
+                              Tocar tarjeta para ver detalle y actividades
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
