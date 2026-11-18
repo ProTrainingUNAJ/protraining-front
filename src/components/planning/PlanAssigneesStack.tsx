@@ -101,4 +101,3 @@ export const PlanAssigneesStack: React.FC<PlanAssigneesStackProps> = ({
     </div>
   );
 };
-
