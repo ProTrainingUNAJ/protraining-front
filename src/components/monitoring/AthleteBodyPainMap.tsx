@@ -262,7 +262,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                 }}
               />
               <span style={{ color: item.level === 6 ? 'var(--text-main)' : undefined }}>
-                {item.level === 6 ? '6: Lesión Activa' : `${item.level}: ${item.name}`}
+                {item.level === 6 ? 'Lesión Activa' : `${item.level}: ${item.name}`}
               </span>
             </div>
           ))}

@@ -15,7 +15,7 @@ import {
   ScheduledSession,
   TrainingPlanDetail,
 } from './generated/entrenamiento';
-import { extractErrorMessage } from './axiosClient';
+import { extractErrorMessage, httpClient } from './axiosClient';
 import {
   PlanListItem,
   ApplyPlanTemplatePayload,
@@ -102,6 +102,16 @@ export const trainingPlansService = {
         throwOnError: true,
       }),
     );
+  },
+
+  // Eliminar o desasignar una planificación de un atleta o categoría
+  async deleteAssignment(assignmentId: string): Promise<void> {
+    await call(async () => {
+      const res = await httpClient.delete(
+        `/entrenamiento/api/v1/training-plans/assignments/${assignmentId}`,
+      );
+      return { data: res.data };
+    });
   },
 
   // Listado oficial del SDK adaptado a PlanTemplateItem

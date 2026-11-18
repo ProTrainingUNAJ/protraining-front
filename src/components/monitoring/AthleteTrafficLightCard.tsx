@@ -67,8 +67,10 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 }) => {
   const colors = STATUS_COLORS[athlete.status];
 
-  const maxPainLevel =
+  const rawMaxPain =
     athlete.pains && athlete.pains.length > 0 ? Math.max(...athlete.pains.map((p) => p.level)) : 0;
+  // La escala EVA máxima es 5/5. La lesión activa es una condición clínica aparte (KAN-621).
+  const maxPainLevel = Math.min(5, rawMaxPain);
 
   // Mapa de dolores/lesiones resuelto a los IDs oficiales del SVG (KAN-621)
   const musclePains = useMemo<Record<string, number>>(() => {

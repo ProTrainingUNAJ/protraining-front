@@ -6,6 +6,13 @@ export interface PainZoneReport {
   level: number; // 1 to 6 (6 = Lesión activa)
 }
 
+export interface AthleteActivityDetail {
+  type: string;
+  name: string;
+  minutes: number;
+  rpe?: number | null;
+}
+
 export interface AthleteTrafficLightItem {
   id: string;
   name: string;
@@ -28,4 +35,8 @@ export interface AthleteTrafficLightItem {
   hasActiveInjury?: boolean;
   /** Indica si la rutina de hoy del atleta carga una zona donde marcó dolor (KAN-451 / KAN-452). */
   hasDayConflict?: boolean;
+  /** Actividades registradas en el día (minutos, RPE y dónde se hizo) */
+  activities?: AthleteActivityDetail[];
+  totalMinutes?: number;
+  totalLoad?: number;
 }

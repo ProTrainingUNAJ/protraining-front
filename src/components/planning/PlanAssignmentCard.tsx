@@ -5,19 +5,72 @@ import { PlanAssignmentSummary } from '../../api/trainingPlans';
 import { PlanListItem } from '../../types/trainingPlans';
 import { formatDayMonth } from '../../utils/argentinaDate';
 import { PlanMuscleMap } from './PlanMuscleMap';
+import { PlanAssigneesStack, PlanAssigneeItem } from './PlanAssigneesStack';
 
-export interface PlanAssignmentCardProps {
-  assignment: PlanAssignmentSummary;
-  plan?: PlanListItem;
+export interface PlanAssignmentGroup {
+  trainingPlanId: string;
+  planName: string;
+  startDate: string;
+  endDate: string;
+  status: 'Active' | 'Finished';
+  assignees: PlanAssigneeItem[];
 }
 
-export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({ assignment, plan }) => {
-  const isFinished = assignment.status === 'Finished';
-  const rangeText = `Del ${formatDayMonth(assignment.startDate)} al ${formatDayMonth(assignment.endDate)}`;
-  const finishText = isFinished ? 'Terminada' : `Termina el ${formatDayMonth(assignment.endDate)}`;
+export interface PlanAssignmentCardProps {
+  assignment?: PlanAssignmentSummary;
+  group?: PlanAssignmentGroup;
+  plan?: PlanListItem;
+  onOpenManage?: (group: PlanAssignmentGroup) => void;
+}
+
+export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({
+  assignment,
+  group,
+  plan,
+  onOpenManage,
+}) => {
+  const planId = group?.trainingPlanId ?? assignment?.trainingPlanId ?? '';
+  const planName = group?.planName ?? assignment?.planName ?? '';
+  const startDate = group?.startDate ?? assignment?.startDate ?? '';
+  const endDate = group?.endDate ?? assignment?.endDate ?? '';
+  const status = group?.status ?? assignment?.status ?? 'Active';
+  const isFinished = status === 'Finished';
+
+  const assignees: PlanAssigneeItem[] =
+    group?.assignees ??
+    (assignment
+      ? [
+          {
+            assignmentId: assignment.assignmentId,
+            type: assignment.athleteId ? 'athlete' : 'category',
+            targetId: assignment.athleteId ?? assignment.categoryId ?? '',
+            name: assignment.planName,
+            startDate: assignment.startDate,
+            endDate: assignment.endDate,
+            status: assignment.status,
+          },
+        ]
+      : []);
+
+  const rangeText =
+    startDate && endDate ? `Del ${formatDayMonth(startDate)} al ${formatDayMonth(endDate)}` : '';
+  const finishText = isFinished
+    ? 'Terminada'
+    : endDate
+      ? `Termina el ${formatDayMonth(endDate)}`
+      : 'Activa';
+
+  const currentGroup: PlanAssignmentGroup = group ?? {
+    trainingPlanId: planId,
+    planName,
+    startDate,
+    endDate,
+    status,
+    assignees,
+  };
 
   return (
-    <article className="card plan-card" aria-label={`Asignación: ${assignment.planName}`}>
+    <article className="card plan-card" aria-label={`Asignación: ${planName}`}>
       <div className="plan-card-main-content">
         <div className="plan-card-info-col">
           <header className="plan-card-header">
@@ -35,12 +88,9 @@ export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({ assignme
           </header>
 
           <div className="plan-card-body">
-            <h3 className="plan-card-title" title={assignment.planName}>
-              <Link
-                to={`/pf/planning/${assignment.trainingPlanId}`}
-                className="plan-card-title-link"
-              >
-                {assignment.planName}
+            <h3 className="plan-card-title" title={planName}>
+              <Link to={`/pf/planning/${planId}`} className="plan-card-title-link">
+                {planName}
               </Link>
             </h3>
             <p className="plan-card-desc">
@@ -62,16 +112,25 @@ export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({ assignme
           primaryMuscles={plan?.primaryMuscles}
           secondaryMuscles={plan?.secondaryMuscles}
           targetMuscles={plan?.targetMuscles}
-          name={assignment.planName}
+          name={planName}
           objective={plan?.objective}
         />
       </div>
 
       <footer className="plan-card-footer">
+        {/* Stack interactivo de fotos de los asignados (KAN-622) */}
+        <div className="plan-card-assignees-col">
+          <PlanAssigneesStack
+            assignees={assignees}
+            planName={planName}
+            onClick={() => onOpenManage?.(currentGroup)}
+          />
+        </div>
+
         <Link
-          to={`/pf/planning/${assignment.trainingPlanId}`}
+          to={`/pf/planning/${planId}`}
           className="btn btn-primary plan-card-open-btn"
-          aria-label={`Ver planificación ${assignment.planName}`}
+          aria-label={`Ver planificación ${planName}`}
         >
           <span>Ver plan</span>
           <ExternalLink size={15} aria-hidden="true" />

@@ -11,6 +11,9 @@ import {
   Sparkles,
   Siren,
   Thermometer,
+  Clock,
+  Dumbbell,
+  Trophy,
 } from 'lucide-react';
 import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
@@ -51,8 +54,17 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
   const isYellow = athlete.status === 'yellow';
   const isGreen = athlete.status === 'green';
 
-  const maxPainLevel =
+  const rawMaxPain =
     athlete.pains && athlete.pains.length > 0 ? Math.max(...athlete.pains.map((p) => p.level)) : 0;
+  // La escala EVA máxima es 5/5. La lesión activa es una condición clínica, no un nivel 6 (KAN-621).
+  const maxPainLevel = Math.min(5, rawMaxPain);
+
+  const effectiveRpe =
+    athlete.rpe !== undefined && athlete.rpe !== null && athlete.rpe > 0
+      ? athlete.rpe
+      : athlete.activities && athlete.activities.length > 0 && athlete.activities[0].rpe
+        ? athlete.activities[0].rpe
+        : undefined;
 
   const statusBorderColor = isRed
     ? 'var(--traffic-red-border)'
@@ -396,16 +408,14 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                   <Activity size={14} style={{ color: 'var(--stat-cyan)' }} /> RPE / Fatiga
                 </div>
                 <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                  {athlete.rpe !== undefined && athlete.rpe !== null && athlete.rpe > 0
-                    ? `${athlete.rpe} / 10`
-                    : '—'}
+                  {effectiveRpe !== undefined ? `${effectiveRpe} / 10` : '—'}
                 </strong>
                 <small
                   style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
                 >
-                  {athlete.rpe && athlete.rpe >= 8
+                  {effectiveRpe && effectiveRpe >= 8
                     ? 'Sobrecarga alta'
-                    : athlete.rpe
+                    : effectiveRpe
                       ? 'Carga moderada'
                       : 'Sin registro'}
                 </small>
@@ -553,6 +563,178 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               Este atleta aún no ha completado el formulario de check-in del día.
             </p>
+          </div>
+        )}
+
+        {/* Detalle de Carga y Actividades del Día (KAN-621) */}
+        {athlete.activities && athlete.activities.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.65rem',
+              padding: '0.85rem',
+              background: 'var(--bg-subtle)',
+              borderRadius: '16px',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  color: 'var(--text-main)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.03em',
+                }}
+              >
+                <Dumbbell size={15} style={{ color: 'var(--primary)' }} />
+                Actividades y Carga del Día
+              </span>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                }}
+              >
+                {athlete.totalMinutes ?? athlete.activities.reduce((acc, a) => acc + a.minutes, 0)}{' '}
+                min totales
+                {athlete.totalLoad ? ` · ${athlete.totalLoad} UA` : ''}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {athlete.activities.map((act, idx) => {
+                const rpeVal = act.rpe ?? 0;
+                const rpeBadgeColor =
+                  rpeVal >= 8
+                    ? {
+                        bg: 'var(--danger-bg)',
+                        text: 'var(--danger-text)',
+                        border: 'var(--danger-border)',
+                      }
+                    : rpeVal >= 5
+                      ? {
+                          bg: 'var(--warning-bg)',
+                          text: 'var(--warning-text)',
+                          border: 'var(--warning-border)',
+                        }
+                      : {
+                          bg: 'var(--success-bg)',
+                          text: 'var(--success-text)',
+                          border: 'var(--success-border)',
+                        };
+
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.6rem 0.85rem',
+                      background: 'var(--bg-card)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: 'var(--primary-light, #f0f9ff)',
+                          color: 'var(--primary, #0284c7)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {act.type === 'Gym' ? (
+                          <Dumbbell size={16} />
+                        ) : act.type === 'Match' ? (
+                          <Trophy size={16} />
+                        ) : (
+                          <Activity size={16} />
+                        )}
+                      </div>
+                      <div>
+                        <strong
+                          style={{
+                            display: 'block',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-main)',
+                          }}
+                        >
+                          {act.name}
+                        </strong>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          Lugar / Tipo: {act.name}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          color: 'var(--text-main)',
+                        }}
+                      >
+                        <Clock size={13} style={{ color: 'var(--text-muted)' }} />
+                        {act.minutes} min
+                      </span>
+
+                      {act.rpe !== undefined && act.rpe !== null && (
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '9999px',
+                            background: rpeBadgeColor.bg,
+                            color: rpeBadgeColor.text,
+                            border: `1px solid ${rpeBadgeColor.border}`,
+                          }}
+                        >
+                          RPE {act.rpe}
+                        </span>
+                      )}
+
+                      {act.minutes && act.rpe ? (
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            color: 'var(--primary)',
+                          }}
+                        >
+                          {act.minutes * act.rpe} UA
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

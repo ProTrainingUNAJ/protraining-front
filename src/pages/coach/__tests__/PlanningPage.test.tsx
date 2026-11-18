@@ -168,4 +168,73 @@ describe('PlanningPage (KAN-440 / KAN-622)', () => {
     expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
     expect(screen.queryByText('Potencia Tren Superior')).toBeNull();
   });
+
+  it('abre el modal de gestión de asignaciones al hacer clic en el stack de fotos y permite desasignar (KAN-622)', async () => {
+    const deleteAssignmentSpy = vi
+      .spyOn(trainingPlansService, 'deleteAssignment')
+      .mockResolvedValue();
+
+    vi.spyOn(structureService, 'getAthletes').mockResolvedValue([
+      {
+        id: 'ath-1',
+        accountId: 'acc-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'lucas@test.com',
+        phone: '123456',
+        isMinor: false,
+        active: true,
+        categories: [],
+        categoryNames: ['Primera División'],
+        emergencyContact: null,
+        activeInjuriesCount: 0,
+        hasPhoto: true,
+        photoUpdatedAt: '2026-11-01T00:00:00Z',
+      },
+    ]);
+
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([
+      {
+        assignmentId: 'assign-lucas',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        athleteId: 'ath-1',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning?tab=assignments']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    // Hacemos clic en el trigger del stack de asignados
+    const stackTrigger = await screen.findByRole('button', {
+      name: /ver y administrar 1 asignados a potencia tren superior/i,
+    });
+    fireEvent.click(stackTrigger);
+
+    // Debe abrir el modal de gestión de asignaciones
+    expect(
+      await screen.findByRole('heading', { name: /asignaciones de la planificación/i }),
+    ).toBeDefined();
+
+    // Iniciamos la desasignación
+    const deleteBtn = await screen.findByRole('button', {
+      name: /quitar a lucas gómez/i,
+    });
+    fireEvent.click(deleteBtn);
+
+    // Confirmamos la desasignación
+    const confirmBtn = await screen.findByRole('button', { name: /sí, quitar/i });
+    fireEvent.click(confirmBtn);
+
+    expect(deleteAssignmentSpy).toHaveBeenCalledWith('assign-lucas');
+  });
 });
