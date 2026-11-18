@@ -105,4 +105,27 @@ describe('PlanningCard (KAN-622)', () => {
     expect(chestPath?.getAttribute('fill')).toBe('#0284c7');
     expect(tricepsPath?.getAttribute('fill')).toBe('#94a3b8');
   });
+
+  it('renderiza el botón de cesto de basura y llama al callback onDelete cuando se hace clic (KAN-622)', () => {
+    const onDelete = vi.fn();
+    const plan = {
+      id: 'plan-delete',
+      name: 'Plan a eliminar',
+      objective: null,
+    };
+
+    render(
+      <MemoryRouter>
+        <PlanningCard plan={plan} onDelete={onDelete} />
+      </MemoryRouter>,
+    );
+
+    const deleteBtn = screen.getByRole('button', {
+      name: /eliminar planificación plan a eliminar/i,
+    });
+    expect(deleteBtn).toBeDefined();
+
+    fireEvent.click(deleteBtn);
+    expect(onDelete).toHaveBeenCalledWith(plan);
+  });
 });

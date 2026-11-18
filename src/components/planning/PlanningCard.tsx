@@ -1,15 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, ExternalLink, Sparkles, UserPlus } from 'lucide-react';
+import { ClipboardList, ExternalLink, Sparkles, Trash2, UserPlus } from 'lucide-react';
 import { PlanListItem } from '../../types/trainingPlans';
 import { PlanMuscleMap } from './PlanMuscleMap';
 
 export interface PlanningCardProps {
   plan: PlanListItem;
   onAssign?: (plan: PlanListItem) => void;
+  onDelete?: (plan: PlanListItem) => void;
 }
 
-export const PlanningCard: React.FC<PlanningCardProps> = ({ plan, onAssign }) => {
+export const PlanningCard: React.FC<PlanningCardProps> = ({ plan, onAssign, onDelete }) => {
   const isAiGenerated =
     Boolean(plan.name && /\b(ia|asistente|gemini|generad)\b/i.test(plan.name)) ||
     Boolean(plan.objective && /\b(ia|asistente|gemini|generad)\b/i.test(plan.objective));
@@ -60,17 +61,31 @@ export const PlanningCard: React.FC<PlanningCardProps> = ({ plan, onAssign }) =>
       </div>
 
       <footer className="plan-card-footer">
-        {onAssign && (
-          <button
-            type="button"
-            className="btn btn-secondary plan-card-assign-btn"
-            onClick={() => onAssign(plan)}
-            aria-label={`Asignar ${plan.name}`}
-          >
-            <UserPlus size={15} aria-hidden="true" />
-            <span>Asignar</span>
-          </button>
-        )}
+        <div className="plan-card-footer-actions-left">
+          {onAssign && (
+            <button
+              type="button"
+              className="btn btn-secondary plan-card-assign-btn"
+              onClick={() => onAssign(plan)}
+              aria-label={`Asignar ${plan.name}`}
+            >
+              <UserPlus size={15} aria-hidden="true" />
+              <span>Asignar</span>
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              className="btn btn-secondary plan-card-delete-btn"
+              onClick={() => onDelete(plan)}
+              aria-label={`Eliminar planificación ${plan.name}`}
+              title="Eliminar planificación"
+              data-testid={`btn-delete-plan-${plan.id}`}
+            >
+              <Trash2 size={15} aria-hidden="true" />
+            </button>
+          )}
+        </div>
         <Link
           to={`/pf/planning/${plan.id}`}
           className="btn btn-primary plan-card-open-btn"

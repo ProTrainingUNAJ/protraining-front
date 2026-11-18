@@ -237,4 +237,72 @@ describe('PlanningPage (KAN-440 / KAN-622)', () => {
 
     expect(deleteAssignmentSpy).toHaveBeenCalledWith('assign-lucas');
   });
+
+  it('abre el modal de confirmación al hacer clic en el cesto de basura y elimina la planificación si se confirma (KAN-622)', async () => {
+    const deleteSpy = vi.spyOn(trainingPlansService, 'delete').mockResolvedValue();
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const deleteBtn = screen.getByTestId('btn-delete-plan-plan-1');
+    fireEvent.click(deleteBtn);
+
+    // Debe abrir el modal de confirmación
+    expect(await screen.findByRole('heading', { name: /eliminar planificación/i })).toBeDefined();
+    expect(
+      screen.getByText(/¿estás seguro de que deseas eliminar la planificación/i),
+    ).toBeDefined();
+
+    // Confirmar eliminación
+    const confirmBtn = screen.getByTestId('btn-confirm-delete-plan');
+    fireEvent.click(confirmBtn);
+
+    expect(deleteSpy).toHaveBeenCalledWith('plan-1');
+  });
+
+  it('muestra advertencia explícita en el modal de confirmación si la planificación tiene atletas u organizaciones asignadas (KAN-622)', async () => {
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([
+      {
+        assignmentId: 'assign-1',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        categoryId: 'cat-1',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+      {
+        assignmentId: 'assign-2',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        athleteId: 'ath-1',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const deleteBtn = screen.getByTestId('btn-delete-plan-plan-1');
+    fireEvent.click(deleteBtn);
+
+    // El modal debe mostrar la advertencia de asignaciones en curso
+    const warning = await screen.findByTestId('delete-plan-assignments-warning');
+    expect(warning).toBeDefined();
+    expect(screen.getByText(/esta planificación tiene asignaciones en curso/i)).toBeDefined();
+    expect(screen.getByText(/organización \/ categoría/i)).toBeDefined();
+    expect(screen.getByText(/atleta individual/i)).toBeDefined();
+  });
 });

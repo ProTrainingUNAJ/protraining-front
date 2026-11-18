@@ -414,12 +414,38 @@
   text-decoration: none;
 }
 
+.plan-card-footer-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .plan-card-assign-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.45rem 0.85rem;
   font-size: 0.84rem;
+}
+
+.plan-card-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.84rem;
+  color: var(--danger);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 10px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.plan-card-delete-btn:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
 }
 
 .plan-tab-badge {

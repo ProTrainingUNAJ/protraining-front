@@ -15,6 +15,7 @@ import {
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ApplyPlanTemplateModal } from '../../components/planning/ApplyPlanTemplateModal';
 import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
+import { DeletePlanModal } from '../../components/planning/DeletePlanModal';
 import { PlanningCard } from '../../components/planning/PlanningCard';
 import {
   PlanAssignmentCard,
@@ -47,6 +48,9 @@ export function PlanningPage() {
   const [objective, setObjective] = useState('');
   const [planSearch, setPlanSearch] = useState('');
   const [selectedPlanForAssign, setSelectedPlanForAssign] = useState<PlanListItem | null>(null);
+  const [selectedPlanForDelete, setSelectedPlanForDelete] = useState<PlanListItem | null>(null);
+  const [deletingPlan, setDeletingPlan] = useState(false);
+  const [deletePlanError, setDeletePlanError] = useState<string | null>(null);
 
   // Estados del catálogo de plantillas (KAN-440)
   const [templates, setTemplates] = useState<PlanTemplateItem[]>([]);
@@ -76,13 +80,17 @@ export function PlanningPage() {
     (location.state as { message?: string } | null)?.message ?? null,
   );
 
-  // Carga inicial de planificaciones
+  // Carga inicial de planificaciones y asignaciones para conteos y advertencias de eliminación
   useEffect(() => {
     let active = true;
-    trainingPlansService
-      .list()
-      .then((data) => {
-        if (active) setPlans(data);
+    Promise.all([
+      trainingPlansService.list(),
+      trainingPlansService.listAssignments().catch(() => [] as PlanAssignmentSummary[]),
+    ])
+      .then(([plansData, assignmentsData]) => {
+        if (!active) return;
+        setPlans(plansData);
+        if (assignmentsData.length > 0) setAssignments(assignmentsData);
       })
       .catch((err: unknown) => {
         if (active) {
@@ -246,6 +254,58 @@ export function PlanningPage() {
     } catch (err: unknown) {
       setPlanError(err instanceof Error ? err.message : 'No se pudo crear la planificación.');
       setCreating(false);
+    }
+  };
+
+  // Cálculos de asignaciones vinculadas al plan seleccionado para eliminar (KAN-622)
+  const planDeleteAssignments = useMemo(() => {
+    if (!selectedPlanForDelete) return [];
+    return assignments.filter((a) => a.trainingPlanId === selectedPlanForDelete.id);
+  }, [selectedPlanForDelete, assignments]);
+
+  const assignedAthletesCount = useMemo(() => {
+    return planDeleteAssignments.filter((a) => Boolean(a.athleteId)).length;
+  }, [planDeleteAssignments]);
+
+  const assignedCategoriesCount = useMemo(() => {
+    return planDeleteAssignments.filter((a) => Boolean(a.categoryId)).length;
+  }, [planDeleteAssignments]);
+
+  const assignedAthleteNames = useMemo(() => {
+    return planDeleteAssignments
+      .filter((a) => Boolean(a.athleteId))
+      .map((a) => {
+        const info = a.athleteId ? athletesMap.get(a.athleteId) : null;
+        return info?.name || 'Atleta';
+      });
+  }, [planDeleteAssignments, athletesMap]);
+
+  const assignedCategoryNames = useMemo(() => {
+    return planDeleteAssignments
+      .filter((a) => Boolean(a.categoryId))
+      .map((a) => {
+        const info = a.categoryId ? categoriesMap.get(a.categoryId) : null;
+        return info?.name || 'Categoría';
+      });
+  }, [planDeleteAssignments, categoriesMap]);
+
+  const handleConfirmDeletePlan = async () => {
+    if (!selectedPlanForDelete) return;
+    setDeletingPlan(true);
+    setDeletePlanError(null);
+    try {
+      await trainingPlansService.delete(selectedPlanForDelete.id);
+      const deletedName = selectedPlanForDelete.name;
+      setPlans((prev) => prev.filter((p) => p.id !== selectedPlanForDelete.id));
+      setAssignments((prev) => prev.filter((a) => a.trainingPlanId !== selectedPlanForDelete.id));
+      setSelectedPlanForDelete(null);
+      setSuccessMessage(`Planificación «${deletedName}» eliminada exitosamente.`);
+    } catch (err: unknown) {
+      setDeletePlanError(
+        err instanceof Error ? err.message : 'No se pudo eliminar la planificación.',
+      );
+    } finally {
+      setDeletingPlan(false);
     }
   };
 
@@ -589,6 +649,10 @@ export function PlanningPage() {
                     key={plan.id}
                     plan={plan}
                     onAssign={(p) => setSelectedPlanForAssign(p)}
+                    onDelete={(p) => {
+                      setSelectedPlanForDelete(p);
+                      setDeletePlanError(null);
+                    }}
                   />
                 ))}
               </div>
@@ -797,6 +861,27 @@ export function PlanningPage() {
             setSuccessMessage(`Planificación asignada con éxito.`);
             reloadAssignments();
           }}
+        />
+      )}
+
+      {/* Modal de confirmación de eliminación con advertencia de asignaciones activas (KAN-622) */}
+      {selectedPlanForDelete && (
+        <DeletePlanModal
+          isOpen={Boolean(selectedPlanForDelete)}
+          plan={selectedPlanForDelete}
+          assignedAthletesCount={assignedAthletesCount}
+          assignedCategoriesCount={assignedCategoriesCount}
+          assignedAthleteNames={assignedAthleteNames}
+          assignedCategoryNames={assignedCategoryNames}
+          isDeleting={deletingPlan}
+          errorMessage={deletePlanError}
+          onClose={() => {
+            if (!deletingPlan) {
+              setSelectedPlanForDelete(null);
+              setDeletePlanError(null);
+            }
+          }}
+          onConfirm={handleConfirmDeletePlan}
         />
       )}
     </div>
