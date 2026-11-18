@@ -736,8 +736,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                             ? `${Math.min(100, Math.max(6, Math.round((totalLoad / 900) * 100)))}%`
                             : '0%',
                         height: '100%',
-                        background:
-                          'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
+                        background: 'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
                         borderRadius: '9999px',
                         transition: 'width 0.3s ease',
                       }}
