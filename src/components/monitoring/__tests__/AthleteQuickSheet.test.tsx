@@ -71,4 +71,3 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     expect(screen.getByText('Lesión y Enfermedad')).toBeDefined();
   });
 });
-

@@ -121,7 +121,9 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
 
   // Minutos equivalentes para el registro y cálculo de UA (Foster: UA = min × RPE)
   const effectiveMinutes =
-    unit === 'sec' ? Math.max(1, Math.round(duration / 60)) : Math.max(0, duration);
+    unit === 'sec'
+      ? Math.max(1, Math.round(duration / 60))
+      : Math.max(0, duration);
 
   // Cálculo en vivo de Unidades Arbitrarias
   const calculatedUa = Math.round(effectiveMinutes * (rpe || 0));
@@ -628,8 +630,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                     display: 'block',
                   }}
                 >
-                  Unidades Arbitrarias calculadas ({duration} {unit === 'sec' ? 'seg' : 'min'} × RPE{' '}
-                  {rpe}):
+                  Unidades Arbitrarias calculadas ({duration} {unit === 'sec' ? 'seg' : 'min'} × RPE {rpe}):
                 </span>
                 <span
                   style={{
