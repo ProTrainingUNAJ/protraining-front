@@ -121,7 +121,14 @@ describe('axiosClient (KAN-601)', () => {
         headers: new axios.AxiosHeaders(),
       };
 
-      const requestHandlers = (httpClient.interceptors.request as unknown as { handlers: Array<{ fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig }> }).handlers || [];
+      const requestHandlers =
+        (
+          httpClient.interceptors.request as unknown as {
+            handlers: Array<{
+              fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
+            }>;
+          }
+        ).handlers || [];
       let finalConfig = config;
       for (const handler of requestHandlers) {
         if (handler?.fulfilled) {
@@ -152,7 +159,14 @@ describe('axiosClient (KAN-601)', () => {
         headers: new axios.AxiosHeaders(),
       };
 
-      const requestHandlers = (httpClient.interceptors.request as unknown as { handlers: Array<{ fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig }> }).handlers || [];
+      const requestHandlers =
+        (
+          httpClient.interceptors.request as unknown as {
+            handlers: Array<{
+              fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
+            }>;
+          }
+        ).handlers || [];
       let finalConfig = config;
       for (const handler of requestHandlers) {
         if (handler?.fulfilled) {
