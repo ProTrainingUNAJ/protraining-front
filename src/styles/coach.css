@@ -1143,6 +1143,17 @@
   filter: brightness(1.05);
 }
 
+/* ── KAN-621: Widget Top 3 UA Podio ── */
+.top-ua-widget {
+  cursor: pointer;
+  user-select: none;
+}
+
+.top-ua-widget [data-testid^='podium-step-']:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
 /* ── KAN-365: Semáforo del Día — anillo de color con transición de estado ── */
 .traffic-ring circle {
   transition:

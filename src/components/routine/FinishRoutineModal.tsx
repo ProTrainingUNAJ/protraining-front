@@ -52,6 +52,18 @@ function formatTimerSecondsSummary(totalSeconds: number): string {
   return `${m} min ${s} s`;
 }
 
+type TimeUnit = 'min' | 'sec';
+
+function getInitialTime(timerSeconds: number): { unit: TimeUnit; duration: number } {
+  if (timerSeconds > 0) {
+    if (timerSeconds < 60) {
+      return { unit: 'sec', duration: timerSeconds };
+    }
+    return { unit: 'min', duration: Math.max(1, Math.round(timerSeconds / 60)) };
+  }
+  return { unit: 'min', duration: 60 };
+}
+
 export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   isOpen,
   onClose,
@@ -60,10 +72,9 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   exercises,
   onFinishSuccess,
 }) => {
-  // Minutos vinculados al cronómetro: si midió tiempo > 0 se redondea a minutos (mín 1), si no 60 min por defecto
-  const [minutes, setMinutes] = useState<number>(() => {
-    return timerSeconds > 0 ? Math.max(1, Math.round(timerSeconds / 60)) : 60;
-  });
+  // Tiempo vinculado al cronómetro: si midió en segundos (< 60s), se precarga en segundos; si midió en minutos, en minutos.
+  const [unit, setUnit] = useState<TimeUnit>(() => getInitialTime(timerSeconds).unit);
+  const [duration, setDuration] = useState<number>(() => getInitialTime(timerSeconds).duration);
   const [rpe, setRpe] = useState<number>(7);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -74,12 +85,23 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   if (prevIsOpen !== isOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen) {
-      const autoMinutes = timerSeconds > 0 ? Math.max(1, Math.round(timerSeconds / 60)) : 60;
-      setMinutes(autoMinutes);
+      const init = getInitialTime(timerSeconds);
+      setUnit(init.unit);
+      setDuration(init.duration);
       setIsCompleted(false);
       setErrorMessage(null);
     }
   }
+
+  const handleUnitChange = (newUnit: TimeUnit) => {
+    if (newUnit === unit) return;
+    setUnit(newUnit);
+    if (newUnit === 'min') {
+      setDuration((prev) => Math.max(1, Math.round(prev / 60)));
+    } else {
+      setDuration((prev) => Math.max(1, prev * 60));
+    }
+  };
 
   // Músculos involucrados en la sesión
   const { highlight, muscleNames } = useMemo(() => extractSessionMuscles(exercises), [exercises]);
@@ -97,8 +119,12 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Minutos equivalentes para el registro y cálculo de UA (Foster: UA = min × RPE)
+  const effectiveMinutes =
+    unit === 'sec' ? Math.max(1, Math.round(duration / 60)) : Math.max(0, duration);
+
   // Cálculo en vivo de Unidades Arbitrarias
-  const calculatedUa = Math.round(Math.max(0, minutes) * (rpe || 0));
+  const calculatedUa = Math.round(effectiveMinutes * (rpe || 0));
 
   // Nivel de UA para la barra (escala habitual 0 a 600 UA de referencia de sesión)
   const uaPercent = Math.min(100, Math.max(5, Math.round((calculatedUa / 600) * 100)));
@@ -106,8 +132,12 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   const handleConfirm = async () => {
     setErrorMessage(null);
 
-    if (minutes <= 0) {
-      setErrorMessage('Los minutos deben ser mayores a 0.');
+    if (duration <= 0) {
+      setErrorMessage(
+        unit === 'sec'
+          ? 'Los segundos deben ser mayores a 0.'
+          : 'Los minutos deben ser mayores a 0.',
+      );
       return;
     }
 
@@ -127,7 +157,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
       }
 
       const payload: DailyLoadSubmitRequest = {
-        gym: { minutes, rpe },
+        gym: { minutes: effectiveMinutes, rpe },
         sportTraining: previous?.sportTraining,
         match1: previous?.match1,
         match2: previous?.match2,
@@ -325,7 +355,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               )}
             </div>
 
-            {/* SECCIÓN 2: MINUTOS ENTRENADOS (VINCULADO AL CRONÓMETRO) */}
+            {/* SECCIÓN 2: TIEMPO / MINUTOS ENTRENADOS (VINCULADO AL CRONÓMETRO) */}
             <div
               style={{
                 display: 'flex',
@@ -338,22 +368,77 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.4rem',
                 }}
               >
-                <label
-                  htmlFor="finish-minutes-input"
-                  style={{
-                    fontSize: '0.88rem',
-                    fontWeight: 800,
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <Clock size={16} style={{ color: 'var(--secondary)' }} />
-                  <span>Minutos de sesión entrenados</span>
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <label
+                    htmlFor="finish-minutes-input"
+                    style={{
+                      fontSize: '0.88rem',
+                      fontWeight: 800,
+                      color: 'var(--text-main)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    <Clock size={16} style={{ color: 'var(--secondary)' }} />
+                    <span>Minutos de sesión entrenados</span>
+                  </label>
+
+                  {/* Selector de unidad: min o seg */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      background: 'var(--bg-subtle)',
+                      borderRadius: '9999px',
+                      border: '1px solid var(--border)',
+                      padding: '2px',
+                      gap: '2px',
+                    }}
+                    role="group"
+                    aria-label="Unidad de tiempo"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleUnitChange('min')}
+                      style={{
+                        padding: '0.12rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: unit === 'min' ? 'var(--primary)' : 'transparent',
+                        color: unit === 'min' ? 'var(--white)' : 'var(--text-muted)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      min
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUnitChange('sec')}
+                      style={{
+                        padding: '0.12rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: unit === 'sec' ? 'var(--primary)' : 'transparent',
+                        color: unit === 'sec' ? 'var(--white)' : 'var(--text-muted)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      seg
+                    </button>
+                  </div>
+                </div>
+
                 {timerSeconds > 0 && (
                   <span
                     style={{
@@ -378,10 +463,10 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   type="button"
                   className="btn btn-secondary"
                   style={{ padding: '0.5rem 0.85rem', fontWeight: 800 }}
-                  onClick={() => setMinutes((prev) => Math.max(1, prev - 5))}
-                  title="Restar 5 minutos"
+                  onClick={() => setDuration((prev) => Math.max(1, prev - 5))}
+                  title={unit === 'sec' ? 'Restar 5 segundos' : 'Restar 5 minutos'}
                 >
-                  - 5 min
+                  - 5 {unit === 'sec' ? 'seg' : 'min'}
                 </button>
                 <div
                   style={{
@@ -395,12 +480,12 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                     id="finish-minutes-input"
                     type="number"
                     min="1"
-                    max="360"
-                    value={minutes}
-                    onChange={(e) => setMinutes(parseInt(e.target.value, 10) || 0)}
+                    max={unit === 'sec' ? 3600 : 360}
+                    value={duration}
+                    onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
                     style={{
                       width: '100%',
-                      padding: '0.65rem 3rem 0.65rem 0.85rem',
+                      padding: '0.65rem 3.2rem 0.65rem 0.85rem',
                       fontSize: '1.05rem',
                       fontWeight: 800,
                       borderRadius: '10px',
@@ -420,17 +505,19 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                       pointerEvents: 'none',
                     }}
                   >
-                    min
+                    {unit === 'sec' ? 'seg' : 'min'}
                   </span>
                 </div>
                 <button
                   type="button"
                   className="btn btn-secondary"
                   style={{ padding: '0.5rem 0.85rem', fontWeight: 800 }}
-                  onClick={() => setMinutes((prev) => Math.min(360, prev + 5))}
-                  title="Sumar 5 minutos"
+                  onClick={() =>
+                    setDuration((prev) => Math.min(unit === 'sec' ? 3600 : 360, prev + 5))
+                  }
+                  title={unit === 'sec' ? 'Sumar 5 segundos' : 'Sumar 5 minutos'}
                 >
-                  + 5 min
+                  + 5 {unit === 'sec' ? 'seg' : 'min'}
                 </button>
               </div>
             </div>
@@ -541,7 +628,8 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                     display: 'block',
                   }}
                 >
-                  Unidades Arbitrarias calculadas ({minutes} min × RPE {rpe}):
+                  Unidades Arbitrarias calculadas ({duration} {unit === 'sec' ? 'seg' : 'min'} × RPE{' '}
+                  {rpe}):
                 </span>
                 <span
                   style={{
@@ -776,7 +864,9 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               >
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Duración: </span>
-                  <span style={{ color: 'var(--text-main)' }}>{minutes} min</span>
+                  <span style={{ color: 'var(--text-main)' }}>
+                    {duration} {unit === 'sec' ? 'seg' : 'min'}
+                  </span>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Esfuerzo: </span>
