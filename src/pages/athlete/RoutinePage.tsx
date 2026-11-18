@@ -36,6 +36,7 @@ import { FinishRoutineModal } from '../../components/routine/FinishRoutineModal'
 import { useRoutineTimer } from '../../hooks/useRoutineTimer';
 import { IntervalTimerModal } from '../../components/timer/IntervalTimerModal';
 import { evaluateTimeTarget } from '../../utils/timeTarget';
+import { unpackCoachNotes } from '../../utils/planDraft';
 import type { StoredPerformedSet } from '../../types';
 
 type RoutineExerciseItem = TodayRoutineExercise & {
@@ -228,15 +229,18 @@ export const RoutinePage: React.FC = () => {
   const displayCoachNotes = useMemo(() => {
     const raw = routine?.coachNotes?.trim();
     if (!raw) return null;
+    const { cleanNotes } = unpackCoachNotes(raw);
+    const cleaned = cleanNotes.trim();
+    if (!cleaned) return null;
     if (routine?.adjustedByCoach && routine.adjustmentNote) {
       const note = routine.adjustmentNote.trim();
-      if (raw === note) return null;
+      if (cleaned === note) return null;
       const suffix = ` | ${note}`;
-      if (raw.endsWith(suffix)) {
-        return raw.slice(0, raw.length - suffix.length).trim() || null;
+      if (cleaned.endsWith(suffix)) {
+        return cleaned.slice(0, cleaned.length - suffix.length).trim() || null;
       }
     }
-    return raw;
+    return cleaned;
   }, [routine]);
 
   // Alternar completitud de una serie individual (Touch target accesible)
@@ -1490,7 +1494,7 @@ export const RoutinePage: React.FC = () => {
               </div>
 
               {/* Indicación Técnica del Preparador Físico para la Sesión */}
-              {routine?.coachNotes && (
+              {displayCoachNotes && (
                 <div
                   style={{
                     display: 'flex',
@@ -1525,7 +1529,7 @@ export const RoutinePage: React.FC = () => {
                       fontStyle: 'italic',
                     }}
                   >
-                    "{routine.coachNotes}"
+                    "{displayCoachNotes}"
                   </p>
                 </div>
               )}
