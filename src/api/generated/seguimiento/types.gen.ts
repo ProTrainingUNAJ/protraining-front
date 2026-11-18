@@ -356,6 +356,53 @@ export type ProblemDetails = {
     };
 };
 
+export type WellnessMetricsBreakdown = {
+    sleepQuality: number;
+    sleepHours: number;
+    muscleSoreness: number;
+    fatigueLevel: number;
+    moodRate: number;
+    stressLevel: number;
+};
+
+export type WeeklyTrendPoint = {
+    weekStartDate: string;
+    weekEndDate: string;
+    averageWellness?: number | null;
+    totalLoad?: number | null;
+    totalMinutes?: number | null;
+    checkInCount: number;
+    loadCount: number;
+    wellnessBreakdown?: WellnessMetricsBreakdown;
+};
+
+export type AthleteWeeklyTrendsResponse = {
+    athleteId: string;
+    from: string;
+    to: string;
+    weeks: Array<WeeklyTrendPoint>;
+};
+
+export type CategoryWeeklyTrendPoint = {
+    weekStartDate: string;
+    weekEndDate: string;
+    averageWellness?: number | null;
+    totalLoad?: number | null;
+    totalMinutes?: number | null;
+    checkInCount: number;
+    loadCount: number;
+    activeReportingAthletes: number;
+    wellnessBreakdown?: WellnessMetricsBreakdown;
+};
+
+export type CategoryWeeklyTrendsResponse = {
+    categoryId: string;
+    athleteCount: number;
+    from: string;
+    to: string;
+    weeks: Array<CategoryWeeklyTrendPoint>;
+};
+
 export type CategoryAveragesResponse = {
     categoryId: string;
     categoryName: string;
@@ -1210,6 +1257,84 @@ export type GetAthleteEvolutionResponses = {
 };
 
 export type GetAthleteEvolutionResponse = GetAthleteEvolutionResponses[keyof GetAthleteEvolutionResponses];
+
+export type GetAthleteWeeklyTrendsData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: {
+        weeks?: number;
+        from?: string;
+        to?: string;
+    };
+    url: '/api/v1/athletes/{athleteId}/trends';
+};
+
+export type GetAthleteWeeklyTrendsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthleteWeeklyTrendsError = GetAthleteWeeklyTrendsErrors[keyof GetAthleteWeeklyTrendsErrors];
+
+export type GetAthleteWeeklyTrendsResponses = {
+    /**
+     * Tendencias semanales del atleta obtenidas con éxito.
+     */
+    200: AthleteWeeklyTrendsResponse;
+};
+
+export type GetAthleteWeeklyTrendsResponse = GetAthleteWeeklyTrendsResponses[keyof GetAthleteWeeklyTrendsResponses];
+
+export type GetCategoryWeeklyTrendsData = {
+    body?: never;
+    path: {
+        categoryId: string;
+    };
+    query?: {
+        weeks?: number;
+        from?: string;
+        to?: string;
+    };
+    url: '/api/v1/categories/{categoryId}/trends';
+};
+
+export type GetCategoryWeeklyTrendsErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type GetCategoryWeeklyTrendsError = GetCategoryWeeklyTrendsErrors[keyof GetCategoryWeeklyTrendsErrors];
+
+export type GetCategoryWeeklyTrendsResponses = {
+    /**
+     * Tendencias semanales de la categoría obtenidas con éxito.
+     */
+    200: CategoryWeeklyTrendsResponse;
+};
+
+export type GetCategoryWeeklyTrendsResponse = GetCategoryWeeklyTrendsResponses[keyof GetCategoryWeeklyTrendsResponses];
 
 export type ListFieldTestSessionsData = {
     body?: never;
