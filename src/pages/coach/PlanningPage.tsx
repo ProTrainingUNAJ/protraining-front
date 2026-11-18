@@ -493,7 +493,11 @@ export function PlanningPage() {
 
         {/* Pestaña 1: Mis Planificaciones */}
         {currentTab === 'plans' && (
-          <>
+          <section aria-labelledby="plans-section-title">
+            <h2 id="plans-section-title" className="sr-only">
+              Mis planificaciones de entrenamiento
+            </h2>
+
             {showForm && (
               <form className="card card-static plan-details" onSubmit={handleCreate}>
                 <label className="plan-field">
@@ -589,7 +593,7 @@ export function PlanningPage() {
                 ))}
               </div>
             )}
-          </>
+          </section>
         )}
 
         {/* Pestaña 2: Catálogo de Plantillas */}
