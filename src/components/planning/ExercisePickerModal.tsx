@@ -23,6 +23,7 @@ interface ExercisePickerModalProps {
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   // Ejercicios que ya tienen marca y no deben ofrecerse (KAN-417).
   excludedIds?: string[];
+  title?: string;
 }
 
 const PAGE_SIZE = 12;
@@ -34,6 +35,7 @@ export function ExercisePickerModal({
   filterUsedByPf = false,
   exerciseType,
   excludedIds,
+  title = 'Agregar ejercicio',
 }: ExercisePickerModalProps) {
   const [searchText, setSearchText] = useState('');
   const [search, setSearch] = useState('');
@@ -150,7 +152,7 @@ export function ExercisePickerModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="plan-picker-header">
-          <h2 id="plan-picker-title">Agregar ejercicio</h2>
+          <h2 id="plan-picker-title">{title}</h2>
           <button type="button" className="plan-icon-btn" onClick={onClose} aria-label="Cerrar">
             <X size={18} aria-hidden="true" />
           </button>

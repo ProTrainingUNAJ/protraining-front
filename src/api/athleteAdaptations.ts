@@ -32,6 +32,18 @@ export interface RoutineAdaptationResponseWithBase extends Omit<
   baseExercises?: SuggestedRoutineExercise[] | null;
 }
 
+export type AdaptationRecordContext = NonNullable<
+  AthleteAdaptationContextResponse['currentRecords']
+>[number];
+
+export interface ApplyAthleteSessionAdjustmentPayload extends ApplyAthleteSessionAdjustmentRequest {
+  loadReductionPercentage?: number | null;
+}
+
+export interface AthleteSessionAdjustmentResult extends ApplyAthleteSessionAdjustmentResponse {
+  loadReductionPercentage?: number | null;
+}
+
 export type {
   AthleteAdaptationContextResponse,
   AuthorizedSubstituteContext,
@@ -87,14 +99,14 @@ export const athleteAdaptationsService = {
     sessionId: string,
     athleteId: string,
     date?: string,
-  ): Promise<ApplyAthleteSessionAdjustmentResponse | null> {
+  ): Promise<AthleteSessionAdjustmentResult | null> {
     try {
       const { data } = await getAthleteSessionAdjustment({
         path: { sessionId },
         query: { athleteId, ...(date ? { date } : {}) },
         throwOnError: true,
       });
-      return data;
+      return data as AthleteSessionAdjustmentResult;
     } catch {
       return null;
     }
@@ -102,19 +114,19 @@ export const athleteAdaptationsService = {
 
   /**
    * Aprueba y persiste en Entrenamiento la variante individual adaptada para el atleta
-   * vinculada al plan vigente sin modificar la rutina del resto de la categoría (KAN-463 / KAN-464).
+   * vinculada al plan vigente sin modificar la rutina del resto de la categoría (KAN-463 / KAN-464 / KAN-465).
    */
   async applySessionAdjustment(
     sessionId: string,
-    payload: ApplyAthleteSessionAdjustmentRequest,
-  ): Promise<ApplyAthleteSessionAdjustmentResponse> {
+    payload: ApplyAthleteSessionAdjustmentPayload,
+  ): Promise<AthleteSessionAdjustmentResult> {
     try {
       const { data } = await applyAthleteSessionAdjustment({
         path: { sessionId },
-        body: payload,
+        body: payload as ApplyAthleteSessionAdjustmentRequest,
         throwOnError: true,
       });
-      return data;
+      return data as AthleteSessionAdjustmentResult;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
