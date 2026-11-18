@@ -271,22 +271,15 @@ export function PlanningPage() {
     return planDeleteAssignments.filter((a) => Boolean(a.categoryId)).length;
   }, [planDeleteAssignments]);
 
-  const assignedAthleteNames = useMemo(() => {
-    return planDeleteAssignments
-      .filter((a) => Boolean(a.athleteId))
-      .map((a) => {
-        const info = a.athleteId ? athletesMap.get(a.athleteId) : null;
-        return info?.name || 'Atleta';
-      });
-  }, [planDeleteAssignments, athletesMap]);
-
   const assignedCategoryNames = useMemo(() => {
-    return planDeleteAssignments
+    const names = new Set<string>();
+    planDeleteAssignments
       .filter((a) => Boolean(a.categoryId))
-      .map((a) => {
+      .forEach((a) => {
         const info = a.categoryId ? categoriesMap.get(a.categoryId) : null;
-        return info?.name || 'Categoría';
+        names.add(info?.name || 'Categoría');
       });
+    return Array.from(names);
   }, [planDeleteAssignments, categoriesMap]);
 
   const handleConfirmDeletePlan = async () => {
@@ -871,7 +864,6 @@ export function PlanningPage() {
           plan={selectedPlanForDelete}
           assignedAthletesCount={assignedAthletesCount}
           assignedCategoriesCount={assignedCategoriesCount}
-          assignedAthleteNames={assignedAthleteNames}
           assignedCategoryNames={assignedCategoryNames}
           isDeleting={deletingPlan}
           errorMessage={deletePlanError}

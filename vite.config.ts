@@ -114,6 +114,18 @@ export default defineConfig({
         target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
+      '/entrenamiento': {
+        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/seguimiento': {
+        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/asistente': {
+        target: process.env.DEV_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
     },
   },
   preview: {
