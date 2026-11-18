@@ -382,8 +382,12 @@ export const structureService = {
           await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/status`, {
             isActive: active,
           });
-        } catch {
-          // Silencioso si falla la sincronización con identidad
+        } catch (identidadErr) {
+          console.error('Error al sincronizar estado del atleta con identidad:', identidadErr);
+          throw new Error(
+            `No se pudo sincronizar el acceso del usuario en Identidad: ${extractErrorMessage(identidadErr)}`,
+            { cause: identidadErr },
+          );
         }
       }
       return response.data;

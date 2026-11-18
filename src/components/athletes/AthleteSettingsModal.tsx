@@ -142,6 +142,9 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
       const res = await authService.resetAthletePassword(athlete.accountId);
       setTempPassword(res.temporaryPassword);
       setResetStep('success');
+      if (!athlete.active) {
+        onAthleteUpdated({ ...athlete, active: true });
+      }
     } catch (err: unknown) {
       setResetError(err instanceof Error ? err.message : 'No se pudo restablecer la contraseña.');
       setResetStep('initial');
