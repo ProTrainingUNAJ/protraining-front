@@ -32,7 +32,7 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     ],
   };
 
-  it('renderiza indicadores rápidos de check-in (sirena, termómetro, EVA, sueño, RPE) en la cabecera y barra de resumen', () => {
+  it('renderiza indicadores rápidos de check-in (sirena, termómetro, EVA, sueño, RPE) en la cabecera', () => {
     const handleClose = vi.fn();
     render(<AthleteQuickSheet athlete={athleteWithIndicators} onClose={handleClose} />);
 
@@ -46,4 +46,29 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     fireEvent.click(closeBtn);
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
+
+  it('muestra tarjetas limpias de métricas estilo card y no duplica las horas de sueño (KAN-621)', () => {
+    render(<AthleteQuickSheet athlete={athleteWithIndicators} onClose={vi.fn()} />);
+
+    // No existe la barra amarilla de texto "Check-in del día:"
+    expect(screen.queryByText(/Check-in del día:/i)).toBeNull();
+
+    // Tarjeta de Sueño y Descanso (4 hrs)
+    expect(screen.getByText(/Sueño y Descanso/i)).toBeDefined();
+    expect(screen.getByText('4 hrs')).toBeDefined();
+    expect(screen.getByText(/Calidad: Mala/i)).toBeDefined();
+
+    // Tarjeta de RPE / Fatiga (8 / 10)
+    expect(screen.getByText(/RPE \/ Fatiga/i)).toBeDefined();
+    expect(screen.getByText('8 / 10')).toBeDefined();
+    expect(screen.getByText('Sobrecarga alta')).toBeDefined();
+
+    // Tarjeta de Dolor EVA (6/5)
+    expect(screen.getByText(/Dolor EVA/i)).toBeDefined();
+
+    // Tarjeta de Estado de Salud
+    expect(screen.getByText(/Estado de Salud/i)).toBeDefined();
+    expect(screen.getByText('Lesión y Enfermedad')).toBeDefined();
+  });
 });
+
