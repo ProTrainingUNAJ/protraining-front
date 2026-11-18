@@ -42,7 +42,26 @@ export const MonitoringPage: React.FC = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<'traffic-light' | 'attendance'>('traffic-light');
+  // Derivar la pestaña activa directamente de URL search params o navigation state (KAN-621)
+  const tabParam = searchParams.get('tab');
+  const stateTab = (location.state as { tab?: 'traffic-light' | 'attendance' })?.tab;
+  const activeTab: 'traffic-light' | 'attendance' =
+    tabParam === 'attendance' || stateTab === 'attendance' ? 'attendance' : 'traffic-light';
+
+  const handleTabChange = (tab: 'traffic-light' | 'attendance') => {
+    setSearchParams(
+      (prev: URLSearchParams) => {
+        const next = new URLSearchParams(prev);
+        if (tab === 'attendance') {
+          next.set('tab', 'attendance');
+        } else {
+          next.delete('tab');
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   // Plantel (categorías reales del PF) y semáforo del día cargados por API
   // (KAN-365/KAN-366). Sin mocks: el archivo trafficLightData.ts fue eliminado.
@@ -463,7 +482,7 @@ export const MonitoringPage: React.FC = () => {
             <button
               type="button"
               className={`btn ${activeTab === 'traffic-light' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setActiveTab('traffic-light')}
+              onClick={() => handleTabChange('traffic-light')}
               style={{
                 borderRadius: '9999px',
                 fontSize: '0.8rem',
@@ -479,7 +498,7 @@ export const MonitoringPage: React.FC = () => {
             <button
               type="button"
               className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setActiveTab('attendance')}
+              onClick={() => handleTabChange('attendance')}
               style={{
                 borderRadius: '9999px',
                 fontSize: '0.8rem',

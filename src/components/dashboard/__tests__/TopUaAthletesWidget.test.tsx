@@ -27,7 +27,7 @@ vi.mock('../../../api/seguimientoService', async () => {
   };
 });
 
-describe('TopUaAthletesWidget (KAN-621)', () => {
+describe('TopUaAthletesWidget Podio (KAN-621)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -39,7 +39,7 @@ describe('TopUaAthletesWidget (KAN-621)', () => {
       </MemoryRouter>,
     );
 
-  it('muestra estado sin cargas cuando no hay atletas con registro de carga hoy', async () => {
+  it('muestra el podio vacío cuando ningún atleta tiene carga registrada hoy', async () => {
     vi.mocked(seguimientoService.fetchAllCategoriesAttendanceToday).mockResolvedValueOnce([
       {
         athleteId: 'ath-1',
@@ -60,12 +60,64 @@ describe('TopUaAthletesWidget (KAN-621)', () => {
     renderComponent();
 
     await waitFor(() => {
+      expect(screen.getByTestId('top-ua-podium')).toBeDefined();
       expect(screen.getByText('Sin cargas registradas hoy')).toBeDefined();
-      expect(screen.getByText('Los atletas aún no registraron minutos o RPE.')).toBeDefined();
     });
+
+    // Los 3 escalones existen pero sin fotos de atletas encima
+    const step1 = screen.getByTestId('podium-step-1');
+    const step2 = screen.getByTestId('podium-step-2');
+    const step3 = screen.getByTestId('podium-step-3');
+
+    expect(step1.textContent).toContain('1');
+    expect(step1.textContent).toContain('—');
+    expect(step2.textContent).toContain('2');
+    expect(step2.textContent).toContain('—');
+    expect(step3.textContent).toContain('3');
+    expect(step3.textContent).toContain('—');
+
+    // No debe renderizarse ninguna foto
+    expect(screen.queryByRole('img')).toBeNull();
   });
 
-  it('renderiza al atleta con mayor UA marcado en verde', async () => {
+  it('renderiza la foto del líder en el puesto 1 y deja los puestos 2 y 3 vacíos si sólo 1 atleta registró carga', async () => {
+    vi.mocked(seguimientoService.fetchAllCategoriesAttendanceToday).mockResolvedValueOnce([
+      {
+        athleteId: 'ath-lucas',
+        athleteName: 'Lucas Gómez',
+        status: 'Present',
+        totalMinutes: 140,
+        totalLoad: 850,
+      },
+    ]);
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('podium-step-1')).toBeDefined();
+    });
+
+    const step1 = screen.getByTestId('podium-step-1');
+    const step2 = screen.getByTestId('podium-step-2');
+    const step3 = screen.getByTestId('podium-step-3');
+
+    // Puesto 1: Contiene la foto de Lucas Gómez y su carga
+    expect(step1.textContent).toContain('1');
+    expect(step1.textContent).toContain('850 UA');
+    expect(screen.getByAltText(/Foto de perfil de Lucas Gómez/i)).toBeDefined();
+
+    // Nombre accesible para lectores de pantalla sin ocupar espacio visual en el podio
+    const nameEl = screen.getByText('Lucas Gómez');
+    expect(nameEl.className).toContain('sr-only');
+
+    // Puestos 2 y 3: No aparece nadie (vacíos)
+    expect(step2.textContent).toContain('2');
+    expect(step2.textContent).toContain('—');
+    expect(step3.textContent).toContain('3');
+    expect(step3.textContent).toContain('—');
+  });
+
+  it('renderiza el podio completo con fotos para los 3 primeros puestos de UA', async () => {
     vi.mocked(seguimientoService.fetchAllCategoriesAttendanceToday).mockResolvedValueOnce([
       {
         athleteId: 'ath-lucas',
@@ -78,57 +130,42 @@ describe('TopUaAthletesWidget (KAN-621)', () => {
         athleteId: 'ath-joaquin',
         athleteName: 'Joaquín Díaz',
         status: 'Present',
-        totalMinutes: 60,
-        totalLoad: 300,
-      },
-    ]);
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
-      expect(screen.getByText('850')).toBeDefined();
-      expect(screen.getByText('140 min totales')).toBeDefined();
-    });
-
-    const leaderItem = screen.getByTestId('top-ua-leader');
-    expect(leaderItem).toBeDefined();
-    expect(leaderItem.textContent).toContain('Lucas Gómez');
-    expect(leaderItem.textContent).toContain('Mayor Carga');
-
-    // El segundo atleta aparece en el ranking sin el badge de Mayor Carga
-    expect(screen.getByText('Joaquín Díaz')).toBeDefined();
-    expect(screen.getByText('300')).toBeDefined();
-  });
-
-  it('marca a múltiples atletas en verde si empatan en el primer puesto de UA', async () => {
-    vi.mocked(seguimientoService.fetchAllCategoriesAttendanceToday).mockResolvedValueOnce([
-      {
-        athleteId: 'ath-1',
-        athleteName: 'Lucas Gómez',
-        status: 'Present',
         totalMinutes: 90,
-        totalLoad: 500,
+        totalLoad: 600,
       },
       {
-        athleteId: 'ath-2',
-        athleteName: 'Martín Pérez',
+        athleteId: 'ath-nicolas',
+        athleteName: 'Nicolás Herrera',
         status: 'Present',
-        totalMinutes: 100,
-        totalLoad: 500,
+        totalMinutes: 60,
+        totalLoad: 350,
       },
     ]);
 
     renderComponent();
 
     await waitFor(() => {
-      const leaders = screen.getAllByTestId('top-ua-leader');
-      expect(leaders.length).toBe(2);
-      expect(screen.getByText('2 Líderes')).toBeDefined();
+      expect(screen.getByTestId('podium-step-1')).toBeDefined();
     });
+
+    const step1 = screen.getByTestId('podium-step-1');
+    const step2 = screen.getByTestId('podium-step-2');
+    const step3 = screen.getByTestId('podium-step-3');
+
+    expect(step1.textContent).toContain('1');
+    expect(step1.textContent).toContain('850 UA');
+    expect(step2.textContent).toContain('2');
+    expect(step2.textContent).toContain('600 UA');
+    expect(step3.textContent).toContain('3');
+    expect(step3.textContent).toContain('350 UA');
+
+    // Las 3 fotos están presentes
+    expect(screen.getByAltText(/Foto de perfil de Lucas Gómez/i)).toBeDefined();
+    expect(screen.getByAltText(/Foto de perfil de Joaquín Díaz/i)).toBeDefined();
+    expect(screen.getByAltText(/Foto de perfil de Nicolás Herrera/i)).toBeDefined();
   });
 
-  it('navega a la pestaña de Asistencia & RPE al hacer clic en Ver detalle', async () => {
+  it('navega a /pf/monitoring?tab=attendance al hacer clic en el widget o en Ver detalle', async () => {
     vi.mocked(seguimientoService.fetchAllCategoriesAttendanceToday).mockResolvedValueOnce([]);
 
     renderComponent();
@@ -138,6 +175,13 @@ describe('TopUaAthletesWidget (KAN-621)', () => {
     });
 
     fireEvent.click(screen.getByText('Ver detalle'));
-    expect(mockNavigate).toHaveBeenCalledWith('/pf/monitoring?tab=attendance');
+    expect(mockNavigate).toHaveBeenCalledWith('/pf/monitoring?tab=attendance', {
+      state: { tab: 'attendance' },
+    });
+
+    fireEvent.click(screen.getByTestId('top-ua-athletes-widget'));
+    expect(mockNavigate).toHaveBeenCalledWith('/pf/monitoring?tab=attendance', {
+      state: { tab: 'attendance' },
+    });
   });
 });
