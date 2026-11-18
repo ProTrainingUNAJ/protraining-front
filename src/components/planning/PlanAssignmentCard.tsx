@@ -94,16 +94,10 @@ export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({
               </Link>
             </h3>
             <p className="plan-card-desc">
-              {rangeText} · {finishText}
+              {plan?.objective
+                ? plan.objective
+                : 'Planificación deportiva sin descripción adicional cargada.'}
             </p>
-            {plan?.objective && (
-              <p
-                className="plan-card-desc"
-                style={{ fontSize: '0.8rem', opacity: 0.85, marginTop: '0.2rem' }}
-              >
-                {plan.objective}
-              </p>
-            )}
           </div>
         </div>
 
@@ -115,6 +109,14 @@ export const PlanAssignmentCard: React.FC<PlanAssignmentCardProps> = ({
           name={planName}
           objective={plan?.objective}
         />
+      </div>
+
+      {/* Rango de fechas de vigencia a todo lo ancho de la tarjeta (Foto 1) */}
+      <div className="plan-card-dates-row">
+        <span className="plan-card-dates-text">
+          {rangeText}
+          {finishText ? ` · ${finishText}` : ''}
+        </span>
       </div>
 
       <footer className="plan-card-footer">
