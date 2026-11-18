@@ -1103,10 +1103,33 @@
 }
 
 /* ── KAN-366: Daily Traffic Light & Quick Sheet ── */
-.athlete-traffic-light-card:hover {
+.athlete-traffic-light-card,
+.athlete-attendance-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.athlete-traffic-light-card:hover,
+.athlete-attendance-card:hover {
   transform: translateY(-2px);
   border-color: var(--secondary);
   box-shadow: var(--shadow-lg);
+}
+
+/* Efecto reactivo al apoyar el mouse sobre la burbuja/avatar del atleta */
+.athlete-avatar-container {
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.athlete-avatar-container:hover {
+  transform: scale(1.12);
+  filter: brightness(1.08);
 }
 
 /* ── KAN-365: Semáforo del Día — anillo de color con transición de estado ── */

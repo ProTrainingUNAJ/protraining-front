@@ -4,6 +4,7 @@ import { Activity, AlertTriangle, Dumbbell, Loader2, Search, Trophy, Users } fro
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
+import { AthleteAvatar } from '../../components/monitoring/AthleteAvatar';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
 import { dayAdjustmentsService } from '../../api/dayAdjustments';
 import {
@@ -12,7 +13,6 @@ import {
 } from '../../components/monitoring/trafficLight.types';
 import { structureService } from '../../api/structureService';
 import { usersService } from '../../api/users';
-import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import {
   ATHLETE_NAME_FALLBACK,
   CATEGORY_NAME_FALLBACK,
@@ -590,18 +590,20 @@ export const MonitoringPage: React.FC = () => {
         </div>
 
         {activeTab === 'traffic-light' ? (
-          <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {/* Barra de Resumen del Semáforo y Bienestar Diario (KAN-621) */}
             <div
               style={{
+                minHeight: '52px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1rem',
-                padding: '1rem 1.25rem',
+                padding: '0.85rem 1.25rem',
                 background: 'var(--bg-card)',
                 borderRadius: '16px',
                 border: '1px solid var(--border)',
                 flexWrap: 'wrap',
+                boxSizing: 'border-box',
               }}
             >
               <Activity size={20} style={{ color: 'var(--primary)' }} />
@@ -632,7 +634,15 @@ export const MonitoringPage: React.FC = () => {
                 Actualizar
               </button>
             </div>
-            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            <p
+              style={{
+                margin: 0,
+                color: 'var(--text-muted)',
+                fontSize: '0.8rem',
+                lineHeight: 1.4,
+                minHeight: '1.25rem',
+              }}
+            >
               El semáforo evalúa el readiness diario del atleta a través del check-in matutino de
               bienestar, dolor muscular y presencia de lesiones.
             </p>
@@ -640,11 +650,11 @@ export const MonitoringPage: React.FC = () => {
             {/* Segmented Color Filter Chips (KAN-366 Criterion 3) */}
             <div
               style={{
+                minHeight: '36px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                overflowX: 'auto',
-                paddingBottom: '0.25rem',
+                flexWrap: 'wrap',
               }}
               role="group"
               aria-label="Filtro de atletas por color del semáforo"
@@ -978,39 +988,10 @@ export const MonitoringPage: React.FC = () => {
                   </div>
                 )}
             </div>
-
-            {/* Accessible Quick Sheet (Bottom Sheet on Mobile, Modal on Desktop) */}
-            <AthleteQuickSheet
-              athlete={selectedAthlete}
-              onClose={() => setSelectedAthlete(null)}
-              onAssignDifferentiated={handleAssignDifferentiated}
-              onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
-            />
-
-            {/* Modal de Propuesta de Ajuste del Día (#157 · KAN-452) */}
-            {adjustmentAthlete && (
-              <DayAdjustmentModal
-                athleteId={adjustmentAthlete.id}
-                athleteName={adjustmentAthlete.name}
-                isOpen={Boolean(adjustmentAthlete)}
-                onClose={() => setAdjustmentAthlete(null)}
-                onAdjustmentApplied={(adjustment) => {
-                  if (adjustment.status === 'Approved') {
-                    setStatusOverrides((prev) => ({
-                      ...prev,
-                      [adjustment.athleteId]: {
-                        hasDayConflict: false,
-                        recommendation: `Ajuste del día aprobado: ${adjustment.justification}`,
-                      },
-                    }));
-                  }
-                }}
-              />
-            )}
-          </>
+          </div>
         ) : (
           /* Asistencia automática del día (KAN-445) */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {attendanceLoading && (
               <div
                 style={{
@@ -1049,14 +1030,16 @@ export const MonitoringPage: React.FC = () => {
               <>
                 <div
                   style={{
+                    minHeight: '52px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
-                    padding: '1rem 1.25rem',
+                    padding: '0.85rem 1.25rem',
                     background: 'var(--bg-card)',
                     borderRadius: '16px',
                     border: '1px solid var(--border)',
                     flexWrap: 'wrap',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <Users size={20} style={{ color: 'var(--primary)' }} />
@@ -1085,7 +1068,15 @@ export const MonitoringPage: React.FC = () => {
                     Actualizar
                   </button>
                 </div>
-                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: 'var(--text-muted)',
+                    fontSize: '0.8rem',
+                    lineHeight: 1.4,
+                    minHeight: '1.25rem',
+                  }}
+                >
                   La asistencia se marca cuando el atleta registra la carga del día (minutos + RPE).
                   El check-in de bienestar no la marca.
                 </p>
@@ -1093,11 +1084,14 @@ export const MonitoringPage: React.FC = () => {
                 {/* Pills de Filtro Reactivo de Asistencia (guiado por el diseño de semáforo) */}
                 <div
                   style={{
+                    minHeight: '36px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
                     flexWrap: 'wrap',
                   }}
+                  role="group"
+                  aria-label="Filtro de atletas por asistencia"
                 >
                   {/* Todos */}
                   <button
@@ -1276,9 +1270,16 @@ export const MonitoringPage: React.FC = () => {
                     const totalMinutes = athlete.totalMinutes ?? 0;
                     const totalLoad = athlete.totalLoad ?? 0;
 
+                    const athleteTraffic = athletes.find(
+                      (a) => a.id.toLowerCase() === athlete.athleteId.toLowerCase(),
+                    );
+                    const athleteStatus: TrafficLightStatus =
+                      athleteTraffic?.status ?? (isPresent ? 'green' : 'gray');
+
                     return (
                       <div
                         key={athlete.athleteId}
+                        className="card athlete-attendance-card"
                         style={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -1308,13 +1309,33 @@ export const MonitoringPage: React.FC = () => {
                               flex: 1,
                             }}
                           >
-                            <ProfileAvatar
-                              src={photoUrl}
-                              name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
-                              size={42}
-                              shape="circle"
-                              alt={`Foto de perfil de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
-                            />
+                            <div
+                              className="athlete-avatar-bubble-wrap"
+                              onClick={() => {
+                                if (athleteTraffic) setSelectedAthlete(athleteTraffic);
+                              }}
+                              style={{
+                                cursor: athleteTraffic ? 'pointer' : 'default',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                              title={
+                                athleteTraffic
+                                  ? `Ver semáforo y check-in de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`
+                                  : athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK
+                              }
+                            >
+                              <AthleteAvatar
+                                name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
+                                avatarUrl={photoUrl}
+                                status={athleteStatus}
+                                size={42}
+                                showRing={true}
+                                interactiveHover={true}
+                              />
+                            </div>
                             <div
                               style={{
                                 display: 'flex',
@@ -1606,6 +1627,35 @@ export const MonitoringPage: React.FC = () => {
               </>
             )}
           </div>
+        )}
+
+        {/* Accessible Quick Sheet (Accesible desde Semáforo del Día y Asistencia & RPE) */}
+        <AthleteQuickSheet
+          athlete={selectedAthlete}
+          onClose={() => setSelectedAthlete(null)}
+          onAssignDifferentiated={handleAssignDifferentiated}
+          onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
+        />
+
+        {/* Modal de Propuesta de Ajuste del Día (#157 · KAN-452) */}
+        {adjustmentAthlete && (
+          <DayAdjustmentModal
+            athleteId={adjustmentAthlete.id}
+            athleteName={adjustmentAthlete.name}
+            isOpen={Boolean(adjustmentAthlete)}
+            onClose={() => setAdjustmentAthlete(null)}
+            onAdjustmentApplied={(adjustment) => {
+              if (adjustment.status === 'Approved') {
+                setStatusOverrides((prev) => ({
+                  ...prev,
+                  [adjustment.athleteId]: {
+                    hasDayConflict: false,
+                    recommendation: `Ajuste del día aprobado: ${adjustment.justification}`,
+                  },
+                }));
+              }
+            }}
+          />
         )}
       </div>
     </div>
