@@ -1,13 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  Check,
-  AlertCircle,
-  Moon,
-  Activity,
-  Siren,
-  Thermometer,
-  Sparkles,
-} from 'lucide-react';
+import { Check, AlertCircle, Moon, Activity, Siren, Thermometer, Sparkles } from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 import { MuscleMapFront } from '../athlete/MuscleMapFront';
