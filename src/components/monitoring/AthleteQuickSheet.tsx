@@ -331,132 +331,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
         {/* Desglose de Parámetros de Check-in */}
         {athlete.status !== 'gray' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {/* Barra de indicadores rápidos del check-in (Imagen 3 y 4) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                flexWrap: 'wrap',
-                padding: '0.6rem 0.85rem',
-                background: 'var(--bg-subtle)',
-                borderRadius: '12px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 800,
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Check-in del día:
-              </span>
-
-              {athlete.hasActiveInjury && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '0.2rem 0.55rem',
-                    borderRadius: '9999px',
-                    background: 'var(--traffic-red-bg)',
-                    border: '1px solid var(--traffic-red-border)',
-                    color: 'var(--traffic-red-text)',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  <Siren size={14} /> Lesión activa
-                </span>
-              )}
-
-              {athlete.isSick && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '0.2rem 0.55rem',
-                    borderRadius: '9999px',
-                    background: 'var(--warning-bg)',
-                    border: '1px solid var(--warning-border)',
-                    color: 'var(--warning-text)',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  <Thermometer size={14} /> Enfermedad
-                </span>
-              )}
-
-              {maxPainLevel > 0 && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '0.2rem 0.55rem',
-                    borderRadius: '9999px',
-                    background: maxPainLevel >= 4 ? 'var(--traffic-red-bg)' : 'var(--warning-bg)',
-                    border: `1px solid ${maxPainLevel >= 4 ? 'var(--traffic-red-border)' : 'var(--warning-border)'}`,
-                    color: maxPainLevel >= 4 ? 'var(--traffic-red-text)' : 'var(--warning-text)',
-                    fontSize: '0.78rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  <AlertCircle size={14} /> Dolor EVA: {maxPainLevel}/5
-                </span>
-              )}
-
-              {athlete.sleepHours !== undefined && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '0.2rem 0.55rem',
-                    borderRadius: '9999px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  <Moon size={14} style={{ color: 'var(--secondary)' }} /> Sueño:{' '}
-                  {athlete.sleepHours}h ({athlete.sleepQuality || 'Normal'})
-                </span>
-              )}
-
-              {athlete.rpe !== undefined && athlete.rpe > 0 && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '0.2rem 0.55rem',
-                    borderRadius: '9999px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  <Activity size={14} style={{ color: 'var(--primary)' }} /> RPE: {athlete.rpe}
-                </span>
-              )}
-            </div>
-
-            {/* Visual Anatomical Human Body Map (inherited from athlete check-in) */}
-            <AthleteBodyPainMap pains={athlete.pains} athleteName={athlete.name} />
-
-            {/* Sueño y RPE */}
+            {/* Tarjetas de parámetros del Check-in (estilo de tarjetas métricas, sin duplicación de sueño) */}
             <div
               style={{
                 display: 'grid',
@@ -464,6 +339,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                 gap: '0.75rem',
               }}
             >
+              {/* 1. Sueño y Descanso */}
               <div
                 style={{
                   padding: '0.75rem',
@@ -486,7 +362,9 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                   <Moon size={14} style={{ color: 'var(--secondary)' }} /> Sueño y Descanso
                 </div>
                 <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                  {athlete.sleepHours ? `${athlete.sleepHours} hrs` : '—'}
+                  {athlete.sleepHours !== undefined && athlete.sleepHours !== null
+                    ? `${athlete.sleepHours} hrs`
+                    : '—'}
                 </strong>
                 <small
                   style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
@@ -495,6 +373,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                 </small>
               </div>
 
+              {/* 2. RPE / Fatiga */}
               <div
                 style={{
                   padding: '0.75rem',
@@ -517,15 +396,111 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                   <Activity size={14} style={{ color: 'var(--stat-cyan)' }} /> RPE / Fatiga
                 </div>
                 <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                  {athlete.rpe ? `${athlete.rpe} / 10` : '—'}
+                  {athlete.rpe !== undefined && athlete.rpe !== null && athlete.rpe > 0
+                    ? `${athlete.rpe} / 10`
+                    : '—'}
                 </strong>
                 <small
                   style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
                 >
-                  {athlete.rpe && athlete.rpe >= 8 ? 'Sobrecarga alta' : 'Carga moderada'}
+                  {athlete.rpe && athlete.rpe >= 8
+                    ? 'Sobrecarga alta'
+                    : athlete.rpe
+                      ? 'Carga moderada'
+                      : 'Sin registro'}
                 </small>
               </div>
+
+              {/* 3. Dolor EVA Máximo (si reportó dolor) */}
+              {maxPainLevel > 0 && (
+                <div
+                  style={{
+                    padding: '0.75rem',
+                    background: 'var(--bg-subtle)',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      marginBottom: '0.2rem',
+                    }}
+                  >
+                    <AlertCircle
+                      size={14}
+                      style={{
+                        color: maxPainLevel >= 4 ? 'var(--traffic-red)' : 'var(--traffic-yellow)',
+                      }}
+                    />{' '}
+                    Dolor EVA
+                  </div>
+                  <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
+                    {maxPainLevel}/5
+                  </strong>
+                  <small
+                    style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
+                  >
+                    {athlete.hasActiveInjury
+                      ? 'Lesión activa reportada'
+                      : maxPainLevel >= 4
+                        ? 'Dolor agudo / máximo'
+                        : 'Molestia moderada'}
+                  </small>
+                </div>
+              )}
+
+              {/* 4. Estado Clínico / Salud (si reportó enfermedad o lesión) */}
+              {(athlete.hasActiveInjury || athlete.isSick) && (
+                <div
+                  style={{
+                    padding: '0.75rem',
+                    background: 'var(--bg-subtle)',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      marginBottom: '0.2rem',
+                    }}
+                  >
+                    {athlete.isSick ? (
+                      <Thermometer size={14} style={{ color: 'var(--warning-text)' }} />
+                    ) : (
+                      <Siren size={14} style={{ color: 'var(--traffic-red-text)' }} />
+                    )}{' '}
+                    Estado de Salud
+                  </div>
+                  <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
+                    {athlete.isSick && athlete.hasActiveInjury
+                      ? 'Lesión y Enfermedad'
+                      : athlete.isSick
+                        ? 'Enfermedad'
+                        : 'Lesión Activa'}
+                  </strong>
+                  <small
+                    style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
+                  >
+                    {athlete.isSick ? 'Reportó síntomas hoy' : 'Zona afectada'}
+                  </small>
+                </div>
+              )}
             </div>
+
+            {/* Visual Anatomical Human Body Map (inherited from athlete check-in) */}
+            <AthleteBodyPainMap pains={athlete.pains} athleteName={athlete.name} />
 
             {/* Observaciones del Atleta */}
             {athlete.notes && (
