@@ -20,6 +20,7 @@ import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgres
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
 import { EpleyProposalsWidget } from '../../components/dashboard/EpleyProposalsWidget';
 import { RecordProposalCard } from '../../components/dashboard/RecordProposalCard';
+import { TopUaAthletesWidget } from '../../components/dashboard/TopUaAthletesWidget';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
 import {
@@ -43,7 +44,8 @@ export type DashboardCardType =
   | 'progress-chart'
   | 'epley-proposals'
   | 'daily-load'
-  | 'daily-traffic-light';
+  | 'daily-traffic-light'
+  | 'top-ua-athletes';
 
 export interface WireframeCardItem {
   id: string;
@@ -68,7 +70,7 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
     cards: [
       { id: 'w-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
       { id: 'w-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-      { id: 'w-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-top-ua', name: 'Mayor Carga (UA)', colSpan: 1, type: 'top-ua-athletes' },
     ],
   },
   {
@@ -146,6 +148,20 @@ export const DashboardPage: React.FC = () => {
                   name: 'Propuestas de Récord Epley',
                   colSpan: 1,
                   type: 'epley-proposals',
+                };
+              }
+            }
+            const hasTopUa = parsed.some((r: DashboardRow) =>
+              r.cards.some((c: WireframeCardItem) => c.type === 'top-ua-athletes'),
+            );
+            if (!hasTopUa) {
+              const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
+              if (row1 && row1.cards.length >= 3 && row1.cards[2].type === 'empty') {
+                row1.cards[2] = {
+                  id: 'w-top-ua',
+                  name: 'Mayor Carga (UA)',
+                  colSpan: 1,
+                  type: 'top-ua-athletes',
                 };
               }
             }
@@ -424,6 +440,8 @@ export const DashboardPage: React.FC = () => {
   // Card inner content renderer
   const renderCardContent = (card: WireframeCardItem) => {
     switch (card.type) {
+      case 'top-ua-athletes':
+        return <TopUaAthletesWidget />;
       case 'daily-load':
         return <DailyLoadWidget />;
       case 'daily-traffic-light':

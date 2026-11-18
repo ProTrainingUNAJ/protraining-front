@@ -24,6 +24,7 @@ import {
   getCategoryTrafficLightToday as getCategoryTrafficLightTodayRequest,
   setAttendance as setAttendanceRequest,
   type AthleteTrafficLightSummary,
+  type AthleteAttendanceSummary,
   type DailyLoadActivity,
   type DailyLoadRequest,
   type DailyLoadResponse,
@@ -631,6 +632,49 @@ export async function setAttendance(athleteId: string, present: boolean): Promis
     });
   } catch (err) {
     throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Recupera la asistencia y carga acumulada (UA Foster) de hoy para todas las categorías del PF.
+ * Deduplica atletas por athleteId conservando el registro con mayor carga.
+ */
+export async function fetchAllCategoriesAttendanceToday(): Promise<AthleteAttendanceSummary[]> {
+  try {
+    const organizations = await structureService.getOrganizations().catch(() => []);
+    if (!organizations || organizations.length === 0) return [];
+
+    const categoriesByOrg = await Promise.all(
+      organizations.map((org) =>
+        structureService.getCategories(org.id).catch(() => [] as Category[]),
+      ),
+    );
+    const categories = categoriesByOrg.flat();
+    if (categories.length === 0) return [];
+
+    const summaries = await Promise.all(
+      categories.map(async (category) => {
+        try {
+          const attendance = await getCategoryAttendanceToday(category.id);
+          return attendance.athletes ?? [];
+        } catch {
+          return [] as AthleteAttendanceSummary[];
+        }
+      }),
+    );
+
+    const athleteMap = new Map<string, AthleteAttendanceSummary>();
+    for (const athlete of summaries.flat()) {
+      if (!athlete || !athlete.athleteId) continue;
+      const existing = athleteMap.get(athlete.athleteId);
+      if (!existing || (athlete.totalLoad ?? 0) > (existing.totalLoad ?? 0)) {
+        athleteMap.set(athlete.athleteId, athlete);
+      }
+    }
+
+    return Array.from(athleteMap.values());
+  } catch {
+    return [];
   }
 }
 
