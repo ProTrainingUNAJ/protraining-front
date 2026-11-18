@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FinishRoutineModal } from '../FinishRoutineModal';
+import { formatMmSs, parseMmSs } from '../finishRoutineUtils';
 import * as seguimientoService from '../../../api/seguimientoService';
 import type { TodayRoutineExercise } from '../../../api/generated/entrenamiento';
 
@@ -40,13 +41,32 @@ describe('FinishRoutineModal (KAN-623)', () => {
     vi.mocked(seguimientoService.getDailyLoad).mockResolvedValue(null);
   });
 
-  it('muestra los músculos que trabajaron, vincula minutos del cronómetro y permite seleccionar RPE', () => {
+  describe('utilidades formatMmSs y parseMmSs', () => {
+    it('formatea correctamente a formato digital estricto MM:SS', () => {
+      expect(formatMmSs(0)).toBe('00:00');
+      expect(formatMmSs(3)).toBe('00:03');
+      expect(formatMmSs(21)).toBe('00:21');
+      expect(formatMmSs(65)).toBe('01:05');
+      expect(formatMmSs(2700)).toBe('45:00');
+      expect(formatMmSs(3600)).toBe('60:00');
+    });
+
+    it('parsea strings MM:SS o números a segundos totales', () => {
+      expect(parseMmSs('00:21')).toBe(21);
+      expect(parseMmSs('00:03')).toBe(3);
+      expect(parseMmSs('45:00')).toBe(2700);
+      expect(parseMmSs('45')).toBe(2700);
+      expect(parseMmSs('')).toBe(0);
+    });
+  });
+
+  it('muestra tiempo en formato centrado 00:00, sin toggle de unidades ni badge cronómetro, y RPE coloreado', () => {
     render(
       <FinishRoutineModal
         isOpen={true}
         onClose={vi.fn()}
         athleteId="ath-123"
-        timerSeconds={2700} // 45 minutos (45 * 60 = 2700 s)
+        timerSeconds={2700} // 45 minutos (2700 s)
         exercises={mockExercises}
       />,
     );
@@ -59,20 +79,30 @@ describe('FinishRoutineModal (KAN-623)', () => {
     expect(screen.getByText('Cuádriceps')).toBeTruthy();
     expect(screen.getByText('Pectorales')).toBeTruthy();
 
-    // 3. Minutos vinculados al cronómetro (45 min)
-    const minutesInput = screen.getByLabelText(/Minutos de sesión entrenados/i) as HTMLInputElement;
-    expect(minutesInput.value).toBe('45');
-    expect(screen.getByText(/Cronómetro: 45 min 0 s/i)).toBeTruthy();
+    // 3. No deben existir elementos en amarillo eliminados (toggle min/seg ni badge de Cronómetro)
+    expect(screen.queryByRole('group', { name: /Unidad de tiempo/i })).toBeNull();
+    expect(screen.queryByText(/Cronómetro:/i)).toBeNull();
 
-    // 4. Selector de RPE interactivo presente
+    // 4. Input de tiempo centrado y en formato 00:00
+    const timeInput = screen.getByLabelText(/Tiempo de sesión entrenado/i) as HTMLInputElement;
+    expect(timeInput.value).toBe('45:00');
+    expect(timeInput.classList.contains('finish-routine-time-input')).toBe(true);
+
+    // 5. Botones de incremento por defecto para >= 60s son - 1 min y + 1 min
+    expect(screen.getByRole('button', { name: /- 1 min/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /\+ 1 min/i })).toBeTruthy();
+
+    // 6. Selector de RPE interactivo presente con colores semánticos (RPE 7 activo por defecto)
     expect(screen.getByText(/Esfuerzo percibido \(RPE 1-10\)/i)).toBeTruthy();
-    expect(screen.getByText('RPE 7')).toBeTruthy();
+    expect(screen.getByText('Nivel 7')).toBeTruthy();
+    expect(screen.getByText(/RPE 7 · Muy duro/i)).toBeTruthy();
+    expect(screen.getByText('Muy Duro')).toBeTruthy();
 
-    // 5. Cálculo dinámico inicial de UA: 45 min * 7 RPE = 315 UA
+    // 7. Cálculo dinámico inicial de UA: 45 min * 7 RPE = 315 UA
     expect(screen.getByText('315')).toBeTruthy();
   });
 
-  it('al cambiar RPE o minutos actualiza dinámicamente las Unidades Arbitrarias (UA)', () => {
+  it('al cambiar RPE aplica el tier de color correspondiente (demanding en 6, etc.) y recalcula UA', () => {
     render(
       <FinishRoutineModal
         isOpen={true}
@@ -83,33 +113,73 @@ describe('FinishRoutineModal (KAN-623)', () => {
       />,
     );
 
-    // Cambiar RPE a 8
-    const rpe8Btn = screen.getByRole('button', { name: '8' });
-    fireEvent.click(rpe8Btn);
+    // Seleccionar RPE 6 (tier demanding - naranja como en DailyLoadPage)
+    const rpe6Btn = screen.getByRole('button', { name: 'Nivel 6' });
+    expect(rpe6Btn.classList.contains('finish-routine-rpe-btn--demanding')).toBe(true);
 
-    // 60 min * 8 RPE = 480 UA
-    expect(screen.getByText('480')).toBeTruthy();
+    fireEvent.click(rpe6Btn);
 
-    // Permite ajustar minutos con botones + 5 min y - 5 min
-    const plus5Btn = screen.getByRole('button', { name: /\+ 5 min/i });
-    fireEvent.click(plus5Btn);
-    const minutesInput = screen.getByLabelText(/Minutos de sesión entrenados/i) as HTMLInputElement;
-    expect(minutesInput.value).toBe('65');
+    // Debe marcarse como seleccionado
+    expect(rpe6Btn.classList.contains('finish-routine-rpe-btn--selected')).toBe(true);
+    expect(screen.getByText('Nivel 6')).toBeTruthy();
+    expect(screen.getByText(/RPE 6 · Exigente/i)).toBeTruthy();
+    expect(screen.getByText('Exigente')).toBeTruthy();
+    expect(
+      screen.getByText(/Fatiga progresiva, requiere concentración mental para sostener./i),
+    ).toBeTruthy();
 
-    const minus5Btn = screen.getByRole('button', { name: /- 5 min/i });
-    fireEvent.click(minus5Btn);
-    expect(minutesInput.value).toBe('60');
+    // 60 min * 6 RPE = 360 UA
+    expect(screen.getByText('360')).toBeTruthy();
+
+    // Permite ajustar tiempo con botones + 1 min y - 1 min
+    const plus1Btn = screen.getByRole('button', { name: /\+ 1 min/i });
+    fireEvent.click(plus1Btn);
+    const timeInput = screen.getByLabelText(/Tiempo de sesión entrenado/i) as HTMLInputElement;
+    expect(timeInput.value).toBe('61:00');
+
+    const minus1Btn = screen.getByRole('button', { name: /- 1 min/i });
+    fireEvent.click(minus1Btn);
+    expect(timeInput.value).toBe('60:00');
   });
 
-  it('al confirmar exitosamente lanza confeti y carga la barra de UA conseguida', async () => {
+  it('precarga segundos del cronómetro (< 60s) en formato 00:XX y adapta incrementos a 15 s', () => {
+    render(
+      <FinishRoutineModal
+        isOpen={true}
+        onClose={vi.fn()}
+        athleteId="ath-123"
+        timerSeconds={21} // 21 segundos
+        exercises={mockExercises}
+      />,
+    );
+
+    // 1. Input muestra 00:21 centrado
+    const timeInput = screen.getByLabelText(/Tiempo de sesión entrenado/i) as HTMLInputElement;
+    expect(timeInput.value).toBe('00:21');
+
+    // 2. Botones de paso se adaptan a 15 s cuando es menor a 60s
+    const plus15Btn = screen.getByRole('button', { name: /\+ 15 s/i });
+    expect(plus15Btn).toBeTruthy();
+    fireEvent.click(plus15Btn);
+    expect(timeInput.value).toBe('00:36');
+
+    const minus15Btn = screen.getByRole('button', { name: /- 15 s/i });
+    fireEvent.click(minus15Btn);
+    expect(timeInput.value).toBe('00:21');
+
+    // 3. No muestra selector de unidad ni texto "seg" suelto
+    expect(screen.queryByText(/Cronómetro:/i)).toBeNull();
+  });
+
+  it('al confirmar exitosamente guarda la carga, lanza confeti y muestra pantalla de celebración con duración MM:SS', async () => {
     vi.mocked(seguimientoService.submitDailyLoad).mockResolvedValue({
       message: 'OK',
-      date: '2026-11-16',
+      date: '2026-11-18',
       totalMinutes: 60,
-      totalLoad: 480,
+      totalLoad: 360,
       gym: {
         minutes: 60,
-        rpe: 8,
+        rpe: 6,
       },
       sportTraining: {},
       match1: {},
@@ -130,8 +200,8 @@ describe('FinishRoutineModal (KAN-623)', () => {
       />,
     );
 
-    // Seleccionar RPE 8
-    fireEvent.click(screen.getByRole('button', { name: '8' }));
+    // Seleccionar RPE 6
+    fireEvent.click(screen.getByRole('button', { name: 'Nivel 6' }));
 
     // Clic en confirmar
     const submitBtn = screen.getByRole('button', {
@@ -143,63 +213,20 @@ describe('FinishRoutineModal (KAN-623)', () => {
       expect(seguimientoService.submitDailyLoad).toHaveBeenCalledWith(
         'ath-123',
         expect.objectContaining({
-          gym: { minutes: 60, rpe: 8 },
+          gym: { minutes: 60, rpe: 6 },
         }),
       );
     });
 
-    // Criterio de aceptación: Debe mostrar pantalla de celebración con barra de UA
+    // Pantalla de celebración
     await waitFor(() => {
       expect(screen.getByText('¡Entrenamiento completado!')).toBeTruthy();
       expect(screen.getByText(/Carga conseguida en la sesión/i)).toBeTruthy();
-      expect(screen.getByText('480')).toBeTruthy();
+      expect(screen.getByText('360')).toBeTruthy();
+      expect(screen.getByText('60:00')).toBeTruthy();
+      expect(screen.getByText('RPE 6')).toBeTruthy();
     });
 
     expect(onFinishSuccess).toHaveBeenCalled();
-  });
-
-  it('precarga automáticamente los segundos medidos por el cronómetro (< 60s) en el input con unidad seg (KAN-623)', async () => {
-    vi.mocked(seguimientoService.submitDailyLoad).mockResolvedValue({
-      message: 'OK',
-      date: '2026-11-18',
-      totalMinutes: 1,
-      totalLoad: 8,
-      gym: { minutes: 1, rpe: 8 },
-      sportTraining: {},
-      match1: {},
-      match2: {},
-      individualWork: {},
-    });
-
-    render(
-      <FinishRoutineModal
-        isOpen={true}
-        onClose={vi.fn()}
-        athleteId="ath-123"
-        timerSeconds={21} // 21 segundos en el cronómetro
-        exercises={mockExercises}
-      />,
-    );
-
-    // 1. Badge del cronómetro muestra 21 s
-    expect(screen.getByText(/Cronómetro: 21 s/i)).toBeTruthy();
-
-    // 2. El input tiene precargado el valor 21 (no 1 min)
-    const timeInput = screen.getByLabelText(/Minutos de sesión entrenados/i) as HTMLInputElement;
-    expect(timeInput.value).toBe('21');
-
-    // 3. La unidad visible es seg
-    expect(screen.getAllByText('seg').length).toBeGreaterThan(0);
-
-    // 4. Los botones de incremento dicen - 5 seg y + 5 seg
-    const plusBtn = screen.getByRole('button', { name: /\+ 5 seg/i });
-    expect(plusBtn).toBeTruthy();
-    fireEvent.click(plusBtn);
-    expect(timeInput.value).toBe('26');
-
-    // 5. Permite cambiar a minutos con el toggle
-    const minToggleBtn = screen.getByRole('button', { name: /^min$/i });
-    fireEvent.click(minToggleBtn);
-    expect(timeInput.value).toBe('1'); // 26s redondeado a minutos
   });
 });

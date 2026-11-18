@@ -22,6 +22,7 @@ import {
   type DailyLoadSubmitRequest,
 } from '../../api/seguimientoService';
 import type { TodayRoutineExercise } from '../../api/generated/entrenamiento';
+import { RPE_LEVELS_META, formatMmSs, parseMmSs } from './finishRoutineUtils';
 
 export interface FinishRoutineModalProps {
   isOpen: boolean;
@@ -32,38 +33,6 @@ export interface FinishRoutineModalProps {
   onFinishSuccess?: (result: DailyLoadSubmitResponse) => void;
 }
 
-const RPE_DESCRIPTIONS: Record<number, { label: string; colorVar: string }> = {
-  1: { label: 'Muy suave · Recuperación activa', colorVar: 'var(--stat-green)' },
-  2: { label: 'Muy suave · Esfuerzo mínimo', colorVar: 'var(--stat-green)' },
-  3: { label: 'Suave · Ritmo conversacional cómodo', colorVar: 'var(--stat-green)' },
-  4: { label: 'Suave / Moderado · Respiración controlada', colorVar: 'var(--stat-green)' },
-  5: { label: 'Moderado · Empieza a costar hablar continuo', colorVar: 'var(--secondary)' },
-  6: { label: 'Moderado / Intenso · Exigencia sostenida', colorVar: 'var(--secondary)' },
-  7: { label: 'Duro · Esfuerzo vigoroso (2-3 reps en reserva)', colorVar: 'var(--warning)' },
-  8: { label: 'Duro / Muy duro · Gran fatiga (1-2 reps en reserva)', colorVar: 'var(--warning)' },
-  9: { label: 'Muy duro · Esfuerzo casi límite (0-1 rep en reserva)', colorVar: 'var(--danger)' },
-  10: { label: 'Esfuerzo máximo · Límite absoluto / al fallo', colorVar: 'var(--danger)' },
-};
-
-function formatTimerSecondsSummary(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  if (m === 0) return `${s} s`;
-  return `${m} min ${s} s`;
-}
-
-type TimeUnit = 'min' | 'sec';
-
-function getInitialTime(timerSeconds: number): { unit: TimeUnit; duration: number } {
-  if (timerSeconds > 0) {
-    if (timerSeconds < 60) {
-      return { unit: 'sec', duration: timerSeconds };
-    }
-    return { unit: 'min', duration: Math.max(1, Math.round(timerSeconds / 60)) };
-  }
-  return { unit: 'min', duration: 60 };
-}
-
 export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   isOpen,
   onClose,
@@ -72,9 +41,10 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   exercises,
   onFinishSuccess,
 }) => {
-  // Tiempo vinculado al cronómetro: si midió en segundos (< 60s), se precarga en segundos; si midió en minutos, en minutos.
-  const [unit, setUnit] = useState<TimeUnit>(() => getInitialTime(timerSeconds).unit);
-  const [duration, setDuration] = useState<number>(() => getInitialTime(timerSeconds).duration);
+  // Tiempo vinculado al cronómetro: precargado automáticamente y mostrado en formato centrado 00:00
+  const initialSeconds = timerSeconds > 0 ? timerSeconds : 3600;
+  const [totalSeconds, setTotalSeconds] = useState<number>(initialSeconds);
+  const [timeInputValue, setTimeInputValue] = useState<string>(() => formatMmSs(initialSeconds));
   const [rpe, setRpe] = useState<number>(7);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -85,22 +55,38 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
   if (prevIsOpen !== isOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen) {
-      const init = getInitialTime(timerSeconds);
-      setUnit(init.unit);
-      setDuration(init.duration);
+      const initSec = timerSeconds > 0 ? timerSeconds : 3600;
+      setTotalSeconds(initSec);
+      setTimeInputValue(formatMmSs(initSec));
       setIsCompleted(false);
       setErrorMessage(null);
     }
   }
 
-  const handleUnitChange = (newUnit: TimeUnit) => {
-    if (newUnit === unit) return;
-    setUnit(newUnit);
-    if (newUnit === 'min') {
-      setDuration((prev) => Math.max(1, Math.round(prev / 60)));
-    } else {
-      setDuration((prev) => Math.max(1, prev * 60));
-    }
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTimeInputValue(val);
+    const parsed = parseMmSs(val);
+    setTotalSeconds(parsed);
+  };
+
+  const handleTimeBlur = () => {
+    setTimeInputValue(formatMmSs(totalSeconds));
+  };
+
+  const stepSeconds = totalSeconds < 60 ? 15 : 60;
+  const stepLabel = totalSeconds < 60 ? '15 s' : '1 min';
+
+  const handleSubtractTime = () => {
+    const next = Math.max(1, totalSeconds - stepSeconds);
+    setTotalSeconds(next);
+    setTimeInputValue(formatMmSs(next));
+  };
+
+  const handleAddTime = () => {
+    const next = Math.min(21600, totalSeconds + stepSeconds);
+    setTotalSeconds(next);
+    setTimeInputValue(formatMmSs(next));
   };
 
   // Músculos involucrados en la sesión
@@ -119,27 +105,22 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Minutos equivalentes para el registro y cálculo de UA (Foster: UA = min × RPE)
-  const effectiveMinutes =
-    unit === 'sec'
-      ? Math.max(1, Math.round(duration / 60))
-      : Math.max(0, duration);
+  // Minutos equivalentes para el registro y cálculo de Foster (mínimo 1 minuto entero para sesiones breves)
+  const effectiveMinutes = Math.max(1, Math.round(totalSeconds / 60));
 
-  // Cálculo en vivo de Unidades Arbitrarias
+  // Cálculo en vivo de Unidades Arbitrarias (Foster: UA = min × RPE)
   const calculatedUa = Math.round(effectiveMinutes * (rpe || 0));
 
   // Nivel de UA para la barra (escala habitual 0 a 600 UA de referencia de sesión)
   const uaPercent = Math.min(100, Math.max(5, Math.round((calculatedUa / 600) * 100)));
 
+  const activeRpeMeta = RPE_LEVELS_META[rpe] || RPE_LEVELS_META[7];
+
   const handleConfirm = async () => {
     setErrorMessage(null);
 
-    if (duration <= 0) {
-      setErrorMessage(
-        unit === 'sec'
-          ? 'Los segundos deben ser mayores a 0.'
-          : 'Los minutos deben ser mayores a 0.',
-      );
+    if (totalSeconds <= 0) {
+      setErrorMessage('El tiempo de entrenamiento debe ser mayor a 00:00.');
       return;
     }
 
@@ -155,7 +136,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
       try {
         previous = await getDailyLoad(athleteId);
       } catch {
-        // Ignorar
+        // Ignorar si no existe carga previa
       }
 
       const payload: DailyLoadSubmitRequest = {
@@ -243,6 +224,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   <Dumbbell size={20} />
                 </div>
                 <h3
+                  id="finish-routine-modal-title"
                   style={{
                     margin: 0,
                     fontSize: '1.25rem',
@@ -357,7 +339,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               )}
             </div>
 
-            {/* SECCIÓN 2: TIEMPO / MINUTOS ENTRENADOS (VINCULADO AL CRONÓMETRO) */}
+            {/* SECCIÓN 2: TIEMPO ENTRENADO (FORMATO 00:00, CENTRADO Y MÁS GRANDE) */}
             <div
               style={{
                 display: 'flex',
@@ -370,161 +352,60 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.4rem',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <label
-                    htmlFor="finish-minutes-input"
-                    style={{
-                      fontSize: '0.88rem',
-                      fontWeight: 800,
-                      color: 'var(--text-main)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                    }}
-                  >
-                    <Clock size={16} style={{ color: 'var(--secondary)' }} />
-                    <span>Minutos de sesión entrenados</span>
-                  </label>
-
-                  {/* Selector de unidad: min o seg */}
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      background: 'var(--bg-subtle)',
-                      borderRadius: '9999px',
-                      border: '1px solid var(--border)',
-                      padding: '2px',
-                      gap: '2px',
-                    }}
-                    role="group"
-                    aria-label="Unidad de tiempo"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleUnitChange('min')}
-                      style={{
-                        padding: '0.12rem 0.5rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        border: 'none',
-                        cursor: 'pointer',
-                        background: unit === 'min' ? 'var(--primary)' : 'transparent',
-                        color: unit === 'min' ? 'var(--white)' : 'var(--text-muted)',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      min
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleUnitChange('sec')}
-                      style={{
-                        padding: '0.12rem 0.5rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        border: 'none',
-                        cursor: 'pointer',
-                        background: unit === 'sec' ? 'var(--primary)' : 'transparent',
-                        color: unit === 'sec' ? 'var(--white)' : 'var(--text-muted)',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      seg
-                    </button>
-                  </div>
-                </div>
-
-                {timerSeconds > 0 && (
-                  <span
-                    style={{
-                      fontSize: '0.74rem',
-                      fontWeight: 700,
-                      padding: '0.2rem 0.55rem',
-                      borderRadius: '9999px',
-                      background: 'var(--info-bg)',
-                      color: 'var(--secondary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                    }}
-                  >
-                    <span>Cronómetro: {formatTimerSecondsSummary(timerSeconds)}</span>
-                  </span>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  style={{ padding: '0.5rem 0.85rem', fontWeight: 800 }}
-                  onClick={() => setDuration((prev) => Math.max(1, prev - 5))}
-                  title={unit === 'sec' ? 'Restar 5 segundos' : 'Restar 5 minutos'}
-                >
-                  - 5 {unit === 'sec' ? 'seg' : 'min'}
-                </button>
-                <div
+                <label
+                  htmlFor="finish-time-input"
                   style={{
-                    flex: 1,
-                    position: 'relative',
+                    fontSize: '0.88rem',
+                    fontWeight: 800,
+                    color: 'var(--text-main)',
                     display: 'flex',
                     alignItems: 'center',
+                    gap: '0.4rem',
                   }}
                 >
-                  <input
-                    id="finish-minutes-input"
-                    type="number"
-                    min="1"
-                    max={unit === 'sec' ? 3600 : 360}
-                    value={duration}
-                    onChange={(e) => setDuration(parseInt(e.target.value, 10) || 0)}
-                    style={{
-                      width: '100%',
-                      padding: '0.65rem 3.2rem 0.65rem 0.85rem',
-                      fontSize: '1.05rem',
-                      fontWeight: 800,
-                      borderRadius: '10px',
-                      border: '1.5px solid var(--border)',
-                      background: 'var(--bg-subtle)',
-                      color: 'var(--text-main)',
-                    }}
-                    required
-                  />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      right: '0.85rem',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      color: 'var(--text-muted)',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {unit === 'sec' ? 'seg' : 'min'}
-                  </span>
-                </div>
+                  <Clock size={16} style={{ color: 'var(--secondary)' }} />
+                  <span>Tiempo de sesión entrenado</span>
+                </label>
+              </div>
+
+              <div className="finish-routine-time-row">
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  style={{ padding: '0.5rem 0.85rem', fontWeight: 800 }}
-                  onClick={() =>
-                    setDuration((prev) => Math.min(unit === 'sec' ? 3600 : 360, prev + 5))
-                  }
-                  title={unit === 'sec' ? 'Sumar 5 segundos' : 'Sumar 5 minutos'}
+                  className="finish-routine-step-btn"
+                  onClick={handleSubtractTime}
+                  title={`Restar ${stepLabel}`}
                 >
-                  + 5 {unit === 'sec' ? 'seg' : 'min'}
+                  - {stepLabel}
+                </button>
+
+                <div className="finish-routine-time-input-wrap">
+                  <input
+                    id="finish-time-input"
+                    type="text"
+                    value={timeInputValue}
+                    onChange={handleTimeChange}
+                    onBlur={handleTimeBlur}
+                    placeholder="00:00"
+                    className="finish-routine-time-input"
+                    aria-label="Tiempo de sesión entrenado"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="finish-routine-step-btn"
+                  onClick={handleAddTime}
+                  title={`Sumar ${stepLabel}`}
+                >
+                  + {stepLabel}
                 </button>
               </div>
             </div>
 
-            {/* SECCIÓN 3: SELECTOR INTERACTIVO DE RPE */}
+            {/* SECCIÓN 3: SELECTOR INTERACTIVO DE RPE (COLOREADO SEGÚN TIERS DE DAILYLOADPAGE) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div
                 style={{
@@ -548,41 +429,33 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                 </span>
                 <span
                   style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 900,
-                    color: RPE_DESCRIPTIONS[rpe]?.colorVar || 'var(--secondary)',
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    padding: '0.15rem 0.6rem',
+                    borderRadius: '9999px',
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--secondary)',
+                    border: '1px solid var(--border)',
                   }}
                 >
-                  RPE {rpe}
+                  Nivel {rpe}
                 </span>
               </div>
 
-              {/* Botones numéricos del 1 al 10 */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(10, 1fr)',
-                  gap: '0.35rem',
-                }}
-              >
+              {/* Barra de 10 botones numéricos con colores semánticos */}
+              <div className="finish-routine-rpe-bar" role="group" aria-label="Escala de esfuerzo">
                 {Array.from({ length: 10 }, (_, i) => i + 1).map((val) => {
+                  const meta = RPE_LEVELS_META[val];
                   const isSelected = rpe === val;
                   return (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setRpe(val)}
-                      style={{
-                        padding: '0.65rem 0',
-                        borderRadius: '8px',
-                        border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)',
-                        background: isSelected ? 'var(--primary)' : 'var(--bg-subtle)',
-                        color: isSelected ? 'var(--white)' : 'var(--text-main)',
-                        fontWeight: 900,
-                        fontSize: '0.95rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className={`finish-routine-rpe-btn finish-routine-rpe-btn--${meta.tier} ${
+                        isSelected ? 'finish-routine-rpe-btn--selected' : ''
+                      }`}
+                      aria-label={`Nivel ${val}`}
                     >
                       {val}
                     </button>
@@ -590,22 +463,19 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                 })}
               </div>
 
-              {/* Descripción del RPE seleccionado */}
-              <div
-                style={{
-                  padding: '0.55rem 0.75rem',
-                  borderRadius: '10px',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border)',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  color: RPE_DESCRIPTIONS[rpe]?.colorVar || 'var(--text-main)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                <span>{RPE_DESCRIPTIONS[rpe]?.label}</span>
+              {/* Caja de feedback explicativa idéntica a Carga del Día */}
+              <div className="finish-routine-rpe-feedback-box">
+                <div className="finish-routine-rpe-feedback-header">
+                  <p className="finish-routine-rpe-feedback-title">
+                    RPE {activeRpeMeta.val} · {activeRpeMeta.title}
+                  </p>
+                  <span
+                    className={`finish-routine-rpe-feedback-tag finish-routine-rpe-feedback-tag--${activeRpeMeta.tier}`}
+                  >
+                    {activeRpeMeta.tagLabel}
+                  </span>
+                </div>
+                <p className="finish-routine-rpe-feedback-desc">{activeRpeMeta.desc}</p>
               </div>
             </div>
 
@@ -630,7 +500,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                     display: 'block',
                   }}
                 >
-                  Unidades Arbitrarias calculadas ({duration} {unit === 'sec' ? 'seg' : 'min'} × RPE {rpe}):
+                  Unidades Arbitrarias calculadas ({formatMmSs(totalSeconds)} × RPE {rpe}):
                 </span>
                 <span
                   style={{
@@ -683,7 +553,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               </div>
             )}
 
-            {/* Botón de Confirmación */}
+            {/* Botones Cancelar y Confirmar */}
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
               <button
                 type="button"
@@ -865,9 +735,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               >
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Duración: </span>
-                  <span style={{ color: 'var(--text-main)' }}>
-                    {duration} {unit === 'sec' ? 'seg' : 'min'}
-                  </span>
+                  <span style={{ color: 'var(--text-main)' }}>{formatMmSs(totalSeconds)}</span>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Esfuerzo: </span>

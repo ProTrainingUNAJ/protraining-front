@@ -2095,3 +2095,210 @@
   box-shadow: 0 0 10px var(--muscle-exercise-primary-glow);
   transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ── Finalizar Rutina: Input Digital de Tiempo Centrado y Grande (KAN-623) ── */
+.finish-routine-time-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.finish-routine-step-btn {
+  padding: 0.65rem 0.95rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.finish-routine-step-btn:hover {
+  background: var(--bg-subtle);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.finish-routine-time-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.finish-routine-time-input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.85rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  padding: 0.55rem 0.75rem;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  transition: all 0.18s ease;
+  outline: none;
+}
+
+.finish-routine-time-input:focus {
+  border-color: var(--primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+/* ── Finalizar Rutina: Escala Interactiva de RPE Coloreada (KAN-623) ── */
+.finish-routine-rpe-bar {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.35rem;
+  width: 100%;
+  height: 2.65rem;
+}
+
+.finish-routine-rpe-btn {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.finish-routine-rpe-btn:hover {
+  transform: translateY(-2px);
+  color: var(--text-main);
+}
+
+.finish-routine-rpe-btn--easy:hover,
+.finish-routine-rpe-btn--easy.finish-routine-rpe-btn--selected {
+  background: var(--celebration-blue);
+  color: var(--white);
+  border-color: var(--celebration-blue);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--celebration-blue) 30%, transparent);
+}
+
+.finish-routine-rpe-btn--moderate:hover,
+.finish-routine-rpe-btn--moderate.finish-routine-rpe-btn--selected {
+  background: var(--success);
+  color: var(--white);
+  border-color: var(--success);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.finish-routine-rpe-btn--demanding:hover,
+.finish-routine-rpe-btn--demanding.finish-routine-rpe-btn--selected {
+  background: var(--warning);
+  color: var(--white);
+  border-color: var(--warning);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+.finish-routine-rpe-btn--hard:hover,
+.finish-routine-rpe-btn--hard.finish-routine-rpe-btn--selected {
+  background: var(--celebration-coral);
+  color: var(--white);
+  border-color: var(--celebration-coral);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--celebration-coral) 30%, transparent);
+}
+
+.finish-routine-rpe-btn--max:hover,
+.finish-routine-rpe-btn--max.finish-routine-rpe-btn--selected {
+  background: var(--danger);
+  color: var(--white);
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+/* Feedback de RPE idéntico a DailyLoadPage */
+.finish-routine-rpe-feedback-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: 4rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.finish-routine-rpe-feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.finish-routine-rpe-feedback-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.finish-routine-rpe-feedback-tag {
+  font-size: 0.725rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.finish-routine-rpe-feedback-tag--easy {
+  background: color-mix(in srgb, var(--celebration-blue) 14%, transparent);
+  color: var(--celebration-blue);
+  border: 1px solid color-mix(in srgb, var(--celebration-blue) 30%, transparent);
+}
+
+.finish-routine-rpe-feedback-tag--moderate {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.finish-routine-rpe-feedback-tag--demanding {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
+}
+
+.finish-routine-rpe-feedback-tag--hard {
+  background: color-mix(in srgb, var(--celebration-coral) 14%, transparent);
+  color: var(--celebration-coral);
+  border: 1px solid color-mix(in srgb, var(--celebration-coral) 30%, transparent);
+}
+
+.finish-routine-rpe-feedback-tag--max {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.finish-routine-rpe-feedback-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
