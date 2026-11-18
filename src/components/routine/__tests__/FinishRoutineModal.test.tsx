@@ -157,4 +157,49 @@ describe('FinishRoutineModal (KAN-623)', () => {
 
     expect(onFinishSuccess).toHaveBeenCalled();
   });
+
+  it('precarga automáticamente los segundos medidos por el cronómetro (< 60s) en el input con unidad seg (KAN-623)', async () => {
+    vi.mocked(seguimientoService.submitDailyLoad).mockResolvedValue({
+      message: 'OK',
+      date: '2026-11-18',
+      totalMinutes: 1,
+      totalLoad: 8,
+      gym: { minutes: 1, rpe: 8 },
+      sportTraining: {},
+      match1: {},
+      match2: {},
+      individualWork: {},
+    });
+
+    render(
+      <FinishRoutineModal
+        isOpen={true}
+        onClose={vi.fn()}
+        athleteId="ath-123"
+        timerSeconds={21} // 21 segundos en el cronómetro
+        exercises={mockExercises}
+      />,
+    );
+
+    // 1. Badge del cronómetro muestra 21 s
+    expect(screen.getByText(/Cronómetro: 21 s/i)).toBeTruthy();
+
+    // 2. El input tiene precargado el valor 21 (no 1 min)
+    const timeInput = screen.getByLabelText(/Minutos de sesión entrenados/i) as HTMLInputElement;
+    expect(timeInput.value).toBe('21');
+
+    // 3. La unidad visible es seg
+    expect(screen.getAllByText('seg').length).toBeGreaterThan(0);
+
+    // 4. Los botones de incremento dicen - 5 seg y + 5 seg
+    const plusBtn = screen.getByRole('button', { name: /\+ 5 seg/i });
+    expect(plusBtn).toBeTruthy();
+    fireEvent.click(plusBtn);
+    expect(timeInput.value).toBe('26');
+
+    // 5. Permite cambiar a minutos con el toggle
+    const minToggleBtn = screen.getByRole('button', { name: /^min$/i });
+    fireEvent.click(minToggleBtn);
+    expect(timeInput.value).toBe('1'); // 26s redondeado a minutos
+  });
 });
