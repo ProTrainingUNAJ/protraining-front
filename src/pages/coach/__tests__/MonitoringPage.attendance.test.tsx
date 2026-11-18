@@ -256,4 +256,35 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(getCategoryTrafficLightToday).toHaveBeenCalled();
     });
   });
+
+  it('abre directamente la pestaña de Asistencia & RPE cuando la URL tiene ?tab=attendance (KAN-621)', async () => {
+    vi.mocked(getCategoryAttendanceToday).mockResolvedValue({
+      categoryId: 'cat-1',
+      date: '2026-11-15',
+      totalRoster: 1,
+      presentCount: 1,
+      attendancePercentage: 100,
+      athletes: [
+        {
+          athleteId: 'ath-1',
+          athleteName: 'Lucas Gómez',
+          status: 'Present',
+          totalMinutes: 140,
+          totalLoad: 850,
+          activities: [],
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Planilla de Asistencia Diaria')).toBeDefined();
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+  });
 });

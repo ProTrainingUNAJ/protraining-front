@@ -43,16 +43,55 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
   }, [athletes]);
 
   const maxUa = athletesWithLoad.length > 0 ? (athletesWithLoad[0].totalLoad ?? 0) : 0;
-  const topAthletes = athletesWithLoad.slice(0, 3);
+  const athlete1 = athletesWithLoad[0] ?? null; // 1° Puesto (Centro)
+  const athlete2 = athletesWithLoad[1] ?? null; // 2° Puesto (Izquierda)
+  const athlete3 = athletesWithLoad[2] ?? null; // 3° Puesto (Derecha)
   const leadersCount = athletesWithLoad.filter((a) => (a.totalLoad ?? 0) === maxUa).length;
 
   const handleOpenAttendance = () => {
-    navigate('/pf/monitoring?tab=attendance');
+    navigate('/pf/monitoring?tab=attendance', { state: { tab: 'attendance' } });
   };
+
+  const podiumSteps = [
+    {
+      rank: 2,
+      athlete: athlete2,
+      pedestalHeight: 52,
+      avatarSize: 36,
+      bg: 'var(--bg-secondary)',
+      border: '1px solid var(--border)',
+      numberColor: 'var(--text-muted)',
+      isWinner: false,
+      testId: 'podium-step-2',
+    },
+    {
+      rank: 1,
+      athlete: athlete1,
+      pedestalHeight: 74,
+      avatarSize: 44,
+      bg: athlete1 ? 'var(--traffic-green-bg)' : 'var(--bg-secondary)',
+      border: athlete1 ? '1.5px solid var(--traffic-green)' : '1px solid var(--border)',
+      numberColor: athlete1 ? 'var(--traffic-green)' : 'var(--text-muted)',
+      isWinner: Boolean(athlete1),
+      testId: 'podium-step-1',
+    },
+    {
+      rank: 3,
+      athlete: athlete3,
+      pedestalHeight: 38,
+      avatarSize: 32,
+      bg: 'var(--bg-secondary)',
+      border: '1px solid var(--border)',
+      numberColor: 'var(--text-muted)',
+      isWinner: false,
+      testId: 'podium-step-3',
+    },
+  ];
 
   return (
     <div
       className={`top-ua-widget ${className}`}
+      onClick={handleOpenAttendance}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -60,8 +99,10 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
         height: '100%',
         padding: '1rem 1.15rem',
         boxSizing: 'border-box',
+        cursor: 'pointer',
       }}
       data-testid="top-ua-athletes-widget"
+      title="Hacé clic para ver la planilla de Asistencia & RPE"
     >
       {/* Encabezado del Widget */}
       <div
@@ -69,7 +110,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '0.5rem',
+          marginBottom: '0.35rem',
           paddingRight: '3.5rem', // Deja espacio para los controles de reordenamiento del wireframe
         }}
       >
@@ -105,7 +146,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
             }}
           >
             <Trophy size={11} />
-            {leadersCount > 1 ? `${leadersCount} Líderes` : 'Líder Hoy'}
+            {leadersCount > 1 ? `${leadersCount} Líderes` : 'Podio Hoy'}
           </span>
         ) : (
           <span
@@ -124,8 +165,16 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
         )}
       </div>
 
-      {/* Contenido Central */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      {/* Contenido Central: Podio 1, 2, 3 */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          paddingTop: '0.25rem',
+        }}
+      >
         {loading ? (
           <div
             style={{
@@ -135,7 +184,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
               gap: '0.5rem',
               color: 'var(--text-muted)',
               fontSize: '0.78rem',
-              padding: '0.75rem 0',
+              padding: '1.25rem 0',
             }}
           >
             <span
@@ -149,179 +198,142 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                 animation: 'spin 0.8s linear infinite',
               }}
             />
-            <span>Cargando cargas...</span>
+            <span>Cargando podio...</span>
           </div>
-        ) : topAthletes.length === 0 ? (
+        ) : (
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              padding: '0.4rem 0',
-              gap: '0.25rem',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              gap: '0.65rem',
+              width: '100%',
+              padding: '0.35rem 0.25rem 0.15rem',
+              boxSizing: 'border-box',
             }}
+            data-testid="top-ua-podium"
           >
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Sin cargas registradas hoy
-            </span>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Los atletas aún no registraron minutos o RPE.
-            </span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            {topAthletes.map((athlete, idx) => {
-              const isTop = (athlete.totalLoad ?? 0) === maxUa;
-              const photoUrl = structureService.getAthletePhotoUrl(athlete.athleteId);
+            {podiumSteps.map((step) => {
+              const photoUrl = step.athlete
+                ? structureService.getAthletePhotoUrl(step.athlete.athleteId)
+                : null;
 
               return (
                 <div
-                  key={athlete.athleteId}
+                  key={step.rank}
+                  data-testid={step.testId}
                   style={{
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: isTop ? '0.45rem 0.6rem' : '0.35rem 0.5rem',
-                    borderRadius: '14px',
-                    background: isTop ? 'var(--traffic-green-bg)' : 'var(--bg-secondary)',
-                    border: isTop ? '1.5px solid var(--traffic-green)' : '1px solid var(--border)',
-                    boxShadow: isTop ? '0 0 10px rgba(16, 185, 129, 0.2)' : 'none',
-                    transition: 'all 0.2s ease',
+                    justifyContent: 'flex-end',
+                    flex: 1,
+                    maxWidth: '84px',
+                    minWidth: '58px',
                   }}
-                  data-testid={isTop ? 'top-ua-leader' : `top-ua-rank-${idx + 1}`}
                 >
-                  {/* Avatar y Nombre */}
+                  {/* Encima del número: SOLO LA FOTO. En caso de no haber, no aparece nadie */}
                   <div
                     style={{
+                      height: '48px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.55rem',
-                      minWidth: 0,
-                      flex: 1,
+                      justifyContent: 'center',
+                      marginBottom: '0.35rem',
                     }}
                   >
-                    <div
-                      style={{
-                        position: 'relative',
-                        display: 'inline-flex',
-                        borderRadius: '50%',
-                        padding: isTop ? '2px' : '0',
-                        background: isTop ? 'var(--traffic-green)' : 'transparent',
-                      }}
-                    >
-                      <ProfileAvatar
-                        src={photoUrl}
-                        name={athlete.athleteName || 'Atleta'}
-                        size={isTop ? 34 : 28}
-                        shape="circle"
-                      />
-                      {isTop && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            bottom: '-3px',
-                            right: '-3px',
-                            background: 'var(--traffic-green)',
-                            color: '#ffffff',
-                            borderRadius: '50%',
-                            width: '14px',
-                            height: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '9px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                          }}
-                          title="Mayor Carga"
-                        >
-                          <Flame size={10} fill="#ffffff" />
-                        </span>
-                      )}
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        minWidth: 0,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <span
+                    {step.athlete ? (
+                      <div
                         style={{
-                          fontSize: isTop ? '0.84rem' : '0.78rem',
-                          fontWeight: isTop ? 800 : 600,
-                          color: isTop ? 'var(--traffic-green-text)' : 'var(--text-primary)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          position: 'relative',
+                          display: 'inline-flex',
+                          borderRadius: '50%',
+                          padding: step.isWinner ? '2px' : '1px',
+                          background: step.isWinner ? 'var(--traffic-green)' : 'var(--border)',
+                          boxShadow: step.isWinner ? '0 0 10px rgba(16, 185, 129, 0.35)' : 'none',
                         }}
+                        title={`${step.athlete.athleteName || 'Atleta'}: ${step.athlete.totalLoad ?? 0} UA (${step.athlete.totalMinutes ?? 0} min)`}
                       >
-                        {athlete.athleteName}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          color: 'var(--text-muted)',
-                        }}
-                      >
-                        {athlete.totalMinutes ?? 0} min totales
-                      </span>
-                    </div>
+                        <ProfileAvatar
+                          src={photoUrl}
+                          name={step.athlete.athleteName || 'Atleta'}
+                          size={step.avatarSize}
+                          shape="circle"
+                          alt={`Foto de perfil de ${step.athlete.athleteName || 'Atleta'}`}
+                        />
+                        {step.isWinner && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '-6px',
+                              right: '-6px',
+                              background: 'var(--traffic-green)',
+                              color: '#ffffff',
+                              borderRadius: '50%',
+                              width: '15px',
+                              height: '15px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                            }}
+                            title="Mayor Carga (Líder)"
+                          >
+                            <Flame size={10} fill="#ffffff" />
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
 
-                  {/* UA destacada en verde */}
+                  {/* Escalón del Podio con el Número y las UA */}
                   <div
                     style={{
+                      width: '100%',
+                      height: `${step.pedestalHeight}px`,
+                      background: step.bg,
+                      border: step.border,
+                      borderRadius: '12px 12px 4px 4px',
                       display: 'flex',
                       flexDirection: 'column',
-                      alignItems: 'flex-end',
-                      marginLeft: '0.5rem',
-                      flexShrink: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.15rem',
+                      boxShadow: step.isWinner
+                        ? '0 2px 8px rgba(16, 185, 129, 0.18)'
+                        : '0 1px 3px rgba(0, 0, 0, 0.04)',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'baseline',
-                        gap: '0.2rem',
+                        fontSize: step.isWinner ? '1.35rem' : '1.1rem',
+                        fontWeight: 900,
+                        color: step.numberColor,
+                        lineHeight: 1,
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: isTop ? '1.05rem' : '0.88rem',
-                          fontWeight: 900,
-                          color: isTop ? 'var(--traffic-green)' : 'var(--text-secondary)',
-                          lineHeight: 1,
-                        }}
-                      >
-                        {athlete.totalLoad ?? 0}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '0.65rem',
-                          fontWeight: 800,
-                          color: isTop ? 'var(--traffic-green)' : 'var(--text-muted)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        UA
-                      </span>
-                    </div>
+                      {step.rank}
+                    </span>
 
-                    {isTop && (
-                      <span
-                        style={{
-                          fontSize: '0.62rem',
-                          fontWeight: 700,
-                          color: 'var(--traffic-green)',
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        Mayor Carga
-                      </span>
-                    )}
+                    <span
+                      style={{
+                        fontSize: step.isWinner ? '0.74rem' : '0.68rem',
+                        fontWeight: 800,
+                        color: step.isWinner ? 'var(--traffic-green)' : 'var(--text-secondary)',
+                        lineHeight: 1,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {step.athlete ? (
+                        <>
+                          <span className="sr-only">{step.athlete.athleteName}</span>
+                          <span>{step.athlete.totalLoad ?? 0}</span> UA
+                        </>
+                      ) : (
+                        '—'
+                      )}
+                    </span>
                   </div>
                 </div>
               );
@@ -344,11 +356,14 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
           {athletesWithLoad.length > 0
             ? `${athletesWithLoad.length} atleta${athletesWithLoad.length > 1 ? 's' : ''} con registro`
-            : 'Planilla de Asistencia & RPE'}
+            : 'Sin cargas registradas hoy'}
         </span>
         <button
           type="button"
-          onClick={handleOpenAttendance}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenAttendance();
+          }}
           style={{
             background: 'none',
             border: 'none',
