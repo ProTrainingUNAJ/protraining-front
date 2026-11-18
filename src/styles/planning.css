@@ -3397,9 +3397,10 @@
 .adaptation-diff-justification-text {
   margin: 0;
   font-size: 0.88rem;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text-main);
   font-weight: 600;
+  text-align: justify;
 }
 
 .adaptation-diff-columns-header {
@@ -3413,8 +3414,20 @@
   color: var(--text-muted);
 }
 
-.adaptation-diff-columns-header span:last-child {
+.adaptation-diff-col-header-base {
+  color: var(--warning-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.adaptation-diff-columns-header span:last-child,
+.adaptation-diff-col-header-adapted {
   grid-column: 3;
+  color: var(--success-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .adaptation-diff-list {
@@ -3455,14 +3468,38 @@
   gap: 0.25rem;
 }
 
-.adaptation-diff-col.replaced {
-  background: color-mix(in srgb, var(--danger-bg) 45%, var(--bg-subtle));
-  border-color: var(--danger-border);
+/* Sombreado naranja/amarillo claro para los ejercicios de la Rutina Base */
+.adaptation-diff-col.base {
+  background: color-mix(in srgb, var(--warning-bg-strong) 78%, var(--pain-level-4-bg));
+  border-color: color-mix(in srgb, var(--warning) 42%, var(--border));
+  box-shadow: inset 3px 0 0 var(--warning);
 }
 
-.adaptation-diff-col.replacement {
-  background: color-mix(in srgb, var(--success-bg) 45%, var(--bg-subtle));
+.adaptation-diff-col.base .adaptation-diff-col-label {
+  color: var(--warning-text);
+}
+
+.adaptation-diff-col.base.replaced {
+  background: color-mix(in srgb, var(--warning-bg-strong) 62%, var(--pain-level-4-bg));
+  border-color: var(--warning);
+  box-shadow: inset 4px 0 0 var(--pain-level-4);
+}
+
+/* Sombreado verde claro para los ejercicios de la Variante Propuesta */
+.adaptation-diff-col.adapted {
+  background: color-mix(in srgb, var(--success-bg-strong) 72%, var(--bg-card));
   border-color: var(--success-border);
+  box-shadow: inset 3px 0 0 var(--success);
+}
+
+.adaptation-diff-col.adapted .adaptation-diff-col-label {
+  color: var(--success-text);
+}
+
+.adaptation-diff-col.adapted.replacement {
+  background: var(--success-bg-strong);
+  border-color: color-mix(in srgb, var(--success) 52%, var(--success-border));
+  box-shadow: inset 4px 0 0 var(--success);
 }
 
 .adaptation-diff-col-top {
@@ -3548,8 +3585,9 @@
 .adaptation-diff-reason-text {
   margin: 0;
   font-size: 0.83rem;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--text-main);
+  text-align: justify;
 }
 
 .adaptation-diff-substitute-picker {
@@ -3596,4 +3634,190 @@
 
 .adaptation-diff-footer {
   gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* ── Acciones Aprobar / Editar / Rechazar y Alerta de Dato Estimado (KAN-465) ── */
+.adaptation-diff-estimated-alert {
+  padding: 0.85rem 1.05rem;
+  border-radius: 12px;
+  background: var(--traffic-yellow-bg);
+  border: 1.5px solid var(--traffic-yellow-border);
+  color: var(--traffic-yellow-text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.adaptation-diff-estimated-alert-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.adaptation-diff-estimated-alert-text {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-main);
+  text-align: justify;
+}
+
+.adaptation-diff-estimated-badge {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-reference-badge {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-rejected-badge {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-edited-badge {
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-edit-panel {
+  padding: 0.9rem 1.05rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.adaptation-diff-edit-panel-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--secondary);
+}
+
+.adaptation-diff-edit-fields {
+  display: grid;
+  grid-template-columns: 1fr 190px;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .adaptation-diff-edit-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.adaptation-diff-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.adaptation-diff-edit-field label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-edit-field input {
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.adaptation-diff-reject-box {
+  padding: 0.9rem 1.05rem;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adaptation-diff-reject-box label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--danger-text);
+}
+
+.adaptation-diff-reject-box input {
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--danger-border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.82rem;
+}
+
+.adaptation-diff-reject-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.adaptation-diff-reject-trigger-btn {
+  color: var(--danger-text) !important;
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent) !important;
+}
+
+.adaptation-diff-reject-trigger-btn:hover {
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+}
+
+.adaptation-diff-edit-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.adaptation-diff-change-ex-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.adaptation-diff-picker-layer .modal-overlay {
+  z-index: 10050;
 }

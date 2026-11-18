@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AthleteAdaptationDiffModal } from '../AthleteAdaptationDiffModal';
 import { ManagePlanAssignmentsModal } from '../ManagePlanAssignmentsModal';
 import { athleteAdaptationsService } from '../../../api/athleteAdaptations';
+import { exercisesService } from '../../../api/exercises';
 import { trainingPlansService } from '../../../api/trainingPlans';
 import { structureService } from '../../../api/structureService';
 import * as seguimientoService from '../../../api/seguimientoService';
@@ -340,5 +341,233 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
       await screen.findByRole('button', { name: /revisar adaptación de lucas gómez/i }),
     ).toBeDefined();
     expect(screen.queryByText('En condiciones normales')).toBeNull();
+  });
+
+  it('muestra la alerta de dato estimado y el badge de escalón conservador cuando el atleta tiene 1RM estimado (KAN-465)', async () => {
+    vi.spyOn(athleteAdaptationsService, 'getAdaptationContext').mockResolvedValue({
+      athleteId: lucasId,
+      activeInjuries: [
+        {
+          id: 'inj-1',
+          athleteId: lucasId,
+          zone: 'rodilla',
+          description: 'Dolor en tendón rotuliano',
+          injuryDate: '2026-11-12T10:00:00Z',
+          estimatedReturnDate: '2026-11-28T10:00:00Z',
+          status: 'Active',
+          createdAt: '2026-11-12T10:00:00Z',
+        },
+      ],
+      currentRecords: [
+        {
+          id: 'rec-est-1',
+          athleteId: lucasId,
+          exerciseId: squatId,
+          exerciseName: 'Sentadilla con barra',
+          weightOneRepMaxKg: 110,
+          origin: 'EstimatedEpley',
+          achievedAt: '2026-11-10T10:00:00Z',
+          isCurrent: true,
+        },
+      ],
+      restrictions: [
+        {
+          exerciseId: squatId,
+          zone: 'rodilla',
+          reason: 'Reduce estrés en tendón rotuliano',
+          substitutes: [
+            { exerciseId: legPressId, name: 'Prensa de piernas' },
+            { exerciseId: gluteBridgeId, name: 'Puente de glúteos con barra' },
+          ],
+        },
+      ],
+    });
+
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+      />,
+    );
+
+    const estimatedAlert = await screen.findByTestId('adaptation-estimated-data-alert');
+    expect(estimatedAlert.textContent).toContain('Alerta de dato estimado');
+    expect(estimatedAlert.textContent).toContain('Sentadilla con barra (110 kg)');
+    expect(estimatedAlert.textContent).toContain('escalón conservador del 90 %');
+    expect(screen.getByText(/Dato estimado: 110 kg \(90 % conservador\)/i)).toBeDefined();
+    expect(screen.getAllByText(/Sin 1RM · Serie de referencia/i).length).toBeGreaterThan(0);
+  });
+
+  it('permite editar el sustituto, la nota y la reducción de carga antes de aprobar la adaptación (KAN-465)', async () => {
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
+
+    // Abrir edición manual
+    const editBtn = screen.getByRole('button', { name: /editar adaptación/i });
+    fireEvent.click(editBtn);
+
+    expect(screen.getByTestId('adaptation-edit-panel')).toBeDefined();
+
+    // Cambiar sustituto autorizado a Puente de glúteos con barra
+    const select = screen.getByLabelText(/ajustar sustituto autorizado/i);
+    fireEvent.change(select, { target: { value: gluteBridgeId } });
+
+    // Editar nota e ingresar reducción de carga
+    const noteInput = screen.getByLabelText(/nota e indicación técnica para el atleta/i);
+    fireEvent.change(noteInput, {
+      target: { value: 'Priorizar puente de glúteos controlado sin dolor rotuliano.' },
+    });
+
+    const reductionInput = screen.getByLabelText(/reducción de carga/i);
+    fireEvent.change(reductionInput, { target: { value: '15' } });
+
+    expect(screen.getByText('Editada por PF')).toBeDefined();
+
+    // Aprobar con los cambios editados
+    const approveBtn = screen.getByRole('button', { name: /aprobar adaptación/i });
+    fireEvent.click(approveBtn);
+
+    await waitFor(() => {
+      expect(athleteAdaptationsService.applySessionAdjustment).toHaveBeenCalledWith(
+        sessionId,
+        expect.objectContaining({
+          athleteId: lucasId,
+          trainingPlanId: planId,
+          note: 'Priorizar puente de glúteos controlado sin dolor rotuliano.',
+          loadReductionPercentage: 15,
+          items: [
+            {
+              originalExerciseId: squatId,
+              substituteExerciseId: gluteBridgeId,
+            },
+          ],
+        }),
+      );
+    });
+  });
+
+  it('permite rechazar la adaptación con motivo opcional manteniendo intacta la rutina base (KAN-465)', async () => {
+    const onRejected = vi.fn();
+
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+        onAdaptationRejected={onRejected}
+      />,
+    );
+
+    expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
+
+    const rejectBtn = screen.getByRole('button', { name: /rechazar adaptación/i });
+    fireEvent.click(rejectBtn);
+
+    expect(screen.getByTestId('adaptation-reject-form')).toBeDefined();
+
+    const reasonInput = screen.getByLabelText(/motivo de rechazo/i);
+    fireEvent.change(reasonInput, {
+      target: { value: 'Molestia leve superada, entrena con el grupo.' },
+    });
+
+    const confirmRejectBtn = screen.getByRole('button', { name: /confirmar rechazo/i });
+    fireEvent.click(confirmRejectBtn);
+
+    expect(await screen.findByText('Propuesta rechazada')).toBeDefined();
+    expect(
+      screen.getByText(/Propuesta de adaptación rechazada\. Se mantiene la rutina base/i),
+    ).toBeDefined();
+    expect(screen.getByText(/Molestia leve superada, entrena con el grupo\./i)).toBeDefined();
+    expect(athleteAdaptationsService.applySessionAdjustment).not.toHaveBeenCalled();
+    expect(onRejected).toHaveBeenCalledWith('Molestia leve superada, entrena con el grupo.');
+  });
+
+  it('permite cambiar cualquier ejercicio de la variante propuesta desde el catálogo al editar adaptación (KAN-465)', async () => {
+    const inclinePressId = 'ex-press-inclinado-9';
+
+    vi.spyOn(exercisesService, 'search').mockResolvedValue({
+      items: [
+        {
+          id: inclinePressId,
+          name: 'Press inclinado con mancuernas',
+          muscleGroup: 'Pecho',
+          equipment: 'Mancuernas',
+          images: [],
+          primaryMuscles: ['Pectorales'],
+          secondaryMuscles: ['Tríceps'],
+          exerciseType: 'Weight',
+        },
+      ],
+      page: 1,
+      totalPages: 1,
+      totalCount: 1,
+    });
+
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
+
+    // Activar modo edición
+    fireEvent.click(screen.getByRole('button', { name: /editar adaptación/i }));
+
+    // Cambiar ejercicio que venía "Sin cambios" (Press de banca)
+    fireEvent.click(screen.getByRole('button', { name: /cambiar ejercicio/i }));
+
+    const pickedBtn = await screen.findByRole('button', {
+      name: /press inclinado con mancuernas/i,
+    });
+    fireEvent.click(pickedBtn);
+
+    expect(await screen.findByText('Press inclinado con mancuernas')).toBeDefined();
+    expect(screen.getByText('Reemplazado por PF')).toBeDefined();
+
+    // Aprobar enviando ambos reemplazos
+    fireEvent.click(screen.getByRole('button', { name: /aprobar adaptación/i }));
+
+    await waitFor(() => {
+      expect(athleteAdaptationsService.applySessionAdjustment).toHaveBeenCalledWith(
+        sessionId,
+        expect.objectContaining({
+          athleteId: lucasId,
+          trainingPlanId: planId,
+          items: [
+            {
+              originalExerciseId: squatId,
+              substituteExerciseId: legPressId,
+            },
+            {
+              originalExerciseId: benchId,
+              substituteExerciseId: inclinePressId,
+            },
+          ],
+        }),
+      );
+    });
   });
 });
