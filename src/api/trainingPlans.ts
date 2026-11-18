@@ -72,7 +72,7 @@ export const trainingPlansService = {
 
   async delete(id: string): Promise<void> {
     await call(async () => {
-      const res = await httpClient.delete(`/entrenamiento/api/v1/training-plans/${id}`);
+      const res = await httpClient.delete(`/api/entrenamiento/api/v1/training-plans/${id}`);
       return { data: res.data };
     });
   },
@@ -115,7 +115,7 @@ export const trainingPlansService = {
   async deleteAssignment(assignmentId: string): Promise<void> {
     await call(async () => {
       const res = await httpClient.delete(
-        `/entrenamiento/api/v1/training-plans/assignments/${assignmentId}`,
+        `/api/entrenamiento/api/v1/training-plans/assignments/${assignmentId}`,
       );
       return { data: res.data };
     });

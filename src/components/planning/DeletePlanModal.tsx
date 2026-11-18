@@ -21,7 +21,6 @@ export const DeletePlanModal: React.FC<DeletePlanModalProps> = ({
   plan,
   assignedAthletesCount = 0,
   assignedCategoriesCount = 0,
-  assignedAthleteNames = [],
   assignedCategoryNames = [],
   isDeleting,
   errorMessage = null,
@@ -127,12 +126,11 @@ export const DeletePlanModal: React.FC<DeletePlanModalProps> = ({
         {hasAssignments ? (
           <div
             style={{
-              background: '#fffbeb',
-              border: '1px solid #fde68a',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border)',
               borderRadius: '12px',
-              padding: '1rem',
+              padding: '1rem 1.15rem',
               marginBottom: '1.5rem',
-              color: '#92400e',
               fontSize: '0.85rem',
               lineHeight: 1.45,
             }}
@@ -144,73 +142,101 @@ export const DeletePlanModal: React.FC<DeletePlanModalProps> = ({
                 alignItems: 'center',
                 gap: '0.5rem',
                 fontWeight: 700,
-                marginBottom: '0.5rem',
-                color: '#b45309',
+                marginBottom: '0.65rem',
+                color: 'var(--text-main)',
+                fontSize: '0.88rem',
               }}
             >
-              <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+              <AlertTriangle size={18} style={{ color: '#d97706', flexShrink: 0 }} />
               <span>Esta planificación tiene asignaciones en curso:</span>
             </div>
 
-            <ul
+            <div
               style={{
-                margin: '0.5rem 0',
-                paddingLeft: '1.25rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.35rem',
+                gap: '0.55rem',
+                marginTop: '0.5rem',
               }}
             >
               {assignedCategoriesCount > 0 && (
-                <li>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   <span
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.3rem',
-                      fontWeight: 600,
+                      gap: '0.35rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
                     }}
                   >
-                    <Building2 size={14} />
-                    {assignedCategoriesCount}{' '}
-                    {assignedCategoriesCount === 1
+                    <Building2 size={13} style={{ color: 'var(--secondary)' }} />
+                    {assignedCategoryNames.length}{' '}
+                    {assignedCategoryNames.length === 1
                       ? 'organización / categoría:'
                       : 'organizaciones / categorías:'}
-                  </span>{' '}
-                  <span style={{ color: 'var(--text-main)' }}>
-                    {assignedCategoryNames.length > 0
-                      ? assignedCategoryNames.join(', ')
-                      : `${assignedCategoriesCount} asignada(s)`}
                   </span>
-                </li>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    {assignedCategoryNames.map((name) => (
+                      <span
+                        key={name}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          background: '#ffffff',
+                          border: '1px solid var(--border)',
+                          borderRadius: '6px',
+                          padding: '0.2rem 0.55rem',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          color: 'var(--text-main)',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
+                        }}
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
-              {assignedAthletesCount > 0 && (
-                <li>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Users size={14} />
-                    {assignedAthletesCount}{' '}
-                    {assignedAthletesCount === 1 ? 'atleta individual:' : 'atletas individuales:'}
-                  </span>{' '}
-                  <span style={{ color: 'var(--text-main)' }}>
-                    {assignedAthleteNames.length > 0
-                      ? assignedAthleteNames.join(', ')
-                      : `${assignedAthletesCount} asignado(s)`}
-                  </span>
-                </li>
-              )}
-            </ul>
 
-            <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: '#78350f' }}>
-              Al confirmar la eliminación,{' '}
-              <strong>se cancelarán y removerán automáticamente todas sus asignaciones</strong>,
-              interrumpiendo el cronograma de estos atletas y planteles.
+              {assignedAthletesCount > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    fontSize: '0.84rem',
+                    color: 'var(--text-muted)',
+                    marginTop: assignedCategoriesCount > 0 ? '0.2rem' : '0',
+                  }}
+                >
+                  <Users size={14} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <span>
+                    <strong style={{ color: 'var(--text-main)' }}>{assignedAthletesCount}</strong>{' '}
+                    {assignedAthletesCount === 1 ? 'atleta individual' : 'atletas individuales'}{' '}
+                    asignados
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <p
+              style={{
+                margin: '0.85rem 0 0',
+                paddingTop: '0.65rem',
+                borderTop: '1px solid var(--border)',
+                fontSize: '0.78rem',
+                color: 'var(--text-muted)',
+                lineHeight: 1.4,
+              }}
+            >
+              Al confirmar la eliminación, se cancelarán y removerán automáticamente todas sus
+              asignaciones.
             </p>
           </div>
         ) : (
