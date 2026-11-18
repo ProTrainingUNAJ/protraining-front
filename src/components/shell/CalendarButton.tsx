@@ -27,6 +27,7 @@ import { Match, AthleteMe } from '../../types/structure';
 import { TodayRoutineResponse } from '../../api/generated/entrenamiento';
 import { formatIsoDate } from '../../utils/argentinaDate';
 import { formatTime } from '../../utils/calendarUtils';
+import { unpackCoachNotes } from '../../utils/planDraft';
 
 type DaySchedule =
   | { status: 'loading' }
@@ -522,11 +523,15 @@ export const CalendarButton: React.FC = () => {
                           <span className="shell-calendar-agenda-plan">
                             <Dumbbell size={13} aria-hidden="true" /> Sesión de gimnasio
                           </span>
-                          {athleteSchedule.routine.coachNotes && (
-                            <span className="shell-calendar-agenda-meta">
-                              {athleteSchedule.routine.coachNotes}
-                            </span>
-                          )}
+                          {athleteSchedule.routine.coachNotes &&
+                            (() => {
+                              const clean = unpackCoachNotes(
+                                athleteSchedule.routine.coachNotes,
+                              ).cleanNotes.trim();
+                              return clean ? (
+                                <span className="shell-calendar-agenda-meta">{clean}</span>
+                              ) : null;
+                            })()}
                         </button>
                       ) : athleteSchedule.planningSessions.length > 0 ? (
                         athleteSchedule.planningSessions.map((item) => (

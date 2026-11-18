@@ -600,4 +600,83 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       });
     });
   });
+
+  describe('Limpieza de metadata técnica en Indicación del Preparador Físico (KAN-587)', () => {
+    it('oculta la tarjeta de indicación cuando coachNotes contiene solo el bloque de metadata HTML', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-17',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        coachNotes:
+          '<!--PT_BLOCK_META:{"exercises":{"ex-1":{"exerciseName":"Sentadilla con barra","intensityType":"RPE","targetRpe":8,"repsRange":"10"}}}-->',
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 10,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      expect(screen.queryByText(/Indicación del Preparador Físico/i)).toBeNull();
+      expect(screen.queryByText(/PT_BLOCK_META/i)).toBeNull();
+    });
+
+    it('muestra únicamente el texto limpio cuando el PF redactó una indicación junto a la metadata técnica', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-17',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        coachNotes:
+          'Priorizar fase excéntrica lenta. <!--PT_BLOCK_META:{"exercises":{"ex-1":{"exerciseName":"Sentadilla con barra"}}}-->',
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 10,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      expect(screen.getByText(/Indicación del Preparador Físico/i)).toBeTruthy();
+      expect(screen.getByText(/"Priorizar fase excéntrica lenta\."/i)).toBeTruthy();
+      expect(screen.queryByText(/PT_BLOCK_META/i)).toBeNull();
+    });
+  });
 });
