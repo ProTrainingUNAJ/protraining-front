@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {
+  applyAlertAdjustment,
   listAlerts,
   reviewAlert,
   suggestTodayAdjustment,
@@ -31,15 +32,44 @@ const loadArchivedIds = (): Set<string> => {
 
 const archivedNoticeIds = loadArchivedIds();
 
+function markLocalAlertAsArchived(alertId: string): void {
+  archivedNoticeIds.add(alertId);
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.setItem(
+        'protraining_archived_alerts',
+        JSON.stringify(Array.from(archivedNoticeIds)),
+      );
+    }
+  } catch {
+    // Silently ignore storage quota or permission errors
+  }
+}
+
 // El back define "hoy" con ArgentinaTime (GetTodayCheckInQueryHandler); la fecha
 // del aviso debe calcularse en ese mismo huso para buscar el check-in correcto.
 const toArgentinaDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
 
-// El back sugiere el tipo de ajuste para cada aviso; solo el ajuste de rutina
-// dispara la adaptación automática con las zonas de dolor del check-in de hoy.
+// El back sugiere el tipo de ajuste para cada aviso:
+// - RoutineAdjustment: adapta la rutina con las zonas de dolor del check-in.
+// - LoadReduction (KAN-478): aplica en 1 clic la reducción de carga en Entrenamiento.
+// - Otros: solo revisión manual (archivo).
 function mapAlertToNotice(alert: PreventiveAlert): NoticeItem {
   const isRoutineAdjustment = alert.suggestedAdjustmentType === 'RoutineAdjustment';
+  const isLoadReduction = alert.suggestedAdjustmentType === 'LoadReduction';
+
+  let actionType: NoticeItem['actionType'];
+  let actionLabel = 'Marcar como revisado';
+
+  if (isLoadReduction) {
+    actionType = 'load_reduction';
+    actionLabel = 'Aplicar ajuste (1 clic)';
+  } else if (isRoutineAdjustment) {
+    actionType = 'routine_adjustment';
+    actionLabel = 'Aplicar ajuste recomendado';
+  }
+
   return {
     id: alert.id,
     athleteId: alert.athleteId,
@@ -54,8 +84,8 @@ function mapAlertToNotice(alert: PreventiveAlert): NoticeItem {
     suggestion: alert.suggestion,
     reviewed: alert.reviewed,
     canApplyWithOneClick: true,
-    actionType: isRoutineAdjustment ? 'routine_adjustment' : undefined,
-    actionLabel: isRoutineAdjustment ? 'Aplicar ajuste recomendado' : 'Marcar como revisado',
+    actionType,
+    actionLabel,
   };
 }
 
@@ -121,16 +151,41 @@ export const alertsService = {
   },
 
   /**
-   * Aplica la acción del aviso: el ajuste del día si es de tipo rutina (con las
-   * zonas de dolor reales), o lo marca como revisado.
+   * Aplica la acción del aviso:
+   * - Reducción de carga por fatiga (LoadReduction, KAN-478): llama directamente a
+   *   POST /api/v1/alerts/{alertId}/apply, persistiendo la variante en Entrenamiento
+   *   y marcando el aviso como Aplicado.
+   * - Ajuste de rutina (RoutineAdjustment): adapta la rutina en base a las zonas de dolor
+   *   del check-in de hoy.
+   * - Resto de avisos: lo marca como revisado en Asistente.
    */
   async applyNoticeAction(notice: NoticeItem): Promise<ApplyNoticeResult> {
-    // Sin ajuste de rutina: alcanza con marcarlo como revisado
+    // 1) Ajuste preventivo de carga en 1 solo clic (KAN-478)
+    if (notice.actionType === 'load_reduction') {
+      try {
+        const { data } = await applyAlertAdjustment({
+          path: { alertId: notice.id },
+          throwOnError: true,
+        });
+
+        markLocalAlertAsArchived(notice.id);
+
+        return {
+          success: true,
+          message: data?.message || 'Ajuste preventivo aplicado exitosamente en Entrenamiento.',
+        };
+      } catch (error) {
+        throw toServiceError(error);
+      }
+    }
+
+    // 2) Sin ajuste de rutina: alcanza con marcarlo como revisado
     if (notice.actionType !== 'routine_adjustment') {
       await this.archiveAlert(notice.id);
       return { success: true, message: 'Aviso marcado como revisado' };
     }
 
+    // 3) Ajuste de rutina con zonas de dolor
     const reportedPainZones = await resolvePainZones(notice);
     if (!reportedPainZones) {
       throw new Error(
@@ -171,17 +226,7 @@ export const alertsService = {
    * Archiva un aviso en la sesión y lo marca como revisado en el back.
    */
   async archiveAlert(alertId: string): Promise<void> {
-    archivedNoticeIds.add(alertId);
-    try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        window.sessionStorage.setItem(
-          'protraining_archived_alerts',
-          JSON.stringify(Array.from(archivedNoticeIds)),
-        );
-      }
-    } catch {
-      // Silently ignore storage quota or permission errors
-    }
+    markLocalAlertAsArchived(alertId);
 
     try {
       await reviewAlert({ path: { alertId }, throwOnError: true });

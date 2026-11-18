@@ -199,6 +199,7 @@
 }
 
 .shell-icon-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -218,8 +219,14 @@
   background: var(--bg-subtle);
 }
 
-.shell-notifications-wrap,
+.shell-notifications-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .shell-user-avatar-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
