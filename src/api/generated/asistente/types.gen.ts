@@ -385,6 +385,41 @@ export type ReviewAlertResponses = {
 
 export type ReviewAlertResponse = ReviewAlertResponses[keyof ReviewAlertResponses];
 
+export type ApplyAlertAdjustmentData = {
+    body?: never;
+    path: {
+        alertId: string;
+    };
+    query?: never;
+    url: '/api/v1/alerts/{alertId}/apply';
+};
+
+export type ApplyAlertAdjustmentErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type ApplyAlertAdjustmentError = ApplyAlertAdjustmentErrors[keyof ApplyAlertAdjustmentErrors];
+
+export type ApplyAlertAdjustmentResponses = {
+    /**
+     * Ajuste aplicado exitosamente en Entrenamiento y aviso marcado como aplicado.
+     */
+    200: {
+        message?: string;
+        alertId?: string;
+        status?: string;
+    };
+};
+
+export type ApplyAlertAdjustmentResponse = ApplyAlertAdjustmentResponses[keyof ApplyAlertAdjustmentResponses];
+
 export type TriggerPreventiveScanData = {
     body?: never;
     path?: never;

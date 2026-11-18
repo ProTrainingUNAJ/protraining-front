@@ -16,6 +16,7 @@ vi.mock('../../../context/AuthContext', () => ({
 }));
 
 const mockedGetPendingAlerts = vi.mocked(alertsService.getPendingAlerts);
+const mockedApplyNoticeAction = vi.mocked(alertsService.applyNoticeAction);
 const mockedUseAuth = vi.mocked(useAuth);
 
 describe('NotificationsButton (Centro de Avisos)', () => {
@@ -70,5 +71,93 @@ describe('NotificationsButton (Centro de Avisos)', () => {
       expect(screen.getByText('Lucas Fernández')).toBeTruthy();
     });
     expect(screen.getByText('Aplicar ajuste recomendado')).toBeTruthy();
+  });
+
+  it('permite aplicar el ajuste de carga en un clic con confirmación visual (KAN-478)', async () => {
+    mockedUseAuth.mockReturnValue({ user: { role: 'PreparadorFisico' } } as never);
+    const mateoAlert = {
+      id: 'alert-mateo',
+      athleteId: 'ath-mateo',
+      athleteName: 'Mateo González',
+      generatedAt: '08:30',
+      severity: 'High' as const,
+      reason: 'Fatiga acumulada por volumen de partidos',
+      suggestion: 'Reducir carga un 20% en la sesión de hoy',
+      reviewed: false,
+      canApplyWithOneClick: true,
+      actionType: 'load_reduction' as const,
+      actionLabel: 'Aplicar ajuste (1 clic)',
+    };
+    mockedGetPendingAlerts.mockResolvedValue([mateoAlert]);
+    mockedApplyNoticeAction.mockResolvedValue({
+      success: true,
+      message: 'Ajuste preventivo aplicado exitosamente en Entrenamiento.',
+    });
+
+    render(<NotificationsButton />);
+    fireEvent.click(screen.getByTitle('Centro de Avisos'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Mateo González')).toBeTruthy();
+    });
+
+    const button = screen.getByRole('button', {
+      name: /aplicar ajuste \(1 clic\): Mateo González/i,
+    });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockedApplyNoticeAction).toHaveBeenCalledWith(mateoAlert);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Ajuste preventivo aplicado exitosamente en Entrenamiento.'),
+      ).toBeTruthy();
+    });
+  });
+
+  it('muestra el mensaje de error si Entrenamiento falla al aplicar el ajuste en un clic (KAN-478 / KAN-373)', async () => {
+    mockedUseAuth.mockReturnValue({ user: { role: 'PreparadorFisico' } } as never);
+    const mateoAlert = {
+      id: 'alert-mateo-err',
+      athleteId: 'ath-mateo',
+      athleteName: 'Mateo González',
+      generatedAt: '08:30',
+      severity: 'High' as const,
+      reason: 'Fatiga acumulada',
+      suggestion: 'Reducir carga un 20%',
+      reviewed: false,
+      canApplyWithOneClick: true,
+      actionType: 'load_reduction' as const,
+      actionLabel: 'Aplicar ajuste (1 clic)',
+    };
+    mockedGetPendingAlerts.mockResolvedValue([mateoAlert]);
+    mockedApplyNoticeAction.mockRejectedValue(
+      new Error('El atleta no tiene una sesión de entrenamiento programada para el día de hoy.'),
+    );
+
+    render(<NotificationsButton />);
+    fireEvent.click(screen.getByTitle('Centro de Avisos'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Mateo González')).toBeTruthy();
+    });
+
+    const button = screen.getByRole('button', {
+      name: /aplicar ajuste \(1 clic\): Mateo González/i,
+    });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'El atleta no tiene una sesión de entrenamiento programada para el día de hoy.',
+        ),
+      ).toBeTruthy();
+    });
+
+    // El aviso no se elimina de la lista
+    expect(screen.getByText('Mateo González')).toBeTruthy();
   });
 });

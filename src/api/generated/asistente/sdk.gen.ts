@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
+import type { ApplyAlertAdjustmentData, ApplyAlertAdjustmentErrors, ApplyAlertAdjustmentResponses, ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -39,6 +39,19 @@ export const reviewAlert = <ThrowOnError extends boolean = false>(options: Optio
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/alerts/{alertId}/review',
+    ...options
+});
+
+/**
+ * Aplicar ajuste de aviso preventivo en un clic
+ *
+ * Aplica la modificación sugerida por el aviso preventivo directamente en Entrenamiento generando la variante de sesión para el atleta (#183 · KAN-478). Requiere rol PreparadorFisico.
+ *
+ */
+export const applyAlertAdjustment = <ThrowOnError extends boolean = false>(options: Options<ApplyAlertAdjustmentData, ThrowOnError>): RequestResult<ApplyAlertAdjustmentResponses, ApplyAlertAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<ApplyAlertAdjustmentResponses, ApplyAlertAdjustmentErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/alerts/{alertId}/apply',
     ...options
 });
 
