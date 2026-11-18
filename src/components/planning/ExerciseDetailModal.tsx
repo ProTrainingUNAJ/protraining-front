@@ -11,7 +11,7 @@ export interface ExerciseDetailModalProps {
   onClose: () => void;
   exercise: {
     id?: string | null;
-    exerciseId?: string;
+    exerciseId?: string | null;
     name?: string;
     exerciseName?: string;
     category?: string;

@@ -103,7 +103,8 @@ export function PlanEditorPage() {
               !e.primaryMuscles ||
               e.primaryMuscles.length === 0,
           )
-          .map((e) => e.exerciseId);
+          .map((e) => e.exerciseId)
+          .filter((id): id is string => Boolean(id));
 
         if (missingIds.length > 0) {
           exercisesService
@@ -117,7 +118,7 @@ export function PlanEditorPage() {
                   blocks: d.blocks.map((b) => ({
                     ...b,
                     exercises: b.exercises.map((e) => {
-                      const cat = catalogMap.get(e.exerciseId);
+                      const cat = e.exerciseId ? catalogMap.get(e.exerciseId) : undefined;
                       if (!cat) return e;
                       return {
                         ...e,

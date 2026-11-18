@@ -126,6 +126,11 @@ export function ExerciseProgressionGrid({
           >
             {label}
           </button>
+          {exercise.isReference && (
+            <span className="plan-exercise-ref-badge">
+              Nuevo · se agregará a tu biblioteca al aprobar
+            </span>
+          )}
           {exercise.exerciseType && exercise.exerciseType !== 'Weight' && (
             <span className="plan-exercise-badge">{exercise.exerciseType}</span>
           )}

@@ -123,7 +123,9 @@ export function AssistantDraftPage() {
             new Set(
               (loadedDraft.weeks ?? []).flatMap((week) =>
                 (week.sessions ?? []).flatMap((session) =>
-                  (session.exercises ?? []).map((ex) => ex.exerciseId),
+                  (session.exercises ?? [])
+                    .map((ex) => ex.exerciseId)
+                    .filter((id): id is string => Boolean(id)),
                 ),
               ),
             ),
