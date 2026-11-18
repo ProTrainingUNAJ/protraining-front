@@ -121,7 +121,7 @@ export const RegisterPfPage: React.FC = () => {
 
       if (is409) {
         setServerError({
-          message: 'Ya existe una cuenta con ese email.',
+          message: 'El correo ya se encuentra registrado.',
           is409: true,
         });
       } else if (is429) {

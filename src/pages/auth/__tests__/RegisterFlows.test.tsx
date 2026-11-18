@@ -182,7 +182,7 @@ describe('Registro "¿Quién sos?", alta y perfil del PF (KAN-602)', () => {
       expect(screen.getByRole('button', { name: /Reenviar mail/i })).toBeDefined();
     });
 
-    it('con 409 Conflict muestra "Ya existe una cuenta con ese email" y link a iniciar sesión', async () => {
+    it('con 409 Conflict muestra "El correo ya se encuentra registrado." y link a iniciar sesión', async () => {
       vi.mocked(authService.registerPf).mockRejectedValueOnce({
         response: { status: 409 },
         message: 'Ya existe una cuenta registrada con este correo electrónico.',
@@ -211,7 +211,7 @@ describe('Registro "¿Quién sos?", alta y perfil del PF (KAN-602)', () => {
       fireEvent.click(submitBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/Ya existe una cuenta con ese email/i)).toBeDefined();
+        expect(screen.getByText(/El correo ya se encuentra registrado\./i)).toBeDefined();
       });
     });
   });
