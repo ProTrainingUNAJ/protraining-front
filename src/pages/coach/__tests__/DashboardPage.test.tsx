@@ -14,7 +14,9 @@ vi.mock('../../../api/structureService', () => ({
 
 vi.mock('../../../api/seguimientoService', () => ({
   fetchAllCategoriesTrafficLight: vi.fn().mockResolvedValue([]),
-  summarizeTrafficLightCounts: vi.fn().mockReturnValue({ all: 0, green: 0, yellow: 0, red: 0, gray: 0 }),
+  summarizeTrafficLightCounts: vi
+    .fn()
+    .mockReturnValue({ all: 0, green: 0, yellow: 0, red: 0, gray: 0 }),
   fetchAllCategoriesAttendanceToday: vi.fn().mockResolvedValue([
     {
       athleteId: 'ath-1',
@@ -90,7 +92,12 @@ describe('DashboardPage - Mayor Carga (UA) Widget (KAN-621)', () => {
         className: 'wireframe-row-3',
         cards: [
           { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
-          { id: 'w-epley', name: 'Propuestas de Récord Epley', colSpan: 1, type: 'epley-proposals' },
+          {
+            id: 'w-epley',
+            name: 'Propuestas de Récord Epley',
+            colSpan: 1,
+            type: 'epley-proposals',
+          },
         ],
       },
       {
@@ -119,4 +126,3 @@ describe('DashboardPage - Mayor Carga (UA) Widget (KAN-621)', () => {
     });
   });
 });
-

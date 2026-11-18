@@ -185,9 +185,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                     padding: isTop ? '0.45rem 0.6rem' : '0.35rem 0.5rem',
                     borderRadius: '14px',
                     background: isTop ? 'var(--traffic-green-bg)' : 'var(--bg-secondary)',
-                    border: isTop
-                      ? '1.5px solid var(--traffic-green)'
-                      : '1px solid var(--border)',
+                    border: isTop ? '1.5px solid var(--traffic-green)' : '1px solid var(--border)',
                     boxShadow: isTop ? '0 0 10px rgba(16, 185, 129, 0.2)' : 'none',
                     transition: 'all 0.2s ease',
                   }}
@@ -372,4 +370,3 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
     </div>
   );
 };
-
