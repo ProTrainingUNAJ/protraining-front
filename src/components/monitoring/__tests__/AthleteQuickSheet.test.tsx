@@ -73,28 +73,72 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     expect(screen.getByText('Lesión y Enfermedad')).toBeDefined();
   });
 
-  it('muestra el desglose completo de actividades, minutos, RPE y lugar/tipo al tener actividades cargadas (KAN-621)', () => {
-    const athleteWithActivities: AthleteTrafficLightItem = {
-      ...athleteWithIndicators,
-      totalMinutes: 56,
-      totalLoad: 392,
-      activities: [
-        {
-          type: 'Gym',
-          name: 'Gimnasio',
-          minutes: 56,
-          rpe: 7,
-        },
-      ],
-    };
+  it('en modo semáforo muestra mapa anatómico, métricas de check-in y botón asignar plan, sin bloque de actividades', () => {
+    render(
+      <AthleteQuickSheet
+        athlete={athleteWithIndicators}
+        mode="semaforo"
+        onClose={vi.fn()}
+        onAssignDifferentiated={vi.fn()}
+      />,
+    );
 
-    render(<AthleteQuickSheet athlete={athleteWithActivities} onClose={vi.fn()} />);
+    // Cabecera compartida
+    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(screen.getByText(/Estado: Atención Crítica/i)).toBeDefined();
 
-    expect(screen.getByText(/Actividades y Carga del Día/i)).toBeDefined();
+    // En verde: métricas y mapa anatómico
+    expect(screen.getByText(/Sueño y Descanso/i)).toBeDefined();
+    expect(screen.getByText(/MAPA ANATÓMICO DEL CHECK-IN/i)).toBeDefined();
+    expect(screen.getByText('Asignar Plan Diferenciado')).toBeDefined();
+    expect(screen.getByText('Cerrar Ficha')).toBeDefined();
+
+    // No debe aparecer la sección de actividades de asistencia
+    expect(screen.queryByText(/ACTIVIDADES Y CARGA DEL DÍA/i)).toBeNull();
+  });
+
+  it('en modo asistencia muestra solo actividades y carga del día, ocultando mapa anatómico y métricas de check-in', () => {
+    render(
+      <AthleteQuickSheet
+        athlete={athleteWithIndicators}
+        mode="asistencia"
+        attendanceData={{
+          totalMinutes: 56,
+          totalLoad: 392,
+          activities: [
+            {
+              type: 'Gym',
+              name: 'Gimnasio',
+              minutes: 56,
+              rpe: 7,
+            },
+          ],
+        }}
+        onClose={vi.fn()}
+        onAssignDifferentiated={vi.fn()}
+      />,
+    );
+
+    // Cabecera compartida (sin pintar)
+    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(screen.getByText(/Estado: Atención Crítica/i)).toBeDefined();
+
+    // En amarillo: Bloque exclusivo de actividades y carga del día
+    expect(screen.getByText(/ACTIVIDADES Y CARGA DEL DÍA/i)).toBeDefined();
+    expect(screen.getByText(/56 min totales · 392 UA/i)).toBeDefined();
     expect(screen.getByText('Gimnasio')).toBeDefined();
     expect(screen.getByText('Lugar / Tipo: Gimnasio')).toBeDefined();
-    expect(screen.getByText('56 min')).toBeDefined();
+    expect(screen.getAllByText(/56 min/i).length).toBeGreaterThan(0);
     expect(screen.getByText('RPE 7')).toBeDefined();
     expect(screen.getByText('392 UA')).toBeDefined();
+
+    // En verde (oculto en asistencia): métricas de check-in, mapa anatómico y botón asignar plan
+    expect(screen.queryByText(/Sueño y Descanso/i)).toBeNull();
+    expect(screen.queryByText(/RPE \/ Fatiga/i)).toBeNull();
+    expect(screen.queryByText(/MAPA ANATÓMICO DEL CHECK-IN/i)).toBeNull();
+    expect(screen.queryByText('Asignar Plan Diferenciado')).toBeNull();
+
+    // Botón cerrar compartido
+    expect(screen.getByText('Cerrar Ficha')).toBeDefined();
   });
 });

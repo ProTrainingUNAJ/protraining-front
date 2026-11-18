@@ -151,10 +151,9 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     // Verificar atleta sin registro (muestra métricas en 0 y estado Sin registro)
     const joaquinName = screen.getByText('Joaquín Díaz');
     expect(joaquinName).toBeDefined();
-    expect(joaquinName.style.wordBreak).toBe('normal');
-    expect(joaquinName.style.overflowWrap).toBe('anywhere');
-    expect(screen.getByText('• Sin registro')).toBeDefined();
-    expect(screen.getByRole('button', { name: /Marcar presente/i })).toBeDefined();
+    expect(joaquinName.style.whiteSpace).toBe('nowrap');
+    expect(screen.getAllByText('Sin registro').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: /Marcar presente a Joaquín Díaz/i })).toBeDefined();
 
     // Verificar avatares accesibles presentes
     expect(screen.getByLabelText(/Foto de perfil de Lucas Gómez/i)).toBeDefined();
@@ -306,6 +305,114 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     await waitFor(() => {
       expect(screen.getByText('Planilla de Asistencia Diaria')).toBeDefined();
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+  });
+
+  it('permite tomar presente con el botón de tilde directamente desde la tarjeta del Semáforo', async () => {
+    const { setAttendance } = await import('../../../api/seguimientoService');
+
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        trafficLight: 'Green',
+        hasReportedToday: true,
+        recommendation: 'Apto para carga completa.',
+      } as unknown as import('../../../api/generated/seguimiento').AthleteTrafficLightSummary,
+    ]);
+
+    vi.mocked(getCategoryAttendanceToday).mockResolvedValue({
+      categoryId: 'cat-1',
+      date: '2026-11-15',
+      totalRoster: 1,
+      presentCount: 0,
+      attendancePercentage: 0,
+      athletes: [
+        {
+          athleteId: 'ath-1',
+          athleteName: 'Lucas Gómez',
+          status: 'NoRecord',
+          totalMinutes: 0,
+          totalLoad: 0,
+          activities: [],
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    // En la pestaña del Semáforo debe renderizar la tarjeta y el botón de tilde
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.getByTestId('btn-attendance-check-ath-1')).toBeDefined();
+    });
+
+    const checkBtn = screen.getByTestId('btn-attendance-check-ath-1');
+    expect(checkBtn.getAttribute('title')).toBe('Marcar presente');
+
+    fireEvent.click(checkBtn);
+
+    await waitFor(() => {
+      expect(setAttendance).toHaveBeenCalledWith('ath-1', true);
+      expect(checkBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
+    });
+  });
+
+  it('permite tomar presente con el botón de tilde directamente desde la tarjeta del Semáforo', async () => {
+    const { setAttendance } = await import('../../../api/seguimientoService');
+
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        trafficLight: 'Green',
+        hasReportedToday: true,
+        recommendation: 'Apto para carga completa.',
+      } as unknown as import('../../../api/generated/seguimiento').AthleteTrafficLightSummary,
+    ]);
+
+    vi.mocked(getCategoryAttendanceToday).mockResolvedValue({
+      categoryId: 'cat-1',
+      date: '2026-11-15',
+      totalRoster: 1,
+      presentCount: 0,
+      attendancePercentage: 0,
+      athletes: [
+        {
+          athleteId: 'ath-1',
+          athleteName: 'Lucas Gómez',
+          status: 'NoRecord',
+          totalMinutes: 0,
+          totalLoad: 0,
+          activities: [],
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    // En la pestaña del Semáforo debe renderizar la tarjeta y el botón de tilde
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.getByTestId('btn-attendance-check-ath-1')).toBeDefined();
+    });
+
+    const checkBtn = screen.getByTestId('btn-attendance-check-ath-1');
+    expect(checkBtn.getAttribute('title')).toBe('Marcar presente');
+
+    fireEvent.click(checkBtn);
+
+    await waitFor(() => {
+      expect(setAttendance).toHaveBeenCalledWith('ath-1', true);
+      expect(checkBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
     });
   });
 });

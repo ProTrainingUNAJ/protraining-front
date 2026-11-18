@@ -12,22 +12,38 @@ import {
   Siren,
   Thermometer,
   Clock,
+  Zap,
   Dumbbell,
   Trophy,
+  Users,
 } from 'lucide-react';
 import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
 import { AthleteAvatar } from './AthleteAvatar';
 
+export interface QuickSheetActivityDetail {
+  type: string;
+  name: string;
+  minutes: number;
+  rpe?: number | null;
+}
+
 /**
- * Ficha rápida del atleta (KAN-365/KAN-366): se abre desde las tarjetas de
- * MonitoringPage con el item real del semáforo del día (sin mocks) y muestra
- * los indicadores del check-in, el mapa de dolor y la acción de asignación
- * diferenciada. Bordes y estados con tokens `--traffic-*` de `tokens.css`
- * (soporte claro/oscuro); cero literales rgba/hex (KAN-366).
+ * Ficha rápida del atleta (KAN-365/KAN-366/KAN-621): se abre desde las tarjetas de
+ * MonitoringPage (tanto en Semáforo del Día como en Asistencia & RPE).
+ *
+ * En Semáforo: muestra métricas del check-in, mapa anatómico de dolor/lesión y acción de asignar plan diferenciado.
+ * En Asistencia & RPE: muestra exclusivamente el bloque de Actividades y Carga del Día (minutos, RPE y UA).
+ * En ambos: cabecera con avatar, indicadores rápidos y diagnóstico de estado, junto al botón de cerrar ficha.
  */
 interface AthleteQuickSheetProps {
   athlete: AthleteTrafficLightItem | null;
+  mode?: 'semaforo' | 'asistencia';
+  attendanceData?: {
+    totalMinutes?: number;
+    totalLoad?: number;
+    activities?: QuickSheetActivityDetail[];
+  };
   onClose: () => void;
   onAssignDifferentiated?: (athleteId: string) => void;
   onOpenAdjustment?: (athlete: AthleteTrafficLightItem) => void;
@@ -35,6 +51,8 @@ interface AthleteQuickSheetProps {
 
 export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
   athlete,
+  mode = 'semaforo',
+  attendanceData,
   onClose,
   onAssignDifferentiated,
   onOpenAdjustment,
@@ -340,89 +358,19 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
           </p>
         </div>
 
-        {/* Desglose de Parámetros de Check-in */}
-        {athlete.status !== 'gray' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {/* Tarjetas de parámetros del Check-in (estilo de tarjetas métricas, sin duplicación de sueño) */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '0.75rem',
-              }}
-            >
-              {/* 1. Sueño y Descanso */}
+        {/* Modo Semáforo: Desglose de Parámetros de Check-in y Mapa Anatómico */}
+        {mode === 'semaforo' &&
+          (athlete.status !== 'gray' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {/* Tarjetas de parámetros del Check-in (estilo de tarjetas métricas, sin duplicación de sueño) */}
               <div
                 style={{
-                  padding: '0.75rem',
-                  background: 'var(--bg-subtle)',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '0.75rem',
                 }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    marginBottom: '0.2rem',
-                  }}
-                >
-                  <Moon size={14} style={{ color: 'var(--secondary)' }} /> Sueño y Descanso
-                </div>
-                <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                  {athlete.sleepHours !== undefined && athlete.sleepHours !== null
-                    ? `${athlete.sleepHours} hrs`
-                    : '—'}
-                </strong>
-                <small
-                  style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
-                >
-                  Calidad: {athlete.sleepQuality || 'Normal'}
-                </small>
-              </div>
-
-              {/* 2. RPE / Fatiga */}
-              <div
-                style={{
-                  padding: '0.75rem',
-                  background: 'var(--bg-subtle)',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    marginBottom: '0.2rem',
-                  }}
-                >
-                  <Activity size={14} style={{ color: 'var(--stat-cyan)' }} /> RPE / Fatiga
-                </div>
-                <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                  {effectiveRpe !== undefined ? `${effectiveRpe} / 10` : '—'}
-                </strong>
-                <small
-                  style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
-                >
-                  {effectiveRpe && effectiveRpe >= 8
-                    ? 'Sobrecarga alta'
-                    : effectiveRpe
-                      ? 'Carga moderada'
-                      : 'Sin registro'}
-                </small>
-              </div>
-
-              {/* 3. Dolor EVA Máximo (si reportó dolor) */}
-              {maxPainLevel > 0 && (
+                {/* 1. Sueño y Descanso */}
                 <div
                   style={{
                     padding: '0.75rem',
@@ -442,31 +390,21 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                       marginBottom: '0.2rem',
                     }}
                   >
-                    <AlertCircle
-                      size={14}
-                      style={{
-                        color: maxPainLevel >= 4 ? 'var(--traffic-red)' : 'var(--traffic-yellow)',
-                      }}
-                    />{' '}
-                    Dolor EVA
+                    <Moon size={14} style={{ color: 'var(--secondary)' }} /> Sueño y Descanso
                   </div>
                   <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                    {maxPainLevel}/5
+                    {athlete.sleepHours !== undefined && athlete.sleepHours !== null
+                      ? `${athlete.sleepHours} hrs`
+                      : '—'}
                   </strong>
                   <small
                     style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
                   >
-                    {athlete.hasActiveInjury
-                      ? 'Lesión activa reportada'
-                      : maxPainLevel >= 4
-                        ? 'Dolor agudo / máximo'
-                        : 'Molestia moderada'}
+                    Calidad: {athlete.sleepQuality || 'Normal'}
                   </small>
                 </div>
-              )}
 
-              {/* 4. Estado Clínico / Salud (si reportó enfermedad o lesión) */}
-              {(athlete.hasActiveInjury || athlete.isSick) && (
+                {/* 2. RPE / Fatiga */}
                 <div
                   style={{
                     padding: '0.75rem',
@@ -486,257 +424,357 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                       marginBottom: '0.2rem',
                     }}
                   >
-                    {athlete.isSick ? (
-                      <Thermometer size={14} style={{ color: 'var(--warning-text)' }} />
-                    ) : (
-                      <Siren size={14} style={{ color: 'var(--traffic-red-text)' }} />
-                    )}{' '}
-                    Estado de Salud
+                    <Activity size={14} style={{ color: 'var(--stat-cyan)' }} /> RPE / Fatiga
                   </div>
                   <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                    {athlete.isSick && athlete.hasActiveInjury
-                      ? 'Lesión y Enfermedad'
-                      : athlete.isSick
-                        ? 'Enfermedad'
-                        : 'Lesión Activa'}
+                    {effectiveRpe !== undefined ? `${effectiveRpe} / 10` : '—'}
                   </strong>
                   <small
                     style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
                   >
-                    {athlete.isSick ? 'Reportó síntomas hoy' : 'Zona afectada'}
+                    {effectiveRpe && effectiveRpe >= 8
+                      ? 'Sobrecarga alta'
+                      : effectiveRpe
+                        ? 'Carga moderada'
+                        : 'Sin registro'}
                   </small>
                 </div>
-              )}
-            </div>
 
-            {/* Visual Anatomical Human Body Map (inherited from athlete check-in) */}
-            <AthleteBodyPainMap pains={athlete.pains} athleteName={athlete.name} />
-
-            {/* Observaciones del Atleta */}
-            {athlete.notes && (
-              <div
-                style={{
-                  padding: '0.75rem 0.85rem',
-                  background: 'var(--bg-card)',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    color: 'var(--text-muted)',
-                    marginBottom: '0.3rem',
-                  }}
-                >
-                  <MessageSquare size={13} /> Observación del Atleta:
-                </span>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '0.85rem',
-                    color: 'var(--text-main)',
-                    fontStyle: 'italic',
-                    lineHeight: 1.35,
-                  }}
-                >
-                  "{athlete.notes}"
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: '1.5rem',
-              textAlign: 'center',
-              background: 'var(--bg-subtle)',
-              borderRadius: '14px',
-              border: '1px dashed var(--border)',
-            }}
-          >
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Este atleta aún no ha completado el formulario de check-in del día.
-            </p>
-          </div>
-        )}
-
-        {/* Detalle de Carga y Actividades del Día (KAN-621) */}
-        {athlete.activities && athlete.activities.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.65rem',
-              padding: '0.85rem',
-              background: 'var(--bg-subtle)',
-              borderRadius: '16px',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  fontSize: '0.82rem',
-                  fontWeight: 800,
-                  color: 'var(--text-main)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.03em',
-                }}
-              >
-                <Dumbbell size={15} style={{ color: 'var(--primary)' }} />
-                Actividades y Carga del Día
-              </span>
-              <span
-                style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  color: 'var(--text-muted)',
-                }}
-              >
-                {athlete.totalMinutes ?? athlete.activities.reduce((acc, a) => acc + a.minutes, 0)}{' '}
-                min totales
-                {athlete.totalLoad ? ` · ${athlete.totalLoad} UA` : ''}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {athlete.activities.map((act, idx) => {
-                const rpeVal = act.rpe ?? 0;
-                const rpeBadgeColor =
-                  rpeVal >= 8
-                    ? {
-                        bg: 'var(--danger-bg)',
-                        text: 'var(--danger-text)',
-                        border: 'var(--danger-border)',
-                      }
-                    : rpeVal >= 5
-                      ? {
-                          bg: 'var(--warning-bg)',
-                          text: 'var(--warning-text)',
-                          border: 'var(--warning-border)',
-                        }
-                      : {
-                          bg: 'var(--success-bg)',
-                          text: 'var(--success-text)',
-                          border: 'var(--success-border)',
-                        };
-
-                return (
+                {/* 3. Dolor EVA Máximo (si reportó dolor) */}
+                {maxPainLevel > 0 && (
                   <div
-                    key={idx}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.6rem 0.85rem',
-                      background: 'var(--bg-card)',
+                      padding: '0.75rem',
+                      background: 'var(--bg-subtle)',
                       borderRadius: '12px',
                       border: '1px solid var(--border)',
-                      gap: '0.5rem',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <div
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        marginBottom: '0.2rem',
+                      }}
+                    >
+                      <AlertCircle
+                        size={14}
                         style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '8px',
-                          background: 'var(--primary-light, #f0f9ff)',
-                          color: 'var(--primary, #0284c7)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
+                          color: maxPainLevel >= 4 ? 'var(--traffic-red)' : 'var(--traffic-yellow)',
                         }}
-                      >
-                        {act.type === 'Gym' ? (
-                          <Dumbbell size={16} />
-                        ) : act.type === 'Match' ? (
-                          <Trophy size={16} />
-                        ) : (
-                          <Activity size={16} />
-                        )}
-                      </div>
-                      <div>
-                        <strong
-                          style={{
-                            display: 'block',
-                            fontSize: '0.85rem',
-                            color: 'var(--text-main)',
-                          }}
-                        >
-                          {act.name}
-                        </strong>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                          Lugar / Tipo: {act.name}
-                        </span>
-                      </div>
+                      />{' '}
+                      Dolor EVA
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: 'var(--text-main)',
-                        }}
-                      >
-                        <Clock size={13} style={{ color: 'var(--text-muted)' }} />
-                        {act.minutes} min
-                      </span>
-
-                      {act.rpe !== undefined && act.rpe !== null && (
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            padding: '0.15rem 0.5rem',
-                            borderRadius: '9999px',
-                            background: rpeBadgeColor.bg,
-                            color: rpeBadgeColor.text,
-                            border: `1px solid ${rpeBadgeColor.border}`,
-                          }}
-                        >
-                          RPE {act.rpe}
-                        </span>
-                      )}
-
-                      {act.minutes && act.rpe ? (
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            color: 'var(--primary)',
-                          }}
-                        >
-                          {act.minutes * act.rpe} UA
-                        </span>
-                      ) : null}
-                    </div>
+                    <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
+                      {maxPainLevel}/5
+                    </strong>
+                    <small
+                      style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
+                    >
+                      {athlete.hasActiveInjury
+                        ? 'Lesión activa reportada'
+                        : maxPainLevel >= 4
+                          ? 'Dolor agudo / máximo'
+                          : 'Molestia moderada'}
+                    </small>
                   </div>
-                );
-              })}
+                )}
+
+                {/* 4. Estado Clínico / Salud (si reportó enfermedad o lesión) */}
+                {(athlete.hasActiveInjury || athlete.isSick) && (
+                  <div
+                    style={{
+                      padding: '0.75rem',
+                      background: 'var(--bg-subtle)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        marginBottom: '0.2rem',
+                      }}
+                    >
+                      {athlete.isSick ? (
+                        <Thermometer size={14} style={{ color: 'var(--warning-text)' }} />
+                      ) : (
+                        <Siren size={14} style={{ color: 'var(--traffic-red-text)' }} />
+                      )}{' '}
+                      Estado de Salud
+                    </div>
+                    <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
+                      {athlete.isSick && athlete.hasActiveInjury
+                        ? 'Lesión y Enfermedad'
+                        : athlete.isSick
+                          ? 'Enfermedad'
+                          : 'Lesión Activa'}
+                    </strong>
+                    <small
+                      style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem' }}
+                    >
+                      {athlete.isSick ? 'Reportó síntomas hoy' : 'Zona afectada'}
+                    </small>
+                  </div>
+                )}
+              </div>
+
+              {/* Visual Anatomical Human Body Map (inherited from athlete check-in) */}
+              <AthleteBodyPainMap pains={athlete.pains} athleteName={athlete.name} />
+
+              {/* Observaciones del Atleta */}
+              {athlete.notes && (
+                <div
+                  style={{
+                    padding: '0.75rem 0.85rem',
+                    background: 'var(--bg-card)',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      color: 'var(--text-muted)',
+                      marginBottom: '0.3rem',
+                    }}
+                  >
+                    <MessageSquare size={13} /> Observación del Atleta:
+                  </span>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.85rem',
+                      color: 'var(--text-main)',
+                      fontStyle: 'italic',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    "{athlete.notes}"
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div
+              style={{
+                padding: '1.5rem',
+                textAlign: 'center',
+                background: 'var(--bg-subtle)',
+                borderRadius: '14px',
+                border: '1px dashed var(--border)',
+              }}
+            >
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Este atleta aún no ha completado el formulario de check-in del día.
+              </p>
+            </div>
+          ))}
+
+        {/* Modo Asistencia & RPE: Actividades y Carga del Día */}
+        {mode === 'asistencia' &&
+          (() => {
+            const activities = attendanceData?.activities ?? athlete.activities ?? [];
+            const totalMinutes =
+              attendanceData?.totalMinutes ??
+              athlete.totalMinutes ??
+              activities.reduce((acc, a) => acc + a.minutes, 0);
+            const totalLoad =
+              attendanceData?.totalLoad ??
+              athlete.totalLoad ??
+              activities.reduce((acc, a) => acc + a.minutes * (a.rpe ?? 0), 0);
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingBottom: '0.25rem',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      fontSize: '0.85rem',
+                      fontWeight: 800,
+                      color: 'var(--text-main)',
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    <Zap size={16} color="var(--primary, #0284c7)" />
+                    ACTIVIDADES Y CARGA DEL DÍA
+                  </span>
+
+                  <span
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    {totalMinutes} min totales · {totalLoad} UA
+                  </span>
+                </div>
+
+                {activities.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {activities.map((act, index) => {
+                      const ua = act.minutes * (act.rpe ?? 0);
+                      const getActivityDetails = (type: string, name: string) => {
+                        if (type === 'Gym') return { icon: Dumbbell, label: 'Gimnasio' };
+                        if (type === 'SportTraining')
+                          return { icon: Activity, label: 'Entrenamiento de Campo' };
+                        if (type === 'Match1' || type === 'Match2' || type === 'Match')
+                          return { icon: Trophy, label: 'Partido Oficial' };
+                        if (type === 'IndividualWork')
+                          return { icon: Users, label: 'Trabajo Individual' };
+                        return { icon: Activity, label: name || 'Actividad' };
+                      };
+                      const { icon: ActIcon, label: subLabel } = getActivityDetails(
+                        act.type,
+                        act.name,
+                      );
+
+                      return (
+                        <div
+                          key={index}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.85rem 1rem',
+                            background: 'var(--bg-subtle)',
+                            borderRadius: '14px',
+                            border: '1px solid var(--border)',
+                            gap: '0.75rem',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div
+                              style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '10px',
+                                background: 'var(--primary-light, #f0f9ff)',
+                                border: '1px solid var(--primary-light-border, #bae6fd)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <ActIcon size={18} color="var(--primary, #0284c7)" />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <strong
+                                style={{
+                                  fontSize: '0.92rem',
+                                  fontWeight: 800,
+                                  color: 'var(--text-main)',
+                                }}
+                              >
+                                {act.name}
+                              </strong>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                Lugar / Tipo: {subLabel}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.85rem',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                                fontSize: '0.82rem',
+                                fontWeight: 600,
+                                color: 'var(--text-main)',
+                              }}
+                            >
+                              <Clock size={14} style={{ color: 'var(--text-muted)' }} />{' '}
+                              {act.minutes} min
+                            </span>
+
+                            {act.rpe !== null && act.rpe !== undefined && (
+                              <span
+                                style={{
+                                  padding: '0.2rem 0.6rem',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 800,
+                                  background: '#fef3c7',
+                                  border: '1px solid #fde68a',
+                                  color: '#b45309',
+                                }}
+                              >
+                                RPE {act.rpe}
+                              </span>
+                            )}
+
+                            <strong
+                              style={{
+                                fontSize: '0.95rem',
+                                fontWeight: 900,
+                                color: 'var(--text-main)',
+                                minWidth: '58px',
+                                textAlign: 'right',
+                              }}
+                            >
+                              {ua} UA
+                            </strong>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                      background: 'var(--bg-subtle)',
+                      borderRadius: '14px',
+                      border: '1px dashed var(--border)',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    No hay actividades de carga registradas en el día de hoy.
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
         {/* Acciones del Preparador Físico */}
         <div
@@ -748,7 +786,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
             flexWrap: 'wrap',
           }}
         >
-          {athlete.hasDayConflict && (
+          {mode === 'semaforo' && athlete.hasDayConflict && (
             <button
               type="button"
               className="btn btn-warning"
@@ -773,7 +811,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
             </button>
           )}
 
-          {isRed || isYellow ? (
+          {mode === 'semaforo' && (isRed || isYellow) ? (
             <button
               type="button"
               className="btn btn-warning"
