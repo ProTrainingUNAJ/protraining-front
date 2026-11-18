@@ -1171,3 +1171,190 @@
   gap: 1.5rem;
   width: 100%;
 }
+
+/* ── Tendencias de Bienestar y Carga en App Atleta (KAN-490) ── */
+
+.athlete-trends-card {
+  margin: 0;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.athlete-trends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.athlete-trends-header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+}
+
+.athlete-trends-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.athlete-trends-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.athlete-trends-period-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--info-border);
+  white-space: nowrap;
+}
+
+.athlete-trends-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.athlete-trends-kpi-item {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.athlete-trends-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.athlete-trends-kpi-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.athlete-trends-kpi-unit {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.athlete-trends-kpi-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.athlete-trends-chart-wrapper {
+  width: 100%;
+  min-height: 260px;
+  position: relative;
+}
+
+.athlete-trends-tooltip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: var(--shadow);
+  max-width: 260px;
+}
+
+.athlete-trends-tooltip-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.athlete-trends-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.athlete-trends-tooltip-row strong {
+  color: var(--text-main);
+}
+
+.athlete-trends-tooltip-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.athlete-trends-tooltip-marker.wellness-marker {
+  background: var(--primary);
+}
+
+.athlete-trends-tooltip-marker.load-marker {
+  background: var(--secondary);
+}
+
+.athlete-trends-partial-alert {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.athlete-trends-error-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.athlete-trends-retry-btn {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+}
+
+.athlete-trends-period-icon {
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+@media (max-width: 480px) {
+  .athlete-trends-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .athlete-trends-title {
+    font-size: 1rem;
+  }
+
+  .athlete-trends-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+}

@@ -33,6 +33,8 @@ import { OneRepMaxProgressionChart } from '../../components/athletes/OneRepMaxPr
 import { JumpVsLoadProgressionChart } from '../../components/athletes/JumpVsLoadProgressionChart';
 import { EvolutionRangeSelector } from '../../components/athletes/EvolutionRangeSelector';
 import { EvolutionRange } from '../../utils/evolutionRange';
+import { AthleteWeeklyTrendsChart } from '../../components/athlete/AthleteWeeklyTrendsChart';
+import { useAthleteTrends } from '../../hooks/useAthleteTrends';
 
 export const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,6 +52,12 @@ export const ProgressPage: React.FC = () => {
     loading: evolutionLoading,
     error: evolutionError,
   } = useAthleteEvolution(evolutionRange);
+  const {
+    trends: weeklyTrends,
+    loading: trendsLoading,
+    error: trendsError,
+    reload: reloadTrends,
+  } = useAthleteTrends(4);
 
   // Métricas de Progreso armadas con la evolución real; solo aparecen las que tienen mediciones
   const metrics = React.useMemo(() => buildEvolutionMetrics(evolution), [evolution]);
@@ -275,6 +283,14 @@ export const ProgressPage: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Tendencia semanal de bienestar y carga (KAN-490) */}
+            <AthleteWeeklyTrendsChart
+              trends={weeklyTrends}
+              loading={trendsLoading}
+              error={trendsError}
+              onRetry={reloadTrends}
+            />
 
             <EvolutionRangeSelector
               value={evolutionRange}

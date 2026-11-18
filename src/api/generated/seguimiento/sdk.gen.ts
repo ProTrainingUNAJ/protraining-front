@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListCheckInInjuriesData, ListCheckInInjuriesErrors, ListCheckInInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, ListResolvedInjuriesData, ListResolvedInjuriesErrors, ListResolvedInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeeklyTrendsData, GetAthleteWeeklyTrendsErrors, GetAthleteWeeklyTrendsResponses, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCategoryWeeklyTrendsData, GetCategoryWeeklyTrendsErrors, GetCategoryWeeklyTrendsResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListCheckInInjuriesData, ListCheckInInjuriesErrors, ListCheckInInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, ListResolvedInjuriesData, ListResolvedInjuriesErrors, ListResolvedInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -290,6 +290,32 @@ export const getAthleteEvolution = <ThrowOnError extends boolean = false>(option
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/evolution',
+    ...options
+});
+
+/**
+ * Consultar tendencias semanales individuales de wellness y carga
+ *
+ * Devuelve las tendencias semanales (lunes a domingo en hora de Argentina) de wellness compuesto (1..5) y carga total UA Foster de un atleta. Por defecto retorna las últimas 4 semanas incluida la actual.
+ *
+ */
+export const getAthleteWeeklyTrends = <ThrowOnError extends boolean = false>(options: Options<GetAthleteWeeklyTrendsData, ThrowOnError>): RequestResult<GetAthleteWeeklyTrendsResponses, GetAthleteWeeklyTrendsErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteWeeklyTrendsResponses, GetAthleteWeeklyTrendsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/trends',
+    ...options
+});
+
+/**
+ * Consultar tendencias semanales grupales de wellness y carga por categoría
+ *
+ * Devuelve las tendencias semanales agregadas de una categoría. El wellness grupal se calcula como el promedio de los promedios semanales individuales de los atletas que reportaron (igual peso por atleta) y la carga grupal como la suma semanal de cargas UA Foster de los atletas distintos de la categoría.
+ *
+ */
+export const getCategoryWeeklyTrends = <ThrowOnError extends boolean = false>(options: Options<GetCategoryWeeklyTrendsData, ThrowOnError>): RequestResult<GetCategoryWeeklyTrendsResponses, GetCategoryWeeklyTrendsErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryWeeklyTrendsResponses, GetCategoryWeeklyTrendsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/trends',
     ...options
 });
 
