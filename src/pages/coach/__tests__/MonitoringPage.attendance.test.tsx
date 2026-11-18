@@ -308,9 +308,7 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     });
   });
 
-  it('permite tomar presente con el botón de tilde directamente desde la tarjeta del Semáforo', async () => {
-    const { setAttendance } = await import('../../../api/seguimientoService');
-
+  it('no muestra botón de asistencia en las tarjetas de la pestaña Semáforo (KAN-621)', async () => {
     vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
       {
         athleteId: 'ath-1',
@@ -321,59 +319,23 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       } as unknown as import('../../../api/generated/seguimiento').AthleteTrafficLightSummary,
     ]);
 
-    vi.mocked(getCategoryAttendanceToday).mockResolvedValue({
-      categoryId: 'cat-1',
-      date: '2026-11-15',
-      totalRoster: 1,
-      presentCount: 0,
-      attendancePercentage: 0,
-      athletes: [
-        {
-          athleteId: 'ath-1',
-          athleteName: 'Lucas Gómez',
-          status: 'NoRecord',
-          totalMinutes: 0,
-          totalLoad: 0,
-          activities: [],
-        },
-      ],
-    });
-
     render(
       <MemoryRouter initialEntries={['/pf/monitoring']}>
         <MonitoringPage />
       </MemoryRouter>,
     );
 
-    // En la pestaña del Semáforo debe renderizar la tarjeta y el botón de tilde
+    // En la pestaña del Semáforo debe renderizar la tarjeta y NO tener botón de tilde
     await waitFor(() => {
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
-      expect(screen.getByTestId('btn-attendance-check-ath-1')).toBeDefined();
     });
 
-    const checkBtn = screen.getByTestId('btn-attendance-check-ath-1');
-    expect(checkBtn.getAttribute('title')).toBe('Marcar presente');
-
-    fireEvent.click(checkBtn);
-
-    await waitFor(() => {
-      expect(setAttendance).toHaveBeenCalledWith('ath-1', true);
-      expect(checkBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
-    });
+    expect(screen.queryByTestId('btn-attendance-check-ath-1')).toBeNull();
+    expect(screen.queryByTestId('btn-attendance-toggle-ath-1')).toBeNull();
   });
 
-  it('permite tomar presente con el botón de tilde directamente desde la tarjeta del Semáforo', async () => {
+  it('permite conmutar la presencia del atleta con el botón vertical de tilde en Asistencia & RPE', async () => {
     const { setAttendance } = await import('../../../api/seguimientoService');
-
-    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
-      {
-        athleteId: 'ath-1',
-        athleteName: 'Lucas Gómez',
-        trafficLight: 'Green',
-        hasReportedToday: true,
-        recommendation: 'Apto para carga completa.',
-      } as unknown as import('../../../api/generated/seguimiento').AthleteTrafficLightSummary,
-    ]);
 
     vi.mocked(getCategoryAttendanceToday).mockResolvedValue({
       categoryId: 'cat-1',
@@ -394,25 +356,24 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     });
 
     render(
-      <MemoryRouter initialEntries={['/pf/monitoring']}>
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
         <MonitoringPage />
       </MemoryRouter>,
     );
 
-    // En la pestaña del Semáforo debe renderizar la tarjeta y el botón de tilde
     await waitFor(() => {
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
-      expect(screen.getByTestId('btn-attendance-check-ath-1')).toBeDefined();
+      expect(screen.getByTestId('btn-attendance-toggle-ath-1')).toBeDefined();
     });
 
-    const checkBtn = screen.getByTestId('btn-attendance-check-ath-1');
-    expect(checkBtn.getAttribute('title')).toBe('Marcar presente');
+    const toggleBtn = screen.getByTestId('btn-attendance-toggle-ath-1');
+    expect(toggleBtn.getAttribute('title')).toBe('Marcar presente');
 
-    fireEvent.click(checkBtn);
+    fireEvent.click(toggleBtn);
 
     await waitFor(() => {
       expect(setAttendance).toHaveBeenCalledWith('ath-1', true);
-      expect(checkBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
+      expect(toggleBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
     });
   });
 });

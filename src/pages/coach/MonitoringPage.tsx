@@ -984,17 +984,11 @@ export const MonitoringPage: React.FC = () => {
                 const attendanceItem = attendanceResult?.summary?.athletes?.find(
                   (r) => r.athleteId.toLowerCase() === athlete.id.toLowerCase(),
                 );
-                const status = attendanceOverrides[athlete.id] ?? attendanceItem?.status;
-                const isPresent = status === 'Present';
 
                 return (
                   <AthleteTrafficLightCard
                     key={athlete.id}
                     athlete={athlete}
-                    isPresent={isPresent}
-                    onToggleAttendance={(athleteId, nextPresent) =>
-                      handleToggleAttendance(athleteId, nextPresent)
-                    }
                     onClick={() => {
                       setQuickSheetMode('semaforo');
                       setSelectedAthleteAttendance(null);

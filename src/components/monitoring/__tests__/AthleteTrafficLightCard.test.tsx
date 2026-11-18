@@ -22,7 +22,7 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
     expect(screen.getByText(/Primera División/i)).toBeDefined();
     expect(screen.getByText('Sin Check-in')).toBeDefined();
     expect(screen.getByText('Pendiente')).toBeDefined();
-    expect(screen.getByText('Sin check-in completado el día de hoy.')).toBeDefined();
+    expect(screen.getByText('Sin Check in completado hoy')).toBeDefined();
 
     // Siluetas anatómicas (frente y dorso)
     const muscleMap = screen.getByRole('img', { name: /Mapa anatómico de Joaquín Díaz/i });
@@ -87,46 +87,17 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
   it('renderiza la burbuja inferior estandarizada con título y subtítulo de detalle', () => {
     render(<AthleteTrafficLightCard athlete={baseAthlete} onClick={vi.fn()} />);
 
-    expect(screen.getByText('Sin check-in completado el día de hoy.')).toBeDefined();
+    expect(screen.getByText('Sin Check in completado hoy')).toBeDefined();
     expect(screen.getByText('Tocar tarjeta para ver detalle y actividades')).toBeDefined();
   });
 
-  it('renderiza el botón con tilde para tomar presente y permite alternar asistencia sin disparar onClick de la tarjeta', () => {
-    const handleToggleAttendance = vi.fn();
+  it('no renderiza el botón de tilde para tomar presente en la tarjeta del Semáforo (KAN-621)', () => {
     const handleCardClick = vi.fn();
 
-    const { rerender } = render(
-      <AthleteTrafficLightCard
-        athlete={baseAthlete}
-        onClick={handleCardClick}
-        isPresent={false}
-        onToggleAttendance={handleToggleAttendance}
-      />,
-    );
+    render(<AthleteTrafficLightCard athlete={baseAthlete} onClick={handleCardClick} />);
 
-    const checkBtn = screen.getByTestId(`btn-attendance-check-${baseAthlete.id}`);
-    expect(checkBtn).toBeDefined();
-    expect(checkBtn.getAttribute('title')).toBe('Marcar presente');
-
-    fireEvent.click(checkBtn);
-
-    // Debe llamar a onToggleAttendance con true y NO disparar el click de la tarjeta
-    expect(handleToggleAttendance).toHaveBeenCalledWith('ath-1', true);
-    expect(handleCardClick).not.toHaveBeenCalled();
-
-    // Rerender con isPresent = true
-    rerender(
-      <AthleteTrafficLightCard
-        athlete={baseAthlete}
-        onClick={handleCardClick}
-        isPresent={true}
-        onToggleAttendance={handleToggleAttendance}
-      />,
-    );
-
-    expect(checkBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
-    fireEvent.click(checkBtn);
-    expect(handleToggleAttendance).toHaveBeenCalledWith('ath-1', false);
-    expect(handleCardClick).not.toHaveBeenCalled();
+    expect(screen.queryByTestId(`btn-attendance-check-${baseAthlete.id}`)).toBeNull();
+    expect(screen.queryByTitle('Marcar presente')).toBeNull();
+    expect(screen.queryByTitle('Presente (clic para quitar)')).toBeNull();
   });
 });
