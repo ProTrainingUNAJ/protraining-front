@@ -13,7 +13,6 @@ import {
 } from '../../components/monitoring/trafficLight.types';
 import { structureService } from '../../api/structureService';
 import { usersService } from '../../api/users';
-import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import {
   ATHLETE_NAME_FALLBACK,
   CATEGORY_NAME_FALLBACK,
