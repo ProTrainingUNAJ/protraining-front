@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import {
-  ChevronRight,
+  Check,
   AlertCircle,
   Moon,
   Activity,
@@ -15,17 +15,18 @@ import { MuscleMapBack } from '../athlete/MuscleMapBack';
 import { resolveMuscleId } from '../../utils/painMuscleResolver';
 
 /**
- * Tarjeta del atleta en MonitoringPage (KAN-365/KAN-366): adaptada al DTO real
- * del endpoint traffic-light-today vía `mapTrafficLightSummaryToItem` (sin
- * mocks: `trafficLightData.ts` eliminado). Los anillos e indicadores (sueño,
- * RPE, dolor, enfermedad, lesión) se pintan solo cuando el atleta reportó hoy.
- * Paleta por estado 100% con tokens `--traffic-*` (ring/bg/text/border) de
- * `tokens.css`, con soporte claro/oscuro; cero literales rgba/hex (KAN-366).
+ * Tarjeta del atleta en MonitoringPage (KAN-365/KAN-366/KAN-621): adaptada al DTO real
+ * del endpoint traffic-light-today vía `mapTrafficLightSummaryToItem`.
+ * Estandarizada visualmente con la tarjeta de Asistencia & RPE:
+ * - Cabecera con Avatar, Nombre, Categoría y botón interactivo con tilde para tomar presente.
+ * - Burbuja inferior estandarizada con barra vertical de estado, título y mensaje descriptivo.
  */
-interface AthleteTrafficLightCardProps {
+export interface AthleteTrafficLightCardProps {
   athlete: AthleteTrafficLightItem;
   onClick: () => void;
   onOpenAdjustment?: (athlete: AthleteTrafficLightItem) => void;
+  isPresent?: boolean;
+  onToggleAttendance?: (athleteId: string, isPresent: boolean) => void;
   className?: string;
 }
 
@@ -63,6 +64,8 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
   athlete,
   onClick,
   onOpenAdjustment,
+  isPresent = false,
+  onToggleAttendance,
   className = '',
 }) => {
   const colors = STATUS_COLORS[athlete.status];
@@ -129,34 +132,43 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       }}
       aria-label={`Ver ficha rápida de ${athlete.name}, estado ${badgeLabel}`}
     >
-      {/* 1. Sección superior: Avatar con halo iluminado según semáforo, Nombre y División con guía de Asistencia */}
+      {/* 1. Sección superior: Avatar, Nombre + Categoría y Botón con tilde para tomar presente */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.65rem',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
           width: '100%',
           boxSizing: 'border-box',
         }}
       >
-        {/* Componente preparado para foto de perfil con iluminación concéntrica del semáforo */}
-        <AthleteAvatar
-          name={athlete.name}
-          avatarUrl={athlete.avatarUrl}
-          status={athlete.status}
-          ringColor={colors.ring}
-          size={42}
-          showRing={true}
-        />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.65rem',
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
+          {/* Componente preparado para foto de perfil con iluminación concéntrica del semáforo */}
+          <AthleteAvatar
+            name={athlete.name}
+            avatarUrl={athlete.avatarUrl}
+            status={athlete.status}
+            ringColor={colors.ring}
+            size={42}
+            showRing={true}
+          />
 
-        {/* Datos principales: Nombre y Subtítulo con formato guía idéntico a asistencia */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Datos principales: Nombre y Subtítulo con formato guía idéntico a asistencia */}
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.5rem',
+              flexDirection: 'column',
+              minWidth: 0,
+              flex: 1,
             }}
           >
             <h4
@@ -174,25 +186,57 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             >
               {athlete.name}
             </h4>
-            <ChevronRight size={17} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          </div>
 
-          <p
-            style={{
-              margin: '2px 0 0',
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-              lineHeight: 1.25,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-            title={subtitle}
-          >
-            {subtitle}
-          </p>
+            <p
+              style={{
+                margin: '2px 0 0',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+                lineHeight: 1.25,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={subtitle}
+            >
+              {subtitle}
+            </p>
+          </div>
         </div>
+
+        {/* Botón con tilde para tomar presente (estilo estandarizado con Asistencia & RPE) */}
+        <button
+          type="button"
+          data-testid={`btn-attendance-check-${athlete.id}`}
+          aria-label={
+            isPresent
+              ? `Presente registrado para ${athlete.name}. Clic para quitar.`
+              : `Marcar presente a ${athlete.name}`
+          }
+          title={isPresent ? 'Presente (clic para quitar)' : 'Marcar presente'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleAttendance?.(athlete.id, !isPresent);
+          }}
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '9999px',
+            border: isPresent ? '1px solid #a7f3d0' : '1px solid var(--border)',
+            background: isPresent ? '#ecfdf5' : 'var(--bg-subtle)',
+            color: isPresent ? '#047857' : 'var(--text-muted)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+            transition: 'all 0.15s ease',
+            padding: 0,
+          }}
+        >
+          <Check size={16} strokeWidth={2.5} />
+        </button>
       </div>
 
       {/* 2. Sección intermedia: Badge (músculo/estado) y Métricas (Dolor, Sueño, RPE) con altura fija */}
@@ -372,7 +416,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
         </div>
       </div>
 
-      {/* 3. Sección inferior: Estado/Recomendación con separación de color (Altura fija alineada) */}
+      {/* 3. Sección inferior: Estado/Recomendación con estilo estandarizado idéntico a Asistencia & RPE */}
       <div
         style={{
           borderTop: '1px solid var(--border)',
@@ -396,27 +440,51 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           }}
         />
 
-        {/* Texto del estado / recomendación visible y alineado */}
-        <p
+        {/* Bloque de dos líneas: Título de estado/recomendación + Subtítulo estandarizado */}
+        <div
           style={{
-            margin: 0,
-            fontSize: '0.80rem',
-            fontWeight: 600,
-            color: 'var(--text-main)',
-            lineHeight: 1.3,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: 0,
             flex: 1,
           }}
-          title={athlete.recommendation}
         >
-          {athlete.recommendation ||
-            (athlete.status === 'gray'
-              ? 'Sin check-in completado el día de hoy.'
-              : 'Apto para completar el 100% de la carga planificada.')}
-        </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: athlete.status === 'gray' ? 'var(--text-muted)' : 'var(--text-main)',
+              lineHeight: 1.25,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+            title={
+              athlete.recommendation ||
+              (athlete.status === 'gray'
+                ? 'Sin check-in completado el día de hoy.'
+                : 'Apto para completar el 100% de la carga planificada.')
+            }
+          >
+            {athlete.recommendation ||
+              (athlete.status === 'gray'
+                ? 'Sin check-in completado el día de hoy.'
+                : 'Apto para completar el 100% de la carga planificada.')}
+          </p>
+          <span
+            style={{
+              fontSize: '0.7rem',
+              color: 'var(--text-muted)',
+              marginTop: '2px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            Tocar tarjeta para ver detalle y actividades
+          </span>
+        </div>
       </div>
 
       {/* Botón Ver ajuste sugerido si tiene conflicto de dolor con la rutina (KAN-452).

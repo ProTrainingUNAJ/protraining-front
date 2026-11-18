@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, AlertTriangle, Loader2, Search, Users } from 'lucide-react';
+import { Activity, AlertTriangle, Check, Loader2, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
@@ -105,6 +105,17 @@ export const MonitoringPage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAthlete, setSelectedAthlete] = useState<AthleteTrafficLightItem | null>(null);
+  const [quickSheetMode, setQuickSheetMode] = useState<'semaforo' | 'asistencia'>('semaforo');
+  const [selectedAthleteAttendance, setSelectedAthleteAttendance] = useState<{
+    totalMinutes?: number;
+    totalLoad?: number;
+    activities?: Array<{
+      type: string;
+      name: string;
+      minutes: number;
+      rpe?: number | null;
+    }>;
+  } | null>(null);
   const [adjustmentAthlete, setAdjustmentAthlete] = useState<AthleteTrafficLightItem | null>(null);
 
   // 1. Cargar las categorías del preparador físico (orgs → categorías)
@@ -342,16 +353,24 @@ export const MonitoringPage: React.FC = () => {
       });
   };
 
-  // Carga de asistencia del día cuando cambia la categoría o se abre la pestaña
+  // Carga de asistencia del día cuando cambia la categoría (disponible para Semáforo y Asistencia)
   useEffect(() => {
-    if (!selectedCategoryId || activeTab !== 'attendance') return;
+    if (!selectedCategoryId) return;
     let active = true;
-    Promise.all([
-      getCategoryAttendanceToday(selectedCategoryId),
-      structureService
-        .getAthletes({ categoriaId: selectedCategoryId })
-        .catch(() => [] as Athlete[]),
-    ])
+
+    const athletesPromise =
+      typeof structureService?.getAthletes === 'function'
+        ? structureService
+            .getAthletes({ categoriaId: selectedCategoryId })
+            .catch(() => [] as Athlete[])
+        : Promise.resolve([] as Athlete[]);
+
+    const attendancePromise =
+      typeof getCategoryAttendanceToday === 'function'
+        ? getCategoryAttendanceToday(selectedCategoryId).catch(() => null)
+        : Promise.resolve(null);
+
+    Promise.all([attendancePromise, athletesPromise])
       .then(([summary, athletesData]) => {
         if (!active) return;
         if (athletesData.length > 0) setCategoryAthletes(athletesData);
@@ -368,7 +387,31 @@ export const MonitoringPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [selectedCategoryId, activeTab]);
+  }, [selectedCategoryId]);
+
+  const handleToggleAttendance = async (athleteId: string, nextPresent: boolean) => {
+    const nextStatus = nextPresent ? 'Present' : 'NoRecord';
+    const currentStatus =
+      attendanceOverrides[athleteId] ??
+      attendanceResult?.summary?.athletes?.find(
+        (r) => r.athleteId.toLowerCase() === athleteId.toLowerCase(),
+      )?.status ??
+      'NoRecord';
+
+    setAttendanceOverrides((prev) => ({
+      ...prev,
+      [athleteId]: nextStatus,
+    }));
+
+    try {
+      await setAttendance(athleteId, nextPresent);
+    } catch {
+      setAttendanceOverrides((prev) => ({
+        ...prev,
+        [athleteId]: currentStatus,
+      }));
+    }
+  };
 
   const athletesLoading =
     selectedCategoryId !== '' &&
@@ -937,24 +980,35 @@ export const MonitoringPage: React.FC = () => {
                 alignItems: 'stretch',
               }}
             >
-              {filteredAthletes.map((athlete) => (
-                <AthleteTrafficLightCard
-                  key={athlete.id}
-                  athlete={athlete}
-                  onClick={() => {
-                    const attendanceItem = attendanceResult?.summary?.athletes?.find(
-                      (r) => r.athleteId.toLowerCase() === athlete.id.toLowerCase(),
-                    );
-                    setSelectedAthlete({
-                      ...athlete,
-                      activities: attendanceItem?.activities ?? athlete.activities,
-                      totalMinutes: attendanceItem?.totalMinutes ?? athlete.totalMinutes,
-                      totalLoad: attendanceItem?.totalLoad ?? athlete.totalLoad,
-                    });
-                  }}
-                  onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
-                />
-              ))}
+              {filteredAthletes.map((athlete) => {
+                const attendanceItem = attendanceResult?.summary?.athletes?.find(
+                  (r) => r.athleteId.toLowerCase() === athlete.id.toLowerCase(),
+                );
+                const status = attendanceOverrides[athlete.id] ?? attendanceItem?.status;
+                const isPresent = status === 'Present';
+
+                return (
+                  <AthleteTrafficLightCard
+                    key={athlete.id}
+                    athlete={athlete}
+                    isPresent={isPresent}
+                    onToggleAttendance={(athleteId, nextPresent) =>
+                      handleToggleAttendance(athleteId, nextPresent)
+                    }
+                    onClick={() => {
+                      setQuickSheetMode('semaforo');
+                      setSelectedAthleteAttendance(null);
+                      setSelectedAthlete({
+                        ...athlete,
+                        activities: attendanceItem?.activities ?? athlete.activities,
+                        totalMinutes: attendanceItem?.totalMinutes ?? athlete.totalMinutes,
+                        totalLoad: attendanceItem?.totalLoad ?? athlete.totalLoad,
+                      });
+                    }}
+                    onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
+                  />
+                );
+              })}
 
               {athletesLoading && (
                 <div
@@ -1312,6 +1366,12 @@ export const MonitoringPage: React.FC = () => {
                         key={athlete.athleteId}
                         className="card athlete-attendance-card"
                         onClick={() => {
+                          setQuickSheetMode('asistencia');
+                          setSelectedAthleteAttendance({
+                            totalMinutes,
+                            totalLoad,
+                            activities: athlete.activities ?? [],
+                          });
                           const baseItem: AthleteTrafficLightItem = athleteTraffic ?? {
                             id: athlete.athleteId,
                             name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
@@ -1329,8 +1389,8 @@ export const MonitoringPage: React.FC = () => {
                             ...baseItem,
                             avatarUrl: baseItem.avatarUrl || photoUrl,
                             activities: athlete.activities,
-                            totalMinutes: athlete.totalMinutes,
-                            totalLoad: athlete.totalLoad,
+                            totalMinutes: athlete.totalMinutes ?? totalMinutes,
+                            totalLoad: athlete.totalLoad ?? totalLoad,
                             rpe: baseItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
                           });
                         }}
@@ -1339,6 +1399,12 @@ export const MonitoringPage: React.FC = () => {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
+                            setQuickSheetMode('asistencia');
+                            setSelectedAthleteAttendance({
+                              totalMinutes,
+                              totalLoad,
+                              activities: athlete.activities ?? [],
+                            });
                             const baseItem: AthleteTrafficLightItem = athleteTraffic ?? {
                               id: athlete.athleteId,
                               name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
@@ -1355,8 +1421,8 @@ export const MonitoringPage: React.FC = () => {
                               ...baseItem,
                               avatarUrl: baseItem.avatarUrl || photoUrl,
                               activities: athlete.activities,
-                              totalMinutes: athlete.totalMinutes,
-                              totalLoad: athlete.totalLoad,
+                              totalMinutes: athlete.totalMinutes ?? totalMinutes,
+                              totalLoad: athlete.totalLoad ?? totalLoad,
                               rpe: baseItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
                             });
                           }
@@ -1400,17 +1466,33 @@ export const MonitoringPage: React.FC = () => {
                           >
                             <div
                               className="athlete-avatar-bubble-wrap"
+                              onClick={() => {
+                                setQuickSheetMode('asistencia');
+                                setSelectedAthleteAttendance({
+                                  totalMinutes,
+                                  totalLoad,
+                                  activities: athlete.activities ?? [],
+                                });
+                                const itemToSelect: AthleteTrafficLightItem = athleteTraffic ?? {
+                                  id: athlete.athleteId,
+                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                  position: 'Atleta',
+                                  category: selectedCategoryName,
+                                  status: 'gray',
+                                  statusLabel: 'Sin Check-in',
+                                  recommendation: 'Sin check-in completado el día de hoy.',
+                                  avatarUrl: photoUrl,
+                                };
+                                setSelectedAthlete(itemToSelect);
+                              }}
                               style={{
+                                cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexShrink: 0,
                               }}
-                              title={
-                                athleteTraffic
-                                  ? `Ver semáforo y check-in de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`
-                                  : athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK
-                              }
+                              title={`Ver registro de actividades y carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                             >
                               <AthleteAvatar
                                 name={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
@@ -1432,12 +1514,12 @@ export const MonitoringPage: React.FC = () => {
                               <span
                                 style={{
                                   fontWeight: 800,
-                                  fontSize: '0.92rem',
+                                  fontSize: '0.94rem',
                                   color: 'var(--text-main)',
                                   lineHeight: 1.25,
-                                  wordBreak: 'normal',
-                                  overflowWrap: 'anywhere',
-                                  whiteSpace: 'normal',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
                                 }}
                                 title={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
                               >
@@ -1445,52 +1527,75 @@ export const MonitoringPage: React.FC = () => {
                               </span>
                               <span
                                 style={{
-                                  fontSize: '0.74rem',
+                                  fontSize: '0.76rem',
                                   fontWeight: 600,
-                                  color: isPresent ? '#10b981' : 'var(--text-muted)',
+                                  color: 'var(--text-muted)',
                                   marginTop: '2px',
                                   whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
                                 }}
+                                title={selectedCategoryName || 'Primera División'}
                               >
-                                {isPresent ? '• Presente' : '• Sin registro'}
+                                {selectedCategoryName || 'Primera División'}
                               </span>
                             </div>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const next = isPresent ? 'NoRecord' : 'Present';
-                              setAttendanceOverrides((prev) => ({
-                                ...prev,
-                                [athlete.athleteId]: next,
-                              }));
-                              try {
-                                await setAttendance(athlete.athleteId, next === 'Present');
-                              } catch {
-                                setAttendanceOverrides((prev) => ({
-                                  ...prev,
-                                  [athlete.athleteId]: status,
-                                }));
-                              }
-                            }}
+                          {/* Bloque vertical de Asistencia: Círculo con tilde + Texto de estado (Imagen 2) */}
+                          <div
                             style={{
-                              padding: '0.28rem 0.65rem',
-                              borderRadius: '9999px',
-                              border: isPresent ? '1px solid #a7f3d0' : '1px solid var(--border)',
-                              background: isPresent ? '#ecfdf5' : 'var(--bg-subtle)',
-                              color: isPresent ? '#047857' : 'var(--text-main)',
-                              fontSize: '0.74rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
                               flexShrink: 0,
-                              transition: 'all 0.15s ease',
-                              whiteSpace: 'nowrap',
+                              minWidth: '54px',
                             }}
                           >
-                            {isPresent ? 'Marcar sin registro' : 'Marcar presente'}
-                          </button>
+                            <button
+                              type="button"
+                              data-testid={`btn-attendance-toggle-${athlete.athleteId}`}
+                              aria-label={
+                                isPresent
+                                  ? `Presente registrado para ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}. Clic para quitar.`
+                                  : `Marcar presente a ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`
+                              }
+                              title={isPresent ? 'Presente (clic para quitar)' : 'Marcar presente'}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleAttendance(athlete.athleteId, !isPresent);
+                              }}
+                              style={{
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '9999px',
+                                border: isPresent ? '1px solid #a7f3d0' : '1px solid var(--border)',
+                                background: isPresent ? '#ecfdf5' : 'var(--bg-subtle)',
+                                color: isPresent ? '#047857' : 'var(--text-muted)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                padding: 0,
+                              }}
+                            >
+                              <Check size={16} strokeWidth={2.5} />
+                            </button>
+                            <span
+                              style={{
+                                fontSize: '0.74rem',
+                                fontWeight: 700,
+                                color: isPresent ? '#10b981' : 'var(--text-muted)',
+                                lineHeight: 1,
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {isPresent ? 'Presente' : 'Sin registro'}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Desglose central de Carga del Día */}
@@ -1724,7 +1829,12 @@ export const MonitoringPage: React.FC = () => {
         {/* Accessible Quick Sheet (Accesible desde Semáforo del Día y Asistencia & RPE) */}
         <AthleteQuickSheet
           athlete={selectedAthlete}
-          onClose={() => setSelectedAthlete(null)}
+          mode={quickSheetMode}
+          attendanceData={selectedAthleteAttendance ?? undefined}
+          onClose={() => {
+            setSelectedAthlete(null);
+            setSelectedAthleteAttendance(null);
+          }}
           onAssignDifferentiated={handleAssignDifferentiated}
           onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
         />

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { AthleteTrafficLightCard } from '../AthleteTrafficLightCard';
 import { AthleteTrafficLightItem } from '../trafficLight.types';
 
@@ -82,5 +82,51 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
     expect(screen.getByText('Isquiotibial izquierdo')).toBeDefined();
     expect(screen.getByText(/3\/5/i)).toBeDefined();
     expect(screen.getByText(/7h/i)).toBeDefined();
+  });
+
+  it('renderiza la burbuja inferior estandarizada con título y subtítulo de detalle', () => {
+    render(<AthleteTrafficLightCard athlete={baseAthlete} onClick={vi.fn()} />);
+
+    expect(screen.getByText('Sin check-in completado el día de hoy.')).toBeDefined();
+    expect(screen.getByText('Tocar tarjeta para ver detalle y actividades')).toBeDefined();
+  });
+
+  it('renderiza el botón con tilde para tomar presente y permite alternar asistencia sin disparar onClick de la tarjeta', () => {
+    const handleToggleAttendance = vi.fn();
+    const handleCardClick = vi.fn();
+
+    const { rerender } = render(
+      <AthleteTrafficLightCard
+        athlete={baseAthlete}
+        onClick={handleCardClick}
+        isPresent={false}
+        onToggleAttendance={handleToggleAttendance}
+      />,
+    );
+
+    const checkBtn = screen.getByTestId(`btn-attendance-check-${baseAthlete.id}`);
+    expect(checkBtn).toBeDefined();
+    expect(checkBtn.getAttribute('title')).toBe('Marcar presente');
+
+    fireEvent.click(checkBtn);
+
+    // Debe llamar a onToggleAttendance con true y NO disparar el click de la tarjeta
+    expect(handleToggleAttendance).toHaveBeenCalledWith('ath-1', true);
+    expect(handleCardClick).not.toHaveBeenCalled();
+
+    // Rerender con isPresent = true
+    rerender(
+      <AthleteTrafficLightCard
+        athlete={baseAthlete}
+        onClick={handleCardClick}
+        isPresent={true}
+        onToggleAttendance={handleToggleAttendance}
+      />,
+    );
+
+    expect(checkBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
+    fireEvent.click(checkBtn);
+    expect(handleToggleAttendance).toHaveBeenCalledWith('ath-1', false);
+    expect(handleCardClick).not.toHaveBeenCalled();
   });
 });
