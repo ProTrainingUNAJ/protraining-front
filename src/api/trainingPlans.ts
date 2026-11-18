@@ -70,6 +70,13 @@ export const trainingPlansService = {
     return call(() => updateTrainingPlan({ path: { id }, body, throwOnError: true }));
   },
 
+  async delete(id: string): Promise<void> {
+    await call(async () => {
+      const res = await httpClient.delete(`/entrenamiento/api/v1/training-plans/${id}`);
+      return { data: res.data };
+    });
+  },
+
   // Sesiones que tocan en una fecha (AAAA-MM-DD) en todas las asignaciones del PF: la agenda del calendario.
   schedule(date: string): Promise<ScheduledSession[]> {
     return call(() => getTrainingPlanSchedule({ query: { date }, throwOnError: true }));
