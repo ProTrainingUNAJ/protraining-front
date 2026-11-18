@@ -600,6 +600,151 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
 
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {/* Desglose de Carga del Día: Caja de métricas Tiempo Total y Carga Acumulada */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-around',
+                      textAlign: 'center',
+                      padding: '0.85rem 1.25rem',
+                      background: 'var(--bg-card)',
+                      borderRadius: '18px',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          gap: '0.25rem',
+                          lineHeight: 1,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '1.9rem',
+                            fontWeight: 900,
+                            color: 'var(--text-main)',
+                          }}
+                        >
+                          {totalMinutes}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          min
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          color: 'var(--text-muted)',
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          marginTop: '0.4rem',
+                        }}
+                      >
+                        Tiempo Total
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        width: '1px',
+                        height: '42px',
+                        background: 'var(--border)',
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          gap: '0.25rem',
+                          lineHeight: 1,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '1.9rem',
+                            fontWeight: 900,
+                            color: 'var(--text-main)',
+                          }}
+                        >
+                          {totalLoad}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.95rem',
+                            fontWeight: 800,
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          UA
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          color: 'var(--text-muted)',
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          marginTop: '0.4rem',
+                        }}
+                      >
+                        Carga Acumulada
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Barra de progreso de carga horizontal (verde a azul/dorado) */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '8px',
+                      background: 'var(--border)',
+                      borderRadius: '9999px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width:
+                          totalLoad > 0
+                            ? `${Math.min(100, Math.max(6, Math.round((totalLoad / 900) * 100)))}%`
+                            : '0%',
+                        height: '100%',
+                        background:
+                          'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
+                        borderRadius: '9999px',
+                        transition: 'width 0.3s ease',
+                      }}
+                    />
+                  </div>
+                </div>
+
                 <div
                   style={{
                     display: 'flex',

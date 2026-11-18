@@ -123,6 +123,10 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getByText(/Estado: Atención Crítica/i)).toBeDefined();
 
+    // Caja de métricas Tiempo Total y Carga Acumulada entre cartel de estado y lista de actividades
+    expect(screen.getByText('Tiempo Total')).toBeDefined();
+    expect(screen.getByText('Carga Acumulada')).toBeDefined();
+
     // En amarillo: Bloque exclusivo de actividades y carga del día
     expect(screen.getByText(/ACTIVIDADES Y CARGA DEL DÍA/i)).toBeDefined();
     expect(screen.getByText(/56 min totales · 392 UA/i)).toBeDefined();
