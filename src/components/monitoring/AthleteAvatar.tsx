@@ -68,7 +68,8 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
         transform: isHovered ? 'scale(1.12)' : 'scale(1)',
         filter: isHovered ? 'brightness(1.08)' : 'none',
         cursor: 'pointer',
-        transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, filter 0.2s ease',
+        transition:
+          'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, filter 0.2s ease',
       }}
       title={name}
     >

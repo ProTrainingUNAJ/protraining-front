@@ -129,7 +129,9 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
             gap: '0.75rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}
+          >
             {/* Avatar con anillo y soporte para foto de perfil */}
             <AthleteAvatar
               name={athlete.name}
@@ -426,7 +428,8 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                     fontWeight: 700,
                   }}
                 >
-                  <Moon size={14} style={{ color: 'var(--secondary)' }} /> Sueño: {athlete.sleepHours}h ({athlete.sleepQuality || 'Normal'})
+                  <Moon size={14} style={{ color: 'var(--secondary)' }} /> Sueño:{' '}
+                  {athlete.sleepHours}h ({athlete.sleepQuality || 'Normal'})
                 </span>
               )}
 
