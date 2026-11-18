@@ -347,12 +347,26 @@
   display: block;
 }
 
+.plan-card-dates-row {
+  margin-top: auto;
+  margin-bottom: 0.95rem;
+  padding-top: 0.25rem;
+}
+
+.plan-card-dates-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
 .plan-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding-top: 0.85rem;
+  padding-top: 0.9rem;
   border-top: 1px solid var(--border);
 }
 
