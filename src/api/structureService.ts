@@ -270,6 +270,18 @@ export const structureService = {
     }
   },
 
+  // Atletas completos pertenecientes a una categoría (GET /categories/{id}/athletes).
+  async getCategoryAthletes(categoryId: string): Promise<Athlete[]> {
+    try {
+      const response = await httpClient.get<RawAthlete[]>(
+        `/estructura/api/v1/categories/${categoryId}/athletes`,
+      );
+      return (response.data || []).map(mapAthlete);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   // El back no manda las cantidades en los listados: se cuentan a partir de las relaciones.
   async withCategoryCounts(organizations: Organization[]): Promise<Organization[]> {
     return Promise.all(

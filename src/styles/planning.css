@@ -3124,6 +3124,116 @@
 
 .manage-assignments-item-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.manage-assignments-item-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.manage-assignments-adapt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--primary) !important;
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent) !important;
+}
+
+.manage-assignments-adapt-btn:hover {
+  background: var(--bg-subtle) !important;
+  border-color: var(--primary) !important;
+}
+
+.manage-assignments-adapt-danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--danger) !important;
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent) !important;
+  font-weight: 600;
+}
+
+.manage-assignments-adapt-danger-btn:hover {
+  background: var(--danger-bg) !important;
+  border-color: var(--danger) !important;
+}
+
+.manage-assignments-normal-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--success-text);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+}
+
+.manage-assignments-checking-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.manage-assignments-category-athletes {
+  margin-left: 1.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.manage-assignments-category-athletes-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.manage-assignments-category-athletes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.manage-assignments-category-athlete-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.manage-assignments-category-athlete-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.manage-assignments-category-athlete-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 .manage-assignments-remove-btn {
@@ -3184,4 +3294,295 @@
   margin-top: 1.15rem;
   padding-top: 0.95rem;
   border-top: 1px solid var(--border);
+}
+
+/* ── Modal de Comparativa Base vs. Adaptada con Motivo (KAN-464) ── */
+.adaptation-diff-modal-card {
+  max-width: 760px;
+}
+
+.adaptation-diff-icon-box {
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+}
+
+.adaptation-diff-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.adaptation-diff-sessions-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.adaptation-diff-loading {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.adaptation-diff-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding-right: 0.25rem;
+  max-height: 58vh;
+}
+
+.adaptation-diff-context-card {
+  padding: 0.9rem 1.1rem;
+  border-radius: 14px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.adaptation-diff-context-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.adaptation-diff-context-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-injury-badge {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-justification-text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.adaptation-diff-columns-header {
+  display: grid;
+  grid-template-columns: 1fr 32px 1fr;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-columns-header span:last-child {
+  grid-column: 3;
+}
+
+.adaptation-diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.adaptation-diff-row {
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.adaptation-diff-row.modified {
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.adaptation-diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 32px 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adaptation-diff-col {
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.adaptation-diff-col.replaced {
+  background: color-mix(in srgb, var(--danger-bg) 45%, var(--bg-subtle));
+  border-color: var(--danger-border);
+}
+
+.adaptation-diff-col.replacement {
+  background: color-mix(in srgb, var(--success-bg) 45%, var(--bg-subtle));
+  border-color: var(--success-border);
+}
+
+.adaptation-diff-col-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.adaptation-diff-col-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-replaced-badge {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-ex-name {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.adaptation-diff-ex-name.strikethrough {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-ex-name.highlight {
+  color: var(--text-main);
+}
+
+.adaptation-diff-ex-meta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-arrow.active {
+  color: var(--secondary);
+}
+
+.adaptation-diff-reason-box {
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.adaptation-diff-reason-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.adaptation-diff-zone-badge {
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.adaptation-diff-reason-text {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.adaptation-diff-substitute-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.adaptation-diff-substitute-picker label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-select-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.adaptation-diff-select-wrap select {
+  width: 100%;
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  appearance: none;
+  cursor: pointer;
+}
+
+.adaptation-diff-select-icon {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.adaptation-diff-footer {
+  gap: 0.65rem;
 }
