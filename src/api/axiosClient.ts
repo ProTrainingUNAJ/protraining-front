@@ -252,9 +252,6 @@ async function attemptTokenRefresh(): Promise<boolean> {
  */
 export function extractErrorMessage(error: unknown): string {
   if (axios.isAxiosError<ProblemDetails>(error)) {
-    if (error.response?.status === 409) {
-      return 'El correo ya se encuentra registrado.';
-    }
     const data = error.response?.data;
     if (data) {
       if (data.errors) {
@@ -262,13 +259,26 @@ export function extractErrorMessage(error: unknown): string {
         if (errorList.length > 0) return errorList.join(' ');
       }
       if (data.detail) return data.detail;
-      if (data.title) return data.title;
+      if (data.title) {
+        if (
+          error.response?.status === 409 &&
+          (error.config?.url?.includes('/auth/register') ||
+            data.title.toLowerCase().includes('email') ||
+            data.title.toLowerCase().includes('cuenta'))
+        ) {
+          return 'El correo ya se encuentra registrado.';
+        }
+        return data.title;
+      }
     }
     if (error.response?.status === 401) {
       if (error.config?.url?.includes('/auth/login')) {
         return 'El correo o la contraseña no son correctos.';
       }
       return 'No tenés autorización para realizar esta acción o la sesión caducó.';
+    }
+    if (error.response?.status === 409) {
+      return 'El correo ya se encuentra registrado.';
     }
     if (error.response?.status === 403) {
       return 'No tenés permiso para entrar a esta sección.';
