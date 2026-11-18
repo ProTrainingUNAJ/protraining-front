@@ -16,8 +16,14 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { ApplyPlanTemplateModal } from '../../components/planning/ApplyPlanTemplateModal';
 import { AssignPlanModal } from '../../components/planning/AssignPlanModal';
 import { PlanningCard } from '../../components/planning/PlanningCard';
-import { PlanAssignmentCard } from '../../components/planning/PlanAssignmentCard';
+import {
+  PlanAssignmentCard,
+  PlanAssignmentGroup,
+} from '../../components/planning/PlanAssignmentCard';
+import { PlanAssigneeItem } from '../../components/planning/PlanAssigneesStack';
+import { ManagePlanAssignmentsModal } from '../../components/planning/ManagePlanAssignmentsModal';
 import { trainingPlansService, PlanAssignmentSummary } from '../../api/trainingPlans';
+import { structureService } from '../../api/structureService';
 import { PlanListItem, PlanTemplateItem } from '../../types/trainingPlans';
 
 export function PlanningPage() {
@@ -51,11 +57,20 @@ export function PlanningPage() {
     null,
   );
 
-  // Estados de asignaciones (KAN-559, KAN-623)
+  // Estados de asignaciones (KAN-559, KAN-622, KAN-623)
   const [assignments, setAssignments] = useState<PlanAssignmentSummary[]>([]);
   const [loadingAssignments, setLoadingAssignments] = useState(currentTab === 'assignments');
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
   const [assignmentSearch, setAssignmentSearch] = useState('');
+  const [selectedGroupForManage, setSelectedGroupForManage] = useState<string | null>(null);
+
+  // Mapeo de atletas y categorías para avatares y nombres reales
+  const [athletesMap, setAthletesMap] = useState<
+    Map<string, { name: string; photoUrl: string | null; secondaryInfo?: string }>
+  >(new Map());
+  const [categoriesMap, setCategoriesMap] = useState<
+    Map<string, { name: string; photoUrl: string | null; secondaryInfo?: string }>
+  >(new Map());
 
   const [successMessage, setSuccessMessage] = useState<string | null>(
     (location.state as { message?: string } | null)?.message ?? null,
@@ -111,32 +126,96 @@ export function PlanningPage() {
     };
   }, [currentTab]);
 
-  // Carga de asignaciones al abrir la pestaña (KAN-559)
+  // Carga de asignaciones y datos de estructura al abrir la pestaña (KAN-559, KAN-622)
+  const reloadAssignments = () => {
+    return trainingPlansService
+      .listAssignments()
+      .then((data) => {
+        setAssignments(data);
+      })
+      .catch((err: unknown) => {
+        setAssignmentError(
+          err instanceof Error ? err.message : 'No se pudieron cargar las asignaciones.',
+        );
+      });
+  };
+
   useEffect(() => {
     if (currentTab !== 'assignments') return;
 
     let active = true;
 
-    trainingPlansService
-      .listAssignments()
-      .then((data) => {
-        if (active) setAssignments(data);
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          setAssignmentError(
-            err instanceof Error ? err.message : 'No se pudieron cargar las asignaciones.',
-          );
-        }
-      })
-      .finally(() => {
-        if (active) setLoadingAssignments(false);
-      });
+    reloadAssignments().finally(() => {
+      if (active) setLoadingAssignments(false);
+    });
 
     return () => {
       active = false;
     };
   }, [currentTab]);
+
+  // Carga de metadatos de estructura (atletas y categorías) para fotos y nombres
+  useEffect(() => {
+    let active = true;
+    async function loadStructureData() {
+      try {
+        const [orgs, athleteList] = await Promise.all([
+          structureService.getOrganizations().catch(() => []),
+          structureService.getAthletes().catch(() => []),
+        ]);
+
+        const categoriesByOrg = await Promise.all(
+          orgs.map((org) => structureService.getCategories(org.id).catch(() => [])),
+        );
+
+        if (!active) return;
+
+        const aMap = new Map<
+          string,
+          { name: string; photoUrl: string | null; secondaryInfo?: string }
+        >();
+        athleteList.forEach((ath) => {
+          const fullName = ath.fullName || `${ath.firstName} ${ath.lastName}`.trim();
+          const photoUrl = ath.hasPhoto
+            ? structureService.getAthletePhotoUrl(ath.id, ath.photoUpdatedAt)
+            : null;
+          const secondaryInfo =
+            ath.categoryNames && ath.categoryNames.length > 0
+              ? ath.categoryNames.join(', ')
+              : 'Sin categoría';
+          aMap.set(ath.id, { name: fullName, photoUrl, secondaryInfo });
+        });
+
+        const cMap = new Map<
+          string,
+          { name: string; photoUrl: string | null; secondaryInfo?: string }
+        >();
+        categoriesByOrg.forEach((orgCats, idx) => {
+          const org = orgs[idx];
+          const orgPhotoUrl = org?.hasPhoto
+            ? structureService.getOrganizationPhotoUrl(org.id, org.photoUpdatedAt)
+            : null;
+          orgCats.forEach((cat) => {
+            cMap.set(cat.id, {
+              name: cat.name,
+              photoUrl: orgPhotoUrl,
+              secondaryInfo: org?.name ?? 'Categoría',
+            });
+          });
+        });
+
+        setAthletesMap(aMap);
+        setCategoriesMap(cMap);
+      } catch {
+        // En caso de fallo de red, se degradará con nombres por defecto
+      }
+    }
+
+    loadStructureData();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleTabChange = (tab: 'plans' | 'templates' | 'assignments') => {
     setSearchParams(tab === 'plans' ? {} : { tab });
@@ -194,61 +273,137 @@ export function PlanningPage() {
     return map;
   }, [plans]);
 
-  const filteredAssignments = assignments.filter((a) => {
+  // Consolidación de asignaciones por TrainingPlanId para agrupar en tarjetas únicas (KAN-622)
+  const assignmentGroups = useMemo<PlanAssignmentGroup[]>(() => {
+    const groupsMap = new Map<string, PlanAssignmentGroup>();
+
+    assignments.forEach((assignment) => {
+      const planId = assignment.trainingPlanId;
+      const isAthlete = Boolean(assignment.athleteId);
+      const targetId = assignment.athleteId ?? assignment.categoryId ?? '';
+
+      let assigneeName = assignment.planName;
+      let photoUrl: string | null = null;
+      let secondaryInfo: string | undefined;
+
+      if (isAthlete && assignment.athleteId) {
+        const ath = athletesMap.get(assignment.athleteId);
+        if (ath) {
+          assigneeName = ath.name;
+          photoUrl = ath.photoUrl;
+          secondaryInfo = ath.secondaryInfo;
+        } else {
+          assigneeName = 'Atleta';
+        }
+      } else if (assignment.categoryId) {
+        const cat = categoriesMap.get(assignment.categoryId);
+        if (cat) {
+          assigneeName = cat.name;
+          photoUrl = cat.photoUrl;
+          secondaryInfo = cat.secondaryInfo;
+        } else {
+          assigneeName = 'Categoría';
+        }
+      }
+
+      const assigneeItem: PlanAssigneeItem = {
+        assignmentId: assignment.assignmentId,
+        type: isAthlete ? 'athlete' : 'category',
+        targetId,
+        name: assigneeName,
+        secondaryInfo,
+        photoUrl,
+        startDate: assignment.startDate,
+        endDate: assignment.endDate,
+        status: assignment.status,
+      };
+
+      const existingGroup = groupsMap.get(planId);
+      if (!existingGroup) {
+        groupsMap.set(planId, {
+          trainingPlanId: planId,
+          planName: assignment.planName,
+          startDate: assignment.startDate,
+          endDate: assignment.endDate,
+          status: assignment.status,
+          assignees: [assigneeItem],
+        });
+      } else {
+        existingGroup.assignees.push(assigneeItem);
+        if (assignment.status === 'Active') {
+          existingGroup.status = 'Active';
+        }
+        if (assignment.startDate < existingGroup.startDate) {
+          existingGroup.startDate = assignment.startDate;
+        }
+        if (assignment.endDate > existingGroup.endDate) {
+          existingGroup.endDate = assignment.endDate;
+        }
+      }
+    });
+
+    return Array.from(groupsMap.values());
+  }, [assignments, athletesMap, categoriesMap]);
+
+  // Filtrado reactivo de asignaciones por nombre de plan, objetivo, estado o nombre del atleta/categoría
+  const filteredAssignmentGroups = useMemo(() => {
     const query = assignmentSearch.trim().toLowerCase();
-    if (!query) return true;
-    const plan = plansById.get(a.trainingPlanId);
-    const statusText = a.status === 'Finished' ? 'terminada' : 'activa';
-    return (
-      a.planName.toLowerCase().includes(query) ||
-      statusText.includes(query) ||
-      Boolean(plan?.objective && plan.objective.toLowerCase().includes(query))
-    );
-  });
+    if (!query) return assignmentGroups;
+    return assignmentGroups.filter((g) => {
+      const plan = plansById.get(g.trainingPlanId);
+      const statusText = g.status === 'Finished' ? 'terminada' : 'activa';
+      const matchesPlan = g.planName.toLowerCase().includes(query);
+      const matchesDesc = Boolean(plan?.objective && plan.objective.toLowerCase().includes(query));
+      const matchesStatus = statusText.includes(query);
+      const matchesAssignee = g.assignees.some(
+        (a) =>
+          a.name.toLowerCase().includes(query) ||
+          (a.secondaryInfo && a.secondaryInfo.toLowerCase().includes(query)),
+      );
+      return matchesPlan || matchesDesc || matchesStatus || matchesAssignee;
+    });
+  }, [assignmentGroups, assignmentSearch, plansById]);
+
+  // Grupo actualmente activo en el modal de gestión de asignaciones
+  const activeManageGroup = useMemo(() => {
+    if (!selectedGroupForManage) return null;
+    return assignmentGroups.find((g) => g.trainingPlanId === selectedGroupForManage) ?? null;
+  }, [assignmentGroups, selectedGroupForManage]);
+
+  // Handler para desasignar un atleta o categoría (KAN-622)
+  const handleUnassign = async (assignmentId: string) => {
+    await trainingPlansService.deleteAssignment(assignmentId);
+    setAssignments((prev) => prev.filter((a) => a.assignmentId !== assignmentId));
+  };
 
   return (
     <div className="app-page-container">
+      {/* Header simétrico uniforme en todas las pestañas para eliminar saltos de alineación */}
       <PageHeader
-        title={
-          currentTab === 'templates'
-            ? 'Catálogo de Plantillas'
-            : currentTab === 'assignments'
-              ? 'Asignaciones'
-              : 'Planificación'
-        }
-        description={
-          currentTab === 'templates'
-            ? 'Administrá tus plantillas guardadas y aplicalas rápidamente a cualquier categoría con desplazamiento de fechas.'
-            : currentTab === 'assignments'
-              ? 'Planes de entrenamiento asignados a categorías y atletas con sus fechas de vigencia y estado.'
-              : 'Tus planificaciones de entrenamiento. Abrí una para editar sus semanas y sesiones.'
-        }
+        title="Planificación"
+        description="Tus planificaciones de entrenamiento. Abrí una para editar sus semanas y sesiones."
         actions={
-          currentTab === 'plans' ? (
-            <>
-              <Link to="/pf/assistant/new" className="btn btn-secondary">
-                <Sparkles size={16} aria-hidden="true" />
-                <span>Generar con IA</span>
-              </Link>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  setShowForm((open) => !open);
-                  setPlanError(null);
-                }}
-                disabled={creating}
-              >
-                <Plus size={16} aria-hidden="true" />
-                <span>{showForm ? 'Cancelar' : 'Nueva planificación'}</span>
-              </button>
-            </>
-          ) : currentTab === 'templates' ? (
+          <>
             <Link to="/pf/assistant/new" className="btn btn-secondary">
               <Sparkles size={16} aria-hidden="true" />
               <span>Generar con IA</span>
             </Link>
-          ) : null
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                if (currentTab !== 'plans') {
+                  handleTabChange('plans');
+                }
+                setShowForm((open) => !open);
+                setPlanError(null);
+              }}
+              disabled={creating}
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span>{showForm && currentTab === 'plans' ? 'Cancelar' : 'Nueva planificación'}</span>
+            </button>
+          </>
         }
       />
 
@@ -296,7 +451,7 @@ export function PlanningPage() {
           </button>
         </nav>
 
-        {/* Mensaje de éxito al aplicar */}
+        {/* Mensaje de éxito al aplicar o asignar */}
         {successMessage && (
           <div className="alert-banner success" role="status">
             <span className="plan-inline">
@@ -315,11 +470,11 @@ export function PlanningPage() {
         )}
 
         {/* Mensajes de error */}
-        {(planError || templateError) && (
+        {(planError || templateError || assignmentError) && (
           <div className="alert-banner danger" role="alert">
             <span className="plan-inline">
               <AlertCircle size={18} aria-hidden="true" />
-              {planError || templateError}
+              {planError || templateError || assignmentError}
             </span>
             <button
               type="button"
@@ -327,6 +482,7 @@ export function PlanningPage() {
               onClick={() => {
                 setPlanError(null);
                 setTemplateError(null);
+                setAssignmentError(null);
               }}
               aria-label="Cerrar error"
             >
@@ -443,17 +599,29 @@ export function PlanningPage() {
               Plantillas de entrenamiento
             </h2>
 
-            {/* Buscador de plantillas */}
-            <div className="card card-static plan-picker-search" style={{ marginBottom: '1rem' }}>
-              <Search size={18} aria-hidden="true" />
-              <input
-                type="search"
-                value={templateSearch}
-                onChange={(e) => setTemplateSearch(e.target.value)}
-                placeholder="Buscar plantilla por nombre u objetivo… (ej. Pretemporada Fuerza 2026)"
-                aria-label="Buscar plantilla"
-                style={{ width: '100%' }}
-              />
+            {/* Buscador de plantillas con diseño homogéneo sin saltos */}
+            <div className="plan-control-bar">
+              <div className="plan-search-wrapper">
+                <Search size={16} className="plan-search-icon" aria-hidden="true" />
+                <input
+                  type="search"
+                  className="plan-search-input"
+                  value={templateSearch}
+                  onChange={(e) => setTemplateSearch(e.target.value)}
+                  placeholder="Buscar plantilla por nombre u objetivo…"
+                  aria-label="Buscar plantilla"
+                />
+                {templateSearch && (
+                  <button
+                    type="button"
+                    className="plan-search-clear"
+                    onClick={() => setTemplateSearch('')}
+                    aria-label="Borrar texto de búsqueda"
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {loadingTemplates ? (
@@ -503,51 +671,49 @@ export function PlanningPage() {
           </section>
         )}
 
-        {/* Pestaña 3: Asignaciones (KAN-559, KAN-623: Grid idéntico a Mis Planificaciones con mapa anatómico) */}
+        {/* Pestaña 3: Asignaciones (KAN-559, KAN-622, KAN-623) */}
         {currentTab === 'assignments' && (
           <section aria-labelledby="assignments-section-title">
             <h2 id="assignments-section-title" className="sr-only">
               Asignaciones de entrenamiento
             </h2>
 
-            {/* Barra de control y búsqueda de asignaciones (KAN-623) */}
-            {!loadingAssignments && assignments.length > 0 && (
-              <div className="plan-control-bar">
-                <div className="plan-search-wrapper">
-                  <Search size={16} className="plan-search-icon" aria-hidden="true" />
-                  <input
-                    type="search"
-                    className="plan-search-input"
-                    placeholder="Buscar asignación por nombre o estado..."
-                    value={assignmentSearch}
-                    onChange={(e) => setAssignmentSearch(e.target.value)}
-                    aria-label="Buscar asignación"
-                  />
-                  {assignmentSearch && (
-                    <button
-                      type="button"
-                      className="plan-search-clear"
-                      onClick={() => setAssignmentSearch('')}
-                      aria-label="Borrar texto de búsqueda"
-                    >
-                      <X size={14} aria-hidden="true" />
-                    </button>
-                  )}
-                </div>
+            {/* Barra de control y búsqueda de asignaciones */}
+            <div className="plan-control-bar">
+              <div className="plan-search-wrapper">
+                <Search size={16} className="plan-search-icon" aria-hidden="true" />
+                <input
+                  type="search"
+                  className="plan-search-input"
+                  placeholder="Buscar asignación por plan, atleta o estado..."
+                  value={assignmentSearch}
+                  onChange={(e) => setAssignmentSearch(e.target.value)}
+                  aria-label="Buscar asignación"
+                />
+                {assignmentSearch && (
+                  <button
+                    type="button"
+                    className="plan-search-clear"
+                    onClick={() => setAssignmentSearch('')}
+                    aria-label="Borrar texto de búsqueda"
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                )}
               </div>
-            )}
+            </div>
 
             {loadingAssignments ? (
               <p className="plan-empty plan-inline">
                 <Loader2 size={16} className="plan-spin" aria-hidden="true" />
                 Cargando asignaciones…
               </p>
-            ) : assignments.length === 0 && !assignmentError ? (
+            ) : assignmentGroups.length === 0 && !assignmentError ? (
               <p className="plan-empty">
                 Todavía no tenés planificaciones asignadas. Podés asignar una desde «Mis
                 Planificaciones» abriendo el editor y seleccionando «Asignar».
               </p>
-            ) : filteredAssignments.length === 0 && assignmentSearch ? (
+            ) : filteredAssignmentGroups.length === 0 && assignmentSearch ? (
               <div className="plan-empty-search">
                 <p className="plan-empty">
                   No se encontraron asignaciones que coincidan con «
@@ -567,11 +733,12 @@ export function PlanningPage() {
                 role="list"
                 aria-label="Listado de asignaciones de entrenamiento"
               >
-                {filteredAssignments.map((assignment) => (
+                {filteredAssignmentGroups.map((group) => (
                   <PlanAssignmentCard
-                    key={assignment.assignmentId}
-                    assignment={assignment}
-                    plan={plansById.get(assignment.trainingPlanId)}
+                    key={group.trainingPlanId}
+                    group={group}
+                    plan={plansById.get(group.trainingPlanId)}
+                    onOpenManage={(g) => setSelectedGroupForManage(g.trainingPlanId)}
                   />
                 ))}
               </div>
@@ -579,6 +746,29 @@ export function PlanningPage() {
           </section>
         )}
       </div>
+
+      {/* Modal de administración y visualización de asignados (KAN-622) */}
+      {activeManageGroup && (
+        <ManagePlanAssignmentsModal
+          isOpen={Boolean(activeManageGroup)}
+          planId={activeManageGroup.trainingPlanId}
+          planName={activeManageGroup.planName}
+          assignees={activeManageGroup.assignees}
+          onClose={() => setSelectedGroupForManage(null)}
+          onUnassign={async (assignmentId) => {
+            await handleUnassign(assignmentId);
+          }}
+          onOpenAddAssignment={() => {
+            const planToAssign = plans.find((p) => p.id === activeManageGroup.trainingPlanId) ?? {
+              id: activeManageGroup.trainingPlanId,
+              name: activeManageGroup.planName,
+              objective: null,
+            };
+            setSelectedGroupForManage(null);
+            setSelectedPlanForAssign(planToAssign);
+          }}
+        />
+      )}
 
       {/* Modal de aplicación con desplazamiento de fechas */}
       {selectedTemplateForApply && (
@@ -601,6 +791,7 @@ export function PlanningPage() {
           onAssigned={() => {
             setSelectedPlanForAssign(null);
             setSuccessMessage(`Planificación asignada con éxito.`);
+            reloadAssignments();
           }}
         />
       )}
