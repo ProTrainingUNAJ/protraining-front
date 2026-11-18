@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { TopUaAthletesWidget } from '../TopUaAthletesWidget';
 import * as seguimientoService from '../../../api/seguimientoService';
-import { structureService } from '../../../api/structureService';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {

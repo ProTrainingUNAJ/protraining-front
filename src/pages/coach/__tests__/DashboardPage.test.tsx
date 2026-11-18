@@ -3,9 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardPage } from '../DashboardPage';
-import { structureService } from '../../../api/structureService';
-import * as seguimientoService from '../../../api/seguimientoService';
-import { recordProposalsService } from '../../../api/recordProposals';
 
 vi.mock('../../../api/structureService', () => ({
   structureService: {
