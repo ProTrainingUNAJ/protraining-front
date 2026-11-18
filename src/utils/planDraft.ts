@@ -218,12 +218,13 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
         const metaPayload: SessionBlockMeta = { exercises: {} };
         session.exercises.forEach((ex) => {
           if (
-            ex.intensityType ||
-            ex.targetRpe != null ||
-            ex.targetRir != null ||
-            ex.repsRange ||
-            ex.notes ||
-            ex.exerciseName
+            ex.exerciseId &&
+            (ex.intensityType ||
+              ex.targetRpe != null ||
+              ex.targetRir != null ||
+              ex.repsRange ||
+              ex.notes ||
+              ex.exerciseName)
           ) {
             metaPayload.exercises![ex.exerciseId] = {
               exerciseName: ex.exerciseName,
@@ -260,7 +261,7 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
                   : (parseRepsNumber(exercise.repsRange, exercise.reps) ?? 0);
             return {
               id: exercise.id,
-              exerciseId: exercise.exerciseId,
+              exerciseId: exercise.exerciseId ?? '',
               order: exercise.order,
               sets: exercise.sets,
               reps: repsVal,
@@ -473,13 +474,16 @@ export function aiDraftToEditableDraft(
           nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
           exercises: session.exercises.map((exercise) => {
             const exRaw = exercise as unknown as Record<string, unknown>;
-            const exMeta = meta.exercises?.[exercise.exerciseId] || {};
+            const exMeta =
+              (exercise.exerciseId ? meta.exercises?.[exercise.exerciseId] : undefined) || {};
             return {
               key: newKey(),
               id: null,
-              exerciseId: exercise.exerciseId,
+              exerciseId: exercise.exerciseId ?? null,
+              isReference: Boolean(exercise.isReference),
               exerciseName:
-                (exerciseNames && exerciseNames[exercise.exerciseId]) ||
+                exercise.exerciseName ||
+                (exercise.exerciseId && exerciseNames?.[exercise.exerciseId]) ||
                 `Ejercicio #${exercise.order}`,
               order: exercise.order,
               exerciseType: 'Weight',
@@ -494,7 +498,7 @@ export function aiDraftToEditableDraft(
               images: (exRaw.images as string[]) ?? [],
               primaryMuscles: (exRaw.primaryMuscles as string[]) ?? [],
               secondaryMuscles: (exRaw.secondaryMuscles as string[]) ?? [],
-              muscleGroup: (exRaw.muscleGroup as string) ?? undefined,
+              muscleGroup: exercise.muscleGroup ?? (exRaw.muscleGroup as string) ?? undefined,
             };
           }),
         };
@@ -517,12 +521,13 @@ export function toUpdateDraftRequest(
         const metaPayload: SessionBlockMeta = { exercises: {} };
         session.exercises.forEach((ex) => {
           if (
-            ex.intensityType ||
-            ex.targetRpe != null ||
-            ex.targetRir != null ||
-            ex.repsRange ||
-            ex.notes ||
-            ex.exerciseName
+            ex.exerciseId &&
+            (ex.intensityType ||
+              ex.targetRpe != null ||
+              ex.targetRir != null ||
+              ex.repsRange ||
+              ex.notes ||
+              ex.exerciseName)
           ) {
             metaPayload.exercises![ex.exerciseId] = {
               exerciseName: ex.exerciseName,
@@ -547,6 +552,9 @@ export function toUpdateDraftRequest(
             sets: exercise.sets,
             reps: parseRepsNumber(exercise.repsRange, exercise.reps),
             targetPercentage: exercise.targetPercentage,
+            exerciseName: exercise.exerciseName,
+            isReference: Boolean(exercise.isReference),
+            muscleGroup: exercise.muscleGroup ?? null,
           })),
         };
       }),
@@ -566,6 +574,7 @@ export function swapExercise(
         ? {
             ...ex,
             exerciseId: newExercise.id,
+            isReference: false,
             exerciseName: newExercise.name,
           }
         : ex,
@@ -725,10 +734,12 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
         }
 
         session.exercises.forEach((ex) => {
-          if (!blockData.exercisesMap.has(ex.exerciseId)) {
-            blockData.exercisesMap.set(ex.exerciseId, {
+          const refKey = ex.exerciseId ?? `ref:${ex.exerciseName}`;
+          if (!blockData.exercisesMap.has(refKey)) {
+            blockData.exercisesMap.set(refKey, {
               key: newKey(),
               exerciseId: ex.exerciseId,
+              isReference: ex.isReference,
               exerciseName: ex.exerciseName,
               exerciseType: ex.exerciseType,
               order: ex.order,
@@ -741,7 +752,7 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
             });
           }
 
-          const blockExercise = blockData.exercisesMap.get(ex.exerciseId)!;
+          const blockExercise = blockData.exercisesMap.get(refKey)!;
           if (
             (!blockExercise.images || blockExercise.images.length === 0) &&
             ex.images &&
@@ -887,14 +898,15 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             notes: null,
           };
 
-          const existingExercise = existingSession?.exercises.find(
-            (e) => e.exerciseId === bEx.exerciseId,
+          const existingExercise = existingSession?.exercises.find((e) =>
+            bEx.exerciseId ? e.exerciseId === bEx.exerciseId : e.exerciseName === bEx.exerciseName,
           );
 
           return {
             key: existingExercise?.key || newKey(),
             id: existingExercise?.id || null,
             exerciseId: bEx.exerciseId,
+            isReference: bEx.isReference,
             exerciseName: bEx.exerciseName,
             order: bEx.order || exIndex + 1,
             exerciseType: bEx.exerciseType || 'Weight',

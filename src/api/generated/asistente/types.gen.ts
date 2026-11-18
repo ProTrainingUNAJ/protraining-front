@@ -132,11 +132,14 @@ export type AthleteAdaptationContextResponse = {
 };
 
 export type PlanDraftExercise = {
-    exerciseId: string;
+    exerciseId?: string | null;
     order: number;
     sets: number;
     reps: number;
     targetPercentage?: number | null;
+    exerciseName?: string | null;
+    isReference?: boolean;
+    muscleGroup?: string | null;
 };
 
 export type PlanDraftSession = {

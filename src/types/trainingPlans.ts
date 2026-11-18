@@ -42,7 +42,8 @@ export interface DraftExercise {
   // key es solo para React; id es el del back (no existe hasta guardar).
   key: string;
   id: string | null;
-  exerciseId: string;
+  exerciseId: string | null;
+  isReference?: boolean;
   exerciseName: string;
   order: number;
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
@@ -81,7 +82,8 @@ export interface WeeklyExerciseProgression {
 
 export interface BlockExercise {
   key: string;
-  exerciseId: string;
+  exerciseId: string | null;
+  isReference?: boolean;
   exerciseName: string;
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   order: number;

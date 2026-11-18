@@ -91,6 +91,11 @@ export function PrescribedExerciseRow({
           onClick={() => setIsDetailOpen(true)}
         >
           {label}
+          {exercise.isReference && (
+            <span className="plan-exercise-ref-badge">
+              Nuevo · se agregará a tu biblioteca al aprobar
+            </span>
+          )}
         </button>
 
         <div className="plan-exercise-actions">
