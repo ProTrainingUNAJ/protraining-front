@@ -480,7 +480,7 @@ export function aiDraftToEditableDraft(
               key: newKey(),
               id: null,
               exerciseId: exercise.exerciseId ?? null,
-              isReference: Boolean(exercise.isReference),
+              isReference: Boolean(exercise.isReference || !exercise.exerciseId),
               exerciseName:
                 exercise.exerciseName ||
                 (exercise.exerciseId && exerciseNames?.[exercise.exerciseId]) ||
@@ -553,7 +553,7 @@ export function toUpdateDraftRequest(
             reps: parseRepsNumber(exercise.repsRange, exercise.reps),
             targetPercentage: exercise.targetPercentage,
             exerciseName: exercise.exerciseName,
-            isReference: Boolean(exercise.isReference),
+            isReference: Boolean(exercise.isReference || !exercise.exerciseId),
             muscleGroup: exercise.muscleGroup ?? null,
           })),
         };
@@ -739,7 +739,7 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
             blockData.exercisesMap.set(refKey, {
               key: newKey(),
               exerciseId: ex.exerciseId,
-              isReference: ex.isReference,
+              isReference: Boolean(ex.isReference || !ex.exerciseId),
               exerciseName: ex.exerciseName,
               exerciseType: ex.exerciseType,
               order: ex.order,
@@ -906,7 +906,7 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             key: existingExercise?.key || newKey(),
             id: existingExercise?.id || null,
             exerciseId: bEx.exerciseId,
-            isReference: bEx.isReference,
+            isReference: Boolean(bEx.isReference || !bEx.exerciseId),
             exerciseName: bEx.exerciseName,
             order: bEx.order || exIndex + 1,
             exerciseType: bEx.exerciseType || 'Weight',
