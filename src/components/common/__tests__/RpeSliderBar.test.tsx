@@ -119,4 +119,3 @@ describe('RpeSliderBar', () => {
     expect(handleChange).not.toHaveBeenCalled();
   });
 });
-

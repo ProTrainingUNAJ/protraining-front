@@ -187,4 +187,3 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
     </div>
   );
 };
-
