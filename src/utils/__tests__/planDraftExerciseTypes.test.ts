@@ -145,6 +145,7 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
               order: 1,
               dayOfWeek: 1,
               coachNotes: null,
+              blocks: [],
               exercises: [
                 {
                   id: 'pe-1',

@@ -82,28 +82,26 @@ export function unpackCoachNotes(rawNotes?: string | null): {
   }
 }
 
-export function parseRepsNumber(repsRange?: string | null, fallbackReps = 10): number {
-  if (
-    repsRange &&
-    (repsRange.includes('-') || repsRange.includes('/') || repsRange.includes('a'))
-  ) {
+export function parseRepsNumber(
+  repsRange?: string | number | null,
+  fallbackReps: number | string = 10,
+): number {
+  const fallbackNum =
+    typeof fallbackReps === 'number' ? fallbackReps : parseInt(String(fallbackReps), 10) || 10;
+
+  if (typeof repsRange === 'number') {
+    return repsRange >= 1 ? repsRange : fallbackNum;
+  }
+
+  if (typeof repsRange === 'string' && repsRange.trim().length > 0) {
     const match = repsRange.match(/\d+/);
     if (match) {
       const parsed = parseInt(match[0], 10);
-      return parsed >= 1 ? parsed : fallbackReps;
+      return parsed >= 1 ? parsed : fallbackNum;
     }
   }
-  if (typeof fallbackReps === 'number' && fallbackReps >= 1) {
-    return fallbackReps;
-  }
-  if (repsRange) {
-    const match = repsRange.match(/\d+/);
-    if (match) {
-      const parsed = parseInt(match[0], 10);
-      return parsed >= 1 ? parsed : 10;
-    }
-  }
-  return fallbackReps || 10;
+
+  return fallbackNum >= 1 ? fallbackNum : 10;
 }
 
 let keyCounter = 0;
@@ -157,6 +155,135 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
       nextSessionOrder: nextOrder(week.sessions.map((s) => s.order)),
       sessions: week.sessions.map((session) => {
         const { cleanNotes, meta } = unpackCoachNotes(session.coachNotes);
+        const sessionBlocksRaw = session.blocks ?? [];
+
+        const blocks: DayBlock[] = sessionBlocksRaw.map((b) => {
+          return {
+            key: newKey(),
+            id: b.id,
+            title: b.title,
+            order: b.order,
+            exercises: (b.exercises ?? []).map((exercise) => {
+              const ex = exercise as unknown as Record<string, unknown>;
+              const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+              const repsStr = exercise.reps != null ? String(exercise.reps) : '10';
+              const parsedReps = parseRepsNumber(repsStr, 10);
+              const intensity = (exercise.intensityType as IntensityMetric) || 'RPE';
+              return {
+                key: newKey(),
+                id: exercise.id,
+                exerciseId: exercise.exerciseId,
+                exerciseName: exercise.exerciseName || '',
+                exerciseType: exType,
+                order: exercise.order,
+                intensityType: intensity,
+                weeklyProgression: {
+                  [week.weekNumber]: {
+                    weekNumber: week.weekNumber,
+                    sets: exercise.sets,
+                    reps: parsedReps,
+                    repsRange: repsStr,
+                    targetPercentage: exercise.targetPercentage ?? null,
+                    intensityType: intensity,
+                    targetRpe: exercise.targetRpe ?? null,
+                    targetRir: exercise.targetRir ?? null,
+                    notes: exercise.notes ?? null,
+                  },
+                },
+                images: (ex.images as string[]) ?? [],
+                primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
+                secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
+                muscleGroup: (ex.muscleGroup as string) ?? undefined,
+              };
+            }),
+          };
+        });
+
+        // Ejercicios planos para compatibilidad con vistas tradicionales
+        const exercisesSource =
+          blocks.length > 0
+            ? blocks.flatMap((b) => b.exercises)
+            : session.exercises.map((e) => {
+                const ex = e as unknown as Record<string, unknown>;
+                const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+                const exMeta = meta.exercises?.[e.exerciseId] || {};
+                const repsStr = e.reps != null ? String(e.reps) : null;
+                return {
+                  key: newKey(),
+                  id: e.id,
+                  exerciseId: e.exerciseId,
+                  exerciseName: e.exerciseName || exMeta.exerciseName || '',
+                  order: e.order,
+                  exerciseType: exType,
+                  sets: e.sets,
+                  reps: parseRepsNumber(repsStr, 10),
+                  targetDistanceMeters:
+                    exType === 'Distance'
+                      ? parseRepsNumber(repsStr, 10)
+                      : ((ex.targetDistanceMeters as number) ?? null),
+                  targetTimeSeconds:
+                    exType === 'Time'
+                      ? parseRepsNumber(repsStr, 10)
+                      : ((ex.targetTimeSeconds as number) ?? null),
+                  targetPercentage: e.targetPercentage ?? null,
+                  intensityType:
+                    (e.intensityType as IntensityMetric) ?? exMeta.intensityType ?? 'RPE',
+                  targetRpe: e.targetRpe ?? exMeta.targetRpe ?? null,
+                  targetRir: e.targetRir ?? exMeta.targetRir ?? null,
+                  repsRange: repsStr ?? exMeta.repsRange ?? null,
+                  notes: e.notes ?? exMeta.notes ?? null,
+                  images: (ex.images as string[]) ?? [],
+                  primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
+                  secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
+                  muscleGroup: (ex.muscleGroup as string) ?? undefined,
+                };
+              });
+
+        const flatExercises: DraftExercise[] = exercisesSource.map((exItem) => {
+          const prog =
+            'weeklyProgression' in exItem
+              ? (exItem as BlockExercise).weeklyProgression?.[week.weekNumber]
+              : null;
+          const exType = exItem.exerciseType ?? 'Weight';
+          const rawReps =
+            prog?.repsRange ?? ('reps' in exItem && exItem.reps != null ? exItem.reps : 10);
+          const parsedReps = parseRepsNumber(rawReps, 10);
+          const finalReps = exType === 'Distance' || exType === 'Time' ? parsedReps : rawReps;
+
+          return {
+            key: exItem.key,
+            id: exItem.id || null,
+            exerciseId: exItem.exerciseId,
+            exerciseName: exItem.exerciseName,
+            order: exItem.order,
+            exerciseType: exType,
+            sets: prog?.sets ?? ('sets' in exItem ? Number(exItem.sets) : 3),
+            reps: finalReps,
+            targetDistanceMeters:
+              prog?.targetDistanceMeters ??
+              ('targetDistanceMeters' in exItem ? exItem.targetDistanceMeters : null) ??
+              (exType === 'Distance' ? parsedReps : null),
+            targetTimeSeconds:
+              prog?.targetTimeSeconds ??
+              ('targetTimeSeconds' in exItem ? exItem.targetTimeSeconds : null) ??
+              (exType === 'Time' ? parsedReps : null),
+            targetPercentage:
+              prog?.targetPercentage ??
+              ('targetPercentage' in exItem && exItem.targetPercentage != null
+                ? exItem.targetPercentage
+                : null),
+            intensityType: prog?.intensityType ?? exItem.intensityType,
+            targetRpe: prog?.targetRpe ?? ('targetRpe' in exItem ? exItem.targetRpe : null),
+            targetRir: prog?.targetRir ?? ('targetRir' in exItem ? exItem.targetRir : null),
+            repsRange: prog?.repsRange ?? ('repsRange' in exItem ? exItem.repsRange : null),
+            notes: prog?.notes ?? ('notes' in exItem ? exItem.notes : null),
+            images: exItem.images ?? [],
+            primaryMuscles: exItem.primaryMuscles ?? [],
+            secondaryMuscles: exItem.secondaryMuscles ?? [],
+            muscleGroup: exItem.muscleGroup,
+          };
+        });
+
         return {
           key: newKey(),
           id: session.id,
@@ -165,37 +292,9 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
           dayOfWeek: session.dayOfWeek,
           coachNotes: cleanNotes,
           startTime: session.startTime ? session.startTime.slice(0, 5) : null,
-          nextExerciseOrder: nextOrder(session.exercises.map((e) => e.order)),
-          exercises: session.exercises.map((exercise) => {
-            const ex = exercise as unknown as Record<string, unknown>;
-            const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
-            const exMeta = meta.exercises?.[exercise.exerciseId] || {};
-            const parsedReps = Number.parseInt(String(exercise.reps ?? ''), 10) || 0;
-            return {
-              key: newKey(),
-              id: exercise.id,
-              exerciseId: exercise.exerciseId,
-              exerciseName: exercise.exerciseName || exMeta.exerciseName || '',
-              order: exercise.order,
-              exerciseType: exType,
-              sets: exercise.sets,
-              reps: parsedReps,
-              targetDistanceMeters:
-                exType === 'Distance' ? parsedReps : ((ex.targetDistanceMeters as number) ?? null),
-              targetTimeSeconds:
-                exType === 'Time' ? parsedReps : ((ex.targetTimeSeconds as number) ?? null),
-              targetPercentage: exercise.targetPercentage ?? null,
-              intensityType: exMeta.intensityType ?? 'RPE',
-              targetRpe: exMeta.targetRpe ?? null,
-              targetRir: exMeta.targetRir ?? null,
-              repsRange: exMeta.repsRange ?? (exercise.reps ? exercise.reps.toString() : null),
-              notes: exMeta.notes ?? null,
-              images: (ex.images as string[]) ?? [],
-              primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
-              secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
-              muscleGroup: (ex.muscleGroup as string) ?? undefined,
-            };
-          }),
+          blocks: blocks.length > 0 ? blocks : undefined,
+          nextExerciseOrder: nextOrder(flatExercises.map((e) => e.order)),
+          exercises: flatExercises,
         };
       }),
     })),
@@ -203,8 +302,6 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
 }
 
 export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
-  // Se mandan siempre los id de lo que ya existe, así el back actualiza en el
-  // lugar y no depende de emparejar por posición.
   return {
     name: draft.name.trim(),
     objective: draft.objective.trim() || null,
@@ -213,23 +310,34 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
       weekNumber: week.weekNumber,
       sessions: week.sessions.map((session) => {
         const metaPayload: SessionBlockMeta = { exercises: {} };
-        session.exercises.forEach((ex) => {
+        const sessionExercises: (DraftExercise | BlockExercise)[] =
+          session.blocks && session.blocks.length > 0
+            ? session.blocks.flatMap((b) => b.exercises)
+            : session.exercises;
+
+        sessionExercises.forEach((ex) => {
+          const isBlockEx = 'weeklyProgression' in ex;
+          const prog = isBlockEx
+            ? (ex as BlockExercise).weeklyProgression?.[week.weekNumber]
+            : null;
+          const exIntensity = prog?.intensityType ?? ex.intensityType;
+          const exRpe = prog?.targetRpe ?? ('targetRpe' in ex ? ex.targetRpe : null);
+          const exRir = prog?.targetRir ?? ('targetRir' in ex ? ex.targetRir : null);
+          const exRange = prog?.repsRange ?? ('repsRange' in ex ? ex.repsRange : null);
+          const exNotes = prog?.notes ?? ('notes' in ex ? ex.notes : null);
+          const exName = ex.exerciseName;
+
           if (
             ex.exerciseId &&
-            (ex.intensityType ||
-              ex.targetRpe != null ||
-              ex.targetRir != null ||
-              ex.repsRange ||
-              ex.notes ||
-              ex.exerciseName)
+            (exIntensity || exRpe != null || exRir != null || exRange || exNotes || exName)
           ) {
             metaPayload.exercises![ex.exerciseId] = {
-              exerciseName: ex.exerciseName,
-              intensityType: ex.intensityType,
-              targetRpe: ex.targetRpe,
-              targetRir: ex.targetRir,
-              repsRange: ex.repsRange,
-              notes: ex.notes,
+              exerciseName: exName,
+              intensityType: exIntensity,
+              targetRpe: exRpe,
+              targetRir: exRir,
+              repsRange: exRange,
+              notes: exNotes,
             };
           }
         });
@@ -241,6 +349,90 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
             : session.startTime
           : null;
 
+        const mappedBlocks =
+          session.blocks && session.blocks.length > 0
+            ? session.blocks.map((block) => ({
+                id: block.id || null,
+                title: block.title.trim(),
+                order: block.order,
+                exercises: block.exercises.map((exercise, idx) => {
+                  const prog = exercise.weeklyProgression?.[week.weekNumber];
+                  const repsVal = prog?.repsRange
+                    ? String(prog.repsRange).trim()
+                    : prog?.reps != null
+                      ? String(prog.reps).trim()
+                      : exercise.repsRange
+                        ? String(exercise.repsRange).trim()
+                        : String(exercise.reps ?? '10').trim();
+                  const setsVal =
+                    prog?.sets ?? (typeof exercise.sets === 'number' ? exercise.sets : 3);
+                  const intensityVal: IntensityMetric =
+                    exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR'
+                      ? 'RIR'
+                      : 'RPE';
+                  return {
+                    id: exercise.id || null,
+                    exerciseId: exercise.exerciseId ?? '',
+                    order: exercise.order || idx + 1,
+                    sets: setsVal,
+                    reps: repsVal || '10',
+                    targetPercentage: prog?.targetPercentage ?? exercise.targetPercentage ?? null,
+                    intensityType: intensityVal,
+                    targetRpe:
+                      intensityVal === 'RPE'
+                        ? (prog?.targetRpe ?? exercise.targetRpe ?? null)
+                        : null,
+                    targetRir:
+                      intensityVal === 'RIR'
+                        ? (prog?.targetRir ?? exercise.targetRir ?? null)
+                        : null,
+                    notes: prog?.notes ?? exercise.notes ?? null,
+                  };
+                }),
+              }))
+            : undefined;
+
+        const flatExercises = sessionExercises.map((exercise, idx) => {
+          const isBlockEx = 'weeklyProgression' in exercise;
+          const prog = isBlockEx
+            ? (exercise as BlockExercise).weeklyProgression?.[week.weekNumber]
+            : null;
+          const repsVal = prog?.repsRange
+            ? String(prog.repsRange).trim()
+            : prog?.reps != null
+              ? String(prog.reps).trim()
+              : 'repsRange' in exercise && exercise.repsRange
+                ? String(exercise.repsRange).trim()
+                : 'reps' in exercise && exercise.reps != null
+                  ? String(exercise.reps).trim()
+                  : '10';
+          const setsVal =
+            prog?.sets ??
+            ('sets' in exercise && typeof exercise.sets === 'number' ? exercise.sets : 3);
+          const intensityVal: IntensityMetric =
+            exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR' ? 'RIR' : 'RPE';
+          return {
+            id: exercise.id || null,
+            exerciseId: exercise.exerciseId ?? '',
+            order: exercise.order || idx + 1,
+            sets: setsVal,
+            reps: repsVal || '10',
+            targetPercentage:
+              prog?.targetPercentage ??
+              ('targetPercentage' in exercise ? exercise.targetPercentage : null),
+            intensityType: intensityVal,
+            targetRpe:
+              intensityVal === 'RPE'
+                ? (prog?.targetRpe ?? ('targetRpe' in exercise ? exercise.targetRpe : null))
+                : null,
+            targetRir:
+              intensityVal === 'RIR'
+                ? (prog?.targetRir ?? ('targetRir' in exercise ? exercise.targetRir : null))
+                : null,
+            notes: prog?.notes ?? ('notes' in exercise ? exercise.notes : null),
+          };
+        });
+
         return {
           id: session.id,
           name: session.name.trim(),
@@ -248,23 +440,8 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
           dayOfWeek: session.dayOfWeek,
           coachNotes: packedNotes || null,
           startTime: formattedStartTime,
-          exercises: session.exercises.map((exercise) => {
-            const type = exercise.exerciseType ?? 'Weight';
-            const repsVal =
-              type === 'Distance'
-                ? (exercise.targetDistanceMeters ?? exercise.reps ?? 0)
-                : type === 'Time'
-                  ? (exercise.targetTimeSeconds ?? exercise.reps ?? 0)
-                  : (parseRepsNumber(exercise.repsRange, exercise.reps) ?? 0);
-            return {
-              id: exercise.id,
-              exerciseId: exercise.exerciseId ?? '',
-              order: exercise.order,
-              sets: exercise.sets,
-              reps: exercise.repsRange?.trim() || String(repsVal),
-              targetPercentage: exercise.targetPercentage,
-            };
-          }),
+          blocks: mappedBlocks,
+          exercises: flatExercises,
         };
       }),
     })),
@@ -335,18 +512,23 @@ export function validateDraft(draft: PlanDraft): string | null {
         if (!Number.isInteger(exercise.sets) || exercise.sets < 1) {
           return `${where}: las series o pasadas de "${exercise.exerciseName}" tienen que ser 1 o más.`;
         }
+        const repsNum =
+          typeof exercise.reps === 'number'
+            ? exercise.reps
+            : parseRepsNumber(exercise.repsRange, exercise.reps);
+
         if (type === 'Distance') {
-          const dist = exercise.targetDistanceMeters || exercise.reps;
+          const dist = exercise.targetDistanceMeters || repsNum;
           if (!dist || dist < 1) {
             return `${where}: la distancia de "${exercise.exerciseName}" tiene que ser 1 m o más.`;
           }
         } else if (type === 'Time') {
-          const time = exercise.targetTimeSeconds || exercise.reps;
+          const time = exercise.targetTimeSeconds || repsNum;
           if (!time || time < 1) {
             return `${where}: el tiempo de "${exercise.exerciseName}" tiene que ser 1 seg o más.`;
           }
         } else {
-          if (!Number.isInteger(exercise.reps) || exercise.reps < 1) {
+          if (!Number.isInteger(repsNum) || repsNum < 1) {
             return `${where}: las repeticiones de "${exercise.exerciseName}" tienen que ser 1 o más.`;
           }
         }
@@ -547,7 +729,10 @@ export function toUpdateDraftRequest(
             exerciseId: exercise.exerciseId,
             order: exercise.order,
             sets: exercise.sets,
-            reps: parseRepsNumber(exercise.repsRange, exercise.reps),
+            reps:
+              typeof exercise.reps === 'number'
+                ? exercise.reps
+                : parseRepsNumber(exercise.reps ?? exercise.repsRange, 10),
             targetPercentage: exercise.targetPercentage,
             exerciseName: exercise.exerciseName,
             isReference: Boolean(exercise.isReference),
@@ -703,97 +888,178 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
 
   return sortedDays.map((dayOfWeek) => {
     const label = dayLabel(dayOfWeek);
+    const sessionsForDay = dayOfWeekMap.get(dayOfWeek) || [];
+    const hasNativeBlocks = sessionsForDay.some((s) => s.blocks && s.blocks.length > 0);
+
     const blockMap = new Map<
       string,
-      { title: string; order: number; exercisesMap: Map<string, BlockExercise> }
+      { id?: string | null; title: string; order: number; exercisesMap: Map<string, BlockExercise> }
     >();
 
-    draft.weeks.forEach((week) => {
-      const weekSessionsForDay = week.sessions
-        .filter((s) => s.dayOfWeek === dayOfWeek)
-        .sort((a, b) => a.order - b.order);
+    if (hasNativeBlocks) {
+      draft.weeks.forEach((week) => {
+        const weekSessions = week.sessions.filter((s) => s.dayOfWeek === dayOfWeek);
+        weekSessions.forEach((session) => {
+          (session.blocks || []).forEach((b, bIdx) => {
+            const blockOrder = b.order || bIdx + 1;
+            const blockKey = `order-${blockOrder}`;
 
-      weekSessionsForDay.forEach((session, sessionIdx) => {
-        const blockOrder = session.order || sessionIdx + 1;
-        const blockKey = `order-${blockOrder}`;
+            if (!blockMap.has(blockKey)) {
+              blockMap.set(blockKey, {
+                id: b.id || null,
+                title: b.title,
+                order: blockOrder,
+                exercisesMap: new Map<string, BlockExercise>(),
+              });
+            }
 
-        if (!blockMap.has(blockKey)) {
-          blockMap.set(blockKey, {
-            title: session.name || `Bloque ${blockOrder}`,
-            order: blockOrder,
-            exercisesMap: new Map<string, BlockExercise>(),
+            const blockData = blockMap.get(blockKey)!;
+            if (b.title && (!blockData.title || blockData.title.startsWith('Bloque '))) {
+              blockData.title = b.title;
+            }
+
+            b.exercises.forEach((ex) => {
+              const refKey = ex.exerciseId ?? `ref:${ex.exerciseName}`;
+              if (!blockData.exercisesMap.has(refKey)) {
+                blockData.exercisesMap.set(refKey, {
+                  key: newKey(),
+                  id: ex.id || null,
+                  exerciseId: ex.exerciseId,
+                  isReference: ex.isReference,
+                  exerciseName: ex.exerciseName,
+                  exerciseType: ex.exerciseType,
+                  order: ex.order,
+                  intensityType: ex.intensityType ?? 'RPE',
+                  weeklyProgression: {},
+                  images: ex.images ?? [],
+                  primaryMuscles: ex.primaryMuscles ?? [],
+                  secondaryMuscles: ex.secondaryMuscles ?? [],
+                  muscleGroup: ex.muscleGroup,
+                });
+              }
+
+              const blockExercise = blockData.exercisesMap.get(refKey)!;
+              if (ex.intensityType === 'RIR') {
+                blockExercise.intensityType = 'RIR';
+              } else if (!blockExercise.intensityType) {
+                blockExercise.intensityType = ex.intensityType || 'RPE';
+              }
+
+              const weekProg = ex.weeklyProgression?.[week.weekNumber];
+              const repsStr =
+                weekProg?.repsRange ??
+                (weekProg?.reps != null ? String(weekProg.reps) : String(ex.reps ?? '10'));
+              const setsVal = weekProg?.sets ?? (typeof ex.sets === 'number' ? ex.sets : 3);
+              const intensityVal =
+                weekProg?.intensityType ?? ex.intensityType ?? blockExercise.intensityType ?? 'RPE';
+
+              blockExercise.weeklyProgression[week.weekNumber] = {
+                weekNumber: week.weekNumber,
+                sets: setsVal,
+                reps: parseRepsNumber(repsStr, 10),
+                repsRange: repsStr,
+                targetPercentage: weekProg?.targetPercentage ?? ex.targetPercentage ?? null,
+                intensityType: intensityVal,
+                targetRpe: weekProg?.targetRpe ?? ex.targetRpe ?? null,
+                targetRir: weekProg?.targetRir ?? ex.targetRir ?? null,
+                targetDistanceMeters:
+                  weekProg?.targetDistanceMeters ?? ex.targetDistanceMeters ?? null,
+                targetTimeSeconds: weekProg?.targetTimeSeconds ?? ex.targetTimeSeconds ?? null,
+                notes: weekProg?.notes ?? ex.notes ?? null,
+              };
+            });
           });
-        }
+        });
+      });
+    } else {
+      // Rama legada (cuando cada sesión representaba un bloque)
+      draft.weeks.forEach((week) => {
+        const weekSessionsForDay = week.sessions
+          .filter((s) => s.dayOfWeek === dayOfWeek)
+          .sort((a, b) => a.order - b.order);
 
-        const blockData = blockMap.get(blockKey)!;
-        if ((!blockData.title || blockData.title.startsWith('Bloque ')) && session.name) {
-          blockData.title = session.name;
-        }
+        weekSessionsForDay.forEach((session, sessionIdx) => {
+          const blockOrder = session.order || sessionIdx + 1;
+          const blockKey = `order-${blockOrder}`;
 
-        session.exercises.forEach((ex) => {
-          const refKey = ex.exerciseId ?? `ref:${ex.exerciseName}`;
-          if (!blockData.exercisesMap.has(refKey)) {
-            blockData.exercisesMap.set(refKey, {
-              key: newKey(),
-              exerciseId: ex.exerciseId,
-              isReference: ex.isReference,
-              exerciseName: ex.exerciseName,
-              exerciseType: ex.exerciseType,
-              order: ex.order,
-              intensityType: ex.intensityType ?? 'RPE',
-              weeklyProgression: {},
-              images: ex.images ?? [],
-              primaryMuscles: ex.primaryMuscles ?? [],
-              secondaryMuscles: ex.secondaryMuscles ?? [],
-              muscleGroup: ex.muscleGroup,
+          if (!blockMap.has(blockKey)) {
+            blockMap.set(blockKey, {
+              title: session.name || `Bloque ${blockOrder}`,
+              order: blockOrder,
+              exercisesMap: new Map<string, BlockExercise>(),
             });
           }
 
-          const blockExercise = blockData.exercisesMap.get(refKey)!;
-          if (
-            (!blockExercise.images || blockExercise.images.length === 0) &&
-            ex.images &&
-            ex.images.length > 0
-          ) {
-            blockExercise.images = ex.images;
-          }
-          if (
-            (!blockExercise.primaryMuscles || blockExercise.primaryMuscles.length === 0) &&
-            ex.primaryMuscles &&
-            ex.primaryMuscles.length > 0
-          ) {
-            blockExercise.primaryMuscles = ex.primaryMuscles;
-          }
-          if (
-            (!blockExercise.secondaryMuscles || blockExercise.secondaryMuscles.length === 0) &&
-            ex.secondaryMuscles &&
-            ex.secondaryMuscles.length > 0
-          ) {
-            blockExercise.secondaryMuscles = ex.secondaryMuscles;
-          }
-          if (!blockExercise.muscleGroup && ex.muscleGroup) {
-            blockExercise.muscleGroup = ex.muscleGroup;
-          }
-          if (ex.intensityType) {
-            blockExercise.intensityType = ex.intensityType;
+          const blockData = blockMap.get(blockKey)!;
+          if ((!blockData.title || blockData.title.startsWith('Bloque ')) && session.name) {
+            blockData.title = session.name;
           }
 
-          blockExercise.weeklyProgression[week.weekNumber] = {
-            weekNumber: week.weekNumber,
-            sets: ex.sets,
-            reps: ex.reps,
-            repsRange: ex.repsRange ?? (ex.reps ? ex.reps.toString() : null),
-            targetPercentage: ex.targetPercentage,
-            intensityType: ex.intensityType ?? blockExercise.intensityType ?? 'RPE',
-            targetRpe: ex.targetRpe ?? null,
-            targetRir: ex.targetRir ?? null,
-            targetDistanceMeters: ex.targetDistanceMeters ?? null,
-            targetTimeSeconds: ex.targetTimeSeconds ?? null,
-            notes: ex.notes ?? null,
-          };
+          session.exercises.forEach((ex) => {
+            const refKey = ex.exerciseId ?? `ref:${ex.exerciseName}`;
+            if (!blockData.exercisesMap.has(refKey)) {
+              blockData.exercisesMap.set(refKey, {
+                key: newKey(),
+                exerciseId: ex.exerciseId,
+                isReference: ex.isReference,
+                exerciseName: ex.exerciseName,
+                exerciseType: ex.exerciseType,
+                order: ex.order,
+                intensityType: ex.intensityType ?? 'RPE',
+                weeklyProgression: {},
+                images: ex.images ?? [],
+                primaryMuscles: ex.primaryMuscles ?? [],
+                secondaryMuscles: ex.secondaryMuscles ?? [],
+                muscleGroup: ex.muscleGroup,
+              });
+            }
+
+            const blockExercise = blockData.exercisesMap.get(refKey)!;
+            if (
+              (!blockExercise.images || blockExercise.images.length === 0) &&
+              ex.images &&
+              ex.images.length > 0
+            ) {
+              blockExercise.images = ex.images;
+            }
+            if (
+              (!blockExercise.primaryMuscles || blockExercise.primaryMuscles.length === 0) &&
+              ex.primaryMuscles &&
+              ex.primaryMuscles.length > 0
+            ) {
+              blockExercise.primaryMuscles = ex.primaryMuscles;
+            }
+            if (
+              (!blockExercise.secondaryMuscles || blockExercise.secondaryMuscles.length === 0) &&
+              ex.secondaryMuscles &&
+              ex.secondaryMuscles.length > 0
+            ) {
+              blockExercise.secondaryMuscles = ex.secondaryMuscles;
+            }
+            if (!blockExercise.muscleGroup && ex.muscleGroup) {
+              blockExercise.muscleGroup = ex.muscleGroup;
+            }
+            if (ex.intensityType) {
+              blockExercise.intensityType = ex.intensityType;
+            }
+
+            blockExercise.weeklyProgression[week.weekNumber] = {
+              weekNumber: week.weekNumber,
+              sets: ex.sets,
+              reps: parseRepsNumber(ex.repsRange, ex.reps),
+              repsRange: ex.repsRange ?? (ex.reps ? ex.reps.toString() : null),
+              targetPercentage: ex.targetPercentage,
+              intensityType: ex.intensityType ?? blockExercise.intensityType ?? 'RPE',
+              targetRpe: ex.targetRpe ?? null,
+              targetRir: ex.targetRir ?? null,
+              targetDistanceMeters: ex.targetDistanceMeters ?? null,
+              targetTimeSeconds: ex.targetTimeSeconds ?? null,
+              notes: ex.notes ?? null,
+            };
+          });
         });
       });
-    });
+    }
 
     let dayBlocks: DayBlock[];
     if (blockMap.size === 0) {
@@ -828,6 +1094,7 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
 
           return {
             key: newKey(),
+            id: b.id || null,
             title: b.title,
             order: idx + 1,
             exercises,
@@ -835,8 +1102,7 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
         });
     }
 
-    const sessionsForDay = dayOfWeekMap.get(dayOfWeek);
-    const dayStartTime = sessionsForDay?.find((s) => s.startTime)?.startTime || null;
+    const dayStartTime = sessionsForDay.find((s) => s.startTime)?.startTime || null;
 
     return {
       dayOfWeek,
@@ -854,8 +1120,8 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
     for (let i = 1; i <= weekCount; i++) weekNumbers.push(i);
   }
 
-  // Ordenamos los días por día de la semana (1 = Lunes, ..., 7 = Domingo)
-  const sortedDays = [...days].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  // Ordenamos los días por su posición en la semana (Lunes primero)
+  const sortedDays = [...days].sort((a, b) => dayPosition(a.dayOfWeek) - dayPosition(b.dayOfWeek));
 
   const updatedWeeks: DraftWeek[] = weekNumbers.map((w) => {
     const existingWeek = existingDraft.weeks.find((week) => week.weekNumber === w);
@@ -866,23 +1132,18 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
     let sessionCounter = 1;
 
     sortedDays.forEach((day) => {
-      // Bloques ordenados de este día
       const sortedBlocks = [...day.blocks].sort((a, b) => a.order - b.order);
+      const existingSession = (existingWeek?.sessions || []).find(
+        (s) => s.dayOfWeek === day.dayOfWeek,
+      );
+      const sessionOrder = sessionCounter++;
 
-      // Sesiones existentes de este día en la semana
-      const existingSessionsForDay = (existingWeek?.sessions || [])
-        .filter((s) => s.dayOfWeek === day.dayOfWeek)
-        .sort((a, b) => a.order - b.order);
+      const mappedBlocks: DayBlock[] = sortedBlocks.map((block, bIdx) => {
+        const existingBlock = (existingSession?.blocks || []).find(
+          (b) => b.title === block.title || b.order === block.order,
+        );
 
-      sortedBlocks.forEach((block, blockIndex) => {
-        const sessionOrder = sessionCounter++;
-
-        // Conservar id de la sesión existente (por coincidencia de bloque en el día o por nombre)
-        const existingSession =
-          existingSessionsForDay.find((s) => s.name === block.title) ||
-          existingSessionsForDay[blockIndex];
-
-        const exercises: DraftExercise[] = block.exercises.map((bEx, exIndex) => {
+        const exercises: BlockExercise[] = block.exercises.map((bEx, exIndex) => {
           const prog = bEx.weeklyProgression[w] || {
             weekNumber: w,
             sets: 3,
@@ -895,17 +1156,56 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             notes: null,
           };
 
-          const existingExercise = existingSession?.exercises.find((e) =>
+          const existingEx = existingBlock?.exercises.find((e) =>
             bEx.exerciseId ? e.exerciseId === bEx.exerciseId : e.exerciseName === bEx.exerciseName,
           );
 
           return {
-            key: existingExercise?.key || newKey(),
-            id: existingExercise?.id || null,
+            ...bEx,
+            key: existingEx?.key || bEx.key || newKey(),
+            id: existingEx?.id || bEx.id || null,
+            order: bEx.order || exIndex + 1,
+            sets: prog.sets,
+            reps: parseRepsNumber(prog.repsRange, prog.reps),
+            repsRange: prog.repsRange ?? String(prog.reps ?? '10'),
+            targetPercentage: prog.targetPercentage,
+            intensityType: bEx.intensityType,
+            targetRpe: bEx.intensityType === 'RPE' ? (prog.targetRpe ?? null) : null,
+            targetRir: bEx.intensityType === 'RIR' ? (prog.targetRir ?? null) : null,
+            notes: prog.notes ?? null,
+          };
+        });
+
+        return {
+          key: existingBlock?.key || block.key || newKey(),
+          id: existingBlock?.id || block.id || null,
+          title: block.title,
+          order: block.order || bIdx + 1,
+          exercises,
+        };
+      });
+
+      const flatExercises: DraftExercise[] = mappedBlocks.flatMap((b) =>
+        b.exercises.map((bEx) => {
+          const prog = bEx.weeklyProgression[w] || {
+            weekNumber: w,
+            sets: 3,
+            reps: 10,
+            repsRange: '10',
+            targetPercentage: null,
+            intensityType: bEx.intensityType,
+            targetRpe: null,
+            targetRir: null,
+            notes: null,
+          };
+
+          return {
+            key: bEx.key,
+            id: bEx.id || null,
             exerciseId: bEx.exerciseId,
             isReference: bEx.isReference,
             exerciseName: bEx.exerciseName,
-            order: bEx.order || exIndex + 1,
+            order: bEx.order,
             exerciseType: bEx.exerciseType || 'Weight',
             sets: prog.sets,
             reps: parseRepsNumber(prog.repsRange, prog.reps),
@@ -917,24 +1217,25 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             targetRir: prog.targetRir ?? null,
             repsRange: prog.repsRange ?? (prog.reps ? prog.reps.toString() : null),
             notes: prog.notes ?? null,
-            images: bEx.images ?? existingExercise?.images ?? [],
-            primaryMuscles: bEx.primaryMuscles ?? existingExercise?.primaryMuscles ?? [],
-            secondaryMuscles: bEx.secondaryMuscles ?? existingExercise?.secondaryMuscles ?? [],
-            muscleGroup: bEx.muscleGroup ?? existingExercise?.muscleGroup,
+            images: bEx.images ?? [],
+            primaryMuscles: bEx.primaryMuscles ?? [],
+            secondaryMuscles: bEx.secondaryMuscles ?? [],
+            muscleGroup: bEx.muscleGroup,
           };
-        });
+        }),
+      );
 
-        sessions.push({
-          key: existingSession?.key || newKey(),
-          id: existingSession?.id || null,
-          name: block.title,
-          order: sessionOrder,
-          dayOfWeek: day.dayOfWeek,
-          coachNotes: existingSession?.coachNotes || '',
-          startTime: existingSession?.startTime ?? day.startTime ?? null,
-          exercises,
-          nextExerciseOrder: exercises.length + 1,
-        });
+      sessions.push({
+        key: existingSession?.key || newKey(),
+        id: existingSession?.id || null,
+        name: day.name || `Sesión ${dayLabel(day.dayOfWeek)}`,
+        order: sessionOrder,
+        dayOfWeek: day.dayOfWeek,
+        coachNotes: existingSession?.coachNotes || '',
+        startTime: existingSession?.startTime ?? day.startTime ?? null,
+        blocks: mappedBlocks,
+        exercises: flatExercises,
+        nextExerciseOrder: flatExercises.length + 1,
       });
     });
 
