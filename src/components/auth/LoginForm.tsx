@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../api/authService';
 import { extractErrorMessage } from '../../api/axiosClient';
@@ -237,20 +237,16 @@ export const LoginForm: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%' }}>
             <div>{errorMessage}</div>
             {unconfirmedEmail && (
-              <div>
+              <div style={{ marginTop: '0.2rem' }}>
                 <button
                   type="button"
                   onClick={handleResendConfirmation}
                   disabled={resendLoading}
-                  className="btn-pill-secondary"
-                  style={{
-                    fontSize: '0.82rem',
-                    padding: '0.25rem 0.65rem',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                  }}
+                  className="auth-resend-inline-btn"
+                  id="btn-resend-login-alert"
                 >
-                  {resendLoading ? 'Enviando...' : 'Reenviar mail'}
+                  <RefreshCw size={13} className={resendLoading ? 'animate-spin' : ''} />
+                  <span>{resendLoading ? 'Enviando...' : 'Reenviar mail'}</span>
                 </button>
               </div>
             )}
