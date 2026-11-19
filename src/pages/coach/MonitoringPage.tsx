@@ -223,6 +223,8 @@ export const MonitoringPage: React.FC = () => {
             ...item,
             position: item.position,
             avatarUrl: photoUrl,
+            phone: detail?.phone ?? null,
+            telegramUsername: detail?.telegramUsername ?? null,
           };
         });
 
@@ -298,6 +300,8 @@ export const MonitoringPage: React.FC = () => {
             ...item,
             position: item.position,
             avatarUrl: photoUrl,
+            phone: detail?.phone ?? null,
+            telegramUsername: detail?.telegramUsername ?? null,
           };
         });
 
@@ -1377,11 +1381,16 @@ export const MonitoringPage: React.FC = () => {
                               ? 'Atleta presente con carga registrada en el día.'
                               : 'Atleta sin registro de carga ni asistencia en el día.',
                             avatarUrl: photoUrl,
+                            phone: detail?.phone ?? null,
+                            telegramUsername: detail?.telegramUsername ?? null,
                           };
 
                           setSelectedAthlete({
                             ...baseItem,
                             avatarUrl: baseItem.avatarUrl || photoUrl,
+                            phone: baseItem.phone ?? detail?.phone ?? null,
+                            telegramUsername:
+                              baseItem.telegramUsername ?? detail?.telegramUsername ?? null,
                             activities: athlete.activities,
                             totalMinutes: athlete.totalMinutes ?? totalMinutes,
                             totalLoad: athlete.totalLoad ?? totalLoad,
@@ -1410,10 +1419,15 @@ export const MonitoringPage: React.FC = () => {
                                 ? 'Atleta presente con carga registrada en el día.'
                                 : 'Atleta sin registro de carga ni asistencia en el día.',
                               avatarUrl: photoUrl,
+                              phone: detail?.phone ?? null,
+                              telegramUsername: detail?.telegramUsername ?? null,
                             };
                             setSelectedAthlete({
                               ...baseItem,
                               avatarUrl: baseItem.avatarUrl || photoUrl,
+                              phone: baseItem.phone ?? detail?.phone ?? null,
+                              telegramUsername:
+                                baseItem.telegramUsername ?? detail?.telegramUsername ?? null,
                               activities: athlete.activities,
                               totalMinutes: athlete.totalMinutes ?? totalMinutes,
                               totalLoad: athlete.totalLoad ?? totalLoad,
@@ -1476,8 +1490,17 @@ export const MonitoringPage: React.FC = () => {
                                   statusLabel: 'Sin Check-in',
                                   recommendation: 'Sin check-in completado el día de hoy.',
                                   avatarUrl: photoUrl,
+                                  phone: detail?.phone ?? null,
+                                  telegramUsername: detail?.telegramUsername ?? null,
                                 };
-                                setSelectedAthlete(itemToSelect);
+                                setSelectedAthlete({
+                                  ...itemToSelect,
+                                  phone: itemToSelect.phone ?? detail?.phone ?? null,
+                                  telegramUsername:
+                                    itemToSelect.telegramUsername ??
+                                    detail?.telegramUsername ??
+                                    null,
+                                });
                               }}
                               style={{
                                 cursor: 'pointer',

@@ -411,6 +411,18 @@ export type TodayRoutineExercise = {
      * Series o pasadas ya registradas hoy para este ejercicio (KAN-457).
      */
     performedSets?: Array<TodayRoutinePerformedSet>;
+    /**
+     * Indica si el ejercicio fue adaptado con una variante personalizada o ajuste (KAN-471).
+     */
+    isAdapted?: boolean;
+    /**
+     * Nombre del ejercicio original prescrito antes de aplicar la variante.
+     */
+    originalExerciseName?: string | null;
+    /**
+     * Motivo o nota de la adaptación aplicada al ejercicio.
+     */
+    adaptationReason?: string | null;
 };
 
 export type TodayRoutineResponse = {

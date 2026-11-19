@@ -52,6 +52,7 @@ export interface Athlete {
   fullName?: string;
   email: string;
   phone: string;
+  telegramUsername?: string | null;
   isMinor?: boolean;
   active?: boolean;
   categoryNames?: string[];
@@ -67,6 +68,7 @@ export interface CreateAthleteRequest {
   lastName: string;
   email: string;
   phone: string;
+  telegramUsername?: string | null;
   birthDate?: string;
   categoryIds?: string[];
   emergencyContact?: string | null;

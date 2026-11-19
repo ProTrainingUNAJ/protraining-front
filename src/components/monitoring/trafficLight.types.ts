@@ -39,4 +39,6 @@ export interface AthleteTrafficLightItem {
   activities?: AthleteActivityDetail[];
   totalMinutes?: number;
   totalLoad?: number;
+  phone?: string | null;
+  telegramUsername?: string | null;
 }

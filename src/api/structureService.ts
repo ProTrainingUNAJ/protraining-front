@@ -67,6 +67,7 @@ interface RawAthlete {
   email?: string;
   telefono?: string;
   phone?: string;
+  telegramUsername?: string | null;
   esMenorDeEdad?: boolean;
   isMinor?: boolean;
   activo?: boolean;
@@ -129,6 +130,7 @@ function mapAthlete(raw: RawAthlete): Athlete {
     fullName: fullName || 'Sin nombre',
     email: raw.email ?? '',
     phone: raw.telefono ?? raw.phone ?? '',
+    telegramUsername: raw.telegramUsername ?? null,
     isMinor: raw.esMenorDeEdad ?? raw.isMinor ?? false,
     active: raw.activo ?? raw.active ?? true,
     categories,
@@ -250,6 +252,7 @@ export const structureService = {
         lastName: req.lastName.trim(),
         email: req.email.trim(),
         phone: req.phone.trim(),
+        telegramUsername: req.telegramUsername?.trim() || null,
         emergencyContact: req.emergencyContact?.trim() || null,
       });
       return mapAthlete(response.data);
@@ -414,6 +417,33 @@ export const structureService = {
         }
       }
       return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async updateAthlete(
+    athleteId: string,
+    payload: {
+      phone?: string;
+      emergencyContact?: string | null;
+      telegramUsername?: string | null;
+    },
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.put<RawAthlete>(
+        `/estructura/api/v1/athletes/${athleteId}`,
+        {
+          ...(payload.phone !== undefined ? { phone: payload.phone.trim() } : {}),
+          ...(payload.emergencyContact !== undefined
+            ? { emergencyContact: payload.emergencyContact?.trim() || null }
+            : {}),
+          ...(payload.telegramUsername !== undefined
+            ? { telegramUsername: payload.telegramUsername?.trim() || '' }
+            : {}),
+        },
+      );
+      return mapAthlete(response.data);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

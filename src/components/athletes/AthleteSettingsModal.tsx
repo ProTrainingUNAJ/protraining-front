@@ -10,6 +10,7 @@ import {
   Mail,
   Phone,
   Power,
+  Send,
   Settings,
   UserCheck,
   UserX,
@@ -20,6 +21,7 @@ import { structureService } from '../../api/structureService';
 import { authService } from '../../api/authService';
 import { usersService } from '../../api/users';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
+import { validateTelegramUsername } from '../../utils/telegram';
 
 interface AthleteSettingsModalProps {
   athlete: Athlete;
@@ -45,6 +47,12 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSuccess, setPhoneSuccess] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  // --- Cambio de Telegram ---
+  const [telegramUsername, setTelegramUsername] = useState(athlete.telegramUsername || '');
+  const [telegramSaving, setTelegramSaving] = useState(false);
+  const [telegramSuccess, setTelegramSuccess] = useState(false);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
 
   // --- Restablecer Contraseña ---
   const [resetStep, setResetStep] = useState<'initial' | 'loading' | 'success'>('initial');
@@ -126,6 +134,42 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
       );
     } finally {
       setPhoneSaving(false);
+    }
+  };
+
+  // Guardar Telegram
+  const handleSaveTelegram = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validationError = validateTelegramUsername(telegramUsername);
+    if (validationError) {
+      setTelegramError(validationError);
+      return;
+    }
+
+    setTelegramSaving(true);
+    setTelegramError(null);
+    setTelegramSuccess(false);
+
+    try {
+      const updated = await structureService.updateAthlete(athlete.id, {
+        phone: athlete.phone,
+        emergencyContact: athlete.emergencyContact ?? null,
+        telegramUsername: telegramUsername.trim() || '',
+      });
+      const merged: Athlete = {
+        ...athlete,
+        telegramUsername: updated.telegramUsername ?? null,
+      };
+      setTelegramUsername(merged.telegramUsername || '');
+      onAthleteUpdated(merged);
+      setTelegramSuccess(true);
+      setTimeout(() => setTelegramSuccess(false), 3000);
+    } catch (err: unknown) {
+      setTelegramError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el usuario de Telegram.',
+      );
+    } finally {
+      setTelegramSaving(false);
     }
   };
 
@@ -428,6 +472,83 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                     <Check size={16} />
                   )}
                   <span>Guardar Teléfono</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* SECCIÓN 3B: USUARIO DE TELEGRAM */}
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              padding: '1.25rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
+              <Send size={18} color="var(--primary)" aria-hidden="true" />
+              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                Telegram del atleta
+              </h3>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+              Username opcional (ej. @lucas_fernandez) para abrir chat directo desde el semáforo.
+            </p>
+
+            {telegramError && (
+              <div className="alert-banner danger" role="alert" style={{ marginBottom: '0.75rem' }}>
+                <AlertCircle size={16} aria-hidden="true" />
+                <span>{telegramError}</span>
+              </div>
+            )}
+
+            {telegramSuccess && (
+              <div
+                className="alert-banner success"
+                role="status"
+                style={{ marginBottom: '0.75rem' }}
+              >
+                <Check size={16} aria-hidden="true" />
+                <span>Usuario de Telegram actualizado correctamente.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveTelegram}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  value={telegramUsername}
+                  onChange={(e) => {
+                    setTelegramUsername(e.target.value);
+                    if (telegramError) setTelegramError(null);
+                  }}
+                  placeholder="Ej. @lucas_fernandez"
+                  disabled={telegramSaving}
+                  style={{ flex: 1, minWidth: '220px', margin: 0 }}
+                  aria-label="Usuario de Telegram del atleta"
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={
+                    telegramSaving ||
+                    telegramUsername.trim().replace(/^@/, '') === (athlete.telegramUsername || '')
+                  }
+                >
+                  {telegramSaving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Check size={16} />
+                  )}
+                  <span>Guardar Telegram</span>
                 </button>
               </div>
             </form>

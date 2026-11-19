@@ -376,4 +376,123 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(toggleBtn.getAttribute('title')).toBe('Presente (clic para quitar)');
     });
   });
+
+  it('en pestaña Asistencia, abre ficha rápida de atleta sin check-in con solo WhatsApp (KAN-503)', async () => {
+    vi.mocked(structureService.getAthletes).mockResolvedValue([
+      {
+        id: 'ath-2',
+        accountId: 'acc-2',
+        firstName: 'Joaquín',
+        lastName: 'Díaz',
+        fullName: 'Joaquín Díaz',
+        email: 'joaquin@correo.com',
+        phone: '+54 9 11 5000-0002',
+        telegramUsername: null,
+        hasPhoto: false,
+      },
+    ] as unknown as import('../../../types/structure').Athlete[]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
+    fireEvent.click(card);
+
+    const wa = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i });
+    expect(wa.getAttribute('href')).toContain('https://wa.me/5491150000002?text=');
+    expect(
+      screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i }),
+    ).toBeNull();
+  });
+
+  it('en pestaña Asistencia, abre ficha rápida de atleta sin check-in con solo Telegram (KAN-503)', async () => {
+    vi.mocked(structureService.getAthletes).mockResolvedValue([
+      {
+        id: 'ath-2',
+        accountId: 'acc-2',
+        firstName: 'Joaquín',
+        lastName: 'Díaz',
+        fullName: 'Joaquín Díaz',
+        email: 'joaquin@correo.com',
+        phone: '',
+        telegramUsername: '@joaquin_diaz',
+        hasPhoto: false,
+      },
+    ] as unknown as import('../../../types/structure').Athlete[]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
+    fireEvent.click(card);
+
+    const tg = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i });
+    expect(tg.getAttribute('href')).toBe('https://t.me/joaquin_diaz');
+    expect(
+      screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i }),
+    ).toBeNull();
+  });
+
+  it('en pestaña Asistencia, abre ficha rápida de atleta sin check-in con ambos canales (KAN-503)', async () => {
+    vi.mocked(structureService.getAthletes).mockResolvedValue([
+      {
+        id: 'ath-2',
+        accountId: 'acc-2',
+        firstName: 'Joaquín',
+        lastName: 'Díaz',
+        fullName: 'Joaquín Díaz',
+        email: 'joaquin@correo.com',
+        phone: '+54 9 11 5000-0002',
+        telegramUsername: 'joaquin_diaz',
+        hasPhoto: false,
+      },
+    ] as unknown as import('../../../types/structure').Athlete[]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
+    fireEvent.click(card);
+
+    const wa = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i });
+    expect(wa.getAttribute('href')).toContain('https://wa.me/5491150000002?text=');
+    const tg = screen.getByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i });
+    expect(tg.getAttribute('href')).toBe('https://t.me/joaquin_diaz');
+  });
+
+  it('en pestaña Asistencia, muestra Sin canales de contacto si atleta sin check-in no tiene teléfono ni Telegram (KAN-503)', async () => {
+    vi.mocked(structureService.getAthletes).mockResolvedValue([
+      {
+        id: 'ath-2',
+        accountId: 'acc-2',
+        firstName: 'Joaquín',
+        lastName: 'Díaz',
+        fullName: 'Joaquín Díaz',
+        email: 'joaquin@correo.com',
+        phone: '',
+        telegramUsername: null,
+        hasPhoto: false,
+      },
+    ] as unknown as import('../../../types/structure').Athlete[]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
+    fireEvent.click(card);
+
+    expect(await screen.findByText(/Sin canales de contacto/i)).toBeTruthy();
+  });
 });
