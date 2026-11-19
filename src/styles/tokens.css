@@ -92,6 +92,15 @@
   --color-google-yellow: #fbbc05;
   --color-google-red: #ea4335;
 
+  /* Redes sociales */
+  --social-instagram-from: #f09433;
+  --social-instagram-stop1: #e6683c;
+  --social-instagram-stop2: #dc2743;
+  --social-instagram-stop3: #cc2366;
+  --social-instagram-to: #bc1888;
+  --social-facebook: #1877f2;
+  --social-whatsapp: #25d366;
+
   /* Inputs and form controls */
   --input-bg: #f8fafc;
   --input-border: #e2e8f0;

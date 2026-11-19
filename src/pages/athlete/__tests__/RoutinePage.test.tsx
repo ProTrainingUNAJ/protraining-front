@@ -768,4 +768,64 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       expect(screen.queryByTestId('personalized-variant-breakdown')).toBeNull();
     });
   });
+
+  describe('Contador de series en barra y persistencia del cronómetro (KAN-623)', () => {
+    it('agrega series a la barra de rutina y las suma cada vez que se marca una serie', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-19',
+        athleteId: 'ath-series',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-bench-series',
+            name: 'Press de Banca',
+            muscleGroup: 'Pecho',
+            sets: 3,
+            reps: 8,
+            percentage: 80,
+            weightKg: 80,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['pecho'],
+            secondaryMuscles: [],
+            isAdapted: false,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Press de Banca')).toBeTruthy();
+      });
+
+      // Inicialmente 0 series completadas en la barra de rutina
+      expect(screen.getByLabelText('0 series completadas')).toBeTruthy();
+
+      // Marcar Serie 1
+      const serie1Btn = screen.getByRole('button', {
+        name: /Serie 1 de Press de Banca: pendiente/i,
+      });
+      fireEvent.click(serie1Btn);
+
+      // La barra se actualiza inmediatamente a 1
+      expect(screen.getByLabelText('1 series completadas')).toBeTruthy();
+
+      // Marcar Serie 2
+      const serie2Btn = screen.getByRole('button', {
+        name: /Serie 2 de Press de Banca: pendiente/i,
+      });
+      fireEvent.click(serie2Btn);
+
+      // La barra se actualiza inmediatamente a 2
+      expect(screen.getByLabelText('2 series completadas')).toBeTruthy();
+    });
+  });
 });

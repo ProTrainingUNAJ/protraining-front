@@ -225,6 +225,20 @@ describe('FinishRoutineModal (KAN-623)', () => {
       expect(screen.getByText('360')).toBeTruthy();
       expect(screen.getByText('60:00')).toBeTruthy();
       expect(screen.getByText('RPE 6')).toBeTruthy();
+      expect(screen.getByLabelText(/Silueta de músculos trabajados en la sesión/i)).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: /Compartir en historias de Instagram/i }),
+      ).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: /Compartir en historias de Facebook/i }),
+      ).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: /Compartir en estados de WhatsApp/i }),
+      ).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: /Compartir imagen en formato PNG a cualquier app/i }),
+      ).toBeTruthy();
+      expect(screen.getByRole('button', { name: /Volver a Mi Rutina/i })).toBeTruthy();
     });
 
     expect(onFinishSuccess).toHaveBeenCalled();
