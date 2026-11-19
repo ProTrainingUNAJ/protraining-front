@@ -548,190 +548,176 @@ export const RoutinePage: React.FC = () => {
         {/* ── Contenido Principal de la Rutina ── */}
         {!isLoading && routine && (
           <>
-            {/* 1. Tarjeta Resumen de la Sesión */}
-            <div
-              className="card"
-              style={{
-                margin: 0,
-                padding: '1.25rem 1.4rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem',
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      marginBottom: '0.25rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {routine.startTime ? (
-                      <span className="badge badge-info" style={{ gap: '0.35rem' }}>
-                        <Clock size={13} aria-hidden="true" />
-                        <span>
-                          {!selectedDate || selectedDate === todayInArgentina()
-                            ? `Hoy · ${routine.startTime.slice(0, 5)}`
-                            : `${formatSpanishDate(routine.date)} · ${routine.startTime.slice(0, 5)}`}
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="badge badge-info" style={{ gap: '0.35rem' }}>
-                        <Calendar size={13} />
-                        <span style={{ textTransform: 'capitalize' }}>
-                          {formatSpanishDate(routine.date)}
-                        </span>
-                      </span>
-                    )}
-
-                    {routine.routineAdapted && !routine.adjustedByCoach && (
-                      <span className="badge badge-warning" style={{ gap: '0.35rem' }}>
-                        <Sparkles size={13} />
-                        <span>
-                          {hasPersonalizedVariant
-                            ? 'Rutina con variante personalizada'
-                            : 'Rutina adaptada por check-in'}
-                        </span>
-                      </span>
-                    )}
-
-                    {routine.adjustedByCoach && (
-                      <span
-                        className="badge"
-                        style={{
-                          gap: '0.35rem',
-                          background: 'var(--traffic-yellow-bg)',
-                          color: 'var(--traffic-yellow-text)',
-                          border: '1px solid var(--traffic-yellow-border)',
-                          fontWeight: 700,
-                        }}
-                      >
-                        <ShieldAlert size={13} />
-                        <span>Ajuste aplicado por tu PF</span>
-                      </span>
-                    )}
-                  </div>
-
-                  <h2
-                    style={{
-                      fontSize: '1.35rem',
-                      fontWeight: 900,
-                      margin: '0.2rem 0 0.2rem',
-                      color: 'var(--text-main)',
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    Sesión del Día
-                  </h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
-                    {exercises.length > 0
-                      ? `${exercises.length} ejercicios prescritos (${sessionStats.totalSets} series totales)`
-                      : 'Día de descanso o sin sesión activa'}
-                  </p>
-                </div>
-
-                {/* Acciones de la tarjeta: Cronómetro y Siluetas anatómicas (Imagen 1) */}
-                {exercises.length > 0 && (
-                  <div className="routine-hero-action-group">
-                    <div className="routine-hero-timer-container">
-                      <button
-                        type="button"
-                        className={`routine-hero-play-btn ${routineTimer.isRunning ? 'running' : ''}`}
-                        onClick={routineTimer.toggle}
-                        title={
-                          routineTimer.isRunning
-                            ? 'Pausar cronómetro'
-                            : 'Iniciar cronómetro de entrenamiento'
-                        }
-                        aria-label={
-                          routineTimer.isRunning
-                            ? 'Pausar cronómetro'
-                            : 'Iniciar cronómetro de entrenamiento'
-                        }
-                      >
-                        {routineTimer.isRunning ? (
-                          <Pause size={24} />
-                        ) : (
-                          <Play size={24} style={{ marginLeft: '3px' }} />
-                        )}
-                      </button>
-                      <div className="routine-hero-timer-info">
-                        <span className="routine-hero-timer-clock">
-                          {routineTimer.formattedTime}
-                        </span>
-                        <span className="routine-hero-timer-status">
-                          {routineTimer.isRunning ? 'En curso' : 'Pausado'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Series completadas acumuladas en la sesión (se van sumando al marcar series) */}
+            {/* Contenedor Flotante/Sticky en Móvil: Sesión del Día + Progreso de Series */}
+            <div className="routine-hero-sticky-container">
+              {/* 1. Tarjeta Resumen de la Sesión */}
+              <div className="card routine-session-hero-card">
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div>
                     <div
-                      className="routine-hero-series-stat"
-                      title={`${sessionStats.completedCount} de ${sessionStats.totalSets} series completadas`}
-                      aria-label={`${sessionStats.completedCount} series completadas`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem',
+                        flexWrap: 'wrap',
+                      }}
                     >
-                      <span className="routine-hero-series-count">
-                        {sessionStats.completedCount}
-                      </span>
-                      <span className="routine-hero-series-label">Series</span>
+                      {routine.startTime ? (
+                        <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                          <Clock size={13} aria-hidden="true" />
+                          <span>
+                            {!selectedDate || selectedDate === todayInArgentina()
+                              ? `Hoy · ${routine.startTime.slice(0, 5)}`
+                              : `${formatSpanishDate(routine.date)} · ${routine.startTime.slice(0, 5)}`}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                          <Calendar size={13} />
+                          <span style={{ textTransform: 'capitalize' }}>
+                            {formatSpanishDate(routine.date)}
+                          </span>
+                        </span>
+                      )}
+
+                      {routine.routineAdapted && !routine.adjustedByCoach && (
+                        <span className="badge badge-warning" style={{ gap: '0.35rem' }}>
+                          <Sparkles size={13} />
+                          <span>
+                            {hasPersonalizedVariant
+                              ? 'Rutina con variante personalizada'
+                              : 'Rutina adaptada por check-in'}
+                          </span>
+                        </span>
+                      )}
+
+                      {routine.adjustedByCoach && (
+                        <span
+                          className="badge"
+                          style={{
+                            gap: '0.35rem',
+                            background: 'var(--traffic-yellow-bg)',
+                            color: 'var(--traffic-yellow-text)',
+                            border: '1px solid var(--traffic-yellow-border)',
+                            fontWeight: 700,
+                          }}
+                        >
+                          <ShieldAlert size={13} />
+                          <span>Ajuste aplicado por tu PF</span>
+                        </span>
+                      )}
                     </div>
 
-                    <RoutineSessionMuscleMap exercises={exercises} />
+                    <h2 className="routine-hero-title">Sesión del Día</h2>
+                    <p className="routine-hero-subtitle">
+                      {exercises.length > 0
+                        ? `${exercises.length} ejercicios prescritos (${sessionStats.totalSets} series totales)`
+                        : 'Día de descanso o sin sesión activa'}
+                    </p>
                   </div>
-                )}
+
+                  {/* Acciones de la tarjeta: Cronómetro y Siluetas anatómicas (Imagen 1) */}
+                  {exercises.length > 0 && (
+                    <div className="routine-hero-action-group">
+                      <div className="routine-hero-timer-container">
+                        <button
+                          type="button"
+                          className={`routine-hero-play-btn ${routineTimer.isRunning ? 'running' : ''}`}
+                          onClick={routineTimer.toggle}
+                          title={
+                            routineTimer.isRunning
+                              ? 'Pausar cronómetro'
+                              : 'Iniciar cronómetro de entrenamiento'
+                          }
+                          aria-label={
+                            routineTimer.isRunning
+                              ? 'Pausar cronómetro'
+                              : 'Iniciar cronómetro de entrenamiento'
+                          }
+                        >
+                          {routineTimer.isRunning ? (
+                            <Pause size={24} />
+                          ) : (
+                            <Play size={24} style={{ marginLeft: '3px' }} />
+                          )}
+                        </button>
+                        <div className="routine-hero-timer-info">
+                          <span className="routine-hero-timer-clock">
+                            {routineTimer.formattedTime}
+                          </span>
+                          <span className="routine-hero-timer-status">
+                            {routineTimer.isRunning ? 'En curso' : 'Pausado'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Series completadas acumuladas en la sesión (se van sumando al marcar series) */}
+                      <div
+                        className="routine-hero-series-stat"
+                        title={`${sessionStats.completedCount} de ${sessionStats.totalSets} series completadas`}
+                        aria-label={`${sessionStats.completedCount} series completadas`}
+                      >
+                        <span className="routine-hero-series-count">
+                          {sessionStats.completedCount}
+                        </span>
+                        <span className="routine-hero-series-label">Series</span>
+                      </div>
+
+                      <RoutineSessionMuscleMap exercises={exercises} />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* 2. Barra Ergonómica de Progreso de la Sesión */}
-            {exercises.length > 0 && (
-              <div className="routine-session-progress">
-                <div className="routine-progress-header">
-                  <span className="routine-progress-title">
-                    <Activity size={17} style={{ color: 'var(--secondary)' }} />
-                    <span>Progreso de Series de Hoy</span>
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 800,
-                      color: sessionStats.isAllCompleted ? 'var(--stat-green)' : 'var(--text-main)',
-                    }}
-                  >
-                    {sessionStats.completedCount} de {sessionStats.totalSets} completadas (
-                    {sessionStats.percent}%)
-                  </span>
-                </div>
-
-                <div className="routine-progress-track">
-                  <div
-                    className="routine-progress-bar-fill"
-                    style={{ width: `${sessionStats.percent}%` }}
-                  />
-                </div>
-
-                {sessionStats.isAllCompleted && (
-                  <div className="routine-progress-celebration">
-                    <Trophy size={20} style={{ color: 'var(--stat-green)', flexShrink: 0 }} />
-                    <span>
-                      ¡Excelente trabajo! Completaste todas las series planificadas para hoy.
+              {/* 2. Barra Ergonómica de Progreso de la Sesión */}
+              {exercises.length > 0 && (
+                <div className="routine-session-progress">
+                  <div className="routine-progress-header">
+                    <span className="routine-progress-title">
+                      <Activity size={17} style={{ color: 'var(--secondary)' }} />
+                      <span>Progreso de Series de Hoy</span>
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 800,
+                        color: sessionStats.isAllCompleted
+                          ? 'var(--stat-green)'
+                          : 'var(--text-main)',
+                      }}
+                    >
+                      {sessionStats.completedCount} de {sessionStats.totalSets} completadas (
+                      {sessionStats.percent}%)
                     </span>
                   </div>
-                )}
-              </div>
-            )}
+
+                  <div className="routine-progress-track">
+                    <div
+                      className="routine-progress-bar-fill"
+                      style={{ width: `${sessionStats.percent}%` }}
+                    />
+                  </div>
+
+                  {sessionStats.isAllCompleted && (
+                    <div className="routine-progress-celebration">
+                      <Trophy size={20} style={{ color: 'var(--stat-green)', flexShrink: 0 }} />
+                      <span>
+                        ¡Excelente trabajo! Completaste todas las series planificadas para hoy.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* 3. Cartel de Rutina Ajustada por el PF (#157 · KAN-452) */}
             {routine.adjustedByCoach && (
