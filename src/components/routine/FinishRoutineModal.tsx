@@ -207,7 +207,12 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
     setIsSharing(true);
     setShareToast(null);
     try {
-      const file = await generateRoutineShareImage(highlight.muscleColors);
+      const file = await generateRoutineShareImage({
+        muscleColors: highlight.muscleColors,
+        totalLoad: savedResponse?.totalLoad ?? calculatedUa,
+        durationFormatted: formatMmSs(totalSeconds),
+        rpe,
+      });
       let res = { success: true, message: '' };
       if (platform === 'instagram') {
         res = await shareToInstagram(file);
