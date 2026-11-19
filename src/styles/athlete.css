@@ -1964,49 +1964,42 @@
   box-shadow: 0 0 0 4px var(--primary-subtle);
 }
 
-.routine-hero-timer-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.routine-hero-timer-clock {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 1.1rem;
-  font-weight: 900;
-  color: var(--text-main);
-  letter-spacing: 0.04em;
-}
-
-.routine-hero-timer-status {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
+.routine-hero-timer-info,
 .routine-hero-series-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  padding: 0 0.5rem;
+  text-align: center;
+  min-width: 52px;
+  gap: 0.15rem;
+  padding: 0;
+  margin: 0;
 }
 
+.routine-hero-timer-clock,
 .routine-hero-series-count {
-  font-size: 1.35rem;
+  font-family: inherit;
+  font-size: 1.25rem;
   font-weight: 900;
   color: var(--text-main);
-  line-height: 1;
+  line-height: 1.15;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  padding: 0;
 }
 
+.routine-hero-timer-status,
 .routine-hero-series-label {
+  font-family: inherit;
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
+  line-height: 1.15;
   text-transform: capitalize;
-  margin-top: 0.15rem;
+  margin: 0;
+  padding: 0;
 }
 
 .routine-hero-muscle-minimap {
