@@ -69,6 +69,10 @@ export type Athlete = {
     fullName: string;
     email: string;
     phone: string;
+    /**
+     * Username de Telegram del atleta (sin @, entre 5 y 32 caracteres).
+     */
+    telegramUsername?: string | null;
     isMinor: boolean;
     emergencyContact?: string | null;
     active: boolean;
@@ -88,6 +92,10 @@ export type CreateAthleteRequest = {
     lastName: string;
     email: string;
     phone: string;
+    /**
+     * Username de Telegram del atleta (sin @, entre 5 y 32 caracteres).
+     */
+    telegramUsername?: string | null;
     isMinor: boolean;
     guardianName?: string | null;
     guardianEmail?: string | null;
@@ -100,6 +108,10 @@ export type CreateAthleteRequest = {
 export type UpdateAthleteRequest = {
     phone?: string;
     emergencyContact?: string;
+    /**
+     * Username de Telegram del atleta (opcional, enviar cadena vacía para limpiar).
+     */
+    telegramUsername?: string | null;
 };
 
 /**
@@ -162,6 +174,10 @@ export type Organization = {
     id: string;
     name: string;
     description?: string | null;
+    categoriesCount?: number;
+    athletesCount?: number;
+    hasPhoto?: boolean;
+    photoUpdatedAt?: string | null;
 };
 
 export type CreateOrganizationRequest = {
@@ -1253,11 +1269,11 @@ export type UploadOrganizationPhotoResponse = UploadOrganizationPhotoResponses[k
 export type ListCategoriesData = {
     body?: never;
     path?: never;
-    query: {
+    query?: {
         /**
-         * Identificador de la organización para filtrar.
+         * Identificador opcional de la organización para filtrar. Si no se especifica, lista todas las categorías del preparador físico.
          */
-        organizationId: string;
+        organizationId?: string;
     };
     url: '/api/v1/categories';
 };

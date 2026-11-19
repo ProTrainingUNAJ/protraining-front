@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyAlertAdjustmentData, ApplyAlertAdjustmentErrors, ApplyAlertAdjustmentResponses, ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
+import type { ApplyAlertAdjustmentData, ApplyAlertAdjustmentErrors, ApplyAlertAdjustmentResponses, ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, ApproveRecommendationData, ApproveRecommendationErrors, ApproveRecommendationResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, DiscardRecommendationData, DiscardRecommendationErrors, DiscardRecommendationResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GenerateAthleteRecommendationsData, GenerateAthleteRecommendationsErrors, GenerateAthleteRecommendationsResponses, GenerateCategoryRecommendationsData, GenerateCategoryRecommendationsErrors, GenerateCategoryRecommendationsResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, GetRecommendationByIdData, GetRecommendationByIdErrors, GetRecommendationByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListMyRecommendationsData, ListMyRecommendationsErrors, ListMyRecommendationsResponses, ListRecommendationsData, ListRecommendationsErrors, ListRecommendationsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses, UpdateRecommendationData, UpdateRecommendationErrors, UpdateRecommendationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -298,6 +298,124 @@ export const approveHabitsRecommendation = <ThrowOnError extends boolean = false
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/habits-recommendations/{recommendationId}/approve',
+    ...options
+});
+
+/**
+ * Ejecutar el motor de recomendaciones para un atleta
+ *
+ * Recopila los tests físicos del atleta, los promedios de su categoría y sus tendencias semanales, calcula brechas y motivos por reglas determinísticas, redacta la recomendación con IA sin datos personales y la persiste en estado Pending para revisión del preparador físico (#196 · KAN-491).
+ *
+ */
+export const generateAthleteRecommendations = <ThrowOnError extends boolean = false>(options: Options<GenerateAthleteRecommendationsData, ThrowOnError>): RequestResult<GenerateAthleteRecommendationsResponses, GenerateAthleteRecommendationsErrors, ThrowOnError> => (options.client ?? client).post<GenerateAthleteRecommendationsResponses, GenerateAthleteRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/recommendations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Ejecutar el motor de recomendaciones para una categoría
+ *
+ * Evalúa a todos los atletas activos de la categoría frente al promedio grupal y sus tendencias semanales, redactando y guardando recomendaciones pendientes de aprobación del PF (#196 · KAN-491).
+ *
+ */
+export const generateCategoryRecommendations = <ThrowOnError extends boolean = false>(options: Options<GenerateCategoryRecommendationsData, ThrowOnError>): RequestResult<GenerateCategoryRecommendationsResponses, GenerateCategoryRecommendationsErrors, ThrowOnError> => (options.client ?? client).post<GenerateCategoryRecommendationsResponses, GenerateCategoryRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/recommendations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Listar recomendaciones del preparador físico
+ *
+ * Devuelve las recomendaciones del PF actual filtradas opcionalmente por atleta, categoría o estado (#196 · KAN-491).
+ */
+export const listRecommendations = <ThrowOnError extends boolean = false>(options?: Options<ListRecommendationsData, ThrowOnError>): RequestResult<ListRecommendationsResponses, ListRecommendationsErrors, ThrowOnError> => (options?.client ?? client).get<ListRecommendationsResponses, ListRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations',
+    ...options
+});
+
+/**
+ * Obtener detalle de una recomendación
+ *
+ * Devuelve el detalle de una recomendación del PF actual por su identificador (#196 · KAN-491).
+ */
+export const getRecommendationById = <ThrowOnError extends boolean = false>(options: Options<GetRecommendationByIdData, ThrowOnError>): RequestResult<GetRecommendationByIdResponses, GetRecommendationByIdErrors, ThrowOnError> => (options.client ?? client).get<GetRecommendationByIdResponses, GetRecommendationByIdErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}',
+    ...options
+});
+
+/**
+ * Editar título y texto de una recomendación pendiente
+ *
+ * Permite al preparador físico editar el título y el texto de una recomendación mientras se encuentre en estado Pending (#197 · KAN-492). El motivo objetivo (reason) permanece inmutable.
+ *
+ */
+export const updateRecommendation = <ThrowOnError extends boolean = false>(options: Options<UpdateRecommendationData, ThrowOnError>): RequestResult<UpdateRecommendationResponses, UpdateRecommendationErrors, ThrowOnError> => (options.client ?? client).put<UpdateRecommendationResponses, UpdateRecommendationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Aprobar una recomendación pendiente y enviarla al atleta
+ *
+ * Aprueba una recomendación en estado Pending (opcionalmente aplicando cambios de título o texto en el mismo paso) para que quede visible en la app del atleta (#197 · KAN-492).
+ *
+ */
+export const approveRecommendation = <ThrowOnError extends boolean = false>(options: Options<ApproveRecommendationData, ThrowOnError>): RequestResult<ApproveRecommendationResponses, ApproveRecommendationErrors, ThrowOnError> => (options.client ?? client).post<ApproveRecommendationResponses, ApproveRecommendationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Descartar una recomendación pendiente
+ *
+ * Marca una recomendación en estado Pending como Discarded para archivarla sin mostrarla nunca al atleta (#197 · KAN-492).
+ *
+ */
+export const discardRecommendation = <ThrowOnError extends boolean = false>(options: Options<DiscardRecommendationData, ThrowOnError>): RequestResult<DiscardRecommendationResponses, DiscardRecommendationErrors, ThrowOnError> => (options.client ?? client).post<DiscardRecommendationResponses, DiscardRecommendationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}/discard',
+    ...options
+});
+
+/**
+ * Listar recomendaciones aprobadas del atleta autenticado
+ *
+ * Devuelve únicamente las recomendaciones aprobadas por el preparador físico para el atleta autenticado (#197 · KAN-492). Resuelve la identidad del atleta desde Estructura GET /api/v1/me.
+ *
+ */
+export const listMyRecommendations = <ThrowOnError extends boolean = false>(options?: Options<ListMyRecommendationsData, ThrowOnError>): RequestResult<ListMyRecommendationsResponses, ListMyRecommendationsErrors, ThrowOnError> => (options?.client ?? client).get<ListMyRecommendationsResponses, ListMyRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/me/recommendations',
     ...options
 });
 

@@ -58,6 +58,10 @@ export type User = {
      */
     phoneNumber?: string | null;
     /**
+     * Username de Telegram normalizado (sin @).
+     */
+    telegramUsername?: string | null;
+    /**
      * Indica si el usuario debe cambiar obligatoriamente su contraseña antes de acceder a la aplicación.
      */
     mustChangePassword?: boolean;
@@ -139,7 +143,11 @@ export type PfContact = {
     /**
      * Número de WhatsApp del preparador físico (solo dígitos, con código de país).
      */
-    phoneNumber: string;
+    phoneNumber?: string | null;
+    /**
+     * Username de Telegram del preparador físico (sin @, entre 5 y 32 caracteres).
+     */
+    telegramUsername?: string | null;
 };
 
 export type ForgotPasswordRequest = {
@@ -217,6 +225,7 @@ export type ResendConfirmationResponse = {
 export type UpdateProfileRequest = {
     fullName: string;
     phone?: string | null;
+    telegramUsername?: string | null;
 };
 
 export type ProfileResponse = {
@@ -224,6 +233,7 @@ export type ProfileResponse = {
     email: string;
     fullName: string;
     phoneNumber?: string | null;
+    telegramUsername?: string | null;
 };
 
 export type DeactivateAccountRequest = {

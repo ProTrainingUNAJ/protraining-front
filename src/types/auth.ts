@@ -17,6 +17,7 @@ export interface UserDto {
   role: string;
   pfId: string | null;
   phoneNumber?: string | null;
+  telegramUsername?: string | null;
   mustChangePassword?: boolean;
 }
 

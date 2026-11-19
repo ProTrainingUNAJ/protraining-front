@@ -160,7 +160,7 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
     // 3. Simular Guardado: transformar a toSaveRequest (contrato de entrenamiento)
     const saveRequest = toSaveRequest(planDraft);
 
-    // 4. Simular respuesta del Backend (TrainingPlanDetail) y reapertura del plan
+    // 4. Simular respuesta del Backend de KAN-585 (TrainingPlanDetail con blocks) y reapertura del plan
     const catalogMap: Record<string, string> = {
       'ex-squat': 'Sentadilla Trasera',
       'ex-bench': 'Press de Banca',
@@ -184,6 +184,24 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
           dayOfWeek: s.dayOfWeek,
           order: s.order,
           coachNotes: s.coachNotes,
+          blocks: (s.blocks ?? []).map((b, bIdx) => ({
+            id: b.id || `b-${wIdx + 1}-${sIdx + 1}-${bIdx + 1}`,
+            title: b.title,
+            order: b.order,
+            exercises: (b.exercises ?? []).map((ex, exIdx) => ({
+              id: ex.id || `ex-${wIdx + 1}-${sIdx + 1}-${bIdx + 1}-${exIdx + 1}`,
+              exerciseId: ex.exerciseId,
+              exerciseName: catalogMap[ex.exerciseId] || ex.exerciseId,
+              order: ex.order,
+              sets: ex.sets,
+              reps: String(ex.reps),
+              targetPercentage: ex.targetPercentage,
+              intensityType: ex.intensityType,
+              targetRpe: ex.targetRpe,
+              targetRir: ex.targetRir,
+              notes: ex.notes,
+            })),
+          })),
           exercises: (s.exercises ?? []).map((ex, exIdx) => ({
             id: `ex-${wIdx + 1}-${sIdx + 1}-${exIdx + 1}`,
             trainingSessionId: `sess-${wIdx + 1}-${sIdx + 1}`,
@@ -191,8 +209,12 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
             exerciseName: catalogMap[ex.exerciseId] || ex.exerciseId,
             order: ex.order,
             sets: ex.sets,
-            reps: ex.reps,
+            reps: String(ex.reps),
             targetPercentage: ex.targetPercentage,
+            intensityType: ex.intensityType,
+            targetRpe: ex.targetRpe,
+            targetRir: ex.targetRir,
+            notes: ex.notes,
           })),
         })),
       })),
@@ -410,5 +432,72 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
       'Accesorios',
     ]);
     expect(defaultBlocks.every((b) => b.exercises.length === 0)).toBe(true);
+  });
+
+  it('toSaveRequest serializa blocks nativos con TrainingBlockRequest segun KAN-585', () => {
+    const block1: DayBlock = {
+      key: 'b1',
+      title: 'Fuerza A',
+      order: 1,
+      exercises: [
+        {
+          key: 'ex1',
+          exerciseId: 'ex-squat',
+          exerciseName: 'Sentadilla Trasera',
+          order: 1,
+          intensityType: 'RPE',
+          weeklyProgression: {
+            1: {
+              weekNumber: 1,
+              sets: 4,
+              reps: 6,
+              repsRange: '6-8',
+              targetPercentage: 80,
+              intensityType: 'RPE',
+              targetRpe: 8.5,
+              targetRir: null,
+              notes: 'Pausa abajo',
+            },
+          },
+        },
+      ],
+    };
+
+    const day: DayPlan = {
+      dayOfWeek: 1,
+      blocks: [block1],
+    };
+
+    const baseDraft: PlanDraft = {
+      id: 'plan-blocks-test',
+      name: 'Plan Bloques',
+      objective: 'Fuerza',
+      weeks: [{ key: 'w1', id: null, weekNumber: 1, nextSessionOrder: 1, sessions: [] }],
+    };
+
+    const draft = daysToPlanDraft([day], baseDraft);
+    const saveRequest = toSaveRequest(draft);
+
+    expect(saveRequest.weeks).toHaveLength(1);
+    const weekReq = saveRequest.weeks![0];
+    expect(weekReq.sessions).toHaveLength(1);
+
+    const sessionReq = weekReq.sessions![0];
+    expect(sessionReq.blocks).toBeDefined();
+    expect(sessionReq.blocks).toHaveLength(1);
+
+    const blockReq = sessionReq.blocks![0];
+    expect(blockReq.title).toBe('Fuerza A');
+    expect(blockReq.order).toBe(1);
+    expect(blockReq.exercises).toHaveLength(1);
+
+    const exReq = blockReq.exercises![0];
+    expect(exReq.exerciseId).toBe('ex-squat');
+    expect(exReq.sets).toBe(4);
+    expect(exReq.reps).toBe('6-8');
+    expect(exReq.targetPercentage).toBe(80);
+    expect(exReq.intensityType).toBe('RPE');
+    expect(exReq.targetRpe).toBe(8.5);
+    expect(exReq.notes).toBe('Pausa abajo');
   });
 });

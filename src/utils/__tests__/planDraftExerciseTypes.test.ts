@@ -125,7 +125,7 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
     const ex = session?.exercises?.[0];
     expect(ex).toBeDefined();
     expect(ex?.sets).toBe(6);
-    expect(ex?.reps).toBe(100);
+    expect(ex?.reps).toBe('100');
     expect(ex?.targetPercentage).toBe(90);
   });
 
@@ -145,6 +145,7 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
               order: 1,
               dayOfWeek: 1,
               coachNotes: null,
+              blocks: [],
               exercises: [
                 {
                   id: 'pe-1',
@@ -152,7 +153,7 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
                   exerciseName: 'Pasadas',
                   order: 1,
                   sets: 6,
-                  reps: 100,
+                  reps: '100',
                   targetPercentage: 90,
                   // @ts-expect-error DTO includes exerciseType
                   exerciseType: 'Distance',
@@ -163,7 +164,7 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
                   exerciseName: 'Plancha',
                   order: 2,
                   sets: 3,
-                  reps: 45,
+                  reps: '45',
                   targetPercentage: null,
                   // @ts-expect-error DTO includes exerciseType
                   exerciseType: 'Time',

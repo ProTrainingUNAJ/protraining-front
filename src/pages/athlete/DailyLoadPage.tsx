@@ -30,6 +30,7 @@ import {
 import type { AthleteWeek } from '../../types/seguimiento';
 import { WeekCompletionStrip } from '../../components/athlete/WeekCompletionStrip';
 import { ConfettiCelebration } from '../../components/athlete/checkin/ConfettiCelebration';
+import { RpeSliderBar } from '../../components/common/RpeSliderBar';
 import { structureService } from '../../api/structureService';
 import { isDailyLoadWidgetPinned, pinDailyLoadWidget } from '../../utils/athleteDashboardLayout';
 import './DailyLoadPage.css';
@@ -837,42 +838,16 @@ export const DailyLoadPage: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Input sincronizado para accesibilidad */}
-                  <input
-                    id="dl-input-rpe"
-                    type="number"
-                    min={0}
-                    max={10}
-                    value={regRpe ?? ''}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setRegRpe(v === '' ? null : Number(v));
-                      setErrorMessage(null);
-                    }}
-                    className="dl-rpe-input-hidden"
-                  />
-
-                  {/* Barra interactiva de 10 botones táctiles */}
+                  {/* Barra continua y deslizable de RPE (conservando la gama de colores oficial) */}
                   <div className="dl-rpe-bar-wrap">
-                    <div className="dl-rpe-bar" role="group" aria-label="Escala de esfuerzo">
-                      {RPE_LEVELS.map(({ val, tier }) => {
-                        const isSelected = regRpe === val;
-                        return (
-                          <button
-                            key={val}
-                            type="button"
-                            className={`dl-rpe-btn dl-rpe-btn--${tier} ${isSelected ? 'dl-rpe-btn--selected' : ''}`}
-                            onClick={() => {
-                              setRegRpe(val);
-                              setErrorMessage(null);
-                            }}
-                            aria-label={`Nivel ${val}`}
-                          >
-                            {val}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <RpeSliderBar
+                      id="dl-input-rpe"
+                      value={regRpe}
+                      onChange={(val) => {
+                        setRegRpe(val);
+                        setErrorMessage(null);
+                      }}
+                    />
                   </div>
 
                   {/* Tarjeta de feedback explicativa según el RPE (altura y estructura idéntica con o sin selección) */}

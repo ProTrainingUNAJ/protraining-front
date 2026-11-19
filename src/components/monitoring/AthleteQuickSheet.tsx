@@ -20,6 +20,7 @@ import {
 import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
 import { AthleteAvatar } from './AthleteAvatar';
+import { AthleteContactActions } from './AthleteContactActions';
 
 export interface QuickSheetActivityDetail {
   type: string;
@@ -924,45 +925,69 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
         <div
           style={{
             display: 'flex',
-            gap: '0.65rem',
+            flexDirection: 'column',
+            gap: '0.75rem',
             paddingTop: '0.85rem',
             borderTop: '1px solid var(--border)',
-            flexWrap: 'wrap',
           }}
         >
-          {mode === 'semaforo' && athlete.hasDayConflict && (
-            <button
-              type="button"
-              className="btn btn-warning"
-              data-testid="quick-sheet-btn-day-adjustment"
-              onClick={() => {
-                onOpenAdjustment?.(athlete);
-                onClose();
-              }}
-              style={{
-                flex: 1,
-                padding: '0.6rem 1rem',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-              }}
-            >
-              <Sparkles size={15} />
-              <span>Ver ajuste sugerido</span>
-            </button>
-          )}
+          <AthleteContactActions athlete={athlete} />
 
-          {mode === 'semaforo' && (isRed || isYellow) ? (
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.65rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            {mode === 'semaforo' && athlete.hasDayConflict && (
+              <button
+                type="button"
+                className="btn btn-warning"
+                data-testid="quick-sheet-btn-day-adjustment"
+                onClick={() => {
+                  onOpenAdjustment?.(athlete);
+                  onClose();
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.6rem 1rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <Sparkles size={15} />
+                <span>Ver ajuste sugerido</span>
+              </button>
+            )}
+
+            {mode === 'semaforo' && (isRed || isYellow) ? (
+              <button
+                type="button"
+                className="btn btn-warning"
+                onClick={() => {
+                  onAssignDifferentiated?.(athlete.id);
+                  onClose();
+                }}
+                style={{
+                  flex: 1,
+                  padding: '0.6rem 1rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                }}
+              >
+                Asignar Plan Diferenciado
+              </button>
+            ) : null}
+
             <button
               type="button"
-              className="btn btn-warning"
-              onClick={() => {
-                onAssignDifferentiated?.(athlete.id);
-                onClose();
-              }}
+              className="btn btn-secondary"
+              onClick={onClose}
               style={{
                 flex: 1,
                 padding: '0.6rem 1rem',
@@ -970,23 +995,9 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
                 fontWeight: 700,
               }}
             >
-              Asignar Plan Diferenciado
+              Cerrar Ficha
             </button>
-          ) : null}
-
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onClose}
-            style={{
-              flex: 1,
-              padding: '0.6rem 1rem',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-            }}
-          >
-            Cerrar Ficha
-          </button>
+          </div>
         </div>
       </div>
     </div>
