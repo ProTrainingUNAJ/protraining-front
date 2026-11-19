@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Plus,
   Flame,
+  Sparkles,
 } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.webp';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -28,7 +29,9 @@ import {
   summarizeTrafficLightCounts,
 } from '../../api/seguimientoService';
 import { recordProposalsService } from '../../api/recordProposals';
+import { recommendationsService } from '../../api/recommendations';
 import { structureService } from '../../api/structureService';
+import { AthleteRecommendationsSection } from '../../components/athlete/AthleteRecommendationsSection';
 import { RecordProposalItem } from '../../types/recordProposals';
 import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
 import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
@@ -284,6 +287,7 @@ export const DashboardPage: React.FC = () => {
 
   // Propuestas de récord Epley para el PF (KAN-394 / #099)
   const [pendingProposals, setPendingProposals] = useState<RecordProposalItem[]>([]);
+  const [pendingRecommendationsCount, setPendingRecommendationsCount] = useState(0);
   const [recordsAthlete, setRecordsAthlete] = useState<{ id: string; name: string } | null>(null);
   const [proposalsRefreshKey, setProposalsRefreshKey] = useState(0);
 
@@ -302,6 +306,15 @@ export const DashboardPage: React.FC = () => {
       })
       .catch(() => {
         if (active) setPendingProposals([]);
+      });
+
+    recommendationsService
+      .listRecommendations({ status: 'Pending' })
+      .then((data) => {
+        if (active) setPendingRecommendationsCount(data.length);
+      })
+      .catch(() => {
+        if (active) setPendingRecommendationsCount(0);
       });
 
     return () => {
@@ -758,6 +771,39 @@ export const DashboardPage: React.FC = () => {
             >
               <span>+ Crear Organización</span>
               <ArrowRight size={16} />
+            </button>
+          </section>
+        )}
+
+        {isAthlete && <AthleteRecommendationsSection />}
+
+        {!isAthlete && pendingRecommendationsCount > 0 && (
+          <section
+            className="recommendations-coach-banner"
+            aria-label="Recomendaciones pendientes de revisión"
+          >
+            <div className="recommendations-coach-banner-info">
+              <span className="recommendations-engine-icon" aria-hidden="true">
+                <Sparkles size={18} />
+              </span>
+              <div>
+                <h3>
+                  {pendingRecommendationsCount === 1
+                    ? 'Tenés 1 recomendación pendiente de revisión'
+                    : `Tenés ${pendingRecommendationsCount} recomendaciones pendientes de revisión`}
+                </h3>
+                <p>
+                  Revisalas, editalas si hace falta y aprobalas para que les lleguen a tus atletas.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => navigate('/pf/recommendations')}
+            >
+              <span>Revisar recomendaciones</span>
+              <ArrowRight size={15} aria-hidden="true" />
             </button>
           </section>
         )}

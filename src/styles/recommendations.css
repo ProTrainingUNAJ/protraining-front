@@ -1,0 +1,808 @@
+/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492) */
+
+.recommendations-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.recommendations-engine-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations-engine-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
+.recommendations-engine-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--info-bg);
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+.recommendations-engine-copy h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.recommendations-engine-copy p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.recommendations-engine-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.recommendations-select {
+  min-width: 210px;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.recommendations-select:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+.recommendations-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.recommendations-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.35rem;
+  background: var(--bg-subtle);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.recommendations-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.recommendations-tab:hover:not(.active) {
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.recommendations-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.recommendations-tab.status-pending .recommendations-tab-count {
+  background: var(--warning-bg-strong);
+  color: var(--warning-text);
+}
+
+.recommendations-tab.status-approved .recommendations-tab-count {
+  background: var(--success-bg-strong);
+  color: var(--success-text);
+}
+
+.recommendations-tab.status-discarded .recommendations-tab-count {
+  background: var(--danger-bg-strong);
+  color: var(--danger-text);
+}
+
+.recommendations-tab.status-pending.active {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations-tab.status-pending.active .recommendations-tab-count {
+  background: var(--bg-card);
+  color: var(--warning-text);
+}
+
+.recommendations-tab.status-approved.active {
+  background: var(--success);
+  border-color: var(--success);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations-tab.status-approved.active .recommendations-tab-count {
+  background: var(--bg-card);
+  color: var(--success-text);
+}
+
+.recommendations-tab.status-discarded.active {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations-tab.status-discarded.active .recommendations-tab-count {
+  background: var(--bg-card);
+  color: var(--danger-text);
+}
+
+.recommendations-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.recommendations-search-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.recommendations-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.recommendations-search-input {
+  min-width: 230px;
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 0.88rem;
+}
+
+.recommendations-search-input:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+.recommendations-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.recommendations-feedback.success {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+}
+
+.recommendations-feedback.info {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info-text);
+}
+
+.recommendations-feedback.error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+}
+
+.recommendations-feedback-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.recommendations-feedback-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.recommendations-grouped-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recommendation-athlete-group {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.recommendation-athlete-group-header {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 1rem 1.25rem;
+  border: none;
+  background: var(--bg-card);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.recommendation-athlete-group-header:hover {
+  background: var(--bg-subtle);
+}
+
+.recommendation-athlete-group-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
+.recommendation-athlete-group-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.recommendation-athlete-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--brand-navy);
+  flex-shrink: 0;
+}
+
+.recommendation-athlete-group-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.recommendation-reason-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.recommendation-reason-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.65rem;
+  border-radius: 8px;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.recommendation-athlete-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--brand-blue);
+  white-space: nowrap;
+}
+
+.recommendation-athlete-group-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border);
+}
+
+.recommendations-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.1rem;
+}
+
+.recommendation-card-nested {
+  box-shadow: none;
+}
+
+.recommendation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.2rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendation-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.recommendation-card-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.recommendation-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.recommendation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.recommendation-badge.status-pending {
+  background: var(--warning-bg-strong);
+  color: var(--warning-text);
+}
+
+.recommendation-badge.status-approved {
+  background: var(--success-bg-strong);
+  color: var(--success-text);
+}
+
+.recommendation-badge.status-discarded {
+  background: var(--danger-bg-strong);
+  color: var(--danger-text);
+}
+
+.recommendation-badge.type {
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.recommendation-badge.category {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.recommendation-athlete-name {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.recommendation-date {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.recommendation-reason-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: 10px;
+}
+
+.recommendation-reason-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brand-blue);
+}
+
+.recommendation-reason-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.recommendation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.recommendation-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.recommendation-body {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.recommendation-evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.recommendation-evidence-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--brand-blue);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recommendation-metrics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.recommendation-metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  font-size: 0.82rem;
+}
+
+.recommendation-metric-name {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.recommendation-metric-values {
+  color: var(--text-muted);
+}
+
+.recommendation-trend-pill {
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.recommendation-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recommendation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.recommendation-field label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.recommendation-input,
+.recommendation-textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--input-border);
+  border-radius: 9px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.recommendation-textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.recommendation-input:focus,
+.recommendation-textarea:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+.recommendation-field-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.recommendation-card-error {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.recommendation-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.recommendation-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recommendation-confirm-discard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 9px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.recommendation-btn-discard {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+
+.recommendation-btn-discard:hover:not(:disabled) {
+  background: var(--danger-bg-strong);
+  border-color: var(--status-danger-border);
+}
+
+.recommendation-btn-danger {
+  background: var(--danger);
+  color: var(--on-primary);
+  border: 1px solid var(--danger);
+}
+
+/* Banner compacto en Inicio del PF cuando hay recomendaciones pendientes */
+.recommendations-coach-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--info-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations-coach-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.recommendations-coach-banner-info h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.recommendations-coach-banner-info p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+/* Sección de recomendaciones aprobadas en el Inicio del atleta */
+.athlete-recommendations-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--info-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.athlete-recommendations-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.athlete-recommendations-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.athlete-recommendations-title-wrap h3 {
+  margin: 0 0 0.15rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.athlete-recommendations-title-wrap p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.athlete-recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 0.9rem;
+}
+
+.athlete-recommendation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+.athlete-recommendation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.athlete-recommendation-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.athlete-recommendation-reason {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--brand-blue);
+}
+
+.athlete-recommendation-text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+@media (width <= 640px) {
+  .recommendations-list,
+  .recommendation-athlete-group-body,
+  .athlete-recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendations-select,
+  .recommendations-search-input {
+    width: 100%;
+    min-width: 0;
+  }
+}
