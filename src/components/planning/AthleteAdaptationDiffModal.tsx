@@ -213,7 +213,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
         sets: ex.sets,
-        reps: ex.reps,
+        reps: Number.parseInt(String(ex.reps), 10) || 0,
         suggestedPercentage: ex.targetPercentage ?? 0,
         isReference: false,
       }));
@@ -353,7 +353,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
           exerciseId: ex.exerciseId,
           exerciseName: ex.exerciseName,
           sets: ex.sets,
-          reps: ex.reps,
+          reps: Number.parseInt(String(ex.reps), 10) || 0,
           suggestedPercentage: ex.targetPercentage ?? 0,
           isReference: false,
         }));

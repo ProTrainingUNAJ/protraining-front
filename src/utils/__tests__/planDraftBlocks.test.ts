@@ -184,6 +184,7 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
           dayOfWeek: s.dayOfWeek,
           order: s.order,
           coachNotes: s.coachNotes,
+          blocks: [],
           exercises: (s.exercises ?? []).map((ex, exIdx) => ({
             id: `ex-${wIdx + 1}-${sIdx + 1}-${exIdx + 1}`,
             trainingSessionId: `sess-${wIdx + 1}-${sIdx + 1}`,

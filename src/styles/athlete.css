@@ -466,6 +466,38 @@
   gap: 0.35rem;
 }
 
+/* Badge y desglose de variante personalizada */
+.routine-variant-badge {
+  gap: 0.3rem;
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+  font-weight: 700;
+}
+
+.routine-variant-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.2rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  background: var(--traffic-yellow-bg);
+  border: 1px solid var(--traffic-yellow-border);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.routine-variant-original {
+  font-weight: 700;
+  color: var(--traffic-yellow-text);
+}
+
+.routine-variant-reason {
+  color: var(--text-main);
+}
+
 /* Métricas del ejercicio */
 .routine-exercise-metrics {
   display: flex;
@@ -1738,22 +1770,27 @@
   padding: 1.5rem;
   text-align: center;
 }
+
 .evolution-empty.is-compact {
   min-height: 0;
   padding: 1rem;
 }
+
 .evolution-empty-icon {
   color: var(--text-muted);
   opacity: 0.6;
 }
+
 .evolution-empty-title {
   font-size: 0.95rem;
   color: var(--text-main);
 }
+
 .evolution-empty-desc {
   font-size: 0.82rem;
   color: var(--text-muted);
 }
+
 .evolution-empty .btn {
   margin-top: 0.5rem;
   padding: 0.35rem 0.8rem;
@@ -1766,6 +1803,7 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
+
 .progress-kpi-card {
   display: flex;
   flex-direction: column;
@@ -1773,38 +1811,46 @@
   margin: 0;
   padding: 1.25rem;
 }
+
 .progress-kpi-label {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-muted);
 }
+
 .progress-kpi-value {
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
 }
+
 .progress-kpi-value strong {
   font-size: 1.65rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-main);
 }
+
 .progress-kpi-value span {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-muted);
 }
+
 .progress-kpi-delta {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-muted);
 }
+
 .progress-kpi-delta.is-better {
   color: var(--success-text);
 }
+
 .progress-kpi-delta.is-worse {
   color: var(--danger-text);
 }
+
 .progress-chart-card {
   display: flex;
   flex-direction: column;
@@ -1812,6 +1858,7 @@
   margin: 0;
   padding: 1.5rem;
 }
+
 .progress-chart-header {
   display: flex;
   flex-wrap: wrap;
@@ -1821,21 +1868,25 @@
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border);
 }
+
 .progress-chart-title {
   font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-main);
 }
+
 .progress-chart-desc {
   margin-top: 0.2rem;
   font-size: 0.85rem;
   color: var(--text-muted);
 }
+
 .progress-metric-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
+
 .progress-metric-chip {
   display: inline-flex;
   align-items: center;
@@ -1852,11 +1903,13 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
 .progress-metric-chip.is-selected {
   border-color: var(--primary);
   background: var(--primary);
   color: var(--on-primary);
 }
+
 .progress-metric-chip:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
