@@ -33,6 +33,8 @@ import { RecordProposalItem } from '../../types/recordProposals';
 import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
 import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
 import { useAthleteEvolution } from '../../hooks/useAthleteEvolution';
+import { getStoredSession } from '../../api/axiosClient';
+import { PfWelcomeModal } from '../../components/coach/PfWelcomeModal';
 
 export type DashboardCardType =
   | 'empty'
@@ -108,6 +110,23 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAthlete = location.pathname.startsWith('/athlete');
+  const user = getStoredSession()?.user;
+
+  const [hasNoOrganizations, setHasNoOrganizations] = useState(false);
+  const [dismissedWelcome, setDismissedWelcome] = useState(false);
+
+  const isWelcomeModalOpen =
+    !isAthlete &&
+    Boolean(user?.id) &&
+    !dismissedWelcome &&
+    localStorage.getItem(`protraining_pf_welcomed_${user?.id}`) !== 'true';
+
+  const handleCloseWelcomeModal = () => {
+    if (user?.id) {
+      localStorage.setItem(`protraining_pf_welcomed_${user.id}`, 'true');
+    }
+    setDismissedWelcome(true);
+  };
   // Layout del bento guardado en localStorage. KAN-366 simplificó el dashboard:
   // se retiraron los widgets ficticios de clima (Open-Meteo), reloj y carga
   // semanal de prueba; los layouts guardados con esos tipos degradan al slot
@@ -221,12 +240,12 @@ export const DashboardPage: React.FC = () => {
     if (isAthlete) return;
     let active = true;
 
-    // Si el PF no tiene organizaciones creadas (primer ingreso), llevarlo a crear su primera organización (KAN-602)
+    // Consulta si el PF tiene organizaciones creadas para mostrar banner de bienvenida/onboarding
     structureService
       .getOrganizations()
       .then((orgs) => {
-        if (active && (!orgs || orgs.length === 0)) {
-          navigate('/pf/organizations', { replace: true });
+        if (active) {
+          setHasNoOrganizations(!orgs || orgs.length === 0);
         }
       })
       .catch(() => {
@@ -679,6 +698,70 @@ export const DashboardPage: React.FC = () => {
         className="app-page-body wireframe-dashboard-container"
         style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
       >
+        {!isAthlete && hasNoOrganizations && (
+          <section
+            className="dashboard-welcome-banner"
+            aria-label="Bienvenida a ProTraining"
+            style={{
+              padding: '1.5rem 1.75rem',
+              borderRadius: '16px',
+              backgroundColor: 'var(--bg-surface, #ffffff)',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1.5rem',
+              flexWrap: 'wrap',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
+            }}
+          >
+            <div style={{ maxWidth: '650px' }}>
+              <h3
+                style={{
+                  margin: '0 0 0.35rem 0',
+                  fontSize: '1.15rem',
+                  fontWeight: 800,
+                  color: 'var(--text-main, #0f172a)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}
+              >
+                <span>¡Te damos la bienvenida a ProTraining!</span>
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.92rem',
+                  color: 'var(--text-muted, #64748b)',
+                  lineHeight: 1.5,
+                }}
+              >
+                Muchas gracias por elegirnos para gestionar tus planteles. Para comenzar a
+                planificar entrenamientos, registrar atletas y visualizar métricas de rendimiento,
+                te invitamos a dar de alta tu primera organización deportiva.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/pf/organizations')}
+              className="btn-pill-primary"
+              style={{
+                padding: '0.75rem 1.35rem',
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>+ Crear Organización</span>
+              <ArrowRight size={16} />
+            </button>
+          </section>
+        )}
+
         {!isAthlete && pendingProposals.length > 0 && (
           <section
             className="epley-dashboard-banner"
@@ -781,6 +864,13 @@ export const DashboardPage: React.FC = () => {
           </div>
         ))}
       </div>
+      {!isAthlete && (
+        <PfWelcomeModal
+          isOpen={isWelcomeModalOpen}
+          coachName={user?.fullName}
+          onClose={handleCloseWelcomeModal}
+        />
+      )}
       {recordsAthlete && (
         <AthleteRecordsModal
           athleteId={recordsAthlete.id}
