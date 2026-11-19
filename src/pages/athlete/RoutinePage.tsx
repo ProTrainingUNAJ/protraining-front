@@ -667,16 +667,26 @@ export const RoutinePage: React.FC = () => {
                           <Play size={24} style={{ marginLeft: '3px' }} />
                         )}
                       </button>
-                      {routineTimer.seconds > 0 && (
-                        <div className="routine-hero-timer-info">
-                          <span className="routine-hero-timer-clock">
-                            {routineTimer.formattedTime}
-                          </span>
-                          <span className="routine-hero-timer-status">
-                            {routineTimer.isRunning ? 'En curso' : 'Pausado'}
-                          </span>
-                        </div>
-                      )}
+                      <div className="routine-hero-timer-info">
+                        <span className="routine-hero-timer-clock">
+                          {routineTimer.formattedTime}
+                        </span>
+                        <span className="routine-hero-timer-status">
+                          {routineTimer.isRunning ? 'En curso' : 'Pausado'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Series completadas acumuladas en la sesión (se van sumando al marcar series) */}
+                    <div
+                      className="routine-hero-series-stat"
+                      title={`${sessionStats.completedCount} de ${sessionStats.totalSets} series completadas`}
+                      aria-label={`${sessionStats.completedCount} series completadas`}
+                    >
+                      <span className="routine-hero-series-count">
+                        {sessionStats.completedCount}
+                      </span>
+                      <span className="routine-hero-series-label">Series</span>
                     </div>
 
                     <RoutineSessionMuscleMap exercises={exercises} />

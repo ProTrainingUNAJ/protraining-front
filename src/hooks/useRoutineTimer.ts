@@ -17,7 +17,7 @@ interface StoredTimer {
   lastStartedAt: number | null;
 }
 
-function formatTimerSeconds(totalSeconds: number): string {
+export function formatTimerSeconds(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
@@ -32,100 +32,131 @@ function formatTimerSeconds(totalSeconds: number): string {
   return `${mm}:${ss}`;
 }
 
+const GLOBAL_TIMER_KEY = 'protraining_active_routine_timer';
+
 function getInitialTimerState(storageKey: string | null): {
   seconds: number;
   isRunning: boolean;
+  accumulatedSeconds: number;
   lastStartedAt: number | null;
 } {
-  if (!storageKey) {
-    return { seconds: 0, isRunning: false, lastStartedAt: null };
-  }
+  const keyToUse = storageKey || GLOBAL_TIMER_KEY;
   try {
-    const raw = localStorage.getItem(storageKey);
+    const raw =
+      localStorage.getItem(keyToUse) ||
+      (storageKey ? localStorage.getItem(GLOBAL_TIMER_KEY) : null);
     if (raw) {
       const parsed: StoredTimer = JSON.parse(raw);
-      let currentSeconds = parsed.accumulatedSeconds || 0;
+      const base = parsed.accumulatedSeconds || 0;
       if (parsed.isRunning && parsed.lastStartedAt) {
         const delta = Math.floor((Date.now() - parsed.lastStartedAt) / 1000);
-        if (delta > 0) {
-          currentSeconds += delta;
-        }
         return {
-          seconds: currentSeconds,
+          seconds: base + Math.max(0, delta),
           isRunning: true,
-          lastStartedAt: Date.now(),
+          accumulatedSeconds: base,
+          lastStartedAt: parsed.lastStartedAt,
         };
       }
       return {
-        seconds: currentSeconds,
+        seconds: base,
         isRunning: false,
+        accumulatedSeconds: base,
         lastStartedAt: null,
       };
     }
   } catch {
     // Ignorar error de acceso a storage
   }
-  return { seconds: 0, isRunning: false, lastStartedAt: null };
+  return { seconds: 0, isRunning: false, accumulatedSeconds: 0, lastStartedAt: null };
 }
 
 export function useRoutineTimer(athleteId?: string, date?: string): RoutineTimerState {
   const storageKey = athleteId && date ? `protraining_routine_timer_${date}_${athleteId}` : null;
 
-  const [initial] = useState(() => getInitialTimerState(storageKey));
-  const [seconds, setSeconds] = useState<number>(initial.seconds);
-  const [isRunning, setIsRunning] = useState<boolean>(initial.isRunning);
-  const lastStartedAtRef = useRef<number | null>(initial.lastStartedAt);
+  const [initialState] = useState(() => getInitialTimerState(storageKey));
+  const [seconds, setSeconds] = useState<number>(initialState.seconds);
+  const [isRunning, setIsRunning] = useState<boolean>(initialState.isRunning);
 
-  // Persistir en localStorage
+  const accumulatedRef = useRef<number>(initialState.accumulatedSeconds);
+  const lastStartedAtRef = useRef<number | null>(initialState.lastStartedAt);
+
+  // Sincronizar estado cuando se resuelve storageKey (ej. tras cargar la rutina del atleta)
+  useEffect(() => {
+    if (!storageKey) return;
+    const restored = getInitialTimerState(storageKey);
+    accumulatedRef.current = restored.accumulatedSeconds;
+    lastStartedAtRef.current = restored.lastStartedAt;
+    setIsRunning(restored.isRunning);
+    setSeconds(restored.seconds);
+  }, [storageKey]);
+
+  // Persistir en localStorage tanto en la clave específica como en la clave global
   const saveToStorage = useCallback(
     (accumulated: number, running: boolean, lastStarted: number | null) => {
-      if (!storageKey) return;
       try {
         const state: StoredTimer = {
           accumulatedSeconds: accumulated,
           isRunning: running,
           lastStartedAt: lastStarted,
         };
-        localStorage.setItem(storageKey, JSON.stringify(state));
+        const serialized = JSON.stringify(state);
+        if (storageKey) {
+          localStorage.setItem(storageKey, serialized);
+        }
+        localStorage.setItem(GLOBAL_TIMER_KEY, serialized);
       } catch {
-        // Ignorar
+        // Ignorar excepciones de cuota o modo incógnito
       }
     },
     [storageKey],
   );
 
-  // Intervalo de conteo activo
+  // Intervalo de conteo activo con cálculo de delta temporal exacto (no se pierde al cambiar de pestaña)
   useEffect(() => {
     if (!isRunning) return;
 
-    const interval = setInterval(() => {
-      setSeconds((prev) => {
-        const next = prev + 1;
-        saveToStorage(next, true, Date.now());
-        return next;
-      });
-    }, 1000);
+    const tick = () => {
+      const startedAt = lastStartedAtRef.current;
+      if (startedAt) {
+        const delta = Math.floor((Date.now() - startedAt) / 1000);
+        setSeconds(accumulatedRef.current + Math.max(0, delta));
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [isRunning, saveToStorage]);
+    const interval = setInterval(tick, 1000);
+
+    // Al volver a la pestaña tras navegar o cambiar de foco, sincronizar inmediatamente
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isRunning) {
+        tick();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isRunning]);
 
   const start = useCallback(() => {
     const now = Date.now();
     lastStartedAtRef.current = now;
     setIsRunning(true);
-    setSeconds((prev) => {
-      saveToStorage(prev, true, now);
-      return prev;
-    });
+    saveToStorage(accumulatedRef.current, true, now);
   }, [saveToStorage]);
 
   const pause = useCallback(() => {
+    const now = Date.now();
+    let currentTotal = accumulatedRef.current;
+    if (lastStartedAtRef.current) {
+      currentTotal += Math.floor((now - lastStartedAtRef.current) / 1000);
+    }
+    accumulatedRef.current = currentTotal;
     lastStartedAtRef.current = null;
     setIsRunning(false);
-    setSeconds((prev) => {
-      saveToStorage(prev, false, null);
-      return prev;
-    });
+    setSeconds(currentTotal);
+    saveToStorage(currentTotal, false, null);
   }, [saveToStorage]);
 
   const toggle = useCallback(() => {
@@ -137,6 +168,7 @@ export function useRoutineTimer(athleteId?: string, date?: string): RoutineTimer
   }, [isRunning, pause, start]);
 
   const reset = useCallback(() => {
+    accumulatedRef.current = 0;
     lastStartedAtRef.current = null;
     setIsRunning(false);
     setSeconds(0);
