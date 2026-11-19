@@ -10,11 +10,7 @@ export interface PfWelcomeModalProps {
   onClose: () => void;
 }
 
-export const PfWelcomeModal: React.FC<PfWelcomeModalProps> = ({
-  isOpen,
-  coachName,
-  onClose,
-}) => {
+export const PfWelcomeModal: React.FC<PfWelcomeModalProps> = ({ isOpen, coachName, onClose }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -133,7 +129,8 @@ export const PfWelcomeModal: React.FC<PfWelcomeModalProps> = ({
             maxWidth: '460px',
           }}
         >
-          Estamos felices de acompañarte en la gestión física, planificación de cargas y optimización del rendimiento de tus atletas.
+          Estamos felices de acompañarte en la gestión física, planificación de cargas y
+          optimización del rendimiento de tus atletas.
         </p>
 
         {/* Tarjeta de paso inicial */}
@@ -184,7 +181,8 @@ export const PfWelcomeModal: React.FC<PfWelcomeModalProps> = ({
                 lineHeight: 1.45,
               }}
             >
-              Registrá el club o institución en el que trabajás para luego definir sus planteles, categorías y atletas.
+              Registrá el club o institución en el que trabajás para luego definir sus planteles,
+              categorías y atletas.
             </p>
           </div>
         </div>
@@ -236,4 +234,3 @@ export const PfWelcomeModal: React.FC<PfWelcomeModalProps> = ({
     document.body,
   );
 };
-

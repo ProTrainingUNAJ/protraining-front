@@ -38,9 +38,7 @@ export const LoginForm: React.FC = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const passedEmail =
-    (location.state as { email?: string } | null)?.email ||
-    searchParams.get('email') ||
-    '';
+    (location.state as { email?: string } | null)?.email || searchParams.get('email') || '';
 
   const [email, setEmail] = useState(passedEmail);
   const [password, setPassword] = useState('');

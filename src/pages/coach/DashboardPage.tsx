@@ -737,7 +737,9 @@ export const DashboardPage: React.FC = () => {
                   lineHeight: 1.5,
                 }}
               >
-                Muchas gracias por elegirnos para gestionar tus planteles. Para comenzar a planificar entrenamientos, registrar atletas y visualizar métricas de rendimiento, te invitamos a dar de alta tu primera organización deportiva.
+                Muchas gracias por elegirnos para gestionar tus planteles. Para comenzar a
+                planificar entrenamientos, registrar atletas y visualizar métricas de rendimiento,
+                te invitamos a dar de alta tu primera organización deportiva.
               </p>
             </div>
             <button

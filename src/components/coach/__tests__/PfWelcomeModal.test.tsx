@@ -40,4 +40,3 @@ describe('PfWelcomeModal', () => {
     expect(onCloseSpy).toHaveBeenCalledTimes(1);
   });
 });
-

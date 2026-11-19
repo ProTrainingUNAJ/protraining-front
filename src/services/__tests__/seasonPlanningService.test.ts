@@ -40,4 +40,3 @@ describe('seasonPlanningService', () => {
     expect(sessions[0].planName).toBe('Plan Potencia Real');
   });
 });
-

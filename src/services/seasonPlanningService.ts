@@ -18,6 +18,7 @@ export const seasonPlanningService = {
   async getSessionsForDate(
     isoDate: string,
     selectedCategoryId?: string,
+    _categories?: Array<{ id: string; name: string }>,
   ): Promise<PlannedSessionWithTime[]> {
     let remoteSessions: ScheduledSession[] = [];
     try {
