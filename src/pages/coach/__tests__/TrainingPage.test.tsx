@@ -115,6 +115,60 @@ describe('TrainingPage · Filtro por Músculo Puntual', () => {
     ).toBeTruthy();
   });
 
+  it('al seleccionar Pecho o Core no muestra subchips redundantes ni el contenedor de submúsculos (KAN-633)', async () => {
+    render(
+      <MemoryRouter>
+        <TrainingPage />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pecho' }));
+
+    await waitFor(() => {
+      expect(entrenamientoApi.listExercises).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            muscleGroup: 'Pecho',
+            muscle: undefined,
+          }),
+        }),
+      );
+    });
+
+    expect(screen.queryByLabelText('Filtro por músculo puntual')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Pecho' })).toHaveLength(1);
+
+    // Mismo comportamiento para Core
+    fireEvent.click(screen.getByRole('button', { name: 'Core' }));
+
+    await waitFor(() => {
+      expect(entrenamientoApi.listExercises).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            muscleGroup: 'Core',
+            muscle: undefined,
+          }),
+        }),
+      );
+    });
+
+    expect(screen.queryByLabelText('Filtro por músculo puntual')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Abdominales' })).toBeNull();
+  });
+
+  it('al seleccionar Hombros muestra Cuello y no duplica Hombros como subchip (KAN-633)', async () => {
+    render(
+      <MemoryRouter>
+        <TrainingPage />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hombros' }));
+
+    expect(await screen.findByRole('button', { name: 'Cuello' })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Hombros' })).toHaveLength(1);
+  });
+
   it('DADO la biblioteca CUANDO se filtra por «distancia» ENTONCES aparecen pasadas y sprints (KAN-453)', async () => {
     vi.mocked(entrenamientoApi.listExercises).mockImplementation((async (
       options: Parameters<typeof entrenamientoApi.listExercises>[0],
