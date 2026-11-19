@@ -226,6 +226,8 @@ export const RoutinePage: React.FC = () => {
 
   const exercises = useMemo(() => routine?.exercises ?? [], [routine]);
 
+  const hasPersonalizedVariant = useMemo(() => exercises.some((ex) => ex.isAdapted), [exercises]);
+
   const displayCoachNotes = useMemo(() => {
     const raw = routine?.coachNotes?.trim();
     if (!raw) return null;
@@ -597,7 +599,11 @@ export const RoutinePage: React.FC = () => {
                     {routine.routineAdapted && !routine.adjustedByCoach && (
                       <span className="badge badge-warning" style={{ gap: '0.35rem' }}>
                         <Sparkles size={13} />
-                        <span>Rutina adaptada por check-in</span>
+                        <span>
+                          {hasPersonalizedVariant
+                            ? 'Rutina con variante personalizada'
+                            : 'Rutina adaptada por check-in'}
+                        </span>
                       </span>
                     )}
 
@@ -915,6 +921,15 @@ export const RoutinePage: React.FC = () => {
                           {exercise.muscleGroup && (
                             <span className="routine-tag-pill">{exercise.muscleGroup}</span>
                           )}
+                          {exercise.isAdapted && (
+                            <span
+                              className="badge routine-variant-badge"
+                              data-testid="personalized-variant-badge"
+                            >
+                              <Sparkles size={12} />
+                              <span>Variante personalizada</span>
+                            </span>
+                          )}
                           {isExerciseComplete && (
                             <span className="badge badge-success" style={{ gap: '0.25rem' }}>
                               <CheckCircle2 size={13} />
@@ -922,6 +937,24 @@ export const RoutinePage: React.FC = () => {
                             </span>
                           )}
                         </div>
+
+                        {exercise.isAdapted && (
+                          <div
+                            className="routine-variant-breakdown"
+                            data-testid="personalized-variant-breakdown"
+                          >
+                            {exercise.originalExerciseName && (
+                              <span className="routine-variant-original">
+                                Reemplaza a: {exercise.originalExerciseName}
+                              </span>
+                            )}
+                            <span className="routine-variant-reason">
+                              {exercise.adaptationReason?.trim()
+                                ? exercise.adaptationReason
+                                : 'Adaptación diseñada para cuidar tu condición física actual.'}
+                            </span>
+                          </div>
+                        )}
 
                         <div
                           style={{

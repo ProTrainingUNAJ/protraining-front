@@ -679,4 +679,93 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       expect(screen.queryByText(/PT_BLOCK_META/i)).toBeNull();
     });
   });
+
+  describe('RoutinePage · Variante personalizada y desglose de motivos (KAN-471)', () => {
+    it('DADO Lucas abriendo su rutina en el gimnasio CUANDO visualiza Prensa de piernas ENTONCES ve el badge "Variante personalizada", el desglose de motivos y el peso resuelto de 120 kg', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-19',
+        athleteId: 'ath-lucas',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: true,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-prensa',
+            name: 'Prensa de piernas',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 8,
+            percentage: 80,
+            weightKg: 120,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: ['glúteos'],
+            isAdapted: true,
+            originalExerciseName: 'Sentadilla',
+            adaptationReason: 'Variante aprobada por molestia de rodilla',
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Prensa de piernas')).toBeTruthy();
+      });
+
+      expect(screen.getByTestId('personalized-variant-badge')).toBeTruthy();
+      expect(screen.getByText('Variante personalizada')).toBeTruthy();
+      expect(screen.getByTestId('personalized-variant-breakdown')).toBeTruthy();
+      expect(screen.getByText('Reemplaza a: Sentadilla')).toBeTruthy();
+      expect(screen.getByText('Variante aprobada por molestia de rodilla')).toBeTruthy();
+      expect(screen.getByText('Rutina con variante personalizada')).toBeTruthy();
+      expect(screen.getByText('120')).toBeTruthy();
+    });
+
+    it('DADO un ejercicio sin variante personalizada CUANDO se renderiza la rutina ENTONCES no muestra el badge ni el desglose', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-19',
+        athleteId: 'ath-mateo',
+        athleteName: 'Mateo Díaz',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-sentadilla',
+            name: 'Sentadilla',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 8,
+            percentage: 80,
+            weightKg: 80,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            isAdapted: false,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla')).toBeTruthy();
+      });
+
+      expect(screen.queryByTestId('personalized-variant-badge')).toBeNull();
+      expect(screen.queryByTestId('personalized-variant-breakdown')).toBeNull();
+    });
+  });
 });

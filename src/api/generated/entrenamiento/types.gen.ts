@@ -358,19 +358,6 @@ export type CreateRoutineRequest = {
     items: Array<RoutineItemRequest>;
 };
 
-export type RoutineTemplate = {
-    id: string;
-    name: string;
-    goal: string;
-    exercisesCount: number;
-};
-
-export type CreateRoutineTemplateRequest = {
-    name: string;
-    goal: string;
-    items: Array<RoutineItemRequest>;
-};
-
 export type TodayRoutineExercise = {
     exerciseId?: string;
     name: string;
@@ -424,6 +411,18 @@ export type TodayRoutineExercise = {
      * Series o pasadas ya registradas hoy para este ejercicio (KAN-457).
      */
     performedSets?: Array<TodayRoutinePerformedSet>;
+    /**
+     * Indica si el ejercicio fue adaptado con una variante personalizada o ajuste (KAN-471).
+     */
+    isAdapted?: boolean;
+    /**
+     * Nombre del ejercicio original prescrito antes de aplicar la variante.
+     */
+    originalExerciseName?: string | null;
+    /**
+     * Motivo o nota de la adaptación aplicada al ejercicio.
+     */
+    adaptationReason?: string | null;
 };
 
 export type TodayRoutineResponse = {
@@ -579,7 +578,11 @@ export type ApplyAthleteSessionAdjustmentRequest = {
      */
     trainingPlanId?: string | null;
     note?: string | null;
-    items: Array<ApplyAthleteSessionAdjustmentItem>;
+    /**
+     * Porcentaje de reducción de carga sugerido por aviso preventivo (ej. 20%).
+     */
+    loadReductionPercentage?: number | null;
+    items?: Array<ApplyAthleteSessionAdjustmentItem> | null;
 };
 
 export type ApplyAthleteSessionAdjustmentResponse = {
@@ -592,6 +595,7 @@ export type ApplyAthleteSessionAdjustmentResponse = {
     sessionId: string;
     date: string;
     adjustedByCoach: boolean;
+    loadReductionPercentage?: number | null;
     note?: string | null;
     items: Array<ApplyAthleteSessionAdjustmentItem>;
 };
@@ -608,8 +612,37 @@ export type PrescribedExerciseRequest = {
     exerciseId: string;
     order: number;
     sets: number;
-    reps: number;
+    /**
+     * Número o rango de repeticiones (ej. "10", "6-8", "8-10").
+     */
+    reps: string;
     targetPercentage?: number | null;
+    /**
+     * Métrica de esfuerzo subjetivo elegida por el PF para este ejercicio.
+     */
+    intensityType?: 'RPE' | 'RIR';
+    /**
+     * Escala de percepción del esfuerzo RPE (1 a 10).
+     */
+    targetRpe?: number | null;
+    /**
+     * Repeticiones en reserva RIR (0 a 5).
+     */
+    targetRir?: number | null;
+    /**
+     * Notas técnicas o indicaciones específicas para la semana.
+     */
+    notes?: string | null;
+};
+
+export type TrainingBlockRequest = {
+    /**
+     * Identificador del bloque existente (opcional). Si no se envía, se empareja por orden.
+     */
+    id?: string | null;
+    title: string;
+    order: number;
+    exercises?: Array<PrescribedExerciseRequest>;
 };
 
 export type TrainingSessionRequest = {
@@ -628,6 +661,7 @@ export type TrainingSessionRequest = {
      * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
      */
     startTime?: string | null;
+    blocks?: Array<TrainingBlockRequest>;
     exercises?: Array<PrescribedExerciseRequest>;
 };
 
@@ -643,6 +677,9 @@ export type TrainingWeekRequest = {
 export type SaveTrainingPlanRequest = {
     name: string;
     objective?: string | null;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    targetMuscles?: Array<string>;
     weeks?: Array<TrainingWeekRequest>;
 };
 
@@ -655,8 +692,34 @@ export type PrescribedExerciseDetail = {
     exerciseName: string;
     order: number;
     sets: number;
-    reps: number;
+    /**
+     * Número o rango de repeticiones (ej. "10", "6-8", "8-10").
+     */
+    reps: string;
     targetPercentage?: number | null;
+    /**
+     * Métrica de esfuerzo subjetivo elegida por el PF para este ejercicio.
+     */
+    intensityType?: 'RPE' | 'RIR';
+    /**
+     * Escala de percepción del esfuerzo RPE (1 a 10).
+     */
+    targetRpe?: number | null;
+    /**
+     * Repeticiones en reserva RIR (0 a 5).
+     */
+    targetRir?: number | null;
+    /**
+     * Notas técnicas o indicaciones específicas para la semana.
+     */
+    notes?: string | null;
+};
+
+export type TrainingBlockDetail = {
+    id: string;
+    title: string;
+    order: number;
+    exercises: Array<PrescribedExerciseDetail>;
 };
 
 export type TrainingSessionDetail = {
@@ -669,6 +732,7 @@ export type TrainingSessionDetail = {
      * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
      */
     startTime?: string | null;
+    blocks: Array<TrainingBlockDetail>;
     exercises: Array<PrescribedExerciseDetail>;
 };
 
@@ -682,6 +746,9 @@ export type TrainingPlanDetail = {
     id: string;
     name: string;
     objective?: string | null;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    targetMuscles?: Array<string>;
     weeks: Array<TrainingWeekDetail>;
 };
 
@@ -713,6 +780,9 @@ export type TrainingPlanSummary = {
     id: string;
     name: string;
     objective?: string | null;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    targetMuscles?: Array<string>;
 };
 
 export type ListExercisesData = {
@@ -1538,6 +1608,44 @@ export type UpdateTrainingPlanResponses = {
 };
 
 export type UpdateTrainingPlanResponse = UpdateTrainingPlanResponses[keyof UpdateTrainingPlanResponses];
+
+export type GetTrainingPlanPdfData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la planificacion.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/{id}/pdf';
+};
+
+export type GetTrainingPlanPdfErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetTrainingPlanPdfError = GetTrainingPlanPdfErrors[keyof GetTrainingPlanPdfErrors];
+
+export type GetTrainingPlanPdfResponses = {
+    /**
+     * Archivo PDF generado exitosamente.
+     */
+    200: Blob | File;
+};
+
+export type GetTrainingPlanPdfResponse = GetTrainingPlanPdfResponses[keyof GetTrainingPlanPdfResponses];
 
 export type GetTrainingPlanScheduleData = {
     body?: never;

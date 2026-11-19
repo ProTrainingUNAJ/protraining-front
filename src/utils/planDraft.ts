@@ -170,6 +170,7 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
             const ex = exercise as unknown as Record<string, unknown>;
             const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
             const exMeta = meta.exercises?.[exercise.exerciseId] || {};
+            const parsedReps = Number.parseInt(String(exercise.reps ?? ''), 10) || 0;
             return {
               key: newKey(),
               id: exercise.id,
@@ -178,15 +179,11 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
               order: exercise.order,
               exerciseType: exType,
               sets: exercise.sets,
-              reps: exercise.reps ?? 0,
+              reps: parsedReps,
               targetDistanceMeters:
-                exType === 'Distance'
-                  ? (exercise.reps ?? null)
-                  : ((ex.targetDistanceMeters as number) ?? null),
+                exType === 'Distance' ? parsedReps : ((ex.targetDistanceMeters as number) ?? null),
               targetTimeSeconds:
-                exType === 'Time'
-                  ? (exercise.reps ?? null)
-                  : ((ex.targetTimeSeconds as number) ?? null),
+                exType === 'Time' ? parsedReps : ((ex.targetTimeSeconds as number) ?? null),
               targetPercentage: exercise.targetPercentage ?? null,
               intensityType: exMeta.intensityType ?? 'RPE',
               targetRpe: exMeta.targetRpe ?? null,
@@ -264,7 +261,7 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
               exerciseId: exercise.exerciseId ?? '',
               order: exercise.order,
               sets: exercise.sets,
-              reps: repsVal,
+              reps: exercise.repsRange?.trim() || String(repsVal),
               targetPercentage: exercise.targetPercentage,
             };
           }),
