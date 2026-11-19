@@ -106,7 +106,8 @@ const PUBLIC_AUTH_ENDPOINTS = [
 
 export function isPublicAuthEndpoint(url?: string): boolean {
   if (!url) return false;
-  return PUBLIC_AUTH_ENDPOINTS.some((ep) => url.includes(ep));
+  const cleanPath = url.split('?')[0].replace(/\/+$/, '').toLowerCase();
+  return PUBLIC_AUTH_ENDPOINTS.some((ep) => cleanPath.endsWith(ep));
 }
 
 /**

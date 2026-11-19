@@ -27,6 +27,7 @@ import { structureService } from '../../api/structureService';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
 import { ChangePasswordSection } from './ChangePasswordSection';
+import { GoogleAccountLinkSection } from './GoogleAccountLinkSection';
 import {
   subscribeUserToPush,
   unsubscribeUserFromPush,
@@ -717,6 +718,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         </div>
                       )}
                     </form>
+                    <GoogleAccountLinkSection />
                     <ChangePasswordSection />
 
                     {/* Zona de peligro: Baja lógica / Desactivación de cuenta (KAN-601 / KAN-602) */}

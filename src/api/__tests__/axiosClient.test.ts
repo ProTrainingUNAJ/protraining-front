@@ -176,5 +176,70 @@ describe('axiosClient (KAN-601)', () => {
 
       expect(finalConfig.headers['Authorization']).toBe('Bearer token-valido');
     });
+
+    it('trata /auth/google como público pero exige Authorization Bearer de ProTraining en GET/POST/DELETE /auth/google/link (KAN-541)', () => {
+      saveStoredSession({
+        accessToken: 'jwt-interno-protraining',
+        refreshToken: 'refresh-valido',
+        tokenType: 'Bearer',
+        expiresAt: Date.now() + 10000,
+        user: {
+          id: 'u-ath-1',
+          email: 'atleta@test.com',
+          role: 'Atleta',
+          fullName: 'Atleta Test',
+          pfId: 'pf-1',
+        },
+      });
+
+      expect(isPublicAuthEndpoint('/identidad/api/v1/auth/google')).toBe(true);
+      expect(isPublicAuthEndpoint('/api/v1/auth/google/link')).toBe(false);
+      expect(isPublicAuthEndpoint('/identidad/api/v1/auth/google/link')).toBe(false);
+
+      const requestHandlers =
+        (
+          httpClient.interceptors.request as unknown as {
+            handlers: Array<{
+              fulfilled?: (c: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
+            }>;
+          }
+        ).handlers || [];
+
+      const runInterceptors = (config: InternalAxiosRequestConfig) => {
+        let out = config;
+        for (const handler of requestHandlers) {
+          if (handler?.fulfilled) out = handler.fulfilled(out);
+        }
+        return out;
+      };
+
+      const loginGoogleCfg = runInterceptors({
+        method: 'post',
+        url: '/identidad/api/v1/auth/google',
+        data: { idToken: 'google-id-token-ext' },
+        headers: new axios.AxiosHeaders(),
+      });
+      expect(loginGoogleCfg.headers['Authorization']).toBeUndefined();
+
+      for (const method of ['get', 'post', 'delete'] as const) {
+        const linkCfg = runInterceptors({
+          method,
+          url: '/api/v1/auth/google/link',
+          data:
+            method === 'post'
+              ? { idToken: 'google-id-token-ext', currentPassword: 'Pass123!' }
+              : undefined,
+          headers: new axios.AxiosHeaders(),
+        });
+        expect(linkCfg.headers['Authorization']).toBe('Bearer jwt-interno-protraining');
+        expect(linkCfg.headers['Authorization']).not.toContain('google-id-token-ext');
+        if (method === 'post') {
+          expect(linkCfg.data).toEqual({
+            idToken: 'google-id-token-ext',
+            currentPassword: 'Pass123!',
+          });
+        }
+      }
+    });
   });
 });
