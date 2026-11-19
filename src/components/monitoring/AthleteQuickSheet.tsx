@@ -20,6 +20,7 @@ import {
 import { AthleteTrafficLightItem } from './trafficLight.types';
 import { AthleteBodyPainMap } from './AthleteBodyPainMap';
 import { AthleteAvatar } from './AthleteAvatar';
+import { AthleteContactActions } from './AthleteContactActions';
 
 export interface QuickSheetActivityDetail {
   type: string;
@@ -924,12 +925,21 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
         <div
           style={{
             display: 'flex',
-            gap: '0.65rem',
+            flexDirection: 'column',
+            gap: '0.75rem',
             paddingTop: '0.85rem',
             borderTop: '1px solid var(--border)',
-            flexWrap: 'wrap',
           }}
         >
+          <AthleteContactActions athlete={athlete} />
+
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.65rem',
+              flexWrap: 'wrap',
+            }}
+          >
           {mode === 'semaforo' && athlete.hasDayConflict && (
             <button
               type="button"
@@ -987,6 +997,7 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
           >
             Cerrar Ficha
           </button>
+          </div>
         </div>
       </div>
     </div>

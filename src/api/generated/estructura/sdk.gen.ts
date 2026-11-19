@@ -408,7 +408,7 @@ export const uploadOrganizationPhoto = <ThrowOnError extends boolean = false>(op
  *
  * Obtiene las divisiones deportivas registradas bajo una organización específica.
  */
-export const listCategories = <ThrowOnError extends boolean = false>(options: Options<ListCategoriesData, ThrowOnError>): RequestResult<ListCategoriesResponses, ListCategoriesErrors, ThrowOnError> => (options.client ?? client).get<ListCategoriesResponses, ListCategoriesErrors, ThrowOnError>({
+export const listCategories = <ThrowOnError extends boolean = false>(options?: Options<ListCategoriesData, ThrowOnError>): RequestResult<ListCategoriesResponses, ListCategoriesErrors, ThrowOnError> => (options?.client ?? client).get<ListCategoriesResponses, ListCategoriesErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/categories',

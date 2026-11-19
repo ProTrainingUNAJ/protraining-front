@@ -133,17 +133,21 @@ export const usersService = {
   },
 
   /**
-   * Actualiza el perfil de nombre y teléfono del preparador físico (KAN-601 / KAN-602).
+   * Actualiza el perfil de nombre, teléfono y Telegram del preparador físico (KAN-601 / KAN-602 / KAN-503).
    */
   async updateProfile(payload: {
     fullName: string;
     phone?: string | null;
+    telegramUsername?: string | null;
   }): Promise<ProfileResponse> {
     try {
       const { data } = await updateProfileSdk({
         body: {
           fullName: payload.fullName.trim(),
           phone: payload.phone?.trim() || null,
+          ...(payload.telegramUsername !== undefined
+            ? { telegramUsername: payload.telegramUsername?.trim() || '' }
+            : {}),
         },
         throwOnError: true,
       });

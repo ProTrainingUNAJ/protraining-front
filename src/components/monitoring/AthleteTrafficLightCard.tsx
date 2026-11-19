@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { AlertCircle, Moon, Activity, Siren, Thermometer, Sparkles } from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
+import { AthleteContactActions } from './AthleteContactActions';
 import { MuscleMapFront } from '../athlete/MuscleMapFront';
 import { MuscleMapBack } from '../athlete/MuscleMapBack';
 import { resolveMuscleId } from '../../utils/painMuscleResolver';
@@ -459,6 +460,10 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           <span>Ver ajuste sugerido</span>
         </button>
       )}
+
+      <div style={{ marginTop: '0.55rem', paddingTop: '0.55rem', borderTop: '1px solid var(--border)' }}>
+        <AthleteContactActions athlete={athlete} compact />
+      </div>
     </div>
   );
 };
