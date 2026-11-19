@@ -22,6 +22,7 @@ import {
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
+import { validateTelegramUsername } from '../../utils/telegram';
 import { structureService } from '../../api/structureService';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
@@ -69,6 +70,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const email = user?.email ?? '';
   const [phone, setPhone] = useState(user?.phoneNumber ?? '');
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [telegramUsername, setTelegramUsername] = useState(user?.telegramUsername ?? '');
+  const [telegramError, setTelegramError] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -84,6 +87,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     setPrevUserId(user?.id);
     if (user?.fullName) setFullName(user.fullName);
     if (user?.phoneNumber) setPhone(user.phoneNumber);
+    setTelegramUsername(user?.telegramUsername ?? '');
   }
 
   const [habitsEnabled, setHabitsEnabled] = useState(true);
@@ -198,23 +202,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhoneError(null);
+    setTelegramError(null);
     setProfileError(null);
 
     if (role === 'pf') {
+      const tgValidationError = validateTelegramUsername(telegramUsername);
+      if (tgValidationError) {
+        setTelegramError(tgValidationError);
+        return;
+      }
+
       try {
         setProfileSaving(true);
         const result = await usersService.updateProfile({
           fullName,
           phone: phone ? phone : null,
+          telegramUsername: telegramUsername.trim() ? telegramUsername.trim() : '',
         });
 
         // Actualizamos estado local y sincronizamos con el contexto de auth
         setFullName(result.fullName);
         setPhone(result.phoneNumber ?? '');
+        setTelegramUsername(result.telegramUsername ?? '');
         if (updateCurrentUser) {
           updateCurrentUser({
             fullName: result.fullName,
             phoneNumber: result.phoneNumber,
+            telegramUsername: result.telegramUsername,
           });
         }
 
@@ -553,6 +567,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           </span>
                         )}
                       </div>
+
+                      {role === 'pf' && (
+                        <div>
+                          <label
+                            htmlFor="set-telegram"
+                            style={{
+                              display: 'block',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              marginBottom: '0.35rem',
+                            }}
+                          >
+                            Telegram (opcional)
+                          </label>
+                          <input
+                            id="set-telegram"
+                            type="text"
+                            value={telegramUsername}
+                            onChange={(e) => {
+                              setTelegramUsername(e.target.value);
+                              if (telegramError) setTelegramError(null);
+                            }}
+                            placeholder="@profe_juan"
+                          />
+                          {telegramError && (
+                            <span
+                              style={{
+                                display: 'block',
+                                color: 'var(--danger-text)',
+                                fontSize: '0.85rem',
+                                marginTop: '0.35rem',
+                              }}
+                              role="alert"
+                            >
+                              {telegramError}
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       <div>
                         <label
