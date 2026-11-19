@@ -317,7 +317,7 @@ export const TrainingPage: React.FC = () => {
           </div>
 
           {/* Chips Táctiles PWA - Músculos puntuales según grupo seleccionado */}
-          {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+          {selectedCategory !== 'Todos' && Boolean(GROUP_SUB_MUSCLES[selectedCategory]?.length) && (
             <div
               className="exercise-subchips-scroll"
               role="group"

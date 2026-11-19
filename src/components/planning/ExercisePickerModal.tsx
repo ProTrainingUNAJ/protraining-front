@@ -202,7 +202,7 @@ export function ExercisePickerModal({
         </div>
 
         {/* Chips de submúsculos según grupo seleccionado */}
-        {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+        {selectedCategory !== 'Todos' && Boolean(GROUP_SUB_MUSCLES[selectedCategory]?.length) && (
           <div
             className="exercise-subchips-scroll"
             role="tablist"
