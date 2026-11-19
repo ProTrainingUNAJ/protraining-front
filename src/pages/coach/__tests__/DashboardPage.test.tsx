@@ -125,4 +125,20 @@ describe('DashboardPage - Mayor Carga (UA) Widget (KAN-621)', () => {
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
     });
   });
+
+  it('muestra banner de bienvenida a ProTraining si el PF no tiene organizaciones creadas sin redirigir', async () => {
+    const { structureService } = await import('../../../api/structureService');
+    vi.spyOn(structureService, 'getOrganizations').mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf']}>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/¡Te damos la bienvenida a ProTraining!/i)).toBeDefined();
+      expect(screen.getByRole('button', { name: /\+ Crear Organización/i })).toBeDefined();
+    });
+  });
 });

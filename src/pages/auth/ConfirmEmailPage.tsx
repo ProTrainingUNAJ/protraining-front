@@ -179,7 +179,11 @@ export const ConfirmEmailPage: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => navigate('/login')}
+              onClick={() =>
+                navigate(emailParam ? `/login?email=${encodeURIComponent(emailParam)}` : '/login', {
+                  state: { email: emailParam },
+                })
+              }
               className="btn-pill-primary"
               id="btn-confirm-login"
             >

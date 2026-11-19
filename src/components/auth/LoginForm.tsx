@@ -36,7 +36,13 @@ export const LoginForm: React.FC = () => {
   const isGoogleLoginEnabled = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === 'true';
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
-  const [email, setEmail] = useState('');
+  const searchParams = new URLSearchParams(location.search);
+  const passedEmail =
+    (location.state as { email?: string } | null)?.email ||
+    searchParams.get('email') ||
+    '';
+
+  const [email, setEmail] = useState(passedEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
