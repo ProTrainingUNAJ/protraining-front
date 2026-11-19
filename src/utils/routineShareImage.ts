@@ -63,7 +63,6 @@ export async function generateRoutineShareImage(
   // Cada silueta mide 380 x 680 nativamente
   const scale = 1.1;
   const bodyWidth = 380 * scale;
-  const bodyHeight = 680 * scale;
   const bodyY = 230;
 
   const totalBodiesWidth = bodyWidth * 2;

@@ -83,11 +83,14 @@ export function useRoutineTimer(athleteId?: string, date?: string): RoutineTimer
   // Sincronizar estado cuando se resuelve storageKey (ej. tras cargar la rutina del atleta)
   useEffect(() => {
     if (!storageKey) return;
-    const restored = getInitialTimerState(storageKey);
-    accumulatedRef.current = restored.accumulatedSeconds;
-    lastStartedAtRef.current = restored.lastStartedAt;
-    setIsRunning(restored.isRunning);
-    setSeconds(restored.seconds);
+    const timerId = setTimeout(() => {
+      const restored = getInitialTimerState(storageKey);
+      accumulatedRef.current = restored.accumulatedSeconds;
+      lastStartedAtRef.current = restored.lastStartedAt;
+      setIsRunning(restored.isRunning);
+      setSeconds(restored.seconds);
+    }, 0);
+    return () => clearTimeout(timerId);
   }, [storageKey]);
 
   // Persistir en localStorage tanto en la clave específica como en la clave global
