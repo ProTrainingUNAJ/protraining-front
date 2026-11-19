@@ -248,11 +248,6 @@ export const RegisterPfPage: React.FC = () => {
                 onClick={() => navigate('/login')}
                 className="btn-pill-secondary"
                 id="btn-go-login"
-                style={{
-                  border: '1px solid var(--border)',
-                  background: 'transparent',
-                  color: 'var(--text-main)',
-                }}
               >
                 Ir a iniciar sesión
               </button>
