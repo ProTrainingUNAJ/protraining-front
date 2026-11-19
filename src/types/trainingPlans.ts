@@ -48,7 +48,7 @@ export interface DraftExercise {
   order: number;
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   sets: number;
-  reps: number;
+  reps: number | string;
   targetDistanceMeters?: number | null;
   targetTimeSeconds?: number | null;
   targetPercentage: number | null;
@@ -69,7 +69,7 @@ export type IntensityMetric = 'RPE' | 'RIR';
 export interface WeeklyExerciseProgression {
   weekNumber: number;
   sets: number;
-  reps: number;
+  reps: number | string;
   repsRange?: string | null;
   targetPercentage: number | null;
   intensityType: IntensityMetric;
@@ -82,6 +82,7 @@ export interface WeeklyExerciseProgression {
 
 export interface BlockExercise {
   key: string;
+  id?: string | null;
   exerciseId: string | null;
   isReference?: boolean;
   exerciseName: string;
@@ -89,6 +90,15 @@ export interface BlockExercise {
   order: number;
   intensityType: IntensityMetric;
   weeklyProgression: Record<number, WeeklyExerciseProgression>;
+  sets?: number;
+  reps?: number | string;
+  repsRange?: string | null;
+  targetPercentage?: number | null;
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  targetDistanceMeters?: number | null;
+  targetTimeSeconds?: number | null;
+  notes?: string | null;
   images?: string[];
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
@@ -97,6 +107,7 @@ export interface BlockExercise {
 
 export interface DayBlock {
   key: string;
+  id?: string | null;
   title: string;
   order: number;
   exercises: BlockExercise[];
@@ -125,6 +136,7 @@ export interface DraftSession {
   dayOfWeek: number;
   coachNotes: string;
   startTime?: string | null;
+  blocks?: DayBlock[];
   exercises: DraftExercise[];
   // Próximo orden libre para un ejercicio nuevo. Nunca baja: así un ejercicio
   // nuevo no reusa el orden de uno que se quitó en el mismo guardado.

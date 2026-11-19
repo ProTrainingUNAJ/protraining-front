@@ -112,6 +112,7 @@ describe('KAN-559 · Hora de la sesión y fin de la asignación', () => {
                 dayOfWeek: 1,
                 coachNotes: null,
                 startTime: '18:00:00',
+                blocks: [],
                 exercises: [],
               },
             ],

@@ -57,6 +57,10 @@ export type SuggestRoutineResponse = {
 export type GenerateAthleteAdaptationRequest = {
     goal: string;
     muscleGroupEmphasis?: Array<string>;
+    /**
+     * Ejercicios de la rutina base de la categoría o sesión a comparar y adaptar individualmente (KAN-464).
+     */
+    baseExercises?: Array<SuggestedRoutineExercise> | null;
 };
 
 export type SuggestedRoutineExercise = {
@@ -75,6 +79,10 @@ export type AdaptationChange = {
     finalExerciseName: string;
     zone: string;
     reason: string;
+    /**
+     * Lista ordenada de sustitutos autorizados del catálogo para ese ejercicio y zona (KAN-464).
+     */
+    availableSubstitutes?: Array<AuthorizedSubstituteContext> | null;
 };
 
 export type RoutineAdaptationResponse = {
@@ -87,6 +95,10 @@ export type RoutineAdaptationResponse = {
     wasAdapted?: boolean;
     adaptationWarnings?: Array<string>;
     adaptationChanges?: Array<AdaptationChange>;
+    /**
+     * Ejercicios originales de la rutina base de la categoría antes de aplicar la adaptación individual (KAN-464).
+     */
+    baseExercises?: Array<SuggestedRoutineExercise> | null;
 };
 
 export type ActiveInjuryContext = {

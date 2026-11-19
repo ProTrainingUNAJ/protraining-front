@@ -29,6 +29,7 @@ import type { TrainingPlanDetail, TrainingSessionDetail } from '../../api/genera
 import type { CatalogExercise } from '../../types/trainingPlans';
 import { ExercisePickerModal } from './ExercisePickerModal';
 import { todayInArgentina } from '../../utils/argentinaDate';
+import { parseRepsNumber } from '../../utils/planDraft';
 
 export interface AthleteAdaptationDiffModalProps {
   isOpen: boolean;
@@ -213,7 +214,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
         sets: ex.sets,
-        reps: ex.reps,
+        reps: typeof ex.reps === 'string' ? parseRepsNumber(ex.reps, 10) : (ex.reps ?? 10),
         suggestedPercentage: ex.targetPercentage ?? 0,
         isReference: false,
       }));
@@ -353,7 +354,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
           exerciseId: ex.exerciseId,
           exerciseName: ex.exerciseName,
           sets: ex.sets,
-          reps: ex.reps,
+          reps: typeof ex.reps === 'string' ? parseRepsNumber(ex.reps, 10) : (ex.reps ?? 10),
           suggestedPercentage: ex.targetPercentage ?? 0,
           isReference: false,
         }));

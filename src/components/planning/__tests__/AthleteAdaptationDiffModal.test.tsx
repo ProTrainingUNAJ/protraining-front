@@ -35,6 +35,7 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
               order: 1,
               dayOfWeek: 3,
               coachNotes: 'Entrada en calor de 10 minutos.',
+              blocks: [],
               exercises: [
                 {
                   id: 'presc-1',
@@ -42,7 +43,7 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
                   exerciseName: 'Sentadilla con barra',
                   order: 1,
                   sets: 4,
-                  reps: 5,
+                  reps: '5',
                   targetPercentage: 75,
                 },
                 {
@@ -51,7 +52,7 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
                   exerciseName: 'Press de banca con barra - Agarre medio',
                   order: 2,
                   sets: 4,
-                  reps: 6,
+                  reps: '6',
                   targetPercentage: 70,
                 },
               ],
