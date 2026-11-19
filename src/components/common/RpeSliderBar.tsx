@@ -101,7 +101,8 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
   };
 
   const activeMeta = value !== null ? RPE_LEVELS_META[value] : null;
-  const activeIndex = value !== null ? value - 1 : null;
+  const fillPercent = value !== null ? (value / 10) * 100 : 0;
+  const thumbPercent = value !== null ? ((value - 0.5) / 10) * 100 : 0;
 
   return (
     <div
@@ -130,7 +131,7 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
         aria-label="Escala de esfuerzo RPE (1-10)"
       />
 
-      {/* Pista continua deslizable */}
+      {/* Pista continua tipo barra de carga deslizable (Imagen 3) */}
       <div
         ref={trackRef}
         className={`rpe-slider-track ${isDragging ? 'rpe-slider-track--dragging' : ''} ${
@@ -141,48 +142,51 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
-        {/* Espectro cromático continuo en la base de la barra */}
+        {/* Relleno dinámico de la barra de carga con degradado cromático Foster */}
+        <div className="rpe-slider-fill" style={{ width: `${fillPercent}%` }} aria-hidden="true" />
+
+        {/* Espectro cromático continuo en la base */}
         <div className="rpe-slider-spectrum" aria-hidden="true" />
 
-        {/* Indicador / Thumb deslizante continuo */}
-        {activeMeta && activeIndex !== null && (
+        {/* Indicador / Thumb flotante circular con el valor de RPE actual adentro */}
+        {activeMeta && value !== null && (
           <div
             className={`rpe-slider-thumb rpe-slider-thumb--${activeMeta.tier}`}
             style={{
-              transform: `translateX(${activeIndex * 100}%)`,
+              left: `${thumbPercent}%`,
             }}
             aria-hidden="true"
           >
             <span className="rpe-slider-thumb-label">{value}</span>
           </div>
         )}
+      </div>
 
-        {/* 10 marcas y botones táctiles interactivos */}
-        <div className="rpe-slider-segments">
-          {RPE_LEVELS_ARRAY.map(({ val, tier }) => {
-            const isSelected = value === val;
-            return (
-              <button
-                key={val}
-                type="button"
-                disabled={disabled}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange(val);
-                }}
-                className={`rpe-slider-btn finish-routine-rpe-btn dl-rpe-btn finish-routine-rpe-btn--${tier} dl-rpe-btn--${tier} ${
-                  isSelected
-                    ? 'rpe-slider-btn--selected finish-routine-rpe-btn--selected dl-rpe-btn--selected'
-                    : ''
-                }`}
-                aria-label={`Nivel ${val}`}
-                aria-pressed={isSelected}
-              >
-                <span className="rpe-slider-btn-num">{val}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* 10 marcas y botones táctiles interactivos de la escala */}
+      <div className="rpe-slider-segments">
+        {RPE_LEVELS_ARRAY.map(({ val, tier }) => {
+          const isSelected = value === val;
+          return (
+            <button
+              key={val}
+              type="button"
+              disabled={disabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(val);
+              }}
+              className={`rpe-slider-btn finish-routine-rpe-btn dl-rpe-btn finish-routine-rpe-btn--${tier} dl-rpe-btn--${tier} ${
+                isSelected
+                  ? 'rpe-slider-btn--selected finish-routine-rpe-btn--selected dl-rpe-btn--selected'
+                  : ''
+              }`}
+              aria-label={`Nivel ${val}`}
+              aria-pressed={isSelected}
+            >
+              <span className="rpe-slider-btn-num">{val}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
