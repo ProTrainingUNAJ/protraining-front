@@ -24,6 +24,7 @@ import {
 } from '../../api/seguimientoService';
 import type { TodayRoutineExercise } from '../../api/generated/entrenamiento';
 import { RPE_LEVELS_META, formatMmSs, parseMmSs } from './finishRoutineUtils';
+import { RpeSliderBar } from '../common/RpeSliderBar';
 import {
   generateRoutineShareImage,
   shareToInstagram,
@@ -512,26 +513,8 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                 </span>
               </div>
 
-              {/* Barra de 10 botones numéricos con colores semánticos */}
-              <div className="finish-routine-rpe-bar" role="group" aria-label="Escala de esfuerzo">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((val) => {
-                  const meta = RPE_LEVELS_META[val];
-                  const isSelected = rpe === val;
-                  return (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setRpe(val)}
-                      className={`finish-routine-rpe-btn finish-routine-rpe-btn--${meta.tier} ${
-                        isSelected ? 'finish-routine-rpe-btn--selected' : ''
-                      }`}
-                      aria-label={`Nivel ${val}`}
-                    >
-                      {val}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Barra continua y deslizable de RPE (conservando la gama de colores oficial) */}
+              <RpeSliderBar value={rpe} onChange={(val) => setRpe(val)} />
 
               {/* Caja de feedback explicativa idéntica a Carga del Día */}
               <div className="finish-routine-rpe-feedback-box">

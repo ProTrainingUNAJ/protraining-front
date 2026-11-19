@@ -103,6 +103,19 @@ export const RPE_LEVELS_META: Record<number, RpeLevelMeta> = {
   },
 };
 
+export const RPE_LEVELS_ARRAY: RpeLevelMeta[] = [
+  RPE_LEVELS_META[1],
+  RPE_LEVELS_META[2],
+  RPE_LEVELS_META[3],
+  RPE_LEVELS_META[4],
+  RPE_LEVELS_META[5],
+  RPE_LEVELS_META[6],
+  RPE_LEVELS_META[7],
+  RPE_LEVELS_META[8],
+  RPE_LEVELS_META[9],
+  RPE_LEVELS_META[10],
+];
+
 /**
  * Formatea segundos totales a formato digital estricto MM:SS (ej: 00:03, 00:21, 45:00)
  */

@@ -834,88 +834,17 @@
 
 /* ── Escala de RPE Interactiva (1 a 10 alineada con Minutos) ── */
 .dl-rpe-bar-wrap {
-  height: 2.45rem;
+  width: 100%;
   display: flex;
   align-items: center;
-  width: 100%;
 }
 
 .dl-rpe-bar {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 0.35rem;
   width: 100%;
-  height: 100%;
-}
-
-@media (max-width: 540px) {
-  .dl-rpe-bar {
-    gap: 0.2rem;
-  }
 }
 
 .dl-rpe-btn {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 800;
-  border: 1.5px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.25, 1, 0.5, 1);
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.dl-rpe-btn:hover {
-  transform: translateY(-2px);
-  color: var(--text-main);
-}
-
-/* Tiers de esfuerzo por color con tokens semánticos */
-.dl-rpe-btn--easy:hover,
-.dl-rpe-btn--easy.dl-rpe-btn--selected {
-  background: var(--celebration-blue);
-  color: var(--white);
-  border-color: var(--celebration-blue);
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--celebration-blue) 30%, transparent);
-}
-
-.dl-rpe-btn--moderate:hover,
-.dl-rpe-btn--moderate.dl-rpe-btn--selected {
-  background: var(--success);
-  color: var(--white);
-  border-color: var(--success);
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--success) 30%, transparent);
-}
-
-.dl-rpe-btn--demanding:hover,
-.dl-rpe-btn--demanding.dl-rpe-btn--selected {
-  background: var(--warning);
-  color: var(--white);
-  border-color: var(--warning);
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--warning) 30%, transparent);
-}
-
-.dl-rpe-btn--hard:hover,
-.dl-rpe-btn--hard.dl-rpe-btn--selected {
-  background: var(--celebration-coral);
-  color: var(--white);
-  border-color: var(--celebration-coral);
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--celebration-coral) 30%, transparent);
-}
-
-.dl-rpe-btn--max:hover,
-.dl-rpe-btn--max.dl-rpe-btn--selected {
-  background: var(--danger);
-  color: var(--white);
-  border-color: var(--danger);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: 0;
 }
 
 /* Input sincronizado para accesibilidad */
