@@ -46,7 +46,9 @@ describe('ContactPfButton', () => {
 
     render(<ContactPfButton />);
 
-    const link = await screen.findByRole('link', { name: /Contactar a mi preparador por Telegram/i });
+    const link = await screen.findByRole('link', {
+      name: /Contactar a mi preparador por Telegram/i,
+    });
     expect(link.getAttribute('href')).toBe('https://t.me/profe_juan');
 
     fireEvent.click(link);
@@ -65,12 +67,12 @@ describe('ContactPfButton', () => {
 
     render(<ContactPfButton />);
 
-    const link = await screen.findByRole('link', { name: /Contactar a mi preparador por Telegram/i });
+    const link = await screen.findByRole('link', {
+      name: /Contactar a mi preparador por Telegram/i,
+    });
     fireEvent.click(link);
 
-    expect(
-      await screen.findByText(/Copiá este mensaje manualmente para Telegram/i),
-    ).toBeTruthy();
+    expect(await screen.findByText(/Copiá este mensaje manualmente para Telegram/i)).toBeTruthy();
     expect(screen.queryByText(/Mensaje copiado al portapapeles/i)).toBeNull();
   });
 

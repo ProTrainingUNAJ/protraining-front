@@ -511,7 +511,11 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
             )}
 
             {telegramSuccess && (
-              <div className="alert-banner success" role="status" style={{ marginBottom: '0.75rem' }}>
+              <div
+                className="alert-banner success"
+                role="status"
+                style={{ marginBottom: '0.75rem' }}
+              >
                 <Check size={16} aria-hidden="true" />
                 <span>Usuario de Telegram actualizado correctamente.</span>
               </div>

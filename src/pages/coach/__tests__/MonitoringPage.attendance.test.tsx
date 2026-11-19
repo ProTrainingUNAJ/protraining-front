@@ -403,7 +403,9 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
 
     const wa = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i });
     expect(wa.getAttribute('href')).toContain('https://wa.me/5491150000002?text=');
-    expect(screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i })).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i }),
+    ).toBeNull();
   });
 
   it('en pestaña Asistencia, abre ficha rápida de atleta sin check-in con solo Telegram (KAN-503)', async () => {
@@ -432,7 +434,9 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
 
     const tg = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i });
     expect(tg.getAttribute('href')).toBe('https://t.me/joaquin_diaz');
-    expect(screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i })).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i }),
+    ).toBeNull();
   });
 
   it('en pestaña Asistencia, abre ficha rápida de atleta sin check-in con ambos canales (KAN-503)', async () => {

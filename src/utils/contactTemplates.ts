@@ -6,12 +6,17 @@ function getFirstName(fullName: string): string {
   return trimmed.split(/\s+/)[0] || 'atleta';
 }
 
-function getPainSummary(athlete: Pick<AthleteTrafficLightItem, 'affectedMuscle' | 'pains'>): string {
+function getPainSummary(
+  athlete: Pick<AthleteTrafficLightItem, 'affectedMuscle' | 'pains'>,
+): string {
   if (athlete.affectedMuscle?.trim()) {
     return athlete.affectedMuscle.trim();
   }
   if (athlete.pains && athlete.pains.length > 0) {
-    return athlete.pains.map((p) => p.zone).filter(Boolean).join(', ');
+    return athlete.pains
+      .map((p) => p.zone)
+      .filter(Boolean)
+      .join(', ');
   }
   return '';
 }

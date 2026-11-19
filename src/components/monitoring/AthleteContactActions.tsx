@@ -139,7 +139,15 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
             border: '1px solid var(--border)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              fontWeight: 600,
+              marginBottom: '0.25rem',
+            }}
+          >
             <Copy size={13} aria-hidden="true" />
             <span>Copiá este mensaje manualmente para Telegram:</span>
           </div>

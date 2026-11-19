@@ -90,7 +90,14 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
   // Solo Telegram
   if (!whatsappLink && telegramLink) {
     return (
-      <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', gap: '0.35rem' }}>
+      <div
+        style={{
+          position: 'relative',
+          display: 'inline-flex',
+          flexDirection: 'column',
+          gap: '0.35rem',
+        }}
+      >
         <a
           href={telegramLink}
           target="_blank"
@@ -125,13 +132,29 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
             }}
           >
             {telegramFeedback === 'copied' ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#15803d', fontWeight: 600 }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  color: '#15803d',
+                  fontWeight: 600,
+                }}
+              >
                 <Check size={14} aria-hidden="true" />
                 Mensaje copiado al portapapeles para pegar en Telegram.
               </span>
             ) : (
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    fontWeight: 600,
+                    marginBottom: '0.25rem',
+                  }}
+                >
                   <Copy size={14} aria-hidden="true" />
                   Copiá este mensaje manualmente para Telegram:
                 </div>
@@ -140,7 +163,13 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
                   aria-label="Mensaje para copiar manualmente"
                   value={message}
                   rows={2}
-                  style={{ width: '100%', fontSize: '0.78rem', padding: '0.3rem', borderRadius: '0.35rem', border: '1px solid #cbd5e1' }}
+                  style={{
+                    width: '100%',
+                    fontSize: '0.78rem',
+                    padding: '0.3rem',
+                    borderRadius: '0.35rem',
+                    border: '1px solid #cbd5e1',
+                  }}
                 />
               </div>
             )}
@@ -217,12 +246,18 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
             </a>
           )}
           {telegramFeedback === 'copied' && (
-            <div role="status" style={{ fontSize: '0.78rem', color: '#15803d', padding: '0.25rem 0.4rem' }}>
+            <div
+              role="status"
+              style={{ fontSize: '0.78rem', color: '#15803d', padding: '0.25rem 0.4rem' }}
+            >
               Mensaje copiado al portapapeles para pegar en Telegram.
             </div>
           )}
           {telegramFeedback === 'manual' && (
-            <div role="status" style={{ fontSize: '0.78rem', color: '#0f172a', padding: '0.25rem 0.4rem' }}>
+            <div
+              role="status"
+              style={{ fontSize: '0.78rem', color: '#0f172a', padding: '0.25rem 0.4rem' }}
+            >
               <div style={{ fontWeight: 600, marginBottom: '0.2rem' }}>
                 Copiá este mensaje manualmente:
               </div>
@@ -231,7 +266,13 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
                 aria-label="Mensaje para copiar manualmente"
                 value={message}
                 rows={2}
-                style={{ width: '100%', fontSize: '0.75rem', padding: '0.25rem', borderRadius: '0.35rem', border: '1px solid #cbd5e1' }}
+                style={{
+                  width: '100%',
+                  fontSize: '0.75rem',
+                  padding: '0.25rem',
+                  borderRadius: '0.35rem',
+                  border: '1px solid #cbd5e1',
+                }}
               />
             </div>
           )}

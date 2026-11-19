@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildTelegramLink,
-  normalizeTelegramUsername,
-  validateTelegramUsername,
-} from './telegram';
+import { buildTelegramLink, normalizeTelegramUsername, validateTelegramUsername } from './telegram';
 
 describe('telegram utils', () => {
   it('normaliza usernames válidos con o sin @ y espacios', () => {

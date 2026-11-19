@@ -55,12 +55,12 @@ describe('AthleteContactActions', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('link', { name: /Contactar a Lucas Fernández por Telegram/i }));
+    fireEvent.click(
+      screen.getByRole('link', { name: /Contactar a Lucas Fernández por Telegram/i }),
+    );
     await waitFor(() => {
       expect(writeText).toHaveBeenCalled();
     });
-    expect(
-      await screen.findByText(/Copiá este mensaje manualmente para Telegram/i),
-    ).toBeTruthy();
+    expect(await screen.findByText(/Copiá este mensaje manualmente para Telegram/i)).toBeTruthy();
   });
 });

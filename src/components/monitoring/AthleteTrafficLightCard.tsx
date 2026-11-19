@@ -461,7 +461,13 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
         </button>
       )}
 
-      <div style={{ marginTop: '0.55rem', paddingTop: '0.55rem', borderTop: '1px solid var(--border)' }}>
+      <div
+        style={{
+          marginTop: '0.55rem',
+          paddingTop: '0.55rem',
+          borderTop: '1px solid var(--border)',
+        }}
+      >
         <AthleteContactActions athlete={athlete} compact />
       </div>
     </div>
