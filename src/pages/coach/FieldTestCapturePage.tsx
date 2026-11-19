@@ -29,6 +29,10 @@ const NUMPAD_KEYS = ['7', '8', '9', '4', '5', '6', '1', '2', '3', ',', '0', 'bac
 const fullName = (athlete: Athlete): string =>
   athlete.fullName?.trim() || `${athlete.firstName} ${athlete.lastName}`.trim();
 
+// Marca actual del atleta en el campo, al tocar su fila (KAN-580): se muestra con coma
+// decimal, igual que la arma el numpad; submitMark la convierte a punto antes de enviar.
+const formatMark = (value: number): string => `${value}`.replace('.', ',');
+
 // Toma de marcas al costado de la cancha: un atleta por pantalla, teclado
 // numérico gigante y Enter para registrar y avanzar al siguiente. Intentos fijos en 1.
 export const FieldTestCapturePage: React.FC = () => {
@@ -377,7 +381,8 @@ export const FieldTestCapturePage: React.FC = () => {
                   className={`ft-athlete-row${index === cursor ? ' ft-athlete-row--current' : ''}`}
                   onClick={() => {
                     setCursor(index);
-                    setValue('');
+                    // Si ya tiene marca se precarga: el PF ve lo que va a corregir.
+                    setValue(mark !== undefined ? formatMark(mark.value) : '');
                     setError(null);
                     setNotice(null);
                   }}
