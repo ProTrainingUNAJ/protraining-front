@@ -285,33 +285,50 @@ describe('checkInHelper', () => {
       expect(getCheckInDraft(athleteId)).toBeNull();
     });
 
-    it('saves and retrieves completed check-in', async () => {
-      const { saveCheckInCompleted, getCheckInCompleted } = await import('../checkInHelper');
+    it('saves and retrieves completed check-in without medical data', async () => {
+      const { saveCheckInCompleted, getCheckInCompleted, getTodayKey } =
+        await import('../checkInHelper');
 
       const mockCompleted = {
         result: { id: 'checkin-999', trafficLight: 'Green' },
-        draft: {
-          hasStarted: true,
-          currentStep: 4,
-          maxReachedStep: 4,
-          sleepHours: 8,
-          sleepQuality: 5,
-          fatigueLevel: 1,
-          muscleSoreness: 1,
-          moodRate: 5,
-          stressLevel: 1,
-          isSick: false,
-          hasActiveInjury: false,
-          healthQuestionsAnswered: true,
-          musclePains: {},
-          notes: '',
-        },
         completedAt: new Date().toISOString(),
       };
 
       saveCheckInCompleted(athleteId, mockCompleted);
       const retrieved = getCheckInCompleted(athleteId);
       expect(retrieved).toEqual(mockCompleted);
+
+      const stored =
+        localStorage.getItem(`protraining_checkin_completed_${athleteId}_${getTodayKey()}`) ?? '';
+      expect(stored).not.toContain('draft');
+      expect(stored).not.toContain('injuryScores');
+    });
+
+    it('purges legacy completed records that stored the medical draft', async () => {
+      const { purgeLegacyCheckInCompletedData } = await import('../checkInHelper');
+      const legacyKey = `protraining_checkin_completed_${athleteId}_2026-11-01`;
+      const currentKey = `protraining_checkin_completed_${athleteId}_2026-11-16`;
+
+      localStorage.setItem(
+        legacyKey,
+        JSON.stringify({
+          result: { trafficLight: 'Green' },
+          draft: { injuryScores: { rodilla: 8 }, notes: 'Dolor' },
+          completedAt: '2026-11-01T08:00:00Z',
+        }),
+      );
+      localStorage.setItem(
+        currentKey,
+        JSON.stringify({
+          result: { trafficLight: 'Red' },
+          completedAt: '2026-11-16T08:00:00Z',
+        }),
+      );
+
+      purgeLegacyCheckInCompletedData(athleteId);
+
+      expect(localStorage.getItem(legacyKey)).toBeNull();
+      expect(localStorage.getItem(currentKey)).not.toBeNull();
     });
   });
 });

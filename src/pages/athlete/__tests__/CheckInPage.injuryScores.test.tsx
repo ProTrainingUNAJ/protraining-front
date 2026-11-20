@@ -78,30 +78,24 @@ describe('CheckInPage with active injury scores', () => {
     vi.mocked(seguimientoService.discardPendingCheckInsForDate).mockResolvedValue(0);
 
     localStorage.setItem(`protraining_athlete_me_user-lucas`, ATHLETE_ID);
-    checkInHelper.saveCheckInCompleted(ATHLETE_ID, {
-      result: {
-        message: 'Check-in registrado',
-        trafficLight: 'Red',
-        trafficLightReason: 'Lesión activa reportada',
-      },
-      draft: {
-        hasStarted: true,
-        currentStep: 4,
-        maxReachedStep: 4,
-        sleepHours: 8,
-        sleepQuality: 3,
-        fatigueLevel: 3,
-        muscleSoreness: 3,
-        moodRate: 3,
-        stressLevel: 2,
-        isSick: false,
-        hasActiveInjury: true,
-        healthQuestionsAnswered: true,
-        musclePains: { isquiotibiales: 6 },
-        injuryScores: { [INJURY_ID]: 4 },
-        notes: '',
-      },
-      completedAt: '2026-11-16T08:00:00Z',
+    // KAN-593: el borrador es el único dato médico permitido en el dispositivo y
+    // se descarta apenas se envía. El registro de completado no guarda respuestas.
+    checkInHelper.saveCheckInDraft(ATHLETE_ID, {
+      hasStarted: true,
+      currentStep: 4,
+      maxReachedStep: 4,
+      sleepHours: 8,
+      sleepQuality: 3,
+      fatigueLevel: 3,
+      muscleSoreness: 3,
+      moodRate: 3,
+      stressLevel: 2,
+      isSick: false,
+      hasActiveInjury: true,
+      healthQuestionsAnswered: true,
+      musclePains: { isquiotibiales: 6 },
+      injuryScores: { [INJURY_ID]: 4 },
+      notes: '',
     });
   });
 
@@ -112,11 +106,8 @@ describe('CheckInPage with active injury scores', () => {
       </MemoryRouter>,
     );
 
-  it('keeps the injury score when reopening and updating the check-in', async () => {
+  it('keeps the injury score when reopening an unsent check-in and resubmits it', async () => {
     renderPage();
-
-    const editButton = await screen.findByRole('button', { name: /Editar respuestas/i });
-    fireEvent.click(editButton);
 
     fireEvent.click(await screen.findByRole('button', { name: /Paso 3: Dolor y Zonas/i }));
 
@@ -134,5 +125,36 @@ describe('CheckInPage with active injury scores', () => {
     const [athleteId, payload] = vi.mocked(seguimientoService.submitCheckIn).mock.calls[0];
     expect(athleteId).toBe(ATHLETE_ID);
     expect(payload.injuries).toEqual([{ injuryId: INJURY_ID, level: 4 }]);
+
+    expect(checkInHelper.getCheckInDraft(ATHLETE_ID)).toBeNull();
+    const completedKeys = Array.from({ length: localStorage.length }, (_, index) =>
+      localStorage.key(index),
+    ).filter((key): key is string =>
+      Boolean(key?.startsWith(`protraining_checkin_completed_${ATHLETE_ID}_`)),
+    );
+    expect(completedKeys).toHaveLength(1);
+    const stored = localStorage.getItem(completedKeys[0]) ?? '';
+    expect(stored).toContain('trafficLight');
+    expect(stored).not.toContain('injuryScores');
+    expect(stored).not.toContain('isquiotibiales');
+    expect(stored).not.toContain('notes');
+  });
+
+  it('discards legacy completed records that kept the medical draft', async () => {
+    const legacyKey = `protraining_checkin_completed_${ATHLETE_ID}_2026-11-01`;
+    localStorage.setItem(
+      legacyKey,
+      JSON.stringify({
+        result: { trafficLight: 'Red' },
+        draft: { notes: 'Dolor persistente' },
+        completedAt: '2026-11-01T08:00:00Z',
+      }),
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(localStorage.getItem(legacyKey)).toBeNull();
+    });
   });
 });

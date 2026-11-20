@@ -69,9 +69,6 @@ describe('DailyTrafficLightWidget navigation to the athlete check-in', () => {
         trafficLight: 'Red',
         trafficLightReason: 'Lesión activa reportada',
       },
-      draft: {
-        sleepHours: 8,
-      } as never,
       completedAt: '2026-11-09T08:00:00Z',
     });
 
