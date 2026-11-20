@@ -12,7 +12,7 @@ import {
 } from './generated/asistente';
 import { extractErrorMessage } from './axiosClient';
 
-// Con Ollama la generación puede tardar entre 30 y 60 segundos: damos margen de 120 s
+// El agente de IA y su cadena de respaldo pueden demorar más de 15 s: damos margen de 120 s
 // por encima del timeout general de 15 s de httpClient.
 const AI_GENERATION_TIMEOUT_MS = 120_000;
 

@@ -17,7 +17,7 @@ export type {
   RejectDayAdjustmentRequest,
 };
 
-// Con Ollama la generación de la justificación puede demorar más de 15 s:
+// La generación de la justificación con IA puede demorar más de 15 s:
 // damos margen de 120 s igual que en planDrafts.ts.
 const AI_GENERATION_TIMEOUT_MS = 120_000;
 

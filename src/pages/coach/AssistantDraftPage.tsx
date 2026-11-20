@@ -69,10 +69,10 @@ function formatProviderLabel(provider: string): string {
   if (normalized === 'rules' || normalized === 'reglas') {
     return 'Reglas';
   }
-  if (normalized === 'ollama') {
-    return 'Ollama';
+  if (normalized === 'openai' || normalized === 'agente (openai)') {
+    return 'OpenAI';
   }
-  if (normalized === 'gemini') {
+  if (normalized === 'gemini' || normalized === 'agente (gemini)') {
     return 'Gemini';
   }
   return provider;
