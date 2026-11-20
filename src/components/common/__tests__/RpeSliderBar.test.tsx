@@ -118,4 +118,14 @@ describe('RpeSliderBar', () => {
     fireEvent.click(level8Btn);
     expect(handleChange).not.toHaveBeenCalled();
   });
+
+  it('renderiza rótulos descriptivos de la escala ("Suave", "Duro", etc.) para mobile', () => {
+    render(<RpeSliderBar value={7} onChange={vi.fn()} />);
+
+    expect(screen.getByText('1-2 Suave')).toBeDefined();
+    expect(screen.getByText('3-4 Moderado')).toBeDefined();
+    expect(screen.getByText('5-6 Exigente')).toBeDefined();
+    expect(screen.getByText('7-8 Duro')).toBeDefined();
+    expect(screen.getByText('9-10 Máximo')).toBeDefined();
+  });
 });

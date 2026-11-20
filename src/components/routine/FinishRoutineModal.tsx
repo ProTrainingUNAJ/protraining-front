@@ -612,30 +612,20 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
             )}
 
             {/* Botones Cancelar y Confirmar */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <div className="finish-routine-footer-actions">
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-secondary finish-routine-cancel-btn"
                 onClick={onClose}
                 disabled={isSubmitting}
-                style={{ flex: 1, padding: '0.75rem' }}
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary finish-routine-confirm-btn"
                 onClick={handleConfirm}
                 disabled={isSubmitting}
-                style={{
-                  flex: 2,
-                  padding: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  fontWeight: 900,
-                }}
               >
                 {isSubmitting ? (
                   <span>Guardando carga...</span>

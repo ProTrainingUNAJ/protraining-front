@@ -7,6 +7,7 @@ export interface RpeSliderBarProps {
   id?: string;
   className?: string;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
 /**
@@ -18,6 +19,7 @@ export interface RpeSliderBarProps {
  * - 5-6: Amarillo / Ámbar (Exigente)
  * - 7-8: Naranja / Coral (Muy Duro)
  * - 9-10: Rojo (Máximo)
+ * Incluye rótulos descriptivos de la escala ("Suave", "Duro", etc.) visibles en mobile.
  */
 export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
   value,
@@ -25,6 +27,7 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
   id,
   className = '',
   disabled = false,
+  ariaLabel = 'Escala de esfuerzo RPE (1-10)',
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -128,7 +131,7 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
         }}
         disabled={disabled}
         className="rpe-slider-native-input"
-        aria-label="Escala de esfuerzo RPE (1-10)"
+        aria-label={ariaLabel}
       />
 
       {/* Pista continua tipo barra de carga deslizable (Imagen 3) */}
@@ -187,6 +190,15 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
             </button>
           );
         })}
+      </div>
+
+      {/* Rótulos descriptivos de la escala de Foster ("Suave", "Duro", etc.) visibles en mobile y desktop */}
+      <div className="rpe-slider-scale-legend" aria-hidden="true">
+        <span className="rpe-slider-scale-label">1-2 Suave</span>
+        <span className="rpe-slider-scale-label">3-4 Moderado</span>
+        <span className="rpe-slider-scale-label">5-6 Exigente</span>
+        <span className="rpe-slider-scale-label">7-8 Duro</span>
+        <span className="rpe-slider-scale-label">9-10 Máximo</span>
       </div>
     </div>
   );
