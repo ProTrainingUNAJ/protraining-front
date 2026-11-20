@@ -40,4 +40,20 @@ describe('PhotoUploadControl Component', () => {
       expect(handleDelete).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('rejects files larger than 5 MB before calling upload', async () => {
+    const handleUpload = vi.fn().mockResolvedValue(undefined);
+    render(<PhotoUploadControl name="Julián Pérez" onUpload={handleUpload} />);
+
+    const hugeFile = new File(['a'.repeat(100)], 'huge.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(hugeFile, 'size', { value: 6 * 1024 * 1024 });
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [hugeFile] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('El archivo no puede superar los 5 MB.')).toBeDefined();
+    });
+    expect(handleUpload).not.toHaveBeenCalled();
+  });
 });

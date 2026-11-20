@@ -70,6 +70,18 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
 
     event.target.value = '';
     setErrorMessage(null);
+
+    // Validación temprana en frontend (KAN-512)
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('El archivo seleccionado debe ser una imagen (JPG, PNG o WebP).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('El archivo no puede superar los 5 MB.');
+      return;
+    }
+
     setIsUploading(true);
     setUploadStep('compressing');
 
