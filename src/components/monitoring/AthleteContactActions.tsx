@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Check, Copy, MessageCircle, Send } from 'lucide-react';
 import { copyTextToClipboard } from '../../utils/clipboard';
-import { buildPfToAthleteMessage } from '../../utils/contactTemplates';
+import {
+  buildPfToAthleteAttendanceMessage,
+  buildPfToAthleteMessage,
+} from '../../utils/contactTemplates';
 import { buildTelegramLink } from '../../utils/telegram';
 import { buildWhatsAppLink } from '../../utils/whatsapp';
 import type { AthleteTrafficLightItem } from './trafficLight.types';
@@ -9,15 +12,22 @@ import type { AthleteTrafficLightItem } from './trafficLight.types';
 export interface AthleteContactActionsProps {
   athlete: AthleteTrafficLightItem;
   compact?: boolean;
+  context?: 'traffic-light' | 'attendance';
+  isPresent?: boolean;
 }
 
 export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
   athlete,
   compact = false,
+  context = 'traffic-light',
+  isPresent = false,
 }) => {
   const [telegramFeedback, setTelegramFeedback] = useState<'idle' | 'copied' | 'manual'>('idle');
 
-  const message = buildPfToAthleteMessage(athlete);
+  const message =
+    context === 'attendance'
+      ? buildPfToAthleteAttendanceMessage(athlete.name, isPresent)
+      : buildPfToAthleteMessage(athlete);
   const whatsappLink = buildWhatsAppLink(athlete.phone, message);
   const telegramLink = buildTelegramLink(athlete.telegramUsername);
 
