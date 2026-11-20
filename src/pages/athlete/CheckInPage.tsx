@@ -878,7 +878,9 @@ export const CheckInPage: React.FC = () => {
         {showConfetti && <ConfettiCelebration durationMs={4500} particleCount={140} />}
 
         {/* ── BURBUJA CONTENEDORA PRINCIPAL (MISMO ANCHO QUE SESIÓN DE MI RUTINA) ── */}
-        <div className="checkin-main-bubble">
+        <div
+          className={`checkin-main-bubble${submissionResult ? ' checkin-main-bubble--completed' : ''}`}
+        >
           {submissionResult ? (
             /* ── PANTALLA DE CONFIRMACIÓN FINAL (ADAPTADA AL ESTILO DE LOS SLIDES ANTERIORES) ── */
             <div className="checkin-slide-container">

@@ -311,7 +311,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div className="pixel-slide-card">
+      <div className="pixel-slide-card checkin-completed-card">
         {/* ── Cabecera Superior con Botón Circular Editar Respuestas a la altura del Título ── */}
         <div
           style={{
@@ -726,26 +726,8 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
 
             {/* Vista desplegable del mapa muscular anatómico */}
             {showBodyMap && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  flexWrap: 'wrap',
-                  marginTop: '1rem',
-                  paddingTop: '1rem',
-                  borderTop: '1px solid var(--border)',
-                }}
-              >
-                <div
-                  style={{
-                    flex: '1 1 200px',
-                    maxWidth: '240px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                  }}
-                >
+              <div className="checkin-completed-body-map">
+                <div className="checkin-completed-body-map-view">
                   <MuscleMapFront
                     selectedMuscles={[]}
                     musclePains={musclePains}
@@ -753,14 +735,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                     hideHeader={true}
                   />
                 </div>
-                <div
-                  style={{
-                    flex: '1 1 200px',
-                    maxWidth: '240px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className="checkin-completed-body-map-view">
                   <MuscleMapBack
                     selectedMuscles={[]}
                     musclePains={musclePains}
