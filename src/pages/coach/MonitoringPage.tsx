@@ -13,7 +13,6 @@ import {
   TrafficLightStatus,
 } from '../../components/monitoring/trafficLight.types';
 import { structureService } from '../../api/structureService';
-import { usersService } from '../../api/users';
 import {
   ATHLETE_NAME_FALLBACK,
   CATEGORY_NAME_FALLBACK,
@@ -222,13 +221,8 @@ export const MonitoringPage: React.FC = () => {
         const mapped = summaries.map((summary) => {
           const summaryId = summary.athleteId?.toLowerCase();
           const detail = athleteMap.get(summaryId);
-          const photoUrl = detail
-            ? detail.hasPhoto
-              ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
-              : detail.accountId
-                ? usersService.getMyPhotoUrl(detail.accountId)
-                : undefined
-            : getPhotoUrl(summary.athleteId);
+          const photoUrl =
+            detail && detail.hasPhoto ? getPhotoUrl(detail.id, detail.photoUpdatedAt) : undefined;
 
           const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
           return {
@@ -298,13 +292,8 @@ export const MonitoringPage: React.FC = () => {
         const mapped = summaries.map((summary) => {
           const summaryId = summary.athleteId?.toLowerCase();
           const detail = athleteMap.get(summaryId);
-          const photoUrl = detail
-            ? detail.hasPhoto
-              ? getPhotoUrl(detail.id, detail.photoUpdatedAt)
-              : detail.accountId
-                ? usersService.getMyPhotoUrl(detail.accountId)
-                : undefined
-            : getPhotoUrl(summary.athleteId);
+          const photoUrl =
+            detail && detail.hasPhoto ? getPhotoUrl(detail.id, detail.photoUpdatedAt) : undefined;
 
           const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
           return {
@@ -1352,10 +1341,9 @@ export const MonitoringPage: React.FC = () => {
                     const detail = categoryAthletes.find(
                       (a) => a.id.toLowerCase() === athlete.athleteId.toLowerCase(),
                     );
-                    const photoUrl = detail?.hasPhoto
-                      ? structureService.getAthletePhotoUrl(detail.id, detail.photoUpdatedAt)
-                      : detail?.accountId
-                        ? usersService.getMyPhotoUrl(detail.accountId)
+                    const photoUrl =
+                      detail && detail.hasPhoto
+                        ? structureService.getAthletePhotoUrl(detail.id, detail.photoUpdatedAt)
                         : undefined;
 
                     const totalMinutes = athlete.totalMinutes ?? 0;

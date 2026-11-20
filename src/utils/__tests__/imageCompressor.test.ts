@@ -57,6 +57,15 @@ describe('imageCompressor utility', () => {
     expect(WEBP_QUALITY).toBe(0.85);
   });
 
+  it('rejects files larger than 5 MB before sending or compressing', async () => {
+    const hugeFile = new File(['a'.repeat(100)], 'huge-image.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(hugeFile, 'size', { value: 6 * 1024 * 1024 });
+
+    await expect(compressAndConvertToWebp(hugeFile)).rejects.toThrow(
+      'El archivo no puede superar los 5 MB',
+    );
+  });
+
   it('rejects non-image files with clear message', async () => {
     const textFile = new File(['dummy text content'], 'document.txt', { type: 'text/plain' });
     await expect(compressAndConvertToWebp(textFile)).rejects.toThrow(
@@ -64,7 +73,7 @@ describe('imageCompressor utility', () => {
     );
   });
 
-  it('accepts image files and processes successfully', async () => {
+  it('accepts image files and processes successfully with square crop', async () => {
     const pngFile = new File(['fake-png-data'], 'test-avatar.png', { type: 'image/png' });
     const result = await compressAndConvertToWebp(pngFile);
     expect(result).toBeDefined();

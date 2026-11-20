@@ -7,6 +7,7 @@
 export const MAX_IMAGE_DIMENSION = 500;
 export const WEBP_QUALITY = 0.85;
 export const MAX_FILE_SIZE_BYTES = 200 * 1024; // 200 KB
+export const MAX_INPUT_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export interface CompressImageOptions {
   maxDimension?: number;
@@ -15,6 +16,8 @@ export interface CompressImageOptions {
 
 /**
  * Comprime y convierte un archivo de imagen (JPEG, PNG, etc.) a WebP.
+ * Realiza un recorte a cuadrado (1:1 centrado) y redimensiona a un máximo de 500x500 px.
+ * Valida que la imagen de entrada no supere los 5 MB y la salida no supere 200 KB.
  * @param file Archivo original seleccionado por el usuario.
  * @param options Opciones de compresión opcionales (máxima dimensión y calidad).
  * @returns Archivo comprimido en formato image/webp.
@@ -30,6 +33,10 @@ export async function compressAndConvertToWebp(
     throw new Error('El archivo seleccionado debe ser una imagen (JPG, PNG o WebP).');
   }
 
+  if (file.size > MAX_INPUT_FILE_SIZE_BYTES) {
+    throw new Error('El archivo no puede superar los 5 MB.');
+  }
+
   // Si el entorno no soporta Canvas (por ejemplo pruebas unitarias en jsdom sin canvas nativo),
   // se valida el tamaño y se devuelve el archivo original si ya es WebP o si no se puede instanciar Image.
   if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
@@ -43,21 +50,15 @@ export async function compressAndConvertToWebp(
       const img = new Image();
       img.onerror = () => reject(new Error('No se pudo decodificar la imagen seleccionada.'));
       img.onload = () => {
-        let { width, height } = img;
-
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          } else {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
-        }
+        // Recorte a cuadrado (1:1 centrado)
+        const minDim = Math.min(img.width, img.height);
+        const sx = Math.round((img.width - minDim) / 2);
+        const sy = Math.round((img.height - minDim) / 2);
+        const targetDim = Math.min(minDim, maxDimension);
 
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = targetDim;
+        canvas.height = targetDim;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -65,7 +66,7 @@ export async function compressAndConvertToWebp(
           return;
         }
 
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, targetDim, targetDim);
 
         canvas.toBlob(
           (blob) => {
