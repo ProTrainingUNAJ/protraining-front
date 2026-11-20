@@ -475,7 +475,12 @@ export const TrainingPage: React.FC = () => {
                       role="button"
                       aria-label={`Ver técnica y anatomía de ${ex.name}`}
                     >
-                      <ExerciseGifImage images={ex.images} media={ex.media} name={ex.name} />
+                      <ExerciseGifImage
+                        images={ex.images}
+                        media={ex.media}
+                        name={ex.name}
+                        showCredit={false}
+                      />
                     </div>
 
                     <div className="exercise-card-header-meta">
