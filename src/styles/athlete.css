@@ -865,6 +865,44 @@
   color: var(--text-muted);
 }
 
+.routine-save-error-banner {
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.routine-save-error-content {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.routine-save-error-icon {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.routine-save-error-text {
+  font-size: 0.88rem;
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.routine-save-error-close {
+  background: none;
+  border: none;
+  color: var(--danger-text);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Botón disparador de técnica en la tarjeta */
 .routine-tech-btn {
   display: inline-flex;
@@ -2752,4 +2790,42 @@
   .finish-routine-return-btn {
     width: 100%;
   }
+}
+
+.routine-save-error-banner {
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.routine-save-error-content {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.routine-save-error-icon {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.routine-save-error-text {
+  font-size: 0.88rem;
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.routine-save-error-close {
+  background: none;
+  border: none;
+  color: var(--danger-text);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
