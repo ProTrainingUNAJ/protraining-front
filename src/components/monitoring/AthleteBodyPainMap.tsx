@@ -257,8 +257,9 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                   width: '9px',
                   height: '9px',
                   borderRadius: '50%',
-                  background: item.level === 6 ? '#000000' : item.hex,
-                  border: item.level === 6 ? '1px solid #000000' : '1px solid var(--border)',
+                  background: item.level === 6 ? 'var(--text-main)' : item.hex,
+                  border:
+                    item.level === 6 ? '1px solid var(--text-main)' : '1px solid var(--border)',
                 }}
               />
               <span style={{ color: item.level === 6 ? 'var(--text-main)' : undefined }}>
@@ -278,7 +279,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
             const isInjury = p.level === 6;
             const paletteItem = OFFICIAL_PALETTE_ITEMS.find((it) => it.level === p.level);
             const color = isInjury
-              ? '#000000'
+              ? 'var(--text-main)'
               : paletteItem
                 ? paletteItem.hex
                 : 'var(--traffic-red)';
@@ -294,7 +295,7 @@ export const AthleteBodyPainMap: React.FC<AthleteBodyPainMapProps> = ({
                   padding: '0.45rem 0.75rem',
                   background: 'var(--bg-card)',
                   borderRadius: '10px',
-                  border: isInjury ? '1.5px solid #111827' : '1px solid var(--border)',
+                  border: isInjury ? '1.5px solid var(--text-main)' : '1px solid var(--border)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>

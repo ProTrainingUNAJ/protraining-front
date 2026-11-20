@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, AlertTriangle, Check, Loader2, Search, Users } from 'lucide-react';
+import { Activity, AlertTriangle, Check, Loader2, Pencil, Plus, Search, Users } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
 import { AthleteContactActions } from '../../components/monitoring/AthleteContactActions';
 import { AthleteAvatar } from '../../components/monitoring/AthleteAvatar';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
+import { AttendanceLoadModal } from '../../components/attendance/AttendanceLoadModal';
 import { dayAdjustmentsService } from '../../api/dayAdjustments';
 import {
   AthleteTrafficLightItem,
@@ -128,6 +129,16 @@ export const MonitoringPage: React.FC = () => {
     }>;
   } | null>(null);
   const [adjustmentAthlete, setAdjustmentAthlete] = useState<AthleteTrafficLightItem | null>(null);
+  const [loadModalAthlete, setLoadModalAthlete] = useState<{
+    id: string;
+    name: string;
+    activities?: Array<{
+      type: string;
+      name: string;
+      minutes: number;
+      rpe?: number | null;
+    }>;
+  } | null>(null);
 
   // 1. Cargar las categorías del preparador físico (orgs → categorías)
   useEffect(() => {
@@ -1552,9 +1563,15 @@ export const MonitoringPage: React.FC = () => {
                                 width: '30px',
                                 height: '30px',
                                 borderRadius: '9999px',
-                                border: isPresent ? '1px solid #a7f3d0' : '1px solid var(--border)',
-                                background: isPresent ? '#ecfdf5' : 'var(--bg-subtle)',
-                                color: isPresent ? '#047857' : 'var(--text-muted)',
+                                border: isPresent
+                                  ? '1px solid var(--traffic-green-border)'
+                                  : '1px solid var(--border)',
+                                background: isPresent
+                                  ? 'var(--traffic-green-bg)'
+                                  : 'var(--bg-subtle)',
+                                color: isPresent
+                                  ? 'var(--traffic-green-text)'
+                                  : 'var(--text-muted)',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1569,7 +1586,9 @@ export const MonitoringPage: React.FC = () => {
                               style={{
                                 fontSize: '0.74rem',
                                 fontWeight: 700,
-                                color: isPresent ? '#10b981' : 'var(--text-muted)',
+                                color: isPresent
+                                  ? 'var(--traffic-green-text)'
+                                  : 'var(--text-muted)',
                                 lineHeight: 1,
                                 whiteSpace: 'nowrap',
                               }}
@@ -1717,7 +1736,7 @@ export const MonitoringPage: React.FC = () => {
                                     : '0%',
                                 height: '100%',
                                 background:
-                                  'linear-gradient(90deg, #10b981 0%, #0284c7 50%, #f59e0b 100%)',
+                                  'linear-gradient(90deg, var(--traffic-green) 0%, var(--primary) 50%, var(--traffic-yellow) 100%)',
                                 borderRadius: '9999px',
                                 transition: 'width 0.3s ease',
                               }}
@@ -1731,52 +1750,136 @@ export const MonitoringPage: React.FC = () => {
                             borderTop: '1px solid var(--border)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.65rem',
+                            justifyContent: 'space-between',
+                            gap: '0.5rem',
                             borderRadius: '8px',
                             padding: '0.5rem 0.65rem',
-                            height: '54px',
+                            minHeight: '54px',
                             boxSizing: 'border-box',
                           }}
                         >
                           <div
                             style={{
-                              width: '4px',
-                              height: '32px',
-                              borderRadius: '4px',
-                              backgroundColor: isPresent ? '#10b981' : 'var(--traffic-gray)',
-                              flexShrink: 0,
-                            }}
-                          />
-
-                          <div
-                            style={{
                               display: 'flex',
-                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '0.65rem',
                               minWidth: 0,
                               flex: 1,
                             }}
                           >
-                            <p
+                            <div
                               style={{
-                                margin: 0,
-                                fontSize: '0.78rem',
-                                fontWeight: 700,
-                                color: isPresent ? '#047857' : 'var(--text-muted)',
-                                lineHeight: 1.25,
+                                width: '4px',
+                                height: '32px',
+                                borderRadius: '4px',
+                                backgroundColor: isPresent
+                                  ? 'var(--traffic-green)'
+                                  : 'var(--traffic-gray)',
+                                flexShrink: 0,
+                              }}
+                            />
+
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                minWidth: 0,
+                                flex: 1,
                               }}
                             >
-                              {isPresent ? 'Carga del día registrada' : 'Sin registro de carga hoy'}
-                            </p>
-                            <span
-                              style={{
-                                fontSize: '0.7rem',
-                                color: 'var(--text-muted)',
-                                marginTop: '2px',
-                              }}
-                            >
-                              Tocar tarjeta para ver detalle y actividades
-                            </span>
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  color: isPresent
+                                    ? 'var(--traffic-green-text)'
+                                    : 'var(--text-muted)',
+                                  lineHeight: 1.25,
+                                }}
+                              >
+                                {isPresent
+                                  ? 'Carga del día registrada'
+                                  : 'Sin registro de carga hoy'}
+                              </p>
+                              <span
+                                style={{
+                                  fontSize: '0.7rem',
+                                  color: 'var(--text-muted)',
+                                  marginTop: '2px',
+                                }}
+                              >
+                                Tocar tarjeta para ver detalle y actividades
+                              </span>
+                            </div>
                           </div>
+
+                          {/* Botón de Carga / Edición según Criterio KAN-621 */}
+                          {isPresent ? (
+                            <button
+                              type="button"
+                              data-testid={`edit-load-btn-${athlete.athleteId}`}
+                              aria-label={`Editar Carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLoadModalAthlete({
+                                  id: athlete.athleteId,
+                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                  activities: athlete.activities,
+                                });
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                                background: 'transparent',
+                                border: '1px solid var(--border)',
+                                color: 'var(--primary)',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                padding: '0.3rem 0.55rem',
+                                borderRadius: '8px',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Pencil size={12} />
+                              <span>Editar Carga</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              data-testid={`load-btn-${athlete.athleteId}`}
+                              aria-label={`+ Cargar minutos y RPE a ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLoadModalAthlete({
+                                  id: athlete.athleteId,
+                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                  activities: athlete.activities,
+                                });
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                                background:
+                                  'color-mix(in srgb, var(--primary) 10%, var(--bg-card))',
+                                border:
+                                  '1px solid color-mix(in srgb, var(--primary) 35%, var(--border))',
+                                color: 'var(--primary)',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                padding: '0.3rem 0.55rem',
+                                borderRadius: '8px',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Plus size={12} />
+                              <span>+ Cargar minutos y RPE</span>
+                            </button>
+                          )}
                         </div>
 
                         <div
@@ -1852,6 +1955,22 @@ export const MonitoringPage: React.FC = () => {
                   },
                 }));
               }
+            }}
+          />
+        )}
+
+        {/* Modal de Carga de Asistencia y RPE (KAN-621) */}
+        {loadModalAthlete && (
+          <AttendanceLoadModal
+            key={loadModalAthlete.id}
+            isOpen={Boolean(loadModalAthlete)}
+            athleteId={loadModalAthlete.id}
+            athleteName={loadModalAthlete.name}
+            initialActivities={loadModalAthlete.activities}
+            onClose={() => setLoadModalAthlete(null)}
+            onSuccess={() => {
+              setLoadModalAthlete(null);
+              refreshAttendance();
             }}
           />
         )}
