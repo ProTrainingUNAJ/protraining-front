@@ -1459,7 +1459,11 @@ export const RoutinePage: React.FC = () => {
                             color: 'var(--text-main)',
                           }}
                         >
-                          {selectedExerciseForModal.percentage}% 1RM
+                          {(selectedExerciseForModal as RoutineExerciseItem).exerciseType ===
+                            'Distance' ||
+                          (selectedExerciseForModal as RoutineExerciseItem).exerciseType === 'Time'
+                            ? `${selectedExerciseForModal.percentage}%`
+                            : `${selectedExerciseForModal.percentage}% 1RM`}
                         </span>
                       </div>
                     </>

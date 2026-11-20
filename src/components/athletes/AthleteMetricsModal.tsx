@@ -23,7 +23,6 @@ interface AthleteMetricsModalProps {
 }
 
 const WEIGHT_MAX_KG = 500;
-const TIME_MAX_SECONDS = 600;
 
 function formatDate(isoDateTime: string): string {
   return new Date(isoDateTime).toLocaleDateString('es-AR', {
@@ -31,15 +30,9 @@ function formatDate(isoDateTime: string): string {
   });
 }
 
-function isTimedExercise(exerciseName?: string, exerciseType?: string): boolean {
-  if (exerciseType === 'Distance' || exerciseType === 'Time') return true;
-  if (!exerciseName) return false;
-  return /pasadas|sprint|trote|carrera|running/i.test(exerciseName);
-}
-
-function formatRecordValue(value: number, exerciseName?: string, exerciseType?: string): string {
+function formatRecordKg(value: number): string {
   const formatted = value.toLocaleString('es-AR', { maximumFractionDigits: 2 });
-  return isTimedExercise(exerciseName, exerciseType) ? `${formatted} s` : `${formatted} kg`;
+  return `${formatted} kg`;
 }
 
 export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
@@ -216,15 +209,9 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
       return;
     }
     const weightKg = Number(weight.replace(',', '.'));
-    const isTimed = isTimedExercise(exercise.name, exercise.exerciseType);
-    const maxAllowed = isTimed ? TIME_MAX_SECONDS : WEIGHT_MAX_KG;
 
-    if (Number.isNaN(weightKg) || weightKg <= 0 || weightKg > maxAllowed) {
-      setRecordsError(
-        isTimed
-          ? `Ingresá un tiempo válido mayor a 0 y hasta ${TIME_MAX_SECONDS} segundos.`
-          : `Ingresá un peso válido mayor a 0 y hasta ${WEIGHT_MAX_KG} kg.`,
-      );
+    if (Number.isNaN(weightKg) || weightKg <= 0 || weightKg > WEIGHT_MAX_KG) {
+      setRecordsError(`Ingresá un peso válido mayor a 0 y hasta ${WEIGHT_MAX_KG} kg.`);
       return;
     }
 
@@ -242,11 +229,7 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
         );
       });
 
-      setSavedMessage(
-        isTimed
-          ? `Marca de ${exercise.name} guardada: ${weightKg} s.`
-          : `Récord de ${exercise.name} guardado: ${weightKg} kg.`,
-      );
+      setSavedMessage(`Récord de ${exercise.name} guardado: ${weightKg} kg.`);
       setExercise(null);
       setWeight('');
       setOrigin('TestedInSession');
@@ -419,19 +402,13 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                         marginBottom: '0.25rem',
                       }}
                     >
-                      {exercise && isTimedExercise(exercise.name, exercise.exerciseType)
-                        ? 'Tiempo récord (segundos) *'
-                        : '1RM (kilogramos) *'}
+                      1RM (kilogramos) *
                     </label>
                     <input
                       type="number"
                       step="0.1"
                       min="0.1"
-                      placeholder={
-                        exercise && isTimedExercise(exercise.name, exercise.exerciseType)
-                          ? 'Ej. 14.2'
-                          : 'Ej. 110'
-                      }
+                      placeholder="Ej. 110"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
                       disabled={savingRecord}
@@ -522,7 +499,7 @@ export const AthleteMetricsModal: React.FC<AthleteMetricsModalProps> = ({
                       <div
                         style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--primary)' }}
                       >
-                        {formatRecordValue(r.weightKg, r.exerciseName)}
+                        {formatRecordKg(r.weightKg)}
                       </div>
                     </div>
                   ))}
