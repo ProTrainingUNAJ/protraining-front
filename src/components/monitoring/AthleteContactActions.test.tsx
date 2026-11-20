@@ -63,4 +63,42 @@ describe('AthleteContactActions', () => {
     });
     expect(await screen.findByText(/Copiá este mensaje manualmente para Telegram/i)).toBeTruthy();
   });
+
+  it('en contexto attendance con atleta ausente usa mensaje de invitación a completar rutina', () => {
+    render(
+      <AthleteContactActions
+        athlete={{
+          ...baseAthlete,
+          status: 'green',
+          phone: '+54 9 11 2345-6789',
+        }}
+        context="attendance"
+        isPresent={false}
+      />,
+    );
+
+    const wa = screen.getByRole('link', { name: /Contactar a Lucas Fernández por WhatsApp/i });
+    const href = decodeURIComponent(wa.getAttribute('href') ?? '');
+    expect(href).toContain('todavía no registraste tu entrenamiento de hoy');
+    expect(href).toContain('para que se tome el presente');
+  });
+
+  it('en contexto attendance con atleta presente usa mensaje de felicitación por la sesión', () => {
+    render(
+      <AthleteContactActions
+        athlete={{
+          ...baseAthlete,
+          status: 'gray',
+          phone: '+54 9 11 2345-6789',
+        }}
+        context="attendance"
+        isPresent={true}
+      />,
+    );
+
+    const wa = screen.getByRole('link', { name: /Contactar a Lucas Fernández por WhatsApp/i });
+    const href = decodeURIComponent(wa.getAttribute('href') ?? '');
+    expect(href).toContain('vi que ya registraste tu carga de hoy en ProTraining');
+    expect(href).toContain('¡Excelente sesión!');
+  });
 });

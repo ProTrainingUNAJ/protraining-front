@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildAthleteToPfMessage, buildPfToAthleteMessage } from './contactTemplates';
+import {
+  buildAthleteToPfMessage,
+  buildPfToAthleteAttendanceMessage,
+  buildPfToAthleteMessage,
+} from './contactTemplates';
 
 describe('contactTemplates', () => {
   it('prioriza enfermedad sobre otros estados', () => {
@@ -48,5 +52,19 @@ describe('contactTemplates', () => {
   it('genera plantilla fija para atleta hacia PF', () => {
     expect(buildAthleteToPfMessage('Lucas')).toContain('soy Lucas');
     expect(buildAthleteToPfMessage()).toContain('ProTraining');
+  });
+
+  it('genera plantilla de asistencia para atleta ausente invitándolo a completar la rutina', () => {
+    const msg = buildPfToAthleteAttendanceMessage('Joaquín Díaz', false);
+    expect(msg).toBe(
+      'Hola Joaquín, todavía no registraste tu entrenamiento de hoy en ProTraining. Acordate de completar tu rutina para que se tome el presente en la sesión.',
+    );
+  });
+
+  it('genera plantilla de asistencia para atleta presente felicitándolo por su sesión', () => {
+    const msg = buildPfToAthleteAttendanceMessage('Lucas Gómez', true);
+    expect(msg).toBe(
+      'Hola Lucas, vi que ya registraste tu carga de hoy en ProTraining. ¡Excelente sesión!',
+    );
   });
 });

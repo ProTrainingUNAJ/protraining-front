@@ -684,6 +684,25 @@
     box-shadow 0.25s ease;
 }
 
+/* ── KAN-627: la tarjeta de confirmación crece con el mapa anatómico desplegado ── */
+/* Sólo este slide puede superar los 812px sin sacar las siluetas del fondo blanco. */
+.pixel-slide-card.checkin-completed-card {
+  height: auto;
+}
+
+/* En escritorio se conserva la altura visual original en el estado contraído. */
+@media (min-width: 769px) {
+  .pixel-slide-card.checkin-completed-card {
+    min-height: 812px;
+  }
+}
+
+/* El contenido de la confirmación crece hacia abajo sin desplazar el PageHeader. */
+.checkin-main-bubble--completed {
+  justify-content: flex-start;
+  padding-bottom: 1rem;
+}
+
 @media (max-width: 768px) {
   .pixel-slide-card,
   .pixel-mood-card,
@@ -1112,6 +1131,26 @@
     padding: 0.85rem;
     gap: 0.85rem;
   }
+}
+
+/* ── KAN-627: contenedor de las siluetas en Check-in completado ── */
+.checkin-completed-body-map {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding: 1rem 0 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.checkin-completed-body-map-view {
+  flex: 1 1 200px;
+  max-width: 240px;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
 }
 
 .checkin-summary-item {

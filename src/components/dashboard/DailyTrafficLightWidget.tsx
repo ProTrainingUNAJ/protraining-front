@@ -24,6 +24,8 @@ const setCachedAthleteId = (userId: string, id: string) => {
   }
 };
 
+const ATHLETE_CHECK_IN_PATH = '/athlete/check-in';
+
 export type TrafficLightColor = 'Green' | 'Yellow' | 'Red';
 
 interface CheckInLocalResult {
@@ -316,7 +318,7 @@ export const DailyTrafficLightWidget: React.FC = () => {
           <button
             type="button"
             className="dtl-widget__btn-action dtl-widget__btn-action--primary"
-            onClick={() => navigate('/athlete/checkin')}
+            onClick={() => navigate(ATHLETE_CHECK_IN_PATH)}
             aria-label="Completar Check-in de hoy"
           >
             <Sparkles size={14} />
@@ -327,7 +329,7 @@ export const DailyTrafficLightWidget: React.FC = () => {
           <button
             type="button"
             className="dtl-widget__btn-action dtl-widget__btn-action--secondary"
-            onClick={() => navigate('/athlete/checkin')}
+            onClick={() => navigate(ATHLETE_CHECK_IN_PATH)}
             aria-label="Ver o actualizar mi Check-in de hoy"
           >
             Ver o actualizar mi Check-in

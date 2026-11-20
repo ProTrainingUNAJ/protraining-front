@@ -104,4 +104,51 @@ describe('ExercisePickerModal', () => {
 
     expect(await screen.findByText('No hay ejercicios para ese músculo.')).toBeTruthy();
   });
+
+  it('does not render sub-muscle chips container when Pecho or Core is selected (KAN-633)', async () => {
+    render(<ExercisePickerModal onClose={vi.fn()} onSelect={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pecho' }));
+
+    await waitFor(() => {
+      expect(exercisesService.search).toHaveBeenCalledWith(
+        '',
+        1,
+        12,
+        false,
+        true,
+        'Pecho',
+        undefined,
+      );
+    });
+
+    expect(screen.queryByLabelText('Filtro por músculo puntual')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Pecho' })).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Core' }));
+
+    await waitFor(() => {
+      expect(exercisesService.search).toHaveBeenCalledWith(
+        '',
+        1,
+        12,
+        false,
+        true,
+        'Core',
+        undefined,
+      );
+    });
+
+    expect(screen.queryByLabelText('Filtro por músculo puntual')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Abdominales' })).toBeNull();
+  });
+
+  it('renders Cuello without duplicating Hombros subchip when Hombros is selected (KAN-633)', async () => {
+    render(<ExercisePickerModal onClose={vi.fn()} onSelect={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hombros' }));
+
+    expect(await screen.findByRole('button', { name: 'Cuello' })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Hombros' })).toHaveLength(1);
+  });
 });

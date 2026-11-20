@@ -12,6 +12,9 @@ import {
   registerPf as registerPfSdk,
   confirmEmail as confirmEmailSdk,
   resendConfirmation as resendConfirmationSdk,
+  getGoogleLinkStatus as getGoogleLinkStatusSdk,
+  linkGoogleAccount as linkGoogleAccountSdk,
+  unlinkGoogleAccount as unlinkGoogleAccountSdk,
   type RegisterPfResponse,
   type ConfirmEmailResponse,
   type ResendConfirmationResponse,
@@ -95,6 +98,48 @@ export const authService = {
 
     saveStoredSession(session);
     return session;
+  },
+
+  /**
+   * Consulta si el usuario autenticado tiene una cuenta de Google vinculada (KAN-541).
+   */
+  async getGoogleLinkStatus(): Promise<boolean> {
+    try {
+      const { data } = await getGoogleLinkStatusSdk({ throwOnError: true });
+      return Boolean(data.googleLinked);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Vincula explícitamente una cuenta de Google al usuario autenticado tras reautenticar con contraseña (KAN-541).
+   */
+  async linkGoogleAccount(idToken: string, currentPassword: string): Promise<boolean> {
+    try {
+      const { data } = await linkGoogleAccountSdk({
+        body: { idToken, currentPassword },
+        throwOnError: true,
+      });
+      return Boolean(data.googleLinked);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Desvincula la cuenta de Google del usuario autenticado tras reautenticar con contraseña (KAN-541).
+   */
+  async unlinkGoogleAccount(currentPassword: string): Promise<boolean> {
+    try {
+      const { data } = await unlinkGoogleAccountSdk({
+        body: { currentPassword },
+        throwOnError: true,
+      });
+      return Boolean(data.googleLinked);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
   },
 
   /**

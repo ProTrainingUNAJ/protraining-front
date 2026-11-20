@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetGoogleLinkStatusData, GetGoogleLinkStatusErrors, GetGoogleLinkStatusResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LinkGoogleAccountData, LinkGoogleAccountErrors, LinkGoogleAccountResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UnlinkGoogleAccountData, UnlinkGoogleAccountErrors, UnlinkGoogleAccountResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -34,13 +34,57 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
 });
 
 /**
- * Iniciar sesión o vincular cuenta con Google (KAN-541)
+ * Iniciar sesión con Google (KAN-541)
  *
- * Autentica mediante un ID Token verificado de Google para usuarios existentes en ProTraining. No realiza auto-registro.
+ * Autentica únicamente a usuarios existentes que ya tengan su cuenta de Google vinculada explícitamente mediante Google Subject. No vincula automáticamente por correo ni realiza auto-registro.
  */
 export const googleLogin = <ThrowOnError extends boolean = false>(options: Options<GoogleLoginData, ThrowOnError>): RequestResult<GoogleLoginResponses, GoogleLoginErrors, ThrowOnError> => (options.client ?? client).post<GoogleLoginResponses, GoogleLoginErrors, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/auth/google',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Desvincular cuenta de Google (KAN-541)
+ *
+ * Elimina la vinculación de Google del usuario autenticado tras reautenticar con su contraseña actual. No permite desvincular si no existe contraseña local.
+ */
+export const unlinkGoogleAccount = <ThrowOnError extends boolean = false>(options: Options<UnlinkGoogleAccountData, ThrowOnError>): RequestResult<UnlinkGoogleAccountResponses, UnlinkGoogleAccountErrors, ThrowOnError> => (options.client ?? client).delete<UnlinkGoogleAccountResponses, UnlinkGoogleAccountErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/google/link',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Consultar estado de vinculación con Google (KAN-541)
+ *
+ * Indica si el usuario autenticado posee una cuenta de Google vinculada sin exponer el Google Subject.
+ */
+export const getGoogleLinkStatus = <ThrowOnError extends boolean = false>(options?: Options<GetGoogleLinkStatusData, ThrowOnError>): RequestResult<GetGoogleLinkStatusResponses, GetGoogleLinkStatusErrors, ThrowOnError> => (options?.client ?? client).get<GetGoogleLinkStatusResponses, GetGoogleLinkStatusErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/google/link',
+    ...options
+});
+
+/**
+ * Vincular explícitamente cuenta de Google (KAN-541)
+ *
+ * Vincula una cuenta de Google verificada al usuario autenticado, exigiendo reautenticación con contraseña actual y coincidencia de correo.
+ */
+export const linkGoogleAccount = <ThrowOnError extends boolean = false>(options: Options<LinkGoogleAccountData, ThrowOnError>): RequestResult<LinkGoogleAccountResponses, LinkGoogleAccountErrors, ThrowOnError> => (options.client ?? client).post<LinkGoogleAccountResponses, LinkGoogleAccountErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/google/link',
     ...options,
     headers: {
         'Content-Type': 'application/json',

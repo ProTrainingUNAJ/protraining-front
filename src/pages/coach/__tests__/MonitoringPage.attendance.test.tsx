@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { MonitoringPage } from '../MonitoringPage';
 import { structureService } from '../../../api/structureService';
@@ -401,10 +401,13 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
     fireEvent.click(card);
 
-    const wa = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i });
+    const dialog = await screen.findByRole('dialog');
+    const wa = await within(dialog).findByRole('link', {
+      name: /Contactar a Joaquín Díaz por WhatsApp/i,
+    });
     expect(wa.getAttribute('href')).toContain('https://wa.me/5491150000002?text=');
     expect(
-      screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i }),
+      within(dialog).queryByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i }),
     ).toBeNull();
   });
 
@@ -432,10 +435,13 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
     fireEvent.click(card);
 
-    const tg = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i });
+    const dialog = await screen.findByRole('dialog');
+    const tg = await within(dialog).findByRole('link', {
+      name: /Contactar a Joaquín Díaz por Telegram/i,
+    });
     expect(tg.getAttribute('href')).toBe('https://t.me/joaquin_diaz');
     expect(
-      screen.queryByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i }),
+      within(dialog).queryByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i }),
     ).toBeNull();
   });
 
@@ -463,9 +469,12 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
     fireEvent.click(card);
 
-    const wa = await screen.findByRole('link', { name: /Contactar a Joaquín Díaz por WhatsApp/i });
+    const dialog = await screen.findByRole('dialog');
+    const wa = await within(dialog).findByRole('link', {
+      name: /Contactar a Joaquín Díaz por WhatsApp/i,
+    });
     expect(wa.getAttribute('href')).toContain('https://wa.me/5491150000002?text=');
-    const tg = screen.getByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i });
+    const tg = within(dialog).getByRole('link', { name: /Contactar a Joaquín Díaz por Telegram/i });
     expect(tg.getAttribute('href')).toBe('https://t.me/joaquin_diaz');
   });
 
@@ -493,6 +502,61 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Joaquín Díaz/i);
     fireEvent.click(card);
 
-    expect(await screen.findByText(/Sin canales de contacto/i)).toBeTruthy();
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText(/Sin canales de contacto/i)).toBeTruthy();
+  });
+
+  it('en tarjetas de Asistencia & RPE usa mensaje de ausente para quien no registró entrenamiento y de felicitación para quien está presente (KAN-503)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const absentCard = await screen.findByLabelText(
+      /Ver detalle de asistencia y carga de Joaquín Díaz/i,
+    );
+    const presentCard = await screen.findByLabelText(
+      /Ver detalle de asistencia y carga de Lucas Gómez/i,
+    );
+
+    const absentWaLinks = within(absentCard).getAllByRole('link', {
+      name: /Contactar a Joaquín Díaz por WhatsApp/i,
+    });
+    expect(absentWaLinks).toHaveLength(1);
+    const absentHref = decodeURIComponent(absentWaLinks[0].getAttribute('href') ?? '');
+    expect(absentHref).toContain('todavía no registraste tu entrenamiento de hoy');
+    expect(absentHref).toContain('para que se tome el presente');
+
+    const presentWaLinks = within(presentCard).getAllByRole('link', {
+      name: /Contactar a Lucas Gómez por WhatsApp/i,
+    });
+    expect(presentWaLinks).toHaveLength(1);
+    const presentHref = decodeURIComponent(presentWaLinks[0].getAttribute('href') ?? '');
+    expect(presentHref).toContain('vi que ya registraste tu carga de hoy en ProTraining');
+    expect(presentHref).toContain('¡Excelente sesión!');
+  });
+
+  it('mantiene sin regresiones el mensaje de Semáforo en la pestaña Semáforo del Día (KAN-503)', async () => {
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasReportedToday: true,
+        trafficLight: 'Red',
+        trafficLightReason: 'Bajar carga',
+        resultValue: 20,
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const wa = await screen.findByRole('link', { name: /Contactar a Lucas Gómez por WhatsApp/i });
+    const href = decodeURIComponent(wa.getAttribute('href') ?? '');
+    expect(href).toContain('check-in de hoy en rojo');
   });
 });
