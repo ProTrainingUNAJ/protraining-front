@@ -111,7 +111,11 @@ export const CheckInPage: React.FC = () => {
   const [activeInjuries, setActiveInjuries] = useState<
     { id: string; zone: string; description: string }[]
   >([]);
-  const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>({});
+  const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>(() => {
+    const raw = initialCompleted ? initialCompleted.draft.injuryScores : initialDraft?.injuryScores;
+    return raw || {};
+  });
+  const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
 
   const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(() => {
     if (initialCompleted) return initialCompleted.draft.healthQuestionsAnswered;
@@ -194,6 +198,7 @@ export const CheckInPage: React.FC = () => {
       setHealthQuestionsAnswered(completed.draft.healthQuestionsAnswered);
       const cPains = completed.draft.musclePains || {};
       setMusclePains(completed.draft.hasActiveInjury ? cPains : clearInjuryPains(cPains));
+      setInjuryScores(completed.draft.injuryScores || {});
       setNotes(completed.draft.notes || '');
       return;
     }
@@ -214,6 +219,7 @@ export const CheckInPage: React.FC = () => {
       setHealthQuestionsAnswered(draft.healthQuestionsAnswered);
       const dPains = draft.musclePains || {};
       setMusclePains(draft.hasActiveInjury ? dPains : clearInjuryPains(dPains));
+      setInjuryScores(draft.injuryScores || {});
       setNotes(draft.notes || '');
     }
   }, []);
@@ -258,15 +264,21 @@ export const CheckInPage: React.FC = () => {
           injuries.map((i) => ({ id: i.id, zone: i.zone, description: i.description })),
         );
         setInjuryScores((prev) => {
-          const next: Record<string, number | null> = { ...prev };
+          const next: Record<string, number | null> = {};
           for (const injury of injuries) {
-            if (next[injury.id] === undefined) next[injury.id] = null;
+            next[injury.id] = prev[injury.id] ?? null;
           }
           return next;
         });
+        setInjuriesLoadWarning(null);
       })
       .catch(() => {
-        if (!cancelled) setActiveInjuries([]);
+        if (!cancelled) {
+          setActiveInjuries([]);
+          setInjuriesLoadWarning(
+            'No se pudieron cargar tus molestias activas. Recargá la página para poder puntuarlas.',
+          );
+        }
       });
     return () => {
       cancelled = true;
@@ -291,6 +303,7 @@ export const CheckInPage: React.FC = () => {
       hasActiveInjury,
       healthQuestionsAnswered,
       musclePains,
+      injuryScores,
       notes,
     });
   }, [
@@ -309,6 +322,7 @@ export const CheckInPage: React.FC = () => {
     hasActiveInjury,
     healthQuestionsAnswered,
     musclePains,
+    injuryScores,
     notes,
   ]);
 
@@ -330,6 +344,7 @@ export const CheckInPage: React.FC = () => {
       hasActiveInjury,
       healthQuestionsAnswered,
       musclePains,
+      injuryScores,
       notes,
     });
   };
@@ -488,6 +503,7 @@ export const CheckInPage: React.FC = () => {
         hasActiveInjury,
         healthQuestionsAnswered,
         musclePains,
+        injuryScores,
         notes,
       });
       return;
@@ -679,6 +695,7 @@ export const CheckInPage: React.FC = () => {
           hasActiveInjury,
           healthQuestionsAnswered,
           musclePains,
+          injuryScores,
           notes,
         },
         completedAt: new Date().toISOString(),
@@ -833,6 +850,27 @@ export const CheckInPage: React.FC = () => {
           >
             <AlertTriangle size={16} />
             <span>{athleteResolutionError}</span>
+          </div>
+        )}
+
+        {/* Aviso si no se pudieron cargar las molestias activas */}
+        {injuriesLoadWarning && (
+          <div
+            style={{
+              background: 'var(--warning-bg-strong)',
+              color: 'var(--warning-text)',
+              border: '1px solid var(--warning)',
+              borderRadius: '8px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+            }}
+          >
+            <AlertTriangle size={16} />
+            <span>{injuriesLoadWarning}</span>
           </div>
         )}
 
