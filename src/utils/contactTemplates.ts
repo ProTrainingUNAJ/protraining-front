@@ -70,3 +70,16 @@ export function buildAthleteToPfMessage(athleteName?: string): string {
   }
   return 'Hola profe, te escribo desde ProTraining para consultarte sobre mi entrenamiento.';
 }
+
+/**
+ * Genera una plantilla fija en español para contactar al atleta según su estado de asistencia del día.
+ */
+export function buildPfToAthleteAttendanceMessage(athleteName: string, isPresent: boolean): string {
+  const firstName = getFirstName(athleteName);
+
+  if (!isPresent) {
+    return `Hola ${firstName}, todavía no registraste tu entrenamiento de hoy en ProTraining. Acordate de completar tu rutina para que se tome el presente en la sesión.`;
+  }
+
+  return `Hola ${firstName}, vi que ya registraste tu carga de hoy en ProTraining. ¡Excelente sesión!`;
+}

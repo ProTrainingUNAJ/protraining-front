@@ -4,6 +4,7 @@ import { Activity, AlertTriangle, Check, Loader2, Search, Users } from 'lucide-r
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
+import { AthleteContactActions } from '../../components/monitoring/AthleteContactActions';
 import { AthleteAvatar } from '../../components/monitoring/AthleteAvatar';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
 import { dayAdjustmentsService } from '../../api/dayAdjustments';
@@ -1359,6 +1360,33 @@ export const MonitoringPage: React.FC = () => {
 
                     const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
+                    const baseAttendanceItem: AthleteTrafficLightItem = athleteTraffic ?? {
+                      id: athlete.athleteId,
+                      name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                      position: '',
+                      category: selectedCategory?.name ?? 'Plantel',
+                      status: isPresent ? 'green' : 'gray',
+                      statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
+                      recommendation: isPresent
+                        ? 'Atleta presente con carga registrada en el día.'
+                        : 'Atleta sin registro de carga ni asistencia en el día.',
+                      avatarUrl: photoUrl,
+                      phone: detail?.phone ?? null,
+                      telegramUsername: detail?.telegramUsername ?? null,
+                    };
+
+                    const attendanceContactItem: AthleteTrafficLightItem = {
+                      ...baseAttendanceItem,
+                      avatarUrl: baseAttendanceItem.avatarUrl || photoUrl,
+                      phone: baseAttendanceItem.phone ?? detail?.phone ?? null,
+                      telegramUsername:
+                        baseAttendanceItem.telegramUsername ?? detail?.telegramUsername ?? null,
+                      activities: athlete.activities,
+                      totalMinutes: athlete.totalMinutes ?? totalMinutes,
+                      totalLoad: athlete.totalLoad ?? totalLoad,
+                      rpe: baseAttendanceItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
+                    };
+
                     return (
                       <div
                         key={athlete.athleteId}
@@ -1813,6 +1841,21 @@ export const MonitoringPage: React.FC = () => {
                               Tocar tarjeta para ver detalle y actividades
                             </span>
                           </div>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: '0.55rem',
+                            paddingTop: '0.55rem',
+                            borderTop: '1px solid var(--border)',
+                          }}
+                        >
+                          <AthleteContactActions
+                            athlete={attendanceContactItem}
+                            compact
+                            context="attendance"
+                            isPresent={isPresent}
+                          />
                         </div>
                       </div>
                     );
