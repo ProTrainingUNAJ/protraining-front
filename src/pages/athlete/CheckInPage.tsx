@@ -34,6 +34,8 @@ import {
   saveCheckInDraft,
   clearCheckInDraft,
   hasRequiredInjuryMark,
+  hasUnscoredActiveInjuries,
+  getInjuryScoreColor,
   clearInjuryPains,
 } from '../../components/athlete/checkin/checkInHelper';
 
@@ -531,13 +533,8 @@ export const CheckInPage: React.FC = () => {
       return;
     }
 
-    // No avanzar si falta puntuar alguna molestia activa.
-    if (
-      stepNum > 3 &&
-      activeInjuries.some(
-        (injury) => injuryScores[injury.id] === null || injuryScores[injury.id] === undefined,
-      )
-    ) {
+    // No avanzar si falta puntuar alguna molestia activa (KAN-487).
+    if (stepNum > 3 && hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
       setErrorMessage(
         'Debés puntuar el dolor (0 a 10) de cada molestia activa para poder avanzar.',
       );
@@ -653,12 +650,8 @@ export const CheckInPage: React.FC = () => {
       level: injuryScores[injury.id] as number,
     }));
 
-    // No se puede guardar sin puntuar cada molestia activa.
-    if (
-      activeInjuries.some(
-        (injury) => injuryScores[injury.id] === null || injuryScores[injury.id] === undefined,
-      )
-    ) {
+    // No se puede guardar sin puntuar cada molestia activa (KAN-487).
+    if (hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
       setErrorMessage('Falta puntuar el dolor de cada molestia activa (de 0 a 10).');
       setIsSubmitting(false);
       return;
@@ -995,7 +988,7 @@ export const CheckInPage: React.FC = () => {
                                     injuryScores[injury.id] === level
                                       ? 'var(--primary)'
                                       : 'var(--bg-secondary)',
-                                  color: injuryScores[injury.id] === level ? 'white' : 'inherit',
+                                  color: getInjuryScoreColor(injuryScores[injury.id] === level),
                                   border: '1px solid var(--border)',
                                   borderRadius: '4px',
                                   cursor: 'pointer',

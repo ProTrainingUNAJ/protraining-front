@@ -11,6 +11,8 @@ import {
   getFatigueLabel,
   getSorenessLabel,
   getSleepHoursLabel,
+  hasUnscoredActiveInjuries,
+  getInjuryScoreColor,
 } from '../checkInHelper';
 
 describe('checkInHelper', () => {
@@ -310,6 +312,40 @@ describe('checkInHelper', () => {
       saveCheckInCompleted(athleteId, mockCompleted);
       const retrieved = getCheckInCompleted(athleteId);
       expect(retrieved).toEqual(mockCompleted);
+    });
+  });
+});
+
+// KAN-487: una molestia activa sin puntaje bloquea el avance y el envío del check-in.
+describe('checkInHelper · KAN-487', () => {
+  describe('hasUnscoredActiveInjuries', () => {
+    it('bloquea cuando una molestia activa no tiene puntaje', () => {
+      const injuries = [{ id: 'rodilla' }, { id: 'hombro' }];
+      const scores = { rodilla: 4, hombro: null };
+
+      expect(hasUnscoredActiveInjuries(injuries, scores)).toBe(true);
+    });
+
+    it('bloquea cuando la molestia activa no está en el payload', () => {
+      expect(hasUnscoredActiveInjuries([{ id: 'rodilla' }], {})).toBe(true);
+    });
+
+    it('acepta 0 como puntaje válido', () => {
+      expect(hasUnscoredActiveInjuries([{ id: 'rodilla' }], { rodilla: 0 })).toBe(false);
+    });
+
+    it('no bloquea si no hay molestias activas', () => {
+      expect(hasUnscoredActiveInjuries([], {})).toBe(false);
+    });
+  });
+
+  describe('getInjuryScoreColor', () => {
+    it('usa un token CSS para el botón seleccionado', () => {
+      expect(getInjuryScoreColor(true)).toBe('var(--on-primary)');
+    });
+
+    it('deja el color por defecto para el botón no seleccionado', () => {
+      expect(getInjuryScoreColor(false)).toBe('inherit');
     });
   });
 });

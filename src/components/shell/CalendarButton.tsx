@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { structureService } from '../../api/structureService';
+import { ATHLETE_CHECK_IN_PATH } from '../../routerPaths';
 import { matchService } from '../../services/matchService';
 import {
   seasonPlanningService,
@@ -612,7 +613,7 @@ export const CalendarButton: React.FC = () => {
                         className="shell-calendar-agenda-item"
                         onClick={() => {
                           setOpen(false);
-                          navigate('/athlete/check-in');
+                          navigate(ATHLETE_CHECK_IN_PATH);
                         }}
                         title="Ir a check-in diario"
                       >

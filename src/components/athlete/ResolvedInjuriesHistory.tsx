@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { listResolvedInjuries, AthleteInjury } from '../../api/seguimientoService';
+import { getPeakPainLabel } from './resolvedInjuriesHistoryHelper';
 
 function formatDate(isoDateTime: string): string {
   return new Date(isoDateTime).toLocaleDateString('es-AR', {
@@ -69,9 +70,7 @@ export function ResolvedInjuriesHistory({ athleteId }: ResolvedInjuriesHistoryPr
           <div className="injury-item-dates">
             <span>Lesión: {formatDate(injury.injuryDate)}</span>
             {injury.clearedAt && <span>Alta: {formatDate(injury.clearedAt)}</span>}
-            <span>
-              Pico de dolor: {injury.peakPain != null ? `${injury.peakPain}/10` : 'Sin registros'}
-            </span>
+            <span>Pico de dolor: {getPeakPainLabel(injury.peakPain)}</span>
           </div>
         </li>
       ))}

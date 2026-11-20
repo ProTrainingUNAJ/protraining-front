@@ -43,10 +43,11 @@ export default defineConfig({
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
-        // Exclude non-essential heavy images from initial PWA precache
+        // KAN-514: NO ignorar 'assets/*Page-*.js'. Eso sacaba del precache el check-in y la
+        // rutina de hoy, así que con la PWA recién instalada y sin conexión no cargaban.
+        // Solo se excluyen imágenes y fuentes pesadas que no son del flujo offline.
         globIgnores: [
           'assets/isotype-gradient.png',
-          'assets/*Page-*.js',
           'assets/EvolutionRangeSelector-*.js',
           'assets/*anatomy*.webp',
           'assets/*silhouette*.webp',
