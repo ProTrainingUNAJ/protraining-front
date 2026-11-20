@@ -39,6 +39,17 @@ const STATUS_ORDER: Record<TrafficLightStatus, number> = {
   green: 3,
 };
 
+function resolveAthleteContactFields(detail?: Athlete) {
+  const isMinor = Boolean(detail?.isMinor);
+  return {
+    phone: isMinor ? null : (detail?.phone ?? null),
+    telegramUsername: isMinor ? null : (detail?.telegramUsername ?? null),
+    isMinor,
+    guardianPhone: detail?.guardianConsent?.guardianPhone ?? null,
+    guardianName: detail?.guardianConsent?.guardianName ?? null,
+  };
+}
+
 export const MonitoringPage: React.FC = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -224,8 +235,7 @@ export const MonitoringPage: React.FC = () => {
             ...item,
             position: item.position,
             avatarUrl: photoUrl,
-            phone: detail?.phone ?? null,
-            telegramUsername: detail?.telegramUsername ?? null,
+            ...resolveAthleteContactFields(detail),
           };
         });
 
@@ -301,8 +311,7 @@ export const MonitoringPage: React.FC = () => {
             ...item,
             position: item.position,
             avatarUrl: photoUrl,
-            phone: detail?.phone ?? null,
-            telegramUsername: detail?.telegramUsername ?? null,
+            ...resolveAthleteContactFields(detail),
           };
         });
 
@@ -1359,6 +1368,7 @@ export const MonitoringPage: React.FC = () => {
                       athleteTraffic?.status ?? (isPresent ? 'green' : 'gray');
 
                     const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+                    const contactFields = resolveAthleteContactFields(detail);
 
                     const baseAttendanceItem: AthleteTrafficLightItem = athleteTraffic ?? {
                       id: athlete.athleteId,
@@ -1371,16 +1381,22 @@ export const MonitoringPage: React.FC = () => {
                         ? 'Atleta presente con carga registrada en el día.'
                         : 'Atleta sin registro de carga ni asistencia en el día.',
                       avatarUrl: photoUrl,
-                      phone: detail?.phone ?? null,
-                      telegramUsername: detail?.telegramUsername ?? null,
+                      ...contactFields,
                     };
 
                     const attendanceContactItem: AthleteTrafficLightItem = {
                       ...baseAttendanceItem,
                       avatarUrl: baseAttendanceItem.avatarUrl || photoUrl,
-                      phone: baseAttendanceItem.phone ?? detail?.phone ?? null,
-                      telegramUsername:
-                        baseAttendanceItem.telegramUsername ?? detail?.telegramUsername ?? null,
+                      phone: contactFields.isMinor
+                        ? null
+                        : (baseAttendanceItem.phone ?? contactFields.phone),
+                      telegramUsername: contactFields.isMinor
+                        ? null
+                        : (baseAttendanceItem.telegramUsername ?? contactFields.telegramUsername),
+                      isMinor: baseAttendanceItem.isMinor ?? contactFields.isMinor,
+                      guardianPhone:
+                        baseAttendanceItem.guardianPhone ?? contactFields.guardianPhone,
+                      guardianName: baseAttendanceItem.guardianName ?? contactFields.guardianName,
                       activities: athlete.activities,
                       totalMinutes: athlete.totalMinutes ?? totalMinutes,
                       totalLoad: athlete.totalLoad ?? totalLoad,
@@ -1398,32 +1414,7 @@ export const MonitoringPage: React.FC = () => {
                             totalLoad,
                             activities: athlete.activities ?? [],
                           });
-                          const baseItem: AthleteTrafficLightItem = athleteTraffic ?? {
-                            id: athlete.athleteId,
-                            name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                            position: '',
-                            category: selectedCategory?.name ?? 'Plantel',
-                            status: isPresent ? 'green' : 'gray',
-                            statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
-                            recommendation: isPresent
-                              ? 'Atleta presente con carga registrada en el día.'
-                              : 'Atleta sin registro de carga ni asistencia en el día.',
-                            avatarUrl: photoUrl,
-                            phone: detail?.phone ?? null,
-                            telegramUsername: detail?.telegramUsername ?? null,
-                          };
-
-                          setSelectedAthlete({
-                            ...baseItem,
-                            avatarUrl: baseItem.avatarUrl || photoUrl,
-                            phone: baseItem.phone ?? detail?.phone ?? null,
-                            telegramUsername:
-                              baseItem.telegramUsername ?? detail?.telegramUsername ?? null,
-                            activities: athlete.activities,
-                            totalMinutes: athlete.totalMinutes ?? totalMinutes,
-                            totalLoad: athlete.totalLoad ?? totalLoad,
-                            rpe: baseItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
-                          });
+                          setSelectedAthlete(attendanceContactItem);
                         }}
                         role="button"
                         tabIndex={0}
@@ -1436,31 +1427,7 @@ export const MonitoringPage: React.FC = () => {
                               totalLoad,
                               activities: athlete.activities ?? [],
                             });
-                            const baseItem: AthleteTrafficLightItem = athleteTraffic ?? {
-                              id: athlete.athleteId,
-                              name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                              position: '',
-                              category: selectedCategory?.name ?? 'Plantel',
-                              status: isPresent ? 'green' : 'gray',
-                              statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
-                              recommendation: isPresent
-                                ? 'Atleta presente con carga registrada en el día.'
-                                : 'Atleta sin registro de carga ni asistencia en el día.',
-                              avatarUrl: photoUrl,
-                              phone: detail?.phone ?? null,
-                              telegramUsername: detail?.telegramUsername ?? null,
-                            };
-                            setSelectedAthlete({
-                              ...baseItem,
-                              avatarUrl: baseItem.avatarUrl || photoUrl,
-                              phone: baseItem.phone ?? detail?.phone ?? null,
-                              telegramUsername:
-                                baseItem.telegramUsername ?? detail?.telegramUsername ?? null,
-                              activities: athlete.activities,
-                              totalMinutes: athlete.totalMinutes ?? totalMinutes,
-                              totalLoad: athlete.totalLoad ?? totalLoad,
-                              rpe: baseItem.rpe ?? athlete.activities?.[0]?.rpe ?? undefined,
-                            });
+                            setSelectedAthlete(attendanceContactItem);
                           }
                         }}
                         style={{
@@ -1509,26 +1476,7 @@ export const MonitoringPage: React.FC = () => {
                                   totalLoad,
                                   activities: athlete.activities ?? [],
                                 });
-                                const itemToSelect: AthleteTrafficLightItem = athleteTraffic ?? {
-                                  id: athlete.athleteId,
-                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                  position: 'Atleta',
-                                  category: selectedCategoryName,
-                                  status: 'gray',
-                                  statusLabel: 'Sin Check-in',
-                                  recommendation: 'Sin check-in completado el día de hoy.',
-                                  avatarUrl: photoUrl,
-                                  phone: detail?.phone ?? null,
-                                  telegramUsername: detail?.telegramUsername ?? null,
-                                };
-                                setSelectedAthlete({
-                                  ...itemToSelect,
-                                  phone: itemToSelect.phone ?? detail?.phone ?? null,
-                                  telegramUsername:
-                                    itemToSelect.telegramUsername ??
-                                    detail?.telegramUsername ??
-                                    null,
-                                });
+                                setSelectedAthlete(attendanceContactItem);
                               }}
                               style={{
                                 cursor: 'pointer',

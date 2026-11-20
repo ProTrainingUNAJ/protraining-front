@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetGoogleLinkStatusData, GetGoogleLinkStatusErrors, GetGoogleLinkStatusResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LinkGoogleAccountData, LinkGoogleAccountErrors, LinkGoogleAccountResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UnlinkGoogleAccountData, UnlinkGoogleAccountErrors, UnlinkGoogleAccountResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetGoogleLinkStatusData, GetGoogleLinkStatusErrors, GetGoogleLinkStatusResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LinkGoogleAccountData, LinkGoogleAccountErrors, LinkGoogleAccountResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UnlinkGoogleAccountData, UnlinkGoogleAccountErrors, UnlinkGoogleAccountResponses, UpdateMyUserTelegramData, UpdateMyUserTelegramErrors, UpdateMyUserTelegramResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -237,6 +237,23 @@ export const updateProfile = <ThrowOnError extends boolean = false>(options: Opt
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/users/me/profile',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Actualizar usuario de Telegram propio (PF y Atleta, KAN-503)
+ *
+ * Actualiza exclusivamente el usuario de Telegram del usuario autenticado (PF o Atleta). Para atletas, sincroniza primero con Estructura antes de confirmar el cambio en Identidad.
+ *
+ */
+export const updateMyUserTelegram = <ThrowOnError extends boolean = false>(options: Options<UpdateMyUserTelegramData, ThrowOnError>): RequestResult<UpdateMyUserTelegramResponses, UpdateMyUserTelegramErrors, ThrowOnError> => (options.client ?? client).put<UpdateMyUserTelegramResponses, UpdateMyUserTelegramErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/telegram',
     ...options,
     headers: {
         'Content-Type': 'application/json',

@@ -245,10 +245,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
         setProfileSaving(false);
       }
     } else {
-      setSavedSuccess(true);
-      setTimeout(() => {
-        setSavedSuccess(false);
-      }, 3000);
+      const tgValidationError = validateTelegramUsername(telegramUsername);
+      if (tgValidationError) {
+        setTelegramError(tgValidationError);
+        return;
+      }
+
+      try {
+        setProfileSaving(true);
+        const result = await usersService.updateMyTelegram(
+          telegramUsername.trim() ? telegramUsername.trim() : null,
+        );
+        setTelegramUsername(result.telegramUsername ?? '');
+        if (updateCurrentUser) {
+          updateCurrentUser({
+            telegramUsername: result.telegramUsername ?? null,
+          });
+        }
+        setSavedSuccess(true);
+        setTimeout(() => {
+          setSavedSuccess(false);
+        }, 3000);
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error ? err.message : 'Error al guardar el usuario de Telegram';
+        setProfileError(errorMsg);
+      } finally {
+        setProfileSaving(false);
+      }
     }
   };
 
@@ -285,18 +309,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
         title="Configuración"
         description="Preferencias del sistema, notificaciones y ajustes de cuenta."
         actions={
-          role !== 'pf' ? undefined : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleSave}
-              disabled={profileSaving}
-              title="Guardar cambios de perfil"
-            >
-              <Save size={16} aria-hidden="true" />
-              <span>{profileSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
-            </button>
-          )
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSave}
+            disabled={profileSaving}
+            title="Guardar cambios de perfil"
+          >
+            <Save size={16} aria-hidden="true" />
+            <span>{profileSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
+          </button>
         }
       />
 
@@ -574,44 +596,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                             )}
                           </div>
 
-                          {role === 'pf' && (
-                            <div>
-                              <label
-                                htmlFor="set-telegram"
+                          <div>
+                            <label
+                              htmlFor="set-telegram"
+                              style={{
+                                display: 'block',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                marginBottom: '0.35rem',
+                              }}
+                            >
+                              Usuario de Telegram (opcional)
+                            </label>
+                            <input
+                              id="set-telegram"
+                              type="text"
+                              value={telegramUsername}
+                              onChange={(e) => {
+                                setTelegramUsername(e.target.value);
+                                if (telegramError) setTelegramError(null);
+                              }}
+                              placeholder={role === 'pf' ? '@profe_juan' : '@lucas_atleta'}
+                            />
+                            {telegramError && (
+                              <span
                                 style={{
                                   display: 'block',
+                                  color: 'var(--danger-text)',
                                   fontSize: '0.85rem',
-                                  fontWeight: 600,
-                                  marginBottom: '0.35rem',
+                                  marginTop: '0.35rem',
                                 }}
+                                role="alert"
                               >
-                                Telegram (opcional)
-                              </label>
-                              <input
-                                id="set-telegram"
-                                type="text"
-                                value={telegramUsername}
-                                onChange={(e) => {
-                                  setTelegramUsername(e.target.value);
-                                  if (telegramError) setTelegramError(null);
-                                }}
-                                placeholder="@profe_juan"
-                              />
-                              {telegramError && (
-                                <span
-                                  style={{
-                                    display: 'block',
-                                    color: 'var(--danger-text)',
-                                    fontSize: '0.85rem',
-                                    marginTop: '0.35rem',
-                                  }}
-                                  role="alert"
-                                >
-                                  {telegramError}
-                                </span>
-                              )}
-                            </div>
-                          )}
+                                {telegramError}
+                              </span>
+                            )}
+                          </div>
 
                           <div>
                             <label

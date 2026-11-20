@@ -253,6 +253,10 @@ export type UpdateProfileRequest = {
     telegramUsername?: string | null;
 };
 
+export type UpdateTelegramRequest = {
+    telegramUsername?: string | null;
+};
+
 export type ProfileResponse = {
     id: string;
     email: string;
@@ -716,6 +720,47 @@ export type UpdateProfileResponses = {
 };
 
 export type UpdateProfileResponse = UpdateProfileResponses[keyof UpdateProfileResponses];
+
+export type UpdateMyUserTelegramData = {
+    body: UpdateTelegramRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/telegram';
+};
+
+export type UpdateMyUserTelegramErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Rol no permitido.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta no encontrado en Estructura.
+     */
+    404: ProblemDetails;
+    /**
+     * No se pudo sincronizar el usuario de Telegram con Estructura.
+     */
+    503: ProblemDetails;
+};
+
+export type UpdateMyUserTelegramError = UpdateMyUserTelegramErrors[keyof UpdateMyUserTelegramErrors];
+
+export type UpdateMyUserTelegramResponses = {
+    /**
+     * Usuario de Telegram actualizado exitosamente.
+     */
+    200: ProfileResponse;
+};
+
+export type UpdateMyUserTelegramResponse = UpdateMyUserTelegramResponses[keyof UpdateMyUserTelegramResponses];
 
 export type DeactivateAccountData = {
     body: DeactivateAccountRequest;

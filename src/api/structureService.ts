@@ -14,6 +14,7 @@ import {
   CreateCategoryRequest,
   UpdateCategoryRequest,
   Athlete,
+  AthleteGuardianConsent,
   CreateAthleteRequest,
   AthleteMe,
   Match,
@@ -70,6 +71,7 @@ interface RawAthlete {
   telegramUsername?: string | null;
   esMenorDeEdad?: boolean;
   isMinor?: boolean;
+  guardianConsent?: AthleteGuardianConsent | null;
   activo?: boolean;
   active?: boolean;
   categorias?: Array<RawAthleteCategory | string>;
@@ -132,6 +134,7 @@ function mapAthlete(raw: RawAthlete): Athlete {
     phone: raw.telefono ?? raw.phone ?? '',
     telegramUsername: raw.telegramUsername ?? null,
     isMinor: raw.esMenorDeEdad ?? raw.isMinor ?? false,
+    guardianConsent: raw.guardianConsent ?? null,
     active: raw.activo ?? raw.active ?? true,
     categories,
     categoryNames,
