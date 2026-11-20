@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { X, Dumbbell, Activity, Trophy, User, Loader2, CheckCircle2, Info } from 'lucide-react';
+import { RpeSliderBar } from '../common/RpeSliderBar';
 import {
   submitDailyLoad,
   type DailyLoadRequest,
@@ -621,34 +622,12 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
                 </div>
               </div>
 
-              <input
+              <RpeSliderBar
                 id="attendance-rpe-slider"
-                type="range"
-                min="0"
-                max="10"
-                step="1"
                 value={currentRpe}
-                onChange={(e) => handleRpeChange(parseInt(e.target.value, 10))}
-                style={{
-                  width: '100%',
-                  cursor: 'pointer',
-                  accentColor: 'var(--primary)',
-                }}
+                onChange={handleRpeChange}
+                ariaLabel="Esfuerzo Percibido (RPE)"
               />
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '0.7rem',
-                  color: 'var(--text-muted)',
-                  marginTop: '0.25rem',
-                }}
-              >
-                <span>0 (Reposo)</span>
-                <span>5 (Duro)</span>
-                <span>10 (Máximo)</span>
-              </div>
             </div>
 
             {/* Preview de UA de esta actividad */}

@@ -2677,19 +2677,51 @@
   width: 100%;
 }
 
+.finish-routine-footer-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.finish-routine-cancel-btn {
+  flex: 1;
+  padding: 0.75rem;
+  min-width: 100px;
+}
+
+.finish-routine-confirm-btn {
+  flex: 2;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 900;
+  min-width: 180px;
+}
+
 .finish-routine-celebration-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   width: 100%;
-  margin-top: 0.25rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 .finish-routine-social-group {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .finish-routine-social-btn {
@@ -2752,7 +2784,10 @@
 }
 
 .finish-routine-return-btn {
-  flex: 1;
+  flex: 1 1 180px;
+  min-width: 160px;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 44px;
   border-radius: 12px;
   font-weight: 800;
@@ -2776,19 +2811,55 @@
   animation: fadeInModal 0.2s ease;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 580px) {
+  .finish-routine-footer-actions {
+    flex-direction: column;
+  }
+
+  .finish-routine-cancel-btn,
+  .finish-routine-confirm-btn {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
   .finish-routine-celebration-actions {
     flex-direction: column;
-    gap: 1rem;
+    align-items: stretch;
+    gap: 0.85rem;
+    width: 100%;
   }
 
   .finish-routine-social-group {
     width: 100%;
     justify-content: center;
+    gap: 0.65rem;
   }
 
   .finish-routine-return-btn {
     width: 100%;
+  }
+}
+
+.rpe-slider-scale-legend {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.3rem 0.2rem 0;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.rpe-slider-scale-label {
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 480px) {
+  .rpe-slider-scale-legend {
+    font-size: 0.68rem;
+    padding: 0.2rem 0;
   }
 }
 
