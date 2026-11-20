@@ -3148,31 +3148,31 @@
   gap: 0.45rem;
 }
 
-.manage-assignments-adapt-btn {
+.btn.btn-secondary.manage-assignments-adapt-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--primary) !important;
-  border-color: color-mix(in srgb, var(--primary) 35%, transparent) !important;
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
-.manage-assignments-adapt-btn:hover {
-  background: var(--bg-subtle) !important;
-  border-color: var(--primary) !important;
+.btn.btn-secondary.manage-assignments-adapt-btn:hover {
+  background: var(--bg-subtle);
+  border-color: var(--primary);
 }
 
-.manage-assignments-adapt-danger-btn {
+.btn.btn-secondary.manage-assignments-adapt-danger-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--danger) !important;
-  border-color: color-mix(in srgb, var(--danger) 35%, transparent) !important;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
   font-weight: 600;
 }
 
-.manage-assignments-adapt-danger-btn:hover {
-  background: var(--danger-bg) !important;
-  border-color: var(--danger) !important;
+.btn.btn-secondary.manage-assignments-adapt-danger-btn:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
 }
 
 .manage-assignments-normal-status {
@@ -3248,17 +3248,17 @@
   color: var(--text-main);
 }
 
-.manage-assignments-remove-btn {
+.btn.btn-secondary.manage-assignments-remove-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--danger) !important;
-  border-color: color-mix(in srgb, var(--danger) 30%, transparent) !important;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
 }
 
-.manage-assignments-remove-btn:hover {
-  background: var(--danger-bg) !important;
-  border-color: var(--danger) !important;
+.btn.btn-secondary.manage-assignments-remove-btn:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
 }
 
 .manage-assignments-confirm-box {
@@ -3789,14 +3789,14 @@
   gap: 0.5rem;
 }
 
-.adaptation-diff-reject-trigger-btn {
-  color: var(--danger-text) !important;
-  border-color: color-mix(in srgb, var(--danger) 35%, transparent) !important;
+.btn.btn-secondary.adaptation-diff-reject-trigger-btn {
+  color: var(--danger-text);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
 }
 
-.adaptation-diff-reject-trigger-btn:hover {
-  background: var(--danger-bg) !important;
-  border-color: var(--danger) !important;
+.btn.btn-secondary.adaptation-diff-reject-trigger-btn:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
 }
 
 .adaptation-diff-edit-hint {

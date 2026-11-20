@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   generateAthleteAdaptation,
   getAthleteAdaptationContext,
@@ -16,43 +17,35 @@ import {
 } from './generated/entrenamiento';
 import { extractErrorMessage } from './axiosClient';
 
-export interface AdaptationChangeWithSubstitutes extends AdaptationChange {
-  availableSubstitutes?: AuthorizedSubstituteContext[] | null;
-}
-
-export interface GenerateAthleteAdaptationPayload extends GenerateAthleteAdaptationRequest {
-  baseExercises?: SuggestedRoutineExercise[] | null;
-}
-
-export interface RoutineAdaptationResponseWithBase extends Omit<
-  RoutineAdaptationResponse,
-  'adaptationChanges'
-> {
-  adaptationChanges?: AdaptationChangeWithSubstitutes[];
-  baseExercises?: SuggestedRoutineExercise[] | null;
-}
-
 export type AdaptationRecordContext = NonNullable<
   AthleteAdaptationContextResponse['currentRecords']
 >[number];
 
-export interface ApplyAthleteSessionAdjustmentPayload extends ApplyAthleteSessionAdjustmentRequest {
-  loadReductionPercentage?: number | null;
-}
-
-export interface AthleteSessionAdjustmentResult extends ApplyAthleteSessionAdjustmentResponse {
-  loadReductionPercentage?: number | null;
-}
-
 export type {
+  AdaptationChange,
   AthleteAdaptationContextResponse,
   AuthorizedSubstituteContext,
+  GenerateAthleteAdaptationRequest,
+  RoutineAdaptationResponse,
   SuggestedRoutineExercise,
   ApplyAthleteSessionAdjustmentRequest,
   ApplyAthleteSessionAdjustmentResponse,
 };
 
 const AI_ADAPTATION_TIMEOUT_MS = 120_000;
+
+function isNotFoundError(error: unknown): boolean {
+  if (axios.isAxiosError(error)) {
+    return error.response?.status === 404;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const candidate = error as { status?: number; response?: { status?: number } };
+    return candidate.status === 404 || candidate.response?.status === 404;
+  }
+
+  return false;
+}
 
 export const athleteAdaptationsService = {
   /**
@@ -77,16 +70,16 @@ export const athleteAdaptationsService = {
    */
   async generateAdaptation(
     athleteId: string,
-    payload: GenerateAthleteAdaptationPayload,
-  ): Promise<RoutineAdaptationResponseWithBase> {
+    payload: GenerateAthleteAdaptationRequest,
+  ): Promise<RoutineAdaptationResponse> {
     try {
       const { data } = await generateAthleteAdaptation({
         path: { athleteId },
-        body: payload as GenerateAthleteAdaptationRequest,
+        body: payload,
         timeout: AI_ADAPTATION_TIMEOUT_MS,
         throwOnError: true,
       });
-      return data as RoutineAdaptationResponseWithBase;
+      return data;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
@@ -94,21 +87,25 @@ export const athleteAdaptationsService = {
 
   /**
    * Consulta si ya existe una variante individual aprobada para una sesión, atleta y fecha (KAN-463).
+   * Devuelve null únicamente ante 404 (aún no existe variante aprobada); cualquier otro error se propaga.
    */
   async getSessionAdjustment(
     sessionId: string,
     athleteId: string,
     date?: string,
-  ): Promise<AthleteSessionAdjustmentResult | null> {
+  ): Promise<ApplyAthleteSessionAdjustmentResponse | null> {
     try {
       const { data } = await getAthleteSessionAdjustment({
         path: { sessionId },
         query: { athleteId, ...(date ? { date } : {}) },
         throwOnError: true,
       });
-      return data as AthleteSessionAdjustmentResult;
-    } catch {
-      return null;
+      return data;
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return null;
+      }
+      throw new Error(extractErrorMessage(error), { cause: error });
     }
   },
 
@@ -118,15 +115,15 @@ export const athleteAdaptationsService = {
    */
   async applySessionAdjustment(
     sessionId: string,
-    payload: ApplyAthleteSessionAdjustmentPayload,
-  ): Promise<AthleteSessionAdjustmentResult> {
+    payload: ApplyAthleteSessionAdjustmentRequest,
+  ): Promise<ApplyAthleteSessionAdjustmentResponse> {
     try {
       const { data } = await applyAthleteSessionAdjustment({
         path: { sessionId },
-        body: payload as ApplyAthleteSessionAdjustmentRequest,
+        body: payload,
         throwOnError: true,
       });
-      return data as AthleteSessionAdjustmentResult;
+      return data;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

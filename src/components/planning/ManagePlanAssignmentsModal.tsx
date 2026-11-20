@@ -15,7 +15,7 @@ import { ProfileAvatar } from '../common/ProfileAvatar';
 import { PlanAssigneeItem } from './PlanAssigneesStack';
 import { AthleteAdaptationDiffModal } from './AthleteAdaptationDiffModal';
 import { structureService } from '../../api/structureService';
-import { listAthleteInjuries } from '../../api/seguimientoService';
+import { getActiveInjuriesSummary } from '../../api/seguimientoService';
 import type { Athlete } from '../../types/structure';
 import { formatDayMonth } from '../../utils/argentinaDate';
 
@@ -128,20 +128,31 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
       }
       setAthleteInjuryStates(loadingStates);
 
-      const entries = await Promise.all(
-        allAthleteIds.map(async (athleteId): Promise<[string, AthleteInjuryCheckState]> => {
-          try {
-            const injuries = await listAthleteInjuries(athleteId);
-            const activeCount = injuries.filter((inj) => inj.status === 'Active').length;
-            return [athleteId, { status: activeCount > 0 ? 'injured' : 'normal', activeCount }];
-          } catch {
-            return [athleteId, { status: 'error', activeCount: 0 }];
-          }
-        }),
-      );
+      try {
+        const summaries = await getActiveInjuriesSummary(allAthleteIds);
+        if (!active) return;
 
-      if (!active) return;
-      setAthleteInjuryStates(Object.fromEntries(entries));
+        const countsByAthlete = new Map<string, number>(
+          summaries.map((item) => [item.athleteId, item.activeCount]),
+        );
+
+        const nextStates: Record<string, AthleteInjuryCheckState> = {};
+        for (const athleteId of allAthleteIds) {
+          const activeCount = countsByAthlete.get(athleteId) ?? 0;
+          nextStates[athleteId] = {
+            status: activeCount > 0 ? 'injured' : 'normal',
+            activeCount,
+          };
+        }
+        setAthleteInjuryStates(nextStates);
+      } catch {
+        if (!active) return;
+        const errorStates: Record<string, AthleteInjuryCheckState> = {};
+        for (const athleteId of allAthleteIds) {
+          errorStates[athleteId] = { status: 'error', activeCount: 0 };
+        }
+        setAthleteInjuryStates(errorStates);
+      }
     }
 
     loadAthletesAndInjuries();

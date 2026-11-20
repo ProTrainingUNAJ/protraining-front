@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { httpClient, extractErrorMessage } from './axiosClient';
 import {
+  getActiveInjuriesSummary as getActiveInjuriesSummarySdk,
+  type AthleteActiveInjurySummary,
+} from './generated/seguimiento';
+import {
   saveOfflineCheckIn,
   getPendingCheckIns,
   deletePendingCheckIn,
@@ -449,6 +453,27 @@ export async function listAthleteInjuries(athleteId: string): Promise<AthleteInj
     if (axios.isAxiosError(err) && err.response?.status === 404) {
       throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
     }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Resumen batch de lesiones activas (estado Active) por lote de atletas (GET `getActiveInjuriesSummary`).
+ * Evita consultas N+1 cuando se muestra una categoría completa en planificaciones (KAN-464).
+ */
+export async function getActiveInjuriesSummary(
+  athleteIds: string[],
+): Promise<AthleteActiveInjurySummary[]> {
+  const distinctIds = Array.from(new Set(athleteIds.filter(Boolean)));
+  if (distinctIds.length === 0) return [];
+
+  try {
+    const { data } = await getActiveInjuriesSummarySdk({
+      query: { athleteIds: distinctIds },
+      throwOnError: true,
+    });
+    return data ?? [];
+  } catch (err: unknown) {
     throw new Error(extractErrorMessage(err), { cause: err });
   }
 }
