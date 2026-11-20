@@ -1750,137 +1750,137 @@ export const MonitoringPage: React.FC = () => {
                             borderTop: '1px solid var(--border)',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '0.5rem',
+                            gap: '0.65rem',
                             borderRadius: '8px',
                             padding: '0.5rem 0.65rem',
-                            minHeight: '54px',
+                            height: '54px',
                             boxSizing: 'border-box',
                           }}
                         >
                           <div
                             style={{
+                              width: '4px',
+                              height: '32px',
+                              borderRadius: '4px',
+                              backgroundColor: isPresent
+                                ? 'var(--traffic-green)'
+                                : 'var(--traffic-gray)',
+                              flexShrink: 0,
+                            }}
+                          />
+
+                          <div
+                            style={{
                               display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.65rem',
+                              flexDirection: 'column',
                               minWidth: 0,
                               flex: 1,
                             }}
                           >
-                            <div
+                            <p
                               style={{
-                                width: '4px',
-                                height: '32px',
-                                borderRadius: '4px',
-                                backgroundColor: isPresent
-                                  ? 'var(--traffic-green)'
-                                  : 'var(--traffic-gray)',
-                                flexShrink: 0,
-                              }}
-                            />
-
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                minWidth: 0,
-                                flex: 1,
+                                margin: 0,
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                color: isPresent
+                                  ? 'var(--traffic-green-text)'
+                                  : 'var(--text-muted)',
+                                lineHeight: 1.25,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
                               }}
                             >
-                              <p
-                                style={{
-                                  margin: 0,
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  color: isPresent
-                                    ? 'var(--traffic-green-text)'
-                                    : 'var(--text-muted)',
-                                  lineHeight: 1.25,
-                                }}
-                              >
-                                {isPresent
-                                  ? 'Carga del día registrada'
-                                  : 'Sin registro de carga hoy'}
-                              </p>
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                  color: 'var(--text-muted)',
-                                  marginTop: '2px',
-                                }}
-                              >
-                                Tocar tarjeta para ver detalle y actividades
-                              </span>
-                            </div>
+                              {isPresent ? 'Carga del día registrada' : 'Sin registro de carga hoy'}
+                            </p>
+                            <span
+                              style={{
+                                fontSize: '0.7rem',
+                                color: 'var(--text-muted)',
+                                marginTop: '2px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              Tocar tarjeta para ver detalle y actividades
+                            </span>
                           </div>
-
-                          {/* Botón de Carga / Edición según Criterio KAN-621 */}
-                          {isPresent ? (
-                            <button
-                              type="button"
-                              data-testid={`edit-load-btn-${athlete.athleteId}`}
-                              aria-label={`Editar Carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setLoadModalAthlete({
-                                  id: athlete.athleteId,
-                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                  activities: athlete.activities,
-                                });
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                background: 'transparent',
-                                border: '1px solid var(--border)',
-                                color: 'var(--primary)',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                padding: '0.3rem 0.55rem',
-                                borderRadius: '8px',
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Pencil size={12} />
-                              <span>Editar Carga</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              data-testid={`load-btn-${athlete.athleteId}`}
-                              aria-label={`+ Cargar minutos y RPE a ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setLoadModalAthlete({
-                                  id: athlete.athleteId,
-                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                  activities: athlete.activities,
-                                });
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                background:
-                                  'color-mix(in srgb, var(--primary) 10%, var(--bg-card))',
-                                border:
-                                  '1px solid color-mix(in srgb, var(--primary) 35%, var(--border))',
-                                color: 'var(--primary)',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                padding: '0.3rem 0.55rem',
-                                borderRadius: '8px',
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Plus size={12} />
-                              <span>+ Cargar minutos y RPE</span>
-                            </button>
-                          )}
                         </div>
+
+                        {/* Botón de Carga / Edición según Criterio KAN-621 en su propia fila integrada */}
+                        {isPresent ? (
+                          <button
+                            type="button"
+                            data-testid={`edit-load-btn-${athlete.athleteId}`}
+                            aria-label={`Editar Carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLoadModalAthlete({
+                                id: athlete.athleteId,
+                                name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                activities: athlete.activities,
+                              });
+                            }}
+                            style={{
+                              width: '100%',
+                              marginTop: '0.45rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.4rem',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border)',
+                              color: 'var(--primary)',
+                              fontSize: '0.76rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              padding: '0.42rem 0.65rem',
+                              borderRadius: '8px',
+                              transition: 'all 0.15s ease',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            <Pencil size={13} />
+                            <span>Editar Carga</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            data-testid={`load-btn-${athlete.athleteId}`}
+                            aria-label={`+ Cargar minutos y RPE a ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLoadModalAthlete({
+                                id: athlete.athleteId,
+                                name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                activities: athlete.activities,
+                              });
+                            }}
+                            style={{
+                              width: '100%',
+                              marginTop: '0.45rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.4rem',
+                              background: 'color-mix(in srgb, var(--primary) 8%, var(--bg-card))',
+                              border:
+                                '1px solid color-mix(in srgb, var(--primary) 30%, var(--border))',
+                              color: 'var(--primary)',
+                              fontSize: '0.76rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              padding: '0.42rem 0.65rem',
+                              borderRadius: '8px',
+                              transition: 'all 0.15s ease',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            <Plus size={13} />
+                            <span>Cargar minutos y RPE</span>
+                          </button>
+                        )}
 
                         <div
                           style={{
