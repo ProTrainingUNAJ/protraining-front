@@ -126,6 +126,47 @@ export type CategoryAttendanceSummary = {
     athletes?: Array<AthleteAttendanceSummary>;
 };
 
+export type CategoryAttendanceMetrics = {
+    presentDays: number;
+    absentDays: number;
+    withoutRecordDays: number;
+    evaluatedAthleteDays: number;
+    attendancePercentage: number;
+};
+
+export type CategoryInjuryMetrics = {
+    activeCount: number;
+    inRecoveryCount: number;
+    clearedInPeriodCount: number;
+    athletesAffected: number;
+};
+
+export type CategoryDashboardLoadWeek = {
+    weekStart: string;
+    weekEnd: string;
+    totalLoad: number;
+    totalMinutes: number;
+    recordsCount: number;
+};
+
+export type CategoryLoadMetrics = {
+    totalLoad: number;
+    totalMinutes: number;
+    recordsCount: number;
+    weeks: Array<CategoryDashboardLoadWeek>;
+};
+
+export type CategoryDashboardSummary = {
+    categoryId: string;
+    from: string;
+    to: string;
+    athleteCount: number;
+    evaluatedDays: number;
+    attendance: CategoryAttendanceMetrics;
+    injuries: CategoryInjuryMetrics;
+    load: CategoryLoadMetrics;
+};
+
 export type AttendanceActivityDetail = {
     type: string;
     name: string;
@@ -1015,6 +1056,59 @@ export type GetCategoryAveragesResponses = {
 
 export type GetCategoryAveragesResponse = GetCategoryAveragesResponses[keyof GetCategoryAveragesResponses];
 
+export type GetCategoryDashboardSummaryData = {
+    body?: never;
+    path: {
+        categoryId: string;
+    };
+    query: {
+        /**
+         * Fecha de inicio del período (formato YYYY-MM-DD).
+         */
+        from: string;
+        /**
+         * Fecha de fin del período, inclusive (formato YYYY-MM-DD).
+         */
+        to: string;
+    };
+    url: '/api/v1/categories/{categoryId}/summary';
+};
+
+export type GetCategoryDashboardSummaryErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+    /**
+     * Servicio dependiente no disponible (Estructura o Entrenamiento no respondió tras los reintentos de Polly). La operación no se completó y puede reintentarse.
+     *
+     */
+    503: ProblemDetails;
+};
+
+export type GetCategoryDashboardSummaryError = GetCategoryDashboardSummaryErrors[keyof GetCategoryDashboardSummaryErrors];
+
+export type GetCategoryDashboardSummaryResponses = {
+    /**
+     * Resumen de la categoría obtenido con éxito.
+     */
+    200: CategoryDashboardSummary;
+};
+
+export type GetCategoryDashboardSummaryResponse = GetCategoryDashboardSummaryResponses[keyof GetCategoryDashboardSummaryResponses];
+
 export type GetGroupBenchmarkData = {
     body?: never;
     path: {
@@ -1058,7 +1152,7 @@ export type ListAthleteInjuriesData = {
         athleteId: string;
     };
     query?: {
-        status?: 'Active' | 'InRecovery' | 'Cleared';
+        status?: 'Active' | 'InRecovery' | 'MedicallyCleared';
     };
     url: '/api/v1/athletes/{athleteId}/injuries';
 };

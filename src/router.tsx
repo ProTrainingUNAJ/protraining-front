@@ -62,6 +62,11 @@ const RecordsReliabilityPage = lazyPage(() =>
     default: m.RecordsReliabilityPage,
   })),
 );
+const CategoryStatisticsPage = lazyPage(() =>
+  import('./pages/coach/CategoryStatisticsPage').then((m) => ({
+    default: m.CategoryStatisticsPage,
+  })),
+);
 const FieldTestsPage = lazyPage(() =>
   import('./pages/coach/FieldTestsPage').then((m) => ({ default: m.FieldTestsPage })),
 );
@@ -188,6 +193,7 @@ export const router = createBrowserRouter([
               { path: 'field-tests', element: <FieldTestsPage /> },
               { path: 'field-tests/:sessionId', element: <FieldTestCapturePage /> },
               { path: 'records-reliability', element: <RecordsReliabilityPage /> },
+              { path: 'category-statistics', element: <CategoryStatisticsPage /> },
               { path: 'recommendations', element: <RecommendationsPage /> },
               { path: 'reports', element: <ReportsPage /> },
               { path: 'settings', element: <SettingsPage /> },

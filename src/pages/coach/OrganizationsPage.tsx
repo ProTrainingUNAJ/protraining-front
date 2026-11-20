@@ -14,6 +14,7 @@ import {
   Users,
   QrCode,
   ArrowLeft,
+  BarChart3,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Organization, Category } from '../../types/structure';
@@ -900,6 +901,15 @@ export const OrganizationsPage: React.FC = () => {
                             >
                               <Users size={14} aria-hidden="true" />
                               <span>Ver Atletas</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="structure-btn-pill"
+                              onClick={() => navigate(`/pf/category-statistics?catId=${cat.id}`)}
+                              title="Ver presentismo, lesiones y carga de esta categoría"
+                            >
+                              <BarChart3 size={14} aria-hidden="true" />
+                              <span>Estadísticas</span>
                             </button>
                           </div>
                         </div>

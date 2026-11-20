@@ -30,6 +30,7 @@ export const coachMenuItems: CoachMenuItem[] = [
   { label: 'Recomendaciones', to: '/pf/recommendations', icon: Sparkles },
   { label: 'Tests de campo', to: '/pf/field-tests', icon: Timer },
   { label: 'Confiabilidad de récords', to: '/pf/records-reliability', icon: ShieldCheck },
+  { label: 'Estadísticas de categoría', to: '/pf/category-statistics', icon: BarChart3 },
   { label: 'Informes', to: '/pf/reports', icon: BarChart3 },
 ];
 
