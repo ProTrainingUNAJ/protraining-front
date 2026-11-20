@@ -316,8 +316,8 @@ export function GeneratePlanDraftPage() {
             <Loader2 size={36} className="plan-spin" aria-hidden="true" />
             <h2 className="plan-generating-title">Generando la planificación con IA…</h2>
             <p className="plan-generating-text">
-              El asistente está armando las semanas y validando los ejercicios del catálogo. Con
-              Ollama puede tardar entre 30 y 60 segundos.
+              El asistente está armando las semanas y validando los ejercicios del catálogo con IA.
+              Esto puede tardar unos segundos.
             </p>
             <button type="button" className="btn btn-secondary" onClick={handleCancelGeneration}>
               <X size={16} aria-hidden="true" />
