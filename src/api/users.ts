@@ -2,6 +2,7 @@ import {
   updateWhatsAppPhone as updatePhoneSdk,
   getPfContact as getPfContactSdk,
   updateProfile as updateProfileSdk,
+  updateMyUserTelegram as updateMyUserTelegramSdk,
   deactivateAccount as deactivateAccountSdk,
   type PfContact,
   type UpdatePhoneResponse,
@@ -148,6 +149,23 @@ export const usersService = {
           ...(payload.telegramUsername !== undefined
             ? { telegramUsername: payload.telegramUsername?.trim() || '' }
             : {}),
+        },
+        throwOnError: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Actualiza exclusivamente el usuario de Telegram del usuario autenticado (PF o Atleta, KAN-503).
+   */
+  async updateMyTelegram(telegramUsername?: string | null): Promise<ProfileResponse> {
+    try {
+      const { data } = await updateMyUserTelegramSdk({
+        body: {
+          telegramUsername: telegramUsername?.trim() || null,
         },
         throwOnError: true,
       });

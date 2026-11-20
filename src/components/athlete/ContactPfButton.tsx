@@ -124,11 +124,11 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
               minWidth: '240px',
               padding: '0.65rem 0.75rem',
               borderRadius: '0.5rem',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              boxShadow: '0 8px 20px rgba(15, 23, 42, 0.12)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-lg)',
               fontSize: '0.8rem',
-              color: '#0f172a',
+              color: 'var(--text-main)',
             }}
           >
             {telegramFeedback === 'copied' ? (
@@ -137,7 +137,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.35rem',
-                  color: '#15803d',
+                  color: 'var(--success-text)',
                   fontWeight: 600,
                 }}
               >
@@ -168,7 +168,9 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
                     fontSize: '0.78rem',
                     padding: '0.3rem',
                     borderRadius: '0.35rem',
-                    border: '1px solid #cbd5e1',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--text-main)',
                   }}
                 />
               </div>
@@ -209,9 +211,9 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
             minWidth: '250px',
             padding: '0.5rem',
             borderRadius: '0.5rem',
-            background: '#ffffff',
-            border: '1px solid #cbd5e1',
-            boxShadow: '0 10px 25px rgba(15, 23, 42, 0.14)',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.4rem',
@@ -248,7 +250,11 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
           {telegramFeedback === 'copied' && (
             <div
               role="status"
-              style={{ fontSize: '0.78rem', color: '#15803d', padding: '0.25rem 0.4rem' }}
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--success-text)',
+                padding: '0.25rem 0.4rem',
+              }}
             >
               Mensaje copiado al portapapeles para pegar en Telegram.
             </div>
@@ -256,7 +262,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
           {telegramFeedback === 'manual' && (
             <div
               role="status"
-              style={{ fontSize: '0.78rem', color: '#0f172a', padding: '0.25rem 0.4rem' }}
+              style={{ fontSize: '0.78rem', color: 'var(--text-main)', padding: '0.25rem 0.4rem' }}
             >
               <div style={{ fontWeight: 600, marginBottom: '0.2rem' }}>
                 Copiá este mensaje manualmente:
@@ -271,7 +277,9 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
                   fontSize: '0.75rem',
                   padding: '0.25rem',
                   borderRadius: '0.35rem',
-                  border: '1px solid #cbd5e1',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-main)',
                 }}
               />
             </div>

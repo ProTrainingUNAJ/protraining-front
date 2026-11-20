@@ -559,4 +559,75 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     const href = decodeURIComponent(wa.getAttribute('href') ?? '');
     expect(href).toContain('check-in de hoy en rojo');
   });
+
+  it('en Asistencia & RPE y Semáforo, atleta menor con tutor contacta al tutor y sin teléfono de tutor muestra mensaje exacto (KAN-503)', async () => {
+    vi.mocked(structureService.getAthletes).mockResolvedValue([
+      {
+        id: 'ath-1',
+        accountId: 'acc-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'lucas@correo.com',
+        phone: '+54 9 11 9999-1111',
+        telegramUsername: 'lucas_menor',
+        isMinor: true,
+        guardianConsent: {
+          isSigned: true,
+          consentDate: '2026-10-01T00:00:00Z',
+          isMinor: true,
+          guardianName: 'Carlos Gómez',
+          guardianPhone: '+54 9 11 4444-1111',
+          allowsPhysicalTraining: true,
+          allowsHabitsRecommendations: false,
+        },
+        hasPhoto: false,
+      },
+      {
+        id: 'ath-2',
+        accountId: 'acc-2',
+        firstName: 'Joaquín',
+        lastName: 'Díaz',
+        fullName: 'Joaquín Díaz',
+        email: 'joaquin@correo.com',
+        phone: '+54 9 11 9999-2222',
+        telegramUsername: 'joaquin_menor',
+        isMinor: true,
+        guardianConsent: {
+          isSigned: true,
+          consentDate: '2026-10-01T00:00:00Z',
+          isMinor: true,
+          guardianName: 'Ana Díaz',
+          guardianPhone: null,
+          allowsPhysicalTraining: true,
+          allowsHabitsRecommendations: false,
+        },
+        hasPhoto: false,
+      },
+    ] as unknown as import('../../../types/structure').Athlete[]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/monitoring?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const presentMinorCard = await screen.findByLabelText(
+      /Ver detalle de asistencia y carga de Lucas Gómez/i,
+    );
+    const absentMinorCard = await screen.findByLabelText(
+      /Ver detalle de asistencia y carga de Joaquín Díaz/i,
+    );
+
+    const tutorWa = within(presentMinorCard).getByRole('link', {
+      name: /Contactar al tutor de Lucas Gómez por WhatsApp/i,
+    });
+    expect(tutorWa.getAttribute('href')).toContain('https://wa.me/5491144441111?text=');
+    expect(tutorWa.getAttribute('href')).not.toContain('5491199991111');
+    expect(within(presentMinorCard).queryByRole('link', { name: /Telegram/i })).toBeNull();
+
+    expect(within(absentMinorCard).getByText('El tutor no tiene teléfono cargado')).toBeTruthy();
+    expect(within(absentMinorCard).queryByRole('link')).toBeNull();
+    expect(structureService.getAthletes).toHaveBeenCalledWith({ categoriaId: 'cat-1' });
+  });
 });

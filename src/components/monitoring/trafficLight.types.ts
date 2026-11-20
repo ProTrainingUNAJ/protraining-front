@@ -41,4 +41,7 @@ export interface AthleteTrafficLightItem {
   totalLoad?: number;
   phone?: string | null;
   telegramUsername?: string | null;
+  isMinor?: boolean;
+  guardianPhone?: string | null;
+  guardianName?: string | null;
 }

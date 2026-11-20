@@ -24,18 +24,36 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
 }) => {
   const [telegramFeedback, setTelegramFeedback] = useState<'idle' | 'copied' | 'manual'>('idle');
 
+  const isMinor = Boolean(athlete.isMinor);
+  const targetPhone = isMinor ? athlete.guardianPhone : athlete.phone;
+  const targetTelegramUsername = isMinor ? null : athlete.telegramUsername;
+
   const message =
     context === 'attendance'
       ? buildPfToAthleteAttendanceMessage(athlete.name, isPresent)
       : buildPfToAthleteMessage(athlete);
-  const whatsappLink = buildWhatsAppLink(athlete.phone, message);
-  const telegramLink = buildTelegramLink(athlete.telegramUsername);
+  const whatsappLink = buildWhatsAppLink(targetPhone, message);
+  const telegramLink = buildTelegramLink(targetTelegramUsername);
 
   const handleTelegramClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
     const copied = await copyTextToClipboard(message);
     setTelegramFeedback(copied ? 'copied' : 'manual');
   };
+
+  if (isMinor && !whatsappLink) {
+    return (
+      <span
+        style={{
+          fontSize: compact ? '0.72rem' : '0.8rem',
+          color: 'var(--text-muted)',
+          fontWeight: 600,
+        }}
+      >
+        El tutor no tiene teléfono cargado
+      </span>
+    );
+  }
 
   if (!whatsappLink && !telegramLink) {
     return (
@@ -76,8 +94,16 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="btn btn-secondary"
-            aria-label={`Contactar a ${athlete.name} por WhatsApp`}
-            title="Contactar por WhatsApp con mensaje prellenado"
+            aria-label={
+              isMinor
+                ? `Contactar al tutor de ${athlete.name} por WhatsApp`
+                : `Contactar a ${athlete.name} por WhatsApp`
+            }
+            title={
+              isMinor
+                ? 'Contactar al tutor por WhatsApp con mensaje prellenado'
+                : 'Contactar por WhatsApp con mensaje prellenado'
+            }
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -128,7 +154,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
             alignItems: 'center',
             gap: '0.3rem',
             fontSize: '0.75rem',
-            color: '#15803d',
+            color: 'var(--success-text)',
             fontWeight: 600,
           }}
         >
@@ -172,6 +198,8 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
               padding: '0.3rem',
               borderRadius: '6px',
               border: '1px solid var(--border)',
+              background: 'var(--bg-card)',
+              color: 'var(--text-main)',
             }}
           />
         </div>

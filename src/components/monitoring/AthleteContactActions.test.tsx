@@ -101,4 +101,43 @@ describe('AthleteContactActions', () => {
     expect(href).toContain('vi que ya registraste tu carga de hoy en ProTraining');
     expect(href).toContain('¡Excelente sesión!');
   });
+
+  it('atleta menor con teléfono de tutor contacta exclusivamente al tutor y nunca al menor', () => {
+    render(
+      <AthleteContactActions
+        athlete={{
+          ...baseAthlete,
+          isMinor: true,
+          phone: '+54 9 11 9999-0000',
+          telegramUsername: 'lucas_menor',
+          guardianPhone: '+54 9 11 4444-1234',
+          guardianName: 'Roberto Fernández',
+        }}
+      />,
+    );
+
+    const wa = screen.getByRole('link', {
+      name: /Contactar al tutor de Lucas Fernández por WhatsApp/i,
+    });
+    expect(wa.getAttribute('href')).toContain('https://wa.me/5491144441234?text=');
+    expect(wa.getAttribute('href')).not.toContain('5491199990000');
+    expect(screen.queryByRole('link', { name: /Telegram/i })).toBeNull();
+  });
+
+  it('atleta menor sin teléfono de tutor muestra mensaje exacto y ningún contacto al menor', () => {
+    render(
+      <AthleteContactActions
+        athlete={{
+          ...baseAthlete,
+          isMinor: true,
+          phone: '+54 9 11 9999-0000',
+          telegramUsername: 'lucas_menor',
+          guardianPhone: null,
+        }}
+      />,
+    );
+
+    expect(screen.getByText('El tutor no tiene teléfono cargado')).toBeTruthy();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
 });

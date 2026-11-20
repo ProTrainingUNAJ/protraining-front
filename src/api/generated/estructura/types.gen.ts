@@ -216,6 +216,14 @@ export type Me = {
     isMinor?: boolean;
 };
 
+export type UpdateMyTelegramRequest = {
+    telegramUsername?: string | null;
+};
+
+export type UpdateMyTelegramResponse = {
+    telegramUsername?: string | null;
+};
+
 /**
  * Estado del consentimiento digital del atleta.
  */
@@ -1036,6 +1044,43 @@ export type RegisterMyConsentResponses = {
 };
 
 export type RegisterMyConsentResponse = RegisterMyConsentResponses[keyof RegisterMyConsentResponses];
+
+export type UpdateMyTelegramData = {
+    body: UpdateMyTelegramRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/telegram';
+};
+
+export type UpdateMyTelegramErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Token JWT ausente, vencido o no válido.
+     */
+    401: ProblemDetails;
+    /**
+     * El token no es de un atleta.
+     */
+    403: ProblemDetails;
+    /**
+     * El recurso solicitado no existe.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateMyTelegramError = UpdateMyTelegramErrors[keyof UpdateMyTelegramErrors];
+
+export type UpdateMyTelegramResponses = {
+    /**
+     * Usuario de Telegram actualizado exitosamente.
+     */
+    200: UpdateMyTelegramResponse;
+};
+
+export type UpdateMyTelegramResponse2 = UpdateMyTelegramResponses[keyof UpdateMyTelegramResponses];
 
 export type ListOrganizationsData = {
     body?: never;

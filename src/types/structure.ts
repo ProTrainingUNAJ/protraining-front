@@ -44,6 +44,17 @@ export interface AthleteCategoryMembership {
   organizationName?: string;
 }
 
+export interface AthleteGuardianConsent {
+  isSigned: boolean;
+  consentDate: string;
+  isMinor: boolean;
+  guardianName?: string | null;
+  guardianEmail?: string | null;
+  guardianPhone?: string | null;
+  allowsPhysicalTraining: boolean;
+  allowsHabitsRecommendations: boolean;
+}
+
 export interface Athlete {
   id: string;
   accountId?: string | null;
@@ -54,6 +65,7 @@ export interface Athlete {
   phone: string;
   telegramUsername?: string | null;
   isMinor?: boolean;
+  guardianConsent?: AthleteGuardianConsent | null;
   active?: boolean;
   categoryNames?: string[];
   categories?: AthleteCategoryMembership[];
