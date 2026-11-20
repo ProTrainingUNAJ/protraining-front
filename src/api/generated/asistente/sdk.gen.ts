@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApplyAlertAdjustmentData, ApplyAlertAdjustmentErrors, ApplyAlertAdjustmentResponses, ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, ApproveRecommendationData, ApproveRecommendationErrors, ApproveRecommendationResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, DiscardRecommendationData, DiscardRecommendationErrors, DiscardRecommendationResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GenerateAthleteRecommendationsData, GenerateAthleteRecommendationsErrors, GenerateAthleteRecommendationsResponses, GenerateCategoryRecommendationsData, GenerateCategoryRecommendationsErrors, GenerateCategoryRecommendationsResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, GetRecommendationByIdData, GetRecommendationByIdErrors, GetRecommendationByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListMyRecommendationsData, ListMyRecommendationsErrors, ListMyRecommendationsResponses, ListRecommendationsData, ListRecommendationsErrors, ListRecommendationsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses, UpdateRecommendationData, UpdateRecommendationErrors, UpdateRecommendationResponses } from './types.gen';
+import type { ApplyAlertAdjustmentData, ApplyAlertAdjustmentErrors, ApplyAlertAdjustmentResponses, ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, ApproveRecommendationData, ApproveRecommendationErrors, ApproveRecommendationResponses, CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, DiscardRecommendationData, DiscardRecommendationErrors, DiscardRecommendationResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GenerateAthleteRecommendationsData, GenerateAthleteRecommendationsErrors, GenerateAthleteRecommendationsResponses, GenerateCategoryRecommendationsData, GenerateCategoryRecommendationsErrors, GenerateCategoryRecommendationsResponses, GetAlertByIdData, GetAlertByIdErrors, GetAlertByIdResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, GetRecommendationByIdData, GetRecommendationByIdErrors, GetRecommendationByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListMyRecommendationsData, ListMyRecommendationsErrors, ListMyRecommendationsResponses, ListRecommendationsData, ListRecommendationsErrors, ListRecommendationsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses, UpdateRecommendationData, UpdateRecommendationErrors, UpdateRecommendationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -31,6 +31,36 @@ export const listAlerts = <ThrowOnError extends boolean = false>(options?: Optio
 });
 
 /**
+ * Crear un aviso preventivo
+ *
+ * Crea y persiste un aviso preventivo para un atleta perteneciente al preparador físico autenticado. El identificador pf_id se obtiene exclusivamente del token JWT autenticado y athleteId se valida contra Estructura antes de persistir. Requiere rol PreparadorFisico.
+ *
+ */
+export const createAlert = <ThrowOnError extends boolean = false>(options: Options<CreateAlertData, ThrowOnError>): RequestResult<CreateAlertResponses, CreateAlertErrors, ThrowOnError> => (options.client ?? client).post<CreateAlertResponses, CreateAlertErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/alerts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener detalle de un aviso preventivo por ID
+ *
+ * Devuelve el detalle de un aviso preventivo perteneciente al preparador físico autenticado. Retorna 404 si el aviso no existe o pertenece a otro PF (aislamiento multi-tenant).
+ *
+ */
+export const getAlertById = <ThrowOnError extends boolean = false>(options: Options<GetAlertByIdData, ThrowOnError>): RequestResult<GetAlertByIdResponses, GetAlertByIdErrors, ThrowOnError> => (options.client ?? client).get<GetAlertByIdResponses, GetAlertByIdErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/alerts/{id}',
+    ...options
+});
+
+/**
  * Marcar alerta preventiva como revisada
  *
  * Registra la intervención del preparador físico sobre la recomendación generada.
@@ -52,19 +82,6 @@ export const applyAlertAdjustment = <ThrowOnError extends boolean = false>(optio
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/alerts/{alertId}/apply',
-    ...options
-});
-
-/**
- * Disparar escaneo preventivo inmediato
- *
- * Ejecuta el ciclo de análisis heurístico y de IA sobre las sesiones, check-ins, partidos próximos del fixture y lesiones, alertando sobre situaciones críticas.
- *
- */
-export const triggerPreventiveScan = <ThrowOnError extends boolean = false>(options?: Options<TriggerPreventiveScanData, ThrowOnError>): RequestResult<TriggerPreventiveScanResponses, TriggerPreventiveScanErrors, ThrowOnError> => (options?.client ?? client).post<TriggerPreventiveScanResponses, TriggerPreventiveScanErrors, ThrowOnError>({
-    responseType: 'json',
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/alerts/scan',
     ...options
 });
 
