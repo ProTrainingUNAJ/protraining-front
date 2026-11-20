@@ -165,6 +165,7 @@ export interface CheckInDraftData {
   hasActiveInjury: boolean;
   healthQuestionsAnswered: boolean;
   musclePains: Record<string, number>;
+  injuryScores?: Record<string, number | null>;
   notes: string;
 }
 

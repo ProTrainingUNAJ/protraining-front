@@ -82,7 +82,7 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
     const btnComplete = screen.getByRole('button', { name: /Completar Check-in de hoy/i });
     expect(btnComplete).toBeDefined();
     fireEvent.click(btnComplete);
-    expect(mockNavigate).toHaveBeenCalledWith('/athlete/checkin');
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete/check-in');
   });
 
   it('renders Green light state when check-in is optimal', async () => {
@@ -117,7 +117,7 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
     const btnView = screen.getByRole('button', { name: /Ver o actualizar mi Check-in/i });
     fireEvent.click(btnView);
-    expect(mockNavigate).toHaveBeenCalledWith('/athlete/checkin');
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete/check-in');
   });
 
   it('renders Yellow light state when check-in reports attention/fatigue', async () => {
