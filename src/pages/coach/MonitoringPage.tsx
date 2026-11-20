@@ -985,13 +985,13 @@ export const MonitoringPage: React.FC = () => {
               </div>
             )}
 
-            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366): guía de tamaño armonizada con asistencia (290px) */}
+            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366/KAN-639): alineación superior simétrica */}
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
                 gap: '1rem',
-                alignItems: 'stretch',
+                alignItems: 'start',
               }}
             >
               {filteredAthletes.map((athlete) => {

@@ -100,4 +100,15 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
     expect(screen.queryByTitle('Marcar presente')).toBeNull();
     expect(screen.queryByTitle('Presente (clic para quitar)')).toBeNull();
   });
+
+  it('mantiene layout compacto con gap y sin space-between para alineación simétrica (KAN-639)', () => {
+    const { container } = render(<AthleteTrafficLightCard athlete={baseAthlete} onClick={vi.fn()} />);
+    const cardElement = container.firstChild as HTMLElement;
+
+    expect(cardElement.style.display).toBe('flex');
+    expect(cardElement.style.flexDirection).toBe('column');
+    expect(cardElement.style.gap).toBe('0.65rem');
+    expect(cardElement.style.justifyContent).not.toBe('space-between');
+    expect(cardElement.style.height).not.toBe('100%');
+  });
 });
