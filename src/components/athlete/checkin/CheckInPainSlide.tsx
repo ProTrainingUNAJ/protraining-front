@@ -198,27 +198,8 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
 
         {/* Alerta si intenta avanzar con lesión sin marcar */}
         {!canProceed && showInjuryNotice && (
-          <div
-            className="pixel-injury-alert"
-            role="alert"
-            style={{
-              padding: '0.45rem 1.15rem',
-              borderRadius: '9999px',
-              background: 'var(--danger-bg-strong)',
-              color: 'var(--danger-text)',
-              border: '1.5px solid var(--danger)',
-              fontSize: '0.84rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontFamily: 'var(--font-base)',
-              animation: 'shakeNotice 0.35s ease',
-              boxShadow: 'var(--shadow-sm)',
-              marginBottom: '0.65rem',
-            }}
-          >
-            <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+          <div className="pixel-injury-alert" role="alert">
+            <AlertTriangle size={15} />
             <span>Debes marcar la lesion para continuar.</span>
           </div>
         )}

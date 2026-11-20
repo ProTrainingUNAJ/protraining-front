@@ -75,6 +75,18 @@ export const formatPainZones = (musclePains: Record<string, number>): string | n
   return reportedPains.map(([mId, lvl]) => `${mId}:${lvl}`).join(',');
 };
 
+// KAN-487: el front no deja avanzar ni enviar si alguna molestia activa no tiene puntaje.
+// El 0 es un puntaje válido: solo se considera "sin puntaje" null o undefined.
+export const hasUnscoredActiveInjuries = (
+  injuries: ReadonlyArray<{ id: string }>,
+  scores: Readonly<Record<string, number | null | undefined>>,
+): boolean =>
+  injuries.some((injury) => scores[injury.id] === null || scores[injury.id] === undefined);
+
+// KAN-487: el botón seleccionado usa tokens CSS, nunca un color fijo como 'white'.
+export const getInjuryScoreColor = (isSelected: boolean): string =>
+  isSelected ? 'var(--on-primary)' : 'inherit';
+
 export interface TrafficLightBadgeData {
   label: string;
   bg: string;
@@ -234,6 +246,12 @@ export const getCheckInDraft = (athleteId: string): CheckInDraftData | null => {
   }
 };
 
+/**
+ * KAN-593 · Decisión del PM: para que el check-in funcione sin conexión se permite guardar
+ * en localStorage el borrador con el dolor por lesión (excepción documentada a la regla
+ * "nada médico en localStorage"). Condición: se borra apenas se envía el check-in mediante
+ * clearCheckInDraft(athleteId), tanto en el envío online como en la sincronización offline.
+ */
 export const saveCheckInDraft = (athleteId: string, draft: CheckInDraftData): void => {
   const storage = getStorage();
   if (!storage || !athleteId) return;

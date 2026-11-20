@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type ComponentType } from 'react';
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { CoachLayout } from './layouts/CoachLayout';
@@ -6,6 +7,10 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
 import { RequireAuth } from './components/auth/RequireAuth';
+import { ATHLETE_CHECK_IN_PATH } from './routerPaths';
+
+// KAN-593: se expone desde el router para que ninguna pantalla navegue a mano.
+export { ATHLETE_CHECK_IN_PATH };
 
 // Cada pantalla se descarga recién cuando se abre: la primera carga baja solo el login y el armado de la app
 function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
@@ -119,7 +124,6 @@ const ConfirmEmailPage = lazyPage(() =>
   import('./pages/auth/ConfirmEmailPage').then((m) => ({ default: m.ConfirmEmailPage })),
 );
 
-// eslint-disable-next-line react-refresh/only-export-components
 function RootRedirect() {
   const { isAuthenticated, user, isHydrating } = useAuth();
 
@@ -200,7 +204,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <HomePage /> },
               { path: 'routine', element: <RoutinePage /> },
-              { path: 'check-in', element: <CheckInPage /> },
+              { path: ATHLETE_CHECK_IN_PATH, element: <CheckInPage /> },
               { path: 'daily-load', element: <DailyLoadPage /> },
               { path: 'progress', element: <ProgressPage /> },
               { path: 'settings', element: <AthleteSettingsPage /> },
