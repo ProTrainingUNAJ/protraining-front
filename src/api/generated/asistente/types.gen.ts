@@ -14,6 +14,21 @@ export type PreventiveAlert = {
     suggestion: string;
     reviewed: boolean;
     suggestedAdjustmentType?: 'LoadReduction' | 'RoutineAdjustment' | 'Rest';
+    suggestedAdjustmentPercentage?: number | null;
+    status?: 'Pending' | 'Reviewed' | 'Applied' | 'Dismissed';
+};
+
+export type CreatePreventiveAlertRequest = {
+    athleteId: string;
+    athleteName: string;
+    reason: string;
+    suggestion: string;
+    severity?: 'Low' | 'Medium' | 'High';
+    type?: 'AccumulatedFatigue' | 'AcuteOverload' | 'InjuryRisk' | 'WellnessAlert';
+    suggestedAdjustmentType?: 'LoadReduction' | 'RoutineAdjustment' | 'Rest';
+    suggestedAdjustmentPercentage?: number | null;
+    suggestedAdjustmentPayload?: string | null;
+    categoryId?: string | null;
 };
 
 export type TodayAdjustmentRequest = {
@@ -453,6 +468,10 @@ export type ListAlertsErrors = {
      * No autenticado o credenciales inválidas.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
 };
 
 export type ListAlertsError = ListAlertsErrors[keyof ListAlertsErrors];
@@ -465,6 +484,89 @@ export type ListAlertsResponses = {
 };
 
 export type ListAlertsResponse = ListAlertsResponses[keyof ListAlertsResponses];
+
+export type CreateAlertData = {
+    body: CreatePreventiveAlertRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/alerts';
+};
+
+export type CreateAlertErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type CreateAlertError = CreateAlertErrors[keyof CreateAlertErrors];
+
+export type CreateAlertResponses = {
+    /**
+     * Aviso preventivo creado exitosamente.
+     */
+    201: PreventiveAlert;
+};
+
+export type CreateAlertResponse = CreateAlertResponses[keyof CreateAlertResponses];
+
+export type GetAlertByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del aviso preventivo.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/alerts/{id}';
+};
+
+export type GetAlertByIdErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAlertByIdError = GetAlertByIdErrors[keyof GetAlertByIdErrors];
+
+export type GetAlertByIdResponses = {
+    /**
+     * Aviso preventivo recuperado.
+     */
+    200: PreventiveAlert;
+};
+
+export type GetAlertByIdResponse = GetAlertByIdResponses[keyof GetAlertByIdResponses];
 
 export type ReviewAlertData = {
     body?: never;
@@ -530,34 +632,6 @@ export type ApplyAlertAdjustmentResponses = {
 };
 
 export type ApplyAlertAdjustmentResponse = ApplyAlertAdjustmentResponses[keyof ApplyAlertAdjustmentResponses];
-
-export type TriggerPreventiveScanData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/alerts/scan';
-};
-
-export type TriggerPreventiveScanErrors = {
-    /**
-     * No autenticado o credenciales inválidas.
-     */
-    401: ProblemDetails;
-};
-
-export type TriggerPreventiveScanError = TriggerPreventiveScanErrors[keyof TriggerPreventiveScanErrors];
-
-export type TriggerPreventiveScanResponses = {
-    /**
-     * Análisis preventivo iniciado en segundo plano.
-     */
-    202: {
-        message?: string;
-        alertsGenerated?: number;
-    };
-};
-
-export type TriggerPreventiveScanResponse = TriggerPreventiveScanResponses[keyof TriggerPreventiveScanResponses];
 
 export type SuggestTodayAdjustmentData = {
     body: TodayAdjustmentRequest;
