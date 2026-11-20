@@ -45,8 +45,19 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
     expect(screen.queryByRole('button', { name: /iniciar sesión con google/i })).toBeNull();
   });
 
-  it('DADO la bandera prendida CUANDO se abre el login ENTONCES vuelve a aparecer el botón de Google', () => {
+  it('DADO VITE_GOOGLE_LOGIN_ENABLED=true y VITE_GOOGLE_CLIENT_ID válido CUANDO se abre el login ENTONCES renderiza el contenedor oficial de Google (KAN-541)', async () => {
     vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id');
+
+    const renderButtonMock = vi.fn();
+    (window as unknown as { google: unknown }).google = {
+      accounts: {
+        id: {
+          initialize: vi.fn(),
+          renderButton: renderButtonMock,
+        },
+      },
+    };
 
     render(
       <MemoryRouter>
@@ -54,11 +65,18 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
       </MemoryRouter>,
     );
 
-    const googleBtn = screen.getByRole('button', { name: /iniciar sesión con google/i });
-    expect(googleBtn).toBeDefined();
+    const container = screen.getByTestId('google-signin-button-container');
+    expect(container).toBeDefined();
+
+    await waitFor(() => {
+      expect(renderButtonMock).toHaveBeenCalledWith(
+        container,
+        expect.objectContaining({ text: 'continue_with' }),
+      );
+    });
   });
 
-  it('DADO botón de Google habilitado sin Client ID CUANDO se hace clic ENTONCES muestra error descriptivo', () => {
+  it('DADO botón de Google habilitado sin Client ID CUANDO se monta ENTONCES oculta el botón de Google', () => {
     vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', '');
 
@@ -68,15 +86,10 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
       </MemoryRouter>,
     );
 
-    const googleBtn = screen.getByRole('button', { name: /iniciar sesión con google/i });
-    fireEvent.click(googleBtn);
-
-    expect(
-      screen.getByText(/la integración con google no cuenta con client id configurado/i),
-    ).toBeDefined();
+    expect(screen.queryByTestId('google-signin-button-container')).toBeNull();
   });
 
-  it('DADO Google Identity Services inicializado CUANDO se autentica exitosamente ENTONCES navega según el rol', async () => {
+  it('DADO Google Identity Services inicializado CUANDO se autentica como PF o Atleta ENTONCES navega según rol y respeta mustChangePassword', async () => {
     vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-google-client-id');
 
@@ -90,14 +103,14 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
               capturedCallback = config.callback;
             },
           ),
-          prompt: vi.fn(),
+          renderButton: vi.fn(),
         },
       },
     };
 
     mockLoginWithGoogle.mockResolvedValueOnce({
       accessToken: 'fake-jwt',
-      user: { role: 'Atleta' },
+      user: { role: 'PreparadorFisico', mustChangePassword: false },
     });
 
     render(
@@ -106,18 +119,69 @@ describe('LoginForm - Google Login Flag (KAN-551 / KAN-541)', () => {
       </MemoryRouter>,
     );
 
-    const googleBtn = screen.getByRole('button', { name: /iniciar sesión con google/i });
-    fireEvent.click(googleBtn);
+    await waitFor(() => {
+      expect(capturedCallback).not.toBeNull();
+    });
 
-    expect(capturedCallback).not.toBeNull();
+    await capturedCallback!({ credential: 'valid-google-id-token-pf' });
+    await waitFor(() => {
+      expect(mockLoginWithGoogle).toHaveBeenCalledWith('valid-google-id-token-pf');
+      expect(mockNavigate).toHaveBeenCalledWith('/pf');
+    });
 
-    // Simular recepción de credencial de Google
-    await capturedCallback!({ credential: 'valid-google-id-token' });
+    mockLoginWithGoogle.mockResolvedValueOnce({
+      accessToken: 'fake-jwt-2',
+      user: { role: 'Atleta', mustChangePassword: true },
+    });
+
+    await capturedCallback!({ credential: 'valid-google-id-token-ath' });
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/force-change-password', { replace: true });
+    });
+  });
+
+  it('DADO error del backend por cuenta no vinculada o credencial vacía CUANDO responde Google ENTONCES muestra error claro en español', async () => {
+    vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-google-client-id');
+
+    let capturedCallback: ((response: { credential?: string }) => Promise<void>) | null = null;
+
+    (window as unknown as { google: unknown }).google = {
+      accounts: {
+        id: {
+          initialize: vi.fn(
+            (config: { callback: (response: { credential?: string }) => Promise<void> }) => {
+              capturedCallback = config.callback;
+            },
+          ),
+          renderButton: vi.fn(),
+        },
+      },
+    };
+
+    mockLoginWithGoogle.mockRejectedValueOnce(
+      new Error(
+        'Esta cuenta de Google no está vinculada. Iniciá sesión con tu usuario y contraseña y vinculala desde tu perfil.',
+      ),
+    );
+
+    render(
+      <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      expect(mockLoginWithGoogle).toHaveBeenCalledWith('valid-google-id-token');
-      expect(mockNavigate).toHaveBeenCalledWith('/athlete');
+      expect(capturedCallback).not.toBeNull();
     });
+
+    await capturedCallback!({});
+    expect(
+      await screen.findByText(/No se recibió la credencial de autenticación de Google/i),
+    ).toBeDefined();
+
+    await capturedCallback!({ credential: 'unlinked-token' });
+    expect(await screen.findByText(/Esta cuenta de Google no está vinculada/i)).toBeDefined();
   });
 
   it('habilita el botón Olvidé mi contraseña (#KAN-540) y navega a /forgot-password al pulsar', () => {

@@ -24,6 +24,31 @@ export type GoogleLoginRequest = {
     deviceId?: string;
 };
 
+export type LinkGoogleAccountRequest = {
+    /**
+     * ID Token criptográfico emitido por Google Identity Services.
+     */
+    idToken: string;
+    /**
+     * Contraseña actual del usuario en ProTraining requerida como reautenticación.
+     */
+    currentPassword: string;
+};
+
+export type UnlinkGoogleAccountRequest = {
+    /**
+     * Contraseña actual del usuario en ProTraining requerida como reautenticación.
+     */
+    currentPassword: string;
+};
+
+export type GoogleLinkStatusResponse = {
+    /**
+     * Indica si la cuenta autenticada tiene Google vinculado.
+     */
+    googleLinked: boolean;
+};
+
 export type RegisterByInvitationRequest = {
     email: string;
     password: string;
@@ -282,9 +307,13 @@ export type GoogleLoginErrors = {
      */
     400: ProblemDetails;
     /**
-     * Token de Google inválido, expirado o cuenta no autorizada.
+     * Token de Google inválido, expirado, cuenta no vinculada o no autorizada.
      */
     401: ProblemDetails;
+    /**
+     * Correo de Preparador Físico pendiente de confirmación.
+     */
+    403: ProblemDetails;
 };
 
 export type GoogleLoginError = GoogleLoginErrors[keyof GoogleLoginErrors];
@@ -297,6 +326,101 @@ export type GoogleLoginResponses = {
 };
 
 export type GoogleLoginResponse = GoogleLoginResponses[keyof GoogleLoginResponses];
+
+export type UnlinkGoogleAccountData = {
+    body: UnlinkGoogleAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google/link';
+};
+
+export type UnlinkGoogleAccountErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Correo de Preparador Físico pendiente de confirmación.
+     */
+    403: ProblemDetails;
+};
+
+export type UnlinkGoogleAccountError = UnlinkGoogleAccountErrors[keyof UnlinkGoogleAccountErrors];
+
+export type UnlinkGoogleAccountResponses = {
+    /**
+     * Cuenta de Google desvinculada correctamente.
+     */
+    200: GoogleLinkStatusResponse;
+};
+
+export type UnlinkGoogleAccountResponse = UnlinkGoogleAccountResponses[keyof UnlinkGoogleAccountResponses];
+
+export type GetGoogleLinkStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google/link';
+};
+
+export type GetGoogleLinkStatusErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+};
+
+export type GetGoogleLinkStatusError = GetGoogleLinkStatusErrors[keyof GetGoogleLinkStatusErrors];
+
+export type GetGoogleLinkStatusResponses = {
+    /**
+     * Estado de vinculación obtenido correctamente.
+     */
+    200: GoogleLinkStatusResponse;
+};
+
+export type GetGoogleLinkStatusResponse = GetGoogleLinkStatusResponses[keyof GetGoogleLinkStatusResponses];
+
+export type LinkGoogleAccountData = {
+    body: LinkGoogleAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google/link';
+};
+
+export type LinkGoogleAccountErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Correo de Preparador Físico pendiente de confirmación.
+     */
+    403: ProblemDetails;
+    /**
+     * La cuenta de Google ya está vinculada a otro usuario o el usuario ya tiene otra cuenta de Google vinculada.
+     */
+    409: ProblemDetails;
+};
+
+export type LinkGoogleAccountError = LinkGoogleAccountErrors[keyof LinkGoogleAccountErrors];
+
+export type LinkGoogleAccountResponses = {
+    /**
+     * Cuenta de Google vinculada correctamente (idempotente si ya estaba vinculada al mismo Google Subject).
+     */
+    200: GoogleLinkStatusResponse;
+};
+
+export type LinkGoogleAccountResponse = LinkGoogleAccountResponses[keyof LinkGoogleAccountResponses];
 
 export type RefreshTokenData = {
     body: RefreshRequest;
