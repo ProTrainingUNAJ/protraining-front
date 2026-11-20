@@ -81,7 +81,9 @@ export const DailyTrafficLightWidget: React.FC = () => {
       if (color === 'Green' || color === 'Yellow' || color === 'Red') {
         setTrafficColor(color);
         setReason(result?.trafficLightReason || null);
-        setSleepHours(localCompleted.draft?.sleepHours ?? null);
+        // KAN-593: el registro local ya no guarda horas de sueño (dato médico).
+        // Solo se muestran cuando vienen del backend.
+        setSleepHours(null);
         setIsLoading(false);
         return;
       }

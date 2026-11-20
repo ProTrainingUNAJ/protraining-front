@@ -33,6 +33,7 @@ import {
   getCheckInDraft,
   saveCheckInDraft,
   clearCheckInDraft,
+  purgeLegacyCheckInCompletedData,
   hasRequiredInjuryMark,
   hasUnscoredActiveInjuries,
   getInjuryScoreColor,
@@ -70,73 +71,42 @@ export const CheckInPage: React.FC = () => {
   const initialDraft = initialCompleted ? null : getCheckInDraft(athleteId);
 
   // Check-in metrics state (conserved across all slides)
-  const [sleepHours, setSleepHours] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.sleepHours;
-    if (initialDraft) return initialDraft.sleepHours;
-    return null;
-  });
-  const [sleepQuality, setSleepQuality] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.sleepQuality;
-    if (initialDraft) return initialDraft.sleepQuality;
-    return null;
-  });
-  const [fatigueLevel, setFatigueLevel] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.fatigueLevel;
-    if (initialDraft) return initialDraft.fatigueLevel;
-    return null;
-  });
-  const [muscleSoreness, setMuscleSoreness] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.muscleSoreness;
-    if (initialDraft) return initialDraft.muscleSoreness;
-    return null;
-  });
-  const [moodRate, setMoodRate] = useState<number>(() => {
-    if (initialCompleted) return initialCompleted.draft.moodRate;
-    if (initialDraft) return initialDraft.moodRate;
-    return 3;
-  });
-  const [stressLevel, setStressLevel] = useState<number>(() => {
-    if (initialCompleted) return initialCompleted.draft.stressLevel;
-    if (initialDraft) return initialDraft.stressLevel;
-    return 2;
-  });
-  const [isSick, setIsSick] = useState<boolean>(() => {
-    if (initialCompleted) return initialCompleted.draft.isSick;
-    if (initialDraft) return initialDraft.isSick;
-    return false;
-  });
-  const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(() => {
-    if (initialCompleted) return initialCompleted.draft.hasActiveInjury;
-    if (initialDraft) return initialDraft.hasActiveInjury;
-    return false;
-  });
+  // KAN-593: las respuestas ya enviadas no se conservan en el registro local de
+  // completado, así que solo se recuperan del borrador todavía no enviado.
+  const [sleepHours, setSleepHours] = useState<number | null>(
+    () => initialDraft?.sleepHours ?? null,
+  );
+  const [sleepQuality, setSleepQuality] = useState<number | null>(
+    () => initialDraft?.sleepQuality ?? null,
+  );
+  const [fatigueLevel, setFatigueLevel] = useState<number | null>(
+    () => initialDraft?.fatigueLevel ?? null,
+  );
+  const [muscleSoreness, setMuscleSoreness] = useState<number | null>(
+    () => initialDraft?.muscleSoreness ?? null,
+  );
+  const [moodRate, setMoodRate] = useState<number>(() => initialDraft?.moodRate ?? 3);
+  const [stressLevel, setStressLevel] = useState<number>(() => initialDraft?.stressLevel ?? 2);
+  const [isSick, setIsSick] = useState<boolean>(() => initialDraft?.isSick ?? false);
+  const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(
+    () => initialDraft?.hasActiveInjury ?? false,
+  );
   const [activeInjuries, setActiveInjuries] = useState<
     { id: string; zone: string; description: string }[]
   >([]);
-  const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>(() => {
-    const raw = initialCompleted ? initialCompleted.draft.injuryScores : initialDraft?.injuryScores;
-    return raw || {};
-  });
+  const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>(
+    () => initialDraft?.injuryScores || {},
+  );
   const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
 
-  const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(() => {
-    if (initialCompleted) return initialCompleted.draft.healthQuestionsAnswered;
-    if (initialDraft) return initialDraft.healthQuestionsAnswered;
-    return false;
-  });
+  const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(
+    () => initialDraft?.healthQuestionsAnswered ?? false,
+  );
   const [musclePains, setMusclePains] = useState<Record<string, number>>(() => {
-    const raw =
-      (initialCompleted ? initialCompleted.draft.musclePains : initialDraft?.musclePains) || {};
-    const injuryActive = initialCompleted
-      ? initialCompleted.draft.hasActiveInjury
-      : initialDraft?.hasActiveInjury;
-    return injuryActive ? raw : clearInjuryPains(raw);
+    const raw = initialDraft?.musclePains || {};
+    return initialDraft?.hasActiveInjury ? raw : clearInjuryPains(raw);
   });
-  const [notes, setNotes] = useState<string>(() => {
-    if (initialCompleted) return initialCompleted.draft.notes || '';
-    if (initialDraft) return initialDraft.notes || '';
-    return '';
-  });
+  const [notes, setNotes] = useState<string>(() => initialDraft?.notes || '');
 
   // Welcome screen / Start state: if already completed or started today, hasStarted is true
   const [hasStarted, setHasStarted] = useState<boolean>(() => {
@@ -189,19 +159,6 @@ export const CheckInPage: React.FC = () => {
       setHasStarted(true);
       setCurrentStep(4);
       setMaxReachedStep(4);
-      setSleepHours(completed.draft.sleepHours);
-      setSleepQuality(completed.draft.sleepQuality);
-      setFatigueLevel(completed.draft.fatigueLevel);
-      setMuscleSoreness(completed.draft.muscleSoreness);
-      setMoodRate(completed.draft.moodRate);
-      setStressLevel(completed.draft.stressLevel);
-      setIsSick(completed.draft.isSick);
-      setHasActiveInjury(completed.draft.hasActiveInjury);
-      setHealthQuestionsAnswered(completed.draft.healthQuestionsAnswered);
-      const cPains = completed.draft.musclePains || {};
-      setMusclePains(completed.draft.hasActiveInjury ? cPains : clearInjuryPains(cPains));
-      setInjuryScores(completed.draft.injuryScores || {});
-      setNotes(completed.draft.notes || '');
       return;
     }
 
@@ -225,6 +182,11 @@ export const CheckInPage: React.FC = () => {
       setNotes(draft.notes || '');
     }
   }, []);
+
+  // KAN-593: descarta los registros viejos que guardaban el borrador médico completo.
+  useEffect(() => {
+    purgeLegacyCheckInCompletedData(athleteId);
+  }, [athleteId]);
 
   // Synchronize athlete id from Structure microservice GET /api/v1/me (KAN-329)
   useEffect(() => {
@@ -672,25 +634,10 @@ export const CheckInPage: React.FC = () => {
       });
 
       setSubmissionResult(response);
+      // KAN-593: solo se guarda lo necesario para la confirmación. El borrador con
+      // datos médicos se descarta apenas se envía (clearCheckInDraft, más abajo).
       saveCheckInCompleted(athleteId, {
         result: response,
-        draft: {
-          hasStarted: true,
-          currentStep: 4,
-          maxReachedStep: 4,
-          sleepHours,
-          sleepQuality,
-          fatigueLevel,
-          muscleSoreness,
-          moodRate,
-          stressLevel,
-          isSick,
-          hasActiveInjury,
-          healthQuestionsAnswered,
-          musclePains,
-          injuryScores,
-          notes,
-        },
         completedAt: new Date().toISOString(),
       });
       clearCheckInDraft(athleteId);

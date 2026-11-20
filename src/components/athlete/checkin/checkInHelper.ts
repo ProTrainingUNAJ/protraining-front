@@ -181,9 +181,12 @@ export interface CheckInDraftData {
   notes: string;
 }
 
+/**
+ * KAN-593: el registro local de check-in completado solo existe para mostrar la
+ * confirmación. No incluye el borrador: ese dato médico se borra apenas se envía.
+ */
 export interface CheckInCompletedData {
   result: unknown;
-  draft: CheckInDraftData;
   completedAt: string;
 }
 
@@ -229,6 +232,40 @@ export const saveCheckInCompleted = (athleteId: string, data: CheckInCompletedDa
       `protraining_checkin_completed_${athleteId}_${getTodayKey()}`,
       JSON.stringify(data),
     );
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
+
+/**
+ * KAN-593: limpia los registros de check-in completado del formato viejo, que guardaban
+ * el borrador completo (dolor por lesión, zonas, enfermedad y notas) y se acumulaban
+ * uno por día en el dispositivo. Los registros nuevos solo tienen resultado y fecha.
+ */
+export const purgeLegacyCheckInCompletedData = (athleteId: string): void => {
+  const storage = getStorage();
+  if (!storage || !athleteId) return;
+  const prefix = `protraining_checkin_completed_${athleteId}_`;
+  const legacyKeys: string[] = [];
+
+  try {
+    for (let index = 0; ; index += 1) {
+      const key = storage.key(index);
+      if (!key) break;
+      if (!key.startsWith(prefix)) continue;
+      try {
+        const stored = JSON.parse(storage.getItem(key) ?? '{}') as Record<string, unknown>;
+        if ('draft' in stored) legacyKeys.push(key);
+      } catch {
+        legacyKeys.push(key);
+      }
+    }
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+
+  try {
+    legacyKeys.forEach((key) => storage.removeItem(key));
   } catch {
     // Ignored in storage-restricted environments
   }
