@@ -19,6 +19,10 @@ vi.mock('../../../api/seguimientoService', () => ({
 describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.mocked(todayRoutineService.recordSets).mockResolvedValue({
+      recordedSetsCount: 1,
+      proposalsGeneratedCount: 0,
+    });
   });
 
   it('CRITERIO 2: DADO un ejercicio sin link CUANDO el atleta lo ve ENTONCES no aparece el botón', async () => {
@@ -241,6 +245,107 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       // Valida que la marque como "Cumplida"
       expect(screen.getByText('Cumplida')).toBeTruthy();
     });
+
+    it('no llama a recordSets en cada tecla y guarda una sola vez al salir del campo (KAN-579)', async () => {
+      vi.mocked(todayRoutineService.recordSets).mockClear();
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-20',
+        athleteId: 'ath-kan579-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100',
+            name: 'Pasadas',
+            muscleGroup: 'Piernas',
+            sets: 1,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: 15.6,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas')).toBeTruthy();
+      });
+
+      const input = screen.getByLabelText(/tiempo de pasada 1/i);
+
+      fireEvent.change(input, { target: { value: '1' } });
+      fireEvent.change(input, { target: { value: '15' } });
+      fireEvent.change(input, { target: { value: '15.2' } });
+
+      expect(todayRoutineService.recordSets).not.toHaveBeenCalled();
+
+      fireEvent.blur(input, { target: { value: '15.2' } });
+
+      await waitFor(() => {
+        expect(todayRoutineService.recordSets).toHaveBeenCalledTimes(1);
+      });
+      expect(todayRoutineService.recordSets).toHaveBeenCalledWith([
+        {
+          exerciseId: 'ex-pasadas-100',
+          setNumber: 1,
+          timeSeconds: 15.2,
+        },
+      ]);
+    });
+
+    it('DADO que el back no responde CUANDO el atleta carga un tiempo ENTONCES ve un aviso de que no se guardó', async () => {
+      vi.mocked(todayRoutineService.recordSets).mockRejectedValueOnce(new Error('Network error'));
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-20',
+        athleteId: 'ath-kan579-2',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100',
+            name: 'Pasadas',
+            muscleGroup: 'Piernas',
+            sets: 1,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: 15.6,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas')).toBeTruthy();
+      });
+
+      const input = screen.getByLabelText(/tiempo de pasada 1/i);
+      fireEvent.change(input, { target: { value: '15.2' } });
+      fireEvent.blur(input, { target: { value: '15.2' } });
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toMatch(/no se pudo guardar/i);
+      });
+    });
   });
 
   describe('RoutinePage · Ajuste del día por el PF (#157 · KAN-452)', () => {
@@ -419,6 +524,7 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
 
       const input = screen.getByLabelText('Tiempo de pasada 1');
       fireEvent.change(input, { target: { value: '15.2' } });
+      fireEvent.blur(input, { target: { value: '15.2' } });
 
       await waitFor(() => {
         expect(todayRoutineService.recordSets).toHaveBeenCalledWith([

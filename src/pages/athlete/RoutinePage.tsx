@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Clock,
   Dumbbell,
@@ -123,7 +123,13 @@ export const RoutinePage: React.FC = () => {
   // Tiempos reales cargados por pasada (ejercicios de distancia o tiempo)
   const [performedSetTimes, setPerformedSetTimes] = useState<Record<string, number>>({});
 
-  // Cronómetro de sesión del día (KAN-623)
+  const [saveTimeError, setSaveTimeError] = useState<{
+    exerciseKey: string;
+    message: string;
+  } | null>(null);
+  const lastSavedTimesRef = useRef<Record<string, number>>({});
+
+  // Cronómetro de sesión del día
   const routineTimer = useRoutineTimer(routine?.athleteId, routine?.date);
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
 
@@ -158,6 +164,8 @@ export const RoutinePage: React.FC = () => {
           });
         }
 
+        lastSavedTimesRef.current = backendTimes;
+
         try {
           const key = getStorageKey(loadedRoutine.date, loadedRoutine.athleteId);
           let savedCompleted: Record<string, boolean> = {};
@@ -186,6 +194,7 @@ export const RoutinePage: React.FC = () => {
           setPerformedSetTimes(backendTimes);
         }
       } else {
+        lastSavedTimesRef.current = {};
         setCompletedSets({});
         setPerformedSets({});
         setPerformedSetTimes({});
@@ -265,6 +274,39 @@ export const RoutinePage: React.FC = () => {
     [routine],
   );
 
+  const handlePersistSetTime = useCallback(
+    async (exerciseKey: string, setIndex: number, timeSeconds: number | null) => {
+      if (timeSeconds === null || timeSeconds <= 0) return;
+
+      const setKey = `${exerciseKey}_set_${setIndex}`;
+      if (lastSavedTimesRef.current[setKey] === timeSeconds) return;
+
+      const targetExercise = exercises.find(
+        (e, idx) => (e.exerciseId || `ex-${idx}`) === exerciseKey,
+      );
+      if (!targetExercise?.exerciseId) return;
+
+      setSaveTimeError(null);
+      try {
+        await todayRoutineService.recordSets([
+          {
+            exerciseId: targetExercise.exerciseId,
+            setNumber: setIndex,
+            timeSeconds,
+          },
+        ]);
+        lastSavedTimesRef.current[setKey] = timeSeconds;
+      } catch {
+        setSaveTimeError({
+          exerciseKey,
+          message:
+            'No se pudo guardar el tiempo en el servidor. Quedó guardado en este dispositivo.',
+        });
+      }
+    },
+    [exercises],
+  );
+
   // Guardar el tiempo cronometrado de una pasada individual y marcarla
   const handleRecordSetTime = useCallback(
     (exerciseKey: string, setIndex: number, timeSeconds: number | null) => {
@@ -302,27 +344,9 @@ export const RoutinePage: React.FC = () => {
           }
           return next;
         });
-
-        // KAN-457: Registrar la serie en el backend con su tiempo real
-        const targetExercise = exercises.find(
-          (e, idx) => (e.exerciseId || `ex-${idx}`) === exerciseKey,
-        );
-        if (targetExercise?.exerciseId) {
-          void todayRoutineService
-            .recordSets?.([
-              {
-                exerciseId: targetExercise.exerciseId,
-                setNumber: setIndex,
-                timeSeconds,
-              },
-            ])
-            ?.catch?.(() => {
-              // Si falla la red, el tiempo queda preservado localmente
-            });
-        }
       }
     },
-    [routine, exercises],
+    [routine],
   );
 
   // Manejador tras registrar serie en el back exitosamente
@@ -1140,75 +1164,102 @@ export const RoutinePage: React.FC = () => {
                         {exercise.exerciseType === 'Distance' ||
                         exercise.exerciseType === 'Time' ? (
                           /* ── CASO CARRERA / DISTANCIA / TIEMPO: Campos para cargar tiempo real ── */
-                          <div className="routine-pass-list">
-                            {Array.from({ length: exercise.sets }, (_, i) => i + 1).map((sNum) => {
-                              const setKey = `${exKey}_set_${sNum}`;
-                              const timeVal = performedSetTimes[setKey];
-                              const evaluation = evaluateTimeTarget(
-                                timeVal,
-                                exercise.targetTimeSeconds,
-                              );
-                              const isDone = Boolean(evaluation?.isAchieved);
-
-                              return (
-                                <div
-                                  key={sNum}
-                                  className={`routine-pass-row ${
-                                    isDone
-                                      ? 'completed'
-                                      : evaluation && !evaluation.isAchieved
-                                        ? 'exceeded'
-                                        : ''
-                                  }`}
-                                >
-                                  <div className="routine-pass-label-group">
-                                    <span className="routine-pass-title">Pasada {sNum}</span>
-
-                                    {/* Badge de Cumplida / Superó la meta */}
-                                    {evaluation && (
-                                      <span
-                                        className={`routine-pass-badge ${
-                                          evaluation.isAchieved ? 'achieved' : 'missed'
-                                        }`}
-                                      >
-                                        {evaluation.isAchieved && <Check size={13} />}
-                                        {evaluation.statusLabel}
-                                        {evaluation.differenceSeconds != null &&
-                                          evaluation.differenceSeconds !== 0 && (
-                                            <span className="routine-pass-diff">
-                                              (
-                                              {evaluation.differenceSeconds > 0
-                                                ? `+${evaluation.differenceSeconds}`
-                                                : evaluation.differenceSeconds}{' '}
-                                              s)
-                                            </span>
-                                          )}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Input para tipear el tiempo real en segundos */}
-                                  <div className="routine-pass-input-group">
-                                    <input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      placeholder="0.0"
-                                      aria-label={`Tiempo de pasada ${sNum}`}
-                                      value={timeVal ?? ''}
-                                      onChange={(e) => {
-                                        const raw = e.target.value.replace(',', '.');
-                                        const val = raw === '' ? null : parseFloat(raw);
-                                        handleRecordSetTime(exKey, sNum, val);
-                                      }}
-                                      className="routine-pass-input"
-                                    />
-                                    <span className="routine-pass-unit">s</span>
-                                  </div>
+                          <>
+                            {saveTimeError?.exerciseKey === exKey && (
+                              <div role="alert" className="card routine-save-error-banner">
+                                <div className="routine-save-error-content">
+                                  <AlertCircle size={20} className="routine-save-error-icon" />
+                                  <span className="routine-save-error-text">
+                                    {saveTimeError.message}
+                                  </span>
                                 </div>
-                              );
-                            })}
-                          </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setSaveTimeError(null)}
+                                  className="routine-save-error-close"
+                                  aria-label="Cerrar aviso de error"
+                                >
+                                  <X size={18} />
+                                </button>
+                              </div>
+                            )}
+                            <div className="routine-pass-list">
+                              {Array.from({ length: exercise.sets }, (_, i) => i + 1).map(
+                                (sNum) => {
+                                  const setKey = `${exKey}_set_${sNum}`;
+                                  const timeVal = performedSetTimes[setKey];
+                                  const evaluation = evaluateTimeTarget(
+                                    timeVal,
+                                    exercise.targetTimeSeconds,
+                                  );
+                                  const isDone = Boolean(evaluation?.isAchieved);
+
+                                  return (
+                                    <div
+                                      key={sNum}
+                                      className={`routine-pass-row ${
+                                        isDone
+                                          ? 'completed'
+                                          : evaluation && !evaluation.isAchieved
+                                            ? 'exceeded'
+                                            : ''
+                                      }`}
+                                    >
+                                      <div className="routine-pass-label-group">
+                                        <span className="routine-pass-title">Pasada {sNum}</span>
+
+                                        {/* Badge de Cumplida / Superó la meta */}
+                                        {evaluation && (
+                                          <span
+                                            className={`routine-pass-badge ${
+                                              evaluation.isAchieved ? 'achieved' : 'missed'
+                                            }`}
+                                          >
+                                            {evaluation.isAchieved && <Check size={13} />}
+                                            {evaluation.statusLabel}
+                                            {evaluation.differenceSeconds != null &&
+                                              evaluation.differenceSeconds !== 0 && (
+                                                <span className="routine-pass-diff">
+                                                  (
+                                                  {evaluation.differenceSeconds > 0
+                                                    ? `+${evaluation.differenceSeconds}`
+                                                    : evaluation.differenceSeconds}{' '}
+                                                  s)
+                                                </span>
+                                              )}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* Input para tipear el tiempo real en segundos */}
+                                      <div className="routine-pass-input-group">
+                                        <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          placeholder="0.0"
+                                          aria-label={`Tiempo de pasada ${sNum}`}
+                                          value={timeVal ?? ''}
+                                          onChange={(e) => {
+                                            const raw = e.target.value.replace(',', '.');
+                                            const val = raw === '' ? null : parseFloat(raw);
+                                            handleRecordSetTime(exKey, sNum, val);
+                                          }}
+                                          onBlur={(e) => {
+                                            const raw = e.target.value.replace(',', '.');
+                                            const val = raw === '' ? null : parseFloat(raw);
+                                            void handlePersistSetTime(exKey, sNum, val);
+                                          }}
+                                          className="routine-pass-input"
+                                        />
+                                        <span className="routine-pass-unit">s</span>
+                                      </div>
+                                    </div>
+                                  );
+                                },
+                              )}
+                            </div>
+                          </>
                         ) : (
                           /* ── CASO FUERZA / PESAS: Chips habituales de marcar serie ── */
                           <div className="routine-sets-grid">
