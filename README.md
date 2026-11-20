@@ -40,9 +40,9 @@ En PowerShell (Windows), la variable se setea así: `$env:OPENAPI_CONTRACTS_PATH
 
 La regla general del proyecto es **no guardar datos médicos en localStorage**. Hay una única excepción, decidida por el PM: para que el check-in funcione sin conexión, el borrador con el dolor por lesión se guarda en el celular (`protraining_checkin_draft_*` en `src/components/athlete/checkin/checkInHelper.ts`).
 
-Condición obligatoria: ese borrador **se borra apenas se envía el check-in** (`clearCheckInDraft`), tanto en el envío online como cuando se sincroniza un check-in pendiente. No se guarda ningún otro dato médico en el dispositivo.
+Condición obligatoria: ese borrador **se borra apenas se envía el check-in** (`clearCheckInDraft`), tanto en el envío online como cuando se sincroniza un check-in pendiente. El registro local de check-in completado (`protraining_checkin_completed_*`) guarda únicamente el resultado de la confirmación y la fecha: ni dolor por lesión, zonas, enfermedad, notas ni ninguna otra respuesta del borrador. Los registros viejos que guardaban ese detalle médico se eliminan al abrir la pantalla (`purgeLegacyCheckInCompletedData`). Las horas de sueño que muestra el semáforo se leen del backend, no de este registro.
 
-Las pantallas del flujo offline (check-in y rutina de hoy) tienen que seguir en el precache de la PWA: por eso `vite.config.ts` no excluye `assets/*Page-*.js` del `globIgnores`.
+Las pantallas del flujo offline (check-in y rutina de hoy) tienen que seguir en el precache de la PWA: `vite.config.ts` excluye las demás páginas con `assets/!(CheckInPage|RoutinePage)-*.js`, de modo que el precache quede por debajo del límite de 1,5 MB (KAN-514).
 
 ## Estructura
 

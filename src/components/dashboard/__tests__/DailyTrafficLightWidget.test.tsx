@@ -91,9 +91,6 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
         trafficLight: 'Green',
         trafficLightReason: 'Sin dolor reportado y buen descanso',
       },
-      draft: {
-        sleepHours: 8,
-      } as never,
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -105,7 +102,6 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
     expect(screen.getByText('Apto para entrenar')).toBeDefined();
     expect(screen.getByText('Sin dolor reportado y buen descanso')).toBeDefined();
-    expect(screen.getByText(/8h descanso/i)).toBeDefined();
 
     const redBulb = screen.getByTestId('traffic-bulb-red');
     const yellowBulb = screen.getByTestId('traffic-bulb-yellow');
@@ -126,9 +122,6 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
         trafficLight: 'Yellow',
         trafficLightReason: 'Fatiga moderada y molestia muscular',
       },
-      draft: {
-        sleepHours: 6,
-      } as never,
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -156,9 +149,6 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
         trafficLight: 'Red',
         trafficLightReason: 'Lesión activa reportada',
       },
-      draft: {
-        sleepHours: 5,
-      } as never,
       completedAt: '2026-11-09T08:00:00Z',
     });
 
