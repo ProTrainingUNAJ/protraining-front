@@ -122,7 +122,7 @@ export const suggestRoutineWithAi = <ThrowOnError extends boolean = false>(optio
 /**
  * Generar y persistir un nuevo borrador de planificación con IA
  *
- * Genera un borrador de planificación multisesión a través de la cadena resiliente de IA (Ollama -> Gemini -> Reglas), validando esquema e identificadores del catálogo oficial y persistiéndolo en la base de datos bajo aislamiento multi-tenant.
+ * Genera un borrador de planificación multisesión a través de la cadena resiliente de IA (OpenAI -> Gemini -> Reglas), validando esquema e identificadores del catálogo oficial y persistiéndolo en la base de datos bajo aislamiento multi-tenant.
  *
  */
 export const createPlanDraftWithAi = <ThrowOnError extends boolean = false>(options: Options<CreatePlanDraftWithAiData, ThrowOnError>): RequestResult<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError> => (options.client ?? client).post<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError>({
@@ -206,7 +206,7 @@ export const getAthleteDayConflicts = <ThrowOnError extends boolean = false>(opt
 /**
  * Generar propuesta de ajuste del día a partir de los conflictos de hoy
  *
- * Genera y persiste la propuesta de ajuste del día (`day_adjustments`) a partir de los conflictos de dolor de hoy (KAN-451). El ejercicio sustituto se elige por reglas (el primero de la lista de sustitutos habilitados de KAN-387) y la IA solo redacta la justificación (con respaldo por reglas si Ollama y Gemini fallan o están apagados). Si ya existe una propuesta `Pending` para hoy, devuelve esa sin duplicarla.
+ * Genera y persiste la propuesta de ajuste del día (`day_adjustments`) a partir de los conflictos de dolor de hoy (KAN-451). El ejercicio sustituto se elige por reglas (el primero de la lista de sustitutos habilitados de KAN-387) y la IA solo redacta la justificación (con respaldo por reglas si los proveedores de IA fallan o no tienen clave). Si ya existe una propuesta `Pending` para hoy, devuelve esa sin duplicarla.
  *
  */
 export const createAthleteDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<CreateAthleteDayAdjustmentData, ThrowOnError>): RequestResult<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError>({

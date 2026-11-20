@@ -242,24 +242,10 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
       },
     ]);
 
-    vi.spyOn(seguimientoService, 'listAthleteInjuries').mockImplementation(async (athleteId) => {
-      if (athleteId === lucasId) {
-        return [
-          {
-            id: 'inj-lucas-1',
-            athleteId: lucasId,
-            zone: 'Rodilla derecha',
-            description: 'Tendinitis rotuliana',
-            injuryDate: '2026-11-10',
-            estimatedReturnDate: '2026-12-10',
-            status: 'Active',
-            clearedAt: null,
-            createdAt: '2026-11-10T10:00:00Z',
-          },
-        ];
-      }
-      return [];
-    });
+    const summarySpy = vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+      { athleteId: martinId, activeCount: 0 },
+    ]);
 
     render(
       <ManagePlanAssignmentsModal
@@ -286,6 +272,8 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     const reviewBtn = await screen.findByRole('button', {
       name: /lesión activa - revisar adaptación de lucas gómez/i,
     });
+    expect(summarySpy).toHaveBeenCalledTimes(1);
+    expect(summarySpy).toHaveBeenCalledWith([lucasId, martinId]);
     expect(reviewBtn.textContent).toContain('Lesión activa - Revisar adaptación');
     expect(await screen.findByText('En condiciones normales')).toBeDefined();
     expect(
@@ -312,7 +300,7 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
         activeInjuriesCount: 0,
       },
     ]);
-    vi.spyOn(seguimientoService, 'listAthleteInjuries').mockRejectedValue(
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockRejectedValue(
       new Error('Seguimiento no disponible'),
     );
 
@@ -570,5 +558,41 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
         }),
       );
     });
+  });
+
+  it('muestra el porcentaje conservador provisto por el backend en lugar de 90 % fijo (KAN-465)', async () => {
+    vi.spyOn(athleteAdaptationsService, 'getAdaptationContext').mockResolvedValue({
+      athleteId: lucasId,
+      activeInjuries: [],
+      currentRecords: [
+        {
+          id: 'rec-est-85',
+          athleteId: lucasId,
+          exerciseId: squatId,
+          exerciseName: 'Sentadilla con barra',
+          weightOneRepMaxKg: 100,
+          origin: 'Estimated',
+          achievedAt: '2026-11-10T10:00:00Z',
+          isCurrent: true,
+        },
+      ],
+      restrictions: [],
+      conservativeEstimatedRecordPercent: 85,
+    });
+
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+      />,
+    );
+
+    const alert = await screen.findByTestId('adaptation-estimated-data-alert');
+    expect(alert.textContent).toContain('escalón conservador del 85 %');
+    expect(alert.textContent).not.toContain('90 %');
   });
 });

@@ -16,11 +16,11 @@ import {
 } from 'lucide-react';
 import {
   athleteAdaptationsService,
-  type AdaptationChangeWithSubstitutes,
+  type AdaptationChange,
   type AdaptationRecordContext,
   type AthleteAdaptationContextResponse,
   type AuthorizedSubstituteContext,
-  type RoutineAdaptationResponseWithBase,
+  type RoutineAdaptationResponse,
   type SuggestedRoutineExercise,
 } from '../../api/athleteAdaptations';
 import { exercisesService } from '../../api/exercises';
@@ -30,6 +30,8 @@ import type { CatalogExercise } from '../../types/trainingPlans';
 import { ExercisePickerModal } from './ExercisePickerModal';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { parseRepsNumber } from '../../utils/planDraft';
+
+const DEFAULT_CONSERVATIVE_ESTIMATED_RECORD_PERCENT = 90;
 
 export interface AthleteAdaptationDiffModalProps {
   isOpen: boolean;
@@ -86,7 +88,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   const [planDetail, setPlanDetail] = useState<TrainingPlanDetail | null>(null);
   const [context, setContext] = useState<AthleteAdaptationContextResponse | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
-  const [proposal, setProposal] = useState<RoutineAdaptationResponseWithBase | null>(null);
+  const [proposal, setProposal] = useState<RoutineAdaptationResponse | null>(null);
   const [selectedSubstitutes, setSelectedSubstitutes] = useState<Record<string, string>>({});
 
   // Estados de decisión del PF: Aprobar / Editar / Rechazar (KAN-465)
@@ -360,6 +362,8 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         }));
 
   // Detectar récords estimados relevantes para la alerta de dato estimado (KAN-465)
+  const conservativeRecordPercent =
+    context?.conservativeEstimatedRecordPercent ?? DEFAULT_CONSERVATIVE_ESTIMATED_RECORD_PERCENT;
   const estimatedRecordsInContext = currentRecords.filter((rec) =>
     isEstimatedRecordOrigin(rec.origin),
   );
@@ -375,7 +379,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   const findChangeForBaseExercise = (
     baseEx: SuggestedRoutineExercise,
     index: number,
-  ): AdaptationChangeWithSubstitutes | null => {
+  ): AdaptationChange | null => {
     const changes = proposal?.adaptationChanges ?? [];
     if (changes.length === 0) return null;
 
@@ -405,7 +409,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
 
   const getAvailableSubstitutes = (
     baseEx: SuggestedRoutineExercise,
-    change: AdaptationChangeWithSubstitutes,
+    change: AdaptationChange,
   ): AuthorizedSubstituteContext[] => {
     if (change.availableSubstitutes && change.availableSubstitutes.length > 0) {
       return change.availableSubstitutes;
@@ -579,9 +583,9 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         return (
           <span
             className="badge adaptation-diff-estimated-badge"
-            title="Marca estimada en el onboarding: se aplica escalón conservador del 90%"
+            title={`Marca estimada en el onboarding: se aplica escalón conservador del ${conservativeRecordPercent} %`}
           >
-            Dato estimado: {record.weightOneRepMaxKg} kg (90 % conservador)
+            Dato estimado: {record.weightOneRepMaxKg} kg ({conservativeRecordPercent} % conservador)
           </span>
         );
       }
@@ -758,8 +762,8 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
                           .join(', ')}
                       </strong>
                       . El cálculo de carga aplica automáticamente el{' '}
-                      <strong>escalón conservador del 90 %</strong> hasta contar con un testeo
-                      directo.
+                      <strong>escalón conservador del {conservativeRecordPercent} %</strong> hasta
+                      contar con un testeo directo.
                     </>
                   ) : (
                     estimatedWarningsFromProposal.join(' ')

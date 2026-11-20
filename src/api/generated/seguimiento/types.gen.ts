@@ -308,6 +308,25 @@ export type Injury = {
 };
 
 /**
+ * Mejor marca histórica de un atleta en un test del catálogo mapeado a un ejercicio.
+ */
+export type AthleteBestMark = {
+    catalogTestId: string;
+    testName: string;
+    targetExerciseName: string;
+    bestValue: number;
+    measurementUnit: string;
+};
+
+/**
+ * Cantidad de lesiones activas registradas para un atleta.
+ */
+export type AthleteActiveInjurySummary = {
+    athleteId: string;
+    activeCount: number;
+};
+
+/**
  * Resultado histórico de una prueba física de un atleta.
  */
 export type AthleteFitnessTest = {
@@ -1128,6 +1147,41 @@ export type UpdateInjuryStatusResponses = {
 
 export type UpdateInjuryStatusResponse = UpdateInjuryStatusResponses[keyof UpdateInjuryStatusResponses];
 
+export type GetActiveInjuriesSummaryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        athleteIds?: Array<string>;
+    };
+    url: '/api/v1/injuries/active-summary';
+};
+
+export type GetActiveInjuriesSummaryErrors = {
+    /**
+     * Parámetros inválidos o violación de reglas de validación.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+};
+
+export type GetActiveInjuriesSummaryError = GetActiveInjuriesSummaryErrors[keyof GetActiveInjuriesSummaryErrors];
+
+export type GetActiveInjuriesSummaryResponses = {
+    /**
+     * Resumen de lesiones activas por atleta.
+     */
+    200: Array<AthleteActiveInjurySummary>;
+};
+
+export type GetActiveInjuriesSummaryResponse = GetActiveInjuriesSummaryResponses[keyof GetActiveInjuriesSummaryResponses];
+
 export type ListFitnessTestsData = {
     body?: never;
     path?: never;
@@ -1209,6 +1263,41 @@ export type ListAthleteFitnessTestsResponses = {
 };
 
 export type ListAthleteFitnessTestsResponse = ListAthleteFitnessTestsResponses[keyof ListAthleteFitnessTestsResponses];
+
+export type ListAthleteBestMarksData = {
+    body?: never;
+    path: {
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/fitness-tests/best-marks';
+};
+
+export type ListAthleteBestMarksErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado: el token no corresponde al atleta de la ruta o rol no autorizado.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta o lesión no encontrados.
+     */
+    404: ProblemDetails;
+};
+
+export type ListAthleteBestMarksError = ListAthleteBestMarksErrors[keyof ListAthleteBestMarksErrors];
+
+export type ListAthleteBestMarksResponses = {
+    /**
+     * Mejores marcas obtenidas con éxito.
+     */
+    200: Array<AthleteBestMark>;
+};
+
+export type ListAthleteBestMarksResponse = ListAthleteBestMarksResponses[keyof ListAthleteBestMarksResponses];
 
 export type GetAthleteEvolutionData = {
     body?: never;

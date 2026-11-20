@@ -64,9 +64,10 @@ export type SuggestRoutineResponse = {
         suggestedPercentage: number;
     }>;
     /**
-     * Proveedor de IA o motor que originó la propuesta (Ollama, Gemini o Rules).
+     * Proveedor de IA o motor que originó la propuesta (por ejemplo `Agente (OpenAI)`, `Agente (Gemini)` o `Reglas`).
+     *
      */
-    aiProvider: 'Ollama' | 'Gemini' | 'Rules';
+    aiProvider: string;
 };
 
 export type GenerateAthleteAdaptationRequest = {
@@ -156,6 +157,10 @@ export type AthleteAdaptationContextResponse = {
     activeInjuries: Array<ActiveInjuryContext>;
     currentRecords: Array<AthleteRecordContext>;
     restrictions: Array<ExerciseRestrictionContext>;
+    /**
+     * Porcentaje conservador aplicado cuando el 1RM del atleta es estimado (por defecto 90 %).
+     */
+    conservativeEstimatedRecordPercent?: number | null;
 };
 
 export type PlanDraftExercise = {

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeeklyTrendsData, GetAthleteWeeklyTrendsErrors, GetAthleteWeeklyTrendsResponses, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCategoryWeeklyTrendsData, GetCategoryWeeklyTrendsErrors, GetCategoryWeeklyTrendsResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListCheckInInjuriesData, ListCheckInInjuriesErrors, ListCheckInInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, ListResolvedInjuriesData, ListResolvedInjuriesErrors, ListResolvedInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetActiveInjuriesSummaryData, GetActiveInjuriesSummaryErrors, GetActiveInjuriesSummaryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeeklyTrendsData, GetAthleteWeeklyTrendsErrors, GetAthleteWeeklyTrendsResponses, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCategoryWeeklyTrendsData, GetCategoryWeeklyTrendsErrors, GetCategoryWeeklyTrendsResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteBestMarksData, ListAthleteBestMarksErrors, ListAthleteBestMarksResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListCheckInInjuriesData, ListCheckInInjuriesErrors, ListCheckInInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, ListResolvedInjuriesData, ListResolvedInjuriesErrors, ListResolvedInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -255,6 +255,19 @@ export const updateInjuryStatus = <ThrowOnError extends boolean = false>(options
 });
 
 /**
+ * Resumen batch de lesiones activas por atleta
+ *
+ * Devuelve en una sola consulta la cantidad de lesiones en estado Active para cada atleta indicado, evitando consultas N+1 desde la vista de planificaciones (KAN-464).
+ *
+ */
+export const getActiveInjuriesSummary = <ThrowOnError extends boolean = false>(options?: Options<GetActiveInjuriesSummaryData, ThrowOnError>): RequestResult<GetActiveInjuriesSummaryResponses, GetActiveInjuriesSummaryErrors, ThrowOnError> => (options?.client ?? client).get<GetActiveInjuriesSummaryResponses, GetActiveInjuriesSummaryErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/injuries/active-summary',
+    ...options
+});
+
+/**
  * Catálogo de tests físicos por capacidad motora
  *
  * Devuelve el catálogo de tests de evaluación física activos (los tests desactivados no se exponen). Con el parámetro opcional motorCapacity filtra por tipo de capacidad motora (ej. Power devuelve Salto Vertical CMJ y Salto Abalakov); sin parámetro devuelve todos los tests activos.
@@ -277,6 +290,19 @@ export const listAthleteFitnessTests = <ThrowOnError extends boolean = false>(op
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/fitness-tests',
+    ...options
+});
+
+/**
+ * Mejores marcas de tests mapeados a ejercicios de un atleta
+ *
+ * Devuelve la mejor marca registrada por el atleta para cada test del catálogo vinculado a un ejercicio de Entrenamiento (menor valor para pruebas de tiempo, mayor valor para el resto). Accesible para el PF dueño del atleta o el propio atleta.
+ *
+ */
+export const listAthleteBestMarks = <ThrowOnError extends boolean = false>(options: Options<ListAthleteBestMarksData, ThrowOnError>): RequestResult<ListAthleteBestMarksResponses, ListAthleteBestMarksErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteBestMarksResponses, ListAthleteBestMarksErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/fitness-tests/best-marks',
     ...options
 });
 
