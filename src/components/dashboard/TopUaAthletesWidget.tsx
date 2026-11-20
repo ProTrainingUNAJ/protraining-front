@@ -69,9 +69,9 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
       athlete: athlete1,
       pedestalHeight: 74,
       avatarSize: 44,
-      bg: athlete1 ? 'var(--traffic-green-bg)' : 'var(--bg-secondary)',
-      border: athlete1 ? '1.5px solid var(--traffic-green)' : '1px solid var(--border)',
-      numberColor: athlete1 ? 'var(--traffic-green)' : 'var(--text-muted)',
+      bg: athlete1 ? 'var(--info-bg)' : 'var(--bg-secondary)',
+      border: athlete1 ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+      numberColor: athlete1 ? 'var(--primary)' : 'var(--text-muted)',
       isWinner: Boolean(athlete1),
       testId: 'podium-step-1',
     },
@@ -126,16 +126,16 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
             gap: '0.4rem',
           }}
         >
-          <Zap size={14} style={{ color: 'var(--traffic-green)' }} />
+          <Zap size={14} style={{ color: 'var(--primary)' }} />
           Mayor Carga (UA)
         </span>
 
         {maxUa > 0 ? (
           <span
             style={{
-              background: 'var(--traffic-green-bg)',
-              color: 'var(--traffic-green)',
-              border: '1px solid var(--traffic-green-border)',
+              background: 'var(--info-bg)',
+              color: 'var(--primary)',
+              border: '1px solid var(--primary)',
               fontSize: '0.68rem',
               fontWeight: 800,
               padding: '0.15rem 0.55rem',
@@ -191,7 +191,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
               style={{
                 width: '14px',
                 height: '14px',
-                border: '2px solid var(--traffic-green)',
+                border: '2px solid var(--primary)',
                 borderTopColor: 'transparent',
                 borderRadius: '50%',
                 display: 'inline-block',
@@ -249,8 +249,8 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                           display: 'inline-flex',
                           borderRadius: '50%',
                           padding: step.isWinner ? '2px' : '1px',
-                          background: step.isWinner ? 'var(--traffic-green)' : 'var(--border)',
-                          boxShadow: step.isWinner ? '0 0 10px rgba(16, 185, 129, 0.35)' : 'none',
+                          background: step.isWinner ? 'var(--primary)' : 'var(--border)',
+                          boxShadow: step.isWinner ? '0 0 10px rgba(2, 132, 199, 0.35)' : 'none',
                         }}
                         title={`${step.athlete.athleteName || 'Atleta'}: ${step.athlete.totalLoad ?? 0} UA (${step.athlete.totalMinutes ?? 0} min)`}
                       >
@@ -267,7 +267,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                               position: 'absolute',
                               top: '-6px',
                               right: '-6px',
-                              background: 'var(--traffic-green)',
+                              background: 'var(--primary)',
                               color: '#ffffff',
                               borderRadius: '50%',
                               width: '15px',
@@ -300,7 +300,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                       justifyContent: 'center',
                       gap: '0.15rem',
                       boxShadow: step.isWinner
-                        ? '0 2px 8px rgba(16, 185, 129, 0.18)'
+                        ? '0 2px 8px rgba(2, 132, 199, 0.18)'
                         : '0 1px 3px rgba(0, 0, 0, 0.04)',
                       transition: 'all 0.2s ease',
                     }}
@@ -320,7 +320,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                       style={{
                         fontSize: step.isWinner ? '0.74rem' : '0.68rem',
                         fontWeight: 800,
-                        color: step.isWinner ? 'var(--traffic-green)' : 'var(--text-secondary)',
+                        color: step.isWinner ? 'var(--primary)' : 'var(--text-secondary)',
                         lineHeight: 1,
                         whiteSpace: 'nowrap',
                       }}

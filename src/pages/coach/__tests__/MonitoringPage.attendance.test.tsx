@@ -160,7 +160,7 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     expect(screen.getByLabelText(/Foto de perfil de Joaquín Díaz/i)).toBeDefined();
   });
 
-  it('no muestra botones de carga para el PF y visualiza la carga registrada por el atleta (KAN-621)', async () => {
+  it('permite abrir el modal de carga al pulsar "+ Cargar minutos y RPE" en un atleta sin registro (KAN-621)', async () => {
     render(
       <MemoryRouter>
         <MonitoringPage />
@@ -174,20 +174,44 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
 
     await waitFor(() => {
       expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+    });
+
+    const loadBtn = screen.getByTestId('load-btn-ath-2');
+    expect(loadBtn).toBeDefined();
+    fireEvent.click(loadBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+      expect(screen.getByRole('heading', { name: /Carga de Entrenamiento/i })).toBeDefined();
+      expect(screen.getAllByText('Joaquín Díaz').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('permite abrir el modal de edición al pulsar "Editar Carga" en un atleta con carga (KAN-621)', async () => {
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Asistencia/i })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Asistencia/i }));
+
+    await waitFor(() => {
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
     });
 
-    // El PF no debe cargar esto: no existen botones de carga ni modal interactivo de carga para el PF
-    expect(screen.queryByRole('button', { name: /\+ Cargar minutos y RPE/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /Editar Carga/i })).toBeNull();
+    const editBtn = screen.getByTestId('edit-load-btn-ath-1');
+    expect(editBtn).toBeDefined();
+    fireEvent.click(editBtn);
 
-    // Pero el PF ve la carga idéntica al diseño cuando el atleta la registró
-    expect(screen.getByText('60')).toBeDefined();
-    expect(screen.getByText('180')).toBeDefined();
-    expect(screen.getAllByText('Tiempo Total').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Carga Acumulada').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Carga del día registrada')).toBeDefined();
-    expect(screen.queryByText(/Gimnasio: 60m/i)).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+      expect(screen.getByRole('heading', { name: /Carga de Entrenamiento/i })).toBeDefined();
+      expect(screen.getAllByText('Lucas Gómez').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('permite filtrar reactivamente a los atletas por Presentes, Sin registro y búsqueda por texto (KAN-621)', async () => {
