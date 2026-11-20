@@ -69,9 +69,7 @@ export const CategoryStatisticsPage: React.FC = () => {
       })
       .catch((error: unknown) => {
         if (!mounted) return;
-        setCategoriesError(
-          errorMessage(error, 'No se pudieron cargar las categorías.'),
-        );
+        setCategoriesError(errorMessage(error, 'No se pudieron cargar las categorías.'));
       })
       .finally(() => {
         if (mounted) setLoadingCategories(false);

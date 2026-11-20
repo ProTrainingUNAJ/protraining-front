@@ -128,7 +128,9 @@ export const CategoryMetricsPanel: React.FC<CategoryMetricsPanelProps> = ({
           <p className="category-dashboard-kpi-value" data-testid="category-dashboard-load">
             {load.totalLoad.toLocaleString('es-AR')} UA
           </p>
-          <p className="category-dashboard-kpi-detail">{load.totalMinutes.toLocaleString('es-AR')} minutos</p>
+          <p className="category-dashboard-kpi-detail">
+            {load.totalMinutes.toLocaleString('es-AR')} minutos
+          </p>
           <p className="category-dashboard-kpi-hint">
             {load.recordsCount} {load.recordsCount === 1 ? 'registro' : 'registros'}
           </p>
@@ -150,7 +152,10 @@ export const CategoryMetricsPanel: React.FC<CategoryMetricsPanelProps> = ({
         </article>
       </div>
 
-      <section className="category-dashboard-section" aria-labelledby="category-dashboard-chart-title">
+      <section
+        className="category-dashboard-section"
+        aria-labelledby="category-dashboard-chart-title"
+      >
         <h2 id="category-dashboard-chart-title">Carga por semana</h2>
         {load.weeks.length > 0 ? (
           <CategoryMetricsChart weeks={load.weeks} />

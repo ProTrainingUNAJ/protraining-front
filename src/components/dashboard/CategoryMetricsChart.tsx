@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { CategoryDashboardLoadWeek } from '../../types/categoryDashboard';
 import { formatDayMonth, formatIsoDate } from '../../utils/argentinaDate';
 
