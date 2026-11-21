@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Dumbbell, Activity, Trophy, User, Loader2, CheckCircle2, Info } from 'lucide-react';
+import { X, Activity, Trophy, Loader2, CheckCircle2, Info, ChevronDown } from 'lucide-react';
 import { RpeSliderBar } from '../common/RpeSliderBar';
 import {
   submitDailyLoad,
@@ -22,52 +22,7 @@ export interface AttendanceLoadModalProps {
 }
 
 type ActivityKey = 'gym' | 'sportTraining' | 'match1' | 'match2' | 'individualWork';
-
-interface ActivityConfig {
-  key: ActivityKey;
-  label: string;
-  icon: React.ReactNode;
-  defaultMinutes: number;
-  defaultRpe: number;
-}
-
-const ACTIVITIES: ActivityConfig[] = [
-  {
-    key: 'gym',
-    label: 'Gimnasio',
-    icon: <Dumbbell size={15} aria-hidden="true" />,
-    defaultMinutes: 60,
-    defaultRpe: 7,
-  },
-  {
-    key: 'sportTraining',
-    label: 'Campo',
-    icon: <Activity size={15} aria-hidden="true" />,
-    defaultMinutes: 90,
-    defaultRpe: 7,
-  },
-  {
-    key: 'match1',
-    label: 'Partido 1',
-    icon: <Trophy size={15} aria-hidden="true" />,
-    defaultMinutes: 90,
-    defaultRpe: 8,
-  },
-  {
-    key: 'match2',
-    label: 'Partido 2',
-    icon: <Trophy size={15} aria-hidden="true" />,
-    defaultMinutes: 90,
-    defaultRpe: 8,
-  },
-  {
-    key: 'individualWork',
-    label: 'Individual',
-    icon: <User size={15} aria-hidden="true" />,
-    defaultMinutes: 45,
-    defaultRpe: 6,
-  },
-];
+type MainCategory = 'gym' | 'sportTraining' | 'match' | 'individualWork';
 
 const RPE_DESCRIPTIONS: Record<number, { label: string; color: string }> = {
   0: { label: 'Reposo', color: 'var(--text-muted)' },
@@ -139,7 +94,19 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
     [initialActivities],
   );
 
-  const [selectedActivity, setSelectedActivity] = useState<ActivityKey>(initialSetup.firstSelected);
+  const initialMainCategory: MainCategory = initialSetup.firstSelected.startsWith('match')
+    ? 'match'
+    : (initialSetup.firstSelected as MainCategory);
+
+  const initialMatchInstance: 'match1' | 'match2' =
+    initialSetup.firstSelected === 'match2' ? 'match2' : 'match1';
+
+  const [mainCategory, setMainCategory] = useState<MainCategory>(initialMainCategory);
+  const [matchInstance, setMatchInstance] = useState<'match1' | 'match2'>(initialMatchInstance);
+
+  const selectedActivity: ActivityKey =
+    mainCategory === 'match' ? matchInstance : (mainCategory as ActivityKey);
+
   const [activitiesState, setActivitiesState] = useState<
     Record<ActivityKey, { minutes: number; rpe: number }>
   >(initialSetup.activitiesState);
@@ -386,74 +353,204 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
             </div>
           )}
 
-          {/* Selector de Actividad */}
+          {/* Selector de Actividad en Menú Desplegable (KAN-646) */}
           <div>
             <label
+              htmlFor="attendance-activity-select"
               style={{
                 display: 'block',
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 color: 'var(--text-muted)',
-                marginBottom: '0.5rem',
+                marginBottom: '0.45rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
               }}
             >
               Tipo de Actividad
             </label>
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.4rem',
-                flexWrap: 'wrap',
-              }}
-            >
-              {ACTIVITIES.map((act) => {
-                const isSelected = selectedActivity === act.key;
-                const hasMinutes = (activitiesState[act.key]?.minutes ?? 0) > 0;
-                return (
+            <div style={{ position: 'relative' }}>
+              <select
+                id="attendance-activity-select"
+                aria-label="Tipo de Actividad"
+                value={mainCategory}
+                onChange={(e) => setMainCategory(e.target.value as MainCategory)}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 2.5rem 0.65rem 0.95rem',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.92rem',
+                  fontWeight: 700,
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  cursor: 'pointer',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <option value="gym">
+                  Gimnasio
+                  {activitiesState.gym.minutes > 0 ? ` (${activitiesState.gym.minutes} min)` : ''}
+                </option>
+                <option value="sportTraining">
+                  Campo
+                  {activitiesState.sportTraining.minutes > 0
+                    ? ` (${activitiesState.sportTraining.minutes} min)`
+                    : ''}
+                </option>
+                <option value="match">
+                  Partido
+                  {activitiesState.match1.minutes > 0 || activitiesState.match2.minutes > 0
+                    ? ` (${activitiesState.match1.minutes + activitiesState.match2.minutes} min)`
+                    : ''}
+                </option>
+                <option value="individualWork">
+                  Individual
+                  {activitiesState.individualWork.minutes > 0
+                    ? ` (${activitiesState.individualWork.minutes} min)`
+                    : ''}
+                </option>
+              </select>
+              <div
+                style={{
+                  position: 'absolute',
+                  right: '0.85rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <ChevronDown size={18} />
+              </div>
+            </div>
+
+            {/* Sub-selector condicional de Instancia de Partido (KAN-646) */}
+            {mainCategory === 'match' && (
+              <div
+                style={{
+                  marginTop: '0.65rem',
+                  padding: '0.55rem 0.75rem',
+                  borderRadius: '10px',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  Instancia:
+                </span>
+                <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
                   <button
-                    key={act.key}
                     type="button"
-                    onClick={() => setSelectedActivity(act.key)}
+                    onClick={() => setMatchInstance('match1')}
+                    aria-pressed={matchInstance === 'match1'}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.45rem 0.75rem',
-                      borderRadius: '10px',
-                      fontSize: '0.82rem',
+                      gap: '0.35rem',
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
                       fontWeight: 700,
                       cursor: 'pointer',
-                      border: isSelected
-                        ? '1px solid var(--primary)'
-                        : hasMinutes
-                          ? '1px solid var(--traffic-green-border)'
+                      border:
+                        matchInstance === 'match1'
+                          ? '1px solid var(--primary)'
                           : '1px solid var(--border)',
-                      background: isSelected
-                        ? 'var(--primary)'
-                        : hasMinutes
-                          ? 'var(--traffic-green-bg)'
-                          : 'var(--bg-subtle)',
-                      color: isSelected
-                        ? 'var(--on-primary)'
-                        : hasMinutes
-                          ? 'var(--traffic-green-text)'
-                          : 'var(--text-main)',
+                      background: matchInstance === 'match1' ? 'var(--primary)' : 'var(--bg-card)',
+                      color: matchInstance === 'match1' ? 'var(--on-primary)' : 'var(--text-main)',
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    {act.icon}
-                    <span>{act.label}</span>
-                    {hasMinutes && !isSelected && (
-                      <span style={{ fontSize: '0.72rem', fontWeight: 800 }}>
-                        {activitiesState[act.key].minutes}m
+                    <Trophy size={13} aria-hidden="true" />
+                    <span>1° Partido</span>
+                    {activitiesState.match1.minutes > 0 && (
+                      <span
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          padding: '0.08rem 0.35rem',
+                          borderRadius: '9999px',
+                          background:
+                            matchInstance === 'match1'
+                              ? 'rgba(255, 255, 255, 0.25)'
+                              : 'var(--traffic-green-bg)',
+                          color:
+                            matchInstance === 'match1'
+                              ? 'var(--white)'
+                              : 'var(--traffic-green-text)',
+                        }}
+                      >
+                        {activitiesState.match1.minutes}m
                       </span>
                     )}
                   </button>
-                );
-              })}
-            </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setMatchInstance('match2')}
+                    aria-pressed={matchInstance === 'match2'}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border:
+                        matchInstance === 'match2'
+                          ? '1px solid var(--primary)'
+                          : '1px solid var(--border)',
+                      background: matchInstance === 'match2' ? 'var(--primary)' : 'var(--bg-card)',
+                      color: matchInstance === 'match2' ? 'var(--on-primary)' : 'var(--text-main)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Trophy size={13} aria-hidden="true" />
+                    <span>2° Partido</span>
+                    {activitiesState.match2.minutes > 0 && (
+                      <span
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          padding: '0.08rem 0.35rem',
+                          borderRadius: '9999px',
+                          background:
+                            matchInstance === 'match2'
+                              ? 'rgba(255, 255, 255, 0.25)'
+                              : 'var(--traffic-green-bg)',
+                          color:
+                            matchInstance === 'match2'
+                              ? 'var(--white)'
+                              : 'var(--traffic-green-text)',
+                        }}
+                      >
+                        {activitiesState.match2.minutes}m
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Configuración de la Actividad Seleccionada */}
@@ -654,7 +751,7 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
             </div>
           </div>
 
-          {/* Resumen Total y Fórmula de Foster */}
+          {/* Resumen Total y Fórmula de Foster con Barra de Carga (Imagen 2 - KAN-646) */}
           <div
             style={{
               padding: '0.85rem 1.1rem',
@@ -663,7 +760,7 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
               border: '1px solid color-mix(in srgb, var(--primary) 25%, var(--border))',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.45rem',
+              gap: '0.55rem',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -673,6 +770,36 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
               <span style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--primary)' }}>
                 {totals.minutes} min · {totals.ua} UA
               </span>
+            </div>
+
+            {/* Barra de progreso de carga diaria con degradado continuo (Imagen 2 - KAN-646) */}
+            <div
+              className="attendance-daily-load-bar"
+              style={{
+                width: '100%',
+                height: '11px',
+                borderRadius: '9999px',
+                background: 'var(--border)',
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+              role="progressbar"
+              aria-valuenow={totals.ua}
+              aria-valuemin={0}
+              aria-valuemax={1000}
+              aria-label="Carga acumulada en el día"
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: `${Math.min(100, Math.max(totals.ua > 0 ? 5 : 0, (totals.ua / 1000) * 100))}%`,
+                  borderRadius: '9999px',
+                  background:
+                    'linear-gradient(90deg, #10b981 0%, #047857 25%, #0e7490 50%, #d97706 78%, #ea580c 100%)',
+                  boxShadow: totals.ua > 0 ? '0 0 8px rgba(16, 185, 129, 0.35)' : 'none',
+                  transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              />
             </div>
 
             <div
