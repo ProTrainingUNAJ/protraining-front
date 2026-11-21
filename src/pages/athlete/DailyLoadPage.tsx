@@ -189,11 +189,7 @@ export const DailyLoadPage: React.FC = () => {
   };
 
   // Save activity (upsert via API)
-  const handleSaveActivity = async (
-    activityKey: ActivityKey,
-    minutes: number,
-    rpe: number,
-  ) => {
+  const handleSaveActivity = async (activityKey: ActivityKey, minutes: number, rpe: number) => {
     if (!athleteId) {
       throw new Error('No se pudo identificar al atleta. Reintentá en unos segundos.');
     }
@@ -240,13 +236,13 @@ export const DailyLoadPage: React.FC = () => {
       void refreshWeek(athleteId);
 
       const def = ACTIVITY_DEFINITIONS[activityKey];
-      const activityDisplayName = def.matchSubLabel ? `${def.name} (${def.matchSubLabel})` : def.name;
+      const activityDisplayName = def.matchSubLabel
+        ? `${def.name} (${def.matchSubLabel})`
+        : def.name;
       setSuccessToast(`Se eliminó el registro de ${activityDisplayName}.`);
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err: unknown) {
-      setTodayError(
-        err instanceof Error ? err.message : 'Error al eliminar la actividad.',
-      );
+      setTodayError(err instanceof Error ? err.message : 'Error al eliminar la actividad.');
     }
   };
 
