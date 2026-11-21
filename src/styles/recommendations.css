@@ -893,7 +893,6 @@
 }
 
 @media (width <= 640px) {
-
   .recommendations-list,
   .athlete-recommendations-grid {
     grid-template-columns: 1fr;
