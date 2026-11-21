@@ -527,26 +527,9 @@ export const TrainingPage: React.FC = () => {
                 Mostrando {exercises.length} de {totalCount} ejercicios
               </span>
             </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '1.25rem',
-              }}
-            >
+            <div className="training-exercises-grid">
               {exercises.map((ex) => (
-                <div
-                  key={ex.id}
-                  className="card"
-                  style={{
-                    margin: 0,
-                    padding: '1.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: '1rem',
-                  }}
-                >
+                <div key={ex.id} className="card training-exercise-card">
                   <div>
                     {/* Clic en la foto abre el modal ampliado de detalle (KAN-625) */}
                     <div
@@ -601,48 +584,22 @@ export const TrainingPage: React.FC = () => {
                       tabIndex={0}
                       role="button"
                       title={`Ver técnica y anatomía de ${ex.name}`}
-                      style={{
-                        fontSize: '1.05rem',
-                        fontWeight: 700,
-                        margin: '0 0 0.4rem',
-                        color: 'var(--text-main)',
-                        lineHeight: 1.3,
-                      }}
                     >
                       {ex.name}
                     </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                      Grupo: {ex.muscleGroup}
-                    </p>
+                    <p className="exercise-card-muscle-group">Grupo: {ex.muscleGroup}</p>
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '0.4rem',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-muted)',
-                      paddingTop: '0.75rem',
-                      borderTop: '1px solid var(--border)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div className="exercise-card-footer">
+                    <div className="exercise-card-equipment-wrap">
                       <Activity size={14} />
-                      <span>{ex.equipment}</span>
+                      <span className="exercise-card-equipment">{ex.equipment}</span>
                     </div>
                     {/* Clic en anatomía abre el modal ampliado de detalle (KAN-625) */}
                     <button
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => openDetail(ex)}
-                      style={{
-                        padding: '0.2rem 0.6rem',
-                        fontSize: '0.75rem',
-                        minHeight: '28px',
-                        borderRadius: 'var(--radius)',
-                      }}
                       title="Ver mapa anatómico y detalles"
                     >
                       Anatomía

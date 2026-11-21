@@ -1416,6 +1416,20 @@
   display: none;
 }
 
+.exercise-card-title-clickable {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  color: var(--text-main);
+  line-height: 1.3;
+  cursor: pointer;
+  transition: color var(--transition-fast, 0.15s ease);
+}
+
+.exercise-card-title-clickable:hover {
+  color: var(--brand-navy);
+}
+
 .exercise-card-muscle-group {
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -1448,7 +1462,7 @@
 }
 
 /* En Mobile: Adaptación de filtros y grilla de 2 columnas (KAN-640) */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .training-filters-card {
     padding: 0.65rem 0.75rem;
     gap: 0.45rem;
@@ -1519,10 +1533,20 @@
     gap: 0.45rem;
   }
 
+  /* Los chips hacen wrap en mobile para verse siempre completos sin cortarse */
+  .training-chips-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    overflow-x: visible;
+    width: 100%;
+  }
+
   .training-group-chip {
     height: 28px;
-    padding: 0 0.75rem;
+    padding: 0 0.7rem;
     font-size: 0.78rem;
+    flex-shrink: 0;
   }
 
   .training-submuscles-row {
@@ -1534,10 +1558,19 @@
     display: none;
   }
 
+  .training-subchips-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    overflow-x: visible;
+    width: 100%;
+  }
+
   .training-submuscle-chip {
     height: 24px;
     padding: 0 0.65rem;
     font-size: 0.74rem;
+    flex-shrink: 0;
   }
 
   .touch-chip {
@@ -1554,7 +1587,7 @@
 
   /* 2 columnas exactas para que entren dos ejercicios */
   .training-exercises-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.6rem;
   }
 
