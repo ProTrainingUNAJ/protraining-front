@@ -106,4 +106,46 @@ describe('DayDetailDrawer (KAN-404)', () => {
       expect(deleteSpy).toHaveBeenCalledWith('cat-1', 'match-1');
     });
   });
+
+  it('muestra la organizacion y categoria del partido cuando estan disponibles', async () => {
+    const matchWithOrg: Match = {
+      id: 'match-org-1',
+      categoryId: 'cat-primera',
+      opponent: 'Atlético Varela',
+      matchDate: '2026-11-21T15:30:00',
+      startTime: '15:30:00',
+      homeOrAway: 'Home',
+      categoryName: 'Primera División',
+      organizationName: 'Club Defensa y Justicia',
+    };
+
+    render(
+      <MemoryRouter>
+        <DayDetailDrawer
+          isOpen={true}
+          onClose={vi.fn()}
+          isoDate="2026-11-21"
+          matches={[matchWithOrg]}
+          categories={[
+            {
+              id: 'cat-primera',
+              organizationId: 'org-1',
+              name: 'Primera División',
+              athletesCount: 25,
+              organizationName: 'Club Defensa y Justicia',
+            },
+          ]}
+          onAddMatch={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Organización:')).toBeDefined();
+      expect(screen.getByText('Club Defensa y Justicia')).toBeDefined();
+      expect(screen.getByText('Categoría:')).toBeDefined();
+      expect(screen.getByText('Primera División')).toBeDefined();
+      expect(screen.getByText(/VS Atlético Varela/i)).toBeDefined();
+    });
+  });
 });

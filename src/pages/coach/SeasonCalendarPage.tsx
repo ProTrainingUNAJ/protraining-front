@@ -21,7 +21,17 @@ export const SeasonCalendarPage: React.FC = () => {
 
         if (orgs.length > 0) {
           const catsNested = await Promise.all(
-            orgs.map((org) => structureService.getCategories(org.id).catch(() => [] as Category[])),
+            orgs.map(async (org) => {
+              try {
+                const cats = await structureService.getCategories(org.id);
+                return cats.map((cat) => ({
+                  ...cat,
+                  organizationName: org.name,
+                }));
+              } catch {
+                return [] as Category[];
+              }
+            }),
           );
           if (!isMounted) return;
           const flatCategories = catsNested.flat();
