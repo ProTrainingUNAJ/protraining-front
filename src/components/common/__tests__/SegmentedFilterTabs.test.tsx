@@ -92,4 +92,28 @@ describe('SegmentedFilterTabs (KAN-645)', () => {
     // 3 de las 4 opciones tienen hasDot: true
     expect(dots.length).toBe(3);
   });
+
+  it('renderiza label y shortLabel cuando se proporciona', () => {
+    const optionsWithShort: Array<SegmentedFilterOption<TestFilter>> = [
+      {
+        value: 'critical',
+        label: 'Atención Crítica',
+        shortLabel: 'Crítica',
+        count: 2,
+        variant: 'red',
+        testId: 'tab-critical',
+      },
+    ];
+
+    render(
+      <SegmentedFilterTabs<TestFilter>
+        options={optionsWithShort}
+        value="critical"
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Atención Crítica')).toBeDefined();
+    expect(screen.getByText('Crítica')).toBeDefined();
+  });
 });

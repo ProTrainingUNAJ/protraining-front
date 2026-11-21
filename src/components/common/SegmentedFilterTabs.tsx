@@ -18,6 +18,7 @@ export type SegmentedFilterVariant =
 export interface SegmentedFilterOption<T extends string = string> {
   value: T;
   label: string;
+  shortLabel?: string;
   count?: number;
   hasDot?: boolean;
   variant?: SegmentedFilterVariant;
@@ -66,7 +67,14 @@ export function SegmentedFilterTabs<T extends string = string>({
             onClick={() => onChange(option.value)}
           >
             {option.hasDot && <span className="segmented-tab-dot" aria-hidden="true" />}
-            <span>{option.label}</span>
+            {option.shortLabel ? (
+              <>
+                <span className="segmented-tab-label-full">{option.label}</span>
+                <span className="segmented-tab-label-short">{option.shortLabel}</span>
+              </>
+            ) : (
+              <span className="segmented-tab-label">{option.label}</span>
+            )}
             {option.count !== undefined && (
               <span className="segmented-tab-count recommendations-tab-count">{option.count}</span>
             )}

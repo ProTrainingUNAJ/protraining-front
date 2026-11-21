@@ -734,6 +734,7 @@ export const MonitoringPage: React.FC = () => {
                 {
                   value: 'red',
                   label: 'Atención Crítica',
+                  shortLabel: 'Crítica',
                   count: counts.red,
                   variant: 'red',
                   hasDot: true,
@@ -755,6 +756,7 @@ export const MonitoringPage: React.FC = () => {
                 {
                   value: 'gray',
                   label: 'Sin Check-in',
+                  shortLabel: 'Sin Check',
                   count: counts.gray,
                   variant: 'gray',
                   hasDot: true,
