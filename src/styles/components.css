@@ -352,6 +352,14 @@ textarea:focus {
   border: 1px solid var(--border);
 }
 
+.segmented-tab-label-short {
+  display: none;
+}
+
+.segmented-tab-label-full {
+  display: inline;
+}
+
 .segmented-tab,
 .recommendations-tab {
   display: inline-flex;
@@ -582,4 +590,53 @@ textarea:focus {
 .segmented-tab.status-muted.active .segmented-tab-count {
   background: var(--bg-card);
   color: var(--traffic-gray-text);
+}
+
+/* ── Versión Responsive: barra compacta en una sola fila con scroll horizontal touch (KAN-645) ── */
+@media (max-width: 640px) {
+  .segmented-tabs,
+  .recommendations-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .segmented-tabs::-webkit-scrollbar,
+  .recommendations-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .segmented-tab,
+  .recommendations-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.78rem;
+    gap: 0.3rem;
+    border-radius: 8px;
+  }
+
+  .segmented-tab-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .segmented-tab-count,
+  .recommendations-tab-count {
+    min-width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    padding: 0 0.35rem;
+  }
+
+  .segmented-tab-label-full {
+    display: none;
+  }
+
+  .segmented-tab-label-short {
+    display: inline;
+  }
 }
