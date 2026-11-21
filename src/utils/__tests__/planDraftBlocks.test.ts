@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   createBlockExercise,
   createDefaultBlocks,
+  dayLabel,
+  dayPosition,
   daysToPlanDraft,
   duplicateBlock,
+  parseDayOfWeek,
   planDraftToDays,
   reorderBlocks,
   toDraft,
@@ -661,6 +664,180 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
       expect(prog.notes).toBe(
         `Indicación técnica para ejercicio ${idx + 1}: mantener cadencia 3-1-1`,
       );
+    });
+  });
+
+  describe('Normalización universal de DayOfWeek (KAN-648)', () => {
+    it('parseDayOfWeek normaliza números, strings .NET en inglés y español', () => {
+      // Números nativos de contrato (0=Domingo, 1=Lunes, ..., 6=Sábado)
+      expect(parseDayOfWeek(0)).toBe(0);
+      expect(parseDayOfWeek(1)).toBe(1);
+      expect(parseDayOfWeek(3)).toBe(3);
+      expect(parseDayOfWeek(5)).toBe(5);
+      expect(parseDayOfWeek(6)).toBe(6);
+
+      // ISO Sunday (7) -> 0
+      expect(parseDayOfWeek(7)).toBe(0);
+
+      // Strings numéricos
+      expect(parseDayOfWeek('1')).toBe(1);
+      expect(parseDayOfWeek('5')).toBe(5);
+      expect(parseDayOfWeek('0')).toBe(0);
+      expect(parseDayOfWeek('7')).toBe(0);
+
+      // Strings enum .NET en inglés (case insensitive, trimmed)
+      expect(parseDayOfWeek('Monday')).toBe(1);
+      expect(parseDayOfWeek('monday ')).toBe(1);
+      expect(parseDayOfWeek('Tuesday')).toBe(2);
+      expect(parseDayOfWeek('Wednesday')).toBe(3);
+      expect(parseDayOfWeek('Thursday')).toBe(4);
+      expect(parseDayOfWeek('Friday')).toBe(5);
+      expect(parseDayOfWeek('Saturday')).toBe(6);
+      expect(parseDayOfWeek('Sunday')).toBe(0);
+
+      // Strings en español (con y sin tildes)
+      expect(parseDayOfWeek('Lunes')).toBe(1);
+      expect(parseDayOfWeek('Martes')).toBe(2);
+      expect(parseDayOfWeek('Miércoles')).toBe(3);
+      expect(parseDayOfWeek('Miercoles')).toBe(3);
+      expect(parseDayOfWeek('Jueves')).toBe(4);
+      expect(parseDayOfWeek('Viernes')).toBe(5);
+      expect(parseDayOfWeek('Sábado')).toBe(6);
+      expect(parseDayOfWeek('Sabado')).toBe(6);
+      expect(parseDayOfWeek('Domingo')).toBe(0);
+
+      // Valores inválidos devuelven fallback seguro 1 (Lunes)
+      expect(parseDayOfWeek(null)).toBe(1);
+      expect(parseDayOfWeek(undefined)).toBe(1);
+      expect(parseDayOfWeek('')).toBe(1);
+      expect(parseDayOfWeek('desconocido')).toBe(1);
+    });
+
+    it('dayLabel y dayPosition resuelven correctamente tanto con números como con strings', () => {
+      // dayLabel nunca devuelve vacío cuando recibe string en inglés o español
+      expect(dayLabel(5)).toBe('Viernes');
+      expect(dayLabel('Friday')).toBe('Viernes');
+      expect(dayLabel('friday')).toBe('Viernes');
+      expect(dayLabel('Viernes')).toBe('Viernes');
+      expect(dayLabel(1)).toBe('Lunes');
+      expect(dayLabel('Monday')).toBe('Lunes');
+      expect(dayLabel(3)).toBe('Miércoles');
+      expect(dayLabel('Wednesday')).toBe('Miércoles');
+      expect(dayLabel(0)).toBe('Domingo');
+      expect(dayLabel('Sunday')).toBe('Domingo');
+
+      // dayPosition nunca devuelve NaN
+      expect(dayPosition(1)).toBe(0); // Lunes es posición 0
+      expect(dayPosition('Monday')).toBe(0);
+      expect(dayPosition(3)).toBe(2); // Miércoles es posición 2
+      expect(dayPosition('Wednesday')).toBe(2);
+      expect(dayPosition(5)).toBe(4); // Viernes es posición 4
+      expect(dayPosition('Friday')).toBe(4);
+      expect(dayPosition(0)).toBe(6); // Domingo es posición 6
+      expect(dayPosition('Sunday')).toBe(6);
+      expect(Number.isNaN(dayPosition('Friday'))).toBe(false);
+    });
+
+    it('reconstruye y preserva nombres de días cuando el backend .NET serializa DayOfWeek como string', () => {
+      // Simulamos la respuesta del backend .NET donde DayOfWeek llega como 'Monday', 'Wednesday', 'Friday'
+      const netBackendResponse = {
+        id: 'plan-net-1',
+        name: 'Fuerza pretemporada',
+        objective: 'Bloques semanales',
+        weeks: [
+          {
+            id: 'w-1',
+            weekNumber: 1,
+            sessions: [
+              {
+                id: 's-mon',
+                name: 'Sesión lunes',
+                order: 1,
+                dayOfWeek: 'Monday' as unknown as number, // .NET string enum
+                coachNotes: 'Nota lunes',
+                startTime: '09:00',
+                blocks: [
+                  {
+                    id: 'b-1',
+                    title: 'Entrada en calor',
+                    order: 1,
+                    exercises: [
+                      {
+                        id: 'ex-1',
+                        exerciseId: 'ex-squat',
+                        exerciseName: 'Sentadilla Trasera',
+                        order: 1,
+                        sets: 4,
+                        reps: 8,
+                        intensityType: 'RPE',
+                        targetRpe: 8,
+                      },
+                    ],
+                  },
+                ],
+                exercises: [],
+              },
+              {
+                id: 's-fri',
+                name: 'Sesión viernes',
+                order: 2,
+                dayOfWeek: 'Friday' as unknown as number, // .NET string enum
+                coachNotes: 'Nota viernes',
+                startTime: '10:00',
+                blocks: [
+                  {
+                    id: 'b-2',
+                    title: 'Fuerza A',
+                    order: 1,
+                    exercises: [
+                      {
+                        id: 'ex-2',
+                        exerciseId: 'ex-bench',
+                        exerciseName: 'Press de Banca',
+                        order: 1,
+                        sets: 3,
+                        reps: 10,
+                        intensityType: 'RPE',
+                        targetRpe: 8.5,
+                      },
+                    ],
+                  },
+                ],
+                exercises: [],
+              },
+            ],
+          },
+        ],
+      } as unknown as TrainingPlanDetail;
+
+      // 1. toDraft debe normalizar dayOfWeek a números (1 y 5)
+      const draft = toDraft(netBackendResponse);
+      expect(draft.weeks[0].sessions[0].dayOfWeek).toBe(1);
+      expect(draft.weeks[0].sessions[1].dayOfWeek).toBe(5);
+
+      // 2. planDraftToDays debe generar días con nombres visibles y ordenados (no vacíos ni NaN)
+      const days = planDraftToDays(draft);
+      expect(days).toHaveLength(2);
+      expect(days[0].dayOfWeek).toBe(1);
+      expect(days[0].name).toBe('Día Lunes');
+      expect(dayLabel(days[0].dayOfWeek)).toBe('Lunes');
+
+      expect(days[1].dayOfWeek).toBe(5);
+      expect(days[1].name).toBe('Día Viernes');
+      expect(dayLabel(days[1].dayOfWeek)).toBe('Viernes');
+
+      // 3. daysToPlanDraft debe guardar de regreso con dayOfWeek numérico correcto
+      const savedDraft = daysToPlanDraft(days, draft);
+      expect(savedDraft.weeks[0].sessions[0].dayOfWeek).toBe(1);
+      expect(savedDraft.weeks[0].sessions[1].dayOfWeek).toBe(5);
+      expect(savedDraft.weeks[0].sessions[0].name).toBe('Día Lunes');
+      expect(savedDraft.weeks[0].sessions[1].name).toBe('Día Viernes');
+
+      // 4. toSaveRequest debe mantener el dayOfWeek numérico para el backend
+      const saveReq = toSaveRequest(savedDraft);
+      expect(saveReq.weeks).toBeDefined();
+      expect(saveReq.weeks?.[0]?.sessions?.[0]?.dayOfWeek).toBe(1);
+      expect(saveReq.weeks?.[0]?.sessions?.[1]?.dayOfWeek).toBe(5);
     });
   });
 });
