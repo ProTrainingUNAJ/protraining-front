@@ -39,7 +39,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
 }) => {
   const isApi = Boolean(src && isApiPhotoUrl(src));
   const cachedBlob = isApi && src ? blobUrlCache.get(src) : null;
-  const [asyncBlobUrl, setAsyncBlobUrl] = useState<string | null>(cachedBlob || null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(cachedBlob || null);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -56,10 +56,10 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       currentPromise = httpClient
         .get<Blob>(src, { responseType: 'blob' })
         .then((response: { data: Blob }) => {
-          const blobUrl = URL.createObjectURL(response.data);
-          blobUrlCache.set(src, blobUrl);
+          const objectUrl = URL.createObjectURL(response.data);
+          blobUrlCache.set(src, objectUrl);
           inFlightRequests.delete(src);
-          return blobUrl;
+          return objectUrl;
         })
         .catch(() => {
           inFlightRequests.delete(src);
@@ -68,10 +68,10 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       inFlightRequests.set(src, currentPromise);
     }
 
-    currentPromise.then((blobUrl) => {
+    currentPromise.then((objectUrl) => {
       if (!isMounted) return;
-      if (blobUrl) {
-        setAsyncBlobUrl(blobUrl);
+      if (objectUrl) {
+        setBlobUrl(objectUrl);
         setHasError(false);
       } else {
         setHasError(true);
@@ -83,7 +83,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     };
   }, [src, isApi]);
 
-  const resolvedSrc = isApi ? asyncBlobUrl || cachedBlob || null : src || null;
+  const effectiveSrc = blobUrl || cachedBlob || src || null;
 
   const dimension = typeof size === 'number' ? size : SIZE_MAP[size] || 48;
   const fontSize = Math.max(10, Math.round(dimension * 0.38));
@@ -126,9 +126,9 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       title={name}
       aria-label={accessibleLabel}
     >
-      {resolvedSrc && !hasError ? (
+      {effectiveSrc && !hasError ? (
         <img
-          src={resolvedSrc}
+          src={effectiveSrc}
           alt={accessibleLabel}
           loading="lazy"
           decoding="async"
