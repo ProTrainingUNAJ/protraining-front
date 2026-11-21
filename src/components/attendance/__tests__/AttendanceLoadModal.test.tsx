@@ -47,9 +47,13 @@ describe('AttendanceLoadModal (KAN-621)', () => {
     expect(screen.getByRole('dialog')).toBeDefined();
     expect(screen.getByText(/Carga de Entrenamiento/i)).toBeDefined();
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
-    expect(screen.getByText('Gimnasio')).toBeDefined();
-    expect(screen.getByText('Campo')).toBeDefined();
-    expect(screen.getByText('Partido 1')).toBeDefined();
+    const select = screen.getByLabelText(/Tipo de Actividad/i) as HTMLSelectElement;
+    expect(select).toBeDefined();
+    expect(screen.getByRole('option', { name: /Gimnasio/i })).toBeDefined();
+    expect(screen.getByRole('option', { name: /Campo/i })).toBeDefined();
+    expect(screen.getByRole('option', { name: /Partido/i })).toBeDefined();
+    expect(screen.getByRole('option', { name: /Individual/i })).toBeDefined();
+    expect(screen.getByRole('progressbar', { name: /Carga acumulada en el día/i })).toBeDefined();
     expect(screen.getByText(/Método Foster:/i)).toBeDefined();
   });
 
@@ -173,6 +177,60 @@ describe('AttendanceLoadModal (KAN-621)', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeDefined();
       expect(screen.getByText('Atleta no encontrado.')).toBeDefined();
+    });
+  });
+
+  it('permite alternar entre 1° y 2° Partido al seleccionar la categoría Partido', async () => {
+    vi.mocked(submitDailyLoad).mockResolvedValue({
+      message: 'Carga registrada',
+      totalMinutes: 90,
+      totalLoad: 720,
+      date: '2026-11-16',
+      gym: { minutes: 0, rpe: null },
+      sportTraining: { minutes: 0, rpe: null },
+      match1: { minutes: 0, rpe: null },
+      match2: { minutes: 90, rpe: 8 },
+      individualWork: { minutes: 0, rpe: null },
+    });
+
+    render(
+      <AttendanceLoadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        athleteId="ath-1"
+        athleteName="Lucas Gómez"
+        onSuccess={mockOnSuccess}
+      />,
+    );
+
+    const select = screen.getByLabelText(/Tipo de Actividad/i);
+    fireEvent.change(select, { target: { value: 'match' } });
+
+    // Comprobar que aparecen los botones de instancia
+    expect(screen.getByRole('button', { name: /1° Partido/i })).toBeDefined();
+    const partido2Btn = screen.getByRole('button', { name: /2° Partido/i });
+    expect(partido2Btn).toBeDefined();
+
+    // Cambiar a 2° Partido
+    fireEvent.click(partido2Btn);
+
+    // Cargar 90 minutos y RPE 8
+    fireEvent.click(screen.getByRole('button', { name: '90 min' }));
+    const rpeSlider = screen.getByLabelText(/Esfuerzo Percibido/i);
+    fireEvent.change(rpeSlider, { target: { value: '8' } });
+
+    // Guardar
+    const submitBtn = screen.getByRole('button', { name: /Guardar Carga/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(submitDailyLoad).toHaveBeenCalledWith('ath-1', {
+        gym: { minutes: 0, rpe: null },
+        sportTraining: { minutes: 0, rpe: null },
+        match1: { minutes: 0, rpe: null },
+        match2: { minutes: 90, rpe: 8 },
+        individualWork: { minutes: 0, rpe: null },
+      });
     });
   });
 });
