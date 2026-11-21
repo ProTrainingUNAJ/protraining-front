@@ -985,13 +985,13 @@ export const MonitoringPage: React.FC = () => {
               </div>
             )}
 
-            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366/KAN-639): alineación superior simétrica */}
+            {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366/KAN-639): alineación simétrica y altura uniforme */}
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
                 gap: '1rem',
-                alignItems: 'start',
+                alignItems: 'stretch',
               }}
             >
               {filteredAthletes.map((athlete) => {
@@ -1344,6 +1344,7 @@ export const MonitoringPage: React.FC = () => {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
                     gap: '1rem',
+                    alignItems: 'stretch',
                   }}
                 >
                   {filteredAttendanceAthletes.map((athlete) => {
@@ -1808,93 +1809,100 @@ export const MonitoringPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Botón de Carga / Edición según Criterio KAN-621 en su propia fila integrada */}
-                        {isPresent ? (
-                          <button
-                            type="button"
-                            data-testid={`edit-load-btn-${athlete.athleteId}`}
-                            aria-label={`Editar Carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setLoadModalAthlete({
-                                id: athlete.athleteId,
-                                name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                activities: athlete.activities,
-                              });
-                            }}
-                            style={{
-                              width: '100%',
-                              marginTop: '0.45rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '0.4rem',
-                              background: 'var(--bg-card)',
-                              border: '1px solid var(--border)',
-                              color: 'var(--primary)',
-                              fontSize: '0.76rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              padding: '0.42rem 0.65rem',
-                              borderRadius: '8px',
-                              transition: 'all 0.15s ease',
-                              boxSizing: 'border-box',
-                            }}
-                          >
-                            <Pencil size={13} />
-                            <span>Editar Carga</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            data-testid={`load-btn-${athlete.athleteId}`}
-                            aria-label={`+ Cargar minutos y RPE a ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setLoadModalAthlete({
-                                id: athlete.athleteId,
-                                name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
-                                activities: athlete.activities,
-                              });
-                            }}
-                            style={{
-                              width: '100%',
-                              marginTop: '0.45rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '0.4rem',
-                              background: 'color-mix(in srgb, var(--primary) 8%, var(--bg-card))',
-                              border:
-                                '1px solid color-mix(in srgb, var(--primary) 30%, var(--border))',
-                              color: 'var(--primary)',
-                              fontSize: '0.76rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              padding: '0.42rem 0.65rem',
-                              borderRadius: '8px',
-                              transition: 'all 0.15s ease',
-                              boxSizing: 'border-box',
-                            }}
-                          >
-                            <Plus size={13} />
-                            <span>Cargar minutos y RPE</span>
-                          </button>
-                        )}
-
+                        {/* Botón de Carga / Edición + Contacto anclados simétricamente al pie */}
                         <div
                           style={{
-                            marginTop: '0.55rem',
-                            paddingTop: '0.55rem',
-                            borderTop: '1px solid var(--border)',
+                            marginTop: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.55rem',
+                            width: '100%',
                           }}
                         >
-                          <AthleteContactActions
-                            athlete={attendanceContactItem}
-                            compact
-                            context="attendance"
-                            isPresent={isPresent}
-                          />
+                          {isPresent ? (
+                            <button
+                              type="button"
+                              data-testid={`edit-load-btn-${athlete.athleteId}`}
+                              aria-label={`Editar Carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLoadModalAthlete({
+                                  id: athlete.athleteId,
+                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                  activities: athlete.activities,
+                                });
+                              }}
+                              style={{
+                                width: '100%',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem',
+                                background: 'var(--bg-card)',
+                                border: '1px solid var(--border)',
+                                color: 'var(--primary)',
+                                fontSize: '0.76rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                padding: '0.42rem 0.65rem',
+                                borderRadius: '8px',
+                                transition: 'all 0.15s ease',
+                                boxSizing: 'border-box',
+                              }}
+                            >
+                              <Pencil size={13} />
+                              <span>Editar Carga</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              data-testid={`load-btn-${athlete.athleteId}`}
+                              aria-label={`+ Cargar minutos y RPE a ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLoadModalAthlete({
+                                  id: athlete.athleteId,
+                                  name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
+                                  activities: athlete.activities,
+                                });
+                              }}
+                              style={{
+                                width: '100%',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem',
+                                background: 'color-mix(in srgb, var(--primary) 8%, var(--bg-card))',
+                                border:
+                                  '1px solid color-mix(in srgb, var(--primary) 30%, var(--border))',
+                                color: 'var(--primary)',
+                                fontSize: '0.76rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                padding: '0.42rem 0.65rem',
+                                borderRadius: '8px',
+                                transition: 'all 0.15s ease',
+                                boxSizing: 'border-box',
+                              }}
+                            >
+                              <Plus size={13} />
+                              <span>Cargar minutos y RPE</span>
+                            </button>
+                          )}
+
+                          <div
+                            style={{
+                              paddingTop: '0.55rem',
+                              borderTop: '1px solid var(--border)',
+                            }}
+                          >
+                            <AthleteContactActions
+                              athlete={attendanceContactItem}
+                              compact
+                              context="attendance"
+                              isPresent={isPresent}
+                            />
+                          </div>
                         </div>
                       </div>
                     );

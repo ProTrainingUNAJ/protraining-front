@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Check, ChevronDown, Copy, MessageCircle, Send } from 'lucide-react';
+import { Check, ChevronDown, Copy } from 'lucide-react';
 import { getStoredSession } from '../../api/axiosClient';
 import { usersService } from '../../api/users';
 import { copyTextToClipboard } from '../../utils/clipboard';
 import { buildAthleteToPfMessage } from '../../utils/contactTemplates';
 import { buildTelegramLink } from '../../utils/telegram';
 import { buildWhatsAppLink } from '../../utils/whatsapp';
+import { TelegramIcon, WhatsAppIcon } from '../common/BrandIcons';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 
 export interface ContactPfButtonProps {
@@ -81,7 +82,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
       >
         <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
-        <MessageCircle size={18} aria-hidden="true" />
+        <WhatsAppIcon size={18} aria-hidden="true" />
         <span className="contact-pf-label">Contactar a mi preparador</span>
       </a>
     );
@@ -109,7 +110,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
-          <Send size={18} aria-hidden="true" />
+          <TelegramIcon size={18} aria-hidden="true" />
           <span className="contact-pf-label">Contactar por Telegram</span>
         </a>
         {telegramFeedback !== 'idle' && (
@@ -194,7 +195,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
       >
         <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
-        <MessageCircle size={18} aria-hidden="true" />
+        <WhatsAppIcon size={18} aria-hidden="true" />
         <span className="contact-pf-label">Contactar a mi preparador</span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
@@ -229,7 +230,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
               className="btn btn-secondary"
               style={{ justifyContent: 'flex-start', gap: '0.5rem', width: '100%' }}
             >
-              <MessageCircle size={16} aria-hidden="true" />
+              <WhatsAppIcon size={16} aria-hidden="true" />
               WhatsApp
             </a>
           )}
@@ -243,7 +244,7 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
               className="btn btn-secondary"
               style={{ justifyContent: 'flex-start', gap: '0.5rem', width: '100%' }}
             >
-              <Send size={16} aria-hidden="true" />
+              <TelegramIcon size={16} aria-hidden="true" />
               Telegram
             </a>
           )}
