@@ -36,7 +36,6 @@ import {
   purgeLegacyCheckInCompletedData,
   hasRequiredInjuryMark,
   hasUnscoredActiveInjuries,
-  getInjuryScoreColor,
   clearInjuryPains,
 } from '../../components/athlete/checkin/checkInHelper';
 
@@ -903,66 +902,26 @@ export const CheckInPage: React.FC = () => {
                 />
               )}
 
-              {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud y Lesiones agrupadas) */}
+              {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud, Lesiones y Molestias Activas en Modal) */}
               {currentStep === 3 && (
-                <>
-                  {activeInjuries.length > 0 && (
-                    <div className="checkin-injuries" style={{ padding: '1rem' }}>
-                      <h3>Molestias activas</h3>
-                      {activeInjuries.map((injury) => (
-                        <div key={injury.id} style={{ marginBottom: '0.75rem' }}>
-                          <span>
-                            {injury.zone} — {injury.description}
-                          </span>
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: '0.25rem',
-                              flexWrap: 'wrap',
-                              marginTop: '0.25rem',
-                            }}
-                          >
-                            {Array.from({ length: 11 }, (_, i) => i).map((level) => (
-                              <button
-                                key={level}
-                                type="button"
-                                onClick={() =>
-                                  setInjuryScores((prev) => ({ ...prev, [injury.id]: level }))
-                                }
-                                style={{
-                                  padding: '0.25rem 0.5rem',
-                                  background:
-                                    injuryScores[injury.id] === level
-                                      ? 'var(--primary)'
-                                      : 'var(--bg-secondary)',
-                                  color: getInjuryScoreColor(injuryScores[injury.id] === level),
-                                  border: '1px solid var(--border)',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                {level}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <CheckInPainSlide
-                    musclePains={musclePains}
-                    onPainChange={handlePainChange}
-                    onClearAll={handleClearPains}
-                    isSick={isSick}
-                    onSickChange={setIsSick}
-                    hasActiveInjury={hasActiveInjury}
-                    onInjuryChange={handleInjuryChange}
-                    healthQuestionsAnswered={healthQuestionsAnswered}
-                    onHealthQuestionsAnswered={setHealthQuestionsAnswered}
-                    onPrev={handlePrev}
-                    onNext={handleNext}
-                  />
-                </>
+                <CheckInPainSlide
+                  musclePains={musclePains}
+                  onPainChange={handlePainChange}
+                  onClearAll={handleClearPains}
+                  isSick={isSick}
+                  onSickChange={setIsSick}
+                  hasActiveInjury={hasActiveInjury}
+                  onInjuryChange={handleInjuryChange}
+                  healthQuestionsAnswered={healthQuestionsAnswered}
+                  onHealthQuestionsAnswered={setHealthQuestionsAnswered}
+                  activeInjuries={activeInjuries}
+                  injuryScores={injuryScores}
+                  onInjuryScoreChange={(injuryId, score) =>
+                    setInjuryScores((prev) => ({ ...prev, [injuryId]: score }))
+                  }
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                />
               )}
 
               {/* Tarjeta Final: Resumen Completo y Envío */}

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan } from 'lucide-react';
+import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan, Activity } from 'lucide-react';
 import { InteractiveMuscleMap } from '../InteractiveMuscleMap';
 import { hasRequiredInjuryMark } from './checkInHelper';
+import { ActiveInjuriesModal, ActiveInjuryItem } from './ActiveInjuriesModal';
 
 export interface CheckInPainSlideProps {
   musclePains: Record<string, number>;
@@ -13,6 +14,9 @@ export interface CheckInPainSlideProps {
   onInjuryChange?: (hasInjury: boolean) => void;
   healthQuestionsAnswered?: boolean;
   onHealthQuestionsAnswered?: (answered: boolean) => void;
+  activeInjuries?: ReadonlyArray<ActiveInjuryItem>;
+  injuryScores?: Record<string, number | null>;
+  onInjuryScoreChange?: (injuryId: string, score: number) => void;
   onPrev: () => void;
   onNext: () => void;
 }
@@ -29,6 +33,9 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   onInjuryChange,
   healthQuestionsAnswered = false,
   onHealthQuestionsAnswered,
+  activeInjuries,
+  injuryScores = {},
+  onInjuryScoreChange,
   onPrev,
   onNext,
 }) => {
@@ -38,6 +45,14 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   });
   const [showInjuryNotice, setShowInjuryNotice] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  // Modal de molestias activas (Burbuja estilo Imagen 2)
+  const [showInjuriesModal, setShowInjuriesModal] = useState<boolean>(() => {
+    if (activeInjuries && activeInjuries.length > 0) {
+      // Abre automáticamente si hay molestias activas
+      return true;
+    }
+    return false;
+  });
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -67,6 +82,9 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       });
     }
     setCartelStep('desbloqueado');
+    if (activeInjuries && activeInjuries.length > 0) {
+      setShowInjuriesModal(true);
+    }
   };
 
   const isBlocked = cartelStep !== 'desbloqueado';
@@ -230,6 +248,26 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               <span>{hasActiveInjury ? 'Lesión activa' : 'Sin lesión'}</span>
               <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
             </button>
+
+            {/* Chip de Molestias Activas (si hay molestias registradas previamente) */}
+            {activeInjuries && activeInjuries.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowInjuriesModal(true)}
+                className="checkin-health-chip warning"
+                title="Modificar puntuación de molestias activas"
+              >
+                <Activity size={12} />
+                <span>
+                  Molestia: {activeInjuries[0].zone}
+                  {injuryScores[activeInjuries[0].id] !== null &&
+                  injuryScores[activeInjuries[0].id] !== undefined
+                    ? ` (${injuryScores[activeInjuries[0].id]}/10)`
+                    : ''}
+                </span>
+                <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+              </button>
+            )}
 
             {/* Chip de Zonas Marcadas (si hay) */}
             {reportedPainsCount > 0 && (
@@ -623,6 +661,17 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* ── BURBUJA MODAL DE MOLESTIAS ACTIVAS (ESTILO IMAGEN 2) CON SLIDER (IMAGEN 3) ── */}
+      {activeInjuries && activeInjuries.length > 0 && (
+        <ActiveInjuriesModal
+          isOpen={showInjuriesModal && !isBlocked}
+          onClose={() => setShowInjuriesModal(false)}
+          activeInjuries={activeInjuries}
+          injuryScores={injuryScores}
+          onScoreChange={onInjuryScoreChange ?? (() => {})}
+        />
       )}
 
       {/* Estilos para animación de modales */}
