@@ -26,9 +26,10 @@ import {
   type CategoryDashboardPeriod,
 } from '../../utils/categoryDashboardRange';
 
-export type StatisticsTab = 'category' | 'reliability' | 'reports';
+export type StatisticsTab = 'category' | 'reliability' | 'all' | 'reports';
 
 function parseTab(tabParam: string | null): StatisticsTab {
+  if (tabParam === 'all') return 'all';
   if (tabParam === 'reliability') return 'reliability';
   if (tabParam === 'reports') return 'reports';
   return 'category';
@@ -292,6 +293,24 @@ export const StatisticsPage: React.FC = () => {
 
             <button
               type="button"
+              className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => handleTabChange('all')}
+              title="Mostrar Estadísticas del Plantel y Confiabilidad de Récords en una sola vista"
+              style={{
+                borderRadius: '9999px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+              }}
+            >
+              <Layers size={15} />
+              <span>Ver Ambas</span>
+            </button>
+
+            <button
+              type="button"
               className={`btn ${activeTab === 'reports' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => handleTabChange('reports')}
               style={{
@@ -396,8 +415,8 @@ export const StatisticsPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Filtro Contextual: Período (para Estadísticas e Informes) */}
-            {(activeTab === 'category' || activeTab === 'reports') && (
+            {/* Filtro Contextual: Período (para Estadísticas, Informes y Ver Ambas) */}
+            {(activeTab === 'category' || activeTab === 'reports' || activeTab === 'all') && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                 <label
                   htmlFor="statistics-period-select"
@@ -430,8 +449,8 @@ export const StatisticsPage: React.FC = () => {
               </div>
             )}
 
-            {/* Filtro Contextual: Ejercicio (para Confiabilidad) */}
-            {activeTab === 'reliability' && (
+            {/* Filtro Contextual: Ejercicio (para Confiabilidad y Ver Ambas) */}
+            {(activeTab === 'reliability' || activeTab === 'all') && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                 <label
                   htmlFor="statistics-exercise-select"
@@ -512,7 +531,96 @@ export const StatisticsPage: React.FC = () => {
           />
         ) : (
           <>
-            {/* PESTAÑA 1: ESTADÍSTICAS DEL PLANTEL */}
+            {/* VISTA INTEGRAL: CONVIVEN AMBAS EN LA MISMA PANTALLA (KAN-650) */}
+            {activeTab === 'all' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                {/* Bloque 1: Estadísticas del Plantel */}
+                <section aria-labelledby="section-all-team-stats">
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '0.85rem',
+                      paddingBottom: '0.5rem',
+                      borderBottom: '1px solid var(--border)',
+                    }}
+                  >
+                    <h2
+                      id="section-all-team-stats"
+                      style={{
+                        fontSize: '1.05rem',
+                        fontWeight: 800,
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: 'var(--text-main)',
+                      }}
+                    >
+                      <BarChart3 size={18} className="text-primary" />
+                      <span>Estadísticas del Plantel</span>
+                    </h2>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      Presentismo, lesiones y carga en {periodLabel}
+                    </span>
+                  </div>
+                  <CategoryMetricsPanel
+                    summary={summary}
+                    loading={loadingSummary}
+                    error={summaryError}
+                    onRetry={handleRefresh}
+                  />
+                </section>
+
+                {/* Bloque 2: Confiabilidad de Récords */}
+                <section aria-labelledby="section-all-records-reliability">
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '0.85rem',
+                      paddingBottom: '0.5rem',
+                      borderBottom: '1px solid var(--border)',
+                    }}
+                  >
+                    <h2
+                      id="section-all-records-reliability"
+                      style={{
+                        fontSize: '1.05rem',
+                        fontWeight: 800,
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: 'var(--text-main)',
+                      }}
+                    >
+                      <ShieldCheck size={18} className="text-primary" />
+                      <span>Confiabilidad de Récords (1RM)</span>
+                    </h2>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      Auditoría de vigencia y marcas de fuerza
+                    </span>
+                  </div>
+                  {effectiveCategoryId ? (
+                    <RecordsReliabilityPanel
+                      categoryId={effectiveCategoryId}
+                      exerciseId={selectedExerciseId || undefined}
+                    />
+                  ) : (
+                    <EmptyState
+                      icon={ShieldCheck}
+                      title="Seleccioná una categoría"
+                      description="Elegí una categoría en el filtro superior para auditar la confiabilidad de récords de sus atletas."
+                    />
+                  )}
+                </section>
+              </div>
+            )}
+
+            {/* PESTAÑA 1: ESTADÍSTICAS DEL PLANTEL INDIVIDUAL */}
             {activeTab === 'category' && (
               <CategoryMetricsPanel
                 summary={summary}
@@ -522,7 +630,7 @@ export const StatisticsPage: React.FC = () => {
               />
             )}
 
-            {/* PESTAÑA 2: CONFIABILIDAD DE RÉCORDS */}
+            {/* PESTAÑA 2: CONFIABILIDAD DE RÉCORDS INDIVIDUAL */}
             {activeTab === 'reliability' && (
               effectiveCategoryId ? (
                 <RecordsReliabilityPanel
