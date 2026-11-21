@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Dumbbell, Tag, Activity, Loader2, AlertCircle, Layers } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Search,
+  Dumbbell,
+  Tag,
+  Activity,
+  Loader2,
+  AlertCircle,
+  Layers,
+  X,
+  ChevronDown,
+  Check,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
 import { ExerciseDetailModal } from '../../components/exercises/ExerciseDetailModal';
@@ -99,6 +110,34 @@ export const TrainingPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('Todos');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setIsTypeDropdownOpen(false);
+      }
+    }
+    if (isTypeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isTypeDropdownOpen]);
+
+  // Cerrar dropdown con Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isTypeDropdownOpen) {
+        setIsTypeDropdownOpen(false);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTypeDropdownOpen]);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -228,6 +267,10 @@ export const TrainingPage: React.FC = () => {
     }
   };
 
+  const selectedTypeObj = EXERCISE_TYPES.find((t) => t.value === selectedType);
+  const selectedTypeLabel = selectedTypeObj ? selectedTypeObj.label : 'Todos los tipos';
+  const isTypeActive = selectedType !== 'Todos';
+
   return (
     <div className="app-page-container">
       {/* Encabezado Estandarizado */}
@@ -237,105 +280,149 @@ export const TrainingPage: React.FC = () => {
       />
 
       <div className="app-page-body">
-        {/* Filtros y Buscador */}
-        <div
-          className="card"
-          style={{
-            margin: 0,
-            padding: '1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-          }}
-        >
-          {/* Buscador */}
-          <div style={{ position: 'relative', width: '100%' }}>
-            <Search
-              size={18}
-              style={{
-                position: 'absolute',
-                left: '0.85rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              placeholder="Buscar por ejercicio o grupo muscular..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                paddingLeft: '2.5rem',
-                margin: 0,
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          {/* Chips Táctiles PWA - Tipo de ejercicio / Modalidad (KAN-453) */}
-          <div
-            className="exercise-chips-scroll"
-            role="group"
-            aria-label="Filtro por modalidad de ejercicio"
-          >
-            {EXERCISE_TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                aria-pressed={selectedType === t.value}
-                className={`touch-chip ${selectedType === t.value ? 'active' : ''}`}
-                onClick={() => setSelectedType(t.value)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Chips Táctiles PWA - Grupos principales */}
-          <div
-            className="exercise-chips-scroll"
-            role="group"
-            aria-label="Filtro por grupo muscular"
-          >
-            {CHIP_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                aria-pressed={selectedCategory === cat}
-                className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setSelectedMuscle(null);
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Chips Táctiles PWA - Músculos puntuales según grupo seleccionado */}
-          {selectedCategory !== 'Todos' && Boolean(GROUP_SUB_MUSCLES[selectedCategory]?.length) && (
-            <div
-              className="exercise-subchips-scroll"
-              role="group"
-              aria-label="Filtro por músculo puntual"
-            >
-              {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
+        {/* Rediseño UX/UI de Filtros: Compacto, Moderno y Equilibrado (KAN-640) */}
+        <div className="card training-filters-card">
+          {/* Fila 1: Búsqueda y Filtros Generales */}
+          <div className="training-filters-row training-filters-row-primary">
+            {/* Buscador Prominente */}
+            <div className="training-search-wrap">
+              <Search size={16} className="training-search-icon" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="Buscar por ejercicio o grupo muscular..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="training-search-input"
+                aria-label="Buscar por ejercicio o grupo muscular"
+              />
+              {searchTerm && (
                 <button
-                  key={subMuscle}
                   type="button"
-                  aria-pressed={selectedMuscle === subMuscle}
-                  className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
-                  onClick={() =>
-                    setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
-                  }
+                  className="training-clear-search-btn"
+                  onClick={() => setSearchTerm('')}
+                  title="Borrar búsqueda"
+                  aria-label="Borrar búsqueda"
                 >
-                  {subMuscle}
+                  <X size={14} aria-hidden="true" />
                 </button>
-              ))}
+              )}
+            </div>
+
+            {/* Selector de Modalidad Compacto */}
+            <div className="training-type-select-wrap" ref={typeDropdownRef}>
+              <button
+                type="button"
+                className={`training-type-trigger-btn ${isTypeActive ? 'active' : ''}`}
+                onClick={() => setIsTypeDropdownOpen((prev) => !prev)}
+                aria-haspopup="listbox"
+                aria-expanded={isTypeDropdownOpen}
+                title="Filtrar por modalidad de ejercicio"
+                data-testid="training-type-trigger"
+              >
+                <Layers size={14} aria-hidden="true" />
+                <span className="training-type-trigger-text">
+                  {isTypeActive ? selectedTypeLabel : 'Modalidad'}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`training-type-chevron ${isTypeDropdownOpen ? 'open' : ''}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {/* Dropdown accesible de modalidades */}
+              <div
+                className={`training-type-dropdown ${isTypeDropdownOpen ? 'open' : ''}`}
+                role="group"
+                aria-label="Filtro por modalidad de ejercicio"
+              >
+                {EXERCISE_TYPES.map((t) => {
+                  const isSelected = selectedType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      role="button"
+                      aria-pressed={isSelected}
+                      className={`training-type-option ${isSelected ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedType(t.value);
+                        setIsTypeDropdownOpen(false);
+                      }}
+                    >
+                      <span className="training-type-option-dot" />
+                      <span className="training-type-option-label">{t.label}</span>
+                      {isSelected && (
+                        <Check
+                          size={14}
+                          className="training-type-option-check"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Fila 2: Grupo Muscular (Chips compactos en azul institucional ProTraining) */}
+          <div className="training-filters-row training-groups-row">
+            <div
+              className="training-chips-scroll"
+              role="group"
+              aria-label="Filtro por grupo muscular"
+            >
+              {CHIP_CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="button"
+                    aria-pressed={isSelected}
+                    className={`training-group-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      setSelectedMuscle(null);
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Fila 3: Músculos Específicos (Depende exclusivamente de la categoría seleccionada, excluyendo vacíos KAN-633) */}
+          {selectedCategory !== 'Todos' && Boolean(GROUP_SUB_MUSCLES[selectedCategory]?.length) && (
+            <div className="training-filters-row training-submuscles-row">
+              <div className="training-submuscles-indicator">
+                <span className="training-submuscles-prefix">Músculos:</span>
+              </div>
+              <div
+                className="training-subchips-scroll"
+                role="group"
+                aria-label="Filtro por músculo puntual"
+              >
+                {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => {
+                  const isSelected = selectedMuscle === subMuscle;
+                  return (
+                    <button
+                      key={subMuscle}
+                      type="button"
+                      role="button"
+                      aria-pressed={isSelected}
+                      className={`training-submuscle-chip ${isSelected ? 'active' : ''}`}
+                      onClick={() =>
+                        setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
+                      }
+                    >
+                      {subMuscle}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
