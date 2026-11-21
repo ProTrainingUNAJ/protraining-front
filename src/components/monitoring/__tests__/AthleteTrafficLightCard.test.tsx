@@ -102,7 +102,9 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
   });
 
   it('mantiene layout compacto con gap y sin space-between para alineación simétrica (KAN-639)', () => {
-    const { container } = render(<AthleteTrafficLightCard athlete={baseAthlete} onClick={vi.fn()} />);
+    const { container } = render(
+      <AthleteTrafficLightCard athlete={baseAthlete} onClick={vi.fn()} />,
+    );
     const cardElement = container.firstChild as HTMLElement;
 
     expect(cardElement.style.display).toBe('flex');
