@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Copy, MessageCircle, Send } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 import { copyTextToClipboard } from '../../utils/clipboard';
 import {
   buildPfToAthleteAttendanceMessage,
@@ -7,6 +7,7 @@ import {
 } from '../../utils/contactTemplates';
 import { buildTelegramLink } from '../../utils/telegram';
 import { buildWhatsAppLink } from '../../utils/whatsapp';
+import { TelegramIcon, WhatsAppIcon } from '../common/BrandIcons';
 import type { AthleteTrafficLightItem } from './trafficLight.types';
 
 export interface AthleteContactActionsProps {
@@ -115,7 +116,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
               justifyContent: 'center',
             }}
           >
-            <MessageCircle size={compact ? 14 : 15} aria-hidden="true" />
+            <WhatsAppIcon size={compact ? 14 : 15} aria-hidden="true" />
             <span>WhatsApp</span>
           </a>
         )}
@@ -140,7 +141,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
               justifyContent: 'center',
             }}
           >
-            <Send size={compact ? 14 : 15} aria-hidden="true" />
+            <TelegramIcon size={compact ? 14 : 15} aria-hidden="true" />
             <span>Telegram</span>
           </a>
         )}

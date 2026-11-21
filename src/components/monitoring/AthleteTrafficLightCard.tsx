@@ -429,44 +429,51 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
         </div>
       </div>
 
-      {/* Botón Ver ajuste sugerido si tiene conflicto de dolor con la rutina (KAN-452).
-          Va en su propia fila: al lado del texto lo dejaba ilegible */}
-      {athlete.hasDayConflict && (
-        <button
-          type="button"
-          className="btn btn-warning"
-          data-testid={`btn-day-adjustment-${athlete.id}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onOpenAdjustment) {
-              onOpenAdjustment(athlete);
-            } else {
-              onClick();
-            }
-          }}
-          style={{
-            width: '100%',
-            marginTop: '0.5rem',
-            padding: '0.45rem 0.6rem',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            borderRadius: '8px',
-          }}
-          title="Ver ajuste sugerido ante conflicto de dolor"
-        >
-          <Sparkles size={14} aria-hidden="true" />
-          <span>Ver ajuste sugerido</span>
-        </button>
-      )}
-
+      {/* 4. Pie de tarjeta anclado simétricamente con marginTop auto (KAN-639) */}
       <div
         style={{
-          marginTop: '0.55rem',
-          paddingTop: '0.55rem',
-          borderTop: '1px solid var(--border)',
+          marginTop: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.55rem',
+          width: '100%',
         }}
       >
-        <AthleteContactActions athlete={athlete} compact />
+        {athlete.hasDayConflict && (
+          <button
+            type="button"
+            className="btn btn-warning"
+            data-testid={`btn-day-adjustment-${athlete.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onOpenAdjustment) {
+                onOpenAdjustment(athlete);
+              } else {
+                onClick();
+              }
+            }}
+            style={{
+              width: '100%',
+              padding: '0.45rem 0.6rem',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              borderRadius: '8px',
+            }}
+            title="Ver ajuste sugerido ante conflicto de dolor"
+          >
+            <Sparkles size={14} aria-hidden="true" />
+            <span>Ver ajuste sugerido</span>
+          </button>
+        )}
+
+        <div
+          style={{
+            paddingTop: '0.55rem',
+            borderTop: '1px solid var(--border)',
+          }}
+        >
+          <AthleteContactActions athlete={athlete} compact />
+        </div>
       </div>
     </div>
   );
