@@ -42,12 +42,7 @@ interface SettingsViewProps {
 }
 
 type SettingsTab =
-  | 'profile'
-  | 'security'
-  | 'appearance'
-  | 'notifications'
-  | 'roleOptions'
-  | 'marks';
+  'profile' | 'security' | 'appearance' | 'notifications' | 'roleOptions' | 'marks';
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const { user, themePreference, setThemePreference, updateCurrentUser, logout } = useAuth();
