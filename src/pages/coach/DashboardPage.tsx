@@ -115,12 +115,15 @@ export const DashboardPage: React.FC = () => {
   const isAthlete = location.pathname.startsWith('/athlete');
   const user = getStoredSession()?.user;
 
+  const [loadingOrganizations, setLoadingOrganizations] = useState(!isAthlete);
   const [hasNoOrganizations, setHasNoOrganizations] = useState(false);
   const [dismissedWelcome, setDismissedWelcome] = useState(false);
 
   const isWelcomeModalOpen =
     !isAthlete &&
     Boolean(user?.id) &&
+    !loadingOrganizations &&
+    hasNoOrganizations &&
     !dismissedWelcome &&
     localStorage.getItem(`protraining_pf_welcomed_${user?.id}`) !== 'true';
 
@@ -253,6 +256,11 @@ export const DashboardPage: React.FC = () => {
       })
       .catch(() => {
         // En caso de fallo transitorio no interrumpir el flujo
+      })
+      .finally(() => {
+        if (active) {
+          setLoadingOrganizations(false);
+        }
       });
 
     fetchAllCategoriesTrafficLight()

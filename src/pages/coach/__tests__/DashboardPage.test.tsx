@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardPage } from '../DashboardPage';
+import type { Organization } from '../../../types/structure';
 
 vi.mock('../../../api/structureService', () => ({
   structureService: {
@@ -139,6 +140,91 @@ describe('DashboardPage - Mayor Carga (UA) Widget (KAN-621)', () => {
     await waitFor(() => {
       expect(screen.getByText(/¡Te damos la bienvenida a ProTraining!/i)).toBeDefined();
       expect(screen.getByRole('button', { name: /\+ Crear Organización/i })).toBeDefined();
+    });
+  });
+
+  it('no muestra el modal de bienvenida (PfWelcomeModal) si el PF ya cuenta con organizaciones creadas (KAN-621)', async () => {
+    const { structureService } = await import('../../../api/structureService');
+    vi.spyOn(structureService, 'getOrganizations').mockResolvedValue([
+      { id: 'org-1', name: 'Club Pro' } as Organization,
+    ]);
+
+    // PF logueado en navegador limpio (sin flag en localStorage)
+    localStorage.setItem(
+      'protraining_session',
+      JSON.stringify({
+        accessToken: 'mock-token',
+        user: { id: 'usr-pf-1', fullName: 'Entrenador Juan' },
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/dashboard']}>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Mayor Carga (UA)')).toBeDefined();
+    });
+
+    // El modal de bienvenida no debe aparecer porque ya tiene organización
+    expect(screen.queryByText(/Primer paso: Creá tu organización deportiva/i)).toBeNull();
+  });
+
+  it('muestra el modal de bienvenida (PfWelcomeModal) si el PF no tiene ninguna organización creada (KAN-621)', async () => {
+    const { structureService } = await import('../../../api/structureService');
+    vi.spyOn(structureService, 'getOrganizations').mockResolvedValue([]);
+
+    localStorage.setItem(
+      'protraining_session',
+      JSON.stringify({
+        accessToken: 'mock-token',
+        user: { id: 'usr-pf-nuevo', fullName: 'Entrenador Nuevo' },
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/dashboard']}>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Primer paso: Creá tu organización deportiva/i)).toBeDefined();
+      expect(screen.getByText(/¡Te damos la bienvenida, Entrenador Nuevo!/i)).toBeDefined();
+    });
+  });
+
+  it('no muestra el modal de bienvenida mientras se están cargando las organizaciones para evitar parpadeos (KAN-621)', async () => {
+    const { structureService } = await import('../../../api/structureService');
+    let resolveOrgs: (val: Organization[]) => void = () => {};
+    const orgsPromise = new Promise<Organization[]>((resolve) => {
+      resolveOrgs = resolve;
+    });
+    vi.spyOn(structureService, 'getOrganizations').mockImplementation(() => orgsPromise);
+
+    localStorage.setItem(
+      'protraining_session',
+      JSON.stringify({
+        accessToken: 'mock-token',
+        user: { id: 'usr-pf-loading', fullName: 'Entrenador Loading' },
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/dashboard']}>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    // Mientras la promesa está pendiente, no debe mostrarse el modal
+    expect(screen.queryByText(/Primer paso: Creá tu organización deportiva/i)).toBeNull();
+
+    // Cuando se resuelve con 0 organizaciones, entonces sí aparece
+    resolveOrgs([]);
+    await waitFor(() => {
+      expect(screen.getByText(/Primer paso: Creá tu organización deportiva/i)).toBeDefined();
     });
   });
 });
