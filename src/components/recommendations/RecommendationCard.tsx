@@ -202,24 +202,30 @@ export function RecommendationCard({
     >
       <header className="recommendation-card-header">
         <div className="recommendation-card-identity">
-          <div className="recommendation-card-badges">
-            <span className={`recommendation-badge ${getStatusClass(recommendation.status)}`}>
-              {getStatusLabel(recommendation.status)}
-            </span>
-            <span className="recommendation-badge type">{getTypeLabel(recommendation.type)}</span>
-            {recommendation.categoryName && (
-              <span className="recommendation-badge category">{recommendation.categoryName}</span>
-            )}
+          <div className="recommendation-card-badges-row">
+            <div className="recommendation-card-badges">
+              <span className={`recommendation-badge ${getStatusClass(recommendation.status)}`}>
+                {getStatusLabel(recommendation.status)}
+              </span>
+              <span className="recommendation-badge type">{getTypeLabel(recommendation.type)}</span>
+            </div>
+            <time className="recommendation-date" dateTime={timestampIso}>
+              {recommendation.status === 'Approved'
+                ? `Aprobada · ${formatArgentinaDate(timestampIso)}`
+                : recommendation.status === 'Discarded'
+                  ? `Descartada · ${formatArgentinaDate(timestampIso)}`
+                  : formatArgentinaDate(timestampIso)}
+            </time>
           </div>
+
+          {recommendation.categoryName && (
+            <div className="recommendation-category-row">
+              <span className="recommendation-badge category">{recommendation.categoryName}</span>
+            </div>
+          )}
+
           {!hideAthleteName && <h4 className="recommendation-athlete-name">{athleteName}</h4>}
         </div>
-        <time className="recommendation-date" dateTime={timestampIso}>
-          {recommendation.status === 'Approved'
-            ? `Aprobada · ${formatArgentinaDate(timestampIso)}`
-            : recommendation.status === 'Discarded'
-              ? `Descartada · ${formatArgentinaDate(timestampIso)}`
-              : formatArgentinaDate(timestampIso)}
-        </time>
       </header>
 
       <div className="recommendation-reason-box">
@@ -348,6 +354,7 @@ export function RecommendationCard({
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="button"
                   className="btn recommendation-btn-danger"
@@ -364,7 +371,7 @@ export function RecommendationCard({
               </div>
             </div>
           ) : isEditing ? (
-            <>
+            <div className="recommendation-edit-actions">
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -404,13 +411,13 @@ export function RecommendationCard({
                   <span>{busyAction === 'save-approve' ? 'Enviando…' : 'Guardar y aprobar'}</span>
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <div className="recommendation-action-group">
+            <div className="recommendation-actions-container">
+              <div className="recommendation-actions-row">
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-secondary recommendation-btn-edit"
                   onClick={openEditMode}
                   disabled={isBusy}
                 >
@@ -434,21 +441,21 @@ export function RecommendationCard({
 
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary recommendation-btn-approve-full"
                 onClick={handleApproveDirect}
                 disabled={isBusy}
                 aria-label={`Aprobar y enviar recomendación a ${athleteName}`}
               >
                 {busyAction === 'approve' ? (
-                  <Loader2 size={14} className="plan-spin" aria-hidden="true" />
+                  <Loader2 size={15} className="plan-spin" aria-hidden="true" />
                 ) : (
-                  <Send size={14} aria-hidden="true" />
+                  <Send size={15} aria-hidden="true" />
                 )}
                 <span>
                   {busyAction === 'approve' ? 'Aprobando…' : 'Aprobar y enviar al atleta'}
                 </span>
               </button>
-            </>
+            </div>
           )}
         </footer>
       )}
