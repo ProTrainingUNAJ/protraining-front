@@ -1,15 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  X,
-  Dumbbell,
-  Activity,
-  Trophy,
-  User,
-  Loader2,
-  CheckCircle2,
-  Info,
-  ChevronDown,
-} from 'lucide-react';
+import { X, Activity, Trophy, Loader2, CheckCircle2, Info, ChevronDown } from 'lucide-react';
 import { RpeSliderBar } from '../common/RpeSliderBar';
 import {
   submitDailyLoad,
@@ -33,59 +23,6 @@ export interface AttendanceLoadModalProps {
 
 type ActivityKey = 'gym' | 'sportTraining' | 'match1' | 'match2' | 'individualWork';
 type MainCategory = 'gym' | 'sportTraining' | 'match' | 'individualWork';
-
-interface ActivityConfig {
-  key: ActivityKey;
-  label: string;
-  icon: React.ReactNode;
-  defaultMinutes: number;
-  defaultRpe: number;
-}
-
-const MAIN_CATEGORIES: Array<{ value: MainCategory; label: string }> = [
-  { value: 'gym', label: 'Gimnasio' },
-  { value: 'sportTraining', label: 'Campo' },
-  { value: 'match', label: 'Partido' },
-  { value: 'individualWork', label: 'Individual' },
-];
-
-const ACTIVITIES: ActivityConfig[] = [
-  {
-    key: 'gym',
-    label: 'Gimnasio',
-    icon: <Dumbbell size={15} aria-hidden="true" />,
-    defaultMinutes: 60,
-    defaultRpe: 7,
-  },
-  {
-    key: 'sportTraining',
-    label: 'Campo',
-    icon: <Activity size={15} aria-hidden="true" />,
-    defaultMinutes: 90,
-    defaultRpe: 7,
-  },
-  {
-    key: 'match1',
-    label: 'Partido 1',
-    icon: <Trophy size={15} aria-hidden="true" />,
-    defaultMinutes: 90,
-    defaultRpe: 8,
-  },
-  {
-    key: 'match2',
-    label: 'Partido 2',
-    icon: <Trophy size={15} aria-hidden="true" />,
-    defaultMinutes: 90,
-    defaultRpe: 8,
-  },
-  {
-    key: 'individualWork',
-    label: 'Individual',
-    icon: <User size={15} aria-hidden="true" />,
-    defaultMinutes: 45,
-    defaultRpe: 6,
-  },
-];
 
 const RPE_DESCRIPTIONS: Record<number, { label: string; color: string }> = {
   0: { label: 'Reposo', color: 'var(--text-muted)' },
