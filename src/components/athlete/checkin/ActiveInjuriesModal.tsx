@@ -1,0 +1,259 @@
+import React, { useState } from 'react';
+import { PainSliderBar } from '../../common/PainSliderBar';
+import { Activity, Check } from 'lucide-react';
+
+export interface ActiveInjuryItem {
+  id: string;
+  zone: string;
+  description: string;
+}
+
+export interface ActiveInjuriesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  activeInjuries: ReadonlyArray<ActiveInjuryItem>;
+  injuryScores: Record<string, number | null>;
+  onScoreChange: (injuryId: string, score: number) => void;
+}
+
+/**
+ * Modal emergente centrado con backdrop desenfocado (Burbuja estilo Imagen 2)
+ * para evaluar molestias activas previamente registradas usando la barra continua de dolor (Imagen 3).
+ */
+export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
+  isOpen,
+  onClose,
+  activeInjuries,
+  injuryScores,
+  onScoreChange,
+}) => {
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+
+  if (!isOpen || activeInjuries.length === 0) return null;
+
+  const safeIndex = Math.min(currentIndex, activeInjuries.length - 1);
+  const currentInjury = activeInjuries[safeIndex];
+  const currentScore = currentInjury ? (injuryScores[currentInjury.id] ?? 0) : 0;
+  const isLast = safeIndex >= activeInjuries.length - 1;
+
+  const handleScoreChange = (val: number) => {
+    if (currentInjury) {
+      onScoreChange(currentInjury.id, val);
+    }
+  };
+
+  const handleNextOrFinish = () => {
+    // Si no tenía score seteado, asegurar que se guarde el valor actual (por defecto 0)
+    if (
+      currentInjury &&
+      (injuryScores[currentInjury.id] === null || injuryScores[currentInjury.id] === undefined)
+    ) {
+      onScoreChange(currentInjury.id, currentScore);
+    }
+
+    if (!isLast) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="active-injuries-modal-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: 'var(--checkin-modal-backdrop, rgba(8, 37, 74, 0.45))',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1.25rem',
+        animation: 'fadeInValidationBackdrop 0.2s ease-out forwards',
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="active-injuries-modal-box"
+        style={{
+          width: '100%',
+          maxWidth: '440px',
+          backgroundColor: 'var(--checkin-modal-bg, #ffffff)',
+          borderRadius: '24px',
+          border: '1.5px solid var(--checkin-modal-border, rgba(0, 0, 0, 0.08))',
+          boxShadow: '0 20px 48px rgba(8, 37, 74, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08)',
+          padding: '1.75rem 1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          boxSizing: 'border-box',
+          animation: 'scaleUpValidationBox 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Ícono circular suave en celeste (Imagen 2) */}
+        <div
+          style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--info-bg, #e0f2fe)',
+            border: '2px solid var(--info-border, #bae6fd)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '1rem',
+            boxShadow: 'var(--shadow, 0 1px 3px rgba(0,0,0,0.1))',
+            flexShrink: 0,
+          }}
+          aria-hidden="true"
+        >
+          <Activity size={32} color="var(--primary, #0088cc)" strokeWidth={2.4} />
+        </div>
+
+        {/* Título en Montserrat / fuente del sistema en negrita */}
+        <h3
+          id="active-injuries-modal-title"
+          style={{
+            fontFamily: 'var(--font-base)',
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            color: 'var(--checkin-title-color, #0f172a)',
+            margin: '0 0 0.4rem 0',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Molestias activas
+        </h3>
+
+        {/* Indicador de cantidad si hay más de 1 */}
+        {activeInjuries.length > 1 && (
+          <div
+            style={{
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              color: 'var(--text-muted, #64748b)',
+              marginBottom: '0.5rem',
+            }}
+          >
+            Molestia {safeIndex + 1} de {activeInjuries.length}
+          </div>
+        )}
+
+        {/* Tarjeta con zona y descripción de la molestia activa */}
+        <div
+          style={{
+            width: '100%',
+            backgroundColor: 'var(--bg-subtle, #f8fafc)',
+            border: '1.5px solid var(--border, #e2e8f0)',
+            borderRadius: '16px',
+            padding: '0.85rem 1rem',
+            marginBottom: '1rem',
+            textAlign: 'center',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 800,
+              fontSize: '1.02rem',
+              color: 'var(--text-main, #0f172a)',
+              lineHeight: 1.45,
+            }}
+          >
+            <span>
+              {currentInjury.zone} — {currentInjury.description}
+            </span>
+          </div>
+        </div>
+
+        {/* Indicación de uso */}
+        <p
+          style={{
+            fontFamily: 'var(--font-base)',
+            fontSize: '0.92rem',
+            fontWeight: 500,
+            color: 'var(--checkin-subtitle-color, #475569)',
+            lineHeight: 1.4,
+            margin: '0 0 0.85rem 0',
+          }}
+        >
+          Deslizá la barra para indicar el nivel de molestia o dolor que sentís hoy:
+        </p>
+
+        {/* Barra continua con degradado continuo y thumb con número (Imagen 3) */}
+        <div style={{ width: '100%', marginBottom: '1.25rem' }}>
+          <PainSliderBar
+            value={currentScore}
+            onChange={handleScoreChange}
+            ariaLabel={`Nivel de molestia en ${currentInjury.zone}`}
+          />
+        </div>
+
+        {/* Botones de acción */}
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '0.75rem',
+          }}
+        >
+          {safeIndex > 0 && (
+            <button
+              type="button"
+              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+              style={{
+                flex: 1,
+                padding: '0.85rem 1rem',
+                backgroundColor: 'var(--checkin-counter-bg, #f1f5f9)',
+                border: '1.5px solid var(--border, #cbd5e1)',
+                color: 'var(--text-main, #0f172a)',
+                borderRadius: '9999px',
+                fontFamily: 'var(--font-base)',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Anterior
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleNextOrFinish}
+            style={{
+              flex: 2,
+              padding: '0.85rem 1rem',
+              backgroundColor: 'var(--checkin-next-btn-bg, #0088cc)',
+              color: 'var(--checkin-next-btn-color, #ffffff)',
+              borderRadius: '9999px',
+              border: 'none',
+              fontFamily: 'var(--font-base)',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(8, 37, 74, 0.25)',
+              transition: 'all 0.15s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <Check size={18} strokeWidth={2.5} />
+            <span>{isLast ? 'Confirmar molestia' : 'Siguiente molestia'}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
