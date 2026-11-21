@@ -358,9 +358,86 @@ describe('InvitationLandingPage', () => {
       guardianPhone: '+5491155556666',
       allowsPhysicalTraining: true,
       allowsHabitsRecommendations: true,
+      allowsProfilePhoto: false,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
+  });
+
+  it('permite al tutor autorizar la publicacion de foto de perfil del menor (allowsProfilePhoto true)', async () => {
+    vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
+      token: 'tok-menor-foto',
+      expiresAt: '2026-11-20T12:00:00Z',
+      categoryId: 'cat-juvenil',
+      categoryName: 'Juveniles Sub-17',
+      invitationUrl: 'http://localhost/invite/tok-menor-foto',
+    });
+
+    mockRegisterByInvitation.mockResolvedValueOnce({
+      accessToken: 'jwt-menor-foto',
+      user: { id: 'u-menor-2', role: 'Atleta' },
+    });
+
+    vi.mocked(categoryInvitationsService.accept).mockResolvedValueOnce({
+      id: 'ath-menor-2',
+      firstName: 'Tomás',
+      lastName: 'González',
+      email: 'tomas2@ejemplo.com',
+    } as never);
+
+    renderPage('tok-menor-foto');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Nombre/i)).toBeDefined();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'Tomás' } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: 'González' } });
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'tomas2@ejemplo.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Contraseña/i), { target: { value: 'Pass1234' } });
+    fireEvent.change(screen.getByLabelText(/Teléfono celular/i), {
+      target: { value: '+5491133334444' },
+    });
+    fireEvent.change(screen.getByLabelText(/Fecha de nacimiento/i), {
+      target: { value: '2010-06-15' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nombre completo del tutor/i), {
+      target: { value: 'Mariana González' },
+    });
+    fireEvent.change(screen.getByLabelText(/Correo del tutor/i), {
+      target: { value: 'mariana@ejemplo.com' },
+    });
+
+    // Autorización obligatoria de PF
+    fireEvent.click(
+      screen.getByLabelText(
+        /Autorizo la realización de entrenamientos físicos y actividades deportivas/i,
+      ),
+    );
+    // Autorización opcional de foto de perfil
+    fireEvent.click(
+      screen.getByLabelText(/Autorizo la publicación de la foto de perfil del menor/i),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    await waitFor(() => {
+      expect(categoryInvitationsService.accept).toHaveBeenCalledWith('tok-menor-foto', {
+        firstName: 'Tomás',
+        lastName: 'González',
+        phone: '+5491133334444',
+        birthDate: '2010-06-15',
+        guardianName: 'Mariana González',
+        guardianEmail: 'mariana@ejemplo.com',
+        guardianPhone: undefined,
+        allowsPhysicalTraining: true,
+        allowsHabitsRecommendations: false,
+        allowsProfilePhoto: true,
+      });
+    });
   });
 
   it('muestra mensaje específico si el email corresponde a un PF (403)', async () => {

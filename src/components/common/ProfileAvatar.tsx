@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { httpClient } from '../../api/axiosClient';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type AvatarShape = 'circle' | 'rounded';
@@ -20,6 +21,14 @@ export interface ProfileAvatarProps {
   alt?: string;
 }
 
+// Global cache for blob URLs to avoid redundant network requests across components
+const blobUrlCache = new Map<string, string>();
+const inFlightRequests = new Map<string, Promise<string | null>>();
+
+function isApiPhotoUrl(url: string): boolean {
+  return url.startsWith('/api/') || url.startsWith('/estructura/') || url.startsWith('/identidad/');
+}
+
 export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   src,
   name,
@@ -28,14 +37,53 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   className = '',
   alt,
 }) => {
+  const isApi = Boolean(src && isApiPhotoUrl(src));
+  const cachedBlob = isApi && src ? blobUrlCache.get(src) : null;
+  const [blobUrl, setBlobUrl] = useState<string | null>(cachedBlob || null);
   const [hasError, setHasError] = useState(false);
-  const [prevSrc, setPrevSrc] = useState(src);
 
-  // Si cambia la URL de la foto (por ejemplo con cache-busting ?v=...), reiniciamos el estado de error
-  if (src !== prevSrc) {
-    setPrevSrc(src);
-    setHasError(false);
-  }
+  useEffect(() => {
+    if (!isApi || !src) return;
+    if (blobUrlCache.has(src)) return;
+
+    if (!httpClient || typeof httpClient.get !== 'function') {
+      return;
+    }
+
+    let isMounted = true;
+    let currentPromise = inFlightRequests.get(src);
+    if (!currentPromise) {
+      currentPromise = httpClient
+        .get<Blob>(src, { responseType: 'blob' })
+        .then((response: { data: Blob }) => {
+          const objectUrl = URL.createObjectURL(response.data);
+          blobUrlCache.set(src, objectUrl);
+          inFlightRequests.delete(src);
+          return objectUrl;
+        })
+        .catch(() => {
+          inFlightRequests.delete(src);
+          return null;
+        });
+      inFlightRequests.set(src, currentPromise);
+    }
+
+    currentPromise.then((objectUrl) => {
+      if (!isMounted) return;
+      if (objectUrl) {
+        setBlobUrl(objectUrl);
+        setHasError(false);
+      } else {
+        setHasError(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [src, isApi]);
+
+  const effectiveSrc = blobUrl || cachedBlob || src || null;
 
   const dimension = typeof size === 'number' ? size : SIZE_MAP[size] || 48;
   const fontSize = Math.max(10, Math.round(dimension * 0.38));
@@ -78,9 +126,9 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       title={name}
       aria-label={accessibleLabel}
     >
-      {src && !hasError ? (
+      {effectiveSrc && !hasError ? (
         <img
-          src={src}
+          src={effectiveSrc}
           alt={accessibleLabel}
           loading="lazy"
           decoding="async"
