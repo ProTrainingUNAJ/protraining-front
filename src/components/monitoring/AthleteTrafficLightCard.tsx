@@ -442,7 +442,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
         {athlete.hasDayConflict && (
           <button
             type="button"
-            className="btn btn-warning"
+            className="btn btn-warning day-adjustment-trigger-card"
             data-testid={`btn-day-adjustment-${athlete.id}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -451,13 +451,6 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               } else {
                 onClick();
               }
-            }}
-            style={{
-              width: '100%',
-              padding: '0.45rem 0.6rem',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              borderRadius: '8px',
             }}
             title="Ver ajuste sugerido ante conflicto de dolor"
           >

@@ -574,6 +574,77 @@
   border-color: var(--secondary);
 }
 
+/* ── Cartel y badge de Rutina Ajustada por el PF (#157 · KAN-452 / KAN-574) ── */
+.badge.routine-adjusted-badge {
+  gap: 0.35rem;
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+  font-weight: 700;
+}
+
+.routine-adjusted-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: var(--traffic-yellow-bg);
+  border: 1px solid var(--traffic-yellow-border);
+  color: var(--text-main);
+}
+
+.routine-adjusted-banner-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--traffic-yellow);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.routine-adjusted-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.routine-adjusted-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.2rem;
+}
+
+.routine-adjusted-banner-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--traffic-yellow-text);
+}
+
+.badge.routine-adjusted-banner-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--bg-card);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+}
+
+.routine-adjusted-banner-note {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.routine-adjusted-banner-note--fallback {
+  color: var(--text-muted);
+}
+
 /* ── Cabecera: Nota del Preparador Físico (Pizarra táctica) ── */
 .routine-coach-note-card {
   display: flex;
