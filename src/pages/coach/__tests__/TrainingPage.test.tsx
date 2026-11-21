@@ -305,4 +305,84 @@ describe('TrainingPage · Filtro por Músculo Puntual', () => {
       expect(screen.getByText('Pautas para una buena técnica')).toBeTruthy();
     });
   });
+
+  describe('Rediseño UX/UI de Filtros y Responsive (KAN-640)', () => {
+    it('al seleccionar Espalda muestra únicamente los submúsculos de Espalda y limpia la selección previa', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      // Primero seleccionamos Piernas y un submúsculo
+      fireEvent.click(screen.getByRole('button', { name: 'Piernas' }));
+      const isquiosBtn = await screen.findByRole('button', { name: 'Isquiotibiales' });
+      fireEvent.click(isquiosBtn);
+
+      // Ahora seleccionamos Espalda
+      fireEvent.click(screen.getByRole('button', { name: 'Espalda' }));
+
+      // Los submúsculos de Piernas ya no deben existir
+      expect(screen.queryByRole('button', { name: 'Isquiotibiales' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Cuádriceps' })).toBeNull();
+
+      // Deben verse los submúsculos específicos de Espalda
+      expect(screen.getByRole('button', { name: 'Dorsales' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Espalda media' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Espalda baja' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Trapecios' })).toBeTruthy();
+
+      // Al volver a Todos, la tercera fila se oculta
+      fireEvent.click(screen.getByRole('button', { name: 'Todos' }));
+      expect(screen.queryByRole('button', { name: 'Dorsales' })).toBeNull();
+    });
+
+    it('permite filtrar por modalidad con dropdown y restablecer a Todos los tipos', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      // Abrir selector de modalidad
+      const triggerBtn = screen.getByTestId('training-type-trigger');
+      expect(triggerBtn.textContent).toContain('Modalidad');
+      fireEvent.click(triggerBtn);
+
+      // Seleccionar Distancia
+      const distanciaBtn = await screen.findByRole('button', { name: 'Distancia' });
+      fireEvent.click(distanciaBtn);
+
+      // El disparador ahora muestra Distancia
+      const triggerActivo = screen.getByTestId('training-type-trigger');
+      expect(triggerActivo.textContent).toContain('Distancia');
+
+      // Volver a abrir y seleccionar Todos los tipos
+      fireEvent.click(triggerActivo);
+      const todosTiposBtn = await screen.findByRole('button', { name: 'Todos los tipos' });
+      fireEvent.click(todosTiposBtn);
+
+      // Vuelve a mostrar Modalidad
+      expect(screen.getByTestId('training-type-trigger').textContent).toContain('Modalidad');
+    });
+
+    it('permite limpiar el buscador con el botón X', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      const input = screen.getByLabelText(
+        'Buscar por ejercicio o grupo muscular',
+      ) as HTMLInputElement;
+      fireEvent.change(input, { target: { value: 'Press banca' } });
+      expect(input.value).toBe('Press banca');
+
+      const clearBtn = screen.getByRole('button', { name: 'Borrar búsqueda' });
+      fireEvent.click(clearBtn);
+
+      expect(input.value).toBe('');
+    });
+  });
 });
