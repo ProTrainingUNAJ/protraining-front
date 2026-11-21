@@ -1,0 +1,514 @@
+/*
+ * Estilos de la vista de Seguimiento & Semáforo (KAN-582).
+ * Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+ * tokens de tokens.css. Solo quedan inline los valores dinámicos (barra de
+ * progreso y colores que dependen del estado del atleta), y esos también
+ * usan var(--...). Donde la clase choca con una regla global igual de
+ * específica (.card:hover, media queries), se usa selector compuesto
+ * (.card.clase) para que el resultado sea el mismo que daba el inline.
+ */
+
+/* ── Acciones del encabezado: tabs "Semáforo" y "Asistencia" ── */
+.monitoring-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.monitoring-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* ── Cuerpo de la página ── gap fijo: el inline original ganaba siempre al
+   media query de shell.css que baja el gap a 0.55rem en móvil. ── */
+.app-page-body.monitoring-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Barra de filtros: organización, categoría y búsqueda ── */
+.card.monitoring-filter-card {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.monitoring-filter-fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.monitoring-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.monitoring-filter-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.monitoring-filter-select {
+  padding: 0.4rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.monitoring-filter-error {
+  font-size: 0.78rem;
+  color: var(--danger-text);
+}
+
+.monitoring-search {
+  position: relative;
+  max-width: 320px;
+  width: 100%;
+}
+
+.monitoring-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.monitoring-search-input {
+  width: 100%;
+  padding: 0.45rem 0.85rem 0.45rem 2.2rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.82rem;
+}
+
+/* ── Panel de cada pestaña (Semáforo / Asistencia) ── */
+.monitoring-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* ── Barra de resumen superior (compartida por ambas pestañas) ── */
+.monitoring-summary-bar {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.monitoring-summary-icon {
+  color: var(--primary);
+}
+
+.monitoring-summary-title {
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+.monitoring-summary-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.monitoring-refresh-btn {
+  margin-left: auto;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.monitoring-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  min-height: 1.25rem;
+}
+
+/* ── Aviso de modo degradado cuando Estructura no respondió (KAN-366) ── */
+.monitoring-degraded-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  background: var(--warning-bg-strong);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.monitoring-degraded-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Grilla de tarjetas (semáforo y asistencia) ── */
+.monitoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+/* ── Celdas de estado de la grilla: cargando / vacío / error ── */
+.monitoring-state-cell {
+  grid-column: 1 / -1;
+  text-align: center;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px dashed var(--border);
+}
+
+.monitoring-state-cell--lg {
+  padding: 3rem 1.5rem;
+}
+
+.monitoring-state-cell--sm {
+  padding: 2rem;
+}
+
+.monitoring-state-cell--muted {
+  color: var(--text-muted);
+}
+
+.monitoring-state-cell--error {
+  padding: 3rem 1.5rem;
+  background: var(--traffic-red-bg);
+  border: 1px solid var(--traffic-red-border);
+}
+
+.monitoring-state-text {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.monitoring-state-text--muted {
+  color: var(--text-muted);
+}
+
+.monitoring-state-text--error {
+  color: var(--traffic-red-text);
+}
+
+/* ── Caja de error de la pestaña de asistencia ── */
+.monitoring-error-box {
+  padding: 1rem;
+  background: var(--traffic-red-bg);
+  border: 1px solid var(--traffic-red-border);
+  border-radius: 12px;
+  color: var(--traffic-red-text);
+  font-size: 0.85rem;
+}
+
+/* ── Spinner de carga (la keyframes "spin" vive en login.css) ── */
+.monitoring-spinner {
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Tarjeta de asistencia y carga del día ── */
+.card.athlete-attendance-card.monitoring-attendance-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem;
+  background: var(--bg-card);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--brand-navy) 4%, transparent);
+  min-height: 330px;
+  height: 100%;
+  box-sizing: border-box;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.monitoring-att-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.monitoring-att-card-id {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.monitoring-att-avatar-wrap {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.monitoring-att-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.monitoring-att-name {
+  font-weight: 800;
+  font-size: 0.94rem;
+  color: var(--text-main);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.monitoring-att-category {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.monitoring-att-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 54px;
+}
+
+/* Botón de presente/sin registro: lo fijo en la clase, el color según
+   estado (isPresent) queda inline con tokens. */
+.monitoring-att-toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.monitoring-att-toggle-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.monitoring-att-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.monitoring-att-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-card);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+}
+
+.monitoring-att-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.monitoring-att-metric-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  line-height: 1;
+}
+
+.monitoring-att-metric-value {
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.monitoring-att-metric-unit {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.monitoring-att-metric-unit--ua {
+  font-weight: 800;
+}
+
+.monitoring-att-metric-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+}
+
+.monitoring-att-divider {
+  width: 1px;
+  height: 42px;
+  background: var(--border);
+}
+
+/* ── Barra de progreso de carga: el ancho es dinámico (% de 900 UA) y
+   queda inline; lo fijo vive acá. ── */
+.monitoring-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.monitoring-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--traffic-green) 0%,
+    var(--primary) 50%,
+    var(--traffic-yellow) 100%
+  );
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* ── Pie de la tarjeta: estado de la carga ── */
+.monitoring-att-footer {
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  height: 54px;
+  box-sizing: border-box;
+}
+
+.monitoring-att-footer-bar {
+  width: 4px;
+  height: 32px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.monitoring-att-footer-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.monitoring-att-footer-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.monitoring-att-footer-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Acciones al pie: botón de carga/edición y contacto ── */
+.monitoring-att-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.monitoring-att-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.42rem 0.65rem;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.monitoring-att-btn--edit {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.monitoring-att-btn--load {
+  background: color-mix(in srgb, var(--primary) 8%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.monitoring-att-contact {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
+}

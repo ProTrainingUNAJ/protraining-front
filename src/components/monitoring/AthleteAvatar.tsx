@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TrafficLightStatus } from './trafficLight.types';
 import { TrafficRing } from './TrafficRing';
 import { ProfileAvatar } from '../common/ProfileAvatar';
+import './AthleteAvatar.css';
 
 interface AthleteAvatarProps {
   name: string;
@@ -59,23 +60,17 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
       onMouseEnter={() => interactiveHover && setIsHovered(true)}
       onMouseLeave={() => interactiveHover && setIsHovered(false)}
       style={{
-        position: 'relative',
         width: `${size}px`,
         height: `${size}px`,
-        flexShrink: 0,
-        borderRadius: '50%',
         boxShadow: showRing ? (isHovered ? glowInfo.hoverGlow : glowInfo.glow) : undefined,
         transform: isHovered ? 'scale(1.12)' : 'scale(1)',
         filter: isHovered ? 'brightness(1.08)' : 'none',
-        cursor: 'pointer',
-        transition:
-          'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, filter 0.2s ease',
       }}
       title={name}
     >
       {/* 1. Anillo concéntrico SVG del semáforo de dolor/readiness (KAN-365) */}
       {showRing && (
-        <div style={{ position: 'absolute', inset: 0 }}>
+        <div className="athlete-avatar-ring">
           <TrafficRing
             status={status}
             size={size}
@@ -88,14 +83,10 @@ export const AthleteAvatar: React.FC<AthleteAvatarProps> = ({
 
       {/* 2. Círculo interior: Foto de perfil del usuario o Iniciales como fallback */}
       <div
+        className="athlete-avatar-inner"
         style={{
           position: showRing ? 'absolute' : 'relative',
           inset: showRing ? `${ringInset}px` : 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '50%',
-          overflow: 'hidden',
         }}
       >
         <ProfileAvatar src={avatarUrl} name={name} size={innerSize} shape="circle" />

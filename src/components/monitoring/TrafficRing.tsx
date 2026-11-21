@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrafficLightStatus } from './trafficLight.types';
+import './TrafficRing.css';
 
 const TRAFFIC_RING_COLORS: Record<TrafficLightStatus, string> = {
   red: 'var(--traffic-red)',
@@ -51,17 +52,12 @@ export const TrafficRing: React.FC<TrafficRingProps> = ({
   return (
     <div
       className={`traffic-ring ${className}`}
-      style={{ position: 'relative', width: `${size}px`, height: `${size}px` }}
+      style={{ width: `${size}px`, height: `${size}px` }}
       role={title ? 'img' : undefined}
       aria-label={title}
       aria-hidden={title ? undefined : true}
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 50 50"
-        style={{ transform: 'rotate(-90deg)', display: 'block' }}
-      >
+      <svg className="traffic-ring-svg" width={size} height={size} viewBox="0 0 50 50">
         {showTrack && (
           <circle cx="25" cy="25" r="22" fill="none" stroke="var(--border)" strokeWidth="2.5" />
         )}
@@ -77,19 +73,7 @@ export const TrafficRing: React.FC<TrafficRingProps> = ({
           strokeLinecap="round"
         />
       </svg>
-      {children !== undefined && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {children}
-        </div>
-      )}
+      {children !== undefined && <div className="traffic-ring-overlay">{children}</div>}
     </div>
   );
 };
