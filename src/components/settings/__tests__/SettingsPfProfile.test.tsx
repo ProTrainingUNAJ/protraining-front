@@ -139,6 +139,9 @@ describe('Perfil y baja del PF en Configuración (KAN-601 / KAN-602)', () => {
       </MemoryRouter>,
     );
 
+    const securityTab = screen.getByRole('tab', { name: /Seguridad/i });
+    fireEvent.click(securityTab);
+
     expect(screen.getByText('Zona de Peligro')).toBeDefined();
     const openModalBtn = screen.getByRole('button', { name: /Desactivar mi cuenta/i });
     fireEvent.click(openModalBtn);
