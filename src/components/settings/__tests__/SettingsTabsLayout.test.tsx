@@ -74,6 +74,12 @@ describe('Estabilidad de Layout y Pestañas en Configuración (KAN-598)', () => 
     // El botón Guardar Cambios sigue presente en el header (layout fijo sin desplazamiento)
     expect(screen.getByRole('button', { name: /Guardar Cambios/i })).toBeDefined();
 
+    // Cambiar a Seguridad
+    const securityTab = screen.getByRole('tab', { name: /Seguridad/i });
+    fireEvent.click(securityTab);
+    expect(screen.getByText('Cuenta de Google')).toBeDefined();
+    expect(screen.getByRole('button', { name: /Guardar Cambios/i })).toBeDefined();
+
     // Cambiar a Notificaciones
     const notificationsTab = screen.getByRole('tab', { name: /Notificaciones/i });
     fireEvent.click(notificationsTab);

@@ -17,7 +17,7 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
     vi.unstubAllEnvs();
   });
 
-  it('muestra estado Sin vincular y exige reautenticación con contraseña antes de vincular', async () => {
+  it('muestra estado desvinculado con acción y exige reautenticación con contraseña antes de vincular', async () => {
     vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
     vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id');
 
@@ -40,8 +40,9 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
 
     render(<GoogleAccountLinkSection />);
 
-    expect(await screen.findByText('Sin vincular')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: /Vincular cuenta de Google/i }));
+    const linkBtn = await screen.findByRole('button', { name: /Vincular cuenta de Google/i });
+    expect(linkBtn).toBeDefined();
+    fireEvent.click(linkBtn);
 
     const pwdInput = screen.getByLabelText(/Confirmá tu contraseña actual/i);
     fireEvent.change(pwdInput, { target: { value: 'Password123!' } });
@@ -59,7 +60,7 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
         'Password123!',
       );
       expect(screen.getByText('Cuenta de Google vinculada correctamente.')).toBeDefined();
-      expect(screen.getByText('Cuenta de Google vinculada')).toBeDefined();
+      expect(screen.getByRole('button', { name: /Vinculado/i })).toBeDefined();
     });
   });
 
@@ -87,9 +88,9 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
     );
 
     render(<GoogleAccountLinkSection />);
-    await screen.findByText('Sin vincular');
+    const linkBtn = await screen.findByRole('button', { name: /Vincular cuenta de Google/i });
 
-    fireEvent.click(screen.getByRole('button', { name: /Vincular cuenta de Google/i }));
+    fireEvent.click(linkBtn);
     fireEvent.change(screen.getByLabelText(/Confirmá tu contraseña actual/i), {
       target: { value: 'Password123!' },
     });
@@ -104,7 +105,8 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
     expect(
       await screen.findByText('El correo de Google no coincide con el de tu cuenta.'),
     ).toBeDefined();
-    expect(screen.getByText('Sin vincular')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /Cancelar/i }));
+    expect(screen.getByRole('button', { name: /Vincular cuenta de Google/i })).toBeDefined();
   });
 
   it('permite desvincular Google tras confirmar contraseña actual', async () => {
@@ -113,8 +115,9 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
 
     render(<GoogleAccountLinkSection />);
 
-    expect(await screen.findByText('Cuenta de Google vinculada')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: /Desvincular Google/i }));
+    const linkedBtn = await screen.findByRole('button', { name: /Vinculado/i });
+    expect(linkedBtn).toBeDefined();
+    fireEvent.click(linkedBtn);
 
     fireEvent.change(screen.getByLabelText(/Confirmá tu contraseña actual para desvincular/i), {
       target: { value: 'Password123!' },
@@ -124,7 +127,7 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
     await waitFor(() => {
       expect(authService.unlinkGoogleAccount).toHaveBeenCalledWith('Password123!');
       expect(screen.getByText('Cuenta de Google desvinculada correctamente.')).toBeDefined();
-      expect(screen.getByText('Sin vincular')).toBeDefined();
+      expect(screen.getByRole('button', { name: /Vincular cuenta de Google/i })).toBeDefined();
     });
   });
 });

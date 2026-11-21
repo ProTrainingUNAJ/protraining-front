@@ -18,6 +18,7 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
+  Shield,
 } from 'lucide-react';
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
@@ -40,7 +41,8 @@ interface SettingsViewProps {
   role: 'pf' | 'athlete';
 }
 
-type SettingsTab = 'profile' | 'appearance' | 'notifications' | 'roleOptions' | 'marks';
+type SettingsTab =
+  'profile' | 'security' | 'appearance' | 'notifications' | 'roleOptions' | 'marks';
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const { user, themePreference, setThemePreference, updateCurrentUser, logout } = useAuth();
@@ -51,6 +53,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     if (role === 'athlete' && (tabParam === 'marcas' || tabParam === 'marks')) {
       return 'marks';
     }
+    if (tabParam === 'seguridad' || tabParam === 'security') {
+      return 'security';
+    }
     return 'profile';
   });
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -60,6 +65,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     const next = new URLSearchParams(searchParams);
     if (tab === 'marks') {
       next.set('tab', 'marcas');
+    } else if (tab === 'security') {
+      next.set('tab', 'seguridad');
     } else {
       next.delete('tab');
     }
@@ -121,29 +128,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     };
   }, []);
 
+  const isPushActive = pushSubscribed || pushPermission === 'granted';
+
   const handleTogglePush = async () => {
     setPushLoading(true);
     setPushFeedback(null);
     try {
-      if (pushSubscribed) {
-        const ok = await unsubscribeUserFromPush();
-        if (ok) {
-          setPushSubscribed(false);
-          setPushFeedback({
-            type: 'success',
-            message: 'Notificaciones desactivadas para este navegador.',
-          });
-        } else {
-          setPushFeedback({
-            type: 'error',
-            message: 'No se pudo desactivar la suscripción Web Push.',
-          });
-        }
+      if (isPushActive) {
+        await unsubscribeUserFromPush();
+        setPushSubscribed(false);
+        setPushPermission(getNotificationPermission());
+        setPushFeedback({
+          type: 'success',
+          message: 'Notificaciones desactivadas para este navegador.',
+        });
       } else {
         const sub = await subscribeUserToPush();
         const currentPerm = getNotificationPermission();
         setPushPermission(currentPerm);
-        if (sub) {
+        if (sub || currentPerm === 'granted') {
           setPushSubscribed(true);
           setPushFeedback({
             type: 'success',
@@ -343,6 +346,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
           </button>
 
           <button
+            id="tab-security"
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'security'}
+            aria-controls="tabpanel-security"
+            onClick={() => selectTab('security')}
+            className={`btn settings-tab-btn ${activeTab === 'security' ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            <Shield size={16} />
+            <span>Seguridad</span>
+          </button>
+
+          <button
             id="tab-appearance"
             type="button"
             role="tab"
@@ -494,8 +510,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                                 lineHeight: 1.4,
                               }}
                             >
-                              Subí una foto clara de tu rostro (JPG, PNG o WebP). Se optimizará y
-                              actualizará al instante.
+                              Subí una foto clara de tu rostro (JPG, PNG o WebP).
                             </p>
                           </div>
                         </div>
@@ -738,6 +753,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                         </div>
                       )}
                     </form>
+                  </>
+                )}
+
+                {activeTab === 'security' && (
+                  <>
                     <GoogleAccountLinkSection />
                     <ChangePasswordSection />
 
@@ -746,7 +766,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                       <div
                         className="card"
                         style={{
-                          margin: '1.25rem 0 0',
+                          margin: 0,
                           padding: '1.5rem',
                           border: '1px solid var(--danger-border)',
                           background: 'var(--bg-card)',
@@ -1324,19 +1344,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           </label>
                           <select
                             id="set-lang"
-                            defaultValue="es"
+                            value="es"
+                            disabled
                             style={{
                               width: '100%',
                               padding: '0.5rem 0.85rem',
                               borderRadius: '8px',
                               border: '1px solid var(--border)',
-                              background: 'var(--bg-card)',
+                              background: 'var(--bg-subtle)',
                               color: 'var(--text-main)',
                               fontWeight: 600,
+                              cursor: 'not-allowed',
                             }}
+                            title="ProTraining está disponible únicamente en Español"
                           >
                             <option value="es">Español (Latinoamérica)</option>
-                            <option value="en">English (US)</option>
                           </select>
                         </div>
                       </div>
@@ -1398,7 +1420,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>
                                 Notificaciones Push en este Dispositivo
                               </strong>
-                              {pushSubscribed ? (
+                              {isPushActive ? (
                                 <span
                                   className="badge"
                                   style={{
@@ -1456,7 +1478,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               type="button"
                               onClick={handleTogglePush}
                               disabled={pushLoading || pushPermission === 'denied'}
-                              className={`btn ${pushSubscribed ? 'btn-secondary' : 'btn-primary'}`}
+                              className={`btn ${isPushActive ? 'btn-secondary' : 'btn-primary'}`}
                               style={{
                                 padding: '0.55rem 1rem',
                                 fontSize: '0.82rem',
@@ -1469,7 +1491,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               title={
                                 pushPermission === 'denied'
                                   ? 'Permiso bloqueado en el navegador'
-                                  : pushSubscribed
+                                  : isPushActive
                                     ? 'Desactivar notificaciones en este dispositivo'
                                     : 'Activar recordatorios y notificaciones push'
                               }
@@ -1482,10 +1504,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                                   />
                                   <span>Procesando...</span>
                                 </>
-                              ) : pushSubscribed ? (
+                              ) : isPushActive ? (
                                 <>
                                   <BellOff size={15} />
-                                  <span>Desactivar Push</span>
+                                  <span>Desactivar Recordatorios</span>
                                 </>
                               ) : (
                                 <>
