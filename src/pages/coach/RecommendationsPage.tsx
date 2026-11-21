@@ -311,11 +311,7 @@ export function RecommendationsPage() {
               disabled={analyzing || (!targetCategoryForAnalysis && categories.length > 0)}
               aria-label="Analizar categoría"
             >
-              {analyzing ? (
-                <Loader2 size={13} className="plan-spin" aria-hidden="true" />
-              ) : (
-                <RefreshCw size={13} aria-hidden="true" />
-              )}
+              {analyzing && <Loader2 size={13} className="plan-spin" aria-hidden="true" />}
               <span>{analyzing ? 'Analizando…' : 'Actualizar'}</span>
             </button>
           </section>

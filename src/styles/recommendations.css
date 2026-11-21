@@ -162,10 +162,9 @@
 
 .recommendations-toolbar {
   display: flex;
-  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.9rem;
 }
 
 /* Notificación Flotante / Toast: no mueve la estructura de la página */
