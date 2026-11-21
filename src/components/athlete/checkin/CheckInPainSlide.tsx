@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan, Activity } from 'lucide-react';
 import { InteractiveMuscleMap } from '../InteractiveMuscleMap';
-import { hasRequiredInjuryMark } from './checkInHelper';
+import { hasRequiredInjuryMark, hasUnscoredActiveInjuries } from './checkInHelper';
 import { ActiveInjuriesModal, ActiveInjuryItem } from './ActiveInjuriesModal';
 
 export interface CheckInPainSlideProps {
@@ -89,7 +89,44 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
 
   const isBlocked = cartelStep !== 'desbloqueado';
   const reportedPainsCount = Object.values(musclePains).filter((lvl) => lvl > 0).length;
-  const canProceed = hasRequiredInjuryMark(hasActiveInjury, musclePains);
+  // el estado clínico se reconstruye desde la ficha, sin esperar al modal.
+  const clinicalLesion = (activeInjuries?.length ?? 0) > 0;
+  const lesionActive = hasActiveInjury || clinicalLesion;
+  const missingScores = hasUnscoredActiveInjuries(activeInjuries ?? [], injuryScores);
+  const canProceed =
+    hasRequiredInjuryMark(
+      lesionActive,
+      musclePains,
+      activeInjuries?.map((i) => i.zone),
+    ) && !missingScores;
+  const nextBlockedReason = missingScores
+    ? 'Debés puntuar el dolor (0 a 10) de cada molestia activa para continuar.'
+    : 'Debés marcar la lesión para continuar.';
+
+  const lesionChip = (
+    <button
+      type="button"
+      onClick={() => setCartelStep('lesion')}
+      className={`checkin-health-chip ${lesionActive ? 'danger' : 'healthy'}`}
+      title="Modificar estado de lesión"
+    >
+      {lesionActive ? <AlertTriangle size={12} /> : null}
+      <span>{lesionActive ? 'Lesión activa' : 'Sin lesión'}</span>
+      <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+    </button>
+  );
+
+  // mientras los carteles preliminares bloquean la tarjeta, la lesión de la ficha
+  // clínica ya debe ser visible. Se muestra como datos (no como botón) para no saltear preguntas.
+  const clinicalLesionChip = (
+    <span
+      className="checkin-health-chip danger"
+      title="Lesión activa registrada en tu ficha clínica"
+    >
+      <AlertTriangle size={12} />
+      <span>Lesión activa</span>
+    </span>
+  );
 
   // Efecto "Escáner Biométrico": barre de arriba hacia abajo sobre las siluetas
   // dejando un resplandor en los contornos por 1 segundo antes de avanzar
@@ -188,7 +225,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             disabled={!canProceed || isScanning}
             aria-disabled={!canProceed || isScanning}
             aria-label="Ir al siguiente paso"
-            title={!canProceed ? 'Debes marcar la lesion para continuar.' : 'Siguiente paso'}
+            title={!canProceed ? nextBlockedReason : 'Siguiente paso'}
             className="checkin-circular-nav-btn next"
             style={{
               opacity: !canProceed || isScanning ? 0.45 : 1,
@@ -218,7 +255,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
         {!canProceed && showInjuryNotice && (
           <div className="pixel-injury-alert" role="alert">
             <AlertTriangle size={15} />
-            <span>Debes marcar la lesion para continuar.</span>
+            <span>{nextBlockedReason}</span>
           </div>
         )}
 
@@ -237,17 +274,8 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
               <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
             </button>
 
-            {/* Chip de Lesión */}
-            <button
-              type="button"
-              onClick={() => setCartelStep('lesion')}
-              className={`checkin-health-chip ${hasActiveInjury ? 'danger' : 'healthy'}`}
-              title="Modificar estado de lesión"
-            >
-              {hasActiveInjury ? <AlertTriangle size={12} /> : null}
-              <span>{hasActiveInjury ? 'Lesión activa' : 'Sin lesión'}</span>
-              <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
-            </button>
+            {/* Chip de Lesión (incluye la lesión clínica activa aunque el flag local esté en false) */}
+            {lesionChip}
 
             {/* Chip de Molestias Activas (si hay molestias registradas previamente) */}
             {activeInjuries && activeInjuries.length > 0 && (
@@ -309,12 +337,19 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             musclePains={musclePains}
             onPainChange={onPainChange}
             onClearAll={onClearAll}
-            hasActiveInjury={hasActiveInjury}
+            hasActiveInjury={lesionActive}
             hideControls={true}
             initialView="front"
           />
         </div>
       </div>
+
+      {/* la lesión clínica se muestra aunque el atleta todavía no responda los carteles. */}
+      {isBlocked && clinicalLesion && (
+        <div className="checkin-health-bar" style={{ marginBottom: '0.75rem' }}>
+          {clinicalLesionChip}
+        </div>
+      )}
 
       {/* ── OVERLAY DE BLOQUEO CON CARTELES MODALES EN ORDEN ── */}
       {isBlocked && (

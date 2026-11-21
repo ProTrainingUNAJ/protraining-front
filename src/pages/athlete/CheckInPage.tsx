@@ -98,6 +98,11 @@ export const CheckInPage: React.FC = () => {
   );
   const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
 
+  // la ficha clínica es autoridad. El flag del wizard nunca puede negar una lesión activa.
+  const clinicalInjuryPresent = activeInjuries.length > 0;
+  const effectiveHasActiveInjury = hasActiveInjury || clinicalInjuryPresent;
+  const clinicalZones = activeInjuries.map((injury) => injury.zone);
+
   const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(
     () => initialDraft?.healthQuestionsAnswered ?? false,
   );
@@ -437,13 +442,18 @@ export const CheckInPage: React.FC = () => {
     setMusclePains({});
   };
 
-  const handleInjuryChange = useCallback((hasInjury: boolean) => {
-    setErrorMessage(null);
-    setHasActiveInjury(hasInjury);
-    if (!hasInjury) {
-      setMusclePains((prev) => clearInjuryPains(prev));
-    }
-  }, []);
+  const handleInjuryChange = useCallback(
+    (hasInjury: boolean) => {
+      setErrorMessage(null);
+      // No se puede responder "sin lesión" si el cuerpo técnico registró una lesión activa.
+      if (!hasInjury && clinicalInjuryPresent) return;
+      setHasActiveInjury(hasInjury);
+      if (!hasInjury) {
+        setMusclePains((prev) => clearInjuryPains(prev));
+      }
+    },
+    [clinicalInjuryPresent],
+  );
 
   // Slide Navigation Handlers
   const goToStep = (stepNum: number) => {
@@ -487,7 +497,10 @@ export const CheckInPage: React.FC = () => {
     }
 
     // Si intenta ir más allá del paso 3 y tiene lesión activa sin marcar con negro:
-    if (stepNum > 3 && !hasRequiredInjuryMark(hasActiveInjury, musclePains)) {
+    if (
+      stepNum > 3 &&
+      !hasRequiredInjuryMark(effectiveHasActiveInjury, musclePains, clinicalZones)
+    ) {
       setErrorMessage(
         'Debés marcar en la silueta la zona lesionada con color negro (Lesión) para poder avanzar.',
       );
@@ -520,7 +533,10 @@ export const CheckInPage: React.FC = () => {
       );
       return;
     }
-    if (currentStep === 3 && !hasRequiredInjuryMark(hasActiveInjury, musclePains)) {
+    if (
+      currentStep === 3 &&
+      !hasRequiredInjuryMark(effectiveHasActiveInjury, musclePains, clinicalZones)
+    ) {
       setErrorMessage(
         'Debés marcar en la silueta la zona lesionada con color negro (Lesión) para poder avanzar.',
       );
@@ -628,7 +644,7 @@ export const CheckInPage: React.FC = () => {
         stressLevel,
         isSick,
         painZones,
-        hasActiveInjury,
+        hasActiveInjury: effectiveHasActiveInjury,
         injuries: injuriesPayload,
       });
 
@@ -841,8 +857,10 @@ export const CheckInPage: React.FC = () => {
                 moodRate={moodRate}
                 stressLevel={stressLevel}
                 isSick={isSick}
-                hasActiveInjury={hasActiveInjury}
+                hasActiveInjury={effectiveHasActiveInjury}
                 musclePains={musclePains}
+                activeInjuries={activeInjuries}
+                injuryScores={injuryScores}
                 notes={notes}
                 pushSupported={pushSupported}
                 pushSubscribed={pushSubscribed}
@@ -910,7 +928,7 @@ export const CheckInPage: React.FC = () => {
                   onClearAll={handleClearPains}
                   isSick={isSick}
                   onSickChange={setIsSick}
-                  hasActiveInjury={hasActiveInjury}
+                  hasActiveInjury={effectiveHasActiveInjury}
                   onInjuryChange={handleInjuryChange}
                   healthQuestionsAnswered={healthQuestionsAnswered}
                   onHealthQuestionsAnswered={setHealthQuestionsAnswered}
@@ -934,8 +952,10 @@ export const CheckInPage: React.FC = () => {
                   moodRate={moodRate}
                   stressLevel={stressLevel}
                   isSick={isSick}
-                  hasActiveInjury={hasActiveInjury}
+                  hasActiveInjury={effectiveHasActiveInjury}
                   musclePains={musclePains}
+                  activeInjuries={activeInjuries}
+                  injuryScores={injuryScores}
                   notes={notes}
                   onNotesChange={setNotes}
                   onEditStep={goToStep}

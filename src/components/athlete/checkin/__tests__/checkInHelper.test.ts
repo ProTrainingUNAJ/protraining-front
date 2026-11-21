@@ -13,6 +13,8 @@ import {
   getSleepHoursLabel,
   hasUnscoredActiveInjuries,
   getInjuryScoreColor,
+  getReportedZones,
+  parsePainZones,
 } from '../checkInHelper';
 
 describe('checkInHelper', () => {
@@ -363,6 +365,76 @@ describe('checkInHelper · KAN-487', () => {
 
     it('deja el color por defecto para el botón no seleccionado', () => {
       expect(getInjuryScoreColor(false)).toBe('inherit');
+    });
+  });
+});
+
+// la ficha clínica y la silueta describen las mismas zonas; se consolidan en una sola.
+describe('checkInHelper · ficha clínica y silueta', () => {
+  describe('hasRequiredInjuryMark con lesión clínica', () => {
+    it('no exige pintar de negro una zona que ya viene de la ficha clínica', () => {
+      expect(hasRequiredInjuryMark(true, {}, ['isquiotibiales'])).toBe(true);
+    });
+
+    it('sigue exigiendo la marca manual si no hay lesión clínica', () => {
+      expect(hasRequiredInjuryMark(true, { cuadriceps: 2 }, [])).toBe(false);
+      expect(hasRequiredInjuryMark(true, { cuadriceps: 6 }, [])).toBe(true);
+    });
+  });
+
+  describe('getReportedZones', () => {
+    it('consolida zonas manuales y clínicas sin duplicarlas y prevalece el marcador clínico', () => {
+      const zones = getReportedZones(
+        { cuadriceps: 2, isquiotibiales: 3 },
+        [{ id: 'inj-1', zone: 'Isquiotibiales', description: 'Distensión' }],
+        { 'inj-1': 7 },
+      );
+
+      expect(zones).toHaveLength(2);
+      expect(zones.find((z) => z.zone === 'cuadriceps')).toMatchObject({
+        level: 2,
+        source: 'manual',
+        score: null,
+      });
+      expect(zones.find((z) => z.zone.toLowerCase() === 'isquiotibiales')).toMatchObject({
+        level: 6,
+        source: 'both',
+        score: 7,
+        description: 'Distensión',
+      });
+    });
+
+    it('conserva el 0 como puntaje válido y no lo transforma en "sin puntuar"', () => {
+      const zones = getReportedZones(
+        {},
+        [{ id: 'inj-1', zone: 'gemelos', description: 'Contractura' }],
+        { 'inj-1': 0 },
+      );
+
+      expect(zones).toEqual([
+        {
+          zone: 'gemelos',
+          level: 6,
+          source: 'clinical',
+          score: 0,
+          description: 'Contractura',
+        },
+      ]);
+    });
+  });
+
+  describe('parsePainZones', () => {
+    it('lee el formato canónico del backend', () => {
+      expect(parsePainZones('cuadriceps:2,isquiotibiales:6')).toEqual({
+        cuadriceps: 2,
+        isquiotibiales: 6,
+      });
+    });
+
+    it('ignora listas vacías y entradas sin nivel', () => {
+      expect(parsePainZones('[],cuadriceps:2,sin-nivel,{}')).toEqual({ cuadriceps: 2 });
+      expect(parsePainZones(null)).toEqual({});
+      expect(parsePainZones(undefined)).toEqual({});
     });
   });
 });
