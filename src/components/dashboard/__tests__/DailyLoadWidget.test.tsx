@@ -70,7 +70,7 @@ describe('DailyLoadWidget (KAN-571)', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/athlete/daily-load');
   });
 
-  it('muestra las métricas totales y chips de actividades cuando hay carga registrada', async () => {
+  it('muestra las métricas totales y barra de carga cuando hay carga registrada', async () => {
     vi.mocked(seguimientoService.getDailyLoad).mockResolvedValueOnce({
       date: '2026-11-09',
       message: 'Carga obtenida',
@@ -91,17 +91,7 @@ describe('DailyLoadWidget (KAN-571)', () => {
 
     expect(screen.getByText('1178')).toBeDefined();
     expect(screen.getByText('Hoy · Registrada')).toBeDefined();
-    expect(screen.getByText(/Gimnasio:/i)).toBeDefined();
-    expect(screen.getByText(/30m/i)).toBeDefined();
-    expect(screen.getByText(/Deporte:/i)).toBeDefined();
-    expect(screen.getByText(/2m/i)).toBeDefined();
-    expect(screen.getByText(/Partido 1:/i)).toBeDefined();
-    expect(screen.getByText(/90m/i)).toBeDefined();
-    expect(screen.getByText(/Partido 2:/i)).toBeDefined();
-    expect(screen.getByText(/60m/i)).toBeDefined();
-    expect(screen.getByText(/Individual:/i)).toBeDefined();
-    expect(screen.getByText(/120m/i)).toBeDefined();
-    expect(screen.queryByText(/más/i)).toBeNull();
+    expect(screen.getByRole('progressbar')).toBeDefined();
 
     const btnDetail = screen.getByRole('button', { name: /Ver detalle o actualizar/i });
     fireEvent.click(btnDetail);

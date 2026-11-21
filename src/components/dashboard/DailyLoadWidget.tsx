@@ -1,16 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Zap,
-  ArrowRight,
-  Plus,
-  RotateCw,
-  Dumbbell,
-  Activity,
-  Trophy,
-  User,
-  Sparkles,
-} from 'lucide-react';
+import { Zap, ArrowRight, Plus, RotateCw, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { getDailyLoad, DailyLoadSubmitResponse } from '../../api/seguimientoService';
@@ -32,40 +22,6 @@ const setCachedAthleteId = (userId: string, id: string) => {
   } catch {
     // Ignored in storage-restricted environments
   }
-};
-
-interface ActivityMeta {
-  label: string;
-  icon: React.ReactNode;
-  themeClass: string;
-}
-
-const ACTIVITY_METAS: Record<string, ActivityMeta> = {
-  gym: {
-    label: 'Gimnasio',
-    icon: <Dumbbell size={12} />,
-    themeClass: 'dl-widget__chip--gym',
-  },
-  sportTraining: {
-    label: 'Deporte',
-    icon: <Activity size={12} />,
-    themeClass: 'dl-widget__chip--sport',
-  },
-  match1: {
-    label: 'Partido 1',
-    icon: <Trophy size={12} />,
-    themeClass: 'dl-widget__chip--match1',
-  },
-  match2: {
-    label: 'Partido 2',
-    icon: <Trophy size={12} />,
-    themeClass: 'dl-widget__chip--match2',
-  },
-  individualWork: {
-    label: 'Individual',
-    icon: <User size={12} />,
-    themeClass: 'dl-widget__chip--individual',
-  },
 };
 
 export const DailyLoadWidget: React.FC = () => {
@@ -147,25 +103,6 @@ export const DailyLoadWidget: React.FC = () => {
   const hasRecordedLoad = Boolean(
     loadData && (loadData.totalMinutes > 0 || (loadData.totalLoad ?? 0) > 0),
   );
-
-  // Retrieve activities recorded today along with metadata
-  const registeredActivities = React.useMemo(() => {
-    if (!loadData) return [];
-    return Object.entries(ACTIVITY_METAS)
-      .map(([key, meta]) => {
-        const val = loadData[key as keyof DailyLoadSubmitResponse] as
-          { minutes?: number; rpe?: number | null } | undefined;
-        return {
-          key,
-          label: meta.label,
-          icon: meta.icon,
-          themeClass: meta.themeClass,
-          minutes: val?.minutes ?? 0,
-          rpe: val?.rpe ?? null,
-        };
-      })
-      .filter((a) => a.minutes > 0);
-  }, [loadData]);
 
   // Estimated percentage for the colorful mini progress bar (reference target: 600 UA)
   const loadPercentage = Math.min(100, Math.round(((loadData?.totalLoad ?? 0) / 600) * 100));
@@ -257,22 +194,6 @@ export const DailyLoadWidget: React.FC = () => {
                 style={{ width: `${Math.max(8, loadPercentage)}%` }}
               />
             </div>
-
-            {/* Activity chips with distinctive colors */}
-            {registeredActivities.length > 0 && (
-              <div className="dl-widget__activities-list" aria-label="Actividades registradas">
-                {registeredActivities.map((act) => (
-                  <span key={act.key} className={`dl-widget__activity-chip ${act.themeClass}`}>
-                    <span className="dl-widget__chip-icon" aria-hidden="true">
-                      {act.icon}
-                    </span>
-                    <span>{act.label}:</span>
-                    <strong>{act.minutes}m</strong>
-                    {act.rpe !== null && <span className="dl-widget__chip-rpe">RPE {act.rpe}</span>}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
         ) : (
           <div className="dl-widget__empty">
