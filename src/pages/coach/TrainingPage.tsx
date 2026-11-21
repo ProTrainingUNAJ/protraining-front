@@ -162,9 +162,9 @@ export const TrainingPage: React.FC = () => {
 
   const currentExerciseForModal = shownExercise
     ? {
-      ...shownExercise,
-      variants: modalExercise?.variants,
-    }
+        ...shownExercise,
+        variants: modalExercise?.variants,
+      }
     : null;
 
   // Carga inicial y filtros por Chip o Buscador directamente al Backend
@@ -587,9 +587,7 @@ export const TrainingPage: React.FC = () => {
                     >
                       {ex.name}
                     </h3>
-                    <p className="exercise-card-muscle-group">
-                      Grupo: {ex.muscleGroup}
-                    </p>
+                    <p className="exercise-card-muscle-group">Grupo: {ex.muscleGroup}</p>
                   </div>
 
                   <div className="exercise-card-footer">
