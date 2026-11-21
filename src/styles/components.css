@@ -8,9 +8,11 @@
   color: var(--brand-navy);
   white-space: nowrap;
 }
+
 .brand .pro {
   font-weight: 900;
 }
+
 .brand .training {
   font-weight: 500;
 }
@@ -19,17 +21,20 @@
   max-width: 1100px;
   margin: 0 auto;
 }
+
 .page-stub h1 {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--text-main);
 }
+
 .page-stub p {
   margin-top: 0.35rem;
   color: var(--text-muted);
   font-size: 0.95rem;
   font-weight: 500;
 }
+
 .page-stub .btn {
   margin-top: 1rem;
 }
@@ -42,22 +47,27 @@
   font-weight: 700;
   border-radius: 9999px;
 }
+
 .badge-primary {
   background: var(--brand-navy);
   color: var(--on-primary);
 }
+
 .badge-info {
   background: var(--info-bg);
   color: var(--info-text);
 }
+
 .badge-danger {
   background: var(--danger-bg-strong);
   color: var(--danger-text);
 }
+
 .badge-warning {
   background: var(--warning-bg-strong);
   color: var(--warning-text);
 }
+
 .badge-success {
   background: var(--success-bg-strong);
   color: var(--success-text);
@@ -91,6 +101,7 @@
   border-color: var(--border);
   box-shadow: var(--shadow);
 }
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -103,6 +114,7 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
 }
+
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -124,25 +136,31 @@
   transition: all 0.15s ease;
   text-decoration: none;
 }
+
 .btn-primary {
   background: var(--primary);
   color: var(--on-primary);
 }
+
 .btn-primary:hover {
   background: var(--primary-hover);
 }
+
 .btn-secondary {
   background: var(--bg-subtle);
   color: var(--text-main);
   border: 1px solid var(--border);
 }
+
 .btn-secondary:hover {
   background: var(--border);
 }
+
 .btn-danger {
   background: var(--danger);
   color: var(--on-primary);
 }
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -162,6 +180,7 @@ textarea {
   margin-top: 0.35rem;
   margin-bottom: 1rem;
 }
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -178,21 +197,25 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
 }
+
 .alert-banner.danger {
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
   color: var(--danger-text);
 }
+
 .alert-banner.success {
   background: var(--success-bg);
   border: 1px solid var(--success-border);
   color: var(--success-text);
 }
+
 .alert-banner.info {
   background: var(--info-bg);
   border: 1px solid var(--info-border);
   color: var(--info-text);
 }
+
 .alert-banner.warning {
   background: var(--warning-bg);
   border: 1px solid var(--warning-border);
@@ -222,21 +245,25 @@ textarea:focus {
   margin: 0;
   text-align: center;
 }
+
 .empty-state-icon {
   color: var(--text-muted);
   opacity: 0.6;
   margin-bottom: 0.5rem;
 }
+
 .empty-state-title {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-main);
 }
+
 .empty-state-desc {
   max-width: 420px;
   font-size: 0.9rem;
   color: var(--text-muted);
 }
+
 .empty-state .btn {
   margin-top: 1rem;
 }
@@ -250,18 +277,23 @@ textarea:focus {
 .text-xs {
   font-size: 0.75rem;
 }
+
 .text-muted {
   color: var(--text-muted);
 }
+
 .text-primary {
   color: var(--color-primary);
 }
+
 .opacity-40 {
   opacity: 0.4;
 }
+
 .animate-spin {
   animation: utility-spin 1s linear infinite;
 }
+
 @keyframes utility-spin {
   to {
     transform: rotate(360deg);
@@ -279,6 +311,7 @@ textarea:focus {
   z-index: 100;
   padding: 1rem;
 }
+
 .modal-content {
   background: var(--bg-card);
   border-radius: var(--radius);
@@ -289,11 +322,13 @@ textarea:focus {
   max-height: 90vh;
   overflow-y: auto;
 }
+
 .btn-warning {
   background: var(--warning-bg-strong);
   color: var(--warning-text);
   border: 1px solid var(--warning-border);
 }
+
 .btn-warning:hover {
   background: var(--warning-bg);
 }
@@ -305,8 +340,11 @@ textarea:focus {
 
 .segmented-tabs,
 .recommendations-tabs {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.45rem;
   padding: 0.35rem;
   background: var(--bg-subtle);
@@ -380,6 +418,7 @@ textarea:focus {
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
+
 .segmented-tab.status-all.active,
 .segmented-tab.status-primary.active,
 .recommendations-tab.status-all.active {
@@ -388,6 +427,7 @@ textarea:focus {
   color: var(--on-primary);
   box-shadow: var(--shadow-sm);
 }
+
 .segmented-tab.status-all.active .segmented-tab-count,
 .segmented-tab.status-primary.active .segmented-tab-count,
 .recommendations-tab.status-all.active .recommendations-tab-count {
@@ -402,6 +442,7 @@ textarea:focus {
 .segmented-tab.status-discarded .segmented-tab-dot {
   background: var(--traffic-red);
 }
+
 .segmented-tab.status-red .segmented-tab-count,
 .segmented-tab.status-danger .segmented-tab-count,
 .segmented-tab.status-discarded .segmented-tab-count,
@@ -409,6 +450,7 @@ textarea:focus {
   background: var(--traffic-red-bg);
   color: var(--traffic-red-text);
 }
+
 .segmented-tab.status-red.active,
 .segmented-tab.status-danger.active,
 .segmented-tab.status-discarded.active,
@@ -418,11 +460,13 @@ textarea:focus {
   color: var(--white);
   box-shadow: var(--shadow-sm);
 }
+
 .segmented-tab.status-red.active .segmented-tab-dot,
 .segmented-tab.status-danger.active .segmented-tab-dot,
 .segmented-tab.status-discarded.active .segmented-tab-dot {
   background: var(--white);
 }
+
 .segmented-tab.status-red.active .segmented-tab-count,
 .segmented-tab.status-danger.active .segmented-tab-count,
 .segmented-tab.status-discarded.active .segmented-tab-count,
@@ -437,6 +481,7 @@ textarea:focus {
 .segmented-tab.status-pending .segmented-tab-dot {
   background: var(--traffic-yellow);
 }
+
 .segmented-tab.status-yellow .segmented-tab-count,
 .segmented-tab.status-warning .segmented-tab-count,
 .segmented-tab.status-pending .segmented-tab-count,
@@ -444,6 +489,7 @@ textarea:focus {
   background: var(--traffic-yellow-bg);
   color: var(--traffic-yellow-text);
 }
+
 .segmented-tab.status-yellow.active,
 .segmented-tab.status-warning.active,
 .segmented-tab.status-pending.active,
@@ -453,11 +499,13 @@ textarea:focus {
   color: var(--white);
   box-shadow: var(--shadow-sm);
 }
+
 .segmented-tab.status-yellow.active .segmented-tab-dot,
 .segmented-tab.status-warning.active .segmented-tab-dot,
 .segmented-tab.status-pending.active .segmented-tab-dot {
   background: var(--white);
 }
+
 .segmented-tab.status-yellow.active .segmented-tab-count,
 .segmented-tab.status-warning.active .segmented-tab-count,
 .segmented-tab.status-pending.active .segmented-tab-count,
@@ -472,6 +520,7 @@ textarea:focus {
 .segmented-tab.status-approved .segmented-tab-dot {
   background: var(--traffic-green);
 }
+
 .segmented-tab.status-green .segmented-tab-count,
 .segmented-tab.status-success .segmented-tab-count,
 .segmented-tab.status-approved .segmented-tab-count,
@@ -479,6 +528,7 @@ textarea:focus {
   background: var(--traffic-green-bg);
   color: var(--traffic-green-text);
 }
+
 .segmented-tab.status-green.active,
 .segmented-tab.status-success.active,
 .segmented-tab.status-approved.active,
@@ -488,11 +538,13 @@ textarea:focus {
   color: var(--white);
   box-shadow: var(--shadow-sm);
 }
+
 .segmented-tab.status-green.active .segmented-tab-dot,
 .segmented-tab.status-success.active .segmented-tab-dot,
 .segmented-tab.status-approved.active .segmented-tab-dot {
   background: var(--white);
 }
+
 .segmented-tab.status-green.active .segmented-tab-count,
 .segmented-tab.status-success.active .segmented-tab-count,
 .segmented-tab.status-approved.active .segmented-tab-count,
@@ -506,11 +558,13 @@ textarea:focus {
 .segmented-tab.status-muted .segmented-tab-dot {
   background: var(--traffic-gray);
 }
+
 .segmented-tab.status-gray .segmented-tab-count,
 .segmented-tab.status-muted .segmented-tab-count {
   background: var(--traffic-gray-bg);
   color: var(--traffic-gray-text);
 }
+
 .segmented-tab.status-gray.active,
 .segmented-tab.status-muted.active {
   background: var(--traffic-gray);
@@ -518,10 +572,12 @@ textarea:focus {
   color: var(--white);
   box-shadow: var(--shadow-sm);
 }
+
 .segmented-tab.status-gray.active .segmented-tab-dot,
 .segmented-tab.status-muted.active .segmented-tab-dot {
   background: var(--white);
 }
+
 .segmented-tab.status-gray.active .segmented-tab-count,
 .segmented-tab.status-muted.active .segmented-tab-count {
   background: var(--bg-card);
