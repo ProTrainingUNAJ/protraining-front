@@ -43,14 +43,8 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
   };
 
   const handleNextOrFinish = () => {
-    // Si no tenía score seteado, asegurar que se guarde el valor actual (por defecto 0)
-    if (
-      currentInjury &&
-      (injuryScores[currentInjury.id] === null || injuryScores[currentInjury.id] === undefined)
-    ) {
-      onScoreChange(currentInjury.id, currentScore);
-    }
-
+    // no se inventa un 0. El cero debe ser una elección del atleta; si no tocó la
+    // barra el score queda sin definir y el wizard bloquea el avance hasta que lo puntúe.
     if (!isLast) {
       setCurrentIndex((prev) => prev + 1);
     } else {
@@ -194,6 +188,18 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             onChange={handleScoreChange}
             ariaLabel={`Nivel de molestia en ${currentInjury.zone}`}
           />
+          {(injuryScores[currentInjury.id] === null ||
+            injuryScores[currentInjury.id] === undefined) && (
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: 'var(--text-muted, #64748b)',
+                margin: '0.4rem 0 0 0',
+              }}
+            >
+              Deslizá la barra para puntuar esta molestia (0 a 10).
+            </p>
+          )}
         </div>
 
         {/* Botones de acción */}

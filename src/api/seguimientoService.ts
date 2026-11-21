@@ -18,6 +18,8 @@ import {
   TrafficLightStatus,
 } from '../components/monitoring/trafficLight.types';
 import { PROTRAINING_MUSCLES } from '../components/athlete/bodyMuscleData';
+import { OFFICIAL_JOINTS, OFFICIAL_MUSCLE_GROUPS } from '../components/athlete/muscleMap.config';
+import { resolveMuscleId } from '../utils/painMuscleResolver';
 import { Category } from '../types/structure';
 import type { AthleteWeek } from '../types/seguimiento';
 import { getAthleteWeek as getAthleteWeekRequest } from './generated/seguimiento';
@@ -226,6 +228,11 @@ function resolveStatus(summary: AthleteTrafficLightSummary): TrafficLightStatus 
   return 'green';
 }
 
+const OFFICIAL_MUSCLE_IDS = new Set<string>([
+  ...OFFICIAL_MUSCLE_GROUPS.map((region) => region.id),
+  ...OFFICIAL_JOINTS.map((joint) => joint.id),
+]);
+
 // painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3", nivel 6 = lesión activa).
 function parsePainZones(raw?: string | null): PainZoneReport[] {
   if (!raw?.trim()) return [];
@@ -249,7 +256,15 @@ function parsePainZones(raw?: string | null): PainZoneReport[] {
     if (level <= 0) return [];
 
     const muscle = PROTRAINING_MUSCLES.find((item) => item.id === muscleId);
-    return [{ zone: muscle?.name ?? muscleId, muscleId, level }];
+
+    // el backend agrega las lesiones clínicas con el id heredado de la ficha
+    // ("isquiotibiales"), que no es una región del SVG ("isquiotibial_derecho"). Si el id
+    // no es oficial, lo resolvemos por nombre para que el mapa del PF pinte la lesión.
+    const resolvedMuscleId = OFFICIAL_MUSCLE_IDS.has(muscleId)
+      ? muscleId
+      : resolveMuscleId(muscle?.name ?? muscleId);
+
+    return [{ zone: muscle?.name ?? muscleId, muscleId: resolvedMuscleId || undefined, level }];
   });
 }
 

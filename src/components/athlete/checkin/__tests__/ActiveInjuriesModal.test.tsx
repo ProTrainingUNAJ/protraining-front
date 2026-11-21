@@ -79,4 +79,27 @@ describe('ActiveInjuriesModal', () => {
 
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
+
+  // el 0 es una respuesta explícita, no un valor por defecto disfrazado.
+  it('does not auto-assign a score of 0 when confirming without touching the slider', () => {
+    const handleScoreChange = vi.fn();
+    const handleClose = vi.fn();
+
+    render(
+      <ActiveInjuriesModal
+        isOpen={true}
+        onClose={handleClose}
+        activeInjuries={[injuries[0]]}
+        injuryScores={{}}
+        onScoreChange={handleScoreChange}
+      />,
+    );
+
+    expect(screen.getByText(/Deslizá la barra para puntuar esta molestia/i)).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar molestia/i }));
+
+    expect(handleScoreChange).not.toHaveBeenCalled();
+    expect(handleClose).toHaveBeenCalledTimes(1);
+  });
 });
