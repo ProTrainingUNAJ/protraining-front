@@ -107,13 +107,81 @@ function nextOrder(orders: number[]): number {
   return orders.length === 0 ? 1 : Math.max(...orders) + 1;
 }
 
-// Posición del día en la semana del PF (lunes = 0, domingo = 6), para ordenar.
-export function dayPosition(dayOfWeek: number): number {
-  return (dayOfWeek + 6) % 7;
+/**
+ * Normaliza de forma bidireccional cualquier representación de día de semana a número de contrato
+ * (0 = Domingo, 1 = Lunes, ..., 6 = Sábado).
+ * Soporta:
+ * - Números 0..6 (Sunday=0 .. Saturday=6)
+ * - 7 (ISO Sunday -> 0)
+ * - Strings numéricos ("0".."7")
+ * - Strings en inglés de .NET enum DayOfWeek ("Sunday", "Monday", "Friday", etc., case-insensitive)
+ * - Strings en español ("Domingo", "Lunes", "Viernes", etc., con o sin tildes)
+ * Si no es reconocido o es nulo/inválido, devuelve 1 (Lunes) por defecto.
+ */
+export function parseDayOfWeek(day: unknown): number {
+  if (typeof day === 'number') {
+    if (Number.isFinite(day)) {
+      if (day === 7) return 0;
+      const normalized = Math.round(day);
+      if (normalized >= 0 && normalized <= 6) return normalized;
+      return ((normalized % 7) + 7) % 7;
+    }
+    return 1;
+  }
+
+  if (typeof day === 'string') {
+    const trimmed = day.trim().toLowerCase();
+    if (!trimmed) return 1;
+
+    // String numérico ("0".."7")
+    const parsedNum = parseInt(trimmed, 10);
+    if (!isNaN(parsedNum) && String(parsedNum) === trimmed) {
+      if (parsedNum === 7) return 0;
+      if (parsedNum >= 0 && parsedNum <= 6) return parsedNum;
+      return ((parsedNum % 7) + 7) % 7;
+    }
+
+    switch (trimmed) {
+      case 'sunday':
+      case 'domingo':
+        return 0;
+      case 'monday':
+      case 'lunes':
+        return 1;
+      case 'tuesday':
+      case 'martes':
+        return 2;
+      case 'wednesday':
+      case 'miercoles':
+      case 'miércoles':
+        return 3;
+      case 'thursday':
+      case 'jueves':
+        return 4;
+      case 'friday':
+      case 'viernes':
+        return 5;
+      case 'saturday':
+      case 'sabado':
+      case 'sábado':
+        return 6;
+      default:
+        return 1;
+    }
+  }
+
+  return 1;
 }
 
-export function dayLabel(dayOfWeek: number): string {
-  return WEEK_DAYS.find((day) => day.value === dayOfWeek)?.label ?? '';
+// Posición del día en la semana del PF (lunes = 0, domingo = 6), para ordenar.
+export function dayPosition(dayOfWeek: unknown): number {
+  const normalized = parseDayOfWeek(dayOfWeek);
+  return (normalized + 6) % 7;
+}
+
+export function dayLabel(dayOfWeek: unknown): string {
+  const normalized = parseDayOfWeek(dayOfWeek);
+  return WEEK_DAYS.find((day) => day.value === normalized)?.label ?? '';
 }
 
 // Ordena sesiones: por día (lunes primero) y, dentro del mismo día, las que tienen hora
@@ -282,7 +350,7 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
           id: session.id,
           name: session.name,
           order: session.order,
-          dayOfWeek: session.dayOfWeek,
+          dayOfWeek: parseDayOfWeek(session.dayOfWeek),
           coachNotes: cleanNotes,
           startTime: session.startTime ? session.startTime.slice(0, 5) : null,
           blocks: blocks.length > 0 ? blocks : undefined,
@@ -402,7 +470,7 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
           id: session.id,
           name: session.name.trim(),
           order: session.order,
-          dayOfWeek: session.dayOfWeek,
+          dayOfWeek: parseDayOfWeek(session.dayOfWeek),
           coachNotes: cleanSessionNotes || null,
           startTime: formattedStartTime,
           blocks: mappedBlocks,
@@ -425,7 +493,7 @@ export function createWeek(weeks: DraftWeek[]): DraftWeek {
 
 export function createSession(week: DraftWeek): DraftSession {
   // Por defecto, el primer día de la semana que todavía no tiene sesión.
-  const usedDays = new Set(week.sessions.map((s) => s.dayOfWeek));
+  const usedDays = new Set(week.sessions.map((s) => parseDayOfWeek(s.dayOfWeek)));
   const freeDay = WEEK_DAYS.find((day) => !usedDays.has(day.value)) ?? WEEK_DAYS[0];
   return {
     key: newKey(),
@@ -530,8 +598,11 @@ export function moveExercise(
 }
 
 // Sesiones del mismo día que `session`, en el orden en que se muestran.
-export function sameDaySessions(week: DraftWeek, dayOfWeek: number): DraftSession[] {
-  return week.sessions.filter((s) => s.dayOfWeek === dayOfWeek).sort((a, b) => a.order - b.order);
+export function sameDaySessions(week: DraftWeek, dayOfWeek: unknown): DraftSession[] {
+  const targetDay = parseDayOfWeek(dayOfWeek);
+  return week.sessions
+    .filter((s) => parseDayOfWeek(s.dayOfWeek) === targetDay)
+    .sort((a, b) => a.order - b.order);
 }
 
 // Sube (-1) o baja (+1) una sesión entre las del mismo día (KAN-542): intercambia sus `order`.
@@ -581,15 +652,12 @@ export const NUMBER_TO_ASSISTANT_DAY: AssistantDayOfWeek[] = [
   'Saturday',
 ];
 
-export function assistantDayToNumber(day: string): number {
-  if (day in ASSISTANT_DAY_TO_NUMBER) {
-    return ASSISTANT_DAY_TO_NUMBER[day as AssistantDayOfWeek];
-  }
-  return 1;
+export function assistantDayToNumber(day: unknown): number {
+  return parseDayOfWeek(day);
 }
 
-export function numberToAssistantDay(dayOfWeek: number): AssistantDayOfWeek {
-  const normalized = ((dayOfWeek % 7) + 7) % 7;
+export function numberToAssistantDay(dayOfWeek: unknown): AssistantDayOfWeek {
+  const normalized = parseDayOfWeek(dayOfWeek);
   return NUMBER_TO_ASSISTANT_DAY[normalized] ?? 'Monday';
 }
 
@@ -721,11 +789,12 @@ export function createDefaultBlocks(): DayBlock[] {
   }));
 }
 
-export function createDayPlan(dayOfWeek: number, dayName?: string): DayPlan {
-  const label = dayLabel(dayOfWeek);
+export function createDayPlan(dayOfWeek: unknown, dayName?: string): DayPlan {
+  const normalized = parseDayOfWeek(dayOfWeek);
+  const label = dayLabel(normalized);
   const plan: DayPlan = {
-    dayOfWeek,
-    name: dayName || (label ? `Día ${label}` : `Día ${dayOfWeek}`),
+    dayOfWeek: normalized,
+    name: dayName || (label ? `Día ${label}` : `Día ${normalized}`),
     blocks: createDefaultBlocks(),
   };
   // Ensure default blocks have keys
@@ -809,14 +878,15 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
     for (let i = 1; i <= weekCount; i++) weekNumbers.push(i);
   }
 
-  // 1. Group sessions by day of week
+  // 1. Group sessions by day of week (normalizado a número 0..6)
   const dayOfWeekMap = new Map<number, DraftSession[]>();
   draft.weeks.forEach((week) => {
     week.sessions.forEach((session) => {
-      if (!dayOfWeekMap.has(session.dayOfWeek)) {
-        dayOfWeekMap.set(session.dayOfWeek, []);
+      const normalizedDay = parseDayOfWeek(session.dayOfWeek);
+      if (!dayOfWeekMap.has(normalizedDay)) {
+        dayOfWeekMap.set(normalizedDay, []);
       }
-      dayOfWeekMap.get(session.dayOfWeek)!.push(session);
+      dayOfWeekMap.get(normalizedDay)!.push(session);
     });
   });
 
@@ -830,7 +900,8 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
     (a, b) => dayPosition(a) - dayPosition(b),
   );
 
-  return sortedDays.map((dayOfWeek) => {
+  return sortedDays.map((rawDayOfWeek) => {
+    const dayOfWeek = parseDayOfWeek(rawDayOfWeek);
     const label = dayLabel(dayOfWeek);
     const sessionsForDay = dayOfWeekMap.get(dayOfWeek) || [];
     const hasNativeBlocks = sessionsForDay.some((s) => s.blocks && s.blocks.length > 0);
@@ -842,7 +913,7 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
 
     if (hasNativeBlocks) {
       draft.weeks.forEach((week) => {
-        const weekSessions = week.sessions.filter((s) => s.dayOfWeek === dayOfWeek);
+        const weekSessions = week.sessions.filter((s) => parseDayOfWeek(s.dayOfWeek) === dayOfWeek);
         weekSessions.forEach((session) => {
           (session.blocks || []).forEach((b, bIdx) => {
             const blockOrder = b.order || bIdx + 1;
@@ -919,7 +990,7 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
       // Rama legada (cuando cada sesión representaba un bloque)
       draft.weeks.forEach((week) => {
         const weekSessionsForDay = week.sessions
-          .filter((s) => s.dayOfWeek === dayOfWeek)
+          .filter((s) => parseDayOfWeek(s.dayOfWeek) === dayOfWeek)
           .sort((a, b) => a.order - b.order);
 
         weekSessionsForDay.forEach((session, sessionIdx) => {
@@ -1076,9 +1147,10 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
     let sessionCounter = 1;
 
     sortedDays.forEach((day) => {
+      const normalizedDay = parseDayOfWeek(day.dayOfWeek);
       const sortedBlocks = [...day.blocks].sort((a, b) => a.order - b.order);
       const existingSession = (existingWeek?.sessions || []).find(
-        (s) => s.dayOfWeek === day.dayOfWeek,
+        (s) => parseDayOfWeek(s.dayOfWeek) === normalizedDay,
       );
       const sessionOrder = sessionCounter++;
 
@@ -1172,9 +1244,9 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
       sessions.push({
         key: existingSession?.key || newKey(),
         id: existingSession?.id || null,
-        name: day.name || `Sesión ${dayLabel(day.dayOfWeek)}`,
+        name: day.name || `Sesión ${dayLabel(normalizedDay)}`,
         order: sessionOrder,
-        dayOfWeek: day.dayOfWeek,
+        dayOfWeek: normalizedDay,
         coachNotes: existingSession?.coachNotes || '',
         startTime: existingSession?.startTime ?? day.startTime ?? null,
         blocks: mappedBlocks,
