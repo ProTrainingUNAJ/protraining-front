@@ -1,0 +1,388 @@
+/* ── KAN-452 / KAN-574: Ajuste sugerido del día (modal y botones disparadores) ── */
+
+.day-adjustment-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--routine-modal-overlay);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.card.day-adjustment-modal {
+  margin: 0;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.day-adjustment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.85rem;
+}
+
+.day-adjustment-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.day-adjustment-header-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.day-adjustment-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.day-adjustment-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.day-adjustment-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+}
+
+.day-adjustment-loading {
+  padding: 2.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+}
+
+.day-adjustment-loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.day-adjustment-feedback {
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.day-adjustment-feedback--error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+}
+
+.day-adjustment-feedback--success {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+}
+
+.day-adjustment-feedback-icon {
+  flex-shrink: 0;
+}
+
+.day-adjustment-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.day-adjustment-justification-box {
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+.day-adjustment-justification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.day-adjustment-section-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.badge.day-adjustment-status-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.badge.day-adjustment-status-badge--pending {
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  border: 1px solid var(--traffic-yellow-border);
+}
+
+.badge.day-adjustment-status-badge--approved {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+}
+
+.badge.day-adjustment-status-badge--rejected {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+
+.day-adjustment-justification-text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.day-adjustment-rejection-note {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  color: var(--danger-text);
+  font-style: italic;
+}
+
+.day-adjustment-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.day-adjustment-items-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.day-adjustment-item-card {
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.day-adjustment-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.day-adjustment-swap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.day-adjustment-original-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.day-adjustment-swap-arrow {
+  color: var(--secondary);
+}
+
+.day-adjustment-substitute-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.day-adjustment-pain-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.badge.day-adjustment-pain-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+
+.day-adjustment-item-reason {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.day-adjustment-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.day-adjustment-selector-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.day-adjustment-select-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.day-adjustment-select {
+  width: 100%;
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  appearance: none;
+  cursor: pointer;
+}
+
+.day-adjustment-select-chevron {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.day-adjustment-reject-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+}
+
+.day-adjustment-reject-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--danger-text);
+}
+
+.day-adjustment-reject-input {
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--danger-border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.82rem;
+}
+
+.day-adjustment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.btn.day-adjustment-btn-reject-toggle {
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--danger-text);
+}
+
+.btn.day-adjustment-btn-reject-confirm {
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: var(--traffic-red);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn.day-adjustment-btn-approve {
+  padding: 0.55rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn.day-adjustment-btn-close {
+  padding: 0.55rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Botones disparadores "Ver ajuste sugerido" en card y ficha rápida */
+.btn.day-adjustment-trigger-card {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.btn.day-adjustment-trigger-sheet {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}

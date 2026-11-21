@@ -252,18 +252,72 @@ export type ApprovePlanDraftResponse = {
     warnings?: Array<string>;
 };
 
+/**
+ * Recomendación de hábitos/nutrición para validación del PF (KAN-494). Extiende el esquema base con campos opcionales de seguridad y contexto (rangos, modo, menor, derivación, momentos y datos faltantes). dailyProteinRequirementGrams puede ser null cuando no es seguro/posible indicar cantidades (menor, objetivo bajar de peso, datos faltantes o derivación).
+ *
+ */
 export type HabitsRecommendationResponse = {
     id: string;
     athleteId: string;
     athleticGoal: string;
     /**
-     * Calculado por regla determinística en g/kg de peso corporal.
+     * Referencia cuantitativa calculada por reglas cuando es segura (p.ej. rango objetivo definido). Null si no corresponde indicar cantidades. TODO(KAN-494): compatibilidad con clientes que esperen valor numérico.
+     *
      */
-    dailyProteinRequirementGrams: number;
+    dailyProteinRequirementGrams?: number | null;
     suggestedPlateComposition: string;
     hydrationAndSleepGuidelines: string;
     legalDisclaimer: string;
     approvedByPf: boolean;
+    /**
+     * Límite inferior del rango diario de proteína (g) fijado por reglas en el backend. La IA sólo redacta; nunca puede reemplazar este valor. Null en modos sin cantidades.
+     *
+     */
+    minProteinGrams?: number | null;
+    /**
+     * Límite superior del rango diario de proteína (g) fijado por reglas en el backend. Null en modos sin cantidades.
+     *
+     */
+    maxProteinGrams?: number | null;
+    /**
+     * Modo de recomendación: Quantitative, Qualitative o Referral.
+     */
+    recommendationMode?: string | null;
+    /**
+     * Indica si el atleta es menor de edad (sin cantidades de proteína).
+     */
+    isMinor?: boolean;
+    /**
+     * Indica si se recomienda derivación a profesional por seguridad. Verdadero ante riesgo médico registrado, ficha médica vacía/incompleta/no verificable, objetivo de pérdida de peso o datos críticos ausentes. En ese caso no se entregan cantidades ni estrategias de pérdida de peso.
+     *
+     */
+    requiresProfessionalReferral?: boolean;
+    /**
+     * Motivos de derivación o precaución.
+     */
+    referralReasons?: Array<string> | null;
+    /**
+     * Momentos detectados (día pesado, partido cercano, poco descanso) cuando hay datos.
+     */
+    detectedMoments?: Array<string> | null;
+    /**
+     * Datos faltantes o pendientes de definición/validación que impiden una pauta completa (por ejemplo, peso/objetivo sin fuente, día pesado sin criterio aprobado, partido/descanso no inferibles, check-ins con fecha futura o ficha médica no verificable). No implica que el dato sea cero.
+     *
+     */
+    missingData?: Array<string> | null;
+    /**
+     * Peso corporal informado por la fuente configurada y usado para el cálculo. Null significa "sin dato": el backend no lo estima ni lo reemplaza por valores de otros dominios (1RM, carga, objetivos de plan).
+     *
+     */
+    weightKg?: number | null;
+    /**
+     * Proveedor/redacción utilizada (IA o reglas).
+     */
+    provider?: string | null;
+    /**
+     * Estado de revisión de la recomendación (Pending, Approved, Discarded).
+     */
+    status?: string | null;
 };
 
 export type PfDecisionResponse = {
@@ -290,6 +344,16 @@ export type DayConflictsResponse = {
     message?: string | null;
     conflicts: Array<DayConflictItem>;
     sessionId?: string | null;
+};
+
+export type CategoryAthleteDayConflict = {
+    athleteId: string;
+    hasConflicts: boolean;
+};
+
+export type CategoryDayConflictsResponse = {
+    categoryId: string;
+    athletes: Array<CategoryAthleteDayConflict>;
 };
 
 export type DayAdjustmentItem = {
@@ -915,6 +979,48 @@ export type GetAthleteDayConflictsResponses = {
 
 export type GetAthleteDayConflictsResponse = GetAthleteDayConflictsResponses[keyof GetAthleteDayConflictsResponses];
 
+export type GetCategoryDayConflictsData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la categoría.
+         */
+        categoryId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/categories/{categoryId}/day-conflicts';
+};
+
+export type GetCategoryDayConflictsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GetCategoryDayConflictsError = GetCategoryDayConflictsErrors[keyof GetCategoryDayConflictsErrors];
+
+export type GetCategoryDayConflictsResponses = {
+    /**
+     * Estado de conflictos del día por atleta de la categoría obtenido exitosamente.
+     */
+    200: CategoryDayConflictsResponse;
+};
+
+export type GetCategoryDayConflictsResponse = GetCategoryDayConflictsResponses[keyof GetCategoryDayConflictsResponses];
+
 export type CreateAthleteDayAdjustmentData = {
     body?: never;
     path: {
@@ -1194,6 +1300,10 @@ export type GetHabitsRecommendationErrors = {
      * Recurso o alerta no encontrada.
      */
     404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
 };
 
 export type GetHabitsRecommendationError = GetHabitsRecommendationErrors[keyof GetHabitsRecommendationErrors];

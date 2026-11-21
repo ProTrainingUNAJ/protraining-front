@@ -677,16 +677,7 @@ export const RoutinePage: React.FC = () => {
                       )}
 
                       {routine.adjustedByCoach && (
-                        <span
-                          className="badge"
-                          style={{
-                            gap: '0.35rem',
-                            background: 'var(--traffic-yellow-bg)',
-                            color: 'var(--traffic-yellow-text)',
-                            border: '1px solid var(--traffic-yellow-border)',
-                            fontWeight: 700,
-                          }}
-                        >
+                        <span className="badge routine-adjusted-badge">
                           <ShieldAlert size={13} />
                           <span>Ajuste aplicado por tu PF</span>
                         </span>
@@ -802,90 +793,23 @@ export const RoutinePage: React.FC = () => {
               )}
             </div>
 
-            {/* 3. Cartel de Rutina Ajustada por el PF (#157 · KAN-452) */}
+            {/* 3. Cartel de Rutina Ajustada por el PF (#157 · KAN-452 / KAN-574) */}
             {routine.adjustedByCoach && (
-              <div
-                className="routine-adjusted-banner"
-                data-testid="routine-adjusted-banner"
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.85rem',
-                  padding: '1rem 1.25rem',
-                  borderRadius: '14px',
-                  background: 'var(--traffic-yellow-bg)',
-                  border: '1px solid var(--traffic-yellow-border)',
-                  color: 'var(--text-main)',
-                }}
-              >
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    background: 'var(--traffic-yellow)',
-                    color: 'var(--white)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    marginTop: '2px',
-                  }}
-                >
+              <div className="routine-adjusted-banner" data-testid="routine-adjusted-banner">
+                <div className="routine-adjusted-banner-icon">
                   <ShieldAlert size={20} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      flexWrap: 'wrap',
-                      marginBottom: '0.2rem',
-                    }}
-                  >
-                    <strong
-                      style={{
-                        fontSize: '0.98rem',
-                        fontWeight: 800,
-                        color: 'var(--traffic-yellow-text)',
-                      }}
-                    >
+                <div className="routine-adjusted-banner-content">
+                  <div className="routine-adjusted-banner-header">
+                    <strong className="routine-adjusted-banner-title">
                       Tu PF ajustó la rutina de hoy
                     </strong>
-                    <span
-                      className="badge"
-                      style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        background: 'var(--bg-card)',
-                        color: 'var(--traffic-yellow-text)',
-                        border: '1px solid var(--traffic-yellow-border)',
-                      }}
-                    >
-                      Ajuste del día
-                    </span>
+                    <span className="badge routine-adjusted-banner-tag">Ajuste del día</span>
                   </div>
                   {routine.adjustmentNote ? (
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.86rem',
-                        lineHeight: 1.45,
-                        color: 'var(--text-main)',
-                      }}
-                    >
-                      {routine.adjustmentNote}
-                    </p>
+                    <p className="routine-adjusted-banner-note">{routine.adjustmentNote}</p>
                   ) : (
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.86rem',
-                        lineHeight: 1.45,
-                        color: 'var(--text-muted)',
-                      }}
-                    >
+                    <p className="routine-adjusted-banner-note routine-adjusted-banner-note--fallback">
                       Tu preparador físico adaptó los ejercicios para cuidar tu recuperación ante
                       las molestias registradas.
                     </p>
