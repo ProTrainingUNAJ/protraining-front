@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronDown,
-  Loader2,
-  RefreshCw,
-  Search,
-  Sparkles,
-  X,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Search, Sparkles, X } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
@@ -90,6 +81,14 @@ export function RecommendationsPage() {
       active = false;
     };
   }, [refreshKey]);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => {
+      setFeedback(null);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
   const athleteNamesById = useMemo(() => {
     const map = new Map<string, string>();
@@ -253,7 +252,7 @@ export function RecommendationsPage() {
       />
 
       <div className="app-page-body recommendations-page-body">
-        {/* Barra superior de Plantel y Búsqueda (Imagen 1) */}
+        {/* Barra superior de Plantel y Búsqueda (Simétrica a Monitoring) */}
         <section className="recommendations-top-filters" aria-label="Filtros de plantel y búsqueda">
           <div className="recommendations-plantel-group">
             <label
@@ -262,30 +261,23 @@ export function RecommendationsPage() {
             >
               Plantel:
             </label>
-            <div className="recommendations-select-wrap">
-              <select
-                id="recommendations-plantel-select"
-                aria-label="Filtrar por categoría"
-                className="recommendations-select recommendations-plantel-select"
-                value={selectedCategoryFilter}
-                onChange={(e) => {
-                  setSelectedCategoryFilter(e.target.value);
-                  if (e.target.value) setAnalysisCategoryId(e.target.value);
-                }}
-              >
-                <option value="">Todas las categorías</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={16}
-                className="recommendations-select-chevron"
-                aria-hidden="true"
-              />
-            </div>
+            <select
+              id="recommendations-plantel-select"
+              aria-label="Filtrar por categoría"
+              className="recommendations-plantel-select"
+              value={selectedCategoryFilter}
+              onChange={(e) => {
+                setSelectedCategoryFilter(e.target.value);
+                if (e.target.value) setAnalysisCategoryId(e.target.value);
+              }}
+            >
+              <option value="">Todas las categorías</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="recommendations-search-box">
@@ -294,48 +286,47 @@ export function RecommendationsPage() {
               type="search"
               aria-label="Buscar por atleta o motivo"
               className="recommendations-search-input"
-              placeholder="Buscar atleta por nombre o posición…"
+              placeholder="Buscar atleta por nombre o posición..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </section>
 
-        {/* Bloque de Generación / Análisis de Plantel (Imagen 1) */}
-        <section
-          className="recommendations-engine-bar"
-          aria-label="Generar recomendaciones por categoría"
-        >
-          <div className="recommendations-engine-header-row">
-            <div className="recommendations-engine-title-group">
-              <Sparkles size={18} className="recommendations-engine-sparkle" aria-hidden="true" />
-              <h3 className="recommendations-engine-title">
-                Analizar plantel y generar propuestas
-              </h3>
-            </div>
+        {/* Bloque de Generación / Análisis de Plantel (Simétrico a la barra de Semáforo) */}
+        <div className="recommendations-engine-section">
+          <section
+            className="recommendations-engine-bar"
+            aria-label="Generar recomendaciones por categoría"
+          >
+            <Sparkles size={20} className="recommendations-engine-sparkle" aria-hidden="true" />
+            <strong className="recommendations-engine-title">
+              Analizar plantel y generar propuestas
+            </strong>
 
             <button
               type="button"
-              className="btn btn-secondary recommendations-engine-btn"
+              className="recommendations-engine-btn"
               onClick={() => void handleRunCategoryEngine()}
               disabled={analyzing || (!targetCategoryForAnalysis && categories.length > 0)}
               aria-label="Analizar categoría"
             >
               {analyzing ? (
-                <Loader2 size={14} className="plan-spin" aria-hidden="true" />
+                <Loader2 size={13} className="plan-spin" aria-hidden="true" />
               ) : (
-                <RefreshCw size={14} aria-hidden="true" />
+                <RefreshCw size={13} aria-hidden="true" />
               )}
               <span>{analyzing ? 'Analizando…' : 'Actualizar'}</span>
             </button>
-          </div>
+          </section>
 
           <p className="recommendations-engine-desc">
             Compara tests físicos frente al promedio grupal y tendencias semanales. Todas las
             propuestas nacen pendientes hasta tu aprobación.
           </p>
-        </section>
+        </div>
 
+        {/* Notificación de feedback flotante: no altera ni desplaza la estructura */}
         {feedback && (
           <div
             className={`recommendations-feedback ${feedback.tone}`}
