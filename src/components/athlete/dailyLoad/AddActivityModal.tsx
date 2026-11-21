@@ -299,15 +299,34 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({
           {/* Vista previa de Foster Load (UA) */}
           {calculatedUa > 0 && (
             <div className="dl-foster-preview" aria-label="Carga de la sesión">
-              <div className="dl-foster-preview-left">
-                <Zap size={16} />
-                <span>Carga de la sesión:</span>
+              <div className="dl-foster-preview-top">
+                <div className="dl-foster-preview-left">
+                  <Zap size={16} />
+                  <span>Carga de la sesión:</span>
+                </div>
+                <div className="dl-foster-preview-right">
+                  <strong className="dl-foster-val">{calculatedUa} UA</strong>
+                  <span className="dl-foster-sub">
+                    ({minutes} min × RPE {rpe})
+                  </span>
+                </div>
               </div>
-              <div className="dl-foster-preview-right">
-                <strong className="dl-foster-val">{calculatedUa} UA</strong>
-                <span className="dl-foster-sub">
-                  ({minutes} min × RPE {rpe})
-                </span>
+
+              {/* Barra multicolor de carga de la sesión (Imagen 2) */}
+              <div
+                className="dl-progress-bar-track"
+                role="progressbar"
+                aria-valuenow={calculatedUa}
+                aria-valuemin={0}
+                aria-valuemax={600}
+                title={`Carga de la sesión: ${calculatedUa} UA`}
+              >
+                <div
+                  className="dl-progress-bar-fill"
+                  style={{
+                    width: `${Math.max(6, Math.min(100, Math.round((calculatedUa / 600) * 100)))}%`,
+                  }}
+                />
               </div>
             </div>
           )}

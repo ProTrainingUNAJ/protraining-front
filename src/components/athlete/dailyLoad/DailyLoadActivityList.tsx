@@ -71,59 +71,82 @@ export const DailyLoadActivityList: React.FC<DailyLoadActivityListProps> = ({
     <section className="dl-activity-section" aria-label="Actividades de hoy">
       {/* Resumen ejecutivo de la jornada */}
       <div className="dl-today-summary-banner">
-        <div className="dl-today-summary-left">
-          <div className="dl-today-metric">
-            <span className="dl-today-metric-val">{todayLoad?.totalMinutes ?? 0} min</span>
-            <span className="dl-today-metric-lbl">Total minutos de hoy</span>
+        <div className="dl-today-summary-top">
+          <div className="dl-today-summary-left">
+            <div className="dl-today-metric">
+              <span className="dl-today-metric-val">{todayLoad?.totalMinutes ?? 0} min</span>
+              <span className="dl-today-metric-lbl">Total minutos de hoy</span>
+            </div>
+            <div className="dl-today-divider" aria-hidden="true" />
+            <div className="dl-today-metric">
+              <span className="dl-today-metric-val dl-today-metric-val--primary">
+                {todayLoad?.totalLoad ?? 0} UA
+              </span>
+              <span className="dl-today-metric-lbl">Carga diaria acumulada</span>
+            </div>
           </div>
-          <div className="dl-today-divider" aria-hidden="true" />
-          <div className="dl-today-metric">
-            <span className="dl-today-metric-val dl-today-metric-val--primary">
-              {todayLoad?.totalLoad ?? 0} UA
-            </span>
-            <span className="dl-today-metric-lbl">Carga diaria acumulada</span>
+
+          <div className="dl-today-summary-actions">
+            <button
+              type="button"
+              onClick={onPinWidget}
+              className={`dl-home-pin-btn ${isWidgetPinned ? 'dl-home-pin-btn--pinned' : ''}`}
+              title={
+                isWidgetPinned
+                  ? 'El widget está activo en tu Inicio'
+                  : 'Fijar el widget de Carga del Día en tu pantalla de Inicio'
+              }
+              aria-label={isWidgetPinned ? 'En tu Inicio' : 'Fijar en mi inicio'}
+            >
+              {isWidgetPinned ? (
+                <>
+                  <CheckCircle2 size={15} />
+                  <span>En tu Inicio</span>
+                </>
+              ) : (
+                <>
+                  <LayoutGrid size={15} />
+                  <span>Fijar en mi inicio</span>
+                </>
+              )}
+            </button>
+            {pinWarning && (
+              <p className="dl-pin-warning-msg" role="alert">
+                {pinWarning}
+              </p>
+            )}
+
+            <button
+              type="button"
+              className="dl-btn-add-main"
+              onClick={onAddActivity}
+              aria-label="Agregar actividad"
+            >
+              <Plus size={18} />
+              <span>+ Agregar actividad</span>
+            </button>
           </div>
         </div>
 
-        <div className="dl-today-summary-actions">
-          <button
-            type="button"
-            onClick={onPinWidget}
-            className={`dl-home-pin-btn ${isWidgetPinned ? 'dl-home-pin-btn--pinned' : ''}`}
-            title={
-              isWidgetPinned
-                ? 'El widget está activo en tu Inicio'
-                : 'Fijar el widget de Carga del Día en tu pantalla de Inicio'
-            }
-            aria-label={isWidgetPinned ? 'En tu Inicio' : 'Fijar en mi inicio'}
-          >
-            {isWidgetPinned ? (
-              <>
-                <CheckCircle2 size={15} />
-                <span>En tu Inicio</span>
-              </>
-            ) : (
-              <>
-                <LayoutGrid size={15} />
-                <span>Fijar en mi inicio</span>
-              </>
-            )}
-          </button>
-          {pinWarning && (
-            <p className="dl-pin-warning-msg" role="alert">
-              {pinWarning}
-            </p>
-          )}
-
-          <button
-            type="button"
-            className="dl-btn-add-main"
-            onClick={onAddActivity}
-            aria-label="Agregar actividad"
-          >
-            <Plus size={18} />
-            <span>+ Agregar actividad</span>
-          </button>
+        {/* Barra multicolor de progreso de carga diaria acumulada (Imagen 2 e Imagen 3) */}
+        <div
+          className="dl-progress-bar-track"
+          role="progressbar"
+          aria-valuenow={todayLoad?.totalLoad ?? 0}
+          aria-valuemin={0}
+          aria-valuemax={600}
+          title={`Carga diaria acumulada: ${todayLoad?.totalLoad ?? 0} UA`}
+        >
+          <div
+            className="dl-progress-bar-fill"
+            style={{
+              width: `${
+                todayLoad && todayLoad.totalLoad > 0
+                  ? Math.max(6, Math.min(100, Math.round((todayLoad.totalLoad / 600) * 100)))
+                  : 0
+              }%`,
+            }}
+          />
         </div>
       </div>
 

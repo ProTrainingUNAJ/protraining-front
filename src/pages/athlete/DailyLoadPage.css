@@ -102,12 +102,20 @@
 /* Banner de Resumen Diario */
 .dl-today-summary-banner {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.85rem;
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: 0.875rem;
   padding: 0.85rem 1.25rem;
+  width: 100%;
+}
+
+.dl-today-summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   flex-wrap: wrap;
   gap: 1rem;
 }
@@ -195,15 +203,24 @@
   font-size: 0.85rem;
   font-weight: 700;
   background: var(--brand-navy);
-  color: var(--text-inverse);
+  color: var(--white);
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
 }
 
+.dl-btn-add-main span {
+  color: var(--white);
+}
+
+.dl-btn-add-main svg {
+  color: var(--white);
+  stroke: var(--white);
+}
+
 .dl-btn-add-main:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.15);
   transform: translateY(-1px);
 }
 
@@ -665,8 +682,12 @@
 
 .dl-preset-chip--selected {
   background: var(--brand-navy);
-  color: var(--text-inverse);
+  color: var(--white);
   border-color: var(--brand-navy);
+}
+
+.dl-preset-chip--selected span {
+  color: var(--white);
 }
 
 /* RPE Bar & feedback */
@@ -719,13 +740,20 @@
 /* Vista previa de Foster UA */
 .dl-foster-preview {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.65rem;
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 0.95rem;
   color: var(--brand-navy);
+}
+
+.dl-foster-preview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .dl-foster-preview-left {
@@ -750,6 +778,29 @@
 .dl-foster-sub {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+/* Barra de progreso de carga de la sesión / jornada (Imagen 2) */
+.dl-progress-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  overflow: hidden;
+}
+
+.dl-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--stat-green) 0%,
+    var(--celebration-blue) 40%,
+    var(--celebration-purple) 75%,
+    var(--celebration-amber) 100%
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, var(--celebration-purple) 40%, transparent);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dl-error-box {
@@ -786,11 +837,15 @@
 
 .dl-btn-primary {
   background: var(--brand-navy);
-  color: var(--text-inverse);
+  color: var(--white);
+}
+
+.dl-btn-primary span {
+  color: var(--white);
 }
 
 .dl-btn-primary:hover:not(:disabled) {
-  filter: brightness(1.1);
+  filter: brightness(1.15);
 }
 
 .dl-btn-primary:disabled {
@@ -815,7 +870,7 @@
   right: 2rem;
   z-index: 1100;
   background: var(--brand-navy);
-  color: var(--text-inverse);
+  color: var(--white);
   border-radius: 9999px;
   padding: 0.65rem 1.25rem;
   display: flex;
@@ -825,6 +880,10 @@
   font-weight: 600;
   box-shadow: var(--shadow-lg);
   animation: dlSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dl-feedback-toast span {
+  color: var(--white);
 }
 
 .dl-feedback-toast-icon {
