@@ -652,6 +652,24 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
 
     expect(within(absentMinorCard).getByText('El tutor no tiene teléfono cargado')).toBeTruthy();
     expect(within(absentMinorCard).queryByRole('link')).toBeNull();
-    expect(structureService.getAthletes).toHaveBeenCalledWith({ categoriaId: 'cat-1' });
+    expect(structureService.getAthletes).toHaveBeenCalled();
+  });
+
+  it('muestra selector de organización y categoría con valor por defecto en todas (KAN-649)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/seguimiento?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const orgSelect = (await screen.findByLabelText(
+      /Filtrar por organización/i,
+    )) as HTMLSelectElement;
+    const catSelect = (await screen.findByLabelText(/Filtrar por categoría/i)) as HTMLSelectElement;
+
+    expect(orgSelect.value).toBe('');
+    expect(catSelect.value).toBe('');
+    expect(within(orgSelect).getByText('Todas las organizaciones')).toBeTruthy();
+    expect(within(catSelect).getByText('Todas las categorías')).toBeTruthy();
   });
 });

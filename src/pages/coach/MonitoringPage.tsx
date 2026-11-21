@@ -22,9 +22,11 @@ import {
   getCategoryAttendanceToday,
   setAttendance,
   type CategoryAttendanceSummary,
+  type AthleteAttendanceSummary,
   mapTrafficLightSummaryToItem,
 } from '../../api/seguimientoService';
-import { Athlete, Category } from '../../types/structure';
+import type { AthleteTrafficLightSummary } from '../../api/generated/seguimiento';
+import { Athlete, Category, Organization } from '../../types/structure';
 
 type FilterColor = 'all' | TrafficLightStatus;
 
@@ -76,8 +78,9 @@ export const MonitoringPage: React.FC = () => {
     );
   };
 
-  // Plantel (categorías reales del PF) y semáforo del día cargados por API
-  // (KAN-365/KAN-366). Sin mocks: el archivo trafficLightData.ts fue eliminado.
+  // Organizaciones y Categorías del PF (KAN-649)
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
@@ -141,30 +144,33 @@ export const MonitoringPage: React.FC = () => {
     }>;
   } | null>(null);
 
-  // 1. Cargar las categorías del preparador físico (orgs → categorías)
+  // 1. Cargar las organizaciones y categorías del preparador físico (KAN-649)
   useEffect(() => {
     let active = true;
 
     structureService
       .getOrganizations()
-      .catch(() => [])
-      .then(async (organizations) => {
+      .catch(() => [] as Organization[])
+      .then(async (orgs) => {
+        if (!active) return;
+        setOrganizations(orgs);
+
         const categoriesByOrg = await Promise.all(
-          organizations.map((organization) =>
-            structureService.getCategories(organization.id).catch(() => [] as Category[]),
-          ),
+          orgs.map((org) => structureService.getCategories(org.id).catch(() => [] as Category[])),
         );
         if (!active) return;
 
         const allCategories = categoriesByOrg.flat();
         setCategories(allCategories);
-        setSelectedCategoryId((current) => current || allCategories[0]?.id || '');
+        // Por defecto: "Todas las organizaciones" ('') y "Todas las categorías" ('')
+        setSelectedOrganizationId('');
+        setSelectedCategoryId('');
         setCategoriesLoading(false);
       })
       .catch((err: unknown) => {
         if (!active) return;
         setCategoriesError(
-          err instanceof Error ? err.message : 'No se pudieron cargar las categorías.',
+          err instanceof Error ? err.message : 'No se pudieron cargar las organizaciones.',
         );
         setCategoriesLoading(false);
       });
@@ -174,17 +180,30 @@ export const MonitoringPage: React.FC = () => {
     };
   }, []);
 
-  // Modo degradado KAN-366: estructura caída → nombre de categoría vacío.
-  const selectedCategoryName = useMemo(
-    () =>
-      categories.find((category) => category.id === selectedCategoryId)?.name?.trim() ||
-      CATEGORY_NAME_FALLBACK,
-    [categories, selectedCategoryId],
-  );
+  // Categorías visibles según la organización seleccionada
+  const visibleCategories = useMemo(() => {
+    if (!selectedOrganizationId) return categories;
+    return categories.filter((category) => category.organizationId === selectedOrganizationId);
+  }, [categories, selectedOrganizationId]);
 
-  // 2. Cargar el semáforo del día de la categoría seleccionada (sin setState síncrono en el effect)
+  // Ids de categorías sobre los cuales consultar datos (todas las visibles si no hay una categoría puntual)
+  const targetCategoryIds = useMemo(() => {
+    if (selectedCategoryId) return [selectedCategoryId];
+    return visibleCategories.map((c) => c.id);
+  }, [selectedCategoryId, visibleCategories]);
+
+  // Modo degradado KAN-366: estructura caída → nombre de categoría vacío.
+  const selectedCategoryName = useMemo(() => {
+    if (!selectedCategoryId) return 'Todos los planteles';
+    return (
+      categories.find((category) => category.id === selectedCategoryId)?.name?.trim() ||
+      CATEGORY_NAME_FALLBACK
+    );
+  }, [categories, selectedCategoryId]);
+
+  // 2. Cargar el semáforo del día de las categorías seleccionadas
   const [athletesResult, setAthletesResult] = useState<{
-    categoryId: string;
+    filterKey: string;
     athletes: AthleteTrafficLightItem[];
     error: string | null;
   } | null>(null);
@@ -195,7 +214,7 @@ export const MonitoringPage: React.FC = () => {
 
   // Asistencia automática del día (KAN-445)
   const [attendanceResult, setAttendanceResult] = useState<{
-    categoryId: string;
+    filterKey: string;
     summary: CategoryAttendanceSummary | null;
     error: string | null;
   } | null>(null);
@@ -204,13 +223,23 @@ export const MonitoringPage: React.FC = () => {
   >({});
   const [attendanceFilter, setAttendanceFilter] = useState<'all' | 'present' | 'absent'>('all');
 
+  const currentFilterKey = `${selectedOrganizationId}:${selectedCategoryId}`;
+
+  const athletesLoading =
+    categoriesLoading || athletesResult === null || athletesResult.filterKey !== currentFilterKey;
+
   const attendanceLoading =
-    selectedCategoryId !== '' &&
-    (attendanceResult === null || attendanceResult.categoryId !== selectedCategoryId);
+    categoriesLoading ||
+    attendanceResult === null ||
+    attendanceResult.filterKey !== currentFilterKey;
+
+  const [refreshTrafficLightKey, setRefreshTrafficLightKey] = useState(0);
+  const [refreshAttendanceKey, setRefreshAttendanceKey] = useState(0);
 
   useEffect(() => {
-    if (!selectedCategoryId) return;
     let active = true;
+    if (categoriesLoading) return;
+    const key = `${selectedOrganizationId}:${selectedCategoryId}`;
 
     const getPhotoUrl = (id: string, updatedAt?: string | null) =>
       typeof structureService?.getAthletePhotoUrl === 'function'
@@ -220,23 +249,42 @@ export const MonitoringPage: React.FC = () => {
     const athletesPromise =
       typeof structureService?.getAthletes === 'function'
         ? structureService
-            .getAthletes({ categoriaId: selectedCategoryId })
+            .getAthletes(selectedCategoryId ? { categoriaId: selectedCategoryId } : undefined)
             .catch(() => [] as Athlete[])
         : Promise.resolve([] as Athlete[]);
 
-    Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
-      .then(async ([summaries, fetchedAthletes]) => {
+    const trafficLightPromises = Promise.all(
+      targetCategoryIds.map((catId) =>
+        getCategoryTrafficLightToday(catId).catch(() => [] as AthleteTrafficLightSummary[]),
+      ),
+    );
+
+    Promise.all([trafficLightPromises, athletesPromise])
+      .then(async ([summariesByCat, fetchedAthletes]) => {
         if (!active) return;
         setCategoryAthletes(fetchedAthletes);
         const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
 
-        const mapped = summaries.map((summary) => {
+        const allSummaries = summariesByCat.flat();
+        const seen = new Set<string>();
+        const uniqueSummaries: AthleteTrafficLightSummary[] = [];
+        for (const s of allSummaries) {
+          const id = s.athleteId?.toLowerCase();
+          if (id && !seen.has(id)) {
+            seen.add(id);
+            uniqueSummaries.push(s);
+          }
+        }
+
+        const mapped = uniqueSummaries.map((summary) => {
           const summaryId = summary.athleteId?.toLowerCase();
           const detail = athleteMap.get(summaryId);
           const photoUrl =
             detail && detail.hasPhoto ? getPhotoUrl(detail.id, detail.photoUpdatedAt) : undefined;
 
-          const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
+          const catName = detail?.categoryNames?.[0] || selectedCategoryName;
+
+          const item = mapTrafficLightSummaryToItem(summary, catName);
           return {
             ...item,
             position: item.position,
@@ -245,8 +293,6 @@ export const MonitoringPage: React.FC = () => {
           };
         });
 
-        // Para atletas con dolor/observación hoy, chequear conflictos en segundo plano
-        // para habilitar el botón "Ver ajuste sugerido" (#157 · KAN-452)
         const athletesWithConflicts = await Promise.all(
           mapped.map(async (athlete) => {
             if (athlete.pains && athlete.pains.length > 0) {
@@ -263,7 +309,7 @@ export const MonitoringPage: React.FC = () => {
 
         if (!active) return;
         setAthletesResult({
-          categoryId: selectedCategoryId,
+          filterKey: key,
           athletes: athletesWithConflicts,
           error: null,
         });
@@ -271,7 +317,7 @@ export const MonitoringPage: React.FC = () => {
       .catch((err: unknown) => {
         if (!active) return;
         setAthletesResult({
-          categoryId: selectedCategoryId,
+          filterKey: key,
           athletes: [],
           error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
         });
@@ -280,129 +326,99 @@ export const MonitoringPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [selectedCategoryId, selectedCategoryName]);
+  }, [
+    categoriesLoading,
+    selectedOrganizationId,
+    selectedCategoryId,
+    targetCategoryIds,
+    categories,
+    selectedCategoryName,
+    refreshTrafficLightKey,
+  ]);
 
-  const refreshTrafficLight = () => {
-    if (!selectedCategoryId) return;
-    const getPhotoUrl = (id: string, updatedAt?: string | null) =>
-      typeof structureService?.getAthletePhotoUrl === 'function'
-        ? structureService.getAthletePhotoUrl(id, updatedAt)
-        : `/api/estructura/api/v1/athletes/${id}/photo${updatedAt ? `?v=${encodeURIComponent(updatedAt)}` : ''}`;
+  useEffect(() => {
+    let active = true;
+    if (categoriesLoading) return;
+    const key = `${selectedOrganizationId}:${selectedCategoryId}`;
 
     const athletesPromise =
       typeof structureService?.getAthletes === 'function'
         ? structureService
-            .getAthletes({ categoriaId: selectedCategoryId })
+            .getAthletes(selectedCategoryId ? { categoriaId: selectedCategoryId } : undefined)
             .catch(() => [] as Athlete[])
         : Promise.resolve([] as Athlete[]);
 
-    Promise.all([getCategoryTrafficLightToday(selectedCategoryId), athletesPromise])
-      .then(async ([summaries, fetchedAthletes]) => {
-        setCategoryAthletes(fetchedAthletes);
-        const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
+    const attendancePromises = Promise.all(
+      targetCategoryIds.map((catId) => getCategoryAttendanceToday(catId).catch(() => null)),
+    );
 
-        const mapped = summaries.map((summary) => {
-          const summaryId = summary.athleteId?.toLowerCase();
-          const detail = athleteMap.get(summaryId);
-          const photoUrl =
-            detail && detail.hasPhoto ? getPhotoUrl(detail.id, detail.photoUpdatedAt) : undefined;
+    Promise.all([attendancePromises, athletesPromise])
+      .then(([summaries, fetchedAthletes]) => {
+        if (!active) return;
+        if (fetchedAthletes.length > 0) setCategoryAthletes(fetchedAthletes);
 
-          const item = mapTrafficLightSummaryToItem(summary, selectedCategoryName);
-          return {
-            ...item,
-            position: item.position,
-            avatarUrl: photoUrl,
-            ...resolveAthleteContactFields(detail),
-          };
+        const athleteMap = new Map<string, AthleteAttendanceSummary>();
+        for (const s of summaries) {
+          if (!s || !s.athletes) continue;
+          for (const ath of s.athletes) {
+            if (!ath || !ath.athleteId) continue;
+            const existing = athleteMap.get(ath.athleteId);
+            if (!existing || (ath.totalLoad ?? 0) > (existing.totalLoad ?? 0)) {
+              athleteMap.set(ath.athleteId, ath);
+            }
+          }
+        }
+
+        const combinedAthletes = Array.from(athleteMap.values());
+        let presentCount = 0;
+        combinedAthletes.forEach((a) => {
+          if (a.status === 'Present') presentCount++;
         });
 
-        const athletesWithConflicts = await Promise.all(
-          mapped.map(async (athlete) => {
-            if (athlete.pains && athlete.pains.length > 0) {
-              try {
-                const conf = await dayAdjustmentsService.getAthleteDayConflicts(athlete.id);
-                return { ...athlete, hasDayConflict: Boolean(conf.hasConflicts) };
-              } catch {
-                return athlete;
-              }
-            }
-            return athlete;
-          }),
-        );
+        const combinedSummary: CategoryAttendanceSummary = {
+          categoryId: selectedCategoryId || 'all',
+          date: new Date().toISOString().slice(0, 10),
+          totalRoster: combinedAthletes.length,
+          presentCount,
+          attendancePercentage:
+            combinedAthletes.length > 0 ? (presentCount / combinedAthletes.length) * 100 : 0,
+          athletes: combinedAthletes,
+        };
 
-        setAthletesResult({
-          categoryId: selectedCategoryId,
-          athletes: athletesWithConflicts,
+        setAttendanceResult({
+          filterKey: key,
+          summary: combinedSummary,
           error: null,
         });
       })
       .catch((err: unknown) => {
-        setAthletesResult({
-          categoryId: selectedCategoryId,
-          athletes: [],
-          error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
+        if (!active) return;
+        setAttendanceResult({
+          filterKey: key,
+          summary: null,
+          error: err instanceof Error ? err.message : 'No se pudo consultar la asistencia.',
         });
       });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    categoriesLoading,
+    selectedOrganizationId,
+    selectedCategoryId,
+    targetCategoryIds,
+    selectedCategoryName,
+    refreshAttendanceKey,
+  ]);
+
+  const refreshTrafficLight = () => {
+    setRefreshTrafficLightKey((k) => k + 1);
   };
 
   const refreshAttendance = () => {
-    if (!selectedCategoryId) return;
-    Promise.all([
-      getCategoryAttendanceToday(selectedCategoryId),
-      categoryAthletes.length > 0
-        ? Promise.resolve(categoryAthletes)
-        : structureService
-            .getAthletes({ categoriaId: selectedCategoryId })
-            .catch(() => [] as Athlete[]),
-    ])
-      .then(([summary, athletesData]) => {
-        if (athletesData.length > 0) setCategoryAthletes(athletesData);
-        setAttendanceResult({ categoryId: selectedCategoryId, summary, error: null });
-      })
-      .catch((err: unknown) => {
-        setAttendanceResult({
-          categoryId: selectedCategoryId,
-          summary: null,
-          error: err instanceof Error ? err.message : 'No se pudo consultar la asistencia.',
-        });
-      });
+    setRefreshAttendanceKey((k) => k + 1);
   };
-
-  // Carga de asistencia del día cuando cambia la categoría (disponible para Semáforo y Asistencia)
-  useEffect(() => {
-    if (!selectedCategoryId) return;
-    let active = true;
-
-    const athletesPromise =
-      typeof structureService?.getAthletes === 'function'
-        ? structureService
-            .getAthletes({ categoriaId: selectedCategoryId })
-            .catch(() => [] as Athlete[])
-        : Promise.resolve([] as Athlete[]);
-
-    const attendancePromise =
-      typeof getCategoryAttendanceToday === 'function'
-        ? getCategoryAttendanceToday(selectedCategoryId).catch(() => null)
-        : Promise.resolve(null);
-
-    Promise.all([attendancePromise, athletesPromise])
-      .then(([summary, athletesData]) => {
-        if (!active) return;
-        if (athletesData.length > 0) setCategoryAthletes(athletesData);
-        setAttendanceResult({ categoryId: selectedCategoryId, summary, error: null });
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        setAttendanceResult({
-          categoryId: selectedCategoryId,
-          summary: null,
-          error: err instanceof Error ? err.message : 'No se pudo consultar la asistencia.',
-        });
-      });
-    return () => {
-      active = false;
-    };
-  }, [selectedCategoryId]);
 
   const handleToggleAttendance = async (athleteId: string, nextPresent: boolean) => {
     const nextStatus = nextPresent ? 'Present' : 'NoRecord';
@@ -428,10 +444,8 @@ export const MonitoringPage: React.FC = () => {
     }
   };
 
-  const athletesLoading =
-    selectedCategoryId !== '' &&
-    (athletesResult === null || athletesResult.categoryId !== selectedCategoryId);
-  const currentResult = athletesResult?.categoryId === selectedCategoryId ? athletesResult : null;
+  const currentResult =
+    athletesResult && athletesResult.filterKey === currentFilterKey ? athletesResult : null;
   const athletes = useMemo(
     () =>
       (currentResult?.athletes ?? [])
@@ -594,35 +608,86 @@ export const MonitoringPage: React.FC = () => {
           }}
         >
           {/* Division / Category Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <label
-              htmlFor="category-select"
-              style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-            >
-              Plantel:
-            </label>
-            <select
-              id="category-select"
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
-              disabled={categoriesLoading || categories.length === 0}
-              style={{
-                padding: '0.4rem 0.85rem',
-                borderRadius: '10px',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-subtle)',
-                color: 'var(--text-main)',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-              }}
-            >
-              {categories.length === 0 && <option value="">Sin plantel disponible</option>}
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name?.trim() || CATEGORY_NAME_FALLBACK}
-                </option>
-              ))}
-            </select>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            {/* Organización */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <label
+                htmlFor="organization-select"
+                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
+              >
+                Organización:
+              </label>
+              <select
+                id="organization-select"
+                aria-label="Filtrar por organización"
+                value={selectedOrganizationId}
+                onChange={(e) => {
+                  const newOrgId = e.target.value;
+                  setSelectedOrganizationId(newOrgId);
+                  if (
+                    newOrgId &&
+                    selectedCategoryId &&
+                    !categories.some(
+                      (c) => c.id === selectedCategoryId && c.organizationId === newOrgId,
+                    )
+                  ) {
+                    setSelectedCategoryId('');
+                  }
+                }}
+                disabled={categoriesLoading}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-main)',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="">Todas las organizaciones</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Categoría */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <label
+                htmlFor="category-select"
+                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
+              >
+                Categoría:
+              </label>
+              <select
+                id="category-select"
+                aria-label="Filtrar por categoría"
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                disabled={categoriesLoading}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-main)',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="">Todas las categorías</option>
+                {visibleCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name?.trim() || CATEGORY_NAME_FALLBACK}
+                  </option>
+                ))}
+              </select>
+            </div>
             {categoriesError && (
               <span style={{ fontSize: '0.78rem', color: 'var(--danger-text)' }}>
                 {categoriesError}

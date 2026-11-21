@@ -14,7 +14,7 @@ import {
 } from '../../api/recommendations';
 import { capitalizeFirst } from '../../utils/recommendationFormat';
 import { structureService } from '../../api/structureService';
-import type { Athlete, Category } from '../../types/structure';
+import type { Athlete, Category, Organization } from '../../types/structure';
 
 type FeedbackState = {
   tone: 'success' | 'info' | 'error';
@@ -29,6 +29,8 @@ const STATUS_TABS: Array<{ value: RecommendationStatusFilter; label: string }> =
 
 export function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<AthleteRecommendation[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
 
@@ -55,17 +57,23 @@ export function RecommendationsPage() {
 
     Promise.all([
       recommendationsService.listRecommendations(),
+      typeof structureService?.getOrganizations === 'function'
+        ? structureService.getOrganizations().catch(() => [] as Organization[])
+        : Promise.resolve([] as Organization[]),
       structureService.getCategories().catch(() => [] as Category[]),
       structureService.getAthletes().catch(() => [] as Athlete[]),
     ])
-      .then(([recsData, catsData, athletesData]) => {
+      .then(([recsData, orgsData, catsData, athletesData]) => {
         if (!active) return;
         setRecommendations(recsData);
+        setOrganizations(orgsData);
         setCategories(catsData);
         setAthletes(athletesData);
+        // Por defecto: "Todas las organizaciones" ('') y "Todas las categorías" ('')
+        setSelectedOrganizationId('');
+        setSelectedCategoryFilter('');
         const defaultCatId = catsData[0]?.id || '';
-        setAnalysisCategoryId((prev) => prev || defaultCatId);
-        setSelectedCategoryFilter((prev) => prev || defaultCatId);
+        setAnalysisCategoryId(defaultCatId);
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -89,6 +97,21 @@ export function RecommendationsPage() {
     }, 6000);
     return () => clearTimeout(timer);
   }, [feedback]);
+
+  const visibleCategories = useMemo(() => {
+    if (!selectedOrganizationId) return categories;
+    return categories.filter((cat) => cat.organizationId === selectedOrganizationId);
+  }, [categories, selectedOrganizationId]);
+
+  const categoryOrgMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const cat of categories) {
+      if (cat.organizationId) {
+        map.set(cat.id, cat.organizationId);
+      }
+    }
+    return map;
+  }, [categories]);
 
   const athleteNamesById = useMemo(() => {
     const map = new Map<string, string>();
@@ -114,19 +137,27 @@ export function RecommendationsPage() {
     };
 
     for (const rec of recommendations) {
+      if (selectedOrganizationId) {
+        const orgId = rec.categoryId ? categoryOrgMap.get(rec.categoryId) : undefined;
+        if (orgId !== selectedOrganizationId) continue;
+      }
       if (selectedCategoryFilter && rec.categoryId !== selectedCategoryFilter) continue;
       if (rec.status in counts) {
         counts[rec.status] += 1;
       }
     }
     return counts;
-  }, [recommendations, selectedCategoryFilter]);
+  }, [recommendations, selectedOrganizationId, selectedCategoryFilter, categoryOrgMap]);
 
   const filteredRecommendations = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return recommendations.filter((rec) => {
       if (rec.status !== statusTab) return false;
+      if (selectedOrganizationId) {
+        const orgId = rec.categoryId ? categoryOrgMap.get(rec.categoryId) : undefined;
+        if (orgId !== selectedOrganizationId) return false;
+      }
       if (selectedCategoryFilter && rec.categoryId !== selectedCategoryFilter) return false;
 
       if (normalizedSearch) {
@@ -139,7 +170,15 @@ export function RecommendationsPage() {
 
       return true;
     });
-  }, [recommendations, statusTab, selectedCategoryFilter, searchTerm, getAthleteDisplayName]);
+  }, [
+    recommendations,
+    statusTab,
+    selectedOrganizationId,
+    selectedCategoryFilter,
+    searchTerm,
+    getAthleteDisplayName,
+    categoryOrgMap,
+  ]);
 
   const groupedByAthlete = useMemo(() => {
     const groups = new Map<string, AthleteRecommendation[]>();
@@ -252,32 +291,74 @@ export function RecommendationsPage() {
       />
 
       <div className="app-page-body recommendations-page-body">
-        {/* Barra superior de Plantel y Búsqueda (Simétrica a Monitoring) */}
-        <section className="recommendations-top-filters" aria-label="Filtros de plantel y búsqueda">
-          <div className="recommendations-plantel-group">
-            <label
-              htmlFor="recommendations-plantel-select"
-              className="recommendations-plantel-label"
-            >
-              Plantel:
-            </label>
-            <select
-              id="recommendations-plantel-select"
-              aria-label="Filtrar por categoría"
-              className="recommendations-plantel-select"
-              value={selectedCategoryFilter}
-              onChange={(e) => {
-                setSelectedCategoryFilter(e.target.value);
-                if (e.target.value) setAnalysisCategoryId(e.target.value);
-              }}
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+        {/* Barra superior de Organización, Categoría y Búsqueda (Simétrica a Monitoring) */}
+        <section
+          className="recommendations-top-filters"
+          aria-label="Filtros de organización, categoría y búsqueda"
+        >
+          <div
+            className="recommendations-plantel-group"
+            style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}
+          >
+            {/* Organización */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <label htmlFor="recommendations-org-select" className="recommendations-plantel-label">
+                Organización:
+              </label>
+              <select
+                id="recommendations-org-select"
+                aria-label="Filtrar por organización"
+                className="recommendations-plantel-select"
+                value={selectedOrganizationId}
+                onChange={(e) => {
+                  const newOrgId = e.target.value;
+                  setSelectedOrganizationId(newOrgId);
+                  if (
+                    newOrgId &&
+                    selectedCategoryFilter &&
+                    !categories.some(
+                      (cat) => cat.id === selectedCategoryFilter && cat.organizationId === newOrgId,
+                    )
+                  ) {
+                    setSelectedCategoryFilter('');
+                  }
+                }}
+              >
+                <option value="">Todas las organizaciones</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Categoría */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <label
+                htmlFor="recommendations-plantel-select"
+                className="recommendations-plantel-label"
+              >
+                Categoría:
+              </label>
+              <select
+                id="recommendations-plantel-select"
+                aria-label="Filtrar por categoría"
+                className="recommendations-plantel-select"
+                value={selectedCategoryFilter}
+                onChange={(e) => {
+                  setSelectedCategoryFilter(e.target.value);
+                  if (e.target.value) setAnalysisCategoryId(e.target.value);
+                }}
+              >
+                <option value="">Todas las categorías</option>
+                {visibleCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="recommendations-search-box">
