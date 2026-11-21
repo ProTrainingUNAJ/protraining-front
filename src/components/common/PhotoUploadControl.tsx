@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Camera, Trash2, Loader2 } from 'lucide-react';
 import { ProfileAvatar, AvatarSize, AvatarShape } from './ProfileAvatar';
-import { compressAndConvertToWebp } from '../../utils/imageCompressor';
+import { compressAndConvertToWebp, MAX_INPUT_FILE_SIZE_BYTES } from '../../utils/imageCompressor';
 
 export interface PhotoUploadControlProps {
   currentPhotoUrl?: string | null;
@@ -77,7 +77,7 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_INPUT_FILE_SIZE_BYTES) {
       setErrorMessage('El archivo no puede superar los 5 MB.');
       return;
     }

@@ -83,6 +83,7 @@ export const InvitationLandingPage: React.FC = () => {
   const [guardianPhone, setGuardianPhone] = useState('');
   const [allowsPhysicalTraining, setAllowsPhysicalTraining] = useState(false);
   const [allowsHabitsRecommendations, setAllowsHabitsRecommendations] = useState(false);
+  const [allowsProfilePhoto, setAllowsProfilePhoto] = useState(false);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -313,6 +314,7 @@ export const InvitationLandingPage: React.FC = () => {
               guardianPhone: guardianPhone.trim() || undefined,
               allowsPhysicalTraining,
               allowsHabitsRecommendations,
+              allowsProfilePhoto,
             }
           : {}),
       };
@@ -624,6 +626,19 @@ export const InvitationLandingPage: React.FC = () => {
                   <span>
                     Autorizo a recibir recomendaciones sobre hábitos saludables, descanso y
                     nutrición (opcional).
+                  </span>
+                </label>
+
+                <label className="invitation-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={allowsProfilePhoto}
+                    onChange={(e) => setAllowsProfilePhoto(e.target.checked)}
+                    disabled={isSubmitting}
+                  />
+                  <span>
+                    Autorizo la publicación de la foto de perfil del menor en la plataforma
+                    (opcional).
                   </span>
                 </label>
               </div>

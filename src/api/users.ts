@@ -74,6 +74,15 @@ export const usersService = {
   },
 
   /**
+   * Obtiene la foto del usuario con token Bearer como Blob URL (KAN-512).
+   */
+  async getUserPhotoBlob(userId?: string, photoUpdatedAt?: string | null): Promise<string> {
+    const url = this.getMyPhotoUrl(userId, photoUpdatedAt);
+    const { data } = await httpClient.get(url, { responseType: 'blob' });
+    return URL.createObjectURL(data);
+  },
+
+  /**
    * Devuelve la URL de la foto del preparador físico para el atleta (WebP).
    */
   getPfPhotoUrl(pfId?: string, photoUpdatedAt?: string | null): string {

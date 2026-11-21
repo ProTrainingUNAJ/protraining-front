@@ -583,6 +583,15 @@ export const structureService = {
   },
 
   /**
+   * Obtiene la foto del atleta con token Bearer como Blob URL (KAN-512).
+   */
+  async getAthletePhotoBlob(athleteId: string, photoUpdatedAt?: string | null): Promise<string> {
+    const url = this.getAthletePhotoUrl(athleteId, photoUpdatedAt);
+    const { data } = await httpClient.get(url, { responseType: 'blob' });
+    return URL.createObjectURL(data);
+  },
+
+  /**
    * Sube una foto de perfil en formato WebP para el atleta (KAN-512).
    */
   async uploadAthletePhoto(athleteId: string, file: File): Promise<void> {
@@ -612,6 +621,18 @@ export const structureService = {
   getOrganizationPhotoUrl(organizationId: string, photoUpdatedAt?: string | null): string {
     const base = `/api/estructura/api/v1/organizations/${organizationId}/photo`;
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Obtiene el logo de la organización con token Bearer como Blob URL (KAN-512).
+   */
+  async getOrganizationPhotoBlob(
+    organizationId: string,
+    photoUpdatedAt?: string | null,
+  ): Promise<string> {
+    const url = this.getOrganizationPhotoUrl(organizationId, photoUpdatedAt);
+    const { data } = await httpClient.get(url, { responseType: 'blob' });
+    return URL.createObjectURL(data);
   },
 
   /**
