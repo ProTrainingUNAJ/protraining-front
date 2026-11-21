@@ -48,15 +48,8 @@ export interface SessionBlockMeta {
   exercises?: Record<string, ExerciseMetadataItem>;
 }
 
-export function packCoachNotes(cleanNotes: string, meta?: SessionBlockMeta): string {
-  const trimmed = cleanNotes.trim();
-  if (!meta || !meta.exercises || Object.keys(meta.exercises).length === 0) {
-    return trimmed;
-  }
-  const serialized = JSON.stringify(meta);
-  return trimmed
-    ? `${trimmed}\n${META_PREFIX}${serialized}${META_SUFFIX}`
-    : `${META_PREFIX}${serialized}${META_SUFFIX}`;
+export function packCoachNotes(cleanNotes: string): string {
+  return cleanNotes.trim();
 }
 
 export function unpackCoachNotes(rawNotes?: string | null): {
@@ -309,39 +302,11 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
       id: week.id,
       weekNumber: week.weekNumber,
       sessions: week.sessions.map((session) => {
-        const metaPayload: SessionBlockMeta = { exercises: {} };
+        const cleanSessionNotes = unpackCoachNotes(session.coachNotes).cleanNotes.trim();
         const sessionExercises: (DraftExercise | BlockExercise)[] =
           session.blocks && session.blocks.length > 0
             ? session.blocks.flatMap((b) => b.exercises)
             : session.exercises;
-
-        sessionExercises.forEach((ex) => {
-          const isBlockEx = 'weeklyProgression' in ex;
-          const prog = isBlockEx
-            ? (ex as BlockExercise).weeklyProgression?.[week.weekNumber]
-            : null;
-          const exIntensity = prog?.intensityType ?? ex.intensityType;
-          const exRpe = prog?.targetRpe ?? ('targetRpe' in ex ? ex.targetRpe : null);
-          const exRir = prog?.targetRir ?? ('targetRir' in ex ? ex.targetRir : null);
-          const exRange = prog?.repsRange ?? ('repsRange' in ex ? ex.repsRange : null);
-          const exNotes = prog?.notes ?? ('notes' in ex ? ex.notes : null);
-          const exName = ex.exerciseName;
-
-          if (
-            ex.exerciseId &&
-            (exIntensity || exRpe != null || exRir != null || exRange || exNotes || exName)
-          ) {
-            metaPayload.exercises![ex.exerciseId] = {
-              exerciseName: exName,
-              intensityType: exIntensity,
-              targetRpe: exRpe,
-              targetRir: exRir,
-              repsRange: exRange,
-              notes: exNotes,
-            };
-          }
-        });
-        const packedNotes = packCoachNotes(session.coachNotes, metaPayload);
 
         const formattedStartTime = session.startTime
           ? session.startTime.length === 5
@@ -438,7 +403,7 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
           name: session.name.trim(),
           order: session.order,
           dayOfWeek: session.dayOfWeek,
-          coachNotes: packedNotes || null,
+          coachNotes: cleanSessionNotes || null,
           startTime: formattedStartTime,
           blocks: mappedBlocks,
           exercises: flatExercises,
@@ -697,34 +662,13 @@ export function toUpdateDraftRequest(
     weeks: draft.weeks.map((week) => ({
       weekNumber: week.weekNumber,
       sessions: week.sessions.map((session) => {
-        const metaPayload: SessionBlockMeta = { exercises: {} };
-        session.exercises.forEach((ex) => {
-          if (
-            ex.exerciseId &&
-            (ex.intensityType ||
-              ex.targetRpe != null ||
-              ex.targetRir != null ||
-              ex.repsRange ||
-              ex.notes ||
-              ex.exerciseName)
-          ) {
-            metaPayload.exercises![ex.exerciseId] = {
-              exerciseName: ex.exerciseName,
-              intensityType: ex.intensityType,
-              targetRpe: ex.targetRpe,
-              targetRir: ex.targetRir,
-              repsRange: ex.repsRange,
-              notes: ex.notes,
-            };
-          }
-        });
-        const packedNotes = packCoachNotes(session.coachNotes, metaPayload);
+        const cleanSessionNotes = unpackCoachNotes(session.coachNotes).cleanNotes.trim();
 
         return {
           name: session.name.trim(),
           order: session.order,
           dayOfWeek: numberToAssistantDay(session.dayOfWeek),
-          coachNotes: packedNotes || null,
+          coachNotes: cleanSessionNotes || null,
           exercises: session.exercises.map((exercise) => ({
             exerciseId: exercise.exerciseId,
             order: exercise.order,
