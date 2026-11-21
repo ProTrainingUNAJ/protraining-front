@@ -4,6 +4,10 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
 import {
+  SegmentedFilterTabs,
+  type SegmentedFilterOption,
+} from '../../components/common/SegmentedFilterTabs';
+import {
   recommendationsService,
   type AthleteRecommendation,
   type RecommendationStatusFilter,
@@ -324,29 +328,17 @@ export function RecommendationsPage() {
         )}
 
         <div className="recommendations-toolbar">
-          <div
-            className="recommendations-tabs"
-            role="tablist"
-            aria-label="Estado de recomendaciones"
-          >
-            {STATUS_TABS.map((tab) => {
-              const isActive = statusTab === tab.value;
-              const statusClass = `status-${tab.value.toLowerCase()}`;
-              return (
-                <button
-                  key={tab.value}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`recommendations-tab ${statusClass}${isActive ? ' active' : ''}`}
-                  onClick={() => setStatusTab(tab.value)}
-                >
-                  <span>{tab.label}</span>
-                  <span className="recommendations-tab-count">{countsByStatus[tab.value]}</span>
-                </button>
-              );
-            })}
-          </div>
+          <SegmentedFilterTabs<RecommendationStatusFilter>
+            ariaLabel="Estado de recomendaciones"
+            value={statusTab}
+            onChange={setStatusTab}
+            options={STATUS_TABS.map((tab) => ({
+              value: tab.value,
+              label: tab.label,
+              count: countsByStatus[tab.value],
+              variant: tab.value.toLowerCase() as SegmentedFilterOption['variant'],
+            }))}
+          />
 
           <div className="recommendations-filters">
             <select
