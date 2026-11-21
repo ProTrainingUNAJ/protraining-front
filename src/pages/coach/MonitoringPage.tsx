@@ -8,6 +8,7 @@ import { AthleteContactActions } from '../../components/monitoring/AthleteContac
 import { AthleteAvatar } from '../../components/monitoring/AthleteAvatar';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
 import { AttendanceLoadModal } from '../../components/attendance/AttendanceLoadModal';
+import { SegmentedFilterTabs } from '../../components/common/SegmentedFilterTabs';
 import { dayAdjustmentsService } from '../../api/dayAdjustments';
 import {
   AthleteTrafficLightItem,
@@ -723,236 +724,43 @@ export const MonitoringPage: React.FC = () => {
               bienestar, dolor muscular y presencia de lesiones.
             </p>
 
-            {/* Segmented Color Filter Chips (KAN-366 Criterion 3) */}
-            <div
-              style={{
-                minHeight: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                flexWrap: 'wrap',
-              }}
-              role="group"
-              aria-label="Filtro de atletas por color del semáforo"
-            >
-              {/* All */}
-              <button
-                type="button"
-                aria-pressed={colorFilter === 'all'}
-                className={`touch-chip ${colorFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setColorFilter('all')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  borderRadius: '9999px',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  border: '1px solid var(--border)',
-                  background: colorFilter === 'all' ? 'var(--primary)' : 'var(--bg-card)',
-                  color: colorFilter === 'all' ? 'var(--on-primary)' : 'var(--text-main)',
-                  cursor: 'pointer',
-                }}
-              >
-                <span>Todos</span>
-                <span
-                  style={{
-                    background:
-                      colorFilter === 'all' ? 'var(--chip-primary-count-bg)' : 'var(--bg-subtle)',
-                    padding: '0.1rem 0.45rem',
-                    borderRadius: '9999px',
-                    fontSize: '0.72rem',
-                  }}
-                >
-                  {counts.all}
-                </span>
-              </button>
-
-              {/* Red - Critical Attention */}
-              <button
-                type="button"
-                aria-pressed={colorFilter === 'red'}
-                className={`touch-chip ${colorFilter === 'red' ? 'active' : ''}`}
-                onClick={() => setColorFilter('red')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  borderRadius: '9999px',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  border: `1px solid ${colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-border)'}`,
-                  background:
-                    colorFilter === 'red' ? 'var(--traffic-red)' : 'var(--traffic-red-bg)',
-                  color: colorFilter === 'red' ? 'var(--white)' : 'var(--traffic-red-text)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: colorFilter === 'red' ? 'var(--white)' : 'var(--traffic-red)',
-                  }}
-                />
-                <span>Atención Crítica</span>
-                <span
-                  style={{
-                    background:
-                      colorFilter === 'red' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
-                    color: colorFilter === 'red' ? 'var(--white)' : 'var(--traffic-red-text)',
-                    padding: '0.1rem 0.45rem',
-                    borderRadius: '9999px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  {counts.red}
-                </span>
-              </button>
-
-              {/* Yellow - Caution */}
-              <button
-                type="button"
-                aria-pressed={colorFilter === 'yellow'}
-                className={`touch-chip ${colorFilter === 'yellow' ? 'active' : ''}`}
-                onClick={() => setColorFilter('yellow')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  borderRadius: '9999px',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  border: `1px solid ${colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-border)'}`,
-                  background:
-                    colorFilter === 'yellow' ? 'var(--traffic-yellow)' : 'var(--traffic-yellow-bg)',
-                  color: colorFilter === 'yellow' ? 'var(--white)' : 'var(--traffic-yellow-text)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: colorFilter === 'yellow' ? 'var(--white)' : 'var(--traffic-yellow)',
-                  }}
-                />
-                <span>Precaución</span>
-                <span
-                  style={{
-                    background:
-                      colorFilter === 'yellow' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
-                    color: colorFilter === 'yellow' ? 'var(--white)' : 'var(--traffic-yellow-text)',
-                    padding: '0.1rem 0.45rem',
-                    borderRadius: '9999px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  {counts.yellow}
-                </span>
-              </button>
-
-              {/* Green - Optimal */}
-              <button
-                type="button"
-                aria-pressed={colorFilter === 'green'}
-                className={`touch-chip ${colorFilter === 'green' ? 'active' : ''}`}
-                onClick={() => setColorFilter('green')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  borderRadius: '9999px',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  border: `1px solid ${colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-border)'}`,
-                  background:
-                    colorFilter === 'green' ? 'var(--traffic-green)' : 'var(--traffic-green-bg)',
-                  color: colorFilter === 'green' ? 'var(--white)' : 'var(--traffic-green-text)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: colorFilter === 'green' ? 'var(--white)' : 'var(--traffic-green)',
-                  }}
-                />
-                <span>Óptimos</span>
-                <span
-                  style={{
-                    background:
-                      colorFilter === 'green' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
-                    color: colorFilter === 'green' ? 'var(--white)' : 'var(--traffic-green-text)',
-                    padding: '0.1rem 0.45rem',
-                    borderRadius: '9999px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  {counts.green}
-                </span>
-              </button>
-
-              {/* Gray - Pending Check-in */}
-              <button
-                type="button"
-                aria-pressed={colorFilter === 'gray'}
-                className={`touch-chip ${colorFilter === 'gray' ? 'active' : ''}`}
-                onClick={() => setColorFilter('gray')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  borderRadius: '9999px',
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  border: `1px solid ${colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-border)'}`,
-                  background:
-                    colorFilter === 'gray' ? 'var(--traffic-gray)' : 'var(--traffic-gray-bg)',
-                  color: colorFilter === 'gray' ? 'var(--white)' : 'var(--traffic-gray-text)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: colorFilter === 'gray' ? 'var(--white)' : 'var(--traffic-gray)',
-                  }}
-                />
-                <span>Sin Check-in</span>
-                <span
-                  style={{
-                    background:
-                      colorFilter === 'gray' ? 'var(--chip-active-count-bg)' : 'var(--bg-card)',
-                    color: colorFilter === 'gray' ? 'var(--white)' : 'var(--traffic-gray-text)',
-                    padding: '0.1rem 0.45rem',
-                    borderRadius: '9999px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  {counts.gray}
-                </span>
-              </button>
-            </div>
+            {/* Barra Segmentada de Filtro de Semáforo (KAN-645) */}
+            <SegmentedFilterTabs<FilterColor>
+              ariaLabel="Filtro de atletas por color del semáforo"
+              value={colorFilter}
+              onChange={setColorFilter}
+              options={[
+                { value: 'all', label: 'Todos', count: counts.all, variant: 'all' },
+                {
+                  value: 'red',
+                  label: 'Atención Crítica',
+                  count: counts.red,
+                  variant: 'red',
+                  hasDot: true,
+                },
+                {
+                  value: 'yellow',
+                  label: 'Precaución',
+                  count: counts.yellow,
+                  variant: 'yellow',
+                  hasDot: true,
+                },
+                {
+                  value: 'green',
+                  label: 'Óptimos',
+                  count: counts.green,
+                  variant: 'green',
+                  hasDot: true,
+                },
+                {
+                  value: 'gray',
+                  label: 'Sin Check-in',
+                  count: counts.gray,
+                  variant: 'gray',
+                  hasDot: true,
+                },
+              ]}
+            />
 
             {/* KAN-366: aviso de modo degradado cuando Estructura no respondió
                 y algún atleta llegó sin nombre (ATHLETE_NAME_FALLBACK). */}
@@ -1172,172 +980,37 @@ export const MonitoringPage: React.FC = () => {
                   El check-in de bienestar no la marca.
                 </p>
 
-                {/* Pills de Filtro Reactivo de Asistencia (guiado por el diseño de semáforo) */}
-                <div
-                  style={{
-                    minHeight: '36px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    flexWrap: 'wrap',
-                  }}
-                  role="group"
-                  aria-label="Filtro de atletas por asistencia"
-                >
-                  {/* Todos */}
-                  <button
-                    type="button"
-                    data-testid="filter-attendance-all"
-                    aria-pressed={attendanceFilter === 'all'}
-                    className={`touch-chip ${attendanceFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setAttendanceFilter('all')}
-                    style={{
-                      padding: '0.35rem 0.85rem',
-                      fontSize: '0.8rem',
-                      borderRadius: '9999px',
-                      fontWeight: 700,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      border: `1px solid ${attendanceFilter === 'all' ? 'var(--primary)' : 'var(--border)'}`,
-                      background: attendanceFilter === 'all' ? 'var(--primary)' : 'var(--bg-card)',
-                      color: attendanceFilter === 'all' ? 'var(--white)' : 'var(--text-main)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <span>Todos</span>
-                    <span
-                      style={{
-                        background:
-                          attendanceFilter === 'all'
-                            ? 'var(--chip-active-count-bg)'
-                            : 'var(--bg-subtle)',
-                        color: attendanceFilter === 'all' ? 'var(--white)' : 'var(--text-muted)',
-                        padding: '0.1rem 0.45rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                      }}
-                    >
-                      {attendanceCounts.all}
-                    </span>
-                  </button>
-
-                  {/* Presentes */}
-                  <button
-                    type="button"
-                    data-testid="filter-attendance-present"
-                    aria-pressed={attendanceFilter === 'present'}
-                    className={`touch-chip ${attendanceFilter === 'present' ? 'active' : ''}`}
-                    onClick={() => setAttendanceFilter('present')}
-                    style={{
-                      padding: '0.35rem 0.85rem',
-                      fontSize: '0.8rem',
-                      borderRadius: '9999px',
-                      fontWeight: 700,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      border: `1px solid ${attendanceFilter === 'present' ? 'var(--traffic-green)' : 'var(--traffic-green-border)'}`,
-                      background:
-                        attendanceFilter === 'present'
-                          ? 'var(--traffic-green)'
-                          : 'var(--traffic-green-bg)',
-                      color:
-                        attendanceFilter === 'present'
-                          ? 'var(--white)'
-                          : 'var(--traffic-green-text)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background:
-                          attendanceFilter === 'present' ? 'var(--white)' : 'var(--traffic-green)',
-                      }}
-                    />
-                    <span>Presentes</span>
-                    <span
-                      style={{
-                        background:
-                          attendanceFilter === 'present'
-                            ? 'var(--chip-active-count-bg)'
-                            : 'var(--bg-card)',
-                        color:
-                          attendanceFilter === 'present'
-                            ? 'var(--white)'
-                            : 'var(--traffic-green-text)',
-                        padding: '0.1rem 0.45rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                      }}
-                    >
-                      {attendanceCounts.present}
-                    </span>
-                  </button>
-
-                  {/* Sin registro */}
-                  <button
-                    type="button"
-                    data-testid="filter-attendance-absent"
-                    aria-pressed={attendanceFilter === 'absent'}
-                    className={`touch-chip ${attendanceFilter === 'absent' ? 'active' : ''}`}
-                    onClick={() => setAttendanceFilter('absent')}
-                    style={{
-                      padding: '0.35rem 0.85rem',
-                      fontSize: '0.8rem',
-                      borderRadius: '9999px',
-                      fontWeight: 700,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      border: `1px solid ${attendanceFilter === 'absent' ? 'var(--traffic-gray)' : 'var(--traffic-gray-border)'}`,
-                      background:
-                        attendanceFilter === 'absent'
-                          ? 'var(--traffic-gray)'
-                          : 'var(--traffic-gray-bg)',
-                      color:
-                        attendanceFilter === 'absent' ? 'var(--white)' : 'var(--traffic-gray-text)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background:
-                          attendanceFilter === 'absent' ? 'var(--white)' : 'var(--traffic-gray)',
-                      }}
-                    />
-                    <span>Sin registro</span>
-                    <span
-                      style={{
-                        background:
-                          attendanceFilter === 'absent'
-                            ? 'var(--chip-active-count-bg)'
-                            : 'var(--bg-card)',
-                        color:
-                          attendanceFilter === 'absent'
-                            ? 'var(--white)'
-                            : 'var(--traffic-gray-text)',
-                        padding: '0.1rem 0.45rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                      }}
-                    >
-                      {attendanceCounts.absent}
-                    </span>
-                  </button>
-                </div>
+                {/* Barra Segmentada de Filtro de Asistencia (KAN-645) */}
+                <SegmentedFilterTabs<'all' | 'present' | 'absent'>
+                  ariaLabel="Filtro de atletas por asistencia"
+                  value={attendanceFilter}
+                  onChange={setAttendanceFilter}
+                  options={[
+                    {
+                      value: 'all',
+                      label: 'Todos',
+                      count: attendanceCounts.all,
+                      variant: 'all',
+                      testId: 'filter-attendance-all',
+                    },
+                    {
+                      value: 'present',
+                      label: 'Presentes',
+                      count: attendanceCounts.present,
+                      variant: 'green',
+                      hasDot: true,
+                      testId: 'filter-attendance-present',
+                    },
+                    {
+                      value: 'absent',
+                      label: 'Sin registro',
+                      count: attendanceCounts.absent,
+                      variant: 'gray',
+                      hasDot: true,
+                      testId: 'filter-attendance-absent',
+                    },
+                  ]}
+                />
 
                 <div
                   style={{
