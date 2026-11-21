@@ -1,0 +1,203 @@
+/* ── DashboardPage · estilos de página (KAN-582) ──
+   Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+   los tokens de src/styles/tokens.css. Los valores dinámicos (si los hay)
+   se quedan inline en el .tsx. */
+
+/* Gap del bento: el contenedor global (.wireframe-dashboard-container /
+   .app-page-body) ya trae display:flex + flex-direction:column con gap
+   1.25rem; esta página lo abre a 1.5rem. Selector compuesto para ganarle a
+   los globales en cualquier orden de carga, sin romper los !important de
+   móvil (coach.css ≤768px → 1rem, que sigue ganando). */
+.app-page-body.wireframe-dashboard-container {
+  gap: 1.5rem;
+}
+
+/* ── Tarjeta "ProTraining Suite" (imagen del corredor 3D) ── */
+.dashboard-suite-card {
+  position: relative;
+  height: 100%;
+  min-height: 200px;
+  overflow: hidden;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.dashboard-suite-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.dashboard-suite-card-body {
+  position: relative;
+  padding: 1.5rem;
+  z-index: 2;
+  background: var(--grad-suite-card);
+}
+
+.dashboard-suite-badge {
+  display: inline-block;
+  background: var(--suite-badge-bg);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+.dashboard-suite-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+  color: var(--white);
+  line-height: 1.2;
+}
+
+.dashboard-suite-desc {
+  font-size: 0.8rem;
+  color: var(--suite-text-muted);
+  margin: 0 0 0.85rem;
+  line-height: 1.35;
+}
+
+.dashboard-suite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Selectores compuestos (.btn.x.y): la especificidad gana a .btn/.btn-primary/
+   .btn-secondary igual que ganaba el style inline, también frente a los
+   :hover de components.css (que hoy no modifican el color por el inline). */
+.btn.btn-primary.dashboard-suite-btn {
+  background: var(--brand-blue);
+  border-radius: 9999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: var(--suite-button-shadow);
+}
+
+.btn.btn-secondary.dashboard-suite-btn-secondary {
+  border-radius: 9999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border-color: var(--on-primary-border);
+  color: var(--white);
+}
+
+/* ── Tarjeta "Módulo Disponible" (slot vacío) ── */
+.dashboard-empty-card {
+  height: 100%;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  padding: 1.5rem;
+  user-select: none;
+}
+
+.dashboard-empty-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.dashboard-empty-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── Botón "Restablecer orden" del PageHeader ── */
+.btn.btn-secondary.dashboard-header-reset-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0.85;
+}
+
+/* ── Banner de bienvenida (PF sin organizaciones) ── */
+.dashboard-welcome-banner {
+  padding: 1.5rem 1.75rem;
+  border-radius: 16px;
+  background-color: var(--bg-surface);
+  /* Antes: var(--border-color, #e2e8f0) — --border-color no existe en
+     tokens.css y el fallback fijo rompía el modo oscuro. */
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  /* Sombra original 0 4px 14px rgba(0,0,0,0.04): stylelint prohíbe rgb/rgba
+     en CSS de componentes, así que se expresa con color-mix sobre un token. */
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-navy) 4%, transparent);
+}
+
+.dashboard-welcome-banner-info {
+  max-width: 650px;
+}
+
+.dashboard-welcome-banner-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-welcome-banner-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Compuesto con .btn-pill-primary para pisar padding/tamaño de fuente sin
+   tocar el hover (transform/sombra) que sí aplica hoy. */
+.btn-pill-primary.dashboard-welcome-banner-btn {
+  padding: 0.75rem 1.35rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+/* ── Icono de fuego del banner de propuestas Epley ── */
+.dashboard-epley-flame {
+  color: var(--brand-blue);
+}

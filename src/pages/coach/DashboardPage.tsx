@@ -38,6 +38,7 @@ import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
 import { useAthleteEvolution } from '../../hooks/useAthleteEvolution';
 import { getStoredSession } from '../../api/axiosClient';
 import { PfWelcomeModal } from '../../components/coach/PfWelcomeModal';
+import './DashboardPage.css';
 
 export type DashboardCardType =
   | 'empty'
@@ -524,92 +525,28 @@ export const DashboardPage: React.FC = () => {
         );
       case 'suite':
         return (
-          <div
-            style={{
-              position: 'relative',
-              height: '100%',
-              minHeight: '200px',
-              overflow: 'hidden',
-              borderRadius: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-end',
-            }}
-          >
+          <div className="dashboard-suite-card">
             <img
               src={runnerImg}
               alt="Corredor 3D ProTraining"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                opacity: 0.32,
-                pointerEvents: 'none',
-              }}
+              className="dashboard-suite-card-img"
             />
-            <div
-              style={{
-                position: 'relative',
-                padding: '1.5rem',
-                zIndex: 2,
-                background: 'var(--grad-suite-card)',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  background: 'var(--suite-badge-bg)',
-                  padding: '0.25rem 0.65rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  marginBottom: '0.45rem',
-                }}
-              >
+            <div className="dashboard-suite-card-body">
+              <span className="dashboard-suite-badge">
                 {isAthlete ? 'PROTRAINING ATLETA' : 'PROTRAINING SUITE'}
               </span>
-              <h3
-                style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 800,
-                  margin: '0 0 0.35rem',
-                  color: 'var(--white)',
-                  lineHeight: 1.2,
-                }}
-              >
+              <h3 className="dashboard-suite-title">
                 {isAthlete ? 'Mi Planificación y Rendimiento' : 'Gestión Integral de Atletas'}
               </h3>
-              <p
-                style={{
-                  fontSize: '0.8rem',
-                  color: 'var(--suite-text-muted)',
-                  margin: '0 0 0.85rem',
-                  lineHeight: 1.35,
-                }}
-              >
+              <p className="dashboard-suite-desc">
                 {isAthlete
                   ? 'Accedé a tus rutinas asignadas y seguimiento físico.'
                   : 'Monitoreá el semáforo de tu plantel y planificá cargas con precisión.'}
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div className="dashboard-suite-actions">
                 <button
                   type="button"
-                  className="btn btn-primary"
-                  style={{
-                    background: 'var(--brand-blue)',
-                    borderRadius: '9999px',
-                    padding: '0.45rem 1rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    boxShadow: 'var(--suite-button-shadow)',
-                  }}
+                  className="btn btn-primary dashboard-suite-btn"
                   onClick={() => navigate(isAthlete ? '/athlete/routine' : '/pf/monitoring')}
                 >
                   <span>{isAthlete ? 'Ver Rutina' : 'Ver Semáforo'}</span>
@@ -619,19 +556,7 @@ export const DashboardPage: React.FC = () => {
                 {isAthlete && (
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    style={{
-                      borderRadius: '9999px',
-                      padding: '0.45rem 1rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      background: 'transparent',
-                      borderColor: 'var(--on-primary-border)',
-                      color: 'var(--white)',
-                    }}
+                    className="btn btn-secondary dashboard-suite-btn-secondary"
                     onClick={() => navigate('/athlete/settings?tab=marcas')}
                   >
                     <span>Mis marcas</span>
@@ -645,38 +570,11 @@ export const DashboardPage: React.FC = () => {
       case 'empty':
       default:
         return (
-          <div
-            style={{
-              height: '100%',
-              minHeight: '160px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              color: 'var(--text-muted)',
-              padding: '1.5rem',
-              userSelect: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                border: '1.5px dashed var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-muted)',
-                opacity: 0.6,
-              }}
-            >
+          <div className="dashboard-empty-card">
+            <div className="dashboard-empty-icon">
               <Plus size={16} />
             </div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-              Espacio disponible
-            </span>
+            <span className="dashboard-empty-label">Espacio disponible</span>
           </div>
         );
     }
@@ -696,17 +594,7 @@ export const DashboardPage: React.FC = () => {
           <button
             type="button"
             onClick={resetLayout}
-            className="btn btn-secondary"
-            style={{
-              padding: '0.4rem 0.85rem',
-              borderRadius: '9999px',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              opacity: 0.85,
-            }}
+            className="btn btn-secondary dashboard-header-reset-btn"
             title="Restablecer orden predeterminado de los módulos"
           >
             <RotateCcw size={13} />
@@ -715,49 +603,14 @@ export const DashboardPage: React.FC = () => {
         }
       />
 
-      <div
-        className="app-page-body wireframe-dashboard-container"
-        style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-      >
+      <div className="app-page-body wireframe-dashboard-container">
         {!isAthlete && hasNoOrganizations && (
-          <section
-            className="dashboard-welcome-banner"
-            aria-label="Bienvenida a ProTraining"
-            style={{
-              padding: '1.5rem 1.75rem',
-              borderRadius: '16px',
-              backgroundColor: 'var(--bg-surface, #ffffff)',
-              border: '1px solid var(--border-color, #e2e8f0)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1.5rem',
-              flexWrap: 'wrap',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
-            }}
-          >
-            <div style={{ maxWidth: '650px' }}>
-              <h3
-                style={{
-                  margin: '0 0 0.35rem 0',
-                  fontSize: '1.15rem',
-                  fontWeight: 800,
-                  color: 'var(--text-main, #0f172a)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
+          <section className="dashboard-welcome-banner" aria-label="Bienvenida a ProTraining">
+            <div className="dashboard-welcome-banner-info">
+              <h3 className="dashboard-welcome-banner-title">
                 <span>¡Te damos la bienvenida a ProTraining!</span>
               </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '0.92rem',
-                  color: 'var(--text-muted, #64748b)',
-                  lineHeight: 1.5,
-                }}
-              >
+              <p className="dashboard-welcome-banner-text">
                 Muchas gracias por elegirnos para gestionar tus planteles. Para comenzar a
                 planificar entrenamientos, registrar atletas y visualizar métricas de rendimiento,
                 te invitamos a dar de alta tu primera organización deportiva.
@@ -766,16 +619,7 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/pf/organizations')}
-              className="btn-pill-primary"
-              style={{
-                padding: '0.75rem 1.35rem',
-                fontSize: '0.92rem',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                whiteSpace: 'nowrap',
-              }}
+              className="btn-pill-primary dashboard-welcome-banner-btn"
             >
               <span>+ Crear Organización</span>
               <ArrowRight size={16} />
@@ -823,7 +667,7 @@ export const DashboardPage: React.FC = () => {
           >
             <div className="epley-dashboard-banner-header">
               <div className="epley-dashboard-banner-title">
-                <Flame size={20} style={{ color: 'var(--brand-blue)' }} aria-hidden="true" />
+                <Flame size={20} className="dashboard-epley-flame" aria-hidden="true" />
                 <div>
                   <h3>Propuestas de nuevo récord Epley pendientes ({pendingProposals.length})</h3>
                   <p className="epley-dashboard-banner-desc">
