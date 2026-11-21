@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Search, Sparkles, X } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Loader2,
+  RefreshCw,
+  Search,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
@@ -63,7 +72,9 @@ export function RecommendationsPage() {
         setRecommendations(recsData);
         setCategories(catsData);
         setAthletes(athletesData);
-        setAnalysisCategoryId((prev) => prev || catsData[0]?.id || '');
+        const defaultCatId = catsData[0]?.id || '';
+        setAnalysisCategoryId((prev) => prev || defaultCatId);
+        setSelectedCategoryFilter((prev) => prev || defaultCatId);
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -149,13 +160,15 @@ export function RecommendationsPage() {
     }));
   }, [filteredRecommendations, getAthleteDisplayName]);
 
+  const targetCategoryForAnalysis = analysisCategoryId || selectedCategoryFilter;
+
   const handleRunCategoryEngine = async () => {
-    if (!analysisCategoryId || analyzing) return;
+    if (!targetCategoryForAnalysis || analyzing) return;
     setAnalyzing(true);
     setFeedback(null);
 
     try {
-      const result = await recommendationsService.generateForCategory(analysisCategoryId, 4);
+      const result = await recommendationsService.generateForCategory(targetCategoryForAnalysis, 4);
       const refreshed = await recommendationsService.listRecommendations();
       setRecommendations(refreshed);
       setStatusTab('Pending');
@@ -237,70 +250,90 @@ export function RecommendationsPage() {
       <PageHeader
         title="Recomendaciones"
         description="Revisá, editá y aprobá las recomendaciones generadas para tus atletas antes de enviarlas a su app."
-        actions={
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleRefresh}
-            disabled={loading || analyzing}
-          >
-            <RefreshCw size={15} className={loading ? 'plan-spin' : undefined} aria-hidden="true" />
-            <span>Actualizar</span>
-          </button>
-        }
       />
 
       <div className="app-page-body recommendations-page-body">
+        {/* Barra superior de Plantel y Búsqueda (Imagen 1) */}
+        <section className="recommendations-top-filters" aria-label="Filtros de plantel y búsqueda">
+          <div className="recommendations-plantel-group">
+            <label
+              htmlFor="recommendations-plantel-select"
+              className="recommendations-plantel-label"
+            >
+              Plantel:
+            </label>
+            <div className="recommendations-select-wrap">
+              <select
+                id="recommendations-plantel-select"
+                aria-label="Filtrar por categoría"
+                className="recommendations-select recommendations-plantel-select"
+                value={selectedCategoryFilter}
+                onChange={(e) => {
+                  setSelectedCategoryFilter(e.target.value);
+                  if (e.target.value) setAnalysisCategoryId(e.target.value);
+                }}
+              >
+                <option value="">Todas las categorías</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={16}
+                className="recommendations-select-chevron"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <div className="recommendations-search-box">
+            <Search size={15} className="recommendations-search-icon" aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Buscar por atleta o motivo"
+              className="recommendations-search-input"
+              placeholder="Buscar atleta por nombre o posición…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </section>
+
+        {/* Bloque de Generación / Análisis de Plantel (Imagen 1) */}
         <section
           className="recommendations-engine-bar"
           aria-label="Generar recomendaciones por categoría"
         >
-          <div className="recommendations-engine-copy">
-            <span className="recommendations-engine-icon" aria-hidden="true">
-              <Sparkles size={18} />
-            </span>
-            <div>
-              <h3>Analizar plantel y generar propuestas</h3>
-              <p>
-                Compara tests físicos frente al promedio grupal y tendencias semanales. Todas las
-                propuestas nacen pendientes hasta tu aprobación.
-              </p>
+          <div className="recommendations-engine-header-row">
+            <div className="recommendations-engine-title-group">
+              <Sparkles size={18} className="recommendations-engine-sparkle" aria-hidden="true" />
+              <h3 className="recommendations-engine-title">
+                Analizar plantel y generar propuestas
+              </h3>
             </div>
-          </div>
-
-          <div className="recommendations-engine-controls">
-            <select
-              aria-label="Categoría a analizar"
-              className="recommendations-select"
-              value={analysisCategoryId}
-              onChange={(e) => setAnalysisCategoryId(e.target.value)}
-              disabled={analyzing || categories.length === 0}
-            >
-              {categories.length === 0 ? (
-                <option value="">Sin categorías disponibles</option>
-              ) : (
-                categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))
-              )}
-            </select>
 
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-secondary recommendations-engine-btn"
               onClick={() => void handleRunCategoryEngine()}
-              disabled={analyzing || !analysisCategoryId}
+              disabled={analyzing || (!targetCategoryForAnalysis && categories.length > 0)}
+              aria-label="Analizar categoría"
             >
               {analyzing ? (
-                <Loader2 size={15} className="plan-spin" aria-hidden="true" />
+                <Loader2 size={14} className="plan-spin" aria-hidden="true" />
               ) : (
-                <Sparkles size={15} aria-hidden="true" />
+                <RefreshCw size={14} aria-hidden="true" />
               )}
-              <span>{analyzing ? 'Analizando categoría…' : 'Analizar categoría'}</span>
+              <span>{analyzing ? 'Analizando…' : 'Actualizar'}</span>
             </button>
           </div>
+
+          <p className="recommendations-engine-desc">
+            Compara tests físicos frente al promedio grupal y tendencias semanales. Todas las
+            propuestas nacen pendientes hasta tu aprobación.
+          </p>
         </section>
 
         {feedback && (
@@ -327,6 +360,7 @@ export function RecommendationsPage() {
           </div>
         )}
 
+        {/* SegmentedFilterTabs de Estado */}
         <div className="recommendations-toolbar">
           <SegmentedFilterTabs<RecommendationStatusFilter>
             ariaLabel="Estado de recomendaciones"
@@ -339,34 +373,6 @@ export function RecommendationsPage() {
               variant: tab.value.toLowerCase() as SegmentedFilterOption['variant'],
             }))}
           />
-
-          <div className="recommendations-filters">
-            <select
-              aria-label="Filtrar por categoría"
-              className="recommendations-select"
-              value={selectedCategoryFilter}
-              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-
-            <div className="recommendations-search-box">
-              <Search size={15} className="recommendations-search-icon" aria-hidden="true" />
-              <input
-                type="search"
-                aria-label="Buscar por atleta o motivo"
-                className="recommendations-search-input"
-                placeholder="Buscar atleta o motivo…"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
         </div>
 
         {loading ? (
@@ -380,6 +386,12 @@ export function RecommendationsPage() {
             icon={AlertCircle}
             title="No se pudieron cargar las recomendaciones"
             description={loadError}
+            action={
+              <button type="button" className="btn btn-secondary" onClick={handleRefresh}>
+                <RefreshCw size={14} aria-hidden="true" />
+                <span>Reintentar</span>
+              </button>
+            }
           />
         ) : groupedByAthlete.length === 0 ? (
           <EmptyState

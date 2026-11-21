@@ -1,4 +1,4 @@
-/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492) */
+/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492 · KAN-647) */
 
 .recommendations-page-body {
   display: flex;
@@ -6,12 +6,96 @@
   gap: 1.25rem;
 }
 
-.recommendations-engine-bar {
+/* Barra Superior de Plantel y Búsqueda (Imagen 1 - KAN-647) */
+.recommendations-top-filters {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations-plantel-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.recommendations-plantel-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.recommendations-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.recommendations-plantel-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.5rem 2.2rem 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recommendations-select-chevron {
+  position: absolute;
+  right: 0.75rem;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.recommendations-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 280px;
+  max-width: 380px;
+}
+
+.recommendations-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.recommendations-search-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.3rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.86rem;
+}
+
+.recommendations-search-input:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+  background: var(--bg-card);
+}
+
+/* Bloque de Generación y Análisis (Imagen 1 - KAN-647) */
+.recommendations-engine-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
   padding: 1rem 1.25rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -19,45 +103,42 @@
   box-shadow: var(--shadow-sm);
 }
 
-.recommendations-engine-copy {
+.recommendations-engine-header-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
-  min-width: 0;
-  flex: 1 1 280px;
 }
 
-.recommendations-engine-icon {
-  display: inline-flex;
+.recommendations-engine-title-group {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--info-bg);
+  gap: 0.6rem;
+}
+
+.recommendations-engine-sparkle {
   color: var(--brand-blue);
   flex-shrink: 0;
 }
 
-.recommendations-engine-copy h3 {
-  margin: 0 0 0.2rem;
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.recommendations-engine-copy p {
+.recommendations-engine-title {
   margin: 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.4;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--brand-navy);
 }
 
-.recommendations-engine-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem;
+.recommendations-engine-btn {
+  padding: 0.42rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.recommendations-engine-desc {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
 .recommendations-select {
@@ -83,139 +164,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.9rem;
-}
-
-.recommendations-tabs {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  padding: 0.35rem;
-  background: var(--bg-subtle);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.recommendations-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.9rem;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.86rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.recommendations-tab:hover:not(.active) {
-  background: var(--bg-card);
-  color: var(--text-main);
-}
-
-.recommendations-tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 20px;
-  padding: 0 0.45rem;
-  border-radius: 9999px;
-  font-size: 0.74rem;
-  font-weight: 800;
-}
-
-.recommendations-tab.status-pending .recommendations-tab-count {
-  background: var(--warning-bg-strong);
-  color: var(--warning-text);
-}
-
-.recommendations-tab.status-approved .recommendations-tab-count {
-  background: var(--success-bg-strong);
-  color: var(--success-text);
-}
-
-.recommendations-tab.status-discarded .recommendations-tab-count {
-  background: var(--danger-bg-strong);
-  color: var(--danger-text);
-}
-
-.recommendations-tab.status-pending.active {
-  background: var(--warning);
-  border-color: var(--warning);
-  color: var(--on-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.recommendations-tab.status-pending.active .recommendations-tab-count {
-  background: var(--bg-card);
-  color: var(--warning-text);
-}
-
-.recommendations-tab.status-approved.active {
-  background: var(--success);
-  border-color: var(--success);
-  color: var(--on-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.recommendations-tab.status-approved.active .recommendations-tab-count {
-  background: var(--bg-card);
-  color: var(--success-text);
-}
-
-.recommendations-tab.status-discarded.active {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: var(--on-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.recommendations-tab.status-discarded.active .recommendations-tab-count {
-  background: var(--bg-card);
-  color: var(--danger-text);
-}
-
-.recommendations-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.recommendations-search-box {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.recommendations-search-icon {
-  position: absolute;
-  left: 0.75rem;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.recommendations-search-input {
-  min-width: 230px;
-  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
-  border: 1px solid var(--input-border);
-  border-radius: 10px;
-  background: var(--input-bg);
-  color: var(--text-main);
-  font-size: 0.88rem;
-}
-
-.recommendations-search-input:focus {
-  outline: none;
-  border-color: var(--brand-blue);
-  box-shadow: var(--focus-ring);
 }
 
 .recommendations-feedback {
@@ -269,6 +217,7 @@
   gap: 1rem;
 }
 
+/* Tarjeta de Atleta (Imagen 1 - KAN-647) */
 .recommendation-athlete-group {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -305,23 +254,39 @@
   flex: 1 1 280px;
 }
 
+.recommendation-athlete-avatar-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.recommendation-athlete-avatar-initials {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.recommendation-athlete-group-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .recommendation-athlete-group-top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.55rem;
-}
-
-.recommendation-athlete-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--primary-light);
-  color: var(--brand-navy);
-  flex-shrink: 0;
 }
 
 .recommendation-athlete-group-name {
@@ -331,10 +296,17 @@
   color: var(--text-main);
 }
 
+.recommendation-athlete-category-sub {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .recommendation-reason-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  margin-top: 0.15rem;
 }
 
 .recommendation-reason-chip {
@@ -344,8 +316,8 @@
   border-radius: 8px;
   background: var(--info-bg);
   border: 1px solid var(--info-border);
-  color: var(--info-text);
-  font-size: 0.78rem;
+  color: var(--brand-blue);
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -357,6 +329,7 @@
   font-weight: 700;
   color: var(--brand-blue);
   white-space: nowrap;
+  align-self: center;
 }
 
 .recommendation-athlete-group-body {
@@ -378,6 +351,7 @@
   box-shadow: none;
 }
 
+/* Tarjeta Individual de Recomendación (Imagen 2 - KAN-647) */
 .recommendation-card {
   display: flex;
   flex-direction: column;
@@ -399,8 +373,16 @@
 .recommendation-card-identity {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  min-width: 0;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.recommendation-card-badges-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.5rem;
 }
 
 .recommendation-card-badges {
@@ -410,13 +392,18 @@
   gap: 0.4rem;
 }
 
+.recommendation-category-row {
+  display: flex;
+  align-items: center;
+}
+
 .recommendation-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.72rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -437,12 +424,12 @@
 
 .recommendation-badge.type {
   background: var(--info-bg);
-  color: var(--info-text);
+  color: var(--brand-navy);
 }
 
 .recommendation-badge.category {
   background: var(--bg-subtle);
-  color: var(--text-main);
+  color: var(--text-muted);
 }
 
 .recommendation-athlete-name {
@@ -453,53 +440,54 @@
 }
 
 .recommendation-date {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
+/* Recuadro Destacado de Motivo (Imagen 2) */
 .recommendation-reason-box {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.7rem 0.9rem;
+  gap: 0.25rem;
+  padding: 0.85rem 1.1rem;
   background: var(--info-bg);
   border: 1px solid var(--info-border);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .recommendation-reason-label {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: var(--brand-blue);
 }
 
 .recommendation-reason-text {
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800;
   color: var(--text-main);
 }
 
 .recommendation-content {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .recommendation-title {
-  margin: 0;
-  font-size: 0.98rem;
-  font-weight: 700;
+  margin: 0.4rem 0 0.15rem;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: var(--text-main);
 }
 
 .recommendation-body {
   margin: 0;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.5;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  line-height: 1.55;
   white-space: pre-line;
 }
 
@@ -507,7 +495,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding-top: 0.5rem;
+  padding-top: 0.65rem;
   border-top: 1px solid var(--border);
 }
 
@@ -520,7 +508,7 @@
   border: none;
   background: transparent;
   color: var(--brand-blue);
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -623,15 +611,81 @@
   font-weight: 600;
 }
 
+/* Acciones en la tarjeta (Imagen 2) */
 .recommendation-card-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.65rem;
   margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
+}
+
+.recommendation-actions-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.65rem;
+}
+
+.recommendation-actions-row {
+  display: flex;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.recommendation-btn-edit {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.recommendation-btn-discard {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-weight: 700;
+  font-size: 0.88rem;
+  transition: background 0.15s ease;
+}
+
+.recommendation-btn-discard:hover:not(:disabled) {
+  background: var(--danger-bg-strong);
+  border-color: var(--danger-border);
+}
+
+.recommendation-btn-approve-full {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--brand-navy);
+  color: var(--on-primary);
+  font-weight: 800;
+  font-size: 0.92rem;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.recommendation-btn-approve-full:hover:not(:disabled) {
+  filter: brightness(1.15);
 }
 
 .recommendation-action-group {
@@ -639,6 +693,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+}
+
+.recommendation-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.6rem;
 }
 
 .recommendation-confirm-discard {
@@ -655,17 +717,6 @@
   color: var(--danger-text);
   font-size: 0.83rem;
   font-weight: 600;
-}
-
-.recommendation-btn-discard {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-  border: 1px solid var(--danger-border);
-}
-
-.recommendation-btn-discard:hover:not(:disabled) {
-  background: var(--danger-bg-strong);
-  border-color: var(--status-danger-border);
 }
 
 .recommendation-btn-danger {
@@ -804,5 +855,9 @@
   .recommendations-search-input {
     width: 100%;
     min-width: 0;
+  }
+
+  .recommendation-actions-row {
+    flex-direction: column;
   }
 }
