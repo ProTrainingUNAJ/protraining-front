@@ -441,6 +441,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  container-type: inline-size;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -582,6 +583,31 @@
   background: var(--primary-light);
   border-color: var(--secondary);
   color: var(--secondary);
+}
+
+@container (max-width: 480px) {
+  .structure-category-footer {
+    flex-wrap: wrap;
+  }
+
+  .structure-btn-pill {
+    white-space: nowrap;
+  }
+
+  .structure-btn-pill.statistics {
+    flex: 1 1 100%;
+  }
+}
+
+/* Fallback para navegadores sin container queries */
+@media (max-width: 640px) {
+  .structure-category-footer {
+    flex-wrap: wrap;
+  }
+
+  .structure-btn-pill.statistics {
+    flex: 1 1 100%;
+  }
 }
 
 /* --------------------------------------------------------------------------
