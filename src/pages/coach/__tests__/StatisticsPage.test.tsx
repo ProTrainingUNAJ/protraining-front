@@ -196,11 +196,9 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     );
 
     await waitFor(() => {
-      expect(getByCategoryMock).toHaveBeenCalledWith(
-        'cat-1',
-        expect.anything(),
-        { silentNotFound: true },
-      );
+      expect(getByCategoryMock).toHaveBeenCalledWith('cat-1', expect.anything(), {
+        silentNotFound: true,
+      });
     });
 
     await waitFor(() => {

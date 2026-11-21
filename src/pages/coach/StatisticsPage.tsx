@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  BarChart3,
-  ShieldCheck,
-  FileText,
-  RefreshCw,
-  Layers,
-  AlertCircle,
-} from 'lucide-react';
+import { BarChart3, ShieldCheck, FileText, RefreshCw, Layers, AlertCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
@@ -120,7 +113,9 @@ export const StatisticsPage: React.FC = () => {
         }
       } catch (err: unknown) {
         if (!mounted) return;
-        setStructureError(errorMessage(err, 'No se pudieron cargar las organizaciones y categorías.'));
+        setStructureError(
+          errorMessage(err, 'No se pudieron cargar las organizaciones y categorías.'),
+        );
       } finally {
         if (mounted) setLoadingStructure(false);
       }
@@ -166,22 +161,19 @@ export const StatisticsPage: React.FC = () => {
 
   // 3. Cargar Resumen de Categoría (para Estadísticas del Plantel e Informes)
   useEffect(() => {
-    if (!effectiveCategoryId) {
-      setSummary(null);
-      setLoadingSummary(false);
-      return;
-    }
+    if (!effectiveCategoryId) return;
 
     let mounted = true;
-    setLoadingSummary(true);
-    setSummaryError(null);
 
     // KAN-651: SilentNotFound para resiliencia ante categorías sin métricas o 404
     categoryDashboardService
-      .getByCategory(effectiveCategoryId, getCategoryDashboardRange(period), { silentNotFound: true })
+      .getByCategory(effectiveCategoryId, getCategoryDashboardRange(period), {
+        silentNotFound: true,
+      })
       .then((data) => {
         if (!mounted) return;
         setSummary(data);
+        setSummaryError(null);
       })
       .catch((err: unknown) => {
         if (!mounted) return;
@@ -209,13 +201,17 @@ export const StatisticsPage: React.FC = () => {
 
     // Si la categoría actual no pertenece a la nueva organización, resetearla
     if (orgId && selectedCategoryId) {
-      const belongs = categories.some((c) => c.id === selectedCategoryId && c.organizationId === orgId);
+      const belongs = categories.some(
+        (c) => c.id === selectedCategoryId && c.organizationId === orgId,
+      );
       if (!belongs) {
         selectedCategoryIdRef.current = '';
         setSelectedCategoryId('');
         updateSearchParam('catId', '');
+        setSummary(null);
       }
     }
+    setLoadingSummary(true);
   };
 
   // Manejo de cambio de categoría
@@ -223,12 +219,14 @@ export const StatisticsPage: React.FC = () => {
     selectedCategoryIdRef.current = catId;
     setSelectedCategoryId(catId);
     updateSearchParam('catId', catId);
+    setLoadingSummary(true);
   };
 
   // Manejo de cambio de período
   const handlePeriodChange = (nextPeriod: CategoryDashboardPeriod) => {
     setPeriod(nextPeriod);
     updateSearchParam('period', nextPeriod);
+    setLoadingSummary(true);
   };
 
   // Manejo de cambio de ejercicio
@@ -239,12 +237,16 @@ export const StatisticsPage: React.FC = () => {
 
   // Botón Actualizar
   const handleRefresh = () => {
+    setLoadingSummary(true);
     setReloadKey((k) => k + 1);
   };
 
-  const selectedOrgName = organizations.find((o) => o.id === selectedOrganizationId)?.name || 'Todas las organizaciones';
-  const selectedCatName = categories.find((c) => c.id === effectiveCategoryId)?.name || 'Todas las categorías';
-  const periodLabel = DASHBOARD_PERIOD_OPTIONS.find((o) => o.value === period)?.label || 'Últimos 30 días';
+  const selectedOrgName =
+    organizations.find((o) => o.id === selectedOrganizationId)?.name || 'Todas las organizaciones';
+  const selectedCatName =
+    categories.find((c) => c.id === effectiveCategoryId)?.name || 'Todas las categorías';
+  const periodLabel =
+    DASHBOARD_PERIOD_OPTIONS.find((o) => o.value === period)?.label || 'Últimos 30 días';
 
   return (
     <div className="app-page-container">
@@ -291,7 +293,10 @@ export const StatisticsPage: React.FC = () => {
         }
       />
 
-      <div className="app-page-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div
+        className="app-page-body"
+        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+      >
         {/* Barra Superior de Filtros Coordinada (Organización + Categoría + Filtro Contextual) */}
         <div
           className="card"

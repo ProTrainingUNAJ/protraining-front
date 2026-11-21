@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 import {
-  FileText,
-  Download,
   Printer,
   Share2,
   Check,
   Calendar,
   Users,
   Activity,
-  Dumbbell,
   ShieldCheck,
   FileSpreadsheet,
 } from 'lucide-react';
-import type { Category, Organization } from '../../types/structure';
 import type { CategoryDashboardSummary } from '../../types/categoryDashboard';
-import { formatIsoDate } from '../../utils/argentinaDate';
 
 export interface ReportsExportPanelProps {
   organizationName?: string;
@@ -249,7 +244,14 @@ _Generado automáticamente desde ProTraining PWA_`;
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.35rem',
+              }}
+            >
               <span
                 style={{
                   background: 'var(--primary)',
@@ -267,21 +269,46 @@ _Generado automáticamente desde ProTraining PWA_`;
                 Emitido el {new Date().toLocaleDateString('es-AR')}
               </span>
             </div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-              {reportType === 'executive' && 'Informe Ejecutivo: Rendimiento y Disponibilidad del Plantel'}
-              {reportType === 'attendance' && 'Reporte Detallado de Asistencia, Minutos y Carga Diaria'}
+            <h2
+              style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}
+            >
+              {reportType === 'executive' &&
+                'Informe Ejecutivo: Rendimiento y Disponibilidad del Plantel'}
+              {reportType === 'attendance' &&
+                'Reporte Detallado de Asistencia, Minutos y Carga Diaria'}
               {reportType === 'health' && 'Reporte Epidemiológico y Monitoreo de Lesiones'}
               {reportType === 'records' && 'Auditoría de Marcas Personales y Confiabilidad de 1RM'}
             </h2>
-            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              <span><strong>Organización:</strong> {organizationName}</span>
-              <span><strong>Categoría:</strong> {categoryName}</span>
-              <span><strong>Ventana temporal:</strong> {periodLabel}</span>
+            <div
+              style={{
+                display: 'flex',
+                gap: '1.5rem',
+                marginTop: '0.5rem',
+                fontSize: '0.85rem',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <span>
+                <strong>Organización:</strong> {organizationName}
+              </span>
+              <span>
+                <strong>Categoría:</strong> {categoryName}
+              </span>
+              <span>
+                <strong>Ventana temporal:</strong> {periodLabel}
+              </span>
             </div>
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.5px' }}>
+            <div
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 900,
+                color: 'var(--primary)',
+                letterSpacing: '-0.5px',
+              }}
+            >
               PROTRAINING
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -307,11 +334,27 @@ _Generado automáticamente desde ProTraining PWA_`;
               border: '1px solid var(--border)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 700 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: 'var(--text-muted)',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              }}
+            >
               <Users size={16} />
               <span>Plantel Activo</span>
             </div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.35rem' }}>
+            <div
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                marginTop: '0.35rem',
+              }}
+            >
               {summary?.athleteCount ?? 0}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
@@ -327,15 +370,32 @@ _Generado automáticamente desde ProTraining PWA_`;
               border: '1px solid var(--border)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontSize: '0.8rem', fontWeight: 700 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: 'var(--primary)',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              }}
+            >
               <Calendar size={16} />
               <span>Presentismo General</span>
             </div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.35rem' }}>
+            <div
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                marginTop: '0.35rem',
+              }}
+            >
               {summary?.attendance.attendancePercentage ?? 0}%
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              {summary?.attendance.presentDays ?? 0} presentes · {summary?.attendance.absentDays ?? 0} ausentes
+              {summary?.attendance.presentDays ?? 0} presentes ·{' '}
+              {summary?.attendance.absentDays ?? 0} ausentes
             </div>
           </div>
 
@@ -347,11 +407,27 @@ _Generado automáticamente desde ProTraining PWA_`;
               border: '1px solid var(--border)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontSize: '0.8rem', fontWeight: 700 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: '#10b981',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              }}
+            >
               <Activity size={16} />
               <span>Carga Acumulada</span>
             </div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.35rem' }}>
+            <div
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                marginTop: '0.35rem',
+              }}
+            >
               {summary?.load.totalLoad ? `${summary.load.totalLoad} UA` : '0 UA'}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
@@ -367,46 +443,108 @@ _Generado automáticamente desde ProTraining PWA_`;
               border: '1px solid var(--border)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#ef4444', fontSize: '0.8rem', fontWeight: 700 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: '#ef4444',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+              }}
+            >
               <ShieldCheck size={16} />
               <span>Estado Clínico</span>
             </div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.35rem' }}>
-              {summary?.injuries.activeCount ?? 0} <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>activas</span>
+            <div
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                marginTop: '0.35rem',
+              }}
+            >
+              {summary?.injuries.activeCount ?? 0}{' '}
+              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                activas
+              </span>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              {summary?.injuries.inRecoveryCount ?? 0} en readaptación · {summary?.injuries.clearedInPeriodCount ?? 0} altas
+              {summary?.injuries.inRecoveryCount ?? 0} en readaptación ·{' '}
+              {summary?.injuries.clearedInPeriodCount ?? 0} altas
             </div>
           </div>
         </div>
 
         {/* Tabla resumen del reporte */}
         <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '0.85rem',
+              textAlign: 'left',
+            }}
+          >
             <thead>
-              <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border)' }}>
-                <th style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Dimensión Evaluada</th>
-                <th style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Métrica Observada</th>
-                <th style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Estado / Diagnóstico</th>
-                <th style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Recomendación Técnica</th>
+              <tr
+                style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border)' }}
+              >
+                <th
+                  style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}
+                >
+                  Dimensión Evaluada
+                </th>
+                <th
+                  style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}
+                >
+                  Métrica Observada
+                </th>
+                <th
+                  style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}
+                >
+                  Estado / Diagnóstico
+                </th>
+                <th
+                  style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}
+                >
+                  Recomendación Técnica
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Asistencia & Compromiso</td>
-                <td style={{ padding: '0.75rem 1rem' }}>{summary?.attendance.attendancePercentage ?? 0}% de regularidad</td>
+                <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>
+                  Asistencia & Compromiso
+                </td>
                 <td style={{ padding: '0.75rem 1rem' }}>
-                  <span style={{ color: (summary?.attendance.attendancePercentage ?? 0) >= 80 ? '#10b981' : '#f59e0b', fontWeight: 700 }}>
+                  {summary?.attendance.attendancePercentage ?? 0}% de regularidad
+                </td>
+                <td style={{ padding: '0.75rem 1rem' }}>
+                  <span
+                    style={{
+                      color:
+                        (summary?.attendance.attendancePercentage ?? 0) >= 80
+                          ? '#10b981'
+                          : '#f59e0b',
+                      fontWeight: 700,
+                    }}
+                  >
                     {(summary?.attendance.attendancePercentage ?? 0) >= 80 ? 'Óptimo' : 'Regular'}
                   </span>
                 </td>
                 <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)' }}>
-                  Mantener registro diario y evaluar causas de inasistencias en la planilla de asistencia.
+                  Mantener registro diario y evaluar causas de inasistencias en la planilla de
+                  asistencia.
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Carga & Intensidad (Foster)</td>
-                <td style={{ padding: '0.75rem 1rem' }}>{summary?.load.totalLoad ?? 0} UA registradas</td>
+                <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>
+                  Carga & Intensidad (Foster)
+                </td>
+                <td style={{ padding: '0.75rem 1rem' }}>
+                  {summary?.load.totalLoad ?? 0} UA registradas
+                </td>
                 <td style={{ padding: '0.75rem 1rem' }}>
                   <span style={{ color: '#10b981', fontWeight: 700 }}>Dentro de rango seguro</span>
                 </td>
@@ -415,15 +553,27 @@ _Generado automáticamente desde ProTraining PWA_`;
                 </td>
               </tr>
               <tr>
-                <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Prevención & Readaptación</td>
-                <td style={{ padding: '0.75rem 1rem' }}>{summary?.injuries.activeCount ?? 0} atletas lesionados</td>
+                <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>
+                  Prevención & Readaptación
+                </td>
                 <td style={{ padding: '0.75rem 1rem' }}>
-                  <span style={{ color: (summary?.injuries.activeCount ?? 0) > 0 ? '#ef4444' : '#10b981', fontWeight: 700 }}>
-                    {(summary?.injuries.activeCount ?? 0) > 0 ? 'Atención Prioritaria' : 'Plantel Disponible'}
+                  {summary?.injuries.activeCount ?? 0} atletas lesionados
+                </td>
+                <td style={{ padding: '0.75rem 1rem' }}>
+                  <span
+                    style={{
+                      color: (summary?.injuries.activeCount ?? 0) > 0 ? '#ef4444' : '#10b981',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {(summary?.injuries.activeCount ?? 0) > 0
+                      ? 'Atención Prioritaria'
+                      : 'Plantel Disponible'}
                   </span>
                 </td>
                 <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)' }}>
-                  Supervisar planes diferenciados y confirmar alta médica antes de reincorporar al grupo.
+                  Supervisar planes diferenciados y confirmar alta médica antes de reincorporar al
+                  grupo.
                 </td>
               </tr>
             </tbody>
