@@ -24,6 +24,7 @@ export interface Category {
   name: string;
   description?: string | null;
   athletesCount: number;
+  organizationName?: string;
 }
 
 export interface CreateCategoryRequest {
@@ -144,6 +145,8 @@ export interface Match {
   type?: CompetitiveEventType;
   notes?: string | null;
   categoryName?: string;
+  organizationName?: string;
+  organizationId?: string;
 }
 
 export interface CreateMatchRequest {

@@ -105,10 +105,11 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         notes: notes.trim() || null,
       });
 
-      // Enrich with category name
+      // Enrich with category name and organization name
       const categoryObj = categories.find((c) => c.id === categoryId);
       if (categoryObj) {
         created.categoryName = categoryObj.name;
+        created.organizationName = categoryObj.organizationName;
       }
 
       if (onMatchCreated) {
@@ -178,7 +179,7 @@ export const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
               </option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.name}
+                  {cat.organizationName ? `${cat.organizationName} · ${cat.name}` : cat.name}
                 </option>
               ))}
             </select>

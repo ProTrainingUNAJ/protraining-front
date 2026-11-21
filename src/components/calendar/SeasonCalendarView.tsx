@@ -58,12 +58,16 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
       setLoadError(null);
       const categoryIds = selectedCategoryId ? [selectedCategoryId] : categories.map((c) => c.id);
       const dataMatches = await matchService.getMatches(categoryIds);
-      const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+      const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
-      const enrichedMatches = dataMatches.map((m) => ({
-        ...m,
-        categoryName: categoryMap.get(m.categoryId) || m.categoryName,
-      }));
+      const enrichedMatches = dataMatches.map((m) => {
+        const cat = categoryMap.get(m.categoryId);
+        return {
+          ...m,
+          categoryName: cat?.name || m.categoryName,
+          organizationName: cat?.organizationName || m.organizationName,
+        };
+      });
 
       setMatches(enrichedMatches);
     } catch (err: unknown) {
@@ -83,11 +87,15 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
         const dataMatches = await matchService.getMatches(categoryIds);
         if (!isMounted) return;
 
-        const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
-        const enrichedMatches = dataMatches.map((m) => ({
-          ...m,
-          categoryName: categoryMap.get(m.categoryId) || m.categoryName,
-        }));
+        const categoryMap = new Map(categories.map((c) => [c.id, c]));
+        const enrichedMatches = dataMatches.map((m) => {
+          const cat = categoryMap.get(m.categoryId);
+          return {
+            ...m,
+            categoryName: cat?.name || m.categoryName,
+            organizationName: cat?.organizationName || m.organizationName,
+          };
+        });
 
         setMatches(enrichedMatches);
       } catch (err: unknown) {
@@ -222,7 +230,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
             <option value="">Todas las categorías ({categories.length})</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.organizationName ? `${c.organizationName} · ${c.name}` : c.name}
               </option>
             ))}
           </select>
@@ -525,9 +533,11 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                                 <Trophy size={12} aria-hidden="true" />
                                 <strong>VS {m.opponent}</strong>
                               </span>
-                              {m.categoryName && (
+                              {(m.organizationName || m.categoryName) && (
                                 <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>
-                                  {m.categoryName}
+                                  {m.organizationName
+                                    ? `${m.organizationName} · ${m.categoryName || ''}`
+                                    : m.categoryName}
                                 </span>
                               )}
                             </div>
@@ -601,6 +611,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
         onClose={() => setDrawerDate(null)}
         isoDate={drawerDate || ''}
         matches={drawerDate ? matchesByDate.get(drawerDate) || [] : []}
+        categories={categories}
         onAddMatch={(date) => {
           setDrawerDate(null);
           handleOpenCreateMatchModal(date);
