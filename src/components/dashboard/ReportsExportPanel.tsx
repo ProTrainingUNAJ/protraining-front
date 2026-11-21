@@ -429,25 +429,6 @@ _Generado automáticamente desde ProTraining PWA_`;
             </tbody>
           </table>
         </div>
-
-        {/* Pie de página del reporte */}
-        <div
-          style={{
-            marginTop: '1.5rem',
-            paddingTop: '1rem',
-            borderTop: '1px solid var(--border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '0.75rem',
-            color: 'var(--text-muted)',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-          }}
-        >
-          <span>ProTraining Analytics · Confidencial para uso del Cuerpo Técnico</span>
-          <span>Firma digital: Validado con JWT y aislamiento multi-tenant</span>
-        </div>
       </div>
     </div>
   );
