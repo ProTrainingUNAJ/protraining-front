@@ -19,7 +19,6 @@ export interface RpeSliderBarProps {
  * - 5-6: Amarillo / Ámbar (Exigente)
  * - 7-8: Naranja / Coral (Muy Duro)
  * - 9-10: Rojo (Máximo)
- * Incluye rótulos descriptivos de la escala ("Suave", "Duro", etc.) visibles en mobile.
  */
 export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
   value,
@@ -190,15 +189,6 @@ export const RpeSliderBar: React.FC<RpeSliderBarProps> = ({
             </button>
           );
         })}
-      </div>
-
-      {/* Rótulos descriptivos de la escala de Foster ("Suave", "Duro", etc.) visibles en mobile y desktop */}
-      <div className="rpe-slider-scale-legend" aria-hidden="true">
-        <span className="rpe-slider-scale-label">1-2 Suave</span>
-        <span className="rpe-slider-scale-label">3-4 Moderado</span>
-        <span className="rpe-slider-scale-label">5-6 Exigente</span>
-        <span className="rpe-slider-scale-label">7-8 Duro</span>
-        <span className="rpe-slider-scale-label">9-10 Máximo</span>
       </div>
     </div>
   );

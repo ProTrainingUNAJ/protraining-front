@@ -119,13 +119,13 @@ describe('RpeSliderBar', () => {
     expect(handleChange).not.toHaveBeenCalled();
   });
 
-  it('renderiza rótulos descriptivos de la escala ("Suave", "Duro", etc.) para mobile', () => {
+  it('no renderiza rótulos descriptivos redundantes debajo de los segmentos numéricos', () => {
     render(<RpeSliderBar value={7} onChange={vi.fn()} />);
 
-    expect(screen.getByText('1-2 Suave')).toBeDefined();
-    expect(screen.getByText('3-4 Moderado')).toBeDefined();
-    expect(screen.getByText('5-6 Exigente')).toBeDefined();
-    expect(screen.getByText('7-8 Duro')).toBeDefined();
-    expect(screen.getByText('9-10 Máximo')).toBeDefined();
+    expect(screen.queryByText('1-2 Suave')).toBeNull();
+    expect(screen.queryByText('3-4 Moderado')).toBeNull();
+    expect(screen.queryByText('5-6 Exigente')).toBeNull();
+    expect(screen.queryByText('7-8 Duro')).toBeNull();
+    expect(screen.queryByText('9-10 Máximo')).toBeNull();
   });
 });
