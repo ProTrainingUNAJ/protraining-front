@@ -585,9 +585,7 @@ export const CheckInPage: React.FC = () => {
 
     // No avanzar si falta puntuar alguna lesión activa (KAN-487).
     if (stepNum > 3 && hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
-      setErrorMessage(
-        'Debés puntuar el dolor (0 a 10) de cada lesión activa para poder avanzar.',
-      );
+      setErrorMessage('Debés puntuar el dolor (0 a 10) de cada lesión activa para poder avanzar.');
       return;
     }
     setErrorMessage(null);
