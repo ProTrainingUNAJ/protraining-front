@@ -14,9 +14,9 @@ vi.mock('recharts', async (importOriginal) => {
 });
 
 class MockResizeObserver {
-  observe() { }
-  unobserve() { }
-  disconnect() { }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
 }
 global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
@@ -126,7 +126,7 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     });
   });
 
-  it('renderiza la cabecera unificada con las píldoras de navegación y barra de filtros (KAN-650)', async () => {
+  it('renderiza la cabecera unificada con exactamente los 2 botones: "Estadísticas y Confiabilidad" e "Informes & Exportación" (KAN-650)', async () => {
     render(
       <MemoryRouter initialEntries={['/pf/statistics']}>
         <StatisticsPage />
@@ -134,10 +134,12 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     );
 
     expect(screen.getByText('Estadísticas & Informes')).toBeDefined();
-    expect(screen.getByRole('button', { name: /estadísticas del plantel/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /confiabilidad de récords/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /ver ambas/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /estadísticas y confiabilidad/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /informes & exportación/i })).toBeDefined();
+
+    // Las opciones separadas ya no existen como pestañas individuales
+    expect(screen.queryByRole('button', { name: /^estadísticas del plantel$/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^confiabilidad de récords$/i })).toBeNull();
 
     await waitFor(() => {
       expect(screen.getByRole('option', { name: 'Club Atlético Varela' })).toBeDefined();
@@ -147,26 +149,10 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     expect(screen.getByLabelText(/filtrar por organización/i)).toBeDefined();
     expect(screen.getByLabelText(/filtrar por categoría/i)).toBeDefined();
     expect(screen.getByLabelText(/seleccionar período de análisis/i)).toBeDefined();
-  });
-
-  it('conviven ambas secciones armoniosamente en modo "Ver Ambas" (tab=all) (KAN-650)', async () => {
-    render(
-      <MemoryRouter initialEntries={['/pf/statistics?tab=all']}>
-        <StatisticsPage />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /estadísticas del plantel/i })).toBeDefined();
-      expect(screen.getByRole('heading', { name: /confiabilidad de récords/i })).toBeDefined();
-    });
-
-    // En modo 'all' conviven ambos filtros contextuales: período y ejercicio
-    expect(screen.getByLabelText(/seleccionar período de análisis/i)).toBeDefined();
     expect(screen.getByLabelText(/filtrar por ejercicio/i)).toBeDefined();
   });
 
-  it('cambia a la pestaña de Confiabilidad de Récords y muestra selector de ejercicio', async () => {
+  it('conviven ambas secciones armoniosamente en la pestaña principal (KAN-650)', async () => {
     render(
       <MemoryRouter initialEntries={['/pf/statistics']}>
         <StatisticsPage />
@@ -174,14 +160,8 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'Club Atlético Varela' })).toBeDefined();
-    });
-
-    const reliabilityTab = screen.getByRole('button', { name: /confiabilidad de récords/i });
-    fireEvent.click(reliabilityTab);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/filtrar por ejercicio/i)).toBeDefined();
+      expect(screen.getByRole('heading', { name: /estadísticas del plantel/i })).toBeDefined();
+      expect(screen.getByRole('heading', { name: /confiabilidad de récords/i })).toBeDefined();
     });
   });
 
