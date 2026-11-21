@@ -664,4 +664,31 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     expect(removeBtn.className).toContain('manage-assignments-action-btn');
     expect(removeBtn.textContent).toContain('Quitar asignación');
   });
+
+  it('mantiene la propuesta de IA y muestra un aviso no bloqueante si getSessionAdjustment devuelve 500 (KAN-464)', async () => {
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockRejectedValue(
+      new Error('Error interno del servidor (500)'),
+    );
+
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+      />,
+    );
+
+    // La propuesta de IA sigue visible y usable pese al 500 en getSessionAdjustment
+    expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
+    expect(screen.getByText('Prensa de piernas')).toBeDefined();
+    expect(screen.getByRole('button', { name: /aprobar adaptación/i })).toBeDefined();
+
+    // Se muestra el aviso no bloqueante y no el error fatal del 500
+    const warning = await screen.findByTestId('adaptation-adjustment-warning');
+    expect(warning.textContent).toContain('No se pudo consultar si ya había un ajuste guardado');
+    expect(screen.queryByText(/Error interno del servidor \(500\)/i)).toBeNull();
+  });
 });
