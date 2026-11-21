@@ -423,6 +423,37 @@ export type TodayRoutineExercise = {
      * Motivo o nota de la adaptación aplicada al ejercicio.
      */
     adaptationReason?: string | null;
+    /**
+     * Métrica de intensidad activa del ejercicio.
+     */
+    intensityType?: 'RPE' | 'RIR';
+    /**
+     * RPE objetivo (1-10) cuando intensityType es RPE.
+     */
+    targetRpe?: number | null;
+    /**
+     * RIR objetivo (0-5) cuando intensityType es RIR.
+     */
+    targetRir?: number | null;
+    /**
+     * Notas técnicas del ejercicio para la semana.
+     */
+    notes?: string | null;
+    /**
+     * Número de semana resuelta para este ejercicio.
+     */
+    weekNumber?: number | null;
+    /**
+     * Identificador del bloque al que pertenece el ejercicio.
+     */
+    blockId?: string | null;
+};
+
+export type TodayRoutineBlock = {
+    id: string;
+    title: string;
+    order: number;
+    exercises: Array<TodayRoutineExercise>;
 };
 
 export type TodayRoutineResponse = {
@@ -443,6 +474,18 @@ export type TodayRoutineResponse = {
      */
     startTime?: string | null;
     exercises: Array<TodayRoutineExercise>;
+    /**
+     * Número de semana resuelta para la rutina.
+     */
+    weekNumber?: number | null;
+    /**
+     * Bloques de la sesión del día ordenados con los valores de la semana en curso.
+     */
+    blocks?: Array<TodayRoutineBlock> | null;
+    /**
+     * Nombre de la sesión del plan.
+     */
+    sessionName?: string | null;
     /**
      * Identificador de la sesión de entrenamiento programada para la fecha.
      */
