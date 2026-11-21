@@ -319,29 +319,38 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
   const confirmedMusclePains = responseCheckIn?.painZones
     ? parsePainZones(responseCheckIn.painZones)
     : musclePains;
+  // El borrador se borra apenas se envía (KAN-593). Al recargar, la respuesta guardada
+  // es la única fuente de las métricas del paso 2; sin esto aparecen como "No registrado".
+  const confirmedSleepHours = responseCheckIn?.sleepHours ?? sleepHours;
+  const confirmedFatigueLevel = responseCheckIn?.fatigueLevel ?? fatigueLevel;
+  const confirmedMuscleSoreness = responseCheckIn?.muscleSoreness ?? muscleSoreness;
+  const confirmedMoodRate = responseCheckIn?.moodRate ?? moodRate;
+  const confirmedIsSick = responseCheckIn?.isSick ?? isSick;
   const effectiveHasActiveInjury =
     (responseCheckIn?.hasActiveInjury ?? hasActiveInjury) || confirmedInjuries.length > 0;
 
   const reportedZones = getReportedZones(confirmedMusclePains, confirmedInjuries, confirmedScores);
   const reportedCount = reportedZones.length;
 
-  const activeMood = MOOD_CONFIGS[moodRate] || MOOD_CONFIGS[3];
+  const activeMood = MOOD_CONFIGS[confirmedMoodRate] || MOOD_CONFIGS[3];
 
   const getHealthInjurySummary = () => {
-    if (!isSick && !effectiveHasActiveInjury) return 'Salud normal · Sin lesión';
-    if (isSick && !effectiveHasActiveInjury) return 'Con síntomas de enfermedad';
-    if (!isSick && effectiveHasActiveInjury) return 'Lesión activa reportada';
+    if (!confirmedIsSick && !effectiveHasActiveInjury) return 'Salud normal · Sin lesión';
+    if (confirmedIsSick && !effectiveHasActiveInjury) return 'Con síntomas de enfermedad';
+    if (!confirmedIsSick && effectiveHasActiveInjury) return 'Lesión activa reportada';
     return 'Con síntomas y lesión activa';
   };
 
   // Colores calculados exactamente según las selecciones de Paso 2
-  const sleepColor = getSleepColor(sleepHours ?? 7.5);
-  const fatigueColor = getFatigueColor(fatigueLevel ?? 2);
-  const sorenessColor = getSorenessColor(muscleSoreness ?? 1);
+  const sleepColor = getSleepColor(confirmedSleepHours ?? 7.5);
+  const fatigueColor = getFatigueColor(confirmedFatigueLevel ?? 2);
+  const sorenessColor = getSorenessColor(confirmedMuscleSoreness ?? 1);
   const painZonesColor =
     reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
   const healthInjuryColor =
-    isSick || effectiveHasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
+    confirmedIsSick || effectiveHasActiveInjury
+      ? 'var(--traffic-red)'
+      : 'var(--checkin-scale-green)';
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -538,7 +547,9 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               <div className="checkin-summary-item-texts">
                 <span className="checkin-summary-item-label">Dolor muscular</span>
                 <strong className="checkin-summary-item-val">
-                  {muscleSoreness !== null ? getSorenessLabel(muscleSoreness) : 'No registrado'}
+                  {confirmedMuscleSoreness !== null
+                    ? getSorenessLabel(confirmedMuscleSoreness)
+                    : 'No registrado'}
                 </strong>
               </div>
             </div>
@@ -566,7 +577,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               <div className="checkin-summary-item-texts">
                 <span className="checkin-summary-item-label">Sueño</span>
                 <strong className="checkin-summary-item-val">
-                  {getSleepHoursLabel(sleepHours)}
+                  {getSleepHoursLabel(confirmedSleepHours)}
                 </strong>
               </div>
             </div>
@@ -624,7 +635,9 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               <div className="checkin-summary-item-texts">
                 <span className="checkin-summary-item-label">Fatiga física</span>
                 <strong className="checkin-summary-item-val">
-                  {fatigueLevel !== null ? getFatigueLabel(fatigueLevel) : 'No registrado'}
+                  {confirmedFatigueLevel !== null
+                    ? getFatigueLabel(confirmedFatigueLevel)
+                    : 'No registrado'}
                 </strong>
               </div>
             </div>
@@ -655,7 +668,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   className="checkin-summary-item-val"
                   style={{
                     color:
-                      isSick || effectiveHasActiveInjury
+                      confirmedIsSick || effectiveHasActiveInjury
                         ? 'var(--traffic-red)'
                         : 'var(--traffic-green)',
                   }}

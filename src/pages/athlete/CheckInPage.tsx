@@ -8,6 +8,7 @@ import {
   countPendingCheckIns,
   discardPendingCheckInsForDate,
   CheckInSubmitResponse,
+  type CheckInEntityDto,
   listCheckInInjuries,
 } from '../../api/seguimientoService';
 import { todayInArgentina } from '../../utils/argentinaDate';
@@ -36,7 +37,9 @@ import {
   purgeLegacyCheckInCompletedData,
   hasRequiredInjuryMark,
   hasUnscoredActiveInjuries,
+  getReportedZones,
   clearInjuryPains,
+  parsePainZones,
 } from '../../components/athlete/checkin/checkInHelper';
 
 const getCachedAthleteId = (userId?: string): string | null => {
@@ -56,6 +59,43 @@ const setCachedAthleteId = (userId: string, id: string) => {
   }
 };
 
+interface SubmittedCheckInState {
+  sleepHours: number | null;
+  sleepQuality: number | null;
+  fatigueLevel: number | null;
+  muscleSoreness: number | null;
+  moodRate: number;
+  stressLevel: number;
+  isSick: boolean;
+  hasActiveInjury: boolean;
+  healthQuestionsAnswered: boolean;
+  musclePains: Record<string, number>;
+  injuryScores: Record<string, number | null>;
+}
+
+// KAN-593: el borrador se borra al enviar. Al recargar o al editar un check-in
+// completado, la respuesta guardada es la única fuente de las respuestas.
+const getStateFromSubmittedCheckIn = (checkIn?: CheckInEntityDto): SubmittedCheckInState => {
+  const injuryScores: Record<string, number | null> = {};
+  (checkIn?.injuries ?? []).forEach((injury) => {
+    injuryScores[injury.injuryId] = injury.level;
+  });
+
+  return {
+    sleepHours: checkIn?.sleepHours ?? null,
+    sleepQuality: checkIn?.sleepQuality ?? null,
+    fatigueLevel: checkIn?.fatigueLevel ?? null,
+    muscleSoreness: checkIn?.muscleSoreness ?? null,
+    moodRate: checkIn?.moodRate ?? 3,
+    stressLevel: checkIn?.stressLevel ?? 2,
+    isSick: Boolean(checkIn?.isSick),
+    hasActiveInjury: Boolean(checkIn?.hasActiveInjury),
+    healthQuestionsAnswered: Boolean(checkIn),
+    musclePains: parsePainZones(checkIn?.painZones),
+    injuryScores,
+  };
+};
+
 export const CheckInPage: React.FC = () => {
   const { user } = useAuth();
   const [athleteId, setAthleteId] = useState<string>(() => {
@@ -67,34 +107,46 @@ export const CheckInPage: React.FC = () => {
 
   // Initial check from local storage for today
   const initialCompleted = getCheckInCompleted(athleteId);
+  const initialSubmittedCheckIn = (initialCompleted?.result as CheckInSubmitResponse | undefined)
+    ?.checkIn;
+  const initialSubmittedState = initialSubmittedCheckIn
+    ? getStateFromSubmittedCheckIn(initialSubmittedCheckIn)
+    : null;
   const initialDraft = initialCompleted ? null : getCheckInDraft(athleteId);
 
   // Check-in metrics state (conserved across all slides)
-  // KAN-593: las respuestas ya enviadas no se conservan en el registro local de
-  // completado, así que solo se recuperan del borrador todavía no enviado.
+  // KAN-593: si ya se envió, el borrador no existe; las respuestas se reconstruyen
+  // desde la respuesta del submit para que la confirmación y la edición muestren
+  // los mismos valores que se enviaron.
   const [sleepHours, setSleepHours] = useState<number | null>(
-    () => initialDraft?.sleepHours ?? null,
+    () => initialDraft?.sleepHours ?? initialSubmittedState?.sleepHours ?? null,
   );
   const [sleepQuality, setSleepQuality] = useState<number | null>(
-    () => initialDraft?.sleepQuality ?? null,
+    () => initialDraft?.sleepQuality ?? initialSubmittedState?.sleepQuality ?? null,
   );
   const [fatigueLevel, setFatigueLevel] = useState<number | null>(
-    () => initialDraft?.fatigueLevel ?? null,
+    () => initialDraft?.fatigueLevel ?? initialSubmittedState?.fatigueLevel ?? null,
   );
   const [muscleSoreness, setMuscleSoreness] = useState<number | null>(
-    () => initialDraft?.muscleSoreness ?? null,
+    () => initialDraft?.muscleSoreness ?? initialSubmittedState?.muscleSoreness ?? null,
   );
-  const [moodRate, setMoodRate] = useState<number>(() => initialDraft?.moodRate ?? 3);
-  const [stressLevel, setStressLevel] = useState<number>(() => initialDraft?.stressLevel ?? 2);
-  const [isSick, setIsSick] = useState<boolean>(() => initialDraft?.isSick ?? false);
+  const [moodRate, setMoodRate] = useState<number>(
+    () => initialDraft?.moodRate ?? initialSubmittedState?.moodRate ?? 3,
+  );
+  const [stressLevel, setStressLevel] = useState<number>(
+    () => initialDraft?.stressLevel ?? initialSubmittedState?.stressLevel ?? 2,
+  );
+  const [isSick, setIsSick] = useState<boolean>(
+    () => initialDraft?.isSick ?? initialSubmittedState?.isSick ?? false,
+  );
   const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(
-    () => initialDraft?.hasActiveInjury ?? false,
+    () => initialDraft?.hasActiveInjury ?? initialSubmittedState?.hasActiveInjury ?? false,
   );
   const [activeInjuries, setActiveInjuries] = useState<
     { id: string; zone: string; description: string }[]
   >([]);
   const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>(
-    () => initialDraft?.injuryScores || {},
+    () => initialDraft?.injuryScores ?? initialSubmittedState?.injuryScores ?? {},
   );
   const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
 
@@ -104,11 +156,15 @@ export const CheckInPage: React.FC = () => {
   const clinicalZones = activeInjuries.map((injury) => injury.zone);
 
   const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(
-    () => initialDraft?.healthQuestionsAnswered ?? false,
+    () =>
+      initialDraft?.healthQuestionsAnswered ??
+      initialSubmittedState?.healthQuestionsAnswered ??
+      false,
   );
   const [musclePains, setMusclePains] = useState<Record<string, number>>(() => {
-    const raw = initialDraft?.musclePains || {};
-    return initialDraft?.hasActiveInjury ? raw : clearInjuryPains(raw);
+    if (!initialDraft) return initialSubmittedState?.musclePains ?? {};
+    const raw = initialDraft.musclePains || {};
+    return initialDraft.hasActiveInjury ? raw : clearInjuryPains(raw);
   });
   const [notes, setNotes] = useState<string>(() => initialDraft?.notes || '');
 
@@ -155,37 +211,57 @@ export const CheckInPage: React.FC = () => {
     setShowConfetti(false);
   }, []);
 
-  // Helper to rehydrate state if athleteId resolves asynchronously from /me
-  const applyAthleteData = useCallback((id: string) => {
-    const completed = getCheckInCompleted(id);
-    if (completed) {
-      setSubmissionResult(completed.result as CheckInSubmitResponse);
-      setHasStarted(true);
-      setCurrentStep(4);
-      setMaxReachedStep(4);
-      return;
-    }
-
-    const draft = getCheckInDraft(id);
-    if (draft && draft.hasStarted) {
-      setHasStarted(true);
-      setCurrentStep(Math.min(Math.max(draft.currentStep, 1), 4));
-      setMaxReachedStep(Math.min(Math.max(draft.maxReachedStep, draft.currentStep, 1), 4));
-      setSleepHours(draft.sleepHours);
-      setSleepQuality(draft.sleepQuality);
-      setFatigueLevel(draft.fatigueLevel);
-      setMuscleSoreness(draft.muscleSoreness);
-      setMoodRate(draft.moodRate);
-      setStressLevel(draft.stressLevel);
-      setIsSick(draft.isSick);
-      setHasActiveInjury(draft.hasActiveInjury);
-      setHealthQuestionsAnswered(draft.healthQuestionsAnswered);
-      const dPains = draft.musclePains || {};
-      setMusclePains(draft.hasActiveInjury ? dPains : clearInjuryPains(dPains));
-      setInjuryScores(draft.injuryScores || {});
-      setNotes(draft.notes || '');
-    }
+  const applySubmittedState = useCallback((response: CheckInSubmitResponse) => {
+    const next = getStateFromSubmittedCheckIn(response.checkIn);
+    setSleepHours(next.sleepHours);
+    setSleepQuality(next.sleepQuality);
+    setFatigueLevel(next.fatigueLevel);
+    setMuscleSoreness(next.muscleSoreness);
+    setMoodRate(next.moodRate);
+    setStressLevel(next.stressLevel);
+    setIsSick(next.isSick);
+    setHasActiveInjury(next.hasActiveInjury);
+    setHealthQuestionsAnswered(next.healthQuestionsAnswered);
+    setMusclePains(next.musclePains);
+    setInjuryScores(next.injuryScores);
   }, []);
+
+  // Helper to rehydrate state if athleteId resolves asynchronously from /me
+  const applyAthleteData = useCallback(
+    (id: string) => {
+      const completed = getCheckInCompleted(id);
+      if (completed) {
+        const response = completed.result as CheckInSubmitResponse;
+        applySubmittedState(response);
+        setSubmissionResult(response);
+        setHasStarted(true);
+        setCurrentStep(4);
+        setMaxReachedStep(4);
+        return;
+      }
+
+      const draft = getCheckInDraft(id);
+      if (draft && draft.hasStarted) {
+        setHasStarted(true);
+        setCurrentStep(Math.min(Math.max(draft.currentStep, 1), 4));
+        setMaxReachedStep(Math.min(Math.max(draft.maxReachedStep, draft.currentStep, 1), 4));
+        setSleepHours(draft.sleepHours);
+        setSleepQuality(draft.sleepQuality);
+        setFatigueLevel(draft.fatigueLevel);
+        setMuscleSoreness(draft.muscleSoreness);
+        setMoodRate(draft.moodRate);
+        setStressLevel(draft.stressLevel);
+        setIsSick(draft.isSick);
+        setHasActiveInjury(draft.hasActiveInjury);
+        setHealthQuestionsAnswered(draft.healthQuestionsAnswered);
+        const dPains = draft.musclePains || {};
+        setMusclePains(draft.hasActiveInjury ? dPains : clearInjuryPains(dPains));
+        setInjuryScores(draft.injuryScores || {});
+        setNotes(draft.notes || '');
+      }
+    },
+    [applySubmittedState],
+  );
 
   // KAN-593: descarta los registros viejos que guardaban el borrador médico completo.
   useEffect(() => {
@@ -221,7 +297,7 @@ export const CheckInPage: React.FC = () => {
     }
   }, [user?.id, applyAthleteData]);
 
-  // Carga las molestias activas del atleta para exigir su puntaje (0-10) en el check-in.
+  // Carga las lesiones activas del atleta para exigir su puntaje (0-10) en el check-in.
   useEffect(() => {
     if (!athleteId || athleteId.startsWith('99eedc')) return;
     let cancelled = false;
@@ -244,7 +320,7 @@ export const CheckInPage: React.FC = () => {
         if (!cancelled) {
           setActiveInjuries([]);
           setInjuriesLoadWarning(
-            'No se pudieron cargar tus molestias activas. Recargá la página para poder puntuarlas.',
+            'No se pudieron cargar tus lesiones activas. Recargá la página para poder puntuarlas.',
           );
         }
       });
@@ -507,11 +583,9 @@ export const CheckInPage: React.FC = () => {
       return;
     }
 
-    // No avanzar si falta puntuar alguna molestia activa (KAN-487).
+    // No avanzar si falta puntuar alguna lesión activa (KAN-487).
     if (stepNum > 3 && hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
-      setErrorMessage(
-        'Debés puntuar el dolor (0 a 10) de cada molestia activa para poder avanzar.',
-      );
+      setErrorMessage('Debés puntuar el dolor (0 a 10) de cada lesión activa para poder avanzar.');
       return;
     }
     setErrorMessage(null);
@@ -619,17 +693,23 @@ export const CheckInPage: React.FC = () => {
       return;
     }
 
-    // Format pain zones: "Quadriceps:2,Hamstrings:1"
-    const painZones = formatPainZones(musclePains);
+    // Format pain zones: "Quadriceps:2,Hamstrings:1". Las lesiones clínicas activas
+    // también son zonas con dolor: se incluyen con el marcador 6 y prevalecen sobre
+    // una marca manual de la misma zona. El back KAN-644 dedupe; con el back anterior
+    // esta es la única forma de que el PF vea la lesión en el mapa anatómico.
+    const reportedZones = getReportedZones(musclePains, activeInjuries, injuryScores);
+    const painZones = formatPainZones(
+      Object.fromEntries(reportedZones.map((zone) => [zone.zone, zone.level])),
+    );
 
     const injuriesPayload = activeInjuries.map((injury) => ({
       injuryId: injury.id,
       level: injuryScores[injury.id] as number,
     }));
 
-    // No se puede guardar sin puntuar cada molestia activa (KAN-487).
+    // No se puede guardar sin puntuar cada lesión activa (KAN-487).
     if (hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
-      setErrorMessage('Falta puntuar el dolor de cada molestia activa (de 0 a 10).');
+      setErrorMessage('Falta puntuar el dolor de cada lesión activa (de 0 a 10).');
       setIsSubmitting(false);
       return;
     }
@@ -808,7 +888,7 @@ export const CheckInPage: React.FC = () => {
           </div>
         )}
 
-        {/* Aviso si no se pudieron cargar las molestias activas */}
+        {/* Aviso si no se pudieron cargar las lesiones activas */}
         {injuriesLoadWarning && (
           <div
             style={{
@@ -920,7 +1000,7 @@ export const CheckInPage: React.FC = () => {
                 />
               )}
 
-              {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud, Lesiones y Molestias Activas en Modal) */}
+              {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud y Lesiones Activas en Modal) */}
               {currentStep === 3 && (
                 <CheckInPainSlide
                   musclePains={musclePains}

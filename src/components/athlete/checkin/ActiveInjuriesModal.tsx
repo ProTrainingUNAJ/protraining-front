@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PainSliderBar } from '../../common/PainSliderBar';
+import { getMuscleSpanishName } from '../../../utils/exerciseMuscleMapper';
 import { Activity, Check } from 'lucide-react';
 
 export interface ActiveInjuryItem {
@@ -18,7 +19,7 @@ export interface ActiveInjuriesModalProps {
 
 /**
  * Modal emergente centrado con backdrop desenfocado (Burbuja estilo Imagen 2)
- * para evaluar molestias activas previamente registradas usando la barra continua de dolor (Imagen 3).
+ * para evaluar lesiones activas previamente registradas usando la barra continua de dolor (Imagen 3).
  */
 export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
   isOpen,
@@ -123,7 +124,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             letterSpacing: '-0.02em',
           }}
         >
-          Molestias activas
+          Lesiones activas
         </h3>
 
         {/* Indicador de cantidad si hay más de 1 */}
@@ -136,11 +137,11 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
               marginBottom: '0.5rem',
             }}
           >
-            Molestia {safeIndex + 1} de {activeInjuries.length}
+            Lesión {safeIndex + 1} de {activeInjuries.length}
           </div>
         )}
 
-        {/* Tarjeta con zona y descripción de la molestia activa */}
+        {/* Tarjeta con zona y descripción de la lesión activa */}
         <div
           style={{
             width: '100%',
@@ -162,7 +163,8 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             }}
           >
             <span>
-              {currentInjury.zone} — {currentInjury.description}
+              {getMuscleSpanishName(currentInjury.zone) || currentInjury.zone} —{' '}
+              {currentInjury.description}
             </span>
           </div>
         </div>
@@ -178,7 +180,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             margin: '0 0 0.85rem 0',
           }}
         >
-          Deslizá la barra para indicar el nivel de molestia o dolor que sentís hoy:
+          Deslizá la barra para indicar el nivel de dolor que sentís hoy en esta lesión:
         </p>
 
         {/* Barra continua con degradado continuo y thumb con número (Imagen 3) */}
@@ -186,7 +188,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
           <PainSliderBar
             value={currentScore}
             onChange={handleScoreChange}
-            ariaLabel={`Nivel de molestia en ${currentInjury.zone}`}
+            ariaLabel={`Nivel de dolor en ${getMuscleSpanishName(currentInjury.zone) || currentInjury.zone}`}
           />
           {(injuryScores[currentInjury.id] === null ||
             injuryScores[currentInjury.id] === undefined) && (
@@ -197,7 +199,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
                 margin: '0.4rem 0 0 0',
               }}
             >
-              Deslizá la barra para puntuar esta molestia (0 a 10).
+              Deslizá la barra para puntuar esta lesión (0 a 10).
             </p>
           )}
         </div>
@@ -256,7 +258,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             }}
           >
             <Check size={18} strokeWidth={2.5} />
-            <span>{isLast ? 'Confirmar molestia' : 'Siguiente molestia'}</span>
+            <span>{isLast ? 'Confirmar lesión' : 'Siguiente lesión'}</span>
           </button>
         </div>
       </div>

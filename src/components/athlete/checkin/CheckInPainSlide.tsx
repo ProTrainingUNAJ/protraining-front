@@ -3,6 +3,7 @@ import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan, Activity } from 'lu
 import { InteractiveMuscleMap } from '../InteractiveMuscleMap';
 import { hasRequiredInjuryMark, hasUnscoredActiveInjuries } from './checkInHelper';
 import { ActiveInjuriesModal, ActiveInjuryItem } from './ActiveInjuriesModal';
+import { getMuscleSpanishName } from '../../../utils/exerciseMuscleMapper';
 
 export interface CheckInPainSlideProps {
   musclePains: Record<string, number>;
@@ -45,14 +46,10 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   });
   const [showInjuryNotice, setShowInjuryNotice] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  // Modal de molestias activas (Burbuja estilo Imagen 2)
-  const [showInjuriesModal, setShowInjuriesModal] = useState<boolean>(() => {
-    if (activeInjuries && activeInjuries.length > 0) {
-      // Abre automáticamente si hay molestias activas
-      return true;
-    }
-    return false;
-  });
+  // Modal de lesiones activas (Burbuja estilo Imagen 2). La apertura automática se deriva
+  // en render; estos estados solo registran la apertura manual y si el usuario la cerró.
+  const [showInjuriesModal, setShowInjuriesModal] = useState<boolean>(false);
+  const [injuriesModalDismissed, setInjuriesModalDismissed] = useState<boolean>(false);
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -82,9 +79,6 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       });
     }
     setCartelStep('desbloqueado');
-    if (activeInjuries && activeInjuries.length > 0) {
-      setShowInjuriesModal(true);
-    }
   };
 
   const isBlocked = cartelStep !== 'desbloqueado';
@@ -93,6 +87,20 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   const clinicalLesion = (activeInjuries?.length ?? 0) > 0;
   const lesionActive = hasActiveInjury || clinicalLesion;
   const missingScores = hasUnscoredActiveInjuries(activeInjuries ?? [], injuryScores);
+
+  // La ficha clínica puede llegar después del mount. Derivamos la apertura en render para
+  // cubrir ese caso sin setState en un effect, y respetamos el cierre explícito del atleta.
+  const openInjuriesModal = () => {
+    setInjuriesModalDismissed(false);
+    setShowInjuriesModal(true);
+  };
+  const closeInjuriesModal = () => {
+    setShowInjuriesModal(false);
+    setInjuriesModalDismissed(true);
+  };
+  const injuriesModalOpen =
+    !isBlocked && !injuriesModalDismissed && (showInjuriesModal || clinicalLesion);
+
   const canProceed =
     hasRequiredInjuryMark(
       lesionActive,
@@ -100,7 +108,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       activeInjuries?.map((i) => i.zone),
     ) && !missingScores;
   const nextBlockedReason = missingScores
-    ? 'Debés puntuar el dolor (0 a 10) de cada molestia activa para continuar.'
+    ? 'Debés puntuar el dolor (0 a 10) de cada lesión activa para continuar.'
     : 'Debés marcar la lesión para continuar.';
 
   const lesionChip = (
@@ -277,17 +285,17 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             {/* Chip de Lesión (incluye la lesión clínica activa aunque el flag local esté en false) */}
             {lesionChip}
 
-            {/* Chip de Molestias Activas (si hay molestias registradas previamente) */}
+            {/* Chip de Lesiones Activas (si hay lesiones registradas en la ficha clínica) */}
             {activeInjuries && activeInjuries.length > 0 && (
               <button
                 type="button"
-                onClick={() => setShowInjuriesModal(true)}
+                onClick={openInjuriesModal}
                 className="checkin-health-chip warning"
-                title="Modificar puntuación de molestias activas"
+                title="Modificar puntuación de lesiones activas"
               >
                 <Activity size={12} />
                 <span>
-                  Molestia: {activeInjuries[0].zone}
+                  Lesión: {getMuscleSpanishName(activeInjuries[0].zone) || activeInjuries[0].zone}
                   {injuryScores[activeInjuries[0].id] !== null &&
                   injuryScores[activeInjuries[0].id] !== undefined
                     ? ` (${injuryScores[activeInjuries[0].id]}/10)`
@@ -701,8 +709,8 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       {/* ── BURBUJA MODAL DE MOLESTIAS ACTIVAS (ESTILO IMAGEN 2) CON SLIDER (IMAGEN 3) ── */}
       {activeInjuries && activeInjuries.length > 0 && (
         <ActiveInjuriesModal
-          isOpen={showInjuriesModal && !isBlocked}
-          onClose={() => setShowInjuriesModal(false)}
+          isOpen={injuriesModalOpen}
+          onClose={closeInjuriesModal}
           activeInjuries={activeInjuries}
           injuryScores={injuryScores}
           onScoreChange={onInjuryScoreChange ?? (() => {})}

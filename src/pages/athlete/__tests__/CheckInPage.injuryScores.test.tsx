@@ -125,6 +125,8 @@ describe('CheckInPage with active injury scores', () => {
     const [athleteId, payload] = vi.mocked(seguimientoService.submitCheckIn).mock.calls[0];
     expect(athleteId).toBe(ATHLETE_ID);
     expect(payload.injuries).toEqual([{ injuryId: INJURY_ID, level: 4 }]);
+    // la lesión clínica viaja en painZones aunque el atleta no haya pintado la silueta.
+    expect(payload.painZones).toContain('isquiotibiales:6');
 
     expect(checkInHelper.getCheckInDraft(ATHLETE_ID)).toBeNull();
     const completedKeys = Array.from({ length: localStorage.length }, (_, index) =>
@@ -226,10 +228,83 @@ describe('CheckInPage with active injury scores', () => {
     // Responder "No" a la lesión no puede negar lo que dice la ficha clínica.
     fireEvent.click(await screen.findByRole('button', { name: 'No' }));
 
-    expect(await screen.findByText(/Deslizá la barra para puntuar esta molestia/i)).toBeDefined();
+    expect(await screen.findByText(/Deslizá la barra para puntuar esta lesión/i)).toBeDefined();
     const nextButton = screen.getByRole('button', { name: /Ir al siguiente paso/i });
     expect(nextButton.hasAttribute('disabled')).toBe(true);
     expect(nextButton.getAttribute('title')).toMatch(/puntuar el dolor/i);
     expect(seguimientoService.submitCheckIn).not.toHaveBeenCalled();
+  });
+
+  // las lesiones llegan después del mount: con el draft ya desbloqueado ningún cartel
+  // vuelve a abrir el modal, así que debe abrirse automáticamente al cargar la ficha.
+  it('opens the 0-10 modal when active injuries arrive after an unlocked draft', async () => {
+    checkInHelper.saveCheckInDraft(ATHLETE_ID, {
+      hasStarted: true,
+      currentStep: 3,
+      maxReachedStep: 3,
+      sleepHours: 8,
+      sleepQuality: 3,
+      fatigueLevel: 3,
+      muscleSoreness: 3,
+      moodRate: 3,
+      stressLevel: 2,
+      isSick: false,
+      hasActiveInjury: true,
+      healthQuestionsAnswered: true,
+      musclePains: {},
+      injuryScores: {},
+      notes: '',
+    });
+
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Paso 3: Dolor y Zonas/i }));
+
+    expect(
+      await screen.findByRole('group', { name: /Nivel de dolor en Isquiotibiales/i }),
+    ).toBeDefined();
+    expect(await screen.findByText(/Deslizá la barra para puntuar esta lesión/i)).toBeDefined();
+  });
+
+  // KAN-593: al editar después de recargar no hay borrador; las respuestas deben
+  // volver desde la respuesta del submit (incluido el dolor 0-10 de la lesión).
+  it('restores the submitted responses when editing a completed check-in', async () => {
+    checkInHelper.clearCheckInDraft(ATHLETE_ID);
+    checkInHelper.saveCheckInCompleted(ATHLETE_ID, {
+      result: {
+        message: 'Check-in registrado',
+        trafficLight: 'Red',
+        trafficLightReason: 'Lesión activa reportada',
+        checkIn: {
+          sleepHours: 8,
+          sleepQuality: 3,
+          muscleSoreness: 2,
+          fatigueLevel: 2,
+          moodRate: 4,
+          stressLevel: 2,
+          isSick: false,
+          painZones: 'isquiotibiales:6',
+          hasActiveInjury: true,
+          injuries: [{ injuryId: INJURY_ID, zone: 'isquiotibiales', level: 7 }],
+        },
+      } as never,
+      completedAt: new Date().toISOString(),
+    });
+
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar respuestas' }));
+
+    expect(screen.queryByText(/No registrado|Sin registrar/i)).toBeNull();
+    expect(screen.getAllByText('8').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Fresco').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Leve').length).toBeGreaterThan(0);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Paso 3: Dolor y Zonas/i }));
+    expect(await screen.findByText(/isquiotibiales — Distensión grado 1/i)).toBeDefined();
+    const scoreSlider = await screen.findByRole('slider', {
+      name: /Nivel de dolor en Isquiotibiales/i,
+    });
+    expect((scoreSlider as HTMLInputElement).value).toBe('7');
   });
 });
