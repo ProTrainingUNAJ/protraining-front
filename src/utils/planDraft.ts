@@ -388,83 +388,87 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
                 id: block.id || null,
                 title: block.title.trim(),
                 order: block.order,
-                exercises: block.exercises.map((exercise, idx) => {
-                  const prog = exercise.weeklyProgression?.[week.weekNumber];
-                  const repsVal = prog?.repsRange
-                    ? String(prog.repsRange).trim()
-                    : prog?.reps != null
-                      ? String(prog.reps).trim()
-                      : exercise.repsRange
-                        ? String(exercise.repsRange).trim()
-                        : String(exercise.reps ?? '10').trim();
-                  const setsVal =
-                    prog?.sets ?? (typeof exercise.sets === 'number' ? exercise.sets : 3);
-                  const intensityVal: IntensityMetric =
-                    exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR'
-                      ? 'RIR'
-                      : 'RPE';
-                  return {
-                    id: exercise.id || null,
-                    exerciseId: exercise.exerciseId ?? '',
-                    order: exercise.order || idx + 1,
-                    sets: setsVal,
-                    reps: repsVal || '10',
-                    targetPercentage: prog?.targetPercentage ?? exercise.targetPercentage ?? null,
-                    intensityType: intensityVal,
-                    targetRpe:
-                      intensityVal === 'RPE'
-                        ? (prog?.targetRpe ?? exercise.targetRpe ?? null)
-                        : null,
-                    targetRir:
-                      intensityVal === 'RIR'
-                        ? (prog?.targetRir ?? exercise.targetRir ?? null)
-                        : null,
-                    notes: prog?.notes ?? exercise.notes ?? null,
-                  };
-                }),
+                exercises: block.exercises
+                  .filter((exercise) => Boolean(exercise.exerciseId?.trim()))
+                  .map((exercise, idx) => {
+                    const prog = exercise.weeklyProgression?.[week.weekNumber];
+                    const repsVal = prog?.repsRange
+                      ? String(prog.repsRange).trim()
+                      : prog?.reps != null
+                        ? String(prog.reps).trim()
+                        : exercise.repsRange
+                          ? String(exercise.repsRange).trim()
+                          : String(exercise.reps ?? '10').trim();
+                    const setsVal =
+                      prog?.sets ?? (typeof exercise.sets === 'number' ? exercise.sets : 3);
+                    const intensityVal: IntensityMetric =
+                      exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR'
+                        ? 'RIR'
+                        : 'RPE';
+                    return {
+                      id: exercise.id || null,
+                      exerciseId: exercise.exerciseId!.trim(),
+                      order: exercise.order || idx + 1,
+                      sets: setsVal,
+                      reps: repsVal || '10',
+                      targetPercentage: prog?.targetPercentage ?? exercise.targetPercentage ?? null,
+                      intensityType: intensityVal,
+                      targetRpe:
+                        intensityVal === 'RPE'
+                          ? (prog?.targetRpe ?? exercise.targetRpe ?? null)
+                          : null,
+                      targetRir:
+                        intensityVal === 'RIR'
+                          ? (prog?.targetRir ?? exercise.targetRir ?? null)
+                          : null,
+                      notes: prog?.notes ?? exercise.notes ?? null,
+                    };
+                  }),
               }))
             : undefined;
 
-        const flatExercises = sessionExercises.map((exercise, idx) => {
-          const isBlockEx = 'weeklyProgression' in exercise;
-          const prog = isBlockEx
-            ? (exercise as BlockExercise).weeklyProgression?.[week.weekNumber]
-            : null;
-          const repsVal = prog?.repsRange
-            ? String(prog.repsRange).trim()
-            : prog?.reps != null
-              ? String(prog.reps).trim()
-              : 'repsRange' in exercise && exercise.repsRange
-                ? String(exercise.repsRange).trim()
-                : 'reps' in exercise && exercise.reps != null
-                  ? String(exercise.reps).trim()
-                  : '10';
-          const setsVal =
-            prog?.sets ??
-            ('sets' in exercise && typeof exercise.sets === 'number' ? exercise.sets : 3);
-          const intensityVal: IntensityMetric =
-            exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR' ? 'RIR' : 'RPE';
-          return {
-            id: exercise.id || null,
-            exerciseId: exercise.exerciseId ?? '',
-            order: exercise.order || idx + 1,
-            sets: setsVal,
-            reps: repsVal || '10',
-            targetPercentage:
-              prog?.targetPercentage ??
-              ('targetPercentage' in exercise ? exercise.targetPercentage : null),
-            intensityType: intensityVal,
-            targetRpe:
-              intensityVal === 'RPE'
-                ? (prog?.targetRpe ?? ('targetRpe' in exercise ? exercise.targetRpe : null))
-                : null,
-            targetRir:
-              intensityVal === 'RIR'
-                ? (prog?.targetRir ?? ('targetRir' in exercise ? exercise.targetRir : null))
-                : null,
-            notes: prog?.notes ?? ('notes' in exercise ? exercise.notes : null),
-          };
-        });
+        const flatExercises = sessionExercises
+          .filter((exercise) => Boolean(exercise.exerciseId?.trim()))
+          .map((exercise, idx) => {
+            const isBlockEx = 'weeklyProgression' in exercise;
+            const prog = isBlockEx
+              ? (exercise as BlockExercise).weeklyProgression?.[week.weekNumber]
+              : null;
+            const repsVal = prog?.repsRange
+              ? String(prog.repsRange).trim()
+              : prog?.reps != null
+                ? String(prog.reps).trim()
+                : 'repsRange' in exercise && exercise.repsRange
+                  ? String(exercise.repsRange).trim()
+                  : 'reps' in exercise && exercise.reps != null
+                    ? String(exercise.reps).trim()
+                    : '10';
+            const setsVal =
+              prog?.sets ??
+              ('sets' in exercise && typeof exercise.sets === 'number' ? exercise.sets : 3);
+            const intensityVal: IntensityMetric =
+              exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR' ? 'RIR' : 'RPE';
+            return {
+              id: exercise.id || null,
+              exerciseId: exercise.exerciseId!.trim(),
+              order: exercise.order || idx + 1,
+              sets: setsVal,
+              reps: repsVal || '10',
+              targetPercentage:
+                prog?.targetPercentage ??
+                ('targetPercentage' in exercise ? exercise.targetPercentage : null),
+              intensityType: intensityVal,
+              targetRpe:
+                intensityVal === 'RPE'
+                  ? (prog?.targetRpe ?? ('targetRpe' in exercise ? exercise.targetRpe : null))
+                  : null,
+              targetRir:
+                intensityVal === 'RIR'
+                  ? (prog?.targetRir ?? ('targetRir' in exercise ? exercise.targetRir : null))
+                  : null,
+              notes: prog?.notes ?? ('notes' in exercise ? exercise.notes : null),
+            };
+          });
 
         return {
           id: session.id,

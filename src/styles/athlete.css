@@ -501,9 +501,9 @@
 /* Badge y desglose de variante personalizada */
 .routine-variant-badge {
   gap: 0.3rem;
-  background: var(--traffic-yellow-bg);
-  color: var(--traffic-yellow-text);
-  border: 1px solid var(--traffic-yellow-border);
+  background: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--info-border);
   font-weight: 700;
 }
 
@@ -514,8 +514,8 @@
   margin-top: 0.2rem;
   padding: 0.5rem 0.7rem;
   border-radius: 10px;
-  background: var(--traffic-yellow-bg);
-  border: 1px solid var(--traffic-yellow-border);
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
   font-size: 0.78rem;
   line-height: 1.4;
   color: var(--text-main);
@@ -523,7 +523,7 @@
 
 .routine-variant-original {
   font-weight: 700;
-  color: var(--traffic-yellow-text);
+  color: var(--info-text);
 }
 
 .routine-variant-reason {

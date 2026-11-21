@@ -840,4 +840,68 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
       expect(saveReq.weeks?.[0]?.sessions?.[1]?.dayOfWeek).toBe(5);
     });
   });
+
+  it('marca y preserva isReference en planDraftToDays y daysToPlanDraft cuando falta exerciseId o viene como referencia (KAN-467)', () => {
+    const detail = {
+      id: 'plan-ref',
+      name: 'Plan Referencia',
+      goal: 'Fuerza',
+      weeksCount: 1,
+      weeks: [
+        {
+          id: 'w-1',
+          weekNumber: 1,
+          sessions: [
+            {
+              id: 's-1',
+              name: 'Lunes',
+              order: 1,
+              dayOfWeek: 1,
+              blocks: [
+                {
+                  id: 'b-1',
+                  title: 'Principal',
+                  order: 1,
+                  exercises: [
+                    {
+                      id: 'ex-1',
+                      exerciseId: 'ex-squat',
+                      exerciseName: 'Sentadilla',
+                      order: 1,
+                      sets: 4,
+                      reps: 6,
+                      intensityType: 'RPE',
+                      isReference: true,
+                    },
+                    {
+                      id: 'ex-2',
+                      exerciseId: null,
+                      exerciseName: 'Ejercicio pendiente',
+                      order: 2,
+                      sets: 3,
+                      reps: 10,
+                      intensityType: 'RPE',
+                    },
+                  ],
+                },
+              ],
+              exercises: [],
+            },
+          ],
+        },
+      ],
+    } as unknown as TrainingPlanDetail;
+
+    const draft = toDraft(detail);
+    draft.weeks[0].sessions[0].blocks![0].exercises[0].isReference = true;
+    const days = planDraftToDays(draft);
+    const blockExercises = days[0].blocks[0].exercises;
+
+    expect(blockExercises[0].isReference).toBe(true);
+    expect(blockExercises[1].isReference).toBe(true);
+
+    const roundTrip = daysToPlanDraft(days, draft);
+    expect(roundTrip.weeks[0].sessions[0].exercises[0].isReference).toBe(true);
+    expect(roundTrip.weeks[0].sessions[0].exercises[1].isReference).toBe(true);
+  });
 });
