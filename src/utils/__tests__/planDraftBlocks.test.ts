@@ -500,4 +500,167 @@ describe('PlanDraft Blocks & Weekly Grid (KAN-587)', () => {
     expect(exReq.targetRpe).toBe(8.5);
     expect(exReq.notes).toBe('Pausa abajo');
   });
+
+  it('guarda un día con 8 ejercicios sin empaquetar JSON en coachNotes ni superar el límite de 1000 caracteres (KAN-587)', () => {
+    // 1. Armar 8 ejercicios en un día
+    const catalog8: CatalogExercise[] = Array.from({ length: 8 }, (_, i) => ({
+      id: `ex-id-${i + 1}`,
+      name: `Ejercicio de prueba ${i + 1}`,
+      muscleGroup: i % 2 === 0 ? 'Piernas' : 'Pecho',
+      equipment: 'Barra',
+      images: [],
+      exerciseType: 'Weight',
+    }));
+
+    const block1: DayBlock = {
+      key: 'block-large',
+      title: 'Bloque Principal de 8 Ejercicios',
+      order: 1,
+      exercises: catalog8.map((cat, idx) => {
+        const isRir = idx % 2 === 1;
+        const ex = createBlockExercise(cat, idx + 1, [1]);
+        ex.intensityType = isRir ? 'RIR' : 'RPE';
+        ex.weeklyProgression[1] = {
+          weekNumber: 1,
+          sets: 3 + (idx % 2),
+          reps: 8 + idx,
+          repsRange: `${8 + idx}-${10 + idx}`,
+          targetPercentage: 70 + idx * 2.5,
+          intensityType: isRir ? 'RIR' : 'RPE',
+          targetRpe: isRir ? null : 8 + (idx % 3) * 0.5,
+          targetRir: isRir ? 1 + (idx % 2) : null,
+          notes: `Indicación técnica para ejercicio ${idx + 1}: mantener cadencia 3-1-1`,
+        };
+        return ex;
+      }),
+    };
+
+    const dayPlan: DayPlan = {
+      dayOfWeek: 1, // Lunes
+      blocks: [block1],
+    };
+
+    const baseDraft: PlanDraft = {
+      id: 'plan-8-exercises',
+      name: 'Plan 8 ejercicios',
+      objective: 'Fuerza máxima y volumen alto',
+      weeks: [
+        {
+          key: 'w1',
+          id: null,
+          weekNumber: 1,
+          nextSessionOrder: 1,
+          sessions: [],
+        },
+      ],
+    };
+
+    const draft = daysToPlanDraft([dayPlan], baseDraft);
+    // Asignar una nota legítima de coach a la sesión
+    draft.weeks[0].sessions[0].coachNotes =
+      'Enfocarse en la técnica y control del tempo en cada serie.';
+
+    // 2. Transformar a request de guardado nativo
+    const saveRequest = toSaveRequest(draft);
+
+    expect(saveRequest.weeks).toHaveLength(1);
+    const sessionReq = saveRequest.weeks![0].sessions![0];
+
+    // coachNotes debe contener ÚNICAMENTE la nota limpia y NO el prefijo o JSON empaquetado PT_BLOCK_META
+    expect(sessionReq.coachNotes).toBe(
+      'Enfocarse en la técnica y control del tempo en cada serie.',
+    );
+    expect(sessionReq.coachNotes).not.toContain('<!--PT_BLOCK_META:');
+    expect(sessionReq.coachNotes).not.toContain('-->');
+    // Debe respetar holgadamente el límite de 1000 caracteres de la base de datos (con 8 ejercicios antes superaba los 1060 chars)
+    expect(sessionReq.coachNotes!.length).toBeLessThan(1000);
+    expect(sessionReq.coachNotes!.length).toBeLessThan(200);
+
+    // Todos los 8 ejercicios se guardan con sus campos nativos intactos
+    expect(sessionReq.blocks).toHaveLength(1);
+    const blockReq = sessionReq.blocks![0];
+    expect(blockReq.exercises).toHaveLength(8);
+
+    blockReq.exercises!.forEach((ex, idx) => {
+      const isRir = idx % 2 === 1;
+      expect(ex.exerciseId).toBe(`ex-id-${idx + 1}`);
+      expect(ex.sets).toBe(3 + (idx % 2));
+      expect(ex.reps).toBe(`${8 + idx}-${10 + idx}`);
+      expect(ex.targetPercentage).toBe(70 + idx * 2.5);
+      expect(ex.intensityType).toBe(isRir ? 'RIR' : 'RPE');
+      if (isRir) {
+        expect(ex.targetRir).toBe(1 + (idx % 2));
+        expect(ex.targetRpe).toBeNull();
+      } else {
+        expect(ex.targetRpe).toBe(8 + (idx % 3) * 0.5);
+        expect(ex.targetRir).toBeNull();
+      }
+      expect(ex.notes).toBe(
+        `Indicación técnica para ejercicio ${idx + 1}: mantener cadencia 3-1-1`,
+      );
+    });
+
+    // 3. Simular la respuesta del backend y reapertura con toDraft sin empaquetado
+    const simulatedResponse: TrainingPlanDetail = {
+      id: 'plan-123',
+      name: saveRequest.name,
+      objective: saveRequest.objective ?? '',
+      weeks: [
+        {
+          id: 'week-1',
+          weekNumber: 1,
+          sessions: [
+            {
+              id: 'sess-1',
+              name: sessionReq.name,
+              dayOfWeek: sessionReq.dayOfWeek,
+              order: sessionReq.order,
+              coachNotes: sessionReq.coachNotes,
+              exercises: [],
+              blocks: sessionReq.blocks!.map((b) => ({
+                id: 'b-1',
+                title: b.title,
+                order: b.order,
+                exercises: b.exercises!.map((ex) => ({
+                  id: `ex-saved-${ex.exerciseId}`,
+                  exerciseId: ex.exerciseId,
+                  exerciseName: `Ejercicio ${ex.exerciseId}`,
+                  order: ex.order,
+                  sets: ex.sets,
+                  reps: String(ex.reps),
+                  targetPercentage: ex.targetPercentage,
+                  intensityType: ex.intensityType,
+                  targetRpe: ex.targetRpe,
+                  targetRir: ex.targetRir,
+                  notes: ex.notes,
+                })),
+              })),
+            },
+          ],
+        },
+      ],
+    };
+
+    const reopenedDraft = toDraft(simulatedResponse);
+    expect(reopenedDraft.weeks[0].sessions[0].coachNotes).toBe(
+      'Enfocarse en la técnica y control del tempo en cada serie.',
+    );
+    expect(reopenedDraft.weeks[0].sessions[0].blocks![0].exercises).toHaveLength(8);
+
+    const reExercises = reopenedDraft.weeks[0].sessions[0].blocks![0].exercises;
+    reExercises.forEach((reEx, idx) => {
+      const isRir = idx % 2 === 1;
+      const prog = reEx.weeklyProgression[1];
+      expect(prog.repsRange).toBe(`${8 + idx}-${10 + idx}`);
+      expect(prog.intensityType).toBe(isRir ? 'RIR' : 'RPE');
+      if (isRir) {
+        expect(prog.targetRir).toBe(1 + (idx % 2));
+      } else {
+        expect(prog.targetRpe).toBe(8 + (idx % 3) * 0.5);
+      }
+      expect(prog.notes).toBe(
+        `Indicación técnica para ejercicio ${idx + 1}: mantener cadencia 3-1-1`,
+      );
+    });
+  });
 });
