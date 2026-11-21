@@ -1,14 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
-  ArrowRight,
+  ArrowLeftRight,
+  Calendar,
+  Check,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Dumbbell,
   Edit3,
   Loader2,
   RefreshCw,
-  RotateCcw,
   ShieldAlert,
   Sparkles,
   X,
@@ -28,6 +32,7 @@ import { trainingPlansService } from '../../api/trainingPlans';
 import type { TrainingPlanDetail, TrainingSessionDetail } from '../../api/generated/entrenamiento';
 import type { CatalogExercise } from '../../types/trainingPlans';
 import { ExercisePickerModal } from './ExercisePickerModal';
+import { AdaptationDiffItem } from './AdaptationDiffItem';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { parseRepsNumber } from '../../utils/planDraft';
 
@@ -91,7 +96,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   const [proposal, setProposal] = useState<RoutineAdaptationResponse | null>(null);
   const [selectedSubstitutes, setSelectedSubstitutes] = useState<Record<string, string>>({});
 
-  // Estados de decisión del PF: Aprobar / Editar / Rechazar (KAN-465)
+  // Estados de decisión del PF: Aprobar / Editar / Rechazar (KAN-465, KAN-637)
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [isRejected, setIsRejected] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -107,8 +112,11 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
     originalExerciseId?: string | null;
   } | null>(null);
 
+  const [showGeneralJustification, setShowGeneralJustification] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const carouselRef = useRef<HTMLDivElement | null>(null);
 
   const flattenedSessions = useMemo<FlattenedPlanSession[]>(() => {
     if (!planDetail?.weeks) return [];
@@ -572,6 +580,18 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
     onAdaptationRejected?.(trimmedReason || undefined);
   };
 
+  const handleScrollPrev = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -220, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollNext = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 220, behavior: 'smooth' });
+    }
+  };
+
   const renderRecordOriginBadge = (
     exerciseId?: string | null,
     exerciseName?: string | null,
@@ -608,9 +628,10 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
 
   const isLoading = loadingPlan || loadingProposal;
   const activeInjuries = context?.activeInjuries ?? [];
+  const adaptationChangesCount = proposal?.adaptationChanges?.length ?? 0;
   const hasAdaptations =
     Boolean(proposal?.wasAdapted) ||
-    (proposal?.adaptationChanges?.length ?? 0) > 0 ||
+    adaptationChangesCount > 0 ||
     Object.keys(selectedSubstitutes).length > 0;
 
   const statusBadgeClass = isApproved
@@ -622,7 +643,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         : 'badge-primary';
 
   const statusBadgeLabel = isApproved
-    ? 'Variante aprobada'
+    ? 'Adaptación aprobada'
     : isRejected
       ? 'Propuesta rechazada'
       : hasEdited
@@ -652,49 +673,110 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
           <X size={20} />
         </button>
 
-        {/* Cabecera */}
-        <header className="manage-assignments-header">
-          <div className="manage-assignments-icon-box adaptation-diff-icon-box">
-            <Sparkles size={22} />
+        {/* Cabecera visual (según diseño adjunto) */}
+        <header className="manage-assignments-header adaptation-diff-header">
+          <div
+            className="manage-assignments-icon-box adaptation-diff-header-icon"
+            aria-hidden="true"
+          >
+            <Dumbbell size={22} />
           </div>
-          <div>
+          <div className="adaptation-diff-header-info">
             <div className="adaptation-diff-title-row">
-              <h3 id="athlete-adaptation-diff-title" className="manage-assignments-title">
-                Comparativa Base vs. Adaptada
+              <h3
+                id="athlete-adaptation-diff-title"
+                className="manage-assignments-title"
+                aria-label="Comparativa Base vs. Adaptada"
+              >
+                Comparativa de rutina
               </h3>
-              <span className={`badge ${statusBadgeClass}`}>{statusBadgeLabel}</span>
+              <span className={`badge ${statusBadgeClass}`}>
+                {isApproved ? (
+                  <CheckCircle2 size={13} aria-hidden="true" />
+                ) : isRejected ? (
+                  <XCircle size={13} aria-hidden="true" />
+                ) : (
+                  <Sparkles size={13} aria-hidden="true" />
+                )}
+                <span>{statusBadgeLabel}</span>
+              </span>
             </div>
             <p className="manage-assignments-subtitle">
-              Plan «<strong>{planName}</strong>» · Atleta: <strong>{athleteName}</strong>
+              {planName} · {athleteName}
             </p>
           </div>
         </header>
 
-        {/* Selector de sesión cuando el plan tiene varias sesiones */}
-        {flattenedSessions.length > 1 && (
-          <div
-            className="adaptation-diff-sessions-bar"
-            role="tablist"
-            aria-label="Sesiones del plan"
-          >
-            {flattenedSessions.map(({ weekNumber, session }) => {
-              const isSelected = activeSessionEntry?.session.id === session.id;
-              return (
+        {/* Selector de sesión horizontal (carrusel accesible) */}
+        {flattenedSessions.length > 0 && (
+          <div className="adaptation-session-picker-block">
+            <div className="adaptation-session-picker-header">
+              <div className="adaptation-session-picker-title">
+                <Calendar size={16} aria-hidden="true" />
+                <span>Seleccionar sesión</span>
+              </div>
+              <span className="adaptation-session-picker-count">
+                {flattenedSessions.length} {flattenedSessions.length === 1 ? 'sesión' : 'sesiones'}
+              </span>
+            </div>
+
+            <div className="adaptation-session-carousel-wrap">
+              {flattenedSessions.length > 3 && (
                 <button
-                  key={session.id}
                   type="button"
-                  role="tab"
-                  aria-selected={isSelected}
-                  className={`plan-tab-btn btn-sm ${isSelected ? 'active' : ''}`}
-                  onClick={() => setSelectedSessionId(session.id)}
+                  className="adaptation-carousel-arrow-btn"
+                  onClick={handleScrollPrev}
+                  aria-label="Sesión anterior"
                   disabled={isLoading || submitting}
                 >
-                  <span>
-                    Sem. {weekNumber} · {session.name}
-                  </span>
+                  <ChevronLeft size={18} />
                 </button>
-              );
-            })}
+              )}
+
+              <div
+                ref={carouselRef}
+                className="adaptation-session-carousel-track"
+                role="tablist"
+                aria-label="Sesiones del plan"
+              >
+                {flattenedSessions.map(({ weekNumber, session }) => {
+                  const isSelected = activeSessionEntry?.session.id === session.id;
+                  return (
+                    <button
+                      key={session.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isSelected}
+                      className={`adaptation-session-card ${isSelected ? 'active' : ''}`}
+                      onClick={() => setSelectedSessionId(session.id)}
+                      disabled={isLoading || submitting}
+                    >
+                      <span className="adaptation-session-card-week">Semana {weekNumber}</span>
+                      <strong className="adaptation-session-card-name">
+                        {session.name || 'Fuerza'}
+                      </strong>
+                      <span
+                        className={`adaptation-session-card-pill ${isSelected ? 'active' : ''}`}
+                      >
+                        Sesión {session.order ?? 1}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {flattenedSessions.length > 3 && (
+                <button
+                  type="button"
+                  className="adaptation-carousel-arrow-btn"
+                  onClick={handleScrollNext}
+                  aria-label="Sesión siguiente"
+                  disabled={isLoading || submitting}
+                >
+                  <ChevronRight size={18} />
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -772,23 +854,23 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
               </div>
             )}
 
-            {/* Contexto médico y justificación general */}
-            <div className="adaptation-diff-context-card">
-              <div className="adaptation-diff-context-header">
-                <span className="adaptation-diff-context-title">
-                  <ShieldAlert size={15} aria-hidden="true" />
-                  <span>Justificación médica y deportiva ({proposal.aiProvider})</span>
-                </span>
-                {activeInjuries.map((injury) => (
-                  <span key={injury.id} className="badge adaptation-diff-injury-badge">
-                    Lesión activa: {formatZoneLabel(injury.zone)}
-                    {injury.description ? ` · ${injury.description}` : ''}
-                  </span>
-                ))}
+            {/* Barra de título: Cambios en la rutina */}
+            <div className="adaptation-changes-bar">
+              <div className="adaptation-changes-title">
+                <ArrowLeftRight size={18} aria-hidden="true" />
+                <span>Cambios en la rutina</span>
               </div>
-              <p className="adaptation-diff-justification-text">
-                {cleanJustificationText(proposal.justificationSummary)}
-              </p>
+              {hasAdaptations ? (
+                <span className="badge badge-success adaptation-count-badge">
+                  <Check size={13} aria-hidden="true" />
+                  <span>
+                    {adaptationChangesCount || 1}{' '}
+                    {(adaptationChangesCount || 1) === 1 ? 'adaptación' : 'adaptaciones'}
+                  </span>
+                </span>
+              ) : (
+                <span className="badge badge-subtle">Sin adaptaciones</span>
+              )}
             </div>
 
             {/* Panel de Edición de la adaptación (KAN-465) */}
@@ -837,15 +919,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
               </div>
             )}
 
-            {/* Encabezado de columnas del Diff */}
-            <div className="adaptation-diff-columns-header" aria-hidden="true">
-              <span className="adaptation-diff-col-header-base">Rutina Base (Categoría)</span>
-              <span className="adaptation-diff-col-header-adapted">
-                Variante Propuesta ({athleteName})
-              </span>
-            </div>
-
-            {/* Lista comparativa ejercicio por ejercicio */}
+            {/* Lista comparativa simplificada y visual (KAN-637) */}
             <div className="adaptation-diff-list" role="list">
               {(baseExercisesList.length > 0 ? baseExercisesList : proposal.exercises).map(
                 (baseEx, idx) => {
@@ -865,107 +939,29 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
                       : adaptedEx.exerciseName;
 
                     return (
-                      <div
+                      <AdaptationDiffItem
                         key={rowKey}
-                        className={`adaptation-diff-row ${isManuallyReplaced ? 'modified' : 'unchanged'}`}
-                        role="listitem"
-                      >
-                        <div className="adaptation-diff-grid">
-                          <div
-                            className={`adaptation-diff-col base ${isManuallyReplaced ? 'replaced' : ''}`}
-                          >
-                            <div className="adaptation-diff-col-top">
-                              <span className="adaptation-diff-col-label">Rutina Base</span>
-                              {isManuallyReplaced && (
-                                <span className="badge adaptation-diff-replaced-badge">
-                                  Reemplazado por PF
-                                </span>
-                              )}
-                            </div>
-                            <strong
-                              className={`adaptation-diff-ex-name ${isManuallyReplaced ? 'strikethrough' : ''}`}
-                            >
-                              {baseEx.exerciseName}
-                            </strong>
-                            <span className="adaptation-diff-ex-meta">
-                              {baseEx.sets} series × {baseEx.reps} reps
-                              {baseEx.suggestedPercentage
-                                ? ` · ${baseEx.suggestedPercentage}% 1RM`
-                                : ''}
-                            </span>
-                            {renderRecordOriginBadge(baseEx.exerciseId, baseEx.exerciseName)}
-                          </div>
-
-                          <div
-                            className={`adaptation-diff-arrow ${isManuallyReplaced ? 'active' : ''}`}
-                            aria-hidden="true"
-                          >
-                            <ArrowRight size={16} />
-                          </div>
-
-                          <div
-                            className={`adaptation-diff-col adapted ${isManuallyReplaced ? 'replacement' : ''}`}
-                          >
-                            <div className="adaptation-diff-col-top">
-                              <span className="adaptation-diff-col-label">
-                                {isManuallyReplaced ? 'Variante Propuesta' : 'Variante Adaptada'}
-                              </span>
-                              <span
-                                className={`badge ${isManuallyReplaced ? 'adaptation-diff-edited-badge' : 'badge-subtle'}`}
-                              >
-                                {isManuallyReplaced ? 'Editado por PF' : 'Sin cambios'}
-                              </span>
-                            </div>
-                            <strong
-                              className={`adaptation-diff-ex-name ${isManuallyReplaced ? 'highlight' : ''}`}
-                            >
-                              {manualSubName}
-                            </strong>
-                            <span className="adaptation-diff-ex-meta">
-                              {adaptedEx.sets} series × {adaptedEx.reps} reps
-                              {adaptedEx.suggestedPercentage
-                                ? ` · ${adaptedEx.suggestedPercentage}% 1RM`
-                                : ''}
-                            </span>
-                            {renderRecordOriginBadge(
-                              isManuallyReplaced ? manualSubId : adaptedEx.exerciseId,
-                              manualSubName,
-                              isManuallyReplaced ? false : adaptedEx.isReference,
-                            )}
-
-                            {isEditing && baseEx.exerciseId && (
-                              <div className="adaptation-diff-inline-actions">
-                                <button
-                                  type="button"
-                                  className="btn btn-secondary btn-sm adaptation-diff-change-ex-btn"
-                                  onClick={() =>
-                                    setPickerTarget({
-                                      key: rowKey,
-                                      originalExerciseName: baseEx.exerciseName,
-                                      originalExerciseId: baseEx.exerciseId,
-                                    })
-                                  }
-                                  disabled={submitting}
-                                >
-                                  <RefreshCw size={13} aria-hidden="true" />
-                                  <span>Cambiar ejercicio</span>
-                                </button>
-                                {isManuallyReplaced && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-secondary btn-sm"
-                                    onClick={() => handleRestoreBaseExercise(rowKey)}
-                                    disabled={submitting}
-                                  >
-                                    <RotateCcw size={13} aria-hidden="true" />
-                                    <span>Restaurar</span>
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                        baseEx={baseEx}
+                        adaptedEx={adaptedEx}
+                        change={null}
+                        index={idx}
+                        substitutes={[]}
+                        chosenId={manualSubId ?? ''}
+                        chosenName={manualSubName}
+                        isAuthorizedSubstitute={false}
+                        isManuallyReplaced={isManuallyReplaced}
+                        manualSubId={manualSubId}
+                        manualSubName={manualSubName}
+                        isEditing={isEditing}
+                        submitting={submitting}
+                        conservativeRecordPercent={conservativeRecordPercent}
+                        findRecordForExercise={findRecordForExercise}
+                        renderRecordOriginBadge={renderRecordOriginBadge}
+                        formatZoneLabel={formatZoneLabel}
+                        onSubstituteChange={handleSubstituteChange}
+                        onRestoreBaseExercise={handleRestoreBaseExercise}
+                        onOpenPicker={setPickerTarget}
+                      />
                     );
                   }
 
@@ -984,129 +980,96 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
                   const isAuthorizedSubstitute = substitutes.some((s) => s.exerciseId === chosenId);
 
                   return (
-                    <div
+                    <AdaptationDiffItem
                       key={changeKey}
-                      className="adaptation-diff-row modified"
-                      role="listitem"
-                      data-testid={`adaptation-diff-item-${changeKey}`}
-                    >
-                      <div className="adaptation-diff-grid">
-                        {/* Columna Base */}
-                        <div className="adaptation-diff-col base replaced">
-                          <div className="adaptation-diff-col-top">
-                            <span className="adaptation-diff-col-label">
-                              Rutina Base (Categoría)
-                            </span>
-                            <span className="badge adaptation-diff-replaced-badge">
-                              Reemplazado
-                            </span>
-                          </div>
-                          <strong className="adaptation-diff-ex-name strikethrough">
-                            {change.originalExerciseName}
-                          </strong>
-                          <span className="adaptation-diff-ex-meta">
-                            {baseEx.sets} series × {baseEx.reps} reps
-                            {baseEx.suggestedPercentage
-                              ? ` · ${baseEx.suggestedPercentage}% 1RM`
-                              : ''}
-                          </span>
-                          {renderRecordOriginBadge(
-                            change.originalExerciseId ?? baseEx.exerciseId,
-                            change.originalExerciseName,
-                          )}
-                        </div>
-
-                        <div className="adaptation-diff-arrow active" aria-hidden="true">
-                          <ArrowRight size={18} />
-                        </div>
-
-                        {/* Columna Adaptada */}
-                        <div className="adaptation-diff-col adapted replacement">
-                          <div className="adaptation-diff-col-top">
-                            <span className="adaptation-diff-col-label">Variante Propuesta</span>
-                            <span
-                              className={`badge ${isAuthorizedSubstitute ? 'badge-success' : 'adaptation-diff-edited-badge'}`}
-                            >
-                              {isAuthorizedSubstitute ? 'Sustituto autorizado' : 'Editado por PF'}
-                            </span>
-                          </div>
-                          <strong className="adaptation-diff-ex-name highlight">
-                            {chosenName}
-                          </strong>
-                          <span className="adaptation-diff-ex-meta">
-                            {adaptedEx.sets} series × {adaptedEx.reps} reps
-                            {adaptedEx.suggestedPercentage
-                              ? ` · ${adaptedEx.suggestedPercentage}% 1RM`
-                              : ''}
-                          </span>
-                          {renderRecordOriginBadge(chosenId, chosenName, adaptedEx.isReference)}
-                        </div>
-                      </div>
-
-                      {/* Motivo y justificación médica */}
-                      <div className="adaptation-diff-reason-box">
-                        <div className="adaptation-diff-reason-tags">
-                          <span className="badge adaptation-diff-zone-badge">
-                            Zona protegida: {formatZoneLabel(change.zone)}
-                          </span>
-                        </div>
-                        <p className="adaptation-diff-reason-text">
-                          <strong>Motivo médico / biomecánico:</strong> {change.reason}
-                        </p>
-
-                        {(effectiveSubstitutes.length > 1 || isEditing) && (
-                          <div className="adaptation-diff-substitute-picker">
-                            <label htmlFor={`adaptation-sub-select-${changeKey}`}>
-                              Ajustar sustituto autorizado:
-                            </label>
-                            <div className="adaptation-diff-select-wrap">
-                              <select
-                                id={`adaptation-sub-select-${changeKey}`}
-                                value={chosenId}
-                                onChange={(e) => handleSubstituteChange(changeKey, e.target.value)}
-                                disabled={submitting}
-                              >
-                                {effectiveSubstitutes.map((sub) => (
-                                  <option key={sub.exerciseId} value={sub.exerciseId}>
-                                    {sub.name}
-                                    {sub.exerciseId === change.finalExerciseId
-                                      ? ' (Sugerido por el Asistente)'
-                                      : !substitutes.some((s) => s.exerciseId === sub.exerciseId)
-                                        ? ' (Elegido del catálogo por PF)'
-                                        : ''}
-                                  </option>
-                                ))}
-                              </select>
-                              <ChevronDown
-                                size={14}
-                                className="adaptation-diff-select-icon"
-                                aria-hidden="true"
-                              />
-                            </div>
-                            {isEditing && (
-                              <button
-                                type="button"
-                                className="btn btn-secondary btn-sm adaptation-diff-change-ex-btn"
-                                onClick={() =>
-                                  setPickerTarget({
-                                    key: changeKey,
-                                    originalExerciseName: change.originalExerciseName,
-                                    originalExerciseId: change.originalExerciseId,
-                                  })
-                                }
-                                disabled={submitting}
-                              >
-                                <RefreshCw size={13} aria-hidden="true" />
-                                <span>Cambiar del catálogo</span>
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                      baseEx={baseEx}
+                      adaptedEx={adaptedEx}
+                      change={change}
+                      index={idx}
+                      substitutes={effectiveSubstitutes}
+                      chosenId={chosenId}
+                      chosenName={chosenName}
+                      isAuthorizedSubstitute={isAuthorizedSubstitute}
+                      isManuallyReplaced={false}
+                      isEditing={isEditing}
+                      submitting={submitting}
+                      conservativeRecordPercent={conservativeRecordPercent}
+                      findRecordForExercise={findRecordForExercise}
+                      renderRecordOriginBadge={renderRecordOriginBadge}
+                      formatZoneLabel={formatZoneLabel}
+                      onSubstituteChange={handleSubstituteChange}
+                      onRestoreBaseExercise={handleRestoreBaseExercise}
+                      onOpenPicker={setPickerTarget}
+                    />
                   );
                 },
               )}
+            </div>
+
+            {/* Contexto médico y justificación general colapsable (KAN-637) */}
+            <div className="adaptation-diff-context-card">
+              <div
+                className="adaptation-diff-context-header clickable"
+                onClick={() => setShowGeneralJustification((prev) => !prev)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setShowGeneralJustification((prev) => !prev);
+                  }
+                }}
+                aria-expanded={showGeneralJustification}
+              >
+                <div className="adaptation-diff-context-title">
+                  <div className="adaptation-shield-icon-wrap" aria-hidden="true">
+                    <ShieldAlert size={16} />
+                  </div>
+                  <strong>Justificación de la adaptación</strong>
+                </div>
+
+                <button
+                  type="button"
+                  className="adaptation-justification-toggle-text-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowGeneralJustification((prev) => !prev);
+                  }}
+                >
+                  <span>{showGeneralJustification ? 'Ocultar detalle' : 'Ver detalle'}</span>
+                  <ChevronDown
+                    size={14}
+                    className={`adaptation-diff-chevron ${showGeneralJustification ? 'open' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+
+              <p className="adaptation-diff-justification-text">
+                {cleanJustificationText(proposal.justificationSummary) ||
+                  (proposal.adaptationChanges?.length
+                    ? proposal.adaptationChanges.map((c) => c.reason).join(' ')
+                    : 'Rutina adaptada por razones biomecánicas y de recuperación muscular.')}
+              </p>
+
+              <div
+                className={`adaptation-general-details ${showGeneralJustification ? 'is-expanded' : 'is-collapsed'}`}
+              >
+                {activeInjuries.length > 0 && (
+                  <div className="adaptation-diff-injury-tags">
+                    {activeInjuries.map((injury) => (
+                      <span key={injury.id} className="badge adaptation-diff-injury-badge">
+                        Lesión activa: {formatZoneLabel(injury.zone)}
+                        {injury.description ? ` · ${injury.description}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="adaptation-ai-provider-note">
+                  <span>
+                    Criterio y reglas aplicadas: <strong>{proposal.aiProvider}</strong>
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Formulario opcional de motivo de rechazo (KAN-465) */}
@@ -1147,67 +1110,68 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
           </div>
         )}
 
-        {/* Pie del modal: acciones Aprobar / Editar / Rechazar (KAN-465) */}
-        <footer className="manage-assignments-footer adaptation-diff-footer">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            Cerrar
-          </button>
-
+        {/* Pie del modal estructurado según imagen adjunta (KAN-637) */}
+        <footer className="adaptation-modal-footer">
           {!isLoading && proposal && (
             <>
-              {!showRejectForm && !isRejected && (
-                <button
-                  type="button"
-                  className="btn btn-secondary adaptation-diff-reject-trigger-btn"
-                  onClick={() => {
-                    setShowRejectForm(true);
-                    setIsEditing(false);
-                  }}
-                  disabled={submitting}
-                >
-                  <XCircle size={15} aria-hidden="true" />
-                  <span>Rechazar adaptación</span>
-                </button>
-              )}
-
+              {/* Botón principal superior de ancho completo */}
               <button
                 type="button"
-                className={`btn btn-secondary ${isEditing ? 'active' : ''}`}
-                onClick={() => {
-                  setIsEditing((prev) => !prev);
-                  setShowRejectForm(false);
-                }}
-                disabled={submitting}
-              >
-                <Edit3 size={15} aria-hidden="true" />
-                <span>{isEditing ? 'Ocultar edición' : 'Editar adaptación'}</span>
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-primary"
+                className="btn btn-primary adaptation-approve-main-btn"
                 onClick={handleApproveAdaptation}
                 disabled={submitting || (!hasAdaptations && isApproved && !hasEdited)}
+                aria-label="Aprobar adaptación"
               >
                 {submitting ? (
                   <>
-                    <Loader2 size={15} className="plan-spin" aria-hidden="true" />
+                    <Loader2 size={16} className="plan-spin" aria-hidden="true" />
                     <span>Aprobando…</span>
+                  </>
+                ) : isApproved && !hasEdited ? (
+                  <>
+                    <RefreshCw size={16} aria-hidden="true" />
+                    <span>Actualizar adaptación</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 size={16} aria-hidden="true" />
-                    <span>
-                      {isApproved && !hasEdited ? 'Actualizar adaptación' : 'Aprobar adaptación'}
-                    </span>
+                    <span>Aprobar adaptación</span>
                   </>
                 )}
               </button>
+
+              {/* Fila secundaria inferior: Editar y Rechazar */}
+              <div className="adaptation-secondary-actions-row">
+                <button
+                  type="button"
+                  className={`btn btn-secondary adaptation-edit-toggle-btn ${isEditing ? 'active' : ''}`}
+                  onClick={() => {
+                    setIsEditing((prev) => !prev);
+                    setShowRejectForm(false);
+                  }}
+                  disabled={submitting}
+                  aria-label="Editar adaptación"
+                >
+                  <Edit3 size={15} aria-hidden="true" />
+                  <span>{isEditing ? 'Ocultar edición' : 'Editar adaptación'}</span>
+                </button>
+
+                {!showRejectForm && !isRejected && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary adaptation-reject-trigger-btn"
+                    onClick={() => {
+                      setShowRejectForm(true);
+                      setIsEditing(false);
+                    }}
+                    disabled={submitting}
+                    aria-label="Rechazar adaptación"
+                  >
+                    <X size={15} aria-hidden="true" />
+                    <span>Rechazar adaptación</span>
+                  </button>
+                )}
+              </div>
             </>
           )}
         </footer>

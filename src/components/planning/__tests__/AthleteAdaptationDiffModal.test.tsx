@@ -270,11 +270,12 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     );
 
     const reviewBtn = await screen.findByRole('button', {
-      name: /lesión activa - revisar adaptación de lucas gómez/i,
+      name: /revisar adaptación de lucas gómez/i,
     });
     expect(summarySpy).toHaveBeenCalledTimes(1);
     expect(summarySpy).toHaveBeenCalledWith([lucasId, martinId]);
-    expect(reviewBtn.textContent).toContain('Lesión activa - Revisar adaptación');
+    expect(reviewBtn.textContent).toContain('Revisar adaptación');
+    expect(screen.getByTestId(`injury-indicator-${lucasId}`)).toBeDefined();
     expect(await screen.findByText('En condiciones normales')).toBeDefined();
     expect(
       screen.queryByRole('button', { name: /revisar adaptación de martín pérez/i }),
@@ -594,5 +595,73 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     const alert = await screen.findByTestId('adaptation-estimated-data-alert');
     expect(alert.textContent).toContain('escalón conservador del 85 %');
     expect(alert.textContent).not.toContain('90 %');
+  });
+
+  it('DADO el modal de adaptación CUANDO el PF lo abre ENTONCES ve solo los bloques de cambio sin la justificación desplegada, y al tocar el bloque se despliega la justificación médica (KAN-637)', async () => {
+    render(
+      <AthleteAdaptationDiffModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        athleteId={lucasId}
+        athleteName="Lucas Gómez"
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
+    expect(screen.getByText('Prensa de piernas')).toBeDefined();
+
+    // El botón del acordeón está presente y colapsado inicialmente
+    const toggleBtn = screen.getByTestId(`toggle-reason-${squatId}`);
+    expect(toggleBtn.textContent).toContain('Ver justificación médica y deportiva');
+
+    const reasonBox = screen.getByTestId(`reason-box-${squatId}`);
+    expect(reasonBox.className).toContain('is-collapsed');
+
+    // Al tocar el botón del bloque se despliega la justificación
+    fireEvent.click(toggleBtn);
+
+    expect(toggleBtn.textContent).toContain('Ocultar justificación médica');
+    expect(reasonBox.className).toContain('is-expanded');
+  });
+
+  it('DADO la lista de asignaciones CUANDO se ven atletas ENTONCES el símbolo de lesión está al lado del nombre y los dos botones están alineados uno arriba del otro (KAN-637)', async () => {
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+
+    render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={[
+          {
+            assignmentId: 'assign-lucas',
+            type: 'athlete',
+            targetId: lucasId,
+            name: 'Lucas Gómez',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+          },
+        ]}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    // Indicador de lesión al lado del nombre
+    expect(await screen.findByTestId(`injury-indicator-${lucasId}`)).toBeDefined();
+
+    // Botones revisar adaptación y quitar asignación
+    const reviewBtn = screen.getByRole('button', { name: /revisar adaptación de lucas gómez/i });
+    const removeBtn = screen.getByRole('button', { name: /quitar a lucas gómez/i });
+
+    expect(reviewBtn.className).toContain('manage-assignments-action-btn');
+    expect(removeBtn.className).toContain('manage-assignments-action-btn');
+    expect(removeBtn.textContent).toContain('Quitar asignación');
   });
 });

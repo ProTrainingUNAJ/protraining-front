@@ -184,7 +184,7 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
       return (
         <button
           type="button"
-          className="btn btn-secondary btn-sm manage-assignments-adapt-danger-btn"
+          className="btn btn-secondary btn-sm manage-assignments-adapt-btn manage-assignments-action-btn"
           onClick={() =>
             setAdaptationTarget({
               athleteId,
@@ -193,10 +193,10 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
           }
           disabled={disabled}
           title={`Comparar rutina base vs. adaptada de ${athleteName}`}
-          aria-label={`Lesión activa - Revisar adaptación de ${athleteName}`}
+          aria-label={`Revisar adaptación de ${athleteName}`}
         >
-          <AlertTriangle size={14} aria-hidden="true" />
-          <span>Lesión activa - Revisar adaptación</span>
+          <Sparkles size={14} aria-hidden="true" />
+          <span>Revisar adaptación</span>
         </button>
       );
     }
@@ -205,7 +205,7 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
       return (
         <button
           type="button"
-          className="btn btn-secondary btn-sm manage-assignments-adapt-btn"
+          className="btn btn-secondary btn-sm manage-assignments-adapt-btn manage-assignments-action-btn"
           onClick={() =>
             setAdaptationTarget({
               athleteId,
@@ -216,14 +216,14 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
           title="No se pudo verificar si tiene lesiones activas en Seguimiento"
           aria-label={`Revisar adaptación de ${athleteName}`}
         >
-          <Sparkles size={13} aria-hidden="true" />
+          <Sparkles size={14} aria-hidden="true" />
           <span>Revisar adaptación</span>
         </button>
       );
     }
 
     return (
-      <span className="manage-assignments-normal-status">
+      <span className="manage-assignments-normal-status manage-assignments-action-btn">
         <CheckCircle2 size={14} aria-hidden="true" />
         <span>En condiciones normales</span>
       </span>
@@ -367,6 +367,19 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
                       <div className="manage-assignments-item-info">
                         <div className="manage-assignments-item-name-row">
                           <span className="manage-assignments-item-name">{assignee.name}</span>
+                          {assignee.type === 'athlete' &&
+                            assignee.targetId &&
+                            athleteInjuryStates[assignee.targetId]?.status === 'injured' && (
+                              <span
+                                className="badge badge-danger manage-assignments-injury-badge"
+                                title={`Lesión activa (${athleteInjuryStates[assignee.targetId]?.activeCount ?? 1})`}
+                                data-testid={`injury-indicator-${assignee.targetId}`}
+                                aria-label="Lesión activa"
+                              >
+                                <AlertTriangle size={12} aria-hidden="true" />
+                                <span>Lesión</span>
+                              </span>
+                            )}
                           <span
                             className={`badge ${
                               assignee.type === 'athlete' ? 'badge-primary' : 'badge-secondary'
@@ -398,7 +411,7 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
                         </p>
                       </div>
 
-                      {/* Acciones: Estado de lesión / adaptación individual (KAN-464) y Quitar asignación */}
+                      {/* Acciones: Estado de lesión / adaptación individual (KAN-464) y Quitar asignación alineados */}
                       <div className="manage-assignments-item-actions">
                         {assignee.type === 'athlete' &&
                           assignee.targetId &&
@@ -440,14 +453,14 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
                         ) : (
                           <button
                             type="button"
-                            className="btn btn-secondary btn-sm manage-assignments-remove-btn"
+                            className="btn btn-secondary btn-sm manage-assignments-remove-btn manage-assignments-action-btn"
                             onClick={() => setConfirmDeleteId(assignee.assignmentId)}
                             disabled={Boolean(deletingId)}
                             title={`Quitar a ${assignee.name} de este plan`}
                             aria-label={`Quitar a ${assignee.name}`}
                           >
                             <Trash2 size={14} className="manage-assignments-remove-icon" />
-                            <span>Quitar</span>
+                            <span>Quitar asignación</span>
                           </button>
                         )}
                       </div>
@@ -469,8 +482,21 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
                                   <span className="manage-assignments-category-athlete-name">
                                     {fullName}
                                   </span>
+                                  {athleteInjuryStates[ath.id]?.status === 'injured' && (
+                                    <span
+                                      className="badge badge-danger manage-assignments-injury-badge"
+                                      title={`Lesión activa (${athleteInjuryStates[ath.id]?.activeCount ?? 1})`}
+                                      data-testid={`injury-indicator-${ath.id}`}
+                                      aria-label="Lesión activa"
+                                    >
+                                      <AlertTriangle size={12} aria-hidden="true" />
+                                      <span>Lesión</span>
+                                    </span>
+                                  )}
                                 </div>
-                                {renderAdaptationStatusControl(ath.id, fullName)}
+                                <div className="manage-assignments-category-athlete-actions">
+                                  {renderAdaptationStatusControl(ath.id, fullName)}
+                                </div>
                               </li>
                             );
                           })}
