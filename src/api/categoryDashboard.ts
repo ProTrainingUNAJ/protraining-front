@@ -35,7 +35,11 @@ export const categoryDashboardService = {
           (error as { status?: number })?.status ??
           (error as { response?: { status?: number } })?.response?.status;
         const msg = extractErrorMessage(error);
-        if (status === 404 || msg.toLowerCase().includes('no existe') || msg.toLowerCase().includes('not found')) {
+        if (
+          status === 404 ||
+          msg.toLowerCase().includes('no existe') ||
+          msg.toLowerCase().includes('not found')
+        ) {
           return null;
         }
       }
