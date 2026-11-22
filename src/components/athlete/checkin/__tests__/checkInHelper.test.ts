@@ -292,7 +292,7 @@ describe('checkInHelper', () => {
         await import('../checkInHelper');
 
       const mockCompleted = {
-        result: { id: 'checkin-999', trafficLight: 'Green' },
+        trafficLight: 'Green' as const,
         completedAt: new Date().toISOString(),
       };
 
@@ -307,9 +307,9 @@ describe('checkInHelper', () => {
     });
 
     it('purges legacy completed records that stored the medical draft', async () => {
-      const { purgeLegacyCheckInCompletedData } = await import('../checkInHelper');
+      const { purgeLegacyCheckInCompletedData, getTodayKey } = await import('../checkInHelper');
       const legacyKey = `protraining_checkin_completed_${athleteId}_2026-11-01`;
-      const currentKey = `protraining_checkin_completed_${athleteId}_2026-11-16`;
+      const currentKey = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
 
       localStorage.setItem(
         legacyKey,
@@ -322,8 +322,8 @@ describe('checkInHelper', () => {
       localStorage.setItem(
         currentKey,
         JSON.stringify({
-          result: { trafficLight: 'Red' },
-          completedAt: '2026-11-16T08:00:00Z',
+          trafficLight: 'Red',
+          completedAt: new Date().toISOString(),
         }),
       );
 
