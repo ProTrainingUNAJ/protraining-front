@@ -3,6 +3,7 @@ import { Send, CheckCircle2, Activity } from 'lucide-react';
 import { getDailyLoad, type DailyLoadSubmitResponse } from '../../api/seguimientoService';
 import { FinishRoutineModal } from './FinishRoutineModal';
 import type { TodayRoutineExercise } from '../../api/generated/entrenamiento';
+import './GymSessionLoadCard.css';
 
 export interface GymSessionLoadCardProps {
   athleteId: string;
@@ -82,18 +83,8 @@ export function GymSessionLoadCard({
                 Finalizar sesión · Carga del entrenamiento
               </h3>
               {hasGymRegistered && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    marginTop: '0.2rem',
-                  }}
-                >
-                  <span
-                    className="badge badge-success"
-                    style={{ gap: '0.35rem', fontSize: '0.78rem' }}
-                  >
+                <div className="routine-session-load-registered">
+                  <span className="badge badge-success routine-session-load-registered-badge">
                     <CheckCircle2 size={13} />
                     <span>
                       Registrado: {todayLoad?.gym?.minutes} min · RPE {todayLoad?.gym?.rpe ?? '—'}
@@ -110,20 +101,15 @@ export function GymSessionLoadCard({
           </div>
 
           <div className="routine-session-load-right">
+            {/* Los valores fijos del botón (display, gap, padding, font-weight,
+                font-size y border-radius) ya los declaran .btn +
+                .routine-finish-session-btn: idénticos a los que traía el
+                style inline (KAN-582). */}
             <button
               type="button"
               className="btn btn-primary routine-finish-session-btn"
               onClick={handleOpen}
               disabled={isLoading}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                padding: '0.7rem 1.35rem',
-                fontWeight: 900,
-                fontSize: '0.95rem',
-                borderRadius: '10px',
-              }}
             >
               <Send size={16} />
               <span>Finalizar entrenamiento</span>

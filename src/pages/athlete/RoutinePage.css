@@ -1,0 +1,385 @@
+/*
+ * Estilos de la vista "Mi Rutina" / "Rutina del día" (KAN-582).
+ * Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+ * tokens de tokens.css. Solo quedan inline los valores dinámicos: el ancho de
+ * la barra de progreso de series y el color del contador de series según si
+ * se completó todo, y esos también usan var(--...). Donde la clase choca con
+ * una regla global igual de específica (.card, .btn, .badge,
+ * .routine-progress-celebration), se usa selector compuesto para que el
+ * resultado sea el mismo que daba el inline.
+ */
+
+/* ── Acciones del encabezado (PageHeader) ── */
+.routine-page-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Compuesto con .btn: pisar padding, font-size y gap globales. */
+.btn.routine-page-header-btn {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  gap: 0.4rem;
+}
+
+/* ── Estado de carga ── */
+.card.routine-page-loading {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.routine-page-spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--secondary);
+  animation: spin 0.8s linear infinite;
+}
+
+.routine-page-loading-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── Error al cargar ── */
+.card.routine-page-error {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.routine-page-error-icon {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.routine-page-error-title {
+  color: var(--danger-text);
+  display: block;
+}
+
+.routine-page-error-text {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  color: var(--danger-text);
+}
+
+.btn.routine-page-retry {
+  margin-left: auto;
+}
+
+/* ── Banner de celebración de nueva propuesta de récord ── */
+/* Compuesto con .routine-progress-celebration (athlete.css): el inline le
+   imponía justify-content, gap y padding distintos de los del global. */
+.routine-progress-celebration.routine-page-proposal-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.routine-page-proposal-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.routine-page-icon-success {
+  color: var(--stat-green);
+  flex-shrink: 0;
+}
+
+.routine-page-proposal-title {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.routine-page-proposal-text {
+  font-size: 0.84rem;
+}
+
+.routine-page-banner-close {
+  background: none;
+  border: none;
+  color: var(--success-text);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Tarjeta hero: sesión del día ── */
+.routine-page-hero-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.routine-page-hero-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+/* Compuesto con .badge para declarar su gap sin depender del orden de carga. */
+.badge.routine-page-badge-gap {
+  gap: 0.35rem;
+}
+
+.badge.routine-page-badge-gap-sm {
+  gap: 0.25rem;
+}
+
+.routine-page-date-cap {
+  text-transform: capitalize;
+}
+
+.routine-page-play-icon {
+  margin-left: 3px;
+}
+
+.routine-page-icon-accent {
+  color: var(--secondary);
+}
+
+/* El color (verde si se completó todo) queda inline con var(--...). */
+.routine-page-progress-count {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+/* ── Caso día de descanso ── */
+.routine-page-rest-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--info-bg);
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.routine-page-rest-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+  margin: 0 0 0.35rem;
+}
+
+.routine-page-rest-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  max-width: 460px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Bloques y lista de ejercicios ── */
+.card.routine-page-empty-block {
+  padding: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.routine-page-exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.routine-page-icon-btn {
+  cursor: pointer;
+}
+
+.routine-prescription-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.routine-prescription-main {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.routine-prescription-pct {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.routine-prescription-1rm {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.routine-page-weight-unit {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.routine-page-set-dot {
+  opacity: 0.6;
+  font-size: 0.75rem;
+}
+
+.routine-page-record-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+}
+
+.routine-page-record-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.routine-page-record-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.routine-page-video-slot {
+  grid-column: 1 / -1;
+  margin-top: 0.75rem;
+}
+
+/* ── Modal de técnica del ejercicio ── */
+.routine-page-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.routine-page-modal-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.routine-page-modal-ref {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+.routine-page-modal-ref-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.routine-page-modal-ref-value {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.routine-page-modal-ref-value--accent {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--secondary);
+}
+
+.routine-page-modal-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 0 0.5rem;
+}
+
+.routine-page-modal-ref-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.routine-page-modal-muscles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.routine-page-modal-muscles-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.routine-page-modal-muscles-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.routine-page-modal-muscles-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.routine-page-modal-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1.15rem;
+  border-radius: 12px;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+}
+
+.routine-page-modal-note-title {
+  font-size: 0.8rem;
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.routine-page-modal-note-text {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Compuesto con .btn: pisar el gap global. */
+.btn.routine-page-modal-accept {
+  gap: 0.4rem;
+}
