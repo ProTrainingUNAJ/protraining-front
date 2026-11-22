@@ -1031,24 +1031,9 @@
 }
 
 @media (max-width: 991px) {
-  .app-shell-viewport {
-    padding: 0;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-    overflow: hidden;
-  }
-
   .app-shell-container {
-    border-radius: 0;
-    border: none;
     min-height: 100vh;
     min-height: 100dvh;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
   }
 
   .app-sidebar-desktop {
@@ -1245,5 +1230,25 @@
     min-height: 0;
     overflow-y: auto;
     scrollbar-width: none;
+  }
+}
+
+/* Pantallas de hasta 1440px (notebooks): pantalla completa sin marco flotante (KAN-599).
+   Va después de la media query de pantallas bajas para que no reintroduzca el padding exterior,
+   manteniendo intacta la compactación del sidebar. En monitores > 1440px sigue el panel flotante. */
+@media (max-width: 1440px) {
+  .app-shell-viewport {
+    padding: 0;
+  }
+
+  .app-shell-container {
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
   }
 }
