@@ -8,7 +8,6 @@ import {
   countPendingCheckIns,
   discardPendingCheckInsForDate,
   CheckInSubmitResponse,
-  type CheckInEntityDto,
   type CheckIn,
   listCheckInInjuries,
   getAthleteTodayCheckIn,
@@ -37,6 +36,7 @@ import {
   saveCheckInDraft,
   clearCheckInDraft,
   purgeLegacyCheckInCompletedData,
+  purgeStaleCheckInData,
   clearAllCheckInData,
   getTodayKey,
   hasRequiredInjuryMark,
@@ -79,9 +79,7 @@ interface SubmittedCheckInState {
 
 // KAN-593: el borrador se borra al enviar. Al recargar o al editar un check-in
 // completado, la respuesta guardada es la única fuente de las respuestas.
-const getStateFromSubmittedCheckIn = (
-  checkIn?: CheckInEntityDto | CheckIn,
-): SubmittedCheckInState => {
+const getStateFromSubmittedCheckIn = (checkIn?: CheckIn): SubmittedCheckInState => {
   const injuryScores: Record<string, number | null> = {};
   (checkIn?.injuries ?? []).forEach((injury) => {
     const id = injury.injuryId;
@@ -113,6 +111,9 @@ export const CheckInPage: React.FC = () => {
   const [todayKey, setTodayKey] = useState(getTodayKey);
   const previousDay = useRef(todayKey);
   const isEditingSubmitted = useRef(false);
+  // Evita que la consulta al backend sobrescriba la navegación del atleta si éste
+  // interactúa antes de que llegue la respuesta.
+  const userNavigatedRef = useRef(false);
 
   // Solo se conserva el indicador local; las respuestas se recuperan del backend.
   const initialCompleted = getCheckInCompleted(athleteId);
@@ -199,8 +200,8 @@ export const CheckInPage: React.FC = () => {
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
-  const applySubmittedState = useCallback((checkIn?: CheckInEntityDto | CheckIn) => {
-    const next = getStateFromSubmittedCheckIn(checkIn as CheckInEntityDto | undefined);
+  const applySubmittedState = useCallback((checkIn?: CheckIn) => {
+    const next = getStateFromSubmittedCheckIn(checkIn);
     setSleepHours(next.sleepHours);
     setSleepQuality(next.sleepQuality);
     setFatigueLevel(next.fatigueLevel);
@@ -232,7 +233,7 @@ export const CheckInPage: React.FC = () => {
               message: 'Check-in registrado',
               trafficLight: remote.trafficLight,
               trafficLightReason: remote.trafficLightReason ?? null,
-              checkIn: remote as unknown as CheckInEntityDto,
+              checkIn: remote,
               isOffline: false,
             });
           } else {
@@ -240,7 +241,6 @@ export const CheckInPage: React.FC = () => {
             setSubmissionResult({
               message: 'Check-in completado',
               trafficLight: completed.trafficLight ?? 'Yellow',
-              trafficLightReason: completed.trafficLightReason ?? null,
               isOffline: completed.isOffline,
             });
           }
@@ -249,7 +249,6 @@ export const CheckInPage: React.FC = () => {
           setSubmissionResult({
             message: 'Check-in completado',
             trafficLight: completed.trafficLight ?? 'Yellow',
-            trafficLightReason: completed.trafficLightReason ?? null,
             isOffline: completed.isOffline,
           });
         } finally {
@@ -278,29 +277,65 @@ export const CheckInPage: React.FC = () => {
         setInjuryScores(draft.injuryScores || {});
         setNotes(draft.notes || '');
       }
-    },
-    [applySubmittedState],
-  );
 
-  const handleEditResponses = useCallback(async () => {
-    if (!completedCheckIn) {
+      // El widget del semáforo consulta el backend: si hoy ya hay check-in, hay que
+      // mostrar la confirmación aunque no exista el indicador local (otro dispositivo,
+      // localStorage limpio, etc.). Si no, "Ver o actualizar" vuelve al registro.
       try {
-        const remote = await getAthleteTodayCheckIn(athleteId);
-        if (remote) {
+        const remote = await getAthleteTodayCheckIn(id);
+        if (remote && !userNavigatedRef.current) {
+          setHasStarted(true);
+          setCurrentStep(4);
+          setMaxReachedStep(4);
           setCompletedCheckIn(remote);
           applySubmittedState(remote);
           setSubmissionResult({
             message: 'Check-in registrado',
             trafficLight: remote.trafficLight,
             trafficLightReason: remote.trafficLightReason ?? null,
-            checkIn: remote as unknown as CheckInEntityDto,
+            checkIn: remote,
+            isOffline: false,
+          });
+          // Repara el indicador local sin persistir respuestas médicas.
+          saveCheckInCompleted(id, {
+            completedAt: new Date().toISOString(),
+            trafficLight: remote.trafficLight,
             isOffline: false,
           });
         }
       } catch {
+        // Sin conexión se conserva el indicador local o el borrador; no se abre el
+        // formulario con valores por defecto encima de un check-in ya enviado.
+      }
+    },
+    [applySubmittedState],
+  );
+
+  const handleEditResponses = useCallback(async () => {
+    userNavigatedRef.current = true;
+    if (!completedCheckIn) {
+      let remote: CheckIn | null;
+      try {
+        remote = await getAthleteTodayCheckIn(athleteId);
+      } catch {
         setErrorMessage('No se pudieron recuperar tus respuestas. Intentá nuevamente.');
         return;
       }
+      // Sin respuesta del back no se abre el formulario: los valores por defecto
+      // (ánimo 3, estrés 2) pisarían el check-in real si el atleta reenvía.
+      if (!remote) {
+        setErrorMessage('No hay respuestas guardadas para editar.');
+        return;
+      }
+      setCompletedCheckIn(remote);
+      applySubmittedState(remote);
+      setSubmissionResult({
+        message: 'Check-in registrado',
+        trafficLight: remote.trafficLight,
+        trafficLightReason: remote.trafficLightReason ?? null,
+        checkIn: remote,
+        isOffline: false,
+      });
     } else {
       applySubmittedState(completedCheckIn);
     }
@@ -328,6 +363,7 @@ export const CheckInPage: React.FC = () => {
     previousDay.current = todayKey;
     clearAllCheckInData();
     isEditingSubmitted.current = false;
+    userNavigatedRef.current = false;
     setHasStarted(false);
     setCurrentStep(1);
     setMaxReachedStep(1);
@@ -350,8 +386,10 @@ export const CheckInPage: React.FC = () => {
     setIsLoadingCompleted(false);
   }, [todayKey]);
 
-  // Descarta los registros viejos que guardaban el borrador médico completo.
+  // Al montar (y al cambiar de día) se descartan los datos con fecha de otro día:
+  // si la app se cerró a mitad del check-in, el borrador de ayer no debe quedar en el celular.
   useEffect(() => {
+    purgeStaleCheckInData();
     purgeLegacyCheckInCompletedData(athleteId);
   }, [athleteId, todayKey]);
 
@@ -478,6 +516,7 @@ export const CheckInPage: React.FC = () => {
   }, [athleteId, isLoadingCompleted, submissionResult]);
 
   const handleStartCheckIn = () => {
+    userNavigatedRef.current = true;
     setHasStarted(true);
     setCurrentStep(1);
     setMaxReachedStep(1);
@@ -640,6 +679,7 @@ export const CheckInPage: React.FC = () => {
 
   // Slide Navigation Handlers
   const goToStep = (stepNum: number) => {
+    userNavigatedRef.current = true;
     // Si intenta regresar a la pantalla 0 (Inicio / Bienvenida):
     if (stepNum <= 0) {
       setErrorMessage(null);
@@ -841,12 +881,11 @@ export const CheckInPage: React.FC = () => {
       setSubmissionResult(response);
       if (response.checkIn) {
         setCompletedCheckIn(response.checkIn as CheckIn);
-        applySubmittedState(response.checkIn as CheckInEntityDto | CheckIn);
+        applySubmittedState(response.checkIn);
       }
       // Solo se guarda el indicador mínimo de check-in completado.
       saveCheckInCompleted(athleteId, {
         trafficLight: response.trafficLight,
-        trafficLightReason: response.trafficLightReason ?? null,
         isOffline: response.isOffline,
         completedAt: new Date().toISOString(),
       });

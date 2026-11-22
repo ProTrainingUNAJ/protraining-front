@@ -71,10 +71,10 @@ export const DailyTrafficLightWidget: React.FC = () => {
     const localCompleted = getCheckInCompleted(id);
     if (localCompleted) {
       const color = localCompleted.trafficLight;
-      const reasonText = localCompleted.trafficLightReason;
       if (color === 'Green' || color === 'Yellow' || color === 'Red') {
         setTrafficColor(color);
-        setReason(reasonText || null);
+        // El motivo del semáforo no se persiste: se usa el texto por defecto del color.
+        setReason(null);
         setSleepHours(null);
         setIsLoading(false);
         return;

@@ -306,6 +306,39 @@ describe('checkInHelper', () => {
       expect(stored).not.toContain('injuryScores');
     });
 
+    it('no persiste el motivo del semáforo aunque venga en los datos', async () => {
+      const { saveCheckInCompleted, getTodayKey } = await import('../checkInHelper');
+      const key = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
+
+      saveCheckInCompleted(athleteId, {
+        completedAt: new Date().toISOString(),
+        trafficLight: 'Red',
+        ...{ trafficLightReason: 'Lesión activa reportada' },
+      });
+
+      expect(localStorage.getItem(key)).not.toContain('trafficLightReason');
+      expect(localStorage.getItem(key)).not.toContain('Lesión activa reportada');
+    });
+
+    it('descarta el motivo del semáforo guardado por versiones anteriores', async () => {
+      const { getCheckInCompleted, getTodayKey } = await import('../checkInHelper');
+      const key = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          completedAt: new Date().toISOString(),
+          trafficLight: 'Yellow',
+          trafficLightReason: 'Fatiga moderada detectada',
+        }),
+      );
+
+      const completed = getCheckInCompleted(athleteId);
+
+      expect(completed?.trafficLight).toBe('Yellow');
+      expect(localStorage.getItem(key)).not.toContain('trafficLightReason');
+      expect(localStorage.getItem(key)).not.toContain('Fatiga moderada detectada');
+    });
+
     it('purges legacy completed records that stored the medical draft', async () => {
       const { purgeLegacyCheckInCompletedData, getTodayKey } = await import('../checkInHelper');
       const legacyKey = `protraining_checkin_completed_${athleteId}_2026-11-01`;
@@ -331,6 +364,23 @@ describe('checkInHelper', () => {
 
       expect(localStorage.getItem(legacyKey)).toBeNull();
       expect(localStorage.getItem(currentKey)).not.toBeNull();
+    });
+
+    it('purges drafts and completions from previous days and keeps today ones', async () => {
+      const { purgeStaleCheckInData, getTodayKey } = await import('../checkInHelper');
+      const yesterdayDraft = `protraining_checkin_draft_${athleteId}_2026-11-21`;
+      const yesterdayCompleted = `protraining_checkin_completed_otro-atleta_2026-11-21`;
+      const todayDraft = `protraining_checkin_draft_${athleteId}_${getTodayKey()}`;
+
+      localStorage.setItem(yesterdayDraft, JSON.stringify({ isSick: true, notes: 'Dolor' }));
+      localStorage.setItem(yesterdayCompleted, JSON.stringify({ completedAt: '2026-11-21' }));
+      localStorage.setItem(todayDraft, JSON.stringify({ hasStarted: true }));
+
+      purgeStaleCheckInData();
+
+      expect(localStorage.getItem(yesterdayDraft)).toBeNull();
+      expect(localStorage.getItem(yesterdayCompleted)).toBeNull();
+      expect(localStorage.getItem(todayDraft)).not.toBeNull();
     });
   });
 });

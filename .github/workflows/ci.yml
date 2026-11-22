@@ -44,3 +44,7 @@ jobs:
       # "tsc && vite build": falla si hay errores de tipos de TypeScript.
       - name: Build
         run: npm run build
+
+      # El test del service worker lee dist/sw.js: corre después del build para no saltarlo.
+      - name: Test del service worker generado
+        run: npx vitest run src/config/__tests__/pwaPrecache.test.ts

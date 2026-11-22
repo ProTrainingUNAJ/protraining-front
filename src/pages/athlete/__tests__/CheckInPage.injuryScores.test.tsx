@@ -273,7 +273,6 @@ describe('CheckInPage with active injury scores', () => {
     checkInHelper.clearCheckInDraft(ATHLETE_ID);
     checkInHelper.saveCheckInCompleted(ATHLETE_ID, {
       trafficLight: 'Red',
-      trafficLightReason: 'Lesión activa reportada',
       completedAt: new Date().toISOString(),
     });
 
