@@ -217,14 +217,8 @@
 .dl-widget__progress-fill {
   height: 100%;
   border-radius: 9999px;
-  background: linear-gradient(
-    90deg,
-    var(--stat-green) 0%,
-    var(--celebration-blue) 40%,
-    var(--celebration-purple) 75%,
-    var(--celebration-amber) 100%
-  );
-  box-shadow: 0 0 8px color-mix(in srgb, var(--celebration-purple) 40%, transparent);
+  background: var(--load-bar-fill, var(--primary));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--load-bar-fill, var(--primary)) 28%, transparent);
   transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   animation: dlFillGrow 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }

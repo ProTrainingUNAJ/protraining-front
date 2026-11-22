@@ -19,7 +19,6 @@ import {
 import { Athlete } from '../../types/structure';
 import { structureService } from '../../api/structureService';
 import { authService } from '../../api/authService';
-import { usersService } from '../../api/users';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { validateTelegramUsername } from '../../utils/telegram';
 
@@ -305,9 +304,7 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                 currentPhotoUrl={
                   athlete.hasPhoto
                     ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
-                    : athlete.accountId
-                      ? usersService.getMyPhotoUrl(athlete.accountId)
-                      : null
+                    : null
                 }
                 name={athleteName}
                 onUpload={async (file: File) => {

@@ -16,7 +16,6 @@ import {
   Settings,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
-import { usersService } from '../../api/users';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ProfileAvatar } from '../../components/common/ProfileAvatar';
@@ -747,9 +746,7 @@ export const AthletesPage: React.FC = () => {
                     src={
                       athlete.hasPhoto
                         ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
-                        : athlete.accountId
-                          ? usersService.getMyPhotoUrl(athlete.accountId)
-                          : null
+                        : null
                     }
                     name={athlete.fullName || `${athlete.firstName} ${athlete.lastName}`}
                     size={44}

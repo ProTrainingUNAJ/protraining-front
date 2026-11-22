@@ -1,12 +1,11 @@
-// Escala cromática para el thumb según el nivel de molestia o dolor (0 a 10)
+// Escala cromática para el thumb según el nivel de molestia o dolor (0 a 10) usando tokens CSS
 export const getPainColor = (level: number | null): string => {
-  if (level === null) return '#0088cc';
-  if (level === 0) return '#0088cc';
-  if (level <= 2) return '#0ea5e9';
-  if (level <= 4) return '#10b981';
-  if (level <= 6) return '#85a900';
-  if (level <= 8) return '#f97316';
-  return '#ef4444';
+  if (level === null || level === 0) return 'var(--pain-scale-0)';
+  if (level <= 2) return 'var(--pain-scale-1-2)';
+  if (level <= 4) return 'var(--pain-scale-3-4)';
+  if (level <= 6) return 'var(--pain-scale-5-6)';
+  if (level <= 8) return 'var(--pain-scale-7-8)';
+  return 'var(--pain-scale-9-10)';
 };
 
 export const getPainLabel = (level: number | null): string => {

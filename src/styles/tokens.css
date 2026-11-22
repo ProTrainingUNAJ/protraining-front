@@ -479,6 +479,17 @@
   --traffic-bulb-border: rgb(0 0 0 / 0.6);
   --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
   --traffic-reflection-bg: rgb(255 255 255 / 0.85);
+
+  /* Pain scale tokens (KAN-512, KAN-642) */
+  --pain-scale-0: var(--primary);
+  --pain-scale-1-2: #0ea5e9;
+  --pain-scale-3-4: #10b981;
+  --pain-scale-5-6: #85a900;
+  --pain-scale-7-8: #f97316;
+  --pain-scale-9-10: #ef4444;
+
+  /* Load bar fill (KAN-512, KAN-646) - neutral color */
+  --load-bar-fill: var(--primary);
 }
 
 [data-theme='dark'] {
@@ -518,6 +529,17 @@
   --danger-border: rgb(239 68 68 / 0.35);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+
+  /* Pain scale tokens (KAN-512, KAN-642) */
+  --pain-scale-0: var(--brand-blue);
+  --pain-scale-1-2: #38bdf8;
+  --pain-scale-3-4: #34d399;
+  --pain-scale-5-6: #a3e635;
+  --pain-scale-7-8: #fb923c;
+  --pain-scale-9-10: #f87171;
+
+  /* Load bar fill (KAN-512, KAN-646) */
+  --load-bar-fill: var(--brand-blue);
 
   /* Inputs and states in dark mode */
   --bg-surface-subtle: #1c2025;
@@ -783,4 +805,15 @@
   --traffic-bulb-border: rgb(0 0 0 / 0.6);
   --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
   --traffic-reflection-bg: rgb(255 255 255 / 0.85);
+
+  /* Pain scale tokens (KAN-512, KAN-642) */
+  --pain-scale-0: var(--primary);
+  --pain-scale-1-2: #0ea5e9;
+  --pain-scale-3-4: #10b981;
+  --pain-scale-5-6: #85a900;
+  --pain-scale-7-8: #f97316;
+  --pain-scale-9-10: #ef4444;
+
+  /* Load bar fill (KAN-512, KAN-646) - neutral color */
+  --load-bar-fill: var(--primary);
 }

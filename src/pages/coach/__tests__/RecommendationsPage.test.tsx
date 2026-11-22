@@ -257,7 +257,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
   });
 
-  it('ejecuta el motor para la categoría seleccionada y muestra el resumen', async () => {
+  it('deshabilita el botón sin categoría seleccionada y ejecuta el motor al elegir una (KAN-512)', async () => {
     generateForCategoryMock.mockResolvedValue({
       categoryId: 'cat-1',
       categoryName: 'Primera División',
@@ -273,7 +273,18 @@ describe('RecommendationsPage (KAN-492)', () => {
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Analizar categoría/i }));
+    // Sin categoría seleccionada ("Todas las categorías"), el botón está deshabilitado
+    const defaultBtn = screen.getByRole('button', { name: /Analizar plantel/i });
+    expect((defaultBtn as HTMLButtonElement).disabled).toBe(true);
+
+    // Seleccionamos Primera División
+    fireEvent.change(screen.getByLabelText(/Filtrar por categoría/i), {
+      target: { value: 'cat-1' },
+    });
+
+    const analyzeBtn = screen.getByRole('button', { name: /Analizar: Primera División/i });
+    expect((analyzeBtn as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(analyzeBtn);
 
     await waitFor(() => {
       expect(generateForCategoryMock).toHaveBeenCalledWith('cat-1', 4);

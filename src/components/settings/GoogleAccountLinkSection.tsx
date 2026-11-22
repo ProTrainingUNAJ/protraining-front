@@ -187,6 +187,11 @@ export const GoogleAccountLinkSection: React.FC = () => {
     }
   };
 
+  // Si Google no está configurado en el build y no hay vinculación activa, ocultar la sección
+  if (!isGoogleConfigured && !googleLinked && !loadingStatus) {
+    return null;
+  }
+
   return (
     <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
       <div
@@ -270,7 +275,7 @@ export const GoogleAccountLinkSection: React.FC = () => {
                 <GoogleIcon />
                 <span>Vinculado</span>
               </button>
-            ) : (
+            ) : isGoogleConfigured ? (
               <button
                 type="button"
                 className="btn btn-primary"
@@ -294,7 +299,7 @@ export const GoogleAccountLinkSection: React.FC = () => {
                 <GoogleIcon />
                 <span>Vincular cuenta de Google</span>
               </button>
-            )}
+            ) : null}
           </div>
         )}
       </div>
