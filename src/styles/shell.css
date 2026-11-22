@@ -65,6 +65,29 @@
   max-height: 100%;
   box-sizing: border-box;
   overflow: visible;
+  /* El panel principal tiene flex: 1, así que se achica o se agranda junto con el menú */
+  transition:
+    width 0.22s ease,
+    min-width 0.22s ease,
+    max-width 0.22s ease,
+    flex-basis 0.22s ease,
+    padding 0.22s ease;
+}
+
+/* Menú desplegado en escritorio: ícono + nombre. Reusa los estilos del drawer de celular */
+.app-sidebar-desktop.is-expanded {
+  width: var(--shell-sidebar-expanded-width, 272px);
+  min-width: var(--shell-sidebar-expanded-width, 272px);
+  max-width: var(--shell-sidebar-expanded-width, 272px);
+  flex: 0 0 var(--shell-sidebar-expanded-width, 272px);
+  padding: 1.5rem 0.75rem 1.25rem;
+  align-items: stretch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar-desktop {
+    transition: none;
+  }
 }
 
 .app-sidebar-top {
@@ -155,9 +178,24 @@
   border: 1px solid var(--on-primary-border);
 }
 
-.app-sidebar-link:hover .app-sidebar-tooltip {
+.app-sidebar-link:hover .app-sidebar-tooltip,
+.app-sidebar-link:focus-visible .app-sidebar-tooltip {
   opacity: 1;
   transform: translateX(0);
+}
+
+.app-sidebar-link:focus-visible {
+  outline: 2px solid var(--on-primary);
+  outline-offset: 2px;
+}
+
+/* Botón para plegar / desplegar el menú en escritorio: se ve como un ítem más */
+.app-sidebar-toggle {
+  border: none;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* Zona inferior de la barra lateral */
@@ -361,8 +399,9 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  /* 44px: mínimo táctil recomendado */
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background-color: var(--bg-card);
@@ -898,7 +937,8 @@
   overflow: visible;
 }
 
-.app-mobile-drawer .app-sidebar-top {
+.app-mobile-drawer .app-sidebar-top,
+.app-sidebar-desktop.is-expanded .app-sidebar-top {
   align-items: stretch;
 }
 
@@ -910,7 +950,8 @@
   display: block;
 }
 
-.app-mobile-drawer .app-sidebar-logo-link {
+.app-mobile-drawer .app-sidebar-logo-link,
+.app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
   width: auto;
   height: auto;
   margin-bottom: 1.5rem;
@@ -918,12 +959,14 @@
   align-self: flex-start;
 }
 
-.app-mobile-drawer .app-sidebar-nav {
+.app-mobile-drawer .app-sidebar-nav,
+.app-sidebar-desktop.is-expanded .app-sidebar-nav {
   align-items: stretch;
   gap: 0.45rem;
 }
 
-.app-mobile-drawer .app-sidebar-link {
+.app-mobile-drawer .app-sidebar-link,
+.app-sidebar-desktop.is-expanded .app-sidebar-link {
   width: 100%;
   height: auto;
   min-height: 44px;
@@ -933,8 +976,12 @@
   border-radius: 12px;
 }
 
-.app-mobile-drawer .app-sidebar-tooltip {
+.app-mobile-drawer .app-sidebar-tooltip,
+.app-sidebar-desktop.is-expanded .app-sidebar-tooltip {
   position: static;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   opacity: 1;
   pointer-events: auto;
   transform: none;
@@ -948,17 +995,20 @@
   white-space: nowrap;
 }
 
-.app-mobile-drawer .app-sidebar-bottom {
+.app-mobile-drawer .app-sidebar-bottom,
+.app-sidebar-desktop.is-expanded .app-sidebar-bottom {
   align-items: stretch;
   padding-top: 1.5rem;
 }
 
-.app-mobile-drawer .shell-sidebar-user-wrap {
+.app-mobile-drawer .shell-sidebar-user-wrap,
+.app-sidebar-desktop.is-expanded .shell-sidebar-user-wrap {
   width: 100%;
   justify-content: flex-start;
 }
 
-.app-mobile-drawer .shell-sidebar-avatar-btn {
+.app-mobile-drawer .shell-sidebar-avatar-btn,
+.app-sidebar-desktop.is-expanded .shell-sidebar-avatar-btn {
   width: 100%;
   display: flex;
   align-items: center;
@@ -968,8 +1018,11 @@
   gap: 0.85rem;
 }
 
-.app-mobile-drawer .shell-sidebar-avatar-label {
+.app-mobile-drawer .shell-sidebar-avatar-label,
+.app-sidebar-desktop.is-expanded .shell-sidebar-avatar-label {
   display: inline-flex;
+  min-width: 0;
+  overflow: hidden;
   align-items: center;
   font-size: 0.95rem;
   font-weight: 700;
@@ -977,12 +1030,14 @@
   white-space: nowrap;
 }
 
-.app-mobile-drawer .shell-sidebar-avatar-btn:hover {
+.app-mobile-drawer .shell-sidebar-avatar-btn:hover,
+.app-sidebar-desktop.is-expanded .shell-sidebar-avatar-btn:hover {
   transform: none;
   background-color: var(--on-primary-hover);
 }
 
-.app-mobile-drawer .shell-sidebar-user-dropdown {
+.app-mobile-drawer .shell-sidebar-user-dropdown,
+.app-sidebar-desktop.is-expanded .shell-sidebar-user-dropdown {
   left: 0;
   right: 0;
   bottom: calc(100% + 8px);
@@ -1199,6 +1254,16 @@
     gap: 0.75rem;
     padding-top: 0.75rem;
   }
+  .app-sidebar-desktop.is-expanded {
+    padding: 1rem 0.75rem 0.85rem;
+  }
+  .app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
+    margin-bottom: 1rem;
+  }
+  .app-sidebar-desktop.is-expanded .app-sidebar-link {
+    min-height: 40px;
+    padding-block: 0.45rem;
+  }
 }
 
 @media (min-width: 992px) and (max-height: 720px) {
@@ -1220,6 +1285,16 @@
   .app-sidebar-desktop .shell-sidebar-avatar {
     width: 36px;
     height: 36px;
+  }
+  .app-sidebar-desktop.is-expanded {
+    padding: 0.75rem;
+  }
+  .app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
+    margin-bottom: 0.5rem;
+  }
+  .app-sidebar-desktop.is-expanded .app-sidebar-link {
+    min-height: 36px;
+    padding-block: 0.3rem;
   }
 }
 

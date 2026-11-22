@@ -6,6 +6,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { NotificationsButton } from './NotificationsButton';
 import { CalendarButton } from './CalendarButton';
 import { ContactPfButton } from '../athlete/ContactPfButton';
+import { useSidebarExpanded } from '../../hooks/useSidebarExpanded';
 
 interface AppShellProps {
   role: 'pf' | 'athlete';
@@ -13,6 +14,7 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ role }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { expanded: sidebarExpanded, toggle: toggleSidebar } = useSidebarExpanded();
   const location = useLocation();
 
   const closeMobileMenu = () => {
@@ -54,8 +56,13 @@ export const AppShell: React.FC<AppShellProps> = ({ role }) => {
   return (
     <div className="app-shell-viewport">
       <div className="app-shell-container">
-        {/* Barra lateral izquierda fija de escritorio */}
-        <AppSidebar role={role} className="app-sidebar-desktop" />
+        {/* Barra lateral izquierda fija de escritorio: plegable (solo íconos) o desplegada (ícono + nombre) */}
+        <AppSidebar
+          role={role}
+          className="app-sidebar-desktop"
+          expanded={sidebarExpanded}
+          onToggleExpanded={toggleSidebar}
+        />
 
         {/* Panel principal derecho: Encabezado superior persistente y área de contenido */}
         <div className="app-main-panel">
