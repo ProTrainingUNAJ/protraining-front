@@ -27,7 +27,7 @@
 
 .athletes-create-title {
   margin-bottom: var(--spacing-2xs);
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: var(--font-size-lg);
   font-weight: 700;
 }

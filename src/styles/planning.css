@@ -224,7 +224,7 @@
   height: 2.25rem;
   border-radius: 10px;
   background: var(--color-primary-subtle);
-  color: var(--primary);
+  color: var(--primary-text);
   flex-shrink: 0;
 }
 
@@ -288,7 +288,7 @@
 }
 
 .plan-card-title-link:hover {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .plan-card-desc {
@@ -679,7 +679,7 @@
 }
 
 .plan-exercise-name-btn:hover {
-  color: var(--primary);
+  color: var(--primary-text);
   text-decoration: underline;
 }
 
@@ -1325,7 +1325,7 @@
 
 .plan-view-btn.active {
   background: var(--bg-card);
-  color: var(--primary);
+  color: var(--primary-text);
   box-shadow: var(--shadow-sm);
 }
 
@@ -1472,7 +1472,7 @@
 
 .plan-add-day-option:hover {
   background: var(--bg-subtle);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 /* Cabecera del día */
@@ -1750,7 +1750,7 @@
   display: inline-block;
   padding: 0.15rem 0.4rem;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
   border-radius: 4px;
   font-size: 0.75rem;
 }
@@ -1957,7 +1957,7 @@
 }
 
 .plan-volume-badge strong {
-  color: var(--primary);
+  color: var(--primary-text);
   font-weight: 700;
 }
 
@@ -1972,7 +1972,7 @@
 }
 
 .plan-collapse-btn:hover {
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--bg-subtle);
 }
 
@@ -2654,7 +2654,7 @@
   height: 32px;
   border-radius: 8px;
   background: var(--bg-subtle);
-  color: var(--primary);
+  color: var(--primary-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2802,7 +2802,7 @@
 }
 
 .exercise-detail-section-icon {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .exercise-detail-silhouette-wrap {
@@ -2954,7 +2954,7 @@
 
 .plan-assignees-empty-btn:hover {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--bg-subtle);
 }
 
@@ -3189,7 +3189,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--primary);
+  color: var(--primary-text);
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
@@ -3835,7 +3835,7 @@
   gap: 0.45rem;
   font-size: 0.88rem;
   font-weight: 800;
-  color: var(--brand-navy);
+  color: var(--primary-text);
 }
 
 .adaptation-shield-icon-wrap {

@@ -90,7 +90,7 @@
 
 .category-dashboard-kpi-value {
   margin: 0.15rem 0 0;
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 1.6rem;
   font-weight: 800;
   line-height: 1.2;

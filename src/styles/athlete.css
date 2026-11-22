@@ -2472,7 +2472,7 @@
 .finish-routine-step-btn:hover {
   background: var(--bg-subtle);
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
   transform: translateY(-1px);
 }
 
@@ -2958,7 +2958,7 @@
 .finish-routine-social-btn--export:hover:not(:disabled) {
   background: var(--bg-subtle);
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .finish-routine-return-btn {

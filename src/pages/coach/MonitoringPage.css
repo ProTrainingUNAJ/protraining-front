@@ -136,7 +136,7 @@
 }
 
 .monitoring-summary-icon {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .monitoring-summary-title {
@@ -493,7 +493,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;

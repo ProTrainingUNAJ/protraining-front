@@ -199,5 +199,5 @@
 
 /* ── Icono de fuego del banner de propuestas Epley ── */
 .dashboard-epley-flame {
-  color: var(--brand-blue);
+  color: var(--primary-text);
 }
