@@ -122,7 +122,8 @@
 
 .epley-widget-badge {
   background: var(--stat-amber-bg);
-  color: var(--stat-amber);
+  /* --stat-amber como texto daba 2,86:1 en claro (KAN-594) */
+  color: var(--warning-text);
   font-size: 0.68rem;
   font-weight: 700;
   padding: 0.15rem 0.5rem;
@@ -383,7 +384,7 @@
 
 .epley-btn-approve {
   background: var(--stat-green);
-  color: var(--white);
+  color: var(--on-stat-green);
   border-color: var(--stat-green);
   font-size: 0.78rem;
   font-weight: 700;
