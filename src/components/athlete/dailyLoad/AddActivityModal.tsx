@@ -247,7 +247,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({
                     setErrorMessage(null);
                   }}
                 >
-                  {preset}m
+                  <span>{preset}m</span>
                 </button>
               ))}
             </div>
@@ -353,7 +353,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({
               className="dl-btn dl-btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Guardando…' : 'Guardar actividad'}
+              <span>{isSubmitting ? 'Guardando…' : 'Guardar actividad'}</span>
             </button>
           </div>
         </form>
