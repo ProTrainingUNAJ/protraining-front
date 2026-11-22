@@ -56,6 +56,11 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  /* En pantalla angosta (360 px) el grupo se puede comprimir y el select se
+     queda sin lugar para su texto: se permite envolver para que el select baje
+     a su propia línea y muestre "Todas las organizaciones" completo. */
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .monitoring-filter-label {
@@ -73,6 +78,11 @@
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
+  /* El `select { width: 100% }` global haría que el select siempre ocupara su
+     propia fila aunque sobrara lugar; con width auto + flex crece solo cuando
+     se envuelve, manteniendo el diseño original en escritorio. */
+  width: auto;
+  flex: 1 1 auto;
 }
 
 .monitoring-filter-error {
@@ -511,4 +521,16 @@
 .monitoring-att-contact {
   padding-top: 0.55rem;
   border-top: 1px solid var(--border);
+}
+
+/* ── Filtros segmentados (Semáforo / Asistencia) en pantalla angosta ──
+   En ≤640 px components.css pasa la barra a una sola fila con scroll horizontal
+   y scrollbar oculta, por lo que "Óptimos" quedaba cortado por el borde derecho
+   (360 px). En esta vista se envuelven en varias filas para mostrar todos los
+   estados sin cortar ninguno. */
+@media (max-width: 640px) {
+  .monitoring-tab-panel .segmented-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
