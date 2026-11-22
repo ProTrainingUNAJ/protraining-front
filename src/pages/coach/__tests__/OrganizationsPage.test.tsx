@@ -432,9 +432,10 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
         </MemoryRouter>,
       );
 
-      // Antes de 300 ms no muestra esqueleto ni texto de carga
+      // Antes de 300 ms no muestra esqueleto, texto de carga ni el estado vacío "Elegí una organización"
       expect(screen.queryByText(/Cargando organizaciones/i)).toBeNull();
       expect(screen.queryByRole('status', { name: /Cargando organizaciones/i })).toBeNull();
+      expect(screen.queryByText(/Elegí una organización/i)).toBeNull();
 
       // Al cumplirse 300 ms muestra el esqueleto
       await act(async () => {
@@ -442,12 +443,21 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
       });
       expect(screen.getByRole('status', { name: /Cargando organizaciones/i })).toBeDefined();
       expect(screen.queryByText(/Cargando organizaciones/i)).toBeNull();
+      expect(screen.queryByText(/Elegí una organización/i)).toBeNull();
 
-      // Al resolverse, aparece el contenido
+      // Si la respuesta llega 50 ms después (t = 350 ms), el esqueleto se mantiene hasta completar 400 ms mínimos
       await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
         resolveOrgs(mockOrgs);
-        await vi.advanceTimersByTimeAsync(450);
+        await vi.advanceTimersByTimeAsync(150);
       });
+      expect(screen.getByRole('status', { name: /Cargando organizaciones/i })).toBeDefined();
+
+      // Al cumplirse los 400 ms mínimos (t = 700 ms), aparece el contenido real
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250);
+      });
+      expect(screen.queryByRole('status', { name: /Cargando organizaciones/i })).toBeNull();
       expect(
         screen.getByRole('heading', { level: 3, name: 'Club Atlético San Martín' }),
       ).toBeDefined();

@@ -98,6 +98,11 @@ export const OrganizationsPage: React.FC = () => {
     return rawOrgs;
   }, []);
 
+  const fetchCategoriesWithCounts = useCallback(async (orgId: string) => {
+    const rawCategories = await structureService.getCategories(orgId);
+    return structureService.withAthleteCounts(rawCategories);
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -143,9 +148,7 @@ export const OrganizationsPage: React.FC = () => {
 
     let isMounted = true;
 
-    structureService
-      .getCategories(selectedOrgId)
-      .then((rawCategories) => structureService.withAthleteCounts(rawCategories))
+    fetchCategoriesWithCounts(selectedOrgId)
       .then((data) => {
         if (!isMounted) return;
         setCategories(data);
@@ -176,7 +179,7 @@ export const OrganizationsPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedOrgId]);
+  }, [selectedOrgId, fetchCategoriesWithCounts]);
 
   // Actualización manual manteniendo los datos previos visibles (KAN-597)
   const handleRefresh = async () => {
@@ -194,8 +197,7 @@ export const OrganizationsPage: React.FC = () => {
       if (targetOrgId !== selectedOrgId) {
         setSelectedOrgId(targetOrgId);
       } else if (targetOrgId) {
-        const rawCategories = await structureService.getCategories(targetOrgId);
-        const data = await structureService.withAthleteCounts(rawCategories);
+        const data = await fetchCategoriesWithCounts(targetOrgId);
         setCategories(data);
       } else {
         setCategories([]);
@@ -625,26 +627,24 @@ export const OrganizationsPage: React.FC = () => {
             </div>
 
             {/* Listado de organizaciones estilo lista limpia */}
-            {loadingOrgs && organizations.length === 0 ? (
-              showOrgsSkeleton ? (
-                <div
-                  className="structure-skeleton-list"
-                  role="status"
-                  aria-label="Cargando organizaciones"
-                >
-                  {[0, 1, 2].map((index) => (
-                    <div key={index} className="structure-skeleton-org-item" aria-hidden="true">
-                      <div className="structure-skeleton-block structure-skeleton-avatar" />
-                      <div className="structure-skeleton-lines">
-                        <div className="structure-skeleton-block structure-skeleton-line-title" />
-                        <div className="structure-skeleton-block structure-skeleton-line-sub" />
-                      </div>
+            {showOrgsSkeleton ? (
+              <div
+                className="structure-skeleton-list"
+                role="status"
+                aria-label="Cargando organizaciones"
+              >
+                {[0, 1, 2].map((index) => (
+                  <div key={index} className="structure-skeleton-org-item" aria-hidden="true">
+                    <div className="structure-skeleton-block structure-skeleton-avatar" />
+                    <div className="structure-skeleton-lines">
+                      <div className="structure-skeleton-block structure-skeleton-line-title" />
+                      <div className="structure-skeleton-block structure-skeleton-line-sub" />
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="structure-skeleton-list" aria-busy="true" />
-              )
+                  </div>
+                ))}
+              </div>
+            ) : loadingOrgs && organizations.length === 0 ? (
+              <div className="structure-skeleton-list" aria-busy="true" />
             ) : filteredOrganizations.length === 0 ? (
               <div className="structure-empty-state" style={{ padding: '2.5rem 1rem' }}>
                 <Building2 size={28} className="structure-empty-icon" aria-hidden="true" />
@@ -756,7 +756,38 @@ export const OrganizationsPage: React.FC = () => {
               </button>
             </div>
 
-            {selectedOrg ? (
+            {showOrgsSkeleton ? (
+              <div className="structure-detail-card" aria-hidden="true">
+                <div className="structure-detail-header">
+                  <div className="structure-skeleton-detail-header">
+                    <div className="structure-skeleton-block structure-skeleton-avatar" />
+                    <div className="structure-skeleton-lines">
+                      <div className="structure-skeleton-block structure-skeleton-line-title" />
+                      <div className="structure-skeleton-block structure-skeleton-line-sub" />
+                    </div>
+                  </div>
+                </div>
+                <div className="structure-detail-body">
+                  <div className="structure-categories-grid">
+                    {[0, 1].map((index) => (
+                      <div key={index} className="structure-skeleton-card">
+                        <div className="structure-skeleton-card-header">
+                          <div className="structure-skeleton-block structure-skeleton-line-title" />
+                          <div className="structure-skeleton-block structure-skeleton-badge" />
+                        </div>
+                        <div className="structure-skeleton-block structure-skeleton-line-sub" />
+                        <div className="structure-skeleton-actions">
+                          <div className="structure-skeleton-block structure-skeleton-btn" />
+                          <div className="structure-skeleton-block structure-skeleton-btn" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : loadingOrgs && organizations.length === 0 ? (
+              <div className="structure-detail-card" aria-busy="true" />
+            ) : selectedOrg ? (
               <div className="structure-detail-card">
                 {/* Cabecera limpia y elegante de la Organización */}
                 <div className="structure-detail-header">
@@ -894,30 +925,28 @@ export const OrganizationsPage: React.FC = () => {
                   </div>
 
                   {/* Grilla de Categorías */}
-                  {loadingCategories && categories.length === 0 ? (
-                    showCategoriesSkeleton ? (
-                      <div
-                        className="structure-categories-grid"
-                        role="status"
-                        aria-label="Cargando categorías"
-                      >
-                        {[0, 1].map((index) => (
-                          <div key={index} className="structure-skeleton-card" aria-hidden="true">
-                            <div className="structure-skeleton-card-header">
-                              <div className="structure-skeleton-block structure-skeleton-line-title" />
-                              <div className="structure-skeleton-block structure-skeleton-badge" />
-                            </div>
-                            <div className="structure-skeleton-block structure-skeleton-line-sub" />
-                            <div className="structure-skeleton-actions">
-                              <div className="structure-skeleton-block structure-skeleton-btn" />
-                              <div className="structure-skeleton-block structure-skeleton-btn" />
-                            </div>
+                  {showCategoriesSkeleton ? (
+                    <div
+                      className="structure-categories-grid"
+                      role="status"
+                      aria-label="Cargando categorías"
+                    >
+                      {[0, 1].map((index) => (
+                        <div key={index} className="structure-skeleton-card" aria-hidden="true">
+                          <div className="structure-skeleton-card-header">
+                            <div className="structure-skeleton-block structure-skeleton-line-title" />
+                            <div className="structure-skeleton-block structure-skeleton-badge" />
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="structure-categories-grid" aria-busy="true" />
-                    )
+                          <div className="structure-skeleton-block structure-skeleton-line-sub" />
+                          <div className="structure-skeleton-actions">
+                            <div className="structure-skeleton-block structure-skeleton-btn" />
+                            <div className="structure-skeleton-block structure-skeleton-btn" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : loadingCategories && categories.length === 0 ? (
+                    <div className="structure-categories-grid" aria-busy="true" />
                   ) : filteredCategories.length === 0 ? (
                     <div className="structure-empty-state">
                       <Layers size={36} className="structure-empty-icon" aria-hidden="true" />
