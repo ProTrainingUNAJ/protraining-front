@@ -34,7 +34,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
 
   const safeIndex = Math.min(currentIndex, activeInjuries.length - 1);
   const currentInjury = activeInjuries[safeIndex];
-  const currentScore = currentInjury ? (injuryScores[currentInjury.id] ?? 0) : 0;
+  const currentScore = currentInjury ? (injuryScores[currentInjury.id] ?? null) : null;
   const isLast = safeIndex >= activeInjuries.length - 1;
 
   const handleScoreChange = (val: number) => {
@@ -44,7 +44,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
   };
 
   const handleNextOrFinish = () => {
-    // no se inventa un 0. El cero debe ser una elección del atleta; si no tocó la
+    // No se inventa un 0. El cero debe ser una elección del atleta; si no tocó la
     // barra el score queda sin definir y el wizard bloquea el avance hasta que lo puntúe.
     if (!isLast) {
       setCurrentIndex((prev) => prev + 1);
@@ -98,18 +98,18 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            backgroundColor: 'var(--info-bg, #e0f2fe)',
-            border: '2px solid var(--info-border, #bae6fd)',
+            backgroundColor: 'var(--info-bg)',
+            border: '2px solid var(--info-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '1rem',
-            boxShadow: 'var(--shadow, 0 1px 3px rgba(0,0,0,0.1))',
+            boxShadow: 'var(--shadow)',
             flexShrink: 0,
           }}
           aria-hidden="true"
         >
-          <Activity size={32} color="var(--primary, #0088cc)" strokeWidth={2.4} />
+          <Activity size={32} color="var(--primary)" strokeWidth={2.4} />
         </div>
 
         {/* Título en Montserrat / fuente del sistema en negrita */}
@@ -119,7 +119,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             fontFamily: 'var(--font-base)',
             fontSize: '1.35rem',
             fontWeight: 800,
-            color: 'var(--checkin-title-color, #0f172a)',
+            color: 'var(--text-main)',
             margin: '0 0 0.4rem 0',
             letterSpacing: '-0.02em',
           }}
@@ -145,8 +145,8 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
         <div
           style={{
             width: '100%',
-            backgroundColor: 'var(--bg-subtle, #f8fafc)',
-            border: '1.5px solid var(--border, #e2e8f0)',
+            backgroundColor: 'var(--bg-subtle)',
+            border: '1.5px solid var(--border)',
             borderRadius: '16px',
             padding: '0.85rem 1rem',
             marginBottom: '1rem',
@@ -158,7 +158,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             style={{
               fontWeight: 800,
               fontSize: '1.02rem',
-              color: 'var(--text-main, #0f172a)',
+              color: 'var(--text-main)',
               lineHeight: 1.45,
             }}
           >
@@ -175,7 +175,7 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             fontFamily: 'var(--font-base)',
             fontSize: '0.92rem',
             fontWeight: 500,
-            color: 'var(--checkin-subtitle-color, #475569)',
+            color: 'var(--text-muted)',
             lineHeight: 1.4,
             margin: '0 0 0.85rem 0',
           }}
@@ -220,9 +220,9 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
               style={{
                 flex: 1,
                 padding: '0.85rem 1rem',
-                backgroundColor: 'var(--checkin-counter-bg, #f1f5f9)',
-                border: '1.5px solid var(--border, #cbd5e1)',
-                color: 'var(--text-main, #0f172a)',
+                backgroundColor: 'var(--bg-subtle)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--text-main)',
                 borderRadius: '9999px',
                 fontFamily: 'var(--font-base)',
                 fontSize: '0.95rem',
@@ -241,8 +241,8 @@ export const ActiveInjuriesModal: React.FC<ActiveInjuriesModalProps> = ({
             style={{
               flex: 2,
               padding: '0.85rem 1rem',
-              backgroundColor: 'var(--checkin-next-btn-bg, #0088cc)',
-              color: 'var(--checkin-next-btn-color, #ffffff)',
+              backgroundColor: 'var(--primary)',
+              color: 'var(--white, #ffffff)',
               borderRadius: '9999px',
               border: 'none',
               fontFamily: 'var(--font-base)',

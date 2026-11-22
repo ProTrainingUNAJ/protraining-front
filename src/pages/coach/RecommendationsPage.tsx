@@ -73,8 +73,7 @@ export function RecommendationsPage() {
         // Por defecto: "Todas las organizaciones" ('') y "Todas las categorías" ('')
         setSelectedOrganizationId('');
         setSelectedCategoryFilter('');
-        const defaultCatId = catsData[0]?.id || '';
-        setAnalysisCategoryId(defaultCatId);
+        setAnalysisCategoryId('');
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -200,6 +199,12 @@ export function RecommendationsPage() {
   }, [filteredRecommendations, getAthleteDisplayName]);
 
   const targetCategoryForAnalysis = analysisCategoryId || selectedCategoryFilter;
+  const selectedCategoryForAnalysis = categories.find((c) => c.id === targetCategoryForAnalysis);
+  const analysisBtnText = analyzing
+    ? 'Analizando…'
+    : selectedCategoryForAnalysis
+      ? `Analizar: ${selectedCategoryForAnalysis.name}`
+      : 'Analizar plantel';
 
   const handleRunCategoryEngine = async () => {
     if (!targetCategoryForAnalysis || analyzing) return;
@@ -316,12 +321,9 @@ export function RecommendationsPage() {
           className="recommendations-top-filters"
           aria-label="Filtros de organización, categoría y búsqueda"
         >
-          <div
-            className="recommendations-plantel-group"
-            style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}
-          >
+          <div className="recommendations-plantel-group">
             {/* Organización */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div className="recommendations-select-wrapper">
               <label htmlFor="recommendations-org-select" className="recommendations-plantel-label">
                 Organización:
               </label>
@@ -354,7 +356,7 @@ export function RecommendationsPage() {
             </div>
 
             {/* Categoría */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div className="recommendations-select-wrapper">
               <label
                 htmlFor="recommendations-plantel-select"
                 className="recommendations-plantel-label"
@@ -409,11 +411,11 @@ export function RecommendationsPage() {
               type="button"
               className="recommendations-engine-btn"
               onClick={() => void handleRunCategoryEngine()}
-              disabled={analyzing || (!targetCategoryForAnalysis && categories.length > 0)}
-              aria-label="Analizar categoría"
+              disabled={analyzing || !targetCategoryForAnalysis}
+              aria-label={analysisBtnText}
             >
               {analyzing && <Loader2 size={13} className="plan-spin" aria-hidden="true" />}
-              <span>{analyzing ? 'Analizando…' : 'Actualizar'}</span>
+              <span>{analysisBtnText}</span>
             </button>
           </section>
 

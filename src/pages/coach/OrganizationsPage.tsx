@@ -905,7 +905,7 @@ export const OrganizationsPage: React.FC = () => {
                             <button
                               type="button"
                               className="structure-btn-pill statistics"
-                              onClick={() => navigate(`/pf/category-statistics?catId=${cat.id}`)}
+                              onClick={() => navigate(`/pf/statistics?catId=${cat.id}`)}
                               title="Ver presentismo, lesiones y carga de esta categoría"
                               aria-label={`Estadísticas de ${cat.name}`}
                             >

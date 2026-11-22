@@ -21,6 +21,13 @@
 
 .recommendations-plantel-group {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.recommendations-select-wrapper {
+  display: flex;
   align-items: center;
   gap: 0.65rem;
 }

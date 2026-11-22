@@ -174,12 +174,12 @@ export function parseDayOfWeek(day: unknown): number {
 }
 
 // Posición del día en la semana del PF (lunes = 0, domingo = 6), para ordenar.
-export function dayPosition(dayOfWeek: unknown): number {
+export function dayPosition(dayOfWeek: number | string): number {
   const normalized = parseDayOfWeek(dayOfWeek);
   return (normalized + 6) % 7;
 }
 
-export function dayLabel(dayOfWeek: unknown): string {
+export function dayLabel(dayOfWeek: number | string): string {
   const normalized = parseDayOfWeek(dayOfWeek);
   return WEEK_DAYS.find((day) => day.value === normalized)?.label ?? '';
 }
@@ -225,8 +225,7 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
             title: b.title,
             order: b.order,
             exercises: (b.exercises ?? []).map((exercise) => {
-              const ex = exercise as unknown as Record<string, unknown>;
-              const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+              const exType = (exercise.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
               const repsStr = exercise.reps != null ? String(exercise.reps) : '10';
               const parsedReps = parseRepsNumber(repsStr, 10);
               const intensity = (exercise.intensityType as IntensityMetric) || 'RPE';
@@ -251,10 +250,10 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
                     notes: exercise.notes ?? null,
                   },
                 },
-                images: (ex.images as string[]) ?? [],
-                primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
-                secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
-                muscleGroup: (ex.muscleGroup as string) ?? undefined,
+                images: exercise.images ?? [],
+                primaryMuscles: exercise.primaryMuscles ?? [],
+                secondaryMuscles: exercise.secondaryMuscles ?? [],
+                muscleGroup: exercise.muscleGroup ?? undefined,
               };
             }),
           };
@@ -265,8 +264,7 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
           blocks.length > 0
             ? blocks.flatMap((b) => b.exercises)
             : session.exercises.map((e) => {
-                const ex = e as unknown as Record<string, unknown>;
-                const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+                const exType = (e.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
                 const exMeta = meta.exercises?.[e.exerciseId] || {};
                 const repsStr = e.reps != null ? String(e.reps) : null;
                 return {
@@ -281,11 +279,11 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
                   targetDistanceMeters:
                     exType === 'Distance'
                       ? parseRepsNumber(repsStr, 10)
-                      : ((ex.targetDistanceMeters as number) ?? null),
+                      : (e.targetDistanceMeters ?? null),
                   targetTimeSeconds:
                     exType === 'Time'
                       ? parseRepsNumber(repsStr, 10)
-                      : ((ex.targetTimeSeconds as number) ?? null),
+                      : (e.targetTimeSeconds ?? null),
                   targetPercentage: e.targetPercentage ?? null,
                   intensityType:
                     (e.intensityType as IntensityMetric) ?? exMeta.intensityType ?? 'RPE',
@@ -293,10 +291,10 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
                   targetRir: e.targetRir ?? exMeta.targetRir ?? null,
                   repsRange: repsStr ?? exMeta.repsRange ?? null,
                   notes: e.notes ?? exMeta.notes ?? null,
-                  images: (ex.images as string[]) ?? [],
-                  primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
-                  secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
-                  muscleGroup: (ex.muscleGroup as string) ?? undefined,
+                  images: e.images ?? [],
+                  primaryMuscles: e.primaryMuscles ?? [],
+                  secondaryMuscles: e.secondaryMuscles ?? [],
+                  muscleGroup: e.muscleGroup ?? undefined,
                 };
               });
 
@@ -602,7 +600,7 @@ export function moveExercise(
 }
 
 // Sesiones del mismo día que `session`, en el orden en que se muestran.
-export function sameDaySessions(week: DraftWeek, dayOfWeek: unknown): DraftSession[] {
+export function sameDaySessions(week: DraftWeek, dayOfWeek: number | string): DraftSession[] {
   const targetDay = parseDayOfWeek(dayOfWeek);
   return week.sessions
     .filter((s) => parseDayOfWeek(s.dayOfWeek) === targetDay)
@@ -660,7 +658,7 @@ export function assistantDayToNumber(day: unknown): number {
   return parseDayOfWeek(day);
 }
 
-export function numberToAssistantDay(dayOfWeek: unknown): AssistantDayOfWeek {
+export function numberToAssistantDay(dayOfWeek: number | string): AssistantDayOfWeek {
   const normalized = parseDayOfWeek(dayOfWeek);
   return NUMBER_TO_ASSISTANT_DAY[normalized] ?? 'Monday';
 }
@@ -793,7 +791,7 @@ export function createDefaultBlocks(): DayBlock[] {
   }));
 }
 
-export function createDayPlan(dayOfWeek: unknown, dayName?: string): DayPlan {
+export function createDayPlan(dayOfWeek: number | string, dayName?: string): DayPlan {
   const normalized = parseDayOfWeek(dayOfWeek);
   const label = dayLabel(normalized);
   const plan: DayPlan = {

@@ -676,6 +676,14 @@ export type PrescribedExerciseRequest = {
      * Notas técnicas o indicaciones específicas para la semana.
      */
     notes?: string | null;
+    exerciseType?: string;
+    images?: Array<string>;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    muscleGroup?: string;
+    targetDistanceMeters?: number | null;
+    targetTimeSeconds?: number | null;
+    repsRange?: string | null;
 };
 
 export type TrainingBlockRequest = {
@@ -756,6 +764,14 @@ export type PrescribedExerciseDetail = {
      * Notas técnicas o indicaciones específicas para la semana.
      */
     notes?: string | null;
+    exerciseType?: string;
+    images?: Array<string>;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    muscleGroup?: string;
+    targetDistanceMeters?: number | null;
+    targetTimeSeconds?: number | null;
+    repsRange?: string | null;
 };
 
 export type TrainingBlockDetail = {

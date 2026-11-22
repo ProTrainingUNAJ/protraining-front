@@ -155,7 +155,6 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
                   sets: 6,
                   reps: '100',
                   targetPercentage: 90,
-                  // @ts-expect-error DTO includes exerciseType
                   exerciseType: 'Distance',
                 },
                 {
@@ -166,7 +165,6 @@ describe('PlanDraft - Exercise Modalities (KAN-454)', () => {
                   sets: 3,
                   reps: '45',
                   targetPercentage: null,
-                  // @ts-expect-error DTO includes exerciseType
                   exerciseType: 'Time',
                 },
               ],
