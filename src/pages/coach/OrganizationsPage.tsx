@@ -138,10 +138,10 @@ export const OrganizationsPage: React.FC = () => {
           prev.map((o) =>
             o.id === selectedOrgId
               ? {
-                ...o,
-                categoriesCount: data.length,
-                athletesCount: totalAthletes,
-              }
+                  ...o,
+                  categoriesCount: data.length,
+                  athletesCount: totalAthletes,
+                }
               : o,
           ),
         );
@@ -262,10 +262,10 @@ export const OrganizationsPage: React.FC = () => {
           prev.map((o) =>
             o.id === updated.id
               ? {
-                ...o,
-                name: updated.name,
-                description: updated.description,
-              }
+                  ...o,
+                  name: updated.name,
+                  description: updated.description,
+                }
               : o,
           ),
         );
@@ -387,10 +387,10 @@ export const OrganizationsPage: React.FC = () => {
           prev.map((c) =>
             c.id === updated.id
               ? {
-                ...c,
-                name: updated.name,
-                description: updated.description,
-              }
+                  ...c,
+                  name: updated.name,
+                  description: updated.description,
+                }
               : c,
           ),
         );
@@ -430,10 +430,10 @@ export const OrganizationsPage: React.FC = () => {
         prev.map((o) =>
           o.id === selectedOrgId
             ? {
-              ...o,
-              categoriesCount: Math.max(0, o.categoriesCount - 1),
-              athletesCount: Math.max(0, (o.athletesCount || 0) - athletesDeduction),
-            }
+                ...o,
+                categoriesCount: Math.max(0, o.categoriesCount - 1),
+                athletesCount: Math.max(0, (o.athletesCount || 0) - athletesDeduction),
+              }
             : o,
         ),
       );
@@ -520,8 +520,9 @@ export const OrganizationsPage: React.FC = () => {
               PANEL MASTER: ORGANIZACIONES
               =============================================================== */}
           <aside
-            className={`structure-master-panel ${mobileView === 'categories' ? 'structure-mobile-hidden' : ''
-              }`}
+            className={`structure-master-panel ${
+              mobileView === 'categories' ? 'structure-mobile-hidden' : ''
+            }`}
             aria-label="Listado de organizaciones"
           >
             <div className="structure-master-header">
@@ -592,8 +593,9 @@ export const OrganizationsPage: React.FC = () => {
               <div className="structure-org-list" role="list">
                 {filteredOrganizations.map((org) => {
                   const isSelected = org.id === selectedOrgId;
-                  const catCountText = `${org.categoriesCount} ${org.categoriesCount === 1 ? 'categoría' : 'categorías'
-                    }`;
+                  const catCountText = `${org.categoriesCount} ${
+                    org.categoriesCount === 1 ? 'categoría' : 'categorías'
+                  }`;
                   const athleteCountText =
                     org.athletesCount !== undefined && org.athletesCount > 0
                       ? ` · ${org.athletesCount} ${org.athletesCount === 1 ? 'atleta' : 'atletas'}`
@@ -654,8 +656,9 @@ export const OrganizationsPage: React.FC = () => {
               PANEL DETALLE: CATEGORÍAS DE LA ORGANIZACIÓN SELECCIONADA
               =============================================================== */}
           <main
-            className={`structure-detail-panel ${mobileView === 'organizations' ? 'structure-mobile-hidden' : ''
-              }`}
+            className={`structure-detail-panel ${
+              mobileView === 'organizations' ? 'structure-mobile-hidden' : ''
+            }`}
             aria-label="Detalle de categorías"
           >
             {/* Navegación Mobile */}
@@ -694,9 +697,9 @@ export const OrganizationsPage: React.FC = () => {
                           src={
                             selectedOrg.hasPhoto
                               ? structureService.getOrganizationPhotoUrl(
-                                selectedOrg.id,
-                                selectedOrg.photoUpdatedAt,
-                              )
+                                  selectedOrg.id,
+                                  selectedOrg.photoUpdatedAt,
+                                )
                               : null
                           }
                           name={selectedOrg.name}

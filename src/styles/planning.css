@@ -401,7 +401,7 @@
   box-sizing: border-box;
 }
 
-.plan-card-dates-row+.plan-card-footer {
+.plan-card-dates-row + .plan-card-footer {
   margin-top: 0;
 }
 
