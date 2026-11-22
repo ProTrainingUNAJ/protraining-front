@@ -269,6 +269,14 @@ export type DeactivateAccountRequest = {
     password: string;
 };
 
+export type HabitsRecommendationsStatus = {
+    enabled: boolean;
+};
+
+export type UpdateHabitsRecommendationsRequest = {
+    enabled: boolean;
+};
+
 export type LoginData = {
     body: LoginRequest;
     path?: never;
@@ -508,6 +516,10 @@ export type RegisterPfErrors = {
      * Ya existe una cuenta registrada con este correo electrónico.
      */
     409: ProblemDetails;
+    /**
+     * Demasiadas solicitudes. Límite de tasa excedido.
+     */
+    429: ProblemDetails;
 };
 
 export type RegisterPfError = RegisterPfErrors[keyof RegisterPfErrors];
@@ -558,6 +570,10 @@ export type ResendConfirmationErrors = {
      * Solicitud con datos inválidos o formato erróneo.
      */
     400: ProblemDetails;
+    /**
+     * Demasiadas solicitudes. Límite de tasa excedido.
+     */
+    429: ProblemDetails;
 };
 
 export type ResendConfirmationError = ResendConfirmationErrors[keyof ResendConfirmationErrors];
@@ -583,6 +599,10 @@ export type ForgotPasswordErrors = {
      * Solicitud con datos inválidos o formato erróneo.
      */
     400: ProblemDetails;
+    /**
+     * Límite de solicitudes excedido (máximo 3 cada 15 minutos por email y por IP).
+     */
+    429: ProblemDetails;
 };
 
 export type ForgotPasswordError = ForgotPasswordErrors[keyof ForgotPasswordErrors];
@@ -720,6 +740,109 @@ export type UpdateProfileResponses = {
 };
 
 export type UpdateProfileResponse = UpdateProfileResponses[keyof UpdateProfileResponses];
+
+export type GetMyHabitsRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/habits-recommendations';
+};
+
+export type GetMyHabitsRecommendationsErrors = {
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Usuario no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetMyHabitsRecommendationsError = GetMyHabitsRecommendationsErrors[keyof GetMyHabitsRecommendationsErrors];
+
+export type GetMyHabitsRecommendationsResponses = {
+    /**
+     * Preferencia actual del preparador físico autenticado.
+     */
+    200: HabitsRecommendationsStatus;
+};
+
+export type GetMyHabitsRecommendationsResponse = GetMyHabitsRecommendationsResponses[keyof GetMyHabitsRecommendationsResponses];
+
+export type UpdateMyHabitsRecommendationsData = {
+    body: UpdateHabitsRecommendationsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/habits-recommendations';
+};
+
+export type UpdateMyHabitsRecommendationsErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Usuario no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateMyHabitsRecommendationsError = UpdateMyHabitsRecommendationsErrors[keyof UpdateMyHabitsRecommendationsErrors];
+
+export type UpdateMyHabitsRecommendationsResponses = {
+    /**
+     * Preferencia actualizada correctamente.
+     */
+    200: HabitsRecommendationsStatus;
+};
+
+export type UpdateMyHabitsRecommendationsResponse = UpdateMyHabitsRecommendationsResponses[keyof UpdateMyHabitsRecommendationsResponses];
+
+export type GetAthletePfHabitsRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/pf-habits-recommendations';
+};
+
+export type GetAthletePfHabitsRecommendationsErrors = {
+    /**
+     * No autenticado, token inválido o token sin preparador físico asignado.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol Atleta.
+     */
+    403: ProblemDetails;
+    /**
+     * No se encontró el preparador físico del atleta.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthletePfHabitsRecommendationsError = GetAthletePfHabitsRecommendationsErrors[keyof GetAthletePfHabitsRecommendationsErrors];
+
+export type GetAthletePfHabitsRecommendationsResponses = {
+    /**
+     * Preferencia del preparador físico del atleta autenticado.
+     */
+    200: HabitsRecommendationsStatus;
+};
+
+export type GetAthletePfHabitsRecommendationsResponse = GetAthletePfHabitsRecommendationsResponses[keyof GetAthletePfHabitsRecommendationsResponses];
 
 export type UpdateMyUserTelegramData = {
     body: UpdateTelegramRequest;
@@ -1000,6 +1123,41 @@ export type GetMyPfPhotoResponses = {
 };
 
 export type GetMyPfPhotoResponse = GetMyPfPhotoResponses[keyof GetMyPfPhotoResponses];
+
+export type PurgeAthleteInternalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la cuenta de usuario (AccountId) a purgar.
+         */
+        accountId: string;
+    };
+    query?: never;
+    url: '/api/v1/internal/athletes/{accountId}/purge';
+};
+
+export type PurgeAthleteInternalErrors = {
+    /**
+     * No autenticado o rol inválido.
+     */
+    401: unknown;
+    /**
+     * Requiere rol Servicio.
+     */
+    403: unknown;
+};
+
+export type PurgeAthleteInternalResponses = {
+    /**
+     * Resumen de registros físicos eliminados.
+     */
+    200: {
+        accountId?: string;
+        totalRecordsPurged?: number;
+    };
+};
+
+export type PurgeAthleteInternalResponse = PurgeAthleteInternalResponses[keyof PurgeAthleteInternalResponses];
 
 export type HealthCheckData = {
     body?: never;
