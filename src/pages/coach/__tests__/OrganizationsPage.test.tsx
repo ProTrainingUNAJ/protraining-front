@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { OrganizationsPage } from '../OrganizationsPage';
 import { structureService } from '../../../api/structureService';
@@ -118,9 +118,11 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
     });
 
     // Panel Detail (por defecto la primera organización seleccionada en el banner)
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Club Atlético San Martín' }),
-    ).toBeDefined();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Club Atlético San Martín' }),
+      ).toBeDefined();
+    });
 
     // Categorías en Detail
     await waitFor(() => {
@@ -414,5 +416,94 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
     fireEvent.click(verAtletasButtons[0]);
 
     expect(mockNavigate).toHaveBeenCalledWith('/pf/athletes', { state: { catId: 'cat-1' } });
+  });
+
+  it('muestra esqueleto (sin texto "Cargando…") cuando la carga inicial tarda más de 300 ms (KAN-597)', async () => {
+    vi.useFakeTimers();
+    try {
+      let resolveOrgs!: (value: typeof mockOrgs) => void;
+      vi.mocked(structureService.getOrganizations).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOrgs = resolve;
+        }),
+      );
+
+      render(
+        <MemoryRouter initialEntries={['/pf/organizations']}>
+          <OrganizationsPage />
+        </MemoryRouter>,
+      );
+
+      // Antes de 300 ms no muestra esqueleto, texto de carga ni el estado vacío "Elegí una organización"
+      expect(screen.queryByText(/Cargando organizaciones/i)).toBeNull();
+      expect(screen.queryByRole('status', { name: /Cargando organizaciones/i })).toBeNull();
+      expect(screen.queryByText(/Elegí una organización/i)).toBeNull();
+
+      // Al cumplirse 300 ms muestra el esqueleto
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      expect(screen.getByRole('status', { name: /Cargando organizaciones/i })).toBeDefined();
+      expect(screen.queryByText(/Cargando organizaciones/i)).toBeNull();
+      expect(screen.queryByText(/Elegí una organización/i)).toBeNull();
+
+      // Si la respuesta llega 50 ms después (t = 350 ms), el esqueleto se mantiene hasta completar 400 ms mínimos
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+        resolveOrgs(mockOrgs);
+        await vi.advanceTimersByTimeAsync(150);
+      });
+      expect(screen.getByRole('status', { name: /Cargando organizaciones/i })).toBeDefined();
+
+      // Al cumplirse los 400 ms mínimos (t = 700 ms), aparece el contenido real
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250);
+      });
+      expect(screen.queryByRole('status', { name: /Cargando organizaciones/i })).toBeNull();
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Club Atlético San Martín' }),
+      ).toBeDefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('al tocar Actualizar mantiene los datos anteriores a la vista sin parpadeo (KAN-597)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/organizations']}>
+        <OrganizationsPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Club Atlético San Martín' }),
+      ).toBeDefined();
+      expect(screen.getByRole('heading', { level: 3, name: 'Primera División' })).toBeDefined();
+    });
+
+    let resolveRefresh!: (value: typeof mockOrgs) => void;
+    vi.mocked(structureService.getOrganizations).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Actualizar organizaciones/i }));
+
+    // Mientras actualiza, los datos previos siguen visibles y no aparece "Cargando organizaciones…"
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Club Atlético San Martín' }),
+    ).toBeDefined();
+    expect(screen.getByRole('heading', { level: 3, name: 'Primera División' })).toBeDefined();
+    expect(screen.queryByText(/Cargando organizaciones/i)).toBeNull();
+
+    resolveRefresh(mockOrgs);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Actualizar organizaciones/i })).not.toHaveProperty(
+        'disabled',
+        true,
+      );
+    });
   });
 });
