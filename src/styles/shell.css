@@ -469,7 +469,7 @@
 
 .shell-calendar-nav-btn:hover {
   background-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .shell-calendar-weekdays {
@@ -549,7 +549,7 @@
 
 .shell-calendar-cell.is-clickable:hover {
   background-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 /* Hoy siempre se ve relleno, aunque el día sea tocable (si no, el número blanco queda sobre fondo blanco) */
@@ -668,7 +668,7 @@
   border-radius: 6px;
   border: none;
   background-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;

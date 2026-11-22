@@ -58,7 +58,7 @@
   height: 24px;
   border-radius: 7px;
   background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  color: var(--primary-text);
   transition: transform 0.25s ease;
 }
 
@@ -67,7 +67,7 @@
 }
 
 .dl-widget__icon {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .dl-widget__badge {
@@ -187,7 +187,7 @@
 }
 
 .dl-widget__metric-val--primary {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .dl-widget__metric-unit {
@@ -330,7 +330,7 @@
 }
 
 .dl-widget__empty-sparkle {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .dl-widget__empty-title {
@@ -377,8 +377,8 @@
 
 .dl-widget__btn-action--detail:hover {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: var(--primary-text);
+  color: var(--primary-text);
 }
 
 .dl-widget__btn-arrow {

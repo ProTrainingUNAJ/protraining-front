@@ -59,7 +59,7 @@
   height: 24px;
   border-radius: 7px;
   background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  color: var(--primary-text);
   transition: transform 0.25s ease;
 }
 
@@ -68,7 +68,7 @@
 }
 
 .dtl-widget__icon {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .dtl-widget__badge {
@@ -388,8 +388,8 @@
 
 .dtl-widget__btn-action--secondary:hover {
   background: color-mix(in srgb, var(--primary) 8%, transparent);
-  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
-  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary-text) 35%, transparent);
+  color: var(--primary-text);
   transform: translateY(-1px);
 }
 

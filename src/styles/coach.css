@@ -166,7 +166,7 @@
 }
 
 .coach-tab.active {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .coach-drawer-backdrop {
@@ -1240,13 +1240,13 @@
 
 .training-type-option:hover {
   background: var(--bg-subtle);
-  color: var(--brand-navy);
+  color: var(--primary-text);
 }
 
 .training-type-option.active {
   background: var(--bg-subtle);
   font-weight: 700;
-  color: var(--brand-navy);
+  color: var(--primary-text);
 }
 
 .training-type-option-dot {
@@ -1267,7 +1267,7 @@
 }
 
 .training-type-option-check {
-  color: var(--brand-navy);
+  color: var(--primary-text);
   flex-shrink: 0;
 }
 
@@ -1427,7 +1427,7 @@
 }
 
 .exercise-card-title-clickable:hover {
-  color: var(--brand-navy);
+  color: var(--primary-text);
 }
 
 .exercise-card-muscle-group {
