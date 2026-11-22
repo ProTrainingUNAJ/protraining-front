@@ -366,46 +366,6 @@ export async function getCategoryTrafficLightToday(
 }
 
 /**
- * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
- * (dashboard: donas, alertas de dolor y progreso de check-in). Alimenta también
- * la deduplicación de atletas que pertenecen a más de una categoría.
- * Modo degradado: si la estructura de organizaciones/categorías cae o
- * una categoría responde error, esa categoría se omite silenciosamente y el
- * resto del plantel se sigue mostrando; nunca rompe el dashboard completo.
- */
-export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLightItem[]> {
-  const organizations = await structureService.getOrganizations().catch(() => []);
-  const categoriesByOrg = await Promise.all(
-    organizations.map((organization) =>
-      structureService.getCategories(organization.id).catch(() => [] as Category[]),
-    ),
-  );
-  const categories = categoriesByOrg.flat();
-  if (categories.length === 0) return [];
-
-  const results = await Promise.all(
-    categories.map(async (category) => {
-      try {
-        const summaries = await getCategoryTrafficLightToday(category.id);
-        return summaries.map((summary) => mapTrafficLightSummaryToItem(summary, category.name));
-      } catch {
-        return [] as AthleteTrafficLightItem[];
-      }
-    }),
-  );
-
-  // Un atleta puede pertenecer a más de una categoría: se deduplica por id.
-  const seen = new Set<string>();
-  const unique: AthleteTrafficLightItem[] = [];
-  for (const item of results.flat()) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    unique.push(item);
-  }
-  return unique;
-}
-
-/**
  * Conteo por color del plantel: alimenta las donas del
  * dashboard y los chips de filtro de MonitoringPage. `gray` equivale a
  * "sin check-in hoy", base del progreso del widget CheckInProgressWidget.
