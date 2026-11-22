@@ -18,6 +18,8 @@
 
   /* Bordes */
   --border: #cdd1d6;
+  --border-subtle: var(--border);
+  --border-hover: #a0aec0;
 
   /* Texto y superficies sobre el navy (menús laterales y drawer) */
   --on-primary: #ffffff;
@@ -29,6 +31,7 @@
 
   /* Roles semánticos */
   --primary: var(--brand-navy);
+  --primary-text: var(--primary);
   --primary-hover: #03446e;
   --primary-light: #e6eef4;
   --secondary: var(--brand-blue);
@@ -506,9 +509,12 @@
 
   /* Bordes */
   --border: #2e3846;
+  --border-subtle: var(--border);
+  --border-hover: #3d4a5c;
 
   /* Roles semánticos en modo oscuro */
   --primary: var(--brand-blue);
+  --primary-text: var(--secondary);
   --primary-hover: #0ea5e9;
   --primary-light: rgb(56 189 248 / 0.16);
   --secondary: #38bdf8;

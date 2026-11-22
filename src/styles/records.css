@@ -35,7 +35,7 @@
   align-self: center;
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .records-item-meta {
@@ -245,7 +245,7 @@
   padding: 0.12rem 0.45rem;
   border-radius: 9999px;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
   align-self: flex-start;
 }
 
@@ -271,7 +271,7 @@
 .epley-proposal-exercise-name {
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .epley-proposal-performed {
@@ -467,7 +467,7 @@
 }
 
 .records-import-upload-icon {
-  color: var(--primary);
+  color: var(--primary-text);
   opacity: 0.75;
 }
 
@@ -1123,7 +1123,7 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .jump-load-title {
@@ -1195,7 +1195,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .athlete-trends-title {
