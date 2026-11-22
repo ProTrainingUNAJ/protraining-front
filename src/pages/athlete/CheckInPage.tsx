@@ -111,6 +111,9 @@ export const CheckInPage: React.FC = () => {
   const [todayKey, setTodayKey] = useState(getTodayKey);
   const previousDay = useRef(todayKey);
   const isEditingSubmitted = useRef(false);
+  // Evita que la consulta al backend sobrescriba la navegación del atleta si éste
+  // interactúa antes de que llegue la respuesta.
+  const userNavigatedRef = useRef(false);
 
   // Solo se conserva el indicador local; las respuestas se recuperan del backend.
   const initialCompleted = getCheckInCompleted(athleteId);
@@ -274,11 +277,42 @@ export const CheckInPage: React.FC = () => {
         setInjuryScores(draft.injuryScores || {});
         setNotes(draft.notes || '');
       }
+
+      // El widget del semáforo consulta el backend: si hoy ya hay check-in, hay que
+      // mostrar la confirmación aunque no exista el indicador local (otro dispositivo,
+      // localStorage limpio, etc.). Si no, "Ver o actualizar" vuelve al registro.
+      try {
+        const remote = await getAthleteTodayCheckIn(id);
+        if (remote && !userNavigatedRef.current) {
+          setHasStarted(true);
+          setCurrentStep(4);
+          setMaxReachedStep(4);
+          setCompletedCheckIn(remote);
+          applySubmittedState(remote);
+          setSubmissionResult({
+            message: 'Check-in registrado',
+            trafficLight: remote.trafficLight,
+            trafficLightReason: remote.trafficLightReason ?? null,
+            checkIn: remote,
+            isOffline: false,
+          });
+          // Repara el indicador local sin persistir respuestas médicas.
+          saveCheckInCompleted(id, {
+            completedAt: new Date().toISOString(),
+            trafficLight: remote.trafficLight,
+            isOffline: false,
+          });
+        }
+      } catch {
+        // Sin conexión se conserva el indicador local o el borrador; no se abre el
+        // formulario con valores por defecto encima de un check-in ya enviado.
+      }
     },
     [applySubmittedState],
   );
 
   const handleEditResponses = useCallback(async () => {
+    userNavigatedRef.current = true;
     if (!completedCheckIn) {
       let remote: CheckIn | null;
       try {
@@ -329,6 +363,7 @@ export const CheckInPage: React.FC = () => {
     previousDay.current = todayKey;
     clearAllCheckInData();
     isEditingSubmitted.current = false;
+    userNavigatedRef.current = false;
     setHasStarted(false);
     setCurrentStep(1);
     setMaxReachedStep(1);
@@ -481,6 +516,7 @@ export const CheckInPage: React.FC = () => {
   }, [athleteId, isLoadingCompleted, submissionResult]);
 
   const handleStartCheckIn = () => {
+    userNavigatedRef.current = true;
     setHasStarted(true);
     setCurrentStep(1);
     setMaxReachedStep(1);
@@ -643,6 +679,7 @@ export const CheckInPage: React.FC = () => {
 
   // Slide Navigation Handlers
   const goToStep = (stepNum: number) => {
+    userNavigatedRef.current = true;
     // Si intenta regresar a la pantalla 0 (Inicio / Bienvenida):
     if (stepNum <= 0) {
       setErrorMessage(null);

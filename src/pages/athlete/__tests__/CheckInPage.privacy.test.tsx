@@ -172,4 +172,36 @@ describe('privacidad del check-in al cambiar de día y al editar', () => {
     expect(screen.getByRole('button', { name: 'Editar respuestas' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Enviar Check-in Diario/i })).toBeNull();
   });
+
+  it('muestra el check-in del back aunque no exista el indicador local', async () => {
+    vi.mocked(seguimientoService.getAthleteTodayCheckIn).mockResolvedValue({
+      id: 'checkin-hoy',
+      athleteId: ATHLETE_ID,
+      date: INITIAL_DAY,
+      trafficLight: 'Green',
+      trafficLightReason: null,
+      sleepHours: 8,
+      sleepQuality: 4,
+      muscleSoreness: 1,
+      fatigueLevel: 2,
+      moodRate: 4,
+      stressLevel: 2,
+      isSick: false,
+      hasActiveInjury: false,
+      painZones: null,
+      injuries: [],
+    } as never);
+
+    renderPage();
+
+    expect(await screen.findByRole('button', { name: 'Editar respuestas' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Iniciar' })).toBeNull();
+    expect(screen.queryByText('Pendiente de hoy')).toBeNull();
+    expect(screen.getByText('Completado')).toBeTruthy();
+    expect(
+      JSON.parse(
+        localStorage.getItem(`protraining_checkin_completed_${ATHLETE_ID}_${INITIAL_DAY}`) ?? '{}',
+      ),
+    ).toMatchObject({ trafficLight: 'Green', isOffline: false });
+  });
 });
