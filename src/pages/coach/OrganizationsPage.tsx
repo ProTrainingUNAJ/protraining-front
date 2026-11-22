@@ -25,6 +25,24 @@ import { PhotoUploadControl } from '../../components/common/PhotoUploadControl';
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
 import { useDelayedLoading } from '../../hooks/useDelayedLoading';
 
+const CategoryCardsSkeleton: React.FC = () => (
+  <>
+    {[0, 1].map((index) => (
+      <div key={index} className="structure-skeleton-card" aria-hidden="true">
+        <div className="structure-skeleton-card-header">
+          <div className="structure-skeleton-block structure-skeleton-line-title" />
+          <div className="structure-skeleton-block structure-skeleton-badge" />
+        </div>
+        <div className="structure-skeleton-block structure-skeleton-line-sub" />
+        <div className="structure-skeleton-actions">
+          <div className="structure-skeleton-block structure-skeleton-btn" />
+          <div className="structure-skeleton-block structure-skeleton-btn" />
+        </div>
+      </div>
+    ))}
+  </>
+);
+
 export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -195,6 +213,9 @@ export const OrganizationsPage: React.FC = () => {
           : (fullOrgs[0]?.id ?? '');
 
       if (targetOrgId !== selectedOrgId) {
+        if (targetOrgId) {
+          setLoadingCategories(true);
+        }
         setSelectedOrgId(targetOrgId);
       } else if (targetOrgId) {
         const data = await fetchCategoriesWithCounts(targetOrgId);
@@ -769,19 +790,7 @@ export const OrganizationsPage: React.FC = () => {
                 </div>
                 <div className="structure-detail-body">
                   <div className="structure-categories-grid">
-                    {[0, 1].map((index) => (
-                      <div key={index} className="structure-skeleton-card">
-                        <div className="structure-skeleton-card-header">
-                          <div className="structure-skeleton-block structure-skeleton-line-title" />
-                          <div className="structure-skeleton-block structure-skeleton-badge" />
-                        </div>
-                        <div className="structure-skeleton-block structure-skeleton-line-sub" />
-                        <div className="structure-skeleton-actions">
-                          <div className="structure-skeleton-block structure-skeleton-btn" />
-                          <div className="structure-skeleton-block structure-skeleton-btn" />
-                        </div>
-                      </div>
-                    ))}
+                    <CategoryCardsSkeleton />
                   </div>
                 </div>
               </div>
@@ -931,19 +940,7 @@ export const OrganizationsPage: React.FC = () => {
                       role="status"
                       aria-label="Cargando categorías"
                     >
-                      {[0, 1].map((index) => (
-                        <div key={index} className="structure-skeleton-card" aria-hidden="true">
-                          <div className="structure-skeleton-card-header">
-                            <div className="structure-skeleton-block structure-skeleton-line-title" />
-                            <div className="structure-skeleton-block structure-skeleton-badge" />
-                          </div>
-                          <div className="structure-skeleton-block structure-skeleton-line-sub" />
-                          <div className="structure-skeleton-actions">
-                            <div className="structure-skeleton-block structure-skeleton-btn" />
-                            <div className="structure-skeleton-block structure-skeleton-btn" />
-                          </div>
-                        </div>
-                      ))}
+                      <CategoryCardsSkeleton />
                     </div>
                   ) : loadingCategories && categories.length === 0 ? (
                     <div className="structure-categories-grid" aria-busy="true" />
