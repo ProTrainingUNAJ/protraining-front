@@ -1,0 +1,211 @@
+/*
+ * Estilos de la tarjeta del semáforo (KAN-582).
+ * Lo fijo que vivía en style={{...}} pasa a acá con tokens de tokens.css;
+ * solo quedan inline los colores que dependen del estado del atleta
+ * (badge, barra de estado, título) y los umbrales de dolor/RPE.
+ * La raíz usa selector compuesto (.card.athlete-traffic-light-card...) para
+ * ganarle a :hover (0,2,0) de coach.css/components.css y conservar el
+ * comportamiento actual: en hover solo aplica el transform.
+ */
+
+/* ── Raíz de la tarjeta ── */
+.card.athlete-traffic-light-card.monitoring-tl-card {
+  margin: 0;
+  padding: 1.15rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 200px;
+  box-sizing: border-box;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--bg-card);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--brand-navy) 4%, transparent);
+  position: relative;
+}
+
+/* ── Cabecera: avatar + nombre/categoría ── */
+.tl-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tl-card-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.tl-card-name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.25;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.tl-card-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Fila de badge + indicadores rápidos (altura fija 32px) ── */
+.tl-card-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  height: 32px;
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+/* Badge del estado: lo fijo en la clase; fondo/texto/borde según estado
+   (colors.bg/text/border) quedan inline con tokens. */
+.badge.tl-card-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.2rem 0.6rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.tl-card-indicators {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+/* Indicadores de la fila rápida: la base es común; el color de dolor y RPE
+   depende del umbral (>=4 / >=8) y queda inline con tokens. */
+.tl-card-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tl-card-indicator--injury {
+  color: var(--traffic-red-text);
+}
+
+.tl-card-indicator--sick {
+  color: var(--warning-text);
+}
+
+.tl-card-indicator--sleep {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tl-card-pending {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* ── Siluetas anatómicas: coach.css ya define todo (58×115, flex, etc.);
+   acá solo se gana el gap 0.65rem que el inline fijaba por sobre el
+   0.5rem global (selector 0,3,0). La opacidad por estado queda inline. ── */
+.athlete-traffic-light-card .athlete-card-muscle-map.monitoring-tl-muscle-map {
+  gap: 0.65rem;
+}
+
+/* ── Burbuja inferior de estado ── */
+.tl-card-status-bubble {
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 12px;
+  padding: 0.5rem 0.65rem;
+  height: 54px;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+/* Barra vertical: el color depende del estado y queda inline con tokens. */
+.tl-card-status-bar {
+  width: 4px;
+  height: 32px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tl-card-status-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Título de recomendación: el color cambia en estado gris (check-in
+   pendiente) y queda inline con tokens. */
+.tl-card-status-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tl-card-status-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Pie: ajuste sugerido + contacto ── */
+.tl-card-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+/* Compuesto con .btn/.btn-warning para pisar el padding y font-size
+   global sin perder el hover propio de .btn-warning. */
+.btn.btn-warning.tl-card-adjust-btn {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.tl-card-contact {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
+}

@@ -151,7 +151,8 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     // Verificar atleta sin registro (muestra métricas en 0 y estado Sin registro)
     const joaquinName = screen.getByText('Joaquín Díaz');
     expect(joaquinName).toBeDefined();
-    expect(joaquinName.style.whiteSpace).toBe('nowrap');
+    // KAN-582: el truncado (nowrap + ellipsis) vive en .monitoring-att-name
+    expect(joaquinName.className).toContain('monitoring-att-name');
     expect(screen.getAllByText('Sin registro').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('button', { name: /Marcar presente a Joaquín Díaz/i })).toBeDefined();
 

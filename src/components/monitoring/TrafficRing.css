@@ -1,0 +1,25 @@
+/*
+ * Estilos del anillo del semáforo (KAN-582).
+ * Lo fijo que vivía en style={{...}} pasa a clases acá; el ancho y alto
+ * dependen de la prop `size` y quedan inline. El color del arco depende
+ * del estado (o del override `color`) y también se resuelve con tokens.
+ */
+
+.traffic-ring {
+  position: relative;
+}
+
+/* El SVG se rota -90° para que el arco arranque en las 12 en punto. */
+.traffic-ring-svg {
+  transform: rotate(-90deg);
+  display: block;
+}
+
+/* Contenido centrado superpuesto (ej: porcentaje). */
+.traffic-ring-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

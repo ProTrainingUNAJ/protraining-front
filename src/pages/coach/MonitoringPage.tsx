@@ -27,6 +27,7 @@ import {
 } from '../../api/seguimientoService';
 import type { AthleteTrafficLightSummary } from '../../api/generated/seguimiento';
 import { Athlete, Category, Organization } from '../../types/structure';
+import './MonitoringPage.css';
 
 type FilterColor = 'all' | TrafficLightStatus;
 
@@ -571,35 +572,19 @@ export const MonitoringPage: React.FC = () => {
         title="Seguimiento & Semáforo del Día"
         description="Evaluación de readiness antes de la práctica, niveles de riesgo muscular y asistencia del plantel."
         actions={
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="monitoring-header-actions">
             <button
               type="button"
-              className={`btn ${activeTab === 'traffic-light' ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn monitoring-tab-btn ${activeTab === 'traffic-light' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => handleTabChange('traffic-light')}
-              style={{
-                borderRadius: '9999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-              }}
             >
               <Activity size={15} />
               <span>Semáforo del Día</span>
             </button>
             <button
               type="button"
-              className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn monitoring-tab-btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => handleTabChange('attendance')}
-              style={{
-                borderRadius: '9999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-              }}
             >
               <Users size={15} />
               <span>Asistencia & RPE</span>
@@ -608,34 +593,14 @@ export const MonitoringPage: React.FC = () => {
         }
       />
 
-      <div
-        className="app-page-body"
-        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
-      >
+      <div className="app-page-body monitoring-page-body">
         {/* Category and Search Bar */}
-        <div
-          className="card"
-          style={{
-            margin: 0,
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: '16px',
-          }}
-        >
+        <div className="card monitoring-filter-card">
           {/* Division / Category Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div className="monitoring-filter-fields">
             {/* Organización */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <label
-                htmlFor="organization-select"
-                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-              >
+            <div className="monitoring-filter-group">
+              <label htmlFor="organization-select" className="monitoring-filter-label">
                 Organización:
               </label>
               <select
@@ -656,16 +621,7 @@ export const MonitoringPage: React.FC = () => {
                   }
                 }}
                 disabled={categoriesLoading}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
+                className="monitoring-filter-select"
               >
                 <option value="">Todas las organizaciones</option>
                 {organizations.map((org) => (
@@ -677,11 +633,8 @@ export const MonitoringPage: React.FC = () => {
             </div>
 
             {/* Categoría */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <label
-                htmlFor="category-select"
-                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-              >
+            <div className="monitoring-filter-group">
+              <label htmlFor="category-select" className="monitoring-filter-label">
                 Categoría:
               </label>
               <select
@@ -690,16 +643,7 @@ export const MonitoringPage: React.FC = () => {
                 value={selectedCategoryId}
                 onChange={(e) => setSelectedCategoryId(e.target.value)}
                 disabled={categoriesLoading}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
+                className="monitoring-filter-select"
               >
                 <option value="">Todas las categorías</option>
                 {visibleCategories.map((category) => (
@@ -709,71 +653,31 @@ export const MonitoringPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            {categoriesError && (
-              <span style={{ fontSize: '0.78rem', color: 'var(--danger-text)' }}>
-                {categoriesError}
-              </span>
-            )}
+            {categoriesError && <span className="monitoring-filter-error">{categoriesError}</span>}
           </div>
 
           {/* Athlete Search Input */}
-          <div
-            style={{
-              position: 'relative',
-              maxWidth: '320px',
-              width: '100%',
-            }}
-          >
-            <Search
-              size={15}
-              style={{
-                position: 'absolute',
-                left: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-            />
+          <div className="monitoring-search">
+            <Search size={15} className="monitoring-search-icon" />
             <input
               type="text"
               placeholder="Buscar atleta por nombre o posición..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.45rem 0.85rem 0.45rem 2.2rem',
-                borderRadius: '9999px',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-subtle)',
-                color: 'var(--text-main)',
-                fontSize: '0.82rem',
-              }}
+              className="monitoring-search-input"
             />
           </div>
         </div>
 
         {activeTab === 'traffic-light' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div className="monitoring-tab-panel">
             {/* Barra de Resumen del Semáforo y Bienestar Diario (KAN-621) */}
-            <div
-              style={{
-                minHeight: '52px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                padding: '0.85rem 1.25rem',
-                background: 'var(--bg-card)',
-                borderRadius: '16px',
-                border: '1px solid var(--border)',
-                flexWrap: 'wrap',
-                boxSizing: 'border-box',
-              }}
-            >
-              <Activity size={20} style={{ color: 'var(--primary)' }} />
-              <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+            <div className="monitoring-summary-bar">
+              <Activity size={20} className="monitoring-summary-icon" />
+              <strong className="monitoring-summary-title">
                 Semáforo de Readiness y Bienestar Diario
               </strong>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              <span className="monitoring-summary-meta">
                 {counts.all - counts.gray} / {counts.all} check-ins completados (
                 {(counts.all > 0 ? ((counts.all - counts.gray) / counts.all) * 100 : 0).toFixed(1)}
                 %)
@@ -782,30 +686,12 @@ export const MonitoringPage: React.FC = () => {
                 type="button"
                 data-testid="refresh-traffic-light-btn"
                 onClick={refreshTrafficLight}
-                style={{
-                  marginLeft: 'auto',
-                  padding: '0.3rem 0.7rem',
-                  borderRadius: '9999px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+                className="monitoring-refresh-btn"
               >
                 Actualizar
               </button>
             </div>
-            <p
-              style={{
-                margin: 0,
-                color: 'var(--text-muted)',
-                fontSize: '0.8rem',
-                lineHeight: 1.4,
-                minHeight: '1.25rem',
-              }}
-            >
+            <p className="monitoring-hint">
               El semáforo evalúa el readiness diario del atleta a través del check-in matutino de
               bienestar, dolor muscular y presencia de lesiones.
             </p>
@@ -853,27 +739,8 @@ export const MonitoringPage: React.FC = () => {
             {/* KAN-366: aviso de modo degradado cuando Estructura no respondió
                 y algún atleta llegó sin nombre (ATHLETE_NAME_FALLBACK). */}
             {hasDegradedAthletes && !athletesLoading && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.65rem',
-                  padding: '0.85rem 1.1rem',
-                  borderRadius: '12px',
-                  background: 'var(--warning-bg-strong)',
-                  border: '1px solid var(--warning-border)',
-                  color: 'var(--warning-text)',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                }}
-              >
-                <AlertTriangle
-                  size={17}
-                  style={{ flexShrink: 0, marginTop: '1px' }}
-                  aria-hidden="true"
-                />
+              <div role="alert" className="monitoring-degraded-alert">
+                <AlertTriangle size={17} className="monitoring-degraded-icon" aria-hidden="true" />
                 <span>
                   No se pudo cargar la lista completa de la categoría. Se muestran solo los atletas
                   que ya hicieron el check-in hoy.
@@ -882,14 +749,7 @@ export const MonitoringPage: React.FC = () => {
             )}
 
             {/* Grilla de tarjetas del semáforo (KAN-365/KAN-366/KAN-639): alineación simétrica y altura uniforme */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-                gap: '1rem',
-                alignItems: 'stretch',
-              }}
-            >
+            <div className="monitoring-grid">
               {filteredAthletes.map((athlete) => {
                 const attendanceItem = attendanceResult?.summary?.athletes?.find(
                   (r) => r.athleteId.toLowerCase() === athlete.id.toLowerCase(),
@@ -915,37 +775,15 @@ export const MonitoringPage: React.FC = () => {
               })}
 
               {athletesLoading && (
-                <div
-                  style={{
-                    gridColumn: '1 / -1',
-                    padding: '3rem 1.5rem',
-                    textAlign: 'center',
-                    background: 'var(--bg-card)',
-                    borderRadius: '16px',
-                    border: '1px dashed var(--border)',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  <Loader2
-                    size={24}
-                    style={{ animation: 'spin 1s linear infinite', marginBottom: '0.5rem' }}
-                  />
-                  <p style={{ margin: 0, fontSize: '0.9rem' }}>Consultando el semáforo del día…</p>
+                <div className="monitoring-state-cell monitoring-state-cell--lg monitoring-state-cell--muted">
+                  <Loader2 size={24} className="monitoring-spinner" />
+                  <p className="monitoring-state-text">Consultando el semáforo del día…</p>
                 </div>
               )}
 
               {!athletesLoading && (athletesError || categoriesError) && (
-                <div
-                  style={{
-                    gridColumn: '1 / -1',
-                    padding: '3rem 1.5rem',
-                    textAlign: 'center',
-                    background: 'var(--traffic-red-bg)',
-                    borderRadius: '16px',
-                    border: '1px solid var(--traffic-red-border)',
-                  }}
-                >
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--traffic-red-text)' }}>
+                <div className="monitoring-state-cell monitoring-state-cell--error">
+                  <p className="monitoring-state-text monitoring-state-text--error">
                     {athletesError || categoriesError}
                   </p>
                 </div>
@@ -955,17 +793,8 @@ export const MonitoringPage: React.FC = () => {
                 !athletesError &&
                 !categoriesError &&
                 filteredAthletes.length === 0 && (
-                  <div
-                    style={{
-                      gridColumn: '1 / -1',
-                      padding: '3rem 1.5rem',
-                      textAlign: 'center',
-                      background: 'var(--bg-card)',
-                      borderRadius: '16px',
-                      border: '1px dashed var(--border)',
-                    }}
-                  >
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                  <div className="monitoring-state-cell monitoring-state-cell--lg">
+                    <p className="monitoring-state-text monitoring-state-text--muted">
                       {selectedCategoryId
                         ? 'No hay atletas con los filtros elegidos.'
                         : categories.length === 0
@@ -978,92 +807,38 @@ export const MonitoringPage: React.FC = () => {
           </div>
         ) : (
           /* Asistencia automática del día (KAN-445) */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div className="monitoring-tab-panel">
             {attendanceLoading && (
-              <div
-                style={{
-                  padding: '2rem',
-                  textAlign: 'center',
-                  background: 'var(--bg-card)',
-                  borderRadius: '16px',
-                  border: '1px dashed var(--border)',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                <Loader2
-                  size={24}
-                  style={{ animation: 'spin 1s linear infinite', marginBottom: '0.5rem' }}
-                />
-                <p style={{ margin: 0, fontSize: '0.9rem' }}>Consultando la asistencia del día…</p>
+              <div className="monitoring-state-cell monitoring-state-cell--sm monitoring-state-cell--muted">
+                <Loader2 size={24} className="monitoring-spinner" />
+                <p className="monitoring-state-text">Consultando la asistencia del día…</p>
               </div>
             )}
 
             {!attendanceLoading && attendanceResult?.error && (
-              <div
-                style={{
-                  padding: '1rem',
-                  background: 'var(--traffic-red-bg)',
-                  border: '1px solid var(--traffic-red-border)',
-                  borderRadius: '12px',
-                  color: 'var(--traffic-red-text)',
-                  fontSize: '0.85rem',
-                }}
-              >
-                {attendanceResult.error}
-              </div>
+              <div className="monitoring-error-box">{attendanceResult.error}</div>
             )}
 
             {!attendanceLoading && attendanceResult?.summary && (
               <>
-                <div
-                  style={{
-                    minHeight: '52px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '0.85rem 1.25rem',
-                    background: 'var(--bg-card)',
-                    borderRadius: '16px',
-                    border: '1px solid var(--border)',
-                    flexWrap: 'wrap',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <Users size={20} style={{ color: 'var(--primary)' }} />
-                  <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>
+                <div className="monitoring-summary-bar">
+                  <Users size={20} className="monitoring-summary-icon" />
+                  <strong className="monitoring-summary-title">
                     Planilla de Asistencia Diaria
                   </strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  <span className="monitoring-summary-meta">
                     {attendanceResult.summary.presentCount} / {attendanceResult.summary.totalRoster}{' '}
                     presentes ({(attendanceResult.summary.attendancePercentage ?? 0).toFixed(1)}%)
                   </span>
                   <button
                     type="button"
                     onClick={refreshAttendance}
-                    style={{
-                      marginLeft: 'auto',
-                      padding: '0.3rem 0.7rem',
-                      borderRadius: '9999px',
-                      border: '1px solid var(--border)',
-                      background: 'var(--bg-subtle)',
-                      color: 'var(--text-main)',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    className="monitoring-refresh-btn"
                   >
                     Actualizar
                   </button>
                 </div>
-                <p
-                  style={{
-                    margin: 0,
-                    color: 'var(--text-muted)',
-                    fontSize: '0.8rem',
-                    lineHeight: 1.4,
-                    minHeight: '1.25rem',
-                  }}
-                >
+                <p className="monitoring-hint">
                   La asistencia se marca cuando el atleta registra la carga del día (minutos + RPE).
                   El check-in de bienestar no la marca.
                 </p>
@@ -1100,14 +875,7 @@ export const MonitoringPage: React.FC = () => {
                   ]}
                 />
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-                    gap: '1rem',
-                    alignItems: 'stretch',
-                  }}
-                >
+                <div className="monitoring-grid">
                   {filteredAttendanceAthletes.map((athlete) => {
                     const status = attendanceOverrides[athlete.athleteId] ?? athlete.status;
                     const isPresent = status === 'Present';
@@ -1167,7 +935,7 @@ export const MonitoringPage: React.FC = () => {
                     return (
                       <div
                         key={athlete.athleteId}
-                        className="card athlete-attendance-card"
+                        className="card athlete-attendance-card monitoring-attendance-card"
                         onClick={() => {
                           setQuickSheetMode('asistencia');
                           setSelectedAthleteAttendance({
@@ -1191,45 +959,13 @@ export const MonitoringPage: React.FC = () => {
                             setSelectedAthlete(attendanceContactItem);
                           }
                         }}
-                        style={{
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          gap: '1rem',
-                          padding: '1.15rem',
-                          background: 'var(--bg-card)',
-                          borderRadius: '24px',
-                          border: '1px solid var(--border)',
-                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
-                          minHeight: '330px',
-                          height: '100%',
-                          boxSizing: 'border-box',
-                          transition:
-                            'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
-                        }}
                         aria-label={`Ver detalle de asistencia y carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                       >
                         {/* Cabecera idéntica a diseño: Avatar, Nombre y Botón pill */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '0.5rem',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.65rem',
-                              minWidth: 0,
-                              flex: 1,
-                            }}
-                          >
+                        <div className="monitoring-att-card-head">
+                          <div className="monitoring-att-card-id">
                             <div
-                              className="athlete-avatar-bubble-wrap"
+                              className="athlete-avatar-bubble-wrap monitoring-att-avatar-wrap"
                               onClick={() => {
                                 setQuickSheetMode('asistencia');
                                 setSelectedAthleteAttendance({
@@ -1238,13 +974,6 @@ export const MonitoringPage: React.FC = () => {
                                   activities: athlete.activities ?? [],
                                 });
                                 setSelectedAthlete(attendanceContactItem);
-                              }}
-                              style={{
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
                               }}
                               title={`Ver registro de actividades y carga de ${athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}`}
                             >
@@ -1257,38 +986,15 @@ export const MonitoringPage: React.FC = () => {
                                 interactiveHover={true}
                               />
                             </div>
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                minWidth: 0,
-                                flex: 1,
-                              }}
-                            >
+                            <div className="monitoring-att-names">
                               <span
-                                style={{
-                                  fontWeight: 800,
-                                  fontSize: '0.94rem',
-                                  color: 'var(--text-main)',
-                                  lineHeight: 1.25,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
+                                className="monitoring-att-name"
                                 title={athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
                               >
                                 {athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK}
                               </span>
                               <span
-                                style={{
-                                  fontSize: '0.76rem',
-                                  fontWeight: 600,
-                                  color: 'var(--text-muted)',
-                                  marginTop: '2px',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
+                                className="monitoring-att-category"
                                 title={selectedCategoryName || 'Primera División'}
                               >
                                 {selectedCategoryName || 'Primera División'}
@@ -1297,17 +1003,7 @@ export const MonitoringPage: React.FC = () => {
                           </div>
 
                           {/* Bloque vertical de Asistencia: Círculo con tilde + Texto de estado (Imagen 2) */}
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px',
-                              flexShrink: 0,
-                              minWidth: '54px',
-                            }}
-                          >
+                          <div className="monitoring-att-status">
                             <button
                               type="button"
                               data-testid={`btn-attendance-toggle-${athlete.athleteId}`}
@@ -1321,10 +1017,8 @@ export const MonitoringPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleToggleAttendance(athlete.athleteId, !isPresent);
                               }}
+                              className="monitoring-att-toggle"
                               style={{
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '9999px',
                                 border: isPresent
                                   ? '1px solid var(--traffic-green-border)'
                                   : '1px solid var(--border)',
@@ -1334,25 +1028,16 @@ export const MonitoringPage: React.FC = () => {
                                 color: isPresent
                                   ? 'var(--traffic-green-text)'
                                   : 'var(--text-muted)',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                padding: 0,
                               }}
                             >
                               <Check size={16} strokeWidth={2.5} />
                             </button>
                             <span
+                              className="monitoring-att-toggle-label"
                               style={{
-                                fontSize: '0.74rem',
-                                fontWeight: 700,
                                 color: isPresent
                                   ? 'var(--traffic-green-text)'
                                   : 'var(--text-muted)',
-                                lineHeight: 1,
-                                whiteSpace: 'nowrap',
                               }}
                             >
                               {isPresent ? 'Presente' : 'Sin registro'}
@@ -1361,225 +1046,75 @@ export const MonitoringPage: React.FC = () => {
                         </div>
 
                         {/* Desglose central de Carga del Día */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div className="monitoring-att-section">
                           {/* Caja de métricas Tiempo Total y Carga Acumulada */}
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-around',
-                              textAlign: 'center',
-                              padding: '0.85rem 1.25rem',
-                              background: 'var(--bg-card)',
-                              borderRadius: '18px',
-                              border: '1px solid var(--border)',
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'baseline',
-                                  gap: '0.25rem',
-                                  lineHeight: 1,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: '1.9rem',
-                                    fontWeight: 900,
-                                    color: 'var(--text-main)',
-                                  }}
-                                >
-                                  {totalMinutes}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: '0.95rem',
-                                    fontWeight: 700,
-                                    color: 'var(--text-muted)',
-                                  }}
-                                >
-                                  min
-                                </span>
+                          <div className="monitoring-att-metrics">
+                            <div className="monitoring-att-metric">
+                              <div className="monitoring-att-metric-row">
+                                <span className="monitoring-att-metric-value">{totalMinutes}</span>
+                                <span className="monitoring-att-metric-unit">min</span>
                               </div>
-                              <span
-                                style={{
-                                  fontSize: '0.72rem',
-                                  fontWeight: 800,
-                                  color: 'var(--text-muted)',
-                                  letterSpacing: '0.05em',
-                                  textTransform: 'uppercase',
-                                  marginTop: '0.4rem',
-                                }}
-                              >
-                                Tiempo Total
-                              </span>
+                              <span className="monitoring-att-metric-label">Tiempo Total</span>
                             </div>
 
-                            <div
-                              style={{
-                                width: '1px',
-                                height: '42px',
-                                background: 'var(--border)',
-                              }}
-                            />
+                            <div className="monitoring-att-divider" />
 
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'baseline',
-                                  gap: '0.25rem',
-                                  lineHeight: 1,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: '1.9rem',
-                                    fontWeight: 900,
-                                    color: 'var(--text-main)',
-                                  }}
-                                >
-                                  {totalLoad}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: '0.95rem',
-                                    fontWeight: 800,
-                                    color: 'var(--text-muted)',
-                                  }}
-                                >
+                            <div className="monitoring-att-metric">
+                              <div className="monitoring-att-metric-row">
+                                <span className="monitoring-att-metric-value">{totalLoad}</span>
+                                <span className="monitoring-att-metric-unit monitoring-att-metric-unit--ua">
                                   UA
                                 </span>
                               </div>
-                              <span
-                                style={{
-                                  fontSize: '0.72rem',
-                                  fontWeight: 800,
-                                  color: 'var(--text-muted)',
-                                  letterSpacing: '0.05em',
-                                  textTransform: 'uppercase',
-                                  marginTop: '0.4rem',
-                                }}
-                              >
-                                Carga Acumulada
-                              </span>
+                              <span className="monitoring-att-metric-label">Carga Acumulada</span>
                             </div>
                           </div>
 
-                          {/* Barra de progreso de carga horizontal (verde a azul/dorado) */}
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '8px',
-                              background: 'var(--border)',
-                              borderRadius: '9999px',
-                              overflow: 'hidden',
-                            }}
-                          >
+                          {/* Barra de progreso de carga horizontal (verde a azul/dorado).
+                              El ancho es dinámico (% de 900 UA): queda inline con tokens. */}
+                          <div className="monitoring-progress-track">
                             <div
+                              className="monitoring-progress-fill"
                               style={{
                                 width:
                                   totalLoad > 0
                                     ? `${Math.min(100, Math.max(6, Math.round((totalLoad / 900) * 100)))}%`
                                     : '0%',
-                                height: '100%',
-                                background:
-                                  'linear-gradient(90deg, var(--traffic-green) 0%, var(--primary) 50%, var(--traffic-yellow) 100%)',
-                                borderRadius: '9999px',
-                                transition: 'width 0.3s ease',
                               }}
                             />
                           </div>
                         </div>
 
                         {/* Sección inferior simétrica alineada con la tarjeta de Semáforo (KAN-621) */}
-                        <div
-                          style={{
-                            borderTop: '1px solid var(--border)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.65rem',
-                            borderRadius: '8px',
-                            padding: '0.5rem 0.65rem',
-                            height: '54px',
-                            boxSizing: 'border-box',
-                          }}
-                        >
+                        <div className="monitoring-att-footer">
                           <div
+                            className="monitoring-att-footer-bar"
                             style={{
-                              width: '4px',
-                              height: '32px',
-                              borderRadius: '4px',
                               backgroundColor: isPresent
                                 ? 'var(--traffic-green)'
                                 : 'var(--traffic-gray)',
-                              flexShrink: 0,
                             }}
                           />
 
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              minWidth: 0,
-                              flex: 1,
-                            }}
-                          >
+                          <div className="monitoring-att-footer-text">
                             <p
+                              className="monitoring-att-footer-title"
                               style={{
-                                margin: 0,
-                                fontSize: '0.78rem',
-                                fontWeight: 700,
                                 color: isPresent
                                   ? 'var(--traffic-green-text)'
                                   : 'var(--text-muted)',
-                                lineHeight: 1.25,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
                               }}
                             >
                               {isPresent ? 'Carga del día registrada' : 'Sin registro de carga hoy'}
                             </p>
-                            <span
-                              style={{
-                                fontSize: '0.7rem',
-                                color: 'var(--text-muted)',
-                                marginTop: '2px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
+                            <span className="monitoring-att-footer-hint">
                               Tocar tarjeta para ver detalle y actividades
                             </span>
                           </div>
                         </div>
 
                         {/* Botón de Carga / Edición + Contacto anclados simétricamente al pie */}
-                        <div
-                          style={{
-                            marginTop: 'auto',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.55rem',
-                            width: '100%',
-                          }}
-                        >
+                        <div className="monitoring-att-actions">
                           {isPresent ? (
                             <button
                               type="button"
@@ -1593,23 +1128,7 @@ export const MonitoringPage: React.FC = () => {
                                   activities: athlete.activities,
                                 });
                               }}
-                              style={{
-                                width: '100%',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.4rem',
-                                background: 'var(--bg-card)',
-                                border: '1px solid var(--border)',
-                                color: 'var(--primary)',
-                                fontSize: '0.76rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                padding: '0.42rem 0.65rem',
-                                borderRadius: '8px',
-                                transition: 'all 0.15s ease',
-                                boxSizing: 'border-box',
-                              }}
+                              className="monitoring-att-btn monitoring-att-btn--edit"
                             >
                               <Pencil size={13} />
                               <span>Editar Carga</span>
@@ -1627,36 +1146,14 @@ export const MonitoringPage: React.FC = () => {
                                   activities: athlete.activities,
                                 });
                               }}
-                              style={{
-                                width: '100%',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.4rem',
-                                background: 'color-mix(in srgb, var(--primary) 8%, var(--bg-card))',
-                                border:
-                                  '1px solid color-mix(in srgb, var(--primary) 30%, var(--border))',
-                                color: 'var(--primary)',
-                                fontSize: '0.76rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                padding: '0.42rem 0.65rem',
-                                borderRadius: '8px',
-                                transition: 'all 0.15s ease',
-                                boxSizing: 'border-box',
-                              }}
+                              className="monitoring-att-btn monitoring-att-btn--load"
                             >
                               <Plus size={13} />
                               <span>Cargar minutos y RPE</span>
                             </button>
                           )}
 
-                          <div
-                            style={{
-                              paddingTop: '0.55rem',
-                              borderTop: '1px solid var(--border)',
-                            }}
-                          >
+                          <div className="monitoring-att-contact">
                             <AthleteContactActions
                               athlete={attendanceContactItem}
                               compact
@@ -1672,17 +1169,7 @@ export const MonitoringPage: React.FC = () => {
                   {!attendanceLoading &&
                     !attendanceResult?.error &&
                     filteredAttendanceAthletes.length === 0 && (
-                      <div
-                        style={{
-                          gridColumn: '1 / -1',
-                          padding: '2rem',
-                          textAlign: 'center',
-                          color: 'var(--text-muted)',
-                          background: 'var(--bg-card)',
-                          borderRadius: '16px',
-                          border: '1px dashed var(--border)',
-                        }}
-                      >
+                      <div className="monitoring-state-cell monitoring-state-cell--sm monitoring-state-cell--muted">
                         {(attendanceResult?.summary?.athletes?.length ?? 0) === 0
                           ? 'No hay atletas para mostrar.'
                           : 'No hay atletas con los filtros de asistencia elegidos.'}
