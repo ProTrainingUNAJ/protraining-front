@@ -659,10 +659,11 @@ export const MonitoringPage: React.FC = () => {
 
           {/* Athlete Search Input */}
           <div className="monitoring-search">
-            <Search size={15} className="monitoring-search-icon" />
+            <Search size={15} className="monitoring-search-icon" aria-hidden="true" />
             <input
               type="text"
               placeholder="Buscar atleta por nombre o posición..."
+              aria-label="Buscar atleta"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="monitoring-search-input"

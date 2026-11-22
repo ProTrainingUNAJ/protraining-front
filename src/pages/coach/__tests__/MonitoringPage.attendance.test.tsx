@@ -260,6 +260,16 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
       expect(screen.getByText('Joaquín Díaz')).toBeDefined();
     });
+
+    // 4. Búsqueda por texto con el buscador accesible (KAN-594)
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar atleta' }), {
+      target: { value: 'Lucas' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.queryByText('Joaquín Díaz')).toBeNull();
+    });
   });
 
   it('muestra la barra de resumen de readiness y bienestar diario con el conteo de check-ins y botón actualizar (KAN-621)', async () => {

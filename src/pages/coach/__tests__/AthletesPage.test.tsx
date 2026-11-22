@@ -222,4 +222,24 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
 
     expect(screen.queryByTitle('Subir o cambiar foto de perfil')).toBeNull();
   });
+
+  it('el buscador tiene nombre accesible y filtra por nombre (KAN-594)', async () => {
+    render(
+      <MemoryRouter>
+        <AthletesPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Joaquín Díaz')).toBeTruthy();
+    });
+
+    const search = screen.getByRole('searchbox', { name: 'Buscar atleta' });
+    fireEvent.change(search, { target: { value: 'Lucas' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.queryByText('Joaquín Díaz')).toBeNull();
+    });
+  });
 });

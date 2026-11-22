@@ -535,6 +535,7 @@ export const AthletesPage: React.FC = () => {
             <input
               type="search"
               placeholder="Buscar por nombre, email o teléfono…"
+              aria-label="Buscar atleta"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="athletes-search-input"
