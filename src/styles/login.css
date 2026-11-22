@@ -436,6 +436,13 @@
 }
 
 /* ── Google Button ── */
+.auth-google-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
 .btn-pill-google {
   display: flex;
   align-items: center;

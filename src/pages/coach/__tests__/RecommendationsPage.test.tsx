@@ -331,4 +331,43 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(screen.getByText('Ajuste de potencia de salto')).toBeDefined();
     expect(screen.getByText('Ajuste de velocidad')).toBeDefined();
   });
+
+  it('permite alternar entre "Analizar plantel" y "Hábitos y alimentación" separando las secciones (KAN-654)', async () => {
+    const habitsRec: AthleteRecommendation = {
+      ...pendingRec,
+      id: 'rec-habits-1',
+      type: 'Habits',
+      title: 'Ajuste de hidratación y proteína',
+      reason: 'objetivo de masa muscular',
+      recommendationText: 'Ingesta de 1.8g/kg de proteína y 2.5L de agua diarios.',
+    };
+    listRecommendationsMock.mockResolvedValue([pendingRec, habitsRec]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // Pestaña inicial: "Analizar plantel"
+    const analysisTab = screen.getByRole('tab', { name: /Analizar plantel/i });
+    const habitsTab = screen.getByRole('tab', { name: /Hábitos y alimentación/i });
+    expect(analysisTab).toBeDefined();
+    expect(habitsTab).toBeDefined();
+    expect(analysisTab.getAttribute('aria-selected')).toBe('true');
+    expect(habitsTab.getAttribute('aria-selected')).toBe('false');
+
+    // En "Analizar plantel": visible el motor y la recomendación física, oculto Hábitos
+    expect(screen.getByText('Analizar plantel y generar propuestas')).toBeDefined();
+    expect(screen.queryByLabelText('Generar recomendación de hábitos y alimentación')).toBeNull();
+
+    // Cambiamos a "Hábitos y alimentación"
+    fireEvent.click(habitsTab);
+    expect(habitsTab.getAttribute('aria-selected')).toBe('true');
+    expect(analysisTab.getAttribute('aria-selected')).toBe('false');
+
+    // En "Hábitos y alimentación": visible el bloque de hábitos, oculto el motor físico
+    expect(screen.getByLabelText('Generar recomendación de hábitos y alimentación')).toBeDefined();
+    expect(screen.queryByText('Analizar plantel y generar propuestas')).toBeNull();
+  });
 });

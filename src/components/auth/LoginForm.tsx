@@ -165,12 +165,14 @@ export const LoginForm: React.FC = () => {
           },
         });
 
+        const buttonWidth = container.clientWidth > 0 ? Math.min(400, container.clientWidth) : 378;
+
         googleId.renderButton(container, {
           theme: 'outline',
           size: 'large',
           text: 'continue_with',
           shape: 'pill',
-          width: 320,
+          width: buttonWidth,
           locale: 'es',
         });
       })
@@ -357,7 +359,7 @@ export const LoginForm: React.FC = () => {
             ref={googleButtonRef}
             data-testid="google-signin-button-container"
             aria-label="Continuar con Google"
-            style={{ display: 'flex', justifyContent: 'center', minHeight: '42px' }}
+            className="auth-google-btn-container"
           />
         )}
 
