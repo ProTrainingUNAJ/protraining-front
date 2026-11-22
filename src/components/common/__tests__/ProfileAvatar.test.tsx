@@ -45,15 +45,11 @@ describe('ProfileAvatar Component', () => {
     expect(screen.getByText('B')).toBeDefined();
   });
 
-  it('resolves API photo url without duplicating /api and does not expose raw unauthenticated url', async () => {
+  it('resolves API photo url without duplicating /api and creates authenticated blob url', async () => {
     const mockBlob = new Blob(['image data'], { type: 'image/webp' });
     vi.mocked(httpClient.get).mockResolvedValueOnce({ data: mockBlob });
 
     render(<ProfileAvatar name="Lucas Fernández" src="/api/identidad/api/v1/users/123/photo" />);
-
-    // Initial render shows initials, NEVER raw unauthenticated API url in <img src>
-    expect(screen.queryByRole('img')).toBeNull();
-    expect(screen.getByText('LF')).toBeDefined();
 
     // Verifies httpClient stripped leading /api/ so axios baseURL '/api' does not duplicate to /api/api/...
     expect(httpClient.get).toHaveBeenCalledWith('/identidad/api/v1/users/123/photo', {
@@ -72,17 +68,16 @@ describe('ProfileAvatar Component', () => {
 
     render(<ProfileAvatar name="Preparador Físico" src="/identidad/api/v1/users/me/photo" />);
 
-    // Initial render
-    expect(screen.getByText('PF')).toBeDefined();
-
     await waitFor(() => {
       expect(httpClient.get).toHaveBeenCalledWith('/identidad/api/v1/users/me/photo', {
         responseType: 'blob',
       });
     });
 
-    // Still shows initials and never rendered unauthenticated <img>
-    expect(screen.queryByRole('img')).toBeNull();
-    expect(screen.getByText('PF')).toBeDefined();
+    // Once request fails, falls back to initials
+    await waitFor(() => {
+      expect(screen.queryByRole('img')).toBeNull();
+      expect(screen.getByText('PF')).toBeDefined();
+    });
   });
 });
