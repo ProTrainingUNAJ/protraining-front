@@ -1,4 +1,19 @@
-/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492 · KAN-647) */
+/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492 · KAN-647 · KAN-654) */
+
+/* ── Acciones del encabezado: tabs "Analizar plantel" y "Hábitos y alimentación" (Simétrico a Monitoring - KAN-654) ── */
+.recommendations-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.recommendations-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
 
 .recommendations-page-body {
   display: flex;
@@ -165,6 +180,173 @@
   outline: none;
   border-color: var(--brand-blue);
   box-shadow: var(--focus-ring);
+}
+
+/* Selector interactivo de atletas con foto (KAN-654) */
+.habits-select-container {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 440px;
+}
+
+.habits-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.habits-select-trigger:hover,
+.habits-select-trigger.open {
+  border-color: var(--secondary);
+}
+
+.habits-select-selected-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.habits-select-selected-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.habits-select-selected-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-select-selected-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-select-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.habits-select-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.habits-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.habits-dropdown-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+.habits-dropdown-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.habits-dropdown-search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  outline: none;
+  padding: 0.2rem 0;
+}
+
+.habits-dropdown-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.habits-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.1s ease;
+}
+
+.habits-dropdown-item:hover {
+  background: var(--bg-subtle);
+}
+
+.habits-dropdown-item.selected {
+  background: var(--primary-light);
+}
+
+.habits-dropdown-item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.habits-dropdown-item-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-dropdown-item-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-dropdown-empty {
+  padding: 1.25rem 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 .recommendations-toolbar {
