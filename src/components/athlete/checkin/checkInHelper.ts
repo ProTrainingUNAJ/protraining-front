@@ -380,6 +380,41 @@ export const purgeLegacyCheckInCompletedData = (athleteId: string): void => {
   }
 };
 
+const CHECKIN_DATED_KEY_PREFIXES = [
+  'protraining_checkin_draft_',
+  'protraining_checkin_completed_',
+] as const;
+
+/**
+ * Borra borradores y confirmaciones fechados en otro día. Si la app se cierra a mitad
+ * del check-in y se abre al día siguiente, el borrador con sueño, enfermedad, dolor y
+ * lesiones no debe seguir en el dispositivo.
+ */
+export const purgeStaleCheckInData = (): void => {
+  const storage = getStorage();
+  if (!storage) return;
+  const today = getTodayKey();
+  const keysToRemove: string[] = [];
+
+  try {
+    for (let index = 0; ; index += 1) {
+      const key = storage.key(index);
+      if (!key) break;
+      if (!CHECKIN_DATED_KEY_PREFIXES.some((prefix) => key.startsWith(prefix))) continue;
+      // El sufijo de estas claves siempre es la fecha del check-in (YYYY-MM-DD).
+      if (key.slice(key.lastIndexOf('_') + 1) !== today) keysToRemove.push(key);
+    }
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+
+  try {
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
+
 export const clearAllCheckInData = (): void => {
   const storage = getStorage();
   if (!storage) return;

@@ -725,31 +725,28 @@ export async function fetchAllCategoriesAttendanceToday(): Promise<AthleteAttend
 export type { CheckIn };
 
 /**
- * Retrieves today's check-in for the athlete (if any).
- * Returns null if no check-in was registered for today.
+ * Devuelve el check-in de hoy del atleta, o null solo si no hay uno registrado.
+ * Los errores de red o de la API se propagan para que el llamador pueda distinguir
+ * "sin check-in" de "no se pudo recuperar" (por ejemplo, al editar respuestas).
  */
 export async function getAthleteTodayCheckIn(
   athleteId: string,
   targetDate?: string,
 ): Promise<CheckIn | null> {
   const date = targetDate || todayInArgentina();
-  try {
-    const response = await httpClient.get<CheckIn[]>(
-      `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
-      {
-        params: {
-          from: date,
-          to: date,
-          limit: 1,
-        },
+  const response = await httpClient.get<CheckIn[]>(
+    `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
+    {
+      params: {
+        from: date,
+        to: date,
+        limit: 1,
       },
-    );
-    const list = response.data;
-    if (Array.isArray(list) && list.length > 0) {
-      return list[0];
-    }
-    return null;
-  } catch {
-    return null;
+    },
+  );
+  const list = response.data;
+  if (Array.isArray(list) && list.length > 0) {
+    return list[0];
   }
+  return null;
 }

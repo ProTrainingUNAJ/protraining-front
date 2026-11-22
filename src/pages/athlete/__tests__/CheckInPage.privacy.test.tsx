@@ -121,4 +121,55 @@ describe('privacidad del check-in al cambiar de día y al editar', () => {
     ).filter((key) => key?.startsWith('protraining_checkin_draft_'));
     expect(draftKeys).toEqual([]);
   });
+
+  it('borra al montar los borradores y confirmaciones de días anteriores', async () => {
+    const oldDraftKey = `protraining_checkin_draft_${ATHLETE_ID}_2026-11-21`;
+    const oldCompletedKey = `protraining_checkin_completed_${ATHLETE_ID}_2026-11-21`;
+    localStorage.setItem(
+      oldDraftKey,
+      JSON.stringify({ hasStarted: true, currentStep: 3, isSick: true, notes: 'Dolor' }),
+    );
+    localStorage.setItem(
+      oldCompletedKey,
+      JSON.stringify({ trafficLight: 'Red', completedAt: '2026-11-21T10:00:00Z' }),
+    );
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(localStorage.getItem(oldDraftKey)).toBeNull();
+      expect(localStorage.getItem(oldCompletedKey)).toBeNull();
+    });
+  });
+
+  it('no abre el formulario si falla la red al recuperar las respuestas', async () => {
+    localStorage.setItem(
+      `protraining_checkin_completed_${ATHLETE_ID}_${INITIAL_DAY}`,
+      JSON.stringify({ trafficLight: 'Green', completedAt: '2026-11-22T10:00:00Z' }),
+    );
+    vi.mocked(seguimientoService.getAthleteTodayCheckIn).mockRejectedValue(
+      new Error('Network Error'),
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar respuestas' }));
+
+    expect(await screen.findByText(/No se pudieron recuperar tus respuestas/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Editar respuestas' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Enviar Check-in Diario/i })).toBeNull();
+  });
+
+  it('no abre el formulario si el back no tiene check-in para hoy', async () => {
+    localStorage.setItem(
+      `protraining_checkin_completed_${ATHLETE_ID}_${INITIAL_DAY}`,
+      JSON.stringify({ trafficLight: 'Green', completedAt: '2026-11-22T10:00:00Z' }),
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar respuestas' }));
+
+    expect(await screen.findByText(/No hay respuestas guardadas para editar/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Editar respuestas' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Enviar Check-in Diario/i })).toBeNull();
+  });
 });

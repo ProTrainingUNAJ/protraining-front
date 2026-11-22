@@ -332,6 +332,23 @@ describe('checkInHelper', () => {
       expect(localStorage.getItem(legacyKey)).toBeNull();
       expect(localStorage.getItem(currentKey)).not.toBeNull();
     });
+
+    it('purges drafts and completions from previous days and keeps today ones', async () => {
+      const { purgeStaleCheckInData, getTodayKey } = await import('../checkInHelper');
+      const yesterdayDraft = `protraining_checkin_draft_${athleteId}_2026-11-21`;
+      const yesterdayCompleted = `protraining_checkin_completed_otro-atleta_2026-11-21`;
+      const todayDraft = `protraining_checkin_draft_${athleteId}_${getTodayKey()}`;
+
+      localStorage.setItem(yesterdayDraft, JSON.stringify({ isSick: true, notes: 'Dolor' }));
+      localStorage.setItem(yesterdayCompleted, JSON.stringify({ completedAt: '2026-11-21' }));
+      localStorage.setItem(todayDraft, JSON.stringify({ hasStarted: true }));
+
+      purgeStaleCheckInData();
+
+      expect(localStorage.getItem(yesterdayDraft)).toBeNull();
+      expect(localStorage.getItem(yesterdayCompleted)).toBeNull();
+      expect(localStorage.getItem(todayDraft)).not.toBeNull();
+    });
   });
 });
 

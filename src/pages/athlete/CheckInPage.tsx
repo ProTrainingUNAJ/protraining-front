@@ -37,6 +37,7 @@ import {
   saveCheckInDraft,
   clearCheckInDraft,
   purgeLegacyCheckInCompletedData,
+  purgeStaleCheckInData,
   clearAllCheckInData,
   getTodayKey,
   hasRequiredInjuryMark,
@@ -284,23 +285,28 @@ export const CheckInPage: React.FC = () => {
 
   const handleEditResponses = useCallback(async () => {
     if (!completedCheckIn) {
+      let remote: CheckIn | null;
       try {
-        const remote = await getAthleteTodayCheckIn(athleteId);
-        if (remote) {
-          setCompletedCheckIn(remote);
-          applySubmittedState(remote);
-          setSubmissionResult({
-            message: 'Check-in registrado',
-            trafficLight: remote.trafficLight,
-            trafficLightReason: remote.trafficLightReason ?? null,
-            checkIn: remote as unknown as CheckInEntityDto,
-            isOffline: false,
-          });
-        }
+        remote = await getAthleteTodayCheckIn(athleteId);
       } catch {
         setErrorMessage('No se pudieron recuperar tus respuestas. Intentá nuevamente.');
         return;
       }
+      // Sin respuesta del back no se abre el formulario: los valores por defecto
+      // (ánimo 3, estrés 2) pisarían el check-in real si el atleta reenvía.
+      if (!remote) {
+        setErrorMessage('No hay respuestas guardadas para editar.');
+        return;
+      }
+      setCompletedCheckIn(remote);
+      applySubmittedState(remote);
+      setSubmissionResult({
+        message: 'Check-in registrado',
+        trafficLight: remote.trafficLight,
+        trafficLightReason: remote.trafficLightReason ?? null,
+        checkIn: remote as unknown as CheckInEntityDto,
+        isOffline: false,
+      });
     } else {
       applySubmittedState(completedCheckIn);
     }
@@ -350,8 +356,10 @@ export const CheckInPage: React.FC = () => {
     setIsLoadingCompleted(false);
   }, [todayKey]);
 
-  // Descarta los registros viejos que guardaban el borrador médico completo.
+  // Al montar (y al cambiar de día) se descartan los datos con fecha de otro día:
+  // si la app se cerró a mitad del check-in, el borrador de ayer no debe quedar en el celular.
   useEffect(() => {
+    purgeStaleCheckInData();
     purgeLegacyCheckInCompletedData(athleteId);
   }, [athleteId, todayKey]);
 
