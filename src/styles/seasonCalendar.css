@@ -897,6 +897,71 @@
 }
 
 /* ==========================================================================
+   Weekly View: Simple Vertical List (< 600px)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .season-calendar-week-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .season-calendar-week-col {
+    min-height: auto;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+  }
+
+  .season-calendar-week-header {
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0.4rem 0.3rem 0;
+    border-bottom: none;
+  }
+
+  .season-calendar-week-dayname,
+  .season-calendar-week-daynum {
+    font-size: 0.65rem;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    color: var(--text-main);
+  }
+
+  .season-calendar-week-daynum {
+    margin-right: 0.5rem;
+    order: 1;
+  }
+
+  .season-calendar-week-content {
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0.4rem 0.3rem;
+  }
+
+  /* Day without events: "Sin actividad" */
+  .season-calendar-week-content.empty::before {
+    content: '"Sin actividad"';
+    order: 0;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-right: 0.5rem;
+  }
+
+  .season-calendar-week-content:not(.empty) > *:first-child {
+    order: 1;
+  }
+
+  .season-calendar-week-add-btn {
+    order: 2;
+    margin-left: auto;
+  }
+}
+
+/* ==========================================================================
    Responsive Rules (Mobile friendly)
    ========================================================================== */
 @media (max-width: 768px) {
