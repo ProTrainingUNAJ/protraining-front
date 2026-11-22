@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Search, Sparkles, X } fr
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
+import { HabitsRecommendationBar } from '../../components/recommendations/HabitsRecommendationBar';
 import {
   SegmentedFilterTabs,
   type SegmentedFilterOption,
@@ -250,6 +251,25 @@ export function RecommendationsPage() {
     setRecommendations((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
   };
 
+  // Atletas para pedir hábitos y alimentación (KAN-634), en orden alfabético.
+  const habitsAthleteOptions = useMemo(
+    () =>
+      athletes
+        .map((athlete) => ({ id: athlete.id, name: getAthleteDisplayName(athlete.id) }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    [athletes, getAthleteDisplayName],
+  );
+
+  const handleHabitsGenerated = async (athleteName: string) => {
+    const refreshed = await recommendationsService.listRecommendations();
+    setRecommendations(refreshed);
+    setStatusTab('Pending');
+    setFeedback({
+      tone: 'success',
+      message: `La recomendación de hábitos de ${athleteName} quedó en Pendientes: revisala y aprobala para que le llegue.`,
+    });
+  };
+
   const handleUpdate = async (id: string, title: string, recommendationText: string) => {
     const updated = await recommendationsService.updateRecommendation(id, {
       title,
@@ -402,6 +422,12 @@ export function RecommendationsPage() {
             propuestas nacen pendientes hasta tu aprobación.
           </p>
         </div>
+
+        <HabitsRecommendationBar
+          athletes={habitsAthleteOptions}
+          onGenerated={handleHabitsGenerated}
+          onError={(message) => setFeedback({ tone: 'error', message })}
+        />
 
         {/* Notificación de feedback flotante: no altera ni desplaza la estructura */}
         {feedback && (
