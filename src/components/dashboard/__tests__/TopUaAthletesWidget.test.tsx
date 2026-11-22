@@ -39,7 +39,7 @@ describe('TopUaAthletesWidget Podio (KAN-621)', () => {
       </MemoryRouter>,
     );
 
-  it('muestra el podio vacío cuando ningún atleta tiene carga registrada hoy', async () => {
+  it('sin cargas hoy muestra un mensaje en lugar de un podio vacío (KAN-594)', async () => {
     vi.mocked(seguimientoService.fetchAllCategoriesAttendanceToday).mockResolvedValueOnce([
       {
         athleteId: 'ath-1',
@@ -60,23 +60,12 @@ describe('TopUaAthletesWidget Podio (KAN-621)', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByTestId('top-ua-podium')).toBeDefined();
-      expect(screen.getByText('Sin cargas registradas hoy')).toBeDefined();
+      expect(screen.getByTestId('top-ua-empty').textContent).toBe('Sin cargas registradas hoy');
     });
 
-    // Los 3 escalones existen pero sin fotos de atletas encima
-    const step1 = screen.getByTestId('podium-step-1');
-    const step2 = screen.getByTestId('podium-step-2');
-    const step3 = screen.getByTestId('podium-step-3');
-
-    expect(step1.textContent).toContain('1');
-    expect(step1.textContent).toContain('—');
-    expect(step2.textContent).toContain('2');
-    expect(step2.textContent).toContain('—');
-    expect(step3.textContent).toContain('3');
-    expect(step3.textContent).toContain('—');
-
-    // No debe renderizarse ninguna foto
+    // Escalones con guiones parecen datos: no se dibujan
+    expect(screen.queryByTestId('top-ua-podium')).toBeNull();
+    expect(screen.queryByTestId('podium-step-1')).toBeNull();
     expect(screen.queryByRole('img')).toBeNull();
   });
 
@@ -106,9 +95,10 @@ describe('TopUaAthletesWidget Podio (KAN-621)', () => {
     expect(step1.textContent).toContain('850 UA');
     expect(screen.getByAltText(/Foto de perfil de Lucas Gómez/i)).toBeDefined();
 
-    // Nombre accesible para lectores de pantalla sin ocupar espacio visual en el podio
+    // Nombre completo para lectores de pantalla y nombre corto visible (KAN-594)
     const nameEl = screen.getByText('Lucas Gómez');
     expect(nameEl.className).toContain('sr-only');
+    expect(screen.getByText('Lucas G.').getAttribute('aria-hidden')).toBe('true');
 
     // Puestos 2 y 3: No aparece nadie (vacíos)
     expect(step2.textContent).toContain('2');

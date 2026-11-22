@@ -65,3 +65,43 @@ export function formatTrainingDayLabel(isoDate: string, today: string): string {
   );
   return `${weekday} ${day}/${month}`;
 }
+
+export interface SessionReadiness {
+  ready: number; // verde
+  watch: number; // amarillo
+  adjust: number; // rojo
+  noCheckIn: number; // gris
+}
+
+/**
+ * Cómo llega al entrenamiento de hoy el grupo de la sesión (KAN-594, prototipo F): cuenta los
+ * atletas del semáforo de hoy por color. Si la sesión es de una categoría, solo cuenta a los de
+ * esa categoría; si es individual, al atleta asignado. Devuelve null si no hay a quién contar,
+ * para no mostrar ceros que parecen datos.
+ */
+export function summarizeSessionReadiness(
+  session: ScheduledSession,
+  athletes: { id: string; status: 'red' | 'yellow' | 'green' | 'gray' }[],
+  athleteIdsByCategory: Record<string, string[]>,
+): SessionReadiness | null {
+  let ids: Set<string> | null = null;
+  if (session.categoryId) {
+    const categoryIds = athleteIdsByCategory[session.categoryId];
+    if (!categoryIds) return null;
+    ids = new Set(categoryIds.map((id) => id.toLowerCase()));
+  } else if (session.athleteId) {
+    ids = new Set([session.athleteId.toLowerCase()]);
+  }
+  if (!ids) return null;
+  const groupIds = ids;
+
+  const group = athletes.filter((athlete) => groupIds.has(athlete.id.toLowerCase()));
+  if (group.length === 0) return null;
+
+  return {
+    ready: group.filter((a) => a.status === 'green').length,
+    watch: group.filter((a) => a.status === 'yellow').length,
+    adjust: group.filter((a) => a.status === 'red').length,
+    noCheckIn: group.filter((a) => a.status === 'gray').length,
+  };
+}

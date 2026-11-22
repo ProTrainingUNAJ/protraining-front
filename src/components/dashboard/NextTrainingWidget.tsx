@@ -13,7 +13,9 @@ import {
   formatTrainingDayLabel,
   pickNextTrainingDay,
   sessionStartTime,
+  summarizeSessionReadiness,
 } from '../../utils/nextTraining';
+import type { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
 import './NextTrainingWidget.css';
 
 type WidgetState =
@@ -39,7 +41,26 @@ function groupLabelFor(session: ScheduledSession, groupLabels: Map<string, strin
 
 // Próximo entrenamiento del PF (KAN-583): reemplaza a "Predio y Horario", que mostraba datos de
 // ejemplo. Busca en la agenda real de las planificaciones asignadas, de hoy a 7 días.
-export const NextTrainingWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
+interface NextTrainingWidgetProps {
+  className?: string;
+  /** Semáforo de hoy del plantel (el mismo del resto del Inicio). */
+  athletes?: AthleteTrafficLightItem[];
+  athleteIdsByCategory?: Record<string, string[]>;
+}
+
+// Cómo llega el grupo, con los mismos colores del semáforo (prototipo F, KAN-594).
+const READINESS_ITEMS = [
+  { key: 'ready', tone: 'green', one: 'listo', many: 'listos' },
+  { key: 'watch', tone: 'yellow', one: 'a mirar', many: 'a mirar' },
+  { key: 'adjust', tone: 'red', one: 'a ajustar', many: 'a ajustar' },
+  { key: 'noCheckIn', tone: 'gray', one: 'sin check-in', many: 'sin check-in' },
+] as const;
+
+export const NextTrainingWidget: React.FC<NextTrainingWidgetProps> = ({
+  className = '',
+  athletes = [],
+  athleteIdsByCategory = {},
+}) => {
   const navigate = useNavigate();
   const [state, setState] = useState<WidgetState>({ status: 'loading' });
   const today = todayInArgentina();
@@ -89,6 +110,11 @@ export const NextTrainingWidget: React.FC<{ className?: string }> = ({ className
   const session = next?.sessions[0] ?? null;
   const otherSessionsCount = next ? next.sessions.length - 1 : 0;
   const startTime = session ? sessionStartTime(session) : null;
+  // El semáforo es de hoy: para una sesión de otro día no se sabe todavía cómo llegan.
+  const readiness =
+    session && next?.date === today
+      ? summarizeSessionReadiness(session, athletes, athleteIdsByCategory)
+      : null;
 
   return (
     <div className={`next-training-widget ${className}`}>
@@ -155,6 +181,20 @@ export const NextTrainingWidget: React.FC<{ className?: string }> = ({ className
               {session.exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}
             </span>
           </div>
+
+          {readiness && (
+            <ul className="next-training-widget__readiness" aria-label="Cómo llega el grupo hoy">
+              {READINESS_ITEMS.filter((item) => readiness[item.key] > 0).map((item) => (
+                <li key={item.key} className="next-training-widget__readiness-item">
+                  <span
+                    className={`next-training-widget__dot next-training-widget__dot--${item.tone}`}
+                    aria-hidden="true"
+                  />
+                  <b>{readiness[item.key]}</b> {readiness[item.key] === 1 ? item.one : item.many}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="next-training-widget__footer">
             {otherSessionsCount > 0 ? (
