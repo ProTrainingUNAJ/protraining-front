@@ -412,6 +412,8 @@
   padding: 0.45rem 0.85rem;
   font-size: 0.84rem;
   text-decoration: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .plan-card-footer-actions-left {
@@ -2862,6 +2864,7 @@
 .plan-card-assignees-col {
   display: flex;
   align-items: center;
+  flex: 1;
   min-width: 0;
 }
 
@@ -2869,28 +2872,36 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.2rem 0.4rem;
-  border-radius: 9999px;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.18s ease;
   user-select: none;
-  background: transparent;
-  border: 1px solid transparent;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-family: inherit;
 }
 
 .plan-assignees-stack-trigger:hover {
-  background: var(--bg-subtle);
-  border-color: var(--border);
+  background: var(--info-bg);
+  border-color: var(--secondary);
+  color: var(--info-text);
 }
 
 .plan-assignees-stack-avatars {
   display: inline-flex;
   align-items: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .plan-assignee-avatar-wrapper {
   position: relative;
+  display: inline-flex;
   transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.4, 1);
 }
 
@@ -2905,15 +2916,15 @@
 }
 
 .plan-assignee-more-circle {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: var(--bg-subtle);
-  border: 2px solid var(--border);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
   color: var(--text-main);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-sm);
@@ -2928,13 +2939,27 @@
   z-index: 25;
 }
 
-.plan-assignees-count-label {
+.plan-assignees-trigger-label {
   font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan-assignees-count-label {
+  font-size: 0.74rem;
   font-weight: 800;
   color: var(--text-muted);
-  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.1rem 0.4rem;
+  display: inline-flex;
   align-items: center;
   gap: 0.2rem;
+  flex-shrink: 0;
 }
 
 .plan-assignees-empty-btn {
@@ -3080,7 +3105,7 @@
 
 .manage-assignments-item {
   display: grid;
-  grid-template-columns: 44px 1fr 180px;
+  grid-template-columns: 44px minmax(0, 1fr) 224px;
   align-items: center;
   gap: 0.95rem;
   padding: 0.9rem 1.1rem;
@@ -3088,6 +3113,7 @@
   border: 1px solid var(--border);
   background: var(--bg-card);
   transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
@@ -3162,7 +3188,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  width: 180px;
+  width: 100%;
+  min-width: 0;
   align-items: stretch;
 }
 
@@ -3212,6 +3239,72 @@
   border-color: var(--danger);
 }
 
+.manage-assignments-decision-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.manage-assignments-approved-status,
+.manage-assignments-rejected-status {
+  flex: 1;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.manage-assignments-approved-status {
+  color: var(--success-text);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+}
+
+.manage-assignments-rejected-status {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+}
+
+.manage-assignments-edit-adaptation-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.manage-assignments-edit-adaptation-btn:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+.manage-assignments-edit-adaptation-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .manage-assignments-normal-status {
   display: inline-flex;
   align-items: center;
@@ -3234,7 +3327,8 @@
 }
 
 .manage-assignments-category-athletes {
-  margin-left: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.65rem 0.85rem;
   border-radius: 12px;
   background: var(--bg-subtle);
@@ -3836,6 +3930,10 @@
   font-size: 0.88rem;
   font-weight: 800;
   color: var(--brand-navy);
+}
+
+[data-theme='dark'] .adaptation-diff-context-title {
+  color: var(--secondary);
 }
 
 .adaptation-shield-icon-wrap {

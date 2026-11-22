@@ -382,6 +382,10 @@ export type TodayRoutineExercise = {
     exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
     sets: number;
     reps: number;
+    /**
+     * Rango o descripción flexible de repeticiones prescritas (ej. "6-8", "10-12", "Fallo") introducido en KAN-585.
+     */
+    repsRange?: string | null;
     percentage?: number;
     /**
      * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg). Es null en series de referencia sin récord previo.
@@ -403,6 +407,10 @@ export type TodayRoutineExercise = {
      * True si el ejercicio no tiene récord previo y la serie se prescribe como de referencia para probar y registrar.
      */
     isReference: boolean;
+    /**
+     * Meta de distancia prescripta por el preparador físico en metros.
+     */
+    targetDistanceMeters?: number | null;
     /**
      * Meta de tiempo calculada en segundos (KAN-455). Null si no tiene test.
      */
@@ -628,6 +636,22 @@ export type ApplyAthleteSessionAdjustmentRequest = {
     items?: Array<ApplyAthleteSessionAdjustmentItem> | null;
 };
 
+export type RejectAthleteSessionAdjustmentRequest = {
+    athleteId: string;
+    /**
+     * Identificador de la planificación vigente vinculada (opcional).
+     */
+    trainingPlanId?: string | null;
+    /**
+     * Fecha de la sesión (YYYY-MM-DD). Si se omite, toma hoy en hora Argentina.
+     */
+    date?: string | null;
+    /**
+     * Motivo opcional del rechazo indicado por el PF.
+     */
+    note?: string | null;
+};
+
 export type ApplyAthleteSessionAdjustmentResponse = {
     id: string;
     athleteId: string;
@@ -638,6 +662,10 @@ export type ApplyAthleteSessionAdjustmentResponse = {
     sessionId: string;
     date: string;
     adjustedByCoach: boolean;
+    /**
+     * Estado de la decisión del PF sobre la adaptación (KAN-636).
+     */
+    status?: 'Approved' | 'Rejected';
     loadReductionPercentage?: number | null;
     note?: string | null;
     items: Array<ApplyAthleteSessionAdjustmentItem>;
@@ -681,7 +709,13 @@ export type PrescribedExerciseRequest = {
     primaryMuscles?: Array<string>;
     secondaryMuscles?: Array<string>;
     muscleGroup?: string;
+    /**
+     * Distancia objetivo prescripta en metros.
+     */
     targetDistanceMeters?: number | null;
+    /**
+     * Tiempo objetivo prescripto en segundos.
+     */
     targetTimeSeconds?: number | null;
     repsRange?: string | null;
 };
@@ -769,7 +803,13 @@ export type PrescribedExerciseDetail = {
     primaryMuscles?: Array<string>;
     secondaryMuscles?: Array<string>;
     muscleGroup?: string;
+    /**
+     * Distancia objetivo prescripta en metros.
+     */
     targetDistanceMeters?: number | null;
+    /**
+     * Tiempo objetivo prescripto en segundos.
+     */
     targetTimeSeconds?: number | null;
     repsRange?: string | null;
 };
@@ -2085,6 +2125,48 @@ export type ApplyAthleteSessionAdjustmentResponses = {
 
 export type ApplyAthleteSessionAdjustmentResponse2 = ApplyAthleteSessionAdjustmentResponses[keyof ApplyAthleteSessionAdjustmentResponses];
 
+export type RejectAthleteSessionAdjustmentData = {
+    body: RejectAthleteSessionAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la sesión de entrenamiento.
+         */
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments/reject';
+};
+
+export type RejectAthleteSessionAdjustmentErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type RejectAthleteSessionAdjustmentError = RejectAthleteSessionAdjustmentErrors[keyof RejectAthleteSessionAdjustmentErrors];
+
+export type RejectAthleteSessionAdjustmentResponses = {
+    /**
+     * Rechazo registrado exitosamente.
+     */
+    200: ApplyAthleteSessionAdjustmentResponse;
+};
+
+export type RejectAthleteSessionAdjustmentResponse = RejectAthleteSessionAdjustmentResponses[keyof RejectAthleteSessionAdjustmentResponses];
+
 export type GetScheduledAthletesData = {
     body?: never;
     path?: never;
@@ -2122,6 +2204,43 @@ export type GetScheduledAthletesResponses = {
 };
 
 export type GetScheduledAthletesResponse = GetScheduledAthletesResponses[keyof GetScheduledAthletesResponses];
+
+export type PurgeAthleteInternalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta a purgar.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/internal/athletes/{athleteId}/purge';
+};
+
+export type PurgeAthleteInternalErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type PurgeAthleteInternalError = PurgeAthleteInternalErrors[keyof PurgeAthleteInternalErrors];
+
+export type PurgeAthleteInternalResponses = {
+    /**
+     * Resumen de registros físicos eliminados.
+     */
+    200: {
+        athleteId?: string;
+        totalRecordsPurged?: number;
+    };
+};
+
+export type PurgeAthleteInternalResponse = PurgeAthleteInternalResponses[keyof PurgeAthleteInternalResponses];
 
 export type HealthCheckData = {
     body?: never;

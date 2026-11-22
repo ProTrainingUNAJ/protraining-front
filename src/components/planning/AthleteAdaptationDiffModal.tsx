@@ -35,6 +35,10 @@ import { ExercisePickerModal } from './ExercisePickerModal';
 import { AdaptationDiffItem } from './AdaptationDiffItem';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { parseRepsNumber } from '../../utils/planDraft';
+import {
+  getDefaultPlanSessionId,
+  resolveSessionAdjustmentDecision,
+} from '../../utils/planAdaptation';
 
 const DEFAULT_CONSERVATIVE_ESTIMATED_RECORD_PERCENT = 90;
 
@@ -97,6 +101,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   const [selectedSubstitutes, setSelectedSubstitutes] = useState<Record<string, string>>({});
 
   // Estados de decisión del PF: Aprobar / Editar / Rechazar (KAN-465, KAN-637)
+  const [hasExistingAdjustment, setHasExistingAdjustment] = useState<boolean>(false);
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [isRejected, setIsRejected] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -118,6 +123,18 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const carouselRef = useRef<HTMLDivElement | null>(null);
+  const rejectFormRef = useRef<HTMLDivElement | null>(null);
+  const rejectReasonInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Desplazar suavemente hacia el formulario de motivo de rechazo cuando se abre
+  useEffect(() => {
+    if (!showRejectForm) return;
+    const rejectEl = rejectFormRef.current;
+    if (rejectEl && typeof rejectEl.scrollIntoView === 'function') {
+      rejectEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+    rejectReasonInputRef.current?.focus({ preventScroll: true });
+  }, [showRejectForm]);
 
   const flattenedSessions = useMemo<FlattenedPlanSession[]>(() => {
     if (!planDetail?.weeks) return [];
@@ -160,6 +177,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
       setAdjustmentLoadWarning(null);
       setSuccessMessage(null);
       setProposal(null);
+      setHasExistingAdjustment(false);
       setIsApproved(false);
       setIsRejected(false);
       setIsEditing(false);
@@ -177,14 +195,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         setPlanDetail(loadedPlan);
         setContext(loadedContext);
 
-        const firstWithExercises =
-          loadedPlan.weeks
-            ?.flatMap((w) => w.sessions ?? [])
-            .find((s) => (s.exercises?.length ?? 0) > 0) ??
-          loadedPlan.weeks?.[0]?.sessions?.[0] ??
-          null;
-
-        setSelectedSessionId(firstWithExercises?.id ?? '');
+        setSelectedSessionId(getDefaultPlanSessionId(loadedPlan) ?? '');
       } catch (err: unknown) {
         if (!active) return;
         setError(
@@ -215,6 +226,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
       setError(null);
       setAdjustmentLoadWarning(null);
       setSuccessMessage(null);
+      setHasExistingAdjustment(false);
       setIsApproved(false);
       setIsRejected(false);
       setIsEditing(false);
@@ -272,17 +284,22 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
           const key = change.originalExerciseId || change.originalExerciseName;
           initialSubstitutes[key] = change.finalExerciseId;
         }
-        if (existingAdjustment?.items?.length) {
-          for (const item of existingAdjustment.items) {
+        const savedDecision = resolveSessionAdjustmentDecision(existingAdjustment);
+        if (savedDecision === 'approved') {
+          for (const item of existingAdjustment?.items ?? []) {
             initialSubstitutes[item.originalExerciseId] = item.substituteExerciseId;
           }
+          setHasExistingAdjustment(true);
           setIsApproved(true);
+        } else if (savedDecision === 'rejected') {
+          setIsRejected(true);
+          setRejectionReason(existingAdjustment?.note ?? '');
         }
         setSelectedSubstitutes(initialSubstitutes);
         setPickerTarget(null);
 
         // Resolver nombres si hay ajustes previos con ejercicios elegidos manualmente desde catálogo
-        if (existingAdjustment?.items?.length) {
+        if (savedDecision === 'approved' && existingAdjustment?.items?.length) {
           const knownIds = new Set<string>();
           for (const change of adaptationData.adaptationChanges ?? []) {
             change.availableSubstitutes?.forEach((s) => knownIds.add(s.exerciseId));
@@ -316,7 +333,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         }
 
         const defaultNote = cleanJustificationText(
-          existingAdjustment?.note ||
+          (savedDecision === 'approved' ? existingAdjustment?.note : null) ||
             (adaptationData.adaptationChanges ?? []).map((c) => c.reason).join(' ') ||
             adaptationData.justificationSummary ||
             '',
@@ -568,6 +585,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         });
       }
 
+      setHasExistingAdjustment(true);
       setIsApproved(true);
       setIsRejected(false);
       setIsEditing(false);
@@ -585,17 +603,40 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
     }
   };
 
-  const handleRejectAdaptation = () => {
+  const handleRejectAdaptation = async () => {
     const trimmedReason = rejectionReason.trim();
-    setIsRejected(true);
-    setIsApproved(false);
-    setIsEditing(false);
-    setShowRejectForm(false);
+    const sessionId = activeSessionEntry?.session.id;
+
+    setSubmitting(true);
     setError(null);
-    setSuccessMessage(
-      `Propuesta de adaptación rechazada. Se mantiene la rutina base de la categoría para ${athleteName}.`,
-    );
-    onAdaptationRejected?.(trimmedReason || undefined);
+    setSuccessMessage(null);
+
+    try {
+      if (sessionId) {
+        await athleteAdaptationsService.rejectSessionAdjustment(sessionId, {
+          athleteId,
+          trainingPlanId: planId,
+          date: todayInArgentina(),
+          note: trimmedReason || undefined,
+        });
+      }
+
+      setHasExistingAdjustment(false);
+      setIsRejected(true);
+      setIsApproved(false);
+      setIsEditing(false);
+      setShowRejectForm(false);
+      setSuccessMessage(
+        `Propuesta de adaptación rechazada. Se mantiene la rutina base de la categoría para ${athleteName}.`,
+      );
+      onAdaptationRejected?.(trimmedReason || undefined);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'No se pudo rechazar la adaptación. Probá de nuevo.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleScrollPrev = () => {
@@ -645,6 +686,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   };
 
   const isLoading = loadingPlan || loadingProposal;
+  const isUpdateAction = hasExistingAdjustment || (isApproved && !hasEdited);
   const activeInjuries = context?.activeInjuries ?? [];
   const adaptationChangesCount = proposal?.adaptationChanges?.length ?? 0;
   const hasAdaptations =
@@ -1105,11 +1147,16 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
 
             {/* Formulario opcional de motivo de rechazo (KAN-465) */}
             {showRejectForm && (
-              <div className="adaptation-diff-reject-box" data-testid="adaptation-reject-form">
+              <div
+                ref={rejectFormRef}
+                className="adaptation-diff-reject-box"
+                data-testid="adaptation-reject-form"
+              >
                 <label htmlFor="adaptation-reject-reason-input">
                   Motivo de rechazo (opcional):
                 </label>
                 <input
+                  ref={rejectReasonInputRef}
                   id="adaptation-reject-reason-input"
                   type="text"
                   placeholder="Ej: Es molestia leve, mantener la rutina base con supervisión..."
@@ -1132,8 +1179,17 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
                     onClick={handleRejectAdaptation}
                     disabled={submitting}
                   >
-                    <XCircle size={14} aria-hidden="true" />
-                    <span>Confirmar rechazo</span>
+                    {submitting ? (
+                      <>
+                        <Loader2 size={14} className="plan-spin" aria-hidden="true" />
+                        <span>Rechazando…</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle size={14} aria-hidden="true" />
+                        <span>Confirmar rechazo</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1151,14 +1207,14 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
                 className="btn btn-primary adaptation-approve-main-btn"
                 onClick={handleApproveAdaptation}
                 disabled={submitting || (!hasAdaptations && isApproved && !hasEdited)}
-                aria-label="Aprobar adaptación"
+                aria-label={isUpdateAction ? 'Actualizar adaptación' : 'Aprobar adaptación'}
               >
                 {submitting ? (
                   <>
                     <Loader2 size={16} className="plan-spin" aria-hidden="true" />
-                    <span>Aprobando…</span>
+                    <span>{isUpdateAction ? 'Actualizando…' : 'Aprobando…'}</span>
                   </>
-                ) : isApproved && !hasEdited ? (
+                ) : isUpdateAction ? (
                   <>
                     <RefreshCw size={16} aria-hidden="true" />
                     <span>Actualizar adaptación</span>
