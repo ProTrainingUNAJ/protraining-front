@@ -156,12 +156,24 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
       date: '2026-11-18',
       note: 'Sustitución biomecánica por lesión de rodilla para reducir estrés en tendón rotuliano.',
       adjustedByCoach: true,
+      status: 'Approved',
       items: [
         {
           originalExerciseId: squatId,
           substituteExerciseId: legPressId,
         },
       ],
+    });
+    vi.spyOn(athleteAdaptationsService, 'rejectSessionAdjustment').mockResolvedValue({
+      id: 'adj-1',
+      sessionId,
+      athleteId: lucasId,
+      trainingPlanId: planId,
+      date: '2026-11-22',
+      note: 'Molestia leve superada, entrena con el grupo.',
+      adjustedByCoach: false,
+      status: 'Rejected',
+      items: [],
     });
   });
 
@@ -467,10 +479,19 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
 
     expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
 
-    const rejectBtn = screen.getByRole('button', { name: /rechazar adaptación/i });
-    fireEvent.click(rejectBtn);
+    const scrollIntoViewMock = vi.fn();
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
 
-    expect(screen.getByTestId('adaptation-reject-form')).toBeDefined();
+    try {
+      const rejectBtn = screen.getByRole('button', { name: /rechazar adaptación/i });
+      fireEvent.click(rejectBtn);
+
+      expect(screen.getByTestId('adaptation-reject-form')).toBeDefined();
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth', block: 'end' });
+    } finally {
+      Element.prototype.scrollIntoView = originalScrollIntoView;
+    }
 
     const reasonInput = screen.getByLabelText(/motivo de rechazo/i);
     fireEvent.change(reasonInput, {
@@ -486,6 +507,14 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     ).toBeDefined();
     expect(screen.getByText(/Molestia leve superada, entrena con el grupo\./i)).toBeDefined();
     expect(athleteAdaptationsService.applySessionAdjustment).not.toHaveBeenCalled();
+    expect(athleteAdaptationsService.rejectSessionAdjustment).toHaveBeenCalledWith(
+      sessionId,
+      expect.objectContaining({
+        athleteId: lucasId,
+        trainingPlanId: planId,
+        note: 'Molestia leve superada, entrena con el grupo.',
+      }),
+    );
     expect(onRejected).toHaveBeenCalledWith('Molestia leve superada, entrena con el grupo.');
   });
 
@@ -690,5 +719,526 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     const warning = await screen.findByTestId('adaptation-adjustment-warning');
     expect(warning.textContent).toContain('No se pudo consultar si ya había un ajuste guardado');
     expect(screen.queryByText(/Error interno del servidor \(500\)/i)).toBeNull();
+  });
+
+  it('DADO atletas sin lesión, lesionados sin ajuste y lesionados con ajuste aprobado CUANDO se abre Gestionar asignaciones ENTONCES muestra los tres estados del control y consulta ajustes solo de lesionados (KAN-636)', async () => {
+    const camilaId = 'ath-camila-2';
+    const martinId = 'ath-martin-3';
+
+    vi.spyOn(structureService, 'getCategoryAthletes').mockResolvedValue([
+      {
+        id: martinId,
+        firstName: 'Martín',
+        lastName: 'Pérez',
+        fullName: 'Martín Pérez',
+        email: 'martin@protraining.com',
+        phone: '1150000002',
+        activeInjuriesCount: 0,
+      },
+      {
+        id: camilaId,
+        firstName: 'Camila',
+        lastName: 'Ruiz',
+        fullName: 'Camila Ruiz',
+        email: 'camila@protraining.com',
+        phone: '1150000003',
+        activeInjuriesCount: 1,
+      },
+      {
+        id: lucasId,
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'atleta@protraining.com',
+        phone: '1150000001',
+        activeInjuriesCount: 1,
+      },
+    ]);
+
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: martinId, activeCount: 0 },
+      { athleteId: camilaId, activeCount: 1 },
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+
+    const getAdjustmentSpy = vi
+      .spyOn(athleteAdaptationsService, 'getSessionAdjustment')
+      .mockImplementation(async (_sessionId, athleteId) => {
+        if (athleteId === camilaId) {
+          return {
+            id: 'adj-camila-1',
+            sessionId,
+            athleteId: camilaId,
+            trainingPlanId: planId,
+            date: '2026-11-22',
+            note: 'Reemplazo aprobado previamente.',
+            adjustedByCoach: true,
+            items: [
+              {
+                originalExerciseId: squatId,
+                substituteExerciseId: legPressId,
+              },
+            ],
+          };
+        }
+        return null;
+      });
+
+    render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={[
+          {
+            assignmentId: 'assign-primera',
+            type: 'category',
+            targetId: 'cat-primera',
+            name: 'Primera División',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+          },
+        ]}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    const reviewBtn = await screen.findByRole('button', {
+      name: /revisar adaptación de lucas gómez/i,
+    });
+    const editApprovedBtn = await screen.findByRole('button', {
+      name: /revisar nuevamente la adaptación de camila ruiz/i,
+    });
+    const approvedStatus = screen.getByText('Adaptación aprobada').closest('span');
+
+    expect(reviewBtn.textContent).toContain('Revisar adaptación');
+    expect(approvedStatus?.parentElement?.className).toContain(
+      'manage-assignments-approved-status',
+    );
+    expect(editApprovedBtn.className).toContain('manage-assignments-edit-adaptation-btn');
+    expect(screen.getByText('En condiciones normales')).toBeDefined();
+
+    // Consulta el plan una sola vez y el ajuste únicamente para los atletas lesionados
+    expect(trainingPlansService.get).toHaveBeenCalledTimes(1);
+    expect(trainingPlansService.get).toHaveBeenCalledWith(planId);
+    expect(getAdjustmentSpy).toHaveBeenCalledTimes(2);
+    expect(getAdjustmentSpy).toHaveBeenCalledWith(sessionId, camilaId);
+    expect(getAdjustmentSpy).toHaveBeenCalledWith(sessionId, lucasId);
+    expect(getAdjustmentSpy).not.toHaveBeenCalledWith(sessionId, martinId);
+  });
+
+  it('DADO un atleta lesionado sin ajuste CUANDO el PF aprueba la adaptación ENTONCES se cierra el modal, aparece el mensaje de éxito y el botón pasa a Adaptación aprobada sin recargar toda la lista (KAN-636)', async () => {
+    const summarySpy = vi
+      .spyOn(seguimientoService, 'getActiveInjuriesSummary')
+      .mockResolvedValue([{ athleteId: lucasId, activeCount: 1 }]);
+
+    render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={[
+          {
+            assignmentId: 'assign-lucas',
+            type: 'athlete',
+            targetId: lucasId,
+            name: 'Lucas Gómez',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+          },
+        ]}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    const reviewBtn = await screen.findByRole('button', {
+      name: /revisar adaptación de lucas gómez/i,
+    });
+    fireEvent.click(reviewBtn);
+
+    expect(
+      await screen.findByRole('heading', { name: /comparativa base vs\. adaptada/i }),
+    ).toBeDefined();
+    expect(await screen.findByText('Prensa de piernas')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /aprobar adaptación/i }));
+
+    await waitFor(() => {
+      expect(athleteAdaptationsService.applySessionAdjustment).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('heading', { name: /comparativa base vs\. adaptada/i })).toBeNull();
+    });
+
+    expect(
+      await screen.findByText(/Variante adaptada aprobada con éxito para Lucas Gómez\./i),
+    ).toBeDefined();
+
+    expect(screen.getByText('Adaptación aprobada')).toBeDefined();
+    expect(
+      screen.getByRole('button', {
+        name: /revisar nuevamente la adaptación de lucas gómez/i,
+      }),
+    ).toBeDefined();
+    expect(screen.queryByRole('button', { name: /revisar adaptación de lucas gómez/i })).toBeNull();
+    expect(summarySpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('DADO un atleta con ajuste aprobado CUANDO el PF reabre la lista, abre el modal y cambia un ejercicio ENTONCES Actualizar adaptación guarda, cierra el modal y mantiene Adaptación aprobada (KAN-636)', async () => {
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockResolvedValue({
+      id: 'adj-lucas-1',
+      sessionId,
+      athleteId: lucasId,
+      trainingPlanId: planId,
+      date: '2026-11-22',
+      note: 'Ajuste inicial aprobado.',
+      adjustedByCoach: true,
+      items: [
+        {
+          originalExerciseId: squatId,
+          substituteExerciseId: legPressId,
+        },
+      ],
+    });
+
+    const assignees = [
+      {
+        assignmentId: 'assign-lucas',
+        type: 'athlete' as const,
+        targetId: lucasId,
+        name: 'Lucas Gómez',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active' as const,
+      },
+    ];
+
+    const { rerender } = render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Adaptación aprobada')).toBeDefined();
+
+    // Cerrar y volver a abrir Gestionar asignaciones
+    rerender(
+      <ManagePlanAssignmentsModal
+        isOpen={false}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+    rerender(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Adaptación aprobada')).toBeDefined();
+    const editBtn = screen.getByRole('button', {
+      name: /revisar nuevamente la adaptación de lucas gómez/i,
+    });
+
+    // Abrir la adaptación aprobada desde el botón lápiz y cambiar el ejercicio sustituto
+    fireEvent.click(editBtn);
+    expect(await screen.findByText('Sentadilla con barra')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /editar adaptación/i }));
+    const select = screen.getByLabelText(/ajustar sustituto autorizado/i);
+    fireEvent.change(select, { target: { value: gluteBridgeId } });
+
+    const updateBtn = screen.getByRole('button', { name: /actualizar adaptación/i });
+    expect(updateBtn.textContent).toContain('Actualizar adaptación');
+    fireEvent.click(updateBtn);
+
+    await waitFor(() => {
+      expect(athleteAdaptationsService.applySessionAdjustment).toHaveBeenCalledWith(
+        sessionId,
+        expect.objectContaining({
+          athleteId: lucasId,
+          trainingPlanId: planId,
+          items: [
+            {
+              originalExerciseId: squatId,
+              substituteExerciseId: gluteBridgeId,
+            },
+          ],
+        }),
+      );
+      expect(screen.queryByRole('heading', { name: /comparativa base vs\. adaptada/i })).toBeNull();
+    });
+
+    expect(
+      await screen.findByText(/Variante adaptada actualizada con éxito para Lucas Gómez\./i),
+    ).toBeDefined();
+    expect(screen.getByText('Adaptación aprobada')).toBeDefined();
+    expect(
+      screen.getByRole('button', { name: /revisar nuevamente la adaptación de lucas gómez/i }),
+    ).toBeDefined();
+  });
+
+  it('muestra aviso no bloqueante y conserva el botón Revisar adaptación usable si falla getSessionAdjustment para un atleta lesionado (KAN-636)', async () => {
+    const camilaId = 'ath-camila-err';
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    vi.spyOn(structureService, 'getCategoryAthletes').mockResolvedValue([
+      {
+        id: lucasId,
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'atleta@protraining.com',
+        phone: '1150000001',
+        activeInjuriesCount: 1,
+      },
+      {
+        id: camilaId,
+        firstName: 'Camila',
+        lastName: 'Ruiz',
+        fullName: 'Camila Ruiz',
+        email: 'camila@protraining.com',
+        phone: '1150000003',
+        activeInjuriesCount: 1,
+      },
+    ]);
+
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+      { athleteId: camilaId, activeCount: 1 },
+    ]);
+
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockImplementation(
+      async (_sessionId, athleteId) => {
+        if (athleteId === lucasId) {
+          throw new Error('Error interno del servidor (500)');
+        }
+        return {
+          id: 'adj-camila-ok',
+          sessionId,
+          athleteId: camilaId,
+          trainingPlanId: planId,
+          date: '2026-11-22',
+          note: 'Reducción de carga aprobada.',
+          adjustedByCoach: true,
+          loadReductionPercentage: 20,
+          items: [],
+        };
+      },
+    );
+
+    render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={[
+          {
+            assignmentId: 'assign-primera',
+            type: 'category',
+            targetId: 'cat-primera',
+            name: 'Primera División',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+          },
+        ]}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    // Camila (solo reducción de carga) aparece como Adaptación aprobada + botón lápiz
+    expect(await screen.findByText('Adaptación aprobada')).toBeDefined();
+    expect(
+      screen.getByRole('button', {
+        name: /revisar nuevamente la adaptación de camila ruiz/i,
+      }),
+    ).toBeDefined();
+
+    // Lucas (falló getSessionAdjustment) queda con Revisar adaptación usable y se muestra el aviso
+    const reviewBtn = screen.getByRole('button', {
+      name: /revisar adaptación de lucas gómez/i,
+    });
+    expect(reviewBtn.textContent).toContain('Revisar adaptación');
+    expect(
+      screen.getByText(
+        /No se pudo verificar el estado de adaptación aprobada de algunos atletas\./i,
+      ),
+    ).toBeDefined();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    // El PF igual puede abrir el modal para Lucas
+    fireEvent.click(reviewBtn);
+    expect(
+      await screen.findByRole('heading', { name: /comparativa base vs\. adaptada/i }),
+    ).toBeDefined();
+  });
+
+  it('DADO un atleta lesionado con adaptación aprobada CUANDO el PF confirma rechazarla ENTONCES cierra el modal, muestra el banner rojo con auto-cierre de 3500ms, pasa a Adaptación rechazada en rojo y el lápiz reabre el modal (KAN-636)', async () => {
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+    let persistedAdjustment: {
+      id: string;
+      sessionId: string;
+      athleteId: string;
+      trainingPlanId: string;
+      date: string;
+      note: string | null;
+      adjustedByCoach: boolean;
+      status: 'Approved' | 'Rejected';
+      items: Array<{ originalExerciseId: string; substituteExerciseId: string }>;
+    } = {
+      id: 'adj-lucas-prev',
+      sessionId,
+      athleteId: lucasId,
+      trainingPlanId: planId,
+      date: '2026-11-22',
+      note: 'Ajuste previo.',
+      adjustedByCoach: true,
+      status: 'Approved',
+      items: [
+        {
+          originalExerciseId: squatId,
+          substituteExerciseId: legPressId,
+        },
+      ],
+    };
+
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockImplementation(
+      async () => persistedAdjustment,
+    );
+    vi.spyOn(athleteAdaptationsService, 'rejectSessionAdjustment').mockImplementation(async () => {
+      persistedAdjustment = {
+        ...persistedAdjustment,
+        note: 'Rechazada por el PF.',
+        adjustedByCoach: false,
+        status: 'Rejected',
+        items: [],
+      };
+      return persistedAdjustment;
+    });
+
+    const assignees = [
+      {
+        assignmentId: 'assign-lucas',
+        type: 'athlete' as const,
+        targetId: lucasId,
+        name: 'Lucas Gómez',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active' as const,
+      },
+    ];
+
+    const { rerender } = render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Adaptación aprobada')).toBeDefined();
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /revisar nuevamente la adaptación de lucas gómez/i,
+      }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: /comparativa base vs\. adaptada/i }),
+    ).toBeDefined();
+    expect(await screen.findByText('Prensa de piernas')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /rechazar adaptación/i }));
+
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    fireEvent.click(screen.getByRole('button', { name: /confirmar rechazo/i }));
+
+    await waitFor(() => {
+      expect(athleteAdaptationsService.rejectSessionAdjustment).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('heading', { name: /comparativa base vs\. adaptada/i })).toBeNull();
+    });
+
+    const rejectionBanner = screen.getByRole('status');
+    expect(rejectionBanner.className).toContain('danger');
+    expect(rejectionBanner.textContent).toContain(
+      'Propuesta de adaptación rechazada. Se mantiene la rutina base de la categoría para Lucas Gómez.',
+    );
+
+    const rejectedLabel = screen.getByText('Adaptación rechazada');
+    expect(rejectedLabel.parentElement?.className).toContain('manage-assignments-rejected-status');
+    expect(screen.queryByText('Adaptación aprobada')).toBeNull();
+    expect(athleteAdaptationsService.applySessionAdjustment).not.toHaveBeenCalled();
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 3500);
+
+    // Simular cierre y reapertura (recarga): el back devuelve status: 'Rejected' y sigue en rojo
+    rerender(
+      <ManagePlanAssignmentsModal
+        isOpen={false}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+    rerender(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    const persistedRejectedLabel = await screen.findByText('Adaptación rechazada');
+    expect(persistedRejectedLabel.parentElement?.className).toContain(
+      'manage-assignments-rejected-status',
+    );
+    expect(screen.queryByText('Adaptación aprobada')).toBeNull();
+
+    // El botón lápiz permite volver a abrir el modal de adaptación
+    const reopenBtn = screen.getByRole('button', {
+      name: /revisar nuevamente la adaptación de lucas gómez/i,
+    });
+    fireEvent.click(reopenBtn);
+    expect(
+      await screen.findByRole('heading', { name: /comparativa base vs\. adaptada/i }),
+    ).toBeDefined();
   });
 });

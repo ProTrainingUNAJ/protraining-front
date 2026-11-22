@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -9,15 +9,24 @@ import {
   AlertTriangle,
   Loader2,
   CheckCircle2,
+  XCircle,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 import { PlanAssigneeItem } from './PlanAssigneesStack';
 import { AthleteAdaptationDiffModal } from './AthleteAdaptationDiffModal';
 import { structureService } from '../../api/structureService';
 import { getActiveInjuriesSummary } from '../../api/seguimientoService';
+import { trainingPlansService } from '../../api/trainingPlans';
+import { athleteAdaptationsService } from '../../api/athleteAdaptations';
 import type { Athlete } from '../../types/structure';
 import { formatDayMonth } from '../../utils/argentinaDate';
+import {
+  getDefaultPlanSessionId,
+  resolveSessionAdjustmentDecision,
+  type AthleteAdaptationDecision,
+} from '../../utils/planAdaptation';
 
 type AthleteInjuryCheckStatus = 'loading' | 'injured' | 'normal' | 'error';
 
@@ -36,43 +45,65 @@ export interface ManagePlanAssignmentsModalProps {
   onOpenAddAssignment: () => void;
 }
 
-export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProps> = ({
-  isOpen,
-  planId,
-  planName,
-  assignees,
-  onClose,
-  onUnassign,
-  onOpenAddAssignment,
-}) => {
+const ManagePlanAssignmentsModalContent: React.FC<
+  Omit<ManagePlanAssignmentsModalProps, 'isOpen'>
+> = ({ planId, planName, assignees, onClose, onUnassign, onOpenAddAssignment }) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState<{
+    text: string;
+    variant: 'success' | 'danger';
+  } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [categoryAthletes, setCategoryAthletes] = useState<Record<string, Athlete[]>>({});
   const [athleteInjuryStates, setAthleteInjuryStates] = useState<
     Record<string, AthleteInjuryCheckState>
   >({});
+  const [adaptationDecisions, setAdaptationDecisions] = useState<
+    Record<string, AthleteAdaptationDecision>
+  >({});
   const [adaptationTarget, setAdaptationTarget] = useState<{
     athleteId: string;
     athleteName: string;
   } | null>(null);
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showFeedbackMessage = (
+    text: string,
+    variant: 'success' | 'danger' = 'success',
+    durationMs = 3500,
+  ) => {
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+    }
+    setFeedbackMessage({ text, variant });
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setFeedbackMessage(null);
+      feedbackTimeoutRef.current = null;
+    }, durationMs);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Cerrar con Escape (si no está abierto el modal de comparativa de adaptación)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !deletingId && !adaptationTarget) {
+      if (e.key === 'Escape' && !deletingId && !adaptationTarget) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, deletingId, adaptationTarget, onClose]);
+  }, [deletingId, adaptationTarget, onClose]);
 
   // Cargar atletas de las categorías asignadas y consultar sus lesiones activas en Seguimiento (KAN-464)
   useEffect(() => {
-    if (!isOpen) return;
-
     const categoryItems = assignees.filter((a) => a.type === 'category' && Boolean(a.targetId));
     const directAthleteIds = assignees
       .filter((a) => a.type === 'athlete' && Boolean(a.targetId))
@@ -137,13 +168,78 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
         );
 
         const nextStates: Record<string, AthleteInjuryCheckState> = {};
+        const injuredAthleteIds: string[] = [];
         for (const athleteId of allAthleteIds) {
           const activeCount = countsByAthlete.get(athleteId) ?? 0;
+          const isInjured = activeCount > 0;
+          if (isInjured) {
+            injuredAthleteIds.push(athleteId);
+          }
           nextStates[athleteId] = {
-            status: activeCount > 0 ? 'injured' : 'normal',
+            status: isInjured ? 'injured' : 'normal',
             activeCount,
           };
         }
+
+        // Consultar en paralelo si los atletas lesionados ya tienen adaptación aprobada (KAN-636)
+        const nextDecisions: Record<string, AthleteAdaptationDecision> = {};
+        let nextErrorMessage: string | null = null;
+        if (injuredAthleteIds.length > 0 && planId) {
+          try {
+            const plan = await trainingPlansService.get(planId);
+            if (!active) return;
+
+            const defaultSessionId = getDefaultPlanSessionId(plan);
+            if (defaultSessionId) {
+              const adjustmentChecks = await Promise.allSettled(
+                injuredAthleteIds.map(async (athleteId) => {
+                  const adjustment = await athleteAdaptationsService.getSessionAdjustment(
+                    defaultSessionId,
+                    athleteId,
+                  );
+                  return {
+                    athleteId,
+                    decision: resolveSessionAdjustmentDecision(adjustment),
+                  };
+                }),
+              );
+              if (!active) return;
+
+              let hasAdjustmentCheckError = false;
+              for (const check of adjustmentChecks) {
+                if (check.status === 'fulfilled') {
+                  if (check.value.decision) {
+                    nextDecisions[check.value.athleteId] = check.value.decision;
+                  }
+                } else {
+                  hasAdjustmentCheckError = true;
+                  console.error(
+                    'No se pudo verificar si el atleta ya tiene una adaptación aprobada:',
+                    check.reason,
+                  );
+                }
+              }
+
+              if (hasAdjustmentCheckError) {
+                nextErrorMessage =
+                  'No se pudo verificar el estado de adaptación aprobada de algunos atletas.';
+              }
+            }
+          } catch (err: unknown) {
+            if (!active) return;
+            console.error(
+              'No se pudo obtener la planificación para verificar adaptaciones aprobadas:',
+              err,
+            );
+            nextErrorMessage =
+              err instanceof Error
+                ? err.message
+                : 'No se pudo verificar si ya existen adaptaciones aprobadas para esta planificación.';
+          }
+        }
+
+        setErrorMessage(nextErrorMessage);
+        setAdaptationDecisions(nextDecisions);
         setAthleteInjuryStates(nextStates);
       } catch {
         if (!active) return;
@@ -151,6 +247,7 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
         for (const athleteId of allAthleteIds) {
           errorStates[athleteId] = { status: 'error', activeCount: 0 };
         }
+        setAdaptationDecisions({});
         setAthleteInjuryStates(errorStates);
       }
     }
@@ -160,9 +257,7 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
     return () => {
       active = false;
     };
-  }, [isOpen, assignees]);
-
-  if (!isOpen) return null;
+  }, [planId, assignees]);
 
   const renderAdaptationStatusControl = (
     athleteId: string,
@@ -181,6 +276,44 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
     }
 
     if (injuryState.status === 'injured') {
+      const decision = adaptationDecisions[athleteId];
+      if (decision === 'approved' || decision === 'rejected') {
+        const isApproved = decision === 'approved';
+        return (
+          <div className="manage-assignments-decision-group">
+            <span
+              className={
+                isApproved
+                  ? 'manage-assignments-approved-status'
+                  : 'manage-assignments-rejected-status'
+              }
+            >
+              {isApproved ? (
+                <CheckCircle2 size={14} aria-hidden="true" />
+              ) : (
+                <XCircle size={14} aria-hidden="true" />
+              )}
+              <span>{isApproved ? 'Adaptación aprobada' : 'Adaptación rechazada'}</span>
+            </span>
+            <button
+              type="button"
+              className="manage-assignments-edit-adaptation-btn"
+              onClick={() =>
+                setAdaptationTarget({
+                  athleteId,
+                  athleteName,
+                })
+              }
+              disabled={disabled}
+              title={`Revisar nuevamente la adaptación de ${athleteName}`}
+              aria-label={`Revisar nuevamente la adaptación de ${athleteName}`}
+            >
+              <Pencil size={14} aria-hidden="true" />
+            </button>
+          </div>
+        );
+      }
+
       return (
         <button
           type="button"
@@ -232,10 +365,12 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
 
   const getStatusPriority = (athleteId: string): number => {
     const status = athleteInjuryStates[athleteId]?.status;
-    if (status === 'injured') return 0;
+    if (status === 'injured') {
+      return adaptationDecisions[athleteId] ? 2 : 0;
+    }
     if (status === 'error') return 1;
-    if (status === 'loading') return 2;
-    return 3;
+    if (status === 'loading') return 3;
+    return 4;
   };
 
   const handleDelete = async (assignmentId: string, assigneeName: string) => {
@@ -244,8 +379,7 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
     try {
       await onUnassign(assignmentId, assigneeName);
       setConfirmDeleteId(null);
-      setFeedbackMessage(`Se quitó a ${assigneeName} de la planificación.`);
-      setTimeout(() => setFeedbackMessage(null), 3000);
+      showFeedbackMessage(`Se quitó a ${assigneeName} de la planificación.`, 'success', 3000);
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error ? err.message : 'No se pudo quitar la asignación. Reintentá.',
@@ -293,10 +427,14 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
 
         {/* Mensaje de éxito o error */}
         {feedbackMessage && (
-          <div className="alert-banner success" role="status">
+          <div className={`alert-banner ${feedbackMessage.variant}`} role="status">
             <span className="plan-inline">
-              <CheckCircle2 size={16} aria-hidden="true" />
-              {feedbackMessage}
+              {feedbackMessage.variant === 'danger' ? (
+                <XCircle size={16} aria-hidden="true" />
+              ) : (
+                <CheckCircle2 size={16} aria-hidden="true" />
+              )}
+              {feedbackMessage.text}
             </span>
           </div>
         )}
@@ -533,10 +671,35 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
           athleteName={adaptationTarget.athleteName}
           onClose={() => setAdaptationTarget(null)}
           onAdaptationApproved={() => {
-            setFeedbackMessage(
-              `Variante adaptada aprobada con éxito para ${adaptationTarget.athleteName}.`,
+            const { athleteId: approvedAthleteId, athleteName: approvedAthleteName } =
+              adaptationTarget;
+            const wasAlreadyApproved = adaptationDecisions[approvedAthleteId] === 'approved';
+
+            setAdaptationDecisions((prev) => ({
+              ...prev,
+              [approvedAthleteId]: 'approved',
+            }));
+            setErrorMessage(null);
+            setAdaptationTarget(null);
+            showFeedbackMessage(
+              wasAlreadyApproved
+                ? `Variante adaptada actualizada con éxito para ${approvedAthleteName}.`
+                : `Variante adaptada aprobada con éxito para ${approvedAthleteName}.`,
             );
-            setTimeout(() => setFeedbackMessage(null), 3500);
+          }}
+          onAdaptationRejected={() => {
+            const { athleteId: rejectedAthleteId, athleteName: rejectedAthleteName } =
+              adaptationTarget;
+            setAdaptationDecisions((prev) => ({
+              ...prev,
+              [rejectedAthleteId]: 'rejected',
+            }));
+            setErrorMessage(null);
+            setAdaptationTarget(null);
+            showFeedbackMessage(
+              `Propuesta de adaptación rechazada. Se mantiene la rutina base de la categoría para ${rejectedAthleteName}.`,
+              'danger',
+            );
           }}
         />
       )}
@@ -544,4 +707,12 @@ export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProp
   );
 
   return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
+};
+
+export const ManagePlanAssignmentsModal: React.FC<ManagePlanAssignmentsModalProps> = ({
+  isOpen,
+  ...rest
+}) => {
+  if (!isOpen) return null;
+  return <ManagePlanAssignmentsModalContent {...rest} />;
 };
