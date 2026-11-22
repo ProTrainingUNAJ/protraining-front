@@ -101,4 +101,89 @@ describe('NextTrainingWidget (KAN-583)', () => {
     await waitFor(() => expect(screen.getByText('No pudimos cargar la agenda.')).toBeDefined());
     expect(screen.queryByText(/Predio/)).toBeNull();
   });
+
+  it('si la sesión es hoy muestra cómo llega el grupo según el semáforo (KAN-594)', async () => {
+    scheduleMock.mockImplementation(async (date: string) =>
+      date === '2026-11-22'
+        ? [
+            {
+              assignmentId: 'as-1',
+              trainingPlanId: 'plan-42',
+              planName: 'Pretemporada',
+              sessionId: 's-1',
+              sessionName: 'Fuerza tren inferior',
+              weekNumber: 2,
+              categoryId: 'cat-1',
+              exerciseCount: 6,
+              startTime: '18:00:00',
+            },
+          ]
+        : [],
+    );
+    const athlete = (id: string, status: 'green' | 'yellow' | 'red' | 'gray') => ({
+      id,
+      name: id,
+      position: '',
+      category: 'Primera',
+      status,
+      statusLabel: '',
+      recommendation: '',
+    });
+
+    render(
+      <MemoryRouter>
+        <NextTrainingWidget
+          athletes={[athlete('a-1', 'green'), athlete('a-2', 'green'), athlete('a-3', 'gray')]}
+          athleteIdsByCategory={{ 'cat-1': ['a-1', 'a-2', 'a-3'] }}
+        />
+      </MemoryRouter>,
+    );
+
+    const readiness = await screen.findByRole('list', { name: 'Cómo llega el grupo hoy' });
+    expect(readiness.textContent).toContain('2 listos');
+    expect(readiness.textContent).toContain('1 sin check-in');
+    expect(readiness.textContent).not.toContain('a ajustar');
+  });
+
+  it('si la sesión es otro día no muestra cómo llega el grupo', async () => {
+    scheduleMock.mockImplementation(async (date: string) =>
+      date === '2026-11-24'
+        ? [
+            {
+              assignmentId: 'as-1',
+              trainingPlanId: 'plan-42',
+              planName: 'Pretemporada',
+              sessionId: 's-1',
+              sessionName: 'Fuerza tren inferior',
+              weekNumber: 2,
+              categoryId: 'cat-1',
+              exerciseCount: 6,
+              startTime: '18:00:00',
+            },
+          ]
+        : [],
+    );
+
+    render(
+      <MemoryRouter>
+        <NextTrainingWidget
+          athletes={[
+            {
+              id: 'a-1',
+              name: 'A',
+              position: '',
+              category: 'Primera',
+              status: 'green',
+              statusLabel: '',
+              recommendation: '',
+            },
+          ]}
+          athleteIdsByCategory={{ 'cat-1': ['a-1'] }}
+        />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText('Fuerza tren inferior');
+    expect(screen.queryByRole('list', { name: 'Cómo llega el grupo hoy' })).toBeNull();
+  });
 });

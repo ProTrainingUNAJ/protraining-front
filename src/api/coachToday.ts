@@ -8,6 +8,11 @@ export interface CoachTodayOverview {
   athletes: AthleteTrafficLightItem[];
   /** Alguna categoría no respondió: los datos están incompletos, pero se muestran. */
   partial: boolean;
+  /**
+   * Ids de los atletas de cada categoría que respondió. Permite contar cómo llega el plantel de
+   * una sesión puntual (Próximo entrenamiento). Un atleta puede estar en más de una categoría.
+   */
+  athleteIdsByCategory?: Record<string, string[]>;
 }
 
 /**
@@ -37,7 +42,7 @@ export async function fetchCoachTodayOverview(): Promise<CoachTodayOverview> {
   const categories = categoriesByOrg.flat();
   if (categories.length === 0) {
     if (partial) throw new Error('No se pudieron consultar tus categorías.');
-    return { athletes: [], partial: false };
+    return { athletes: [], partial: false, athleteIdsByCategory: {} };
   }
 
   const results = await Promise.all(
@@ -83,5 +88,10 @@ export async function fetchCoachTodayOverview(): Promise<CoachTodayOverview> {
     athletes.push({ ...item, hasDayConflict: conflicted.has(item.id.toLowerCase()) });
   }
 
-  return { athletes, partial };
+  const athleteIdsByCategory: Record<string, string[]> = {};
+  for (const result of results) {
+    if (result.ok) athleteIdsByCategory[result.categoryId] = result.items.map((item) => item.id);
+  }
+
+  return { athletes, partial, athleteIdsByCategory };
 }

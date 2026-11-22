@@ -31,6 +31,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .next-training-widget__icon-wrap {
@@ -137,4 +138,51 @@
   margin: 0;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+/* Cómo llega el grupo hoy: mismos colores que el semáforo (KAN-594) */
+.next-training-widget__readiness {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin: 0;
+  padding: 0.6rem 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.next-training-widget__readiness-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.next-training-widget__readiness-item b {
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.next-training-widget__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.next-training-widget__dot--green {
+  background: var(--traffic-green);
+}
+
+.next-training-widget__dot--yellow {
+  background: var(--traffic-yellow);
+}
+
+.next-training-widget__dot--red {
+  background: var(--traffic-red);
+}
+
+.next-training-widget__dot--gray {
+  background: var(--traffic-gray);
 }

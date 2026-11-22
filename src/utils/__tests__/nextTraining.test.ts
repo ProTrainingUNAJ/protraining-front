@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import type { ScheduledSession } from '../../api/generated/entrenamiento';
-import { addDaysToIsoDate, formatTrainingDayLabel, pickNextTrainingDay } from '../nextTraining';
+import {
+  addDaysToIsoDate,
+  formatTrainingDayLabel,
+  pickNextTrainingDay,
+  summarizeSessionReadiness,
+} from '../nextTraining';
 
 function session(sessionName: string, startTime: string | null): ScheduledSession {
   return {
@@ -73,5 +78,41 @@ describe('nextTraining (KAN-583)', () => {
     expect(formatTrainingDayLabel('2026-11-22', '2026-11-22')).toBe('Hoy');
     expect(formatTrainingDayLabel('2026-11-23', '2026-11-22')).toBe('Mañana');
     expect(formatTrainingDayLabel('2026-11-26', '2026-11-22')).toBe('jueves 26/11');
+  });
+});
+
+describe('summarizeSessionReadiness (KAN-594)', () => {
+  const team = [
+    { id: 'A-1', status: 'green' as const },
+    { id: 'a-2', status: 'yellow' as const },
+    { id: 'a-3', status: 'red' as const },
+    { id: 'a-4', status: 'gray' as const },
+    { id: 'b-1', status: 'red' as const },
+  ];
+  const byCategory = { 'cat-1': ['a-1', 'a-2', 'a-3', 'a-4'], 'cat-2': ['b-1'] };
+
+  it('cuenta solo a los atletas de la categoría de la sesión, sin importar mayúsculas del id', () => {
+    expect(summarizeSessionReadiness(session('Fuerza', null), team, byCategory)).toEqual({
+      ready: 1,
+      watch: 1,
+      adjust: 1,
+      noCheckIn: 1,
+    });
+  });
+
+  it('en una sesión individual cuenta solo al atleta asignado', () => {
+    const individual = { ...session('Extra', null), categoryId: null, athleteId: 'b-1' };
+    expect(summarizeSessionReadiness(individual, team, byCategory)).toEqual({
+      ready: 0,
+      watch: 0,
+      adjust: 1,
+      noCheckIn: 0,
+    });
+  });
+
+  it('sin datos del semáforo de esa categoría devuelve null en vez de ceros', () => {
+    const otherCategory = { ...session('Fuerza', null), categoryId: 'cat-9' };
+    expect(summarizeSessionReadiness(otherCategory, team, byCategory)).toBeNull();
+    expect(summarizeSessionReadiness(session('Fuerza', null), [], byCategory)).toBeNull();
   });
 });
