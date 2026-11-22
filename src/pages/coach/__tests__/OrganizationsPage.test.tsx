@@ -118,9 +118,11 @@ describe('OrganizationsPage · Master-Detail Organizaciones y Categorías (KAN-6
     });
 
     // Panel Detail (por defecto la primera organización seleccionada en el banner)
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Club Atlético San Martín' }),
-    ).toBeDefined();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Club Atlético San Martín' }),
+      ).toBeDefined();
+    });
 
     // Categorías en Detail
     await waitFor(() => {

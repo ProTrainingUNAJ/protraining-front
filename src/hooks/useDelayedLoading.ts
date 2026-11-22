@@ -21,12 +21,15 @@ export function useDelayedLoading(
   const { delayMs = DEFAULT_DELAY_MS, minDurationMs = DEFAULT_MIN_DURATION_MS } = options;
 
   const [showLoading, setShowLoading] = useState(false);
+  const latestLoadingRef = useRef(isLoading);
   const visibleRef = useRef(false);
   const shownAtRef = useRef<number | null>(null);
   const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const minDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    latestLoadingRef.current = isLoading;
+
     const clearDelayTimer = () => {
       if (delayTimerRef.current !== null) {
         clearTimeout(delayTimerRef.current);
@@ -52,13 +55,16 @@ export function useDelayedLoading(
       delayTimerRef.current = setTimeout(
         () => {
           delayTimerRef.current = null;
+          if (!latestLoadingRef.current) {
+            return;
+          }
           visibleRef.current = true;
           shownAtRef.current = Date.now();
           setShowLoading(true);
         },
         Math.max(0, delayMs),
       );
-      return;
+      return clearDelayTimer;
     }
 
     // Dejó de cargar: cancelar espera si todavía no se mostró
