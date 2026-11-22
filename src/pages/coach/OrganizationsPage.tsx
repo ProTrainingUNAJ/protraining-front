@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -15,6 +15,7 @@ import {
   QrCode,
   ArrowLeft,
   BarChart3,
+  RefreshCw,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Organization, Category } from '../../types/structure';
@@ -22,6 +23,7 @@ import { PageHeader } from '../../components/shell/PageHeader';
 import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import { PhotoUploadControl } from '../../components/common/PhotoUploadControl';
 import { CategoryInvitationModal } from '../../components/categories/CategoryInvitationModal';
+import { useDelayedLoading } from '../../hooks/useDelayedLoading';
 
 export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,9 +36,17 @@ export const OrganizationsPage: React.FC = () => {
   // Estados de carga y feedback
   const [loadingOrgs, setLoadingOrgs] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Indicadores retrasados para evitar parpadeos en respuestas rápidas (KAN-597)
+  const showOrgsSkeleton = useDelayedLoading(loadingOrgs && organizations.length === 0);
+  const showCategoriesSkeleton = useDelayedLoading(loadingCategories && categories.length === 0);
+  const showRefreshingIndicator = useDelayedLoading(
+    refreshing || (loadingCategories && categories.length > 0),
+  );
 
   // Buscadores independientes
   const [orgSearch, setOrgSearch] = useState('');
@@ -77,23 +87,29 @@ export const OrganizationsPage: React.FC = () => {
   const [mobileView, setMobileView] = useState<'organizations' | 'categories'>('organizations');
 
   // 1. Cargar organizaciones al montar (una sola vez)
+  const fetchOrganizationsWithCounts = useCallback(async () => {
+    const rawOrgs = await structureService.getOrganizations();
+    if (typeof structureService.withStructureCounts === 'function') {
+      return structureService.withStructureCounts(rawOrgs);
+    }
+    if (typeof structureService.withCategoryCounts === 'function') {
+      return structureService.withCategoryCounts(rawOrgs);
+    }
+    return rawOrgs;
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
     async function fetchOrgs() {
       try {
-        const rawOrgs = await structureService.getOrganizations();
-        let fullOrgs: Organization[] = rawOrgs;
-        if (typeof structureService.withStructureCounts === 'function') {
-          fullOrgs = await structureService.withStructureCounts(rawOrgs);
-        } else if (typeof structureService.withCategoryCounts === 'function') {
-          fullOrgs = await structureService.withCategoryCounts(rawOrgs);
-        }
+        const fullOrgs = await fetchOrganizationsWithCounts();
 
         if (!isMounted) return;
         setOrganizations(fullOrgs);
 
         if (fullOrgs.length > 0) {
+          setLoadingCategories(true);
           const initialTargetId = new URLSearchParams(window.location.search).get('orgId');
           if (initialTargetId && fullOrgs.some((o) => o.id === initialTargetId)) {
             setSelectedOrgId(initialTargetId);
@@ -117,7 +133,7 @@ export const OrganizationsPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [fetchOrganizationsWithCounts]);
 
   // 2. Cargar categorías al cambiar la organización seleccionada
   useEffect(() => {
@@ -162,8 +178,42 @@ export const OrganizationsPage: React.FC = () => {
     };
   }, [selectedOrgId]);
 
+  // Actualización manual manteniendo los datos previos visibles (KAN-597)
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    try {
+      const fullOrgs = await fetchOrganizationsWithCounts();
+      setOrganizations(fullOrgs);
+
+      const targetOrgId =
+        selectedOrgId && fullOrgs.some((o) => o.id === selectedOrgId)
+          ? selectedOrgId
+          : (fullOrgs[0]?.id ?? '');
+
+      if (targetOrgId !== selectedOrgId) {
+        setSelectedOrgId(targetOrgId);
+      } else if (targetOrgId) {
+        const rawCategories = await structureService.getCategories(targetOrgId);
+        const data = await structureService.withAthleteCounts(rawCategories);
+        setCategories(data);
+      } else {
+        setCategories([]);
+      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'No se pudieron actualizar las organizaciones.',
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Selección de organización
   const handleSelectOrg = (orgId: string) => {
+    if (orgId !== selectedOrgId) {
+      setLoadingCategories(true);
+    }
     setSelectedOrgId(orgId);
     setError(null);
     setSuccessMessage(null);
@@ -454,15 +504,31 @@ export const OrganizationsPage: React.FC = () => {
         title="Organizaciones"
         description="Administrá tus clubes y planteles deportivos."
         actions={
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={openCreateOrgModal}
-            disabled={saving}
-          >
-            <Plus size={16} aria-hidden="true" />
-            <span>Nueva Organización</span>
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleRefresh}
+              disabled={refreshing || saving}
+              aria-label="Actualizar organizaciones"
+            >
+              <RefreshCw
+                size={15}
+                className={showRefreshingIndicator ? 'structure-spin' : ''}
+                aria-hidden="true"
+              />
+              <span>Actualizar</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={openCreateOrgModal}
+              disabled={saving}
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span>Nueva Organización</span>
+            </button>
+          </>
         }
       />
 
@@ -559,10 +625,26 @@ export const OrganizationsPage: React.FC = () => {
             </div>
 
             {/* Listado de organizaciones estilo lista limpia */}
-            {loadingOrgs ? (
-              <div className="structure-empty-state" style={{ padding: '2rem 1rem' }}>
-                <p style={{ margin: 0, fontSize: '0.85rem' }}>Cargando organizaciones…</p>
-              </div>
+            {loadingOrgs && organizations.length === 0 ? (
+              showOrgsSkeleton ? (
+                <div
+                  className="structure-skeleton-list"
+                  role="status"
+                  aria-label="Cargando organizaciones"
+                >
+                  {[0, 1, 2].map((index) => (
+                    <div key={index} className="structure-skeleton-org-item" aria-hidden="true">
+                      <div className="structure-skeleton-block structure-skeleton-avatar" />
+                      <div className="structure-skeleton-lines">
+                        <div className="structure-skeleton-block structure-skeleton-line-title" />
+                        <div className="structure-skeleton-block structure-skeleton-line-sub" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="structure-skeleton-list" aria-busy="true" />
+              )
             ) : filteredOrganizations.length === 0 ? (
               <div className="structure-empty-state" style={{ padding: '2.5rem 1rem' }}>
                 <Building2 size={28} className="structure-empty-icon" aria-hidden="true" />
@@ -779,6 +861,12 @@ export const OrganizationsPage: React.FC = () => {
                     <div className="structure-categories-title-wrap">
                       <h3 className="structure-categories-title">Categorías y Planteles</h3>
                       <span className="structure-count-bubble">{filteredCategories.length}</span>
+                      {showRefreshingIndicator && categories.length > 0 && (
+                        <span className="structure-refresh-indicator" role="status">
+                          <RefreshCw size={12} className="structure-spin" aria-hidden="true" />
+                          <span>Actualizando…</span>
+                        </span>
+                      )}
                     </div>
                     {(categories.length > 0 || catSearch) && (
                       <div className="structure-search-box structure-categories-search">
@@ -806,10 +894,30 @@ export const OrganizationsPage: React.FC = () => {
                   </div>
 
                   {/* Grilla de Categorías */}
-                  {loadingCategories ? (
-                    <div className="structure-empty-state">
-                      <p style={{ margin: 0 }}>Cargando categorías de {selectedOrg.name}…</p>
-                    </div>
+                  {loadingCategories && categories.length === 0 ? (
+                    showCategoriesSkeleton ? (
+                      <div
+                        className="structure-categories-grid"
+                        role="status"
+                        aria-label="Cargando categorías"
+                      >
+                        {[0, 1].map((index) => (
+                          <div key={index} className="structure-skeleton-card" aria-hidden="true">
+                            <div className="structure-skeleton-card-header">
+                              <div className="structure-skeleton-block structure-skeleton-line-title" />
+                              <div className="structure-skeleton-block structure-skeleton-badge" />
+                            </div>
+                            <div className="structure-skeleton-block structure-skeleton-line-sub" />
+                            <div className="structure-skeleton-actions">
+                              <div className="structure-skeleton-block structure-skeleton-btn" />
+                              <div className="structure-skeleton-block structure-skeleton-btn" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="structure-categories-grid" aria-busy="true" />
+                    )
                   ) : filteredCategories.length === 0 ? (
                     <div className="structure-empty-state">
                       <Layers size={36} className="structure-empty-icon" aria-hidden="true" />
@@ -835,7 +943,11 @@ export const OrganizationsPage: React.FC = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="structure-categories-grid">
+                    <div
+                      className={`structure-categories-grid ${
+                        showRefreshingIndicator ? 'structure-list-refreshing' : ''
+                      }`}
+                    >
                       {filteredCategories.map((cat) => (
                         <div key={cat.id} className="structure-category-card">
                           <div>

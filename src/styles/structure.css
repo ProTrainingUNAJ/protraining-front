@@ -791,3 +791,135 @@
   margin: 0 0 1.25rem;
   line-height: 1.45;
 }
+
+/* --------------------------------------------------------------------------
+   Esqueletos de carga y estado de actualización sin parpadeo (KAN-597)
+   -------------------------------------------------------------------------- */
+@keyframes structureSkeletonPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.structure-skeleton-block {
+  background-color: var(--border);
+  border-radius: 8px;
+  animation: structureSkeletonPulse 1.4s ease-in-out infinite;
+}
+
+.structure-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.structure-skeleton-org-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.structure-skeleton-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.structure-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.structure-skeleton-line-title {
+  height: 14px;
+  width: 68%;
+}
+
+.structure-skeleton-line-sub {
+  height: 11px;
+  width: 45%;
+}
+
+.structure-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.15rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  min-height: 148px;
+  box-sizing: border-box;
+}
+
+.structure-skeleton-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.structure-skeleton-badge {
+  height: 22px;
+  width: 78px;
+  border-radius: 9999px;
+}
+
+.structure-skeleton-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.structure-skeleton-btn {
+  height: 32px;
+  flex: 1;
+  border-radius: 8px;
+}
+
+.structure-refresh-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.structure-spin {
+  animation: structureSpin 0.9s linear infinite;
+}
+
+@keyframes structureSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.structure-list-refreshing {
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .structure-skeleton-block,
+  .structure-spin {
+    animation: none;
+  }
+}
