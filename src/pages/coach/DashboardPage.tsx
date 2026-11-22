@@ -256,6 +256,7 @@ export const DashboardPage: React.FC = () => {
   // atención hoy", las donas, las alertas de dolor y el check-in. Un error se muestra como error
   // con "Reintentar", nunca como ceros que parecen datos reales.
   const [fetchedItems, setFetchedItems] = useState<AthleteTrafficLightItem[]>([]);
+  const [athleteIdsByCategory, setAthleteIdsByCategory] = useState<Record<string, string[]>>({});
   const [trafficLightLoading, setTrafficLightLoading] = useState(!isAthlete);
   const [trafficLightError, setTrafficLightError] = useState<string | null>(null);
   const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
@@ -285,11 +286,14 @@ export const DashboardPage: React.FC = () => {
 
     fetchCoachTodayOverview()
       .then((overview) => {
-        if (active) setFetchedItems(overview.athletes);
+        if (!active) return;
+        setFetchedItems(overview.athletes);
+        setAthleteIdsByCategory(overview.athleteIdsByCategory ?? {});
       })
       .catch((err: unknown) => {
         if (!active) return;
         setFetchedItems([]);
+        setAthleteIdsByCategory({});
         setTrafficLightError(
           err instanceof Error && err.message
             ? `${err.message} Probá de nuevo en unos segundos.`
@@ -523,7 +527,12 @@ export const DashboardPage: React.FC = () => {
       case 'top-ua-athletes':
         return <TopUaAthletesWidget />;
       case 'next-training':
-        return <NextTrainingWidget />;
+        return (
+          <NextTrainingWidget
+            athletes={trafficLightItems}
+            athleteIdsByCategory={athleteIdsByCategory}
+          />
+        );
       case 'daily-load':
         return <DailyLoadWidget />;
       case 'daily-traffic-light':
@@ -670,7 +679,11 @@ export const DashboardPage: React.FC = () => {
         }
       />
 
-      <div className="app-page-body wireframe-dashboard-container">
+      <div
+        className={`app-page-body wireframe-dashboard-container ${
+          isAthlete ? '' : 'wireframe-dashboard-container--coach'
+        }`}
+      >
         {!isAthlete && hasNoOrganizations && (
           <section className="dashboard-welcome-banner" aria-label="Bienvenida a ProTraining">
             <div className="dashboard-welcome-banner-info">
