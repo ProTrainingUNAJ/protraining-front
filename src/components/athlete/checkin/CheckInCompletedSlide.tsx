@@ -300,19 +300,25 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
   // vuelve a cargarse desde la API: con eso se reconstruye la misma confirmación.
   const responseCheckIn = submissionResult.checkIn;
   const responseInjuries = responseCheckIn?.injuries ?? [];
+  // El contrato de la API deja estos campos como opcionales: solo se reconstruye la
+  // confirmación con las lesiones que traen id y puntaje.
   const confirmedInjuries: ReadonlyArray<ActiveInjuryItem> =
     responseInjuries.length > 0
-      ? responseInjuries.map((injury) => {
+      ? responseInjuries.flatMap((injury) => {
+          if (!injury.injuryId) return [];
           const clinical = activeInjuries.find((item) => item.id === injury.injuryId);
-          return {
-            id: injury.injuryId,
-            zone: clinical?.zone ?? injury.zone,
-            description: clinical?.description ?? 'Lesión activa registrada en tu ficha clínica.',
-          };
+          return [
+            {
+              id: injury.injuryId,
+              zone: clinical?.zone ?? injury.zone ?? 'Zona no informada',
+              description: clinical?.description ?? 'Lesión activa registrada en tu ficha clínica.',
+            },
+          ];
         })
       : activeInjuries;
   const confirmedScores: Record<string, number | null> = { ...injuryScores };
   responseInjuries.forEach((injury) => {
+    if (!injury.injuryId || injury.level === undefined) return;
     const score = confirmedScores[injury.injuryId];
     if (score === null || score === undefined) confirmedScores[injury.injuryId] = injury.level;
   });

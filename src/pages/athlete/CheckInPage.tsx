@@ -8,7 +8,6 @@ import {
   countPendingCheckIns,
   discardPendingCheckInsForDate,
   CheckInSubmitResponse,
-  type CheckInEntityDto,
   type CheckIn,
   listCheckInInjuries,
   getAthleteTodayCheckIn,
@@ -80,9 +79,7 @@ interface SubmittedCheckInState {
 
 // KAN-593: el borrador se borra al enviar. Al recargar o al editar un check-in
 // completado, la respuesta guardada es la única fuente de las respuestas.
-const getStateFromSubmittedCheckIn = (
-  checkIn?: CheckInEntityDto | CheckIn,
-): SubmittedCheckInState => {
+const getStateFromSubmittedCheckIn = (checkIn?: CheckIn): SubmittedCheckInState => {
   const injuryScores: Record<string, number | null> = {};
   (checkIn?.injuries ?? []).forEach((injury) => {
     const id = injury.injuryId;
@@ -200,8 +197,8 @@ export const CheckInPage: React.FC = () => {
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
-  const applySubmittedState = useCallback((checkIn?: CheckInEntityDto | CheckIn) => {
-    const next = getStateFromSubmittedCheckIn(checkIn as CheckInEntityDto | undefined);
+  const applySubmittedState = useCallback((checkIn?: CheckIn) => {
+    const next = getStateFromSubmittedCheckIn(checkIn);
     setSleepHours(next.sleepHours);
     setSleepQuality(next.sleepQuality);
     setFatigueLevel(next.fatigueLevel);
@@ -233,7 +230,7 @@ export const CheckInPage: React.FC = () => {
               message: 'Check-in registrado',
               trafficLight: remote.trafficLight,
               trafficLightReason: remote.trafficLightReason ?? null,
-              checkIn: remote as unknown as CheckInEntityDto,
+              checkIn: remote,
               isOffline: false,
             });
           } else {
@@ -241,7 +238,6 @@ export const CheckInPage: React.FC = () => {
             setSubmissionResult({
               message: 'Check-in completado',
               trafficLight: completed.trafficLight ?? 'Yellow',
-              trafficLightReason: completed.trafficLightReason ?? null,
               isOffline: completed.isOffline,
             });
           }
@@ -250,7 +246,6 @@ export const CheckInPage: React.FC = () => {
           setSubmissionResult({
             message: 'Check-in completado',
             trafficLight: completed.trafficLight ?? 'Yellow',
-            trafficLightReason: completed.trafficLightReason ?? null,
             isOffline: completed.isOffline,
           });
         } finally {
@@ -304,7 +299,7 @@ export const CheckInPage: React.FC = () => {
         message: 'Check-in registrado',
         trafficLight: remote.trafficLight,
         trafficLightReason: remote.trafficLightReason ?? null,
-        checkIn: remote as unknown as CheckInEntityDto,
+        checkIn: remote,
         isOffline: false,
       });
     } else {
@@ -849,12 +844,11 @@ export const CheckInPage: React.FC = () => {
       setSubmissionResult(response);
       if (response.checkIn) {
         setCompletedCheckIn(response.checkIn as CheckIn);
-        applySubmittedState(response.checkIn as CheckInEntityDto | CheckIn);
+        applySubmittedState(response.checkIn);
       }
       // Solo se guarda el indicador mínimo de check-in completado.
       saveCheckInCompleted(athleteId, {
         trafficLight: response.trafficLight,
-        trafficLightReason: response.trafficLightReason ?? null,
         isOffline: response.isOffline,
         completedAt: new Date().toISOString(),
       });

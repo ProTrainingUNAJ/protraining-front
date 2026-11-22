@@ -52,30 +52,11 @@ export interface CheckInSubmitRequest {
   injuries?: { injuryId: string; level: number }[];
 }
 
-export interface CheckInEntityDto {
-  id: string;
-  athleteId: string;
-  date: string;
-  trafficLight: 'Green' | 'Yellow' | 'Red';
-  trafficLightReason?: string | null;
-  sleepHours: number;
-  sleepQuality?: number;
-  muscleSoreness: number;
-  fatigueLevel: number;
-  moodRate: number;
-  stressLevel: number;
-  effortRate?: number;
-  isSick: boolean;
-  painZones?: string | null;
-  hasActiveInjury: boolean;
-  injuries?: { injuryId: string; zone: string; level: number }[];
-}
-
 export interface CheckInSubmitResponse {
   message: string;
   trafficLight: 'Green' | 'Yellow' | 'Red';
   trafficLightReason?: string | null;
-  checkIn?: CheckInEntityDto;
+  checkIn?: CheckIn;
   isOffline?: boolean;
 }
 

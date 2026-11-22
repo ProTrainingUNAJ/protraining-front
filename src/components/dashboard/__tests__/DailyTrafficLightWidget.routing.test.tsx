@@ -66,7 +66,6 @@ describe('DailyTrafficLightWidget navigation to the athlete check-in', () => {
   it('opens the check-in screen from the completed state', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
       trafficLight: 'Red',
-      trafficLightReason: 'Lesión activa reportada',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
