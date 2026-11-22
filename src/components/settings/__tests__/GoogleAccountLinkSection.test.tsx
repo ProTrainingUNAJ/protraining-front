@@ -15,6 +15,8 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id');
   });
 
   it('muestra estado desvinculado con acción y exige reautenticación con contraseña antes de vincular', async () => {

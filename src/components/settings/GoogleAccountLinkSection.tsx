@@ -187,8 +187,8 @@ export const GoogleAccountLinkSection: React.FC = () => {
     }
   };
 
-  // Si Google no está configurado en el build y no hay vinculación activa, ocultar la sección
-  if (!isGoogleConfigured && !googleLinked && !loadingStatus) {
+  // Si Google no está configurado en el build y no hay vinculación activa ni mensaje activo, ocultar la sección
+  if (!isGoogleConfigured && !googleLinked && !loadingStatus && !successMessage && !errorMessage) {
     return null;
   }
 
