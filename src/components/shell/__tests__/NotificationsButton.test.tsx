@@ -160,4 +160,34 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     // El aviso no se elimina de la lista
     expect(screen.getByText('Mateo González')).toBeTruthy();
   });
+
+  it('formatea zonas crudas legacy dentro del motivo del aviso (KAN-631)', async () => {
+    mockedUseAuth.mockReturnValue({ user: { role: 'PreparadorFisico' } } as never);
+    mockedGetPendingAlerts.mockResolvedValue([
+      {
+        id: 'alert-legacy-zones',
+        athleteId: 'ath-99',
+        athleteName: 'Mateo Fernández',
+        generatedAt: '00:10',
+        severity: 'High',
+        reason:
+          'Riesgo de lesión inminente: el atleta reporta lesión activa o molestia aguda en zona: abdominales:1,biceps_izquierdo:6,pecho_derecho:5 en sus check-ins recientes.',
+        suggestion: 'Suspender ejercicios que sobrecarguen la zona afectada.',
+        reviewed: false,
+        canApplyWithOneClick: true,
+        actionLabel: 'Marcar como revisado',
+      },
+    ]);
+
+    render(<NotificationsButton />);
+    fireEvent.click(screen.getByTitle('Centro de Avisos'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /Abdominales \[Nivel 1\], Bíceps izquierdo \[Nivel 6 - Lesión activa\], Pecho derecho \[Nivel 5\]/,
+        ),
+      ).toBeTruthy();
+    });
+  });
 });

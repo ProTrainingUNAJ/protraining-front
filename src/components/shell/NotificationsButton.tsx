@@ -3,6 +3,7 @@ import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { alertsService } from '../../api/alertsService';
 import { NoticeItem } from '../../types/alerts';
 import { useAuth } from '../../context/AuthContext';
+import { formatAlertReason } from '../../utils/painZoneReasonFormatter';
 
 export const NotificationsButton: React.FC = () => {
   const { user } = useAuth();
@@ -198,7 +199,7 @@ export const NotificationsButton: React.FC = () => {
                     <div className="notice-card-body">
                       <div>
                         <span className="notice-card-label">Motivo reportado</span>
-                        <span>{notice.reason}</span>
+                        <span>{formatAlertReason(notice.reason)}</span>
                       </div>
                       <div>
                         <span className="notice-card-label">Sugerencia recomendada</span>
