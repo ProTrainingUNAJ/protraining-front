@@ -209,17 +209,9 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
 
       {/* Alerta del punto a mejorar más débil */}
       {weakestMetric && (
-        <div
-          className="benchmark-error-banner"
-          role="alert"
-          data-testid="weakest-point-alert"
-        >
+        <div className="benchmark-error-banner" role="alert" data-testid="weakest-point-alert">
           <div className="benchmark-error-content">
-            <AlertTriangle
-              size={22}
-              className="benchmark-error-icon"
-              aria-hidden="true"
-            />
+            <AlertTriangle size={22} className="benchmark-error-icon" aria-hidden="true" />
             <div>
               <strong className="benchmark-error-title">
                 Principal punto a mejorar: {weakestMetric.dimension}
@@ -236,39 +228,26 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
 
       {/* Estado de Carga */}
       {loading && (
-        <div
-          className="benchmark-loading-container"
-          aria-live="polite"
-        >
+        <div className="benchmark-loading-container" aria-live="polite">
           <RefreshCw size={24} className="spin benchmark-loading-icon" />
-          <p className="benchmark-loading-text">Consultando promedios anónimos de la categoría...</p>
+          <p className="benchmark-loading-text">
+            Consultando promedios anónimos de la categoría...
+          </p>
         </div>
       )}
 
       {/* Estado de Error */}
       {error && !loading && (
-        <div
-          className="benchmark-error-banner"
-          role="alert"
-        >
+        <div className="benchmark-error-banner" role="alert">
           {error}
         </div>
       )}
 
       {/* Estado sin mediciones */}
       {!loading && !error && (!benchmark || benchmark.metrics.length === 0) && (
-        <div
-          className="benchmark-empty-card"
-          data-testid="empty-benchmark-state"
-        >
-          <HelpCircle
-            size={32}
-            className="benchmark-empty-icon"
-            aria-hidden="true"
-          />
-          <h3 className="benchmark-empty-title">
-            Sin evaluaciones comparativas disponibles
-          </h3>
+        <div className="benchmark-empty-card" data-testid="empty-benchmark-state">
+          <HelpCircle size={32} className="benchmark-empty-icon" aria-hidden="true" />
+          <h3 className="benchmark-empty-title">Sin evaluaciones comparativas disponibles</h3>
           <p className="benchmark-empty-desc">
             Aún no se registraron evaluaciones físicas para tu perfil o tu categoría no cuenta con
             promedios cargados esta semana.
@@ -278,10 +257,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
 
       {/* Grilla de Métricas Comparativas */}
       {!loading && !error && benchmark && benchmark.metrics.length > 0 && (
-        <div
-          className="benchmark-grid"
-          data-testid="benchmark-metrics-grid"
-        >
+        <div className="benchmark-grid" data-testid="benchmark-metrics-grid">
           {benchmark.metrics.map((metric) => (
             <div
               key={metric.dimension}
@@ -290,9 +266,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
             >
               <div className="benchmark-card-header">
                 <div className="benchmark-card-title-wrap">
-                  <h3 className="benchmark-card-test-name">
-                    {metric.dimension}
-                  </h3>
+                  <h3 className="benchmark-card-test-name">{metric.dimension}</h3>
                   <span className="benchmark-card-unit">
                     {metric.direction === 'LowerIsBetter' ? 'Menor es mejor' : 'Mayor es mejor'}
                   </span>
@@ -303,9 +277,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
               {/* Valores comparados */}
               <div className="benchmark-metrics-row">
                 <div className="benchmark-metric-box is-athlete">
-                  <span className="benchmark-metric-label">
-                    Mi resultado
-                  </span>
+                  <span className="benchmark-metric-label">Mi resultado</span>
                   <span
                     className="benchmark-metric-val"
                     data-testid={`athlete-val-${metric.dimension}`}
@@ -315,9 +287,7 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                 </div>
 
                 <div className="benchmark-metric-box">
-                  <span className="benchmark-metric-label">
-                    Promedio categoría
-                  </span>
+                  <span className="benchmark-metric-label">Promedio categoría</span>
                   <span
                     className={
                       metric.groupAverage !== null && metric.groupAverage !== undefined
@@ -357,7 +327,11 @@ export const AthleteGroupBenchmarkSection: React.FC<AthleteGroupBenchmarkSection
                   </span>
 
                   <div className="benchmark-footer-higher-better">
-                    <Sparkles size={13} className="benchmark-footer-sparkle-icon" aria-hidden="true" />
+                    <Sparkles
+                      size={13}
+                      className="benchmark-footer-sparkle-icon"
+                      aria-hidden="true"
+                    />
                     <span>{metric.trend || `${metric.percentageDifference}%`}</span>
                   </div>
                 </div>

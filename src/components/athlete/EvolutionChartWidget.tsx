@@ -92,12 +92,8 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
               {getMetricIcon(metric.key, 15)}
             </div>
             <div className="evolution-widget-header-titles">
-              <span className="evolution-widget-short-name">
-                {metric.shortName}
-              </span>
-              <span className="evolution-widget-target-desc">
-                Evolución
-              </span>
+              <span className="evolution-widget-short-name">{metric.shortName}</span>
+              <span className="evolution-widget-target-desc">Evolución</span>
             </div>
           </div>
 
@@ -134,12 +130,8 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
         {/* Valor actual destacado */}
         <div className="evolution-widget-metric-row">
           <div className="evolution-widget-val-wrap">
-            <strong className="evolution-widget-current-val">
-              {metric.currentValue}
-            </strong>
-            <span className="evolution-widget-unit">
-              {metric.unit}
-            </span>
+            <strong className="evolution-widget-current-val">{metric.currentValue}</strong>
+            <span className="evolution-widget-unit">{metric.unit}</span>
           </div>
         </div>
 
@@ -201,31 +193,19 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           </div>
           <div>
             <div className="evolution-widget-full-title-row">
-              <h3 className="evolution-widget-full-title">
-                {metric.name}
-              </h3>
-              <span className="evolution-widget-unit-badge">
-                {metric.category}
-              </span>
+              <h3 className="evolution-widget-full-title">{metric.name}</h3>
+              <span className="evolution-widget-unit-badge">{metric.category}</span>
             </div>
-            <p className="evolution-widget-full-subtitle">
-              {metric.description}
-            </p>
+            <p className="evolution-widget-full-subtitle">{metric.description}</p>
           </div>
         </div>
 
         {/* Acciones: Botón de exportar a Inicio */}
         <div className="evolution-widget-full-meta-right">
           <div className="evolution-widget-kpi-pill">
-            <span className="evolution-widget-kpi-pill-label">
-              Actual:
-            </span>
-            <strong className="evolution-widget-kpi-pill-val">
-              {metric.currentValue}
-            </strong>
-            <span className="evolution-widget-unit">
-              {metric.unit}
-            </span>
+            <span className="evolution-widget-kpi-pill-label">Actual:</span>
+            <strong className="evolution-widget-kpi-pill-val">{metric.currentValue}</strong>
+            <span className="evolution-widget-unit">{metric.unit}</span>
             {hasChange && (
               <span
                 className="evolution-widget-delta"
@@ -299,9 +279,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                   const data = payload[0].payload as { date: string; value: number };
                   return (
                     <div className="evolution-tooltip-box">
-                      <div className="evolution-tooltip-date">
-                        Medición: {data.date}
-                      </div>
+                      <div className="evolution-tooltip-date">Medición: {data.date}</div>
                       <div
                         className="evolution-tooltip-val evolution-widget-tooltip-metric-val"
                         style={{ color: metric.color }}
@@ -330,27 +308,21 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
       {/* Resumen inferior de evolución */}
       <div className="evolution-widget-stats-summary">
         <div className="evolution-widget-stat-card">
-          <span className="evolution-widget-stat-card-label">
-            Primera medición
-          </span>
+          <span className="evolution-widget-stat-card-label">Primera medición</span>
           <strong className="evolution-widget-stat-card-val">
             {metric.initialValue} {metric.unit}
           </strong>
         </div>
 
         <div className="evolution-widget-stat-card">
-          <span className="evolution-widget-stat-card-label">
-            Última medición
-          </span>
+          <span className="evolution-widget-stat-card-label">Última medición</span>
           <strong className="evolution-widget-stat-card-val">
             {metric.currentValue} {metric.unit}
           </strong>
         </div>
 
         <div className="evolution-widget-stat-card">
-          <span className="evolution-widget-stat-card-label">
-            Cambio en el período
-          </span>
+          <span className="evolution-widget-stat-card-label">Cambio en el período</span>
           {hasChange ? (
             <strong className="evolution-widget-stat-card-val" style={{ color: deltaColor }}>
               {metric.deltaAbsolute} ({metric.deltaPercent})

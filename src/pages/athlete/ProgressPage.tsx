@@ -157,9 +157,7 @@ export const ProgressPage: React.FC = () => {
         {activeTab === 'evolution' ? (
           <div className="card progress-evolution-card">
             <div className="progress-evolution-header">
-              <h2 className="progress-evolution-title">
-                Progresión de 1RM
-              </h2>
+              <h2 className="progress-evolution-title">Progresión de 1RM</h2>
               <p className="progress-evolution-subtitle">
                 Evolución histórica de tus récords máximos por ejercicio.
               </p>
