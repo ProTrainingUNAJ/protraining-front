@@ -13,7 +13,6 @@ import {
 import runnerImg from '../../assets/protraining-3d-runner.webp';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
-import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
 import { DailyLoadWidget } from '../../components/dashboard/DailyLoadWidget';
 import { DailyTrafficLightWidget } from '../../components/dashboard/DailyTrafficLightWidget';
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
@@ -22,6 +21,7 @@ import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
 import { EpleyProposalsWidget } from '../../components/dashboard/EpleyProposalsWidget';
 import { RecordProposalCard } from '../../components/dashboard/RecordProposalCard';
 import { TopUaAthletesWidget } from '../../components/dashboard/TopUaAthletesWidget';
+import { NextTrainingWidget } from '../../components/dashboard/NextTrainingWidget';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
 import {
@@ -43,7 +43,7 @@ import './DashboardPage.css';
 export type DashboardCardType =
   | 'empty'
   | 'suite'
-  | 'training-session'
+  | 'next-training'
   | 'traffic-light-summary'
   | 'checkin-progress'
   | 'pain-alerts'
@@ -61,6 +61,17 @@ export interface WireframeCardItem {
   chartMetric?: string;
 }
 
+// Tipo del widget "Predio y Horario", retirado del Inicio (KAN-583) y reemplazado en el PF
+// por "Próximo entrenamiento". Puede seguir en layouts guardados.
+const RETIRED_SESSION_WIDGET_TYPE = 'training-session';
+
+interface RetirableCard {
+  id: string;
+  name: string;
+  colSpan: number;
+  type: string;
+}
+
 export interface DashboardRow {
   id: string;
   name: string;
@@ -74,7 +85,7 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
     name: 'Fila 1 · Indicadores en Vivo',
     className: 'wireframe-row-1',
     cards: [
-      { id: 'w-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+      { id: 'w-next-training', name: 'Próximo entrenamiento', colSpan: 1, type: 'next-training' },
       { id: 'w-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
       { id: 'w-top-ua', name: 'Mayor Carga (UA)', colSpan: 1, type: 'top-ua-athletes' },
     ],
@@ -154,6 +165,19 @@ export const DashboardPage: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length === 4) {
+          // "Predio y Horario" mostraba un predio y un horario de ejemplo, sin datos reales
+          // (KAN-583). En los layouts guardados, el PF pasa a ver "Próximo entrenamiento" en
+          // ese lugar; el atleta, un módulo libre.
+          const replacement = isAthlete
+            ? { name: 'Módulo Disponible', type: 'empty' }
+            : { name: 'Próximo entrenamiento', type: 'next-training' };
+          for (const row of parsed as { cards: RetirableCard[] }[]) {
+            row.cards = row.cards.map((card) =>
+              card.type === RETIRED_SESSION_WIDGET_TYPE
+                ? { id: card.id, colSpan: card.colSpan, ...replacement }
+                : card,
+            );
+          }
           if (!isAthlete) {
             const row4 = parsed.find((r: DashboardRow) => r.id === 'row-4');
             if (row4 && row4.cards.some((c: WireframeCardItem) => c.type === 'progress-chart')) {
@@ -211,7 +235,7 @@ export const DashboardPage: React.FC = () => {
               }
             }
 
-            // Place next to "Predio y Horario" in row 1
+            // Semáforo diario en la fila 1, segunda posición
             if (row1 && Array.isArray(row1.cards)) {
               const tlIdxInRow1 = row1.cards.findIndex(
                 (c: WireframeCardItem) => c.type === 'daily-traffic-light',
@@ -483,12 +507,12 @@ export const DashboardPage: React.FC = () => {
     switch (card.type) {
       case 'top-ua-athletes':
         return <TopUaAthletesWidget />;
+      case 'next-training':
+        return <NextTrainingWidget />;
       case 'daily-load':
         return <DailyLoadWidget />;
       case 'daily-traffic-light':
         return <DailyTrafficLightWidget />;
-      case 'training-session':
-        return <TrainingSessionWidget />;
       case 'traffic-light-summary':
         return (
           <TrafficLightSummaryWidget counts={trafficLightCounts} loading={trafficLightLoading} />
