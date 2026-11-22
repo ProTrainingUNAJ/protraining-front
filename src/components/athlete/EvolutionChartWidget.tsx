@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Dumbbell, Zap, Activity, Award, Pin, X, LineChart } from 'lucide-react';
 import { METRIC_PRESENTATION, MetricDefinition, MetricKey } from '../../utils/evolutionMetrics';
+import './EvolutionChartWidget.css';
 
 export interface EvolutionChartWidgetProps {
   metricKey: string;
@@ -77,81 +78,36 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
   // Compact dashboard card render (colSpan: 1)
   if (isCompact) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          height: '100%',
-          width: '100%',
-          padding: '0.85rem 1rem',
-          boxSizing: 'border-box',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="evolution-widget-compact">
         {/* Cabecera del Widget Compacto */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 2,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+        <div className="evolution-widget-card-header">
+          <div className="evolution-widget-card-header-left">
             <div
+              className="evolution-widget-icon-wrap"
               style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '8px',
                 background: `color-mix(in srgb, ${metric.color} 9%, transparent)`,
                 color: metric.color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
               }}
             >
               {getMetricIcon(metric.key, 15)}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <span
-                style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  color: 'var(--text-main)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  lineHeight: 1.1,
-                }}
-              >
+            <div className="evolution-widget-header-titles">
+              <span className="evolution-widget-short-name">
                 {metric.shortName}
               </span>
-              <span
-                style={{
-                  fontSize: '0.66rem',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                }}
-              >
+              <span className="evolution-widget-target-desc">
                 Evolución
               </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <div className="evolution-widget-header-actions">
             {hasChange && (
               <span
+                className="evolution-widget-compact-delta"
                 style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 800,
                   color: deltaColor,
                   background: `color-mix(in srgb, ${deltaColor} 10%, transparent)`,
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  letterSpacing: '0.02em',
                 }}
               >
                 {metric.deltaPercent}
@@ -165,18 +121,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                   e.stopPropagation();
                   onRemove();
                 }}
-                style={{
-                  border: 'none',
-                  background: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: '2px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: 0.65,
-                }}
+                className="evolution-widget-icon-btn"
                 title="Quitar gráfico de esta burbuja"
                 aria-label="Quitar gráfico"
               >
@@ -187,41 +132,19 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
         </div>
 
         {/* Valor actual destacado */}
-        <div style={{ margin: '0.35rem 0 0.15rem', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-            <strong
-              style={{
-                fontSize: '1.45rem',
-                fontWeight: 900,
-                color: 'var(--text-main)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1,
-              }}
-            >
+        <div className="evolution-widget-metric-row">
+          <div className="evolution-widget-val-wrap">
+            <strong className="evolution-widget-current-val">
               {metric.currentValue}
             </strong>
-            <span
-              style={{
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-              }}
-            >
+            <span className="evolution-widget-unit">
               {metric.unit}
             </span>
           </div>
         </div>
 
         {/* Mini Sparkline Chart interactivo que llena el fondo inferior */}
-        <div
-          style={{
-            height: '56px',
-            width: '100%',
-            marginTop: 'auto',
-            marginLeft: '-6px',
-            marginRight: '-6px',
-          }}
-        >
+        <div className="evolution-widget-sparkline-box">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={metric.data} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
               <defs>
@@ -235,19 +158,8 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                   if (active && payload && payload.length) {
                     const data = payload[0].payload as { date: string; value: number };
                     return (
-                      <div
-                        style={{
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border)',
-                          padding: '0.25rem 0.55rem',
-                          borderRadius: '8px',
-                          boxShadow: 'var(--shadow)',
-                          fontSize: '0.72rem',
-                          fontWeight: 700,
-                          color: 'var(--text-main)',
-                        }}
-                      >
-                        <span>
+                      <div className="evolution-tooltip-box">
+                        <span className="evolution-tooltip-val">
                           {data.date}: {data.value} {metric.unit}
                         </span>
                       </div>
@@ -274,104 +186,52 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
 
   // Extended / full card render (on ProgressPage or wide card colSpan >= 2)
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: '100%',
-        boxSizing: 'border-box',
-        gap: '0.85rem',
-      }}
-    >
+    <div className="evolution-widget-full">
       {/* Cabecera completa */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+      <div className="evolution-widget-full-header">
+        <div className="evolution-widget-full-meta-left">
           <div
+            className="evolution-widget-full-icon-box"
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
               background: `color-mix(in srgb, ${metric.color} 9%, transparent)`,
               color: metric.color,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
             }}
           >
             {getMetricIcon(metric.key, 20)}
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <h3
-                style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 900,
-                  color: 'var(--text-main)',
-                  margin: 0,
-                  letterSpacing: '-0.01em',
-                }}
-              >
+            <div className="evolution-widget-full-title-row">
+              <h3 className="evolution-widget-full-title">
                 {metric.name}
               </h3>
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  color: 'var(--text-muted)',
-                  background: 'var(--bg-subtle)',
-                  padding: '0.15rem 0.5rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                }}
-              >
+              <span className="evolution-widget-unit-badge">
                 {metric.category}
               </span>
             </div>
-            <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            <p className="evolution-widget-full-subtitle">
               {metric.description}
             </p>
           </div>
         </div>
 
         {/* Acciones: Botón de exportar a Inicio */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: '0.25rem',
-              background: 'var(--bg-subtle)',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '10px',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+        <div className="evolution-widget-full-meta-right">
+          <div className="evolution-widget-kpi-pill">
+            <span className="evolution-widget-kpi-pill-label">
               Actual:
             </span>
-            <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)', fontWeight: 900 }}>
+            <strong className="evolution-widget-kpi-pill-val">
               {metric.currentValue}
             </strong>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+            <span className="evolution-widget-unit">
               {metric.unit}
             </span>
             {hasChange && (
               <span
+                className="evolution-widget-delta"
                 style={{
-                  marginLeft: '0.35rem',
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
                   color: deltaColor,
+                  marginLeft: '0.35rem',
                 }}
               >
                 ({metric.deltaPercent})
@@ -382,21 +242,11 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           {onExportClick && (
             <button
               type="button"
-              className="btn btn-secondary"
+              className={`btn btn-secondary evolution-widget-pin-btn${isExported ? ' is-pinned' : ''}`}
               onClick={onExportClick}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontSize: '0.8rem',
-                padding: '0.45rem 0.85rem',
-                borderColor: isExported ? 'var(--success-border)' : 'var(--border)',
-                color: isExported ? 'var(--success-text)' : 'var(--text-main)',
-                background: isExported ? 'var(--success-bg)' : 'var(--bg-card)',
-              }}
               title="Exportar este gráfico al menú de Inicio en una burbuja Bento"
             >
-              <Pin size={14} style={{ transform: 'rotate(45deg)' }} />
+              <Pin size={14} className="evolution-widget-pin-icon" />
               <span>{isExported ? 'Fijado en Inicio' : 'Exportar a Inicio'}</span>
             </button>
           )}
@@ -404,9 +254,8 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
           {onRemove && (
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary evolution-widget-remove-btn"
               onClick={onRemove}
-              style={{ padding: '0.45rem 0.65rem' }}
               title="Quitar de esta burbuja"
               aria-label="Quitar de esta burbuja"
             >
@@ -417,7 +266,7 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
       </div>
 
       {/* Gráfico Amplio Recharts */}
-      <div style={{ height: '240px', width: '100%', marginTop: '0.5rem' }}>
+      <div className="evolution-widget-chart-container">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={metric.data} margin={{ top: 12, right: 18, left: -10, bottom: 0 }}>
             <defs>
@@ -449,28 +298,13 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
                 if (active && payload && payload.length) {
                   const data = payload[0].payload as { date: string; value: number };
                   return (
-                    <div
-                      style={{
-                        background: 'var(--bg-card)',
-                        border: '1.5px solid var(--border)',
-                        padding: '0.5rem 0.85rem',
-                        borderRadius: '10px',
-                        boxShadow: 'var(--shadow-lg)',
-                        color: 'var(--text-main)',
-                      }}
-                    >
-                      <div
-                        style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}
-                      >
+                    <div className="evolution-tooltip-box">
+                      <div className="evolution-tooltip-date">
                         Medición: {data.date}
                       </div>
                       <div
-                        style={{
-                          fontSize: '1rem',
-                          fontWeight: 900,
-                          color: metric.color,
-                          marginTop: '0.15rem',
-                        }}
+                        className="evolution-tooltip-val evolution-widget-tooltip-metric-val"
+                        style={{ color: metric.color }}
                       >
                         {data.value} {metric.unit}
                       </div>
@@ -494,49 +328,35 @@ export const EvolutionChartWidget: React.FC<EvolutionChartWidgetProps> = ({
       </div>
 
       {/* Resumen inferior de evolución */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: '0.75rem',
-          paddingTop: '0.75rem',
-          borderTop: '1px solid var(--border)',
-        }}
-      >
-        <div
-          style={{ background: 'var(--bg-subtle)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}
-        >
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+      <div className="evolution-widget-stats-summary">
+        <div className="evolution-widget-stat-card">
+          <span className="evolution-widget-stat-card-label">
             Primera medición
           </span>
-          <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-main)' }}>
+          <strong className="evolution-widget-stat-card-val">
             {metric.initialValue} {metric.unit}
           </strong>
         </div>
 
-        <div
-          style={{ background: 'var(--bg-subtle)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}
-        >
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+        <div className="evolution-widget-stat-card">
+          <span className="evolution-widget-stat-card-label">
             Última medición
           </span>
-          <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-main)' }}>
+          <strong className="evolution-widget-stat-card-val">
             {metric.currentValue} {metric.unit}
           </strong>
         </div>
 
-        <div
-          style={{ background: 'var(--bg-subtle)', padding: '0.5rem 0.75rem', borderRadius: '8px' }}
-        >
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+        <div className="evolution-widget-stat-card">
+          <span className="evolution-widget-stat-card-label">
             Cambio en el período
           </span>
           {hasChange ? (
-            <strong style={{ display: 'block', fontSize: '0.95rem', color: deltaColor }}>
+            <strong className="evolution-widget-stat-card-val" style={{ color: deltaColor }}>
               {metric.deltaAbsolute} ({metric.deltaPercent})
             </strong>
           ) : (
-            <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-muted)' }}>
+            <strong className="evolution-widget-stat-card-val evolution-widget-stat-card-muted">
               Una sola medición
             </strong>
           )}
