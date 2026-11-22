@@ -27,28 +27,34 @@ describe('configuración del precache de la PWA', () => {
   });
 });
 
-describe.skipIf(!existsSync(resolve(process.cwd(), 'dist/sw.js')))(
-  'artefacto del service worker generado',
-  () => {
-    const sw = readFileSync(resolve(process.cwd(), 'dist/sw.js'), 'utf8');
-    const precachedUrls = [...sw.matchAll(/url:"([^"]+)"/g)].map((match) => match[1]);
+const serviceWorkerPath = resolve(process.cwd(), 'dist/sw.js');
 
-    it('precachea el index, el manifest y el worker de notificaciones', () => {
-      expect(precachedUrls).toContain('index.html');
-      expect(precachedUrls).toContain('manifest.webmanifest');
-      expect(precachedUrls).toContain('push-sw.js');
-    });
+// La lectura se hace dentro de cada prueba: describe.skipIf omite la ejecución de las
+// pruebas, pero la función del describe sí corre al cargar el archivo. Si el readFileSync
+// estuviera ahí, CI (que corre npm test sin dist/) fallaría antes de poder saltar el suite.
+const getPrecachedUrls = (): string[] => {
+  const sw = readFileSync(serviceWorkerPath, 'utf8');
+  return [...sw.matchAll(/url:"([^"]+)"/g)].map((match) => match[1]);
+};
 
-    it('incluye el entry point y todos los chunks JS del build', () => {
-      const jsChunks = readdirSync(resolve(process.cwd(), 'dist/assets'))
-        .filter((file) => file.endsWith('.js'))
-        .map((file) => `assets/${file}`);
+describe.skipIf(!existsSync(serviceWorkerPath))('artefacto del service worker generado', () => {
+  it('precachea el index, el manifest y el worker de notificaciones', () => {
+    const precachedUrls = getPrecachedUrls();
+    expect(precachedUrls).toContain('index.html');
+    expect(precachedUrls).toContain('manifest.webmanifest');
+    expect(precachedUrls).toContain('push-sw.js');
+  });
 
-      expect(jsChunks.length).toBeGreaterThan(0);
-      expect(precachedUrls.some((url) => /^assets\/index-.*\.js$/.test(url))).toBe(true);
-      for (const chunk of jsChunks) {
-        expect(precachedUrls, `falta ${chunk} en el precache`).toContain(chunk);
-      }
-    });
-  },
-);
+  it('incluye el entry point y todos los chunks JS del build', () => {
+    const precachedUrls = getPrecachedUrls();
+    const jsChunks = readdirSync(resolve(process.cwd(), 'dist/assets'))
+      .filter((file) => file.endsWith('.js'))
+      .map((file) => `assets/${file}`);
+
+    expect(jsChunks.length).toBeGreaterThan(0);
+    expect(precachedUrls.some((url) => /^assets\/index-.*\.js$/.test(url))).toBe(true);
+    for (const chunk of jsChunks) {
+      expect(precachedUrls, `falta ${chunk} en el precache`).toContain(chunk);
+    }
+  });
+});
