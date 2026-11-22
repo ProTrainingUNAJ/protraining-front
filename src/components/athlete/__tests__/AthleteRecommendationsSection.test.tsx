@@ -46,6 +46,37 @@ describe('AthleteRecommendationsSection (KAN-492)', () => {
     expect(screen.getByText('Primera División')).toBeDefined();
   });
 
+  it('destaca el aviso del nutricionista en las de hábitos, y no en las de entrenamiento (KAN-634)', async () => {
+    listMyRecommendationsMock.mockResolvedValue([
+      {
+        id: 'rec-habits-1',
+        type: 'Habits',
+        title: 'Recomendación de hábitos y proteína',
+        reason: 'Objetivo: Ganar masa muscular.',
+        recommendationText:
+          'Proteína diaria orientativa: entre 111 y 156 g, según tu peso y tu objetivo.',
+        createdAt: '2026-11-22T16:00:00Z',
+        legalDisclaimer:
+          'Esto es una recomendación general; para un plan a tu medida, consultá a un nutricionista.',
+      },
+      {
+        id: 'rec-training-1',
+        type: 'Training',
+        title: 'Mejora de salto vertical',
+        reason: 'salto por debajo del promedio',
+        recommendationText: 'Sumá dos bloques de saltos.',
+        createdAt: '2026-11-22T16:00:00Z',
+        legalDisclaimer: null,
+      },
+    ]);
+
+    render(<AthleteRecommendationsSection />);
+
+    const disclaimers = await screen.findAllByRole('note');
+    expect(disclaimers).toHaveLength(1);
+    expect(disclaimers[0].textContent).toContain('consultá a un nutricionista');
+  });
+
   it('no renderiza la sección cuando el atleta no tiene recomendaciones aprobadas', async () => {
     listMyRecommendationsMock.mockResolvedValue([]);
 

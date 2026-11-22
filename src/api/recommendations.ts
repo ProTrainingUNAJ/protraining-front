@@ -7,6 +7,7 @@ import {
   approveRecommendation as approveRecommendationSdk,
   discardRecommendation as discardRecommendationSdk,
   listMyRecommendations as listMyRecommendationsSdk,
+  getHabitsRecommendation as getHabitsRecommendationSdk,
   type AthleteRecommendation,
   type MyRecommendation,
   type ProfileMetricComparison,
@@ -88,6 +89,23 @@ export const recommendationsService = {
         throwOnError: true,
       });
       return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Genera la recomendación de hábitos y alimentación de un atleta (KAN-634). Queda pendiente hasta que el
+   * PF la apruebe; si ya había una pendiente, el back la reusa. Si el PF tiene los hábitos desactivados o
+   * el tutor de un menor no los habilitó, el back responde 409 con el motivo.
+   */
+  async generateHabitsForAthlete(athleteId: string): Promise<void> {
+    try {
+      await getHabitsRecommendationSdk({
+        path: { athleteId },
+        timeout: AI_ENGINE_TIMEOUT_MS,
+        throwOnError: true,
+      });
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

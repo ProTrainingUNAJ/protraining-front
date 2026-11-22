@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Info, Sparkles } from 'lucide-react';
 import { recommendationsService, type MyRecommendation } from '../../api/recommendations';
 import { capitalizeFirst } from '../../utils/recommendationFormat';
 
@@ -81,6 +81,13 @@ export function AthleteRecommendationsSection() {
               <h4 className="athlete-recommendation-title">{rec.title}</h4>
               <p className="athlete-recommendation-reason">Motivo: {capitalizeFirst(rec.reason)}</p>
               <p className="athlete-recommendation-text">{rec.recommendationText}</p>
+              {/* Aviso del nutricionista, siempre visible en las de alimentación (KAN-634) */}
+              {rec.legalDisclaimer && (
+                <p className="athlete-recommendation-disclaimer" role="note">
+                  <Info size={15} aria-hidden="true" />
+                  <span>{rec.legalDisclaimer}</span>
+                </p>
+              )}
             </article>
           );
         })}
