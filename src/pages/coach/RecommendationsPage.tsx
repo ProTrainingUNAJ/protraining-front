@@ -1,21 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
-  RefreshCw,
-  Salad,
-  Search,
-  Sparkles,
-  X,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Salad, Search, Sparkles, X } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
-import {
-  HabitsRecommendationBar,
-  type HabitsAthleteOption,
-} from '../../components/recommendations/HabitsRecommendationBar';
+import { HabitsRecommendationBar, type HabitsAthleteOption } from '../../components/recommendations/HabitsRecommendationBar';
 import {
   SegmentedFilterTabs,
   type SegmentedFilterOption,
@@ -244,20 +232,18 @@ export function RecommendationsPage() {
       if (result.generatedCount > 0) {
         setFeedback({
           tone: 'success',
-          message: `Análisis de ${result.categoryName} completado: se generaron ${result.generatedCount} ${
-            result.generatedCount === 1
-              ? 'nueva recomendación pendiente'
-              : 'nuevas recomendaciones pendientes'
-          }.`,
+          message: `Análisis de ${result.categoryName} completado: se generaron ${result.generatedCount} ${result.generatedCount === 1
+            ? 'nueva recomendación pendiente'
+            : 'nuevas recomendaciones pendientes'
+            }.`,
         });
       } else if (result.existingPendingCount > 0) {
         setFeedback({
           tone: 'info',
-          message: `Análisis de ${result.categoryName} finalizado: ya había ${result.existingPendingCount} ${
-            result.existingPendingCount === 1
-              ? 'recomendación pendiente'
-              : 'recomendaciones pendientes'
-          } sin duplicar.`,
+          message: `Análisis de ${result.categoryName} finalizado: ya había ${result.existingPendingCount} ${result.existingPendingCount === 1
+            ? 'recomendación pendiente'
+            : 'recomendaciones pendientes'
+            } sin duplicar.`,
         });
       } else {
         setFeedback({
