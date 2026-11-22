@@ -294,10 +294,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
 
       {/* Error banner if match fetch fails */}
       {loadError && (
-        <div
-          className="form-error-banner season-calendar-load-error-banner"
-          role="alert"
-        >
+        <div className="form-error-banner season-calendar-load-error-banner" role="alert">
           <AlertCircle size={20} />
           <span>{loadError}</span>
         </div>
@@ -488,9 +485,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                   </button>
 
                   {activities.length === 0 ? (
-                    <div className="season-calendar-week-empty-day">
-                      Sin actividades
-                    </div>
+                    <div className="season-calendar-week-empty-day">Sin actividades</div>
                   ) : (
                     activities.map((act, idx) => {
                       if (act.kind === 'match') {

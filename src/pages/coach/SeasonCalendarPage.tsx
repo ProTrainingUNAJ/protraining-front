@@ -61,17 +61,16 @@ export const SeasonCalendarPage: React.FC = () => {
     return (
       <div className="season-calendar-loading-box">
         <Loader2 size={36} className="animate-spin text-primary" />
-        <p className="season-calendar-loading-text">Cargando calendario de temporada y categorías...</p>
+        <p className="season-calendar-loading-text">
+          Cargando calendario de temporada y categorías...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        className="form-error-banner season-calendar-error-card"
-        role="alert"
-      >
+      <div className="form-error-banner season-calendar-error-card" role="alert">
         <AlertCircle size={22} />
         <div>
           <strong className="season-calendar-error-title">
