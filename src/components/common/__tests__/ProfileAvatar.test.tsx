@@ -1,9 +1,21 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { ProfileAvatar } from '../ProfileAvatar';
+import { httpClient } from '../../../api/axiosClient';
+
+vi.mock('../../../api/axiosClient', () => ({
+  httpClient: {
+    get: vi.fn(),
+  },
+}));
 
 describe('ProfileAvatar Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    global.URL.createObjectURL = vi.fn(() => 'blob:http://localhost/mock-blob-uuid');
+  });
+
   it('renders initials when no src is provided', () => {
     render(<ProfileAvatar name="Lucas Fernández" />);
     expect(screen.getByText('LF')).toBeDefined();
@@ -31,5 +43,46 @@ describe('ProfileAvatar Component', () => {
   it('renders single initial for single-word name', () => {
     render(<ProfileAvatar name="Boca" shape="rounded" />);
     expect(screen.getByText('B')).toBeDefined();
+  });
+
+  it('resolves API photo url without duplicating /api and does not expose raw unauthenticated url', async () => {
+    const mockBlob = new Blob(['image data'], { type: 'image/webp' });
+    vi.mocked(httpClient.get).mockResolvedValueOnce({ data: mockBlob });
+
+    render(<ProfileAvatar name="Lucas Fernández" src="/api/identidad/api/v1/users/123/photo" />);
+
+    // Initial render shows initials, NEVER raw unauthenticated API url in <img src>
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getByText('LF')).toBeDefined();
+
+    // Verifies httpClient stripped leading /api/ so axios baseURL '/api' does not duplicate to /api/api/...
+    expect(httpClient.get).toHaveBeenCalledWith('/identidad/api/v1/users/123/photo', {
+      responseType: 'blob',
+    });
+
+    // Once blob URL is ready, renders img with blob: URL
+    await waitFor(() => {
+      const img = screen.getByRole('img');
+      expect(img.getAttribute('src')).toBe('blob:http://localhost/mock-blob-uuid');
+    });
+  });
+
+  it('shows initials without rendering broken img if API returns error (e.g. 404)', async () => {
+    vi.mocked(httpClient.get).mockRejectedValueOnce(new Error('404 Not Found'));
+
+    render(<ProfileAvatar name="Preparador Físico" src="/identidad/api/v1/users/me/photo" />);
+
+    // Initial render
+    expect(screen.getByText('PF')).toBeDefined();
+
+    await waitFor(() => {
+      expect(httpClient.get).toHaveBeenCalledWith('/identidad/api/v1/users/me/photo', {
+        responseType: 'blob',
+      });
+    });
+
+    // Still shows initials and never rendered unauthenticated <img>
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getByText('PF')).toBeDefined();
   });
 });

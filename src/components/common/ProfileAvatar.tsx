@@ -29,6 +29,11 @@ function isApiPhotoUrl(url: string): boolean {
   return url.startsWith('/api/') || url.startsWith('/estructura/') || url.startsWith('/identidad/');
 }
 
+function resolveApiPath(url: string): string {
+  // httpClient has baseURL: '/api', so strip leading '/api/' if present to avoid '/api/api/...'
+  return url.startsWith('/api/') ? url.slice(4) : url;
+}
+
 export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   src,
   name,
@@ -53,8 +58,9 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     let isMounted = true;
     let currentPromise = inFlightRequests.get(src);
     if (!currentPromise) {
+      const apiPath = resolveApiPath(src);
       currentPromise = httpClient
-        .get<Blob>(src, { responseType: 'blob' })
+        .get<Blob>(apiPath, { responseType: 'blob' })
         .then((response: { data: Blob }) => {
           const objectUrl = URL.createObjectURL(response.data);
           blobUrlCache.set(src, objectUrl);
@@ -83,7 +89,8 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     };
   }, [src, isApi]);
 
-  const effectiveSrc = blobUrl || cachedBlob || src || null;
+  // Para endpoints de API protegidos, SOLO se muestra el blob URL autenticado (evita caer a <img src> sin token que da 401)
+  const effectiveSrc = isApi ? blobUrl || cachedBlob || null : src || null;
 
   const dimension = typeof size === 'number' ? size : SIZE_MAP[size] || 48;
   const fontSize = Math.max(10, Math.round(dimension * 0.38));
