@@ -448,15 +448,7 @@ export const CalendarButton: React.FC = () => {
                   role={isPF ? 'button' : undefined}
                   tabIndex={isPF ? 0 : undefined}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      width: '100%',
-                      justifyContent: 'space-between',
-                    }}
-                  >
+                  <div className="shell-calendar-agenda-item-header">
                     <span className="shell-calendar-agenda-badge match">
                       {m.homeOrAway === 'Home' ? <Shield size={11} /> : <MapPin size={11} />}
                       {m.homeOrAway === 'Home'
@@ -501,15 +493,7 @@ export const CalendarButton: React.FC = () => {
                           }}
                           title="Abrir mi rutina de entrenamiento"
                         >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                              width: '100%',
-                              justifyContent: 'space-between',
-                            }}
-                          >
+                          <div className="shell-calendar-agenda-item-header">
                             <span className="shell-calendar-agenda-badge training">
                               <Dumbbell size={11} />
                               <span>Rutina de Pesas</span>
@@ -546,15 +530,7 @@ export const CalendarButton: React.FC = () => {
                             }}
                             title="Abrir la rutina de entrenamiento"
                           >
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                width: '100%',
-                                justifyContent: 'space-between',
-                              }}
-                            >
+                            <div className="shell-calendar-agenda-item-header">
                               <span className="shell-calendar-agenda-badge training">
                                 <Dumbbell size={11} />
                                 <span>
@@ -581,24 +557,13 @@ export const CalendarButton: React.FC = () => {
                           }}
                           title="Ir a la rutina general"
                         >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                              width: '100%',
-                              justifyContent: 'space-between',
-                            }}
-                          >
+                          <div className="shell-calendar-agenda-item-header">
                             <span className="shell-calendar-agenda-badge training">
                               <Dumbbell size={11} />
                               <span>Rutina</span>
                             </span>
                           </div>
-                          <span
-                            className="shell-calendar-agenda-plan"
-                            style={{ color: 'var(--text-muted)' }}
-                          >
+                          <span className="shell-calendar-agenda-plan shell-calendar-agenda-item-muted-title">
                             Sin ejercicios asignados hoy
                           </span>
                           <span className="shell-calendar-agenda-meta">
@@ -617,15 +582,7 @@ export const CalendarButton: React.FC = () => {
                         }}
                         title="Ir a check-in diario"
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            width: '100%',
-                            justifyContent: 'space-between',
-                          }}
-                        >
+                        <div className="shell-calendar-agenda-item-header">
                           <span
                             className={`shell-calendar-agenda-badge ${
                               athleteSchedule.isCheckInDone ? 'training' : 'match'
@@ -668,15 +625,7 @@ export const CalendarButton: React.FC = () => {
                         }}
                         title="Registrar carga del día"
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            width: '100%',
-                            justifyContent: 'space-between',
-                          }}
-                        >
+                        <div className="shell-calendar-agenda-item-header">
                           <span className="shell-calendar-agenda-badge training">
                             <Activity size={11} />
                             <span>Carga del Día</span>
@@ -745,7 +694,7 @@ export const CalendarButton: React.FC = () => {
               Hoy: {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
             </span>
             {isPF && (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="shell-calendar-footer-buttons">
                 <button
                   type="button"
                   onClick={handleGoToCalendar}
@@ -766,7 +715,7 @@ export const CalendarButton: React.FC = () => {
               </div>
             )}
             {isAthlete && (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="shell-calendar-footer-buttons">
                 <button
                   type="button"
                   onClick={() => {

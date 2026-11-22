@@ -1,5 +1,90 @@
 /* Season Calendar Styles - Fixed Grid & Full Block Colors (KAN-404) */
 
+/* Status & Utility helper classes (KAN-582) */
+.season-calendar-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  gap: var(--spacing-md);
+  color: var(--text-muted);
+}
+
+.season-calendar-loading-text {
+  font-weight: 500;
+}
+
+.season-calendar-error-card {
+  max-width: 600px;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-md);
+}
+
+.season-calendar-error-title {
+  display: block;
+  margin-bottom: var(--spacing-2xs);
+}
+
+.season-calendar-page-container {
+  width: 100%;
+}
+
+.season-calendar-load-error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.season-calendar-week-empty-day {
+  padding: var(--spacing-xl) var(--spacing-xs);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.season-calendar-event-content-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.season-calendar-event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.season-calendar-event-sub-meta {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.season-calendar-event-session-meta {
+  font-size: 0.72rem;
+  opacity: 0.9;
+}
+
+.shell-calendar-agenda-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.4rem;
+}
+
+.shell-calendar-agenda-item-muted-title {
+  color: var(--text-muted);
+}
+
+.shell-calendar-footer-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
 .season-calendar-container {
   display: flex;
   flex-direction: column;
