@@ -68,8 +68,8 @@ export const usersService = {
    */
   getMyPhotoUrl(userId?: string, photoUpdatedAt?: string | null): string {
     const base = userId
-      ? `/api/identidad/api/v1/users/${userId}/photo`
-      : '/api/identidad/api/v1/users/me/photo';
+      ? `/identidad/api/v1/users/${userId}/photo`
+      : '/identidad/api/v1/users/me/photo';
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -87,8 +87,8 @@ export const usersService = {
    */
   getPfPhotoUrl(pfId?: string, photoUpdatedAt?: string | null): string {
     const base = pfId
-      ? `/api/identidad/api/v1/users/${pfId}/photo`
-      : '/api/identidad/api/v1/users/me/pf-photo';
+      ? `/identidad/api/v1/users/${pfId}/photo`
+      : '/identidad/api/v1/users/me/pf-photo';
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
