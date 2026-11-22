@@ -1,177 +1,103 @@
 import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useDelayedLoading } from '../../hooks/useDelayedLoading';
+import { summarizeNames } from '../../utils/attentionToday';
+import { WidgetErrorState } from './WidgetErrorState';
+import './dashboardWidgets.css';
 
 /**
- * Progreso de check-in del día (KAN-366).
+ * Progreso de check-in del día (KAN-366, ampliado en KAN-594).
  *
- * Recibe datos reales desde DashboardPage: `total` = atletas del semáforo y
- * `completed` = total menos los pendientes (estado gris "Sin Check-in").
- * Sin mocks ni hora límite fija: el conteo se recalcula con cada respuesta del
- * endpoint traffic-light-today. Estados: cargando, vacío (sin check-ins) y
- * progreso. Colores vía tokens de `tokens.css` (--stat-green, --traffic-green,
- * --stat-green-glow) con soporte claro/oscuro automático; cero literales rgba/hex.
+ * `total` = atletas del semáforo y `completed` = total menos los que siguen en gris. Además del
+ * porcentaje, dice quiénes faltan, para que el PF sepa a quién escribirle. Si el servicio falla,
+ * muestra el error con "Reintentar" en lugar de 0/0.
  */
 interface CheckInProgressProps {
   completed: number;
   total: number;
+  /** Nombres de los atletas que todavía no hicieron el check-in. */
+  missingNames?: string[];
   loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   className?: string;
 }
 
 export const CheckInProgressWidget: React.FC<CheckInProgressProps> = ({
   completed,
   total,
+  missingNames = [],
   loading = false,
+  error = null,
+  onRetry,
   className = '',
 }) => {
+  const navigate = useNavigate();
+  const showSkeleton = useDelayedLoading(loading);
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const pending = total - completed;
 
   return (
-    <div
-      className={`checkin-progress-widget ${className}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        height: '100%',
-        padding: '1.15rem',
-      }}
+    <section
+      className={`dash-w checkin-widget ${className}`}
+      aria-labelledby="checkin-widget-title"
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.4rem',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-          }}
-        >
-          <CheckCircle2 size={14} style={{ color: 'var(--stat-green)' }} />
+      <header className="dash-w__header">
+        <h3 id="checkin-widget-title" className="dash-w__eyebrow">
+          <CheckCircle2 size={14} aria-hidden="true" className="dash-w__eyebrow-icon" />
           Check-in
-        </span>
-        <span
-          style={{
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            color: 'var(--text-muted)',
-          }}
-        >
-          {loading ? 'Cargando…' : 'Hoy'}
-        </span>
-      </div>
+        </h3>
+        {!loading && !error && <span className="dash-w__meta">Hoy</span>}
+      </header>
 
-      {loading ? (
-        <p
-          style={{
-            margin: '0 auto',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-          }}
-        >
-          Consultando check-ins del día…
-        </p>
+      {error ? (
+        <WidgetErrorState message={error} onRetry={onRetry} />
+      ) : loading ? (
+        showSkeleton ? (
+          <div role="status" aria-label="Cargando check-ins">
+            <span className="dash-w__skeleton-row" />
+          </div>
+        ) : null
       ) : total === 0 ? (
-        <p
-          style={{
-            margin: '0 auto',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-          }}
-        >
-          Sin check-ins registrados hoy
-        </p>
+        <p className="dash-w__empty">Todavía no hay atletas en tus planteles.</p>
       ) : (
-        <div>
+        <>
+          <div className="checkin-widget__figures">
+            <p className="checkin-widget__count">
+              <strong>{completed}</strong> / {total} atletas
+            </p>
+            <span className="checkin-widget__pct">{percentage} %</span>
+          </div>
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              marginBottom: '0.45rem',
-            }}
+            className="checkin-widget__bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={completed}
+            aria-label="Check-ins del día"
           >
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-              <span
-                style={{
-                  fontSize: '1.75rem',
-                  fontWeight: 900,
-                  color: 'var(--text-main)',
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1,
-                }}
-              >
-                {completed}
-              </span>
-              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                / {total} atletas
-              </span>
-            </div>
-
-            <span
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 800,
-                color: 'var(--stat-green)',
-              }}
+            {/* El ancho depende del porcentaje: es el único estilo dinámico del widget */}
+            <span style={{ width: `${percentage}%` }} />
+          </div>
+          {missingNames.length > 0 ? (
+            <p className="checkin-widget__missing">
+              <strong>Faltan:</strong> {summarizeNames(missingNames, 3, false)}.
+            </p>
+          ) : (
+            <p className="checkin-widget__missing">Todo el plantel hizo el check-in.</p>
+          )}
+          {missingNames.length > 0 && (
+            <button
+              type="button"
+              className="dash-w__link"
+              onClick={() => navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })}
             >
-              {percentage}%
-            </span>
-          </div>
-
-          {/* Barra de progreso activa */}
-          <div
-            style={{
-              width: '100%',
-              height: '10px',
-              background: 'var(--bg-subtle)',
-              borderRadius: '9999px',
-              overflow: 'hidden',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <div
-              style={{
-                width: `${percentage}%`,
-                height: '100%',
-                background:
-                  'linear-gradient(90deg, var(--traffic-green) 0%, var(--stat-green) 100%)',
-                borderRadius: '9999px',
-                transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                boxShadow: 'var(--stat-green-glow)',
-              }}
-            />
-          </div>
-        </div>
+              Ver en el semáforo
+              <ArrowRight size={13} aria-hidden="true" />
+            </button>
+          )}
+        </>
       )}
-
-      {!loading && total > 0 && (
-        <p
-          style={{
-            margin: '0.5rem 0 0',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-          }}
-        >
-          {pending > 0
-            ? `${pending} atletas pendientes de check-in`
-            : 'Plantel completo completó el check-in'}
-        </p>
-      )}
-    </div>
+    </section>
   );
 };

@@ -74,6 +74,7 @@
   --shell-panel-border: #cdd1d6;
   --shell-sidebar-bg: #023050;
   --shell-sidebar-width: 82px;
+  --shell-sidebar-expanded-width: 272px;
   --shell-active-item-bg: #0b4570;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #f0f2f5;
@@ -230,6 +231,8 @@
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
   --stat-green: #15803d;
   --stat-green-bg: rgb(22 163 74 / 0.1);
+  /* Texto sobre un relleno --stat-green (botón "Aprobar en 1 clic" de Epley, KAN-594) */
+  --on-stat-green: var(--white);
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante en :root. */
   --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
   --stat-amber: #d97706;
@@ -567,6 +570,8 @@
   --stat-cyan-bg: rgb(56 189 248 / 0.16);
   --stat-green: #4ade80;
   --stat-green-bg: rgb(74 222 128 / 0.16);
+  /* En oscuro el verde es claro: el blanco daba 1,74:1; con este verde muy oscuro da más de 10:1 */
+  --on-stat-green: #052e16;
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante oscura. */
   --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
   --stat-amber: #fbbf24;
@@ -583,6 +588,7 @@
   --shell-panel-border: #2e3846;
   --shell-sidebar-bg: #023050;
   --shell-sidebar-width: 82px;
+  --shell-sidebar-expanded-width: 272px;
   --shell-active-item-bg: #0e4c7b;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #202732;

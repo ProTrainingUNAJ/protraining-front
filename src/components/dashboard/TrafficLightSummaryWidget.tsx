@@ -1,307 +1,187 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, ArrowRight } from 'lucide-react';
 import { TrafficLightCounts } from '../../api/seguimientoService';
+import type { AthleteTrafficLightItem, TrafficLightStatus } from '../monitoring/trafficLight.types';
+import { useDelayedLoading } from '../../hooks/useDelayedLoading';
+import { summarizeNames } from '../../utils/attentionToday';
+import { WidgetErrorState } from './WidgetErrorState';
+import './dashboardWidgets.css';
 
 /**
- * Resumen del semáforo del día en 4 donas (KAN-365/KAN-366): recibe los
- * conteos reales calculados por `summarizeTrafficLightCounts` (sin mocks) y
- * navega a MonitoringPage con el filtro por color. Colores de donas y hover
- * vía tokens (--traffic-*, --donut-hover-shadow) con soporte claro/oscuro;
- * cero literales rgba/hex (KAN-366).
+ * Semáforo del día del Inicio del PF (KAN-365/366, rediseñado en KAN-594).
+ *
+ * Cada anillo dice qué color es y cuántos atletas hay, sin depender del mouse (en el celular no
+ * hay tooltip). El color del anillo se ve siempre, aunque la cantidad sea 0. Con 0 check-ins
+ * muestra un estado propio y, debajo, quiénes están en rojo y en amarillo. Si el servicio falla,
+ * muestra el error con "Reintentar" en lugar de ceros.
  */
 interface TrafficLightSummaryProps {
-  /** Conteos reales del semáforo del día (KAN-365); en 0 mientras carga. */
   counts?: TrafficLightCounts;
+  /** Atletas del semáforo, para nombrar a los que están en rojo y en amarillo. */
+  athletes?: AthleteTrafficLightItem[];
   loading?: boolean;
-  /** Texto del encabezado derecho (plantel/resumen representado). */
+  error?: string | null;
+  onRetry?: () => void;
+  /** Texto del encabezado derecho (plantel representado). */
   subtitle?: string;
   className?: string;
 }
 
-interface DonutMetricProps {
-  percentage: number;
-  count: number;
-  total: number;
-  color: string;
+interface RingSpec {
+  status: TrafficLightStatus;
   label: string;
-  onClick?: () => void;
+  count: number;
 }
 
-const DonutMetric: React.FC<DonutMetricProps> = ({
-  percentage,
+const RADIUS = 42;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const Ring: React.FC<RingSpec & { total: number; onClick: () => void }> = ({
+  status,
+  label,
   count,
   total,
-  color,
-  label,
   onClick,
 }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-  const radius = 42;
-  const strokeWidth = 7;
-  const circumference = 2 * Math.PI * radius; // ~263.89
-  const arcLength = (percentage / 100) * circumference;
-  const strokeDashoffset = circumference - arcLength;
-
+  const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+  const offset = CIRCUMFERENCE - (percentage / 100) * CIRCUMFERENCE;
   return (
-    <div
+    <button
+      type="button"
+      className={`tl-ring tl-ring--${status}`}
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      className="donut-metric-item"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '0.45rem',
-        cursor: onClick ? 'pointer' : 'default',
-        flex: 1,
-        minWidth: 0,
-        outline: 'none',
-        transform: isHovered ? 'scale(1.14)' : 'scale(1)',
-        transition: 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease',
-        filter: isHovered ? 'var(--donut-hover-shadow)' : 'none',
-        zIndex: isHovered ? 5 : 1,
-      }}
-      title={`${label}: ${count} de ${total} (${percentage}%)`}
+      aria-label={`${label}: ${count} de ${total} (${percentage} %). Ver en Seguimiento`}
     >
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '86px',
-          aspectRatio: '1 / 1',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <svg
-          viewBox="0 0 100 100"
-          style={{
-            width: '100%',
-            height: '100%',
-            transform: 'rotate(-90deg)',
-          }}
-        >
-          {/* Track de fondo gris circular */}
-          <circle
-            cx="50"
-            cy="50"
-            r={radius}
-            fill="none"
-            stroke="var(--border)"
-            strokeWidth={strokeWidth}
-          />
-          {/* Arco de progreso de color del semáforo */}
+      <span className="tl-ring__graphic" aria-hidden="true">
+        <svg viewBox="0 0 100 100">
+          <circle className="tl-ring__track" cx="50" cy="50" r={RADIUS} />
           {percentage > 0 && (
             <circle
+              className="tl-ring__arc"
               cx="50"
               cy="50"
-              r={radius}
-              fill="none"
-              stroke={color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="butt"
-              style={{
-                transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
+              r={RADIUS}
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={offset}
             />
           )}
         </svg>
-
-        {/* Tipografía central: porcentaje perfectamente centrado */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '1.45rem',
-              fontWeight: 800,
-              lineHeight: 1,
-              color: 'var(--text-main)',
-              letterSpacing: '-0.02em',
-              textAlign: 'center',
-            }}
-          >
-            {percentage}%
-          </span>
-        </div>
-      </div>
-    </div>
+        <span className="tl-ring__count">{count}</span>
+      </span>
+      <span className="tl-ring__label" aria-hidden="true">
+        {label}
+      </span>
+      <span className="tl-ring__pct" aria-hidden="true">
+        {percentage} %
+      </span>
+    </button>
   );
 };
 
 export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
   counts,
+  athletes = [],
   loading = false,
+  error = null,
+  onRetry,
   subtitle = 'Todos los planteles',
   className = '',
 }) => {
   const navigate = useNavigate();
+  const showSkeleton = useDelayedLoading(loading);
 
-  const redCount = counts?.red ?? 0;
-  const yellowCount = counts?.yellow ?? 0;
-  const greenCount = counts?.green ?? 0;
-  const grayCount = counts?.gray ?? 0;
+  const red = counts?.red ?? 0;
+  const yellow = counts?.yellow ?? 0;
+  const green = counts?.green ?? 0;
+  const gray = counts?.gray ?? 0;
+  const total = counts?.all ?? red + yellow + green + gray;
+  const reported = total - gray;
 
-  const total = counts?.all ?? redCount + yellowCount + greenCount + grayCount;
-  const redPct = total > 0 ? Math.round((redCount / total) * 100) : 0;
-  const yellowPct = total > 0 ? Math.round((yellowCount / total) * 100) : 0;
-  const greenPct = total > 0 ? Math.round((greenCount / total) * 100) : 0;
-  const grayPct = total > 0 ? Math.round((grayCount / total) * 100) : 0;
+  const redNames = useMemo(
+    () => athletes.filter((a) => a.status === 'red').map((a) => a.name),
+    [athletes],
+  );
+  const yellowNames = useMemo(
+    () => athletes.filter((a) => a.status === 'yellow').map((a) => a.name),
+    [athletes],
+  );
 
-  const handleNavigate = () => {
-    navigate('/pf/monitoring');
-  };
+  const goTo = (filter: TrafficLightStatus) =>
+    navigate(`/pf/monitoring?filter=${filter}`, { state: { filter } });
+
+  const rings: RingSpec[] = [
+    { status: 'green', label: 'Verde', count: green },
+    { status: 'yellow', label: 'Amarillo', count: yellow },
+    { status: 'red', label: 'Rojo', count: red },
+    { status: 'gray', label: 'Sin check-in', count: gray },
+  ];
 
   return (
-    <div
-      className={`traffic-light-summary-widget ${className}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        height: '100%',
-        padding: '1.15rem',
-      }}
+    <section
+      className={`dash-w traffic-light-summary-widget ${className}`}
+      aria-labelledby="tl-summary-title"
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.65rem',
-          paddingRight: '4rem',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-          }}
+      <header className="dash-w__header">
+        <h3 id="tl-summary-title" className="dash-w__eyebrow">
+          <Activity size={14} aria-hidden="true" className="dash-w__eyebrow-icon" />
+          Semáforo del día
+        </h3>
+        {!error && !loading && <span className="dash-w__meta">{subtitle}</span>}
+      </header>
+
+      {error ? (
+        <WidgetErrorState message={error} onRetry={onRetry} />
+      ) : loading ? (
+        showSkeleton ? (
+          <div className="tl-summary__skeleton" role="status" aria-label="Cargando semáforo">
+            <span className="dash-w__skeleton-row" />
+            <span className="dash-w__skeleton-row" />
+          </div>
+        ) : null
+      ) : total === 0 ? (
+        <p className="dash-w__empty">Todavía no hay atletas en tus planteles.</p>
+      ) : reported === 0 ? (
+        <div className="tl-summary__none">
+          <p className="tl-summary__none-title">Nadie hizo el check-in todavía</p>
+          <p className="tl-summary__none-count">0/{total} atletas</p>
+        </div>
+      ) : (
+        <>
+          <div className="tl-summary__rings">
+            {rings.map((ring) => (
+              <Ring key={ring.status} {...ring} total={total} onClick={() => goTo(ring.status)} />
+            ))}
+          </div>
+          {(redNames.length > 0 || yellowNames.length > 0) && (
+            <dl className="tl-summary__names">
+              {redNames.length > 0 && (
+                <div>
+                  <dt>En rojo:</dt>
+                  <dd>{summarizeNames(redNames, 2, false)}</dd>
+                </div>
+              )}
+              {yellowNames.length > 0 && (
+                <div>
+                  <dt>En amarillo:</dt>
+                  <dd>{summarizeNames(yellowNames, 3)}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+        </>
+      )}
+
+      {!error && (
+        <button
+          type="button"
+          className="dash-w__btn dash-w__btn--block"
+          onClick={() => navigate('/pf/monitoring')}
         >
-          <Activity size={14} style={{ color: 'var(--primary)' }} />
-          Semáforo del Día
-        </span>
-        <span
-          style={{
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            color: 'var(--text-muted)',
-          }}
-        >
-          {loading ? 'Cargando…' : subtitle}
-        </span>
-      </div>
-
-      {/* Grid de 4 donas radiales del semáforo KAN-366 según referencia del usuario */}
-      <div
-        className="traffic-light-summary-donuts"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.5rem',
-          margin: '0.35rem 0 0.85rem',
-        }}
-      >
-        {loading ? (
-          <p
-            style={{
-              margin: '0 auto',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-            }}
-          >
-            Consultando el semáforo del día…
-          </p>
-        ) : (
-          <>
-            {/* 1. Rojo - Atención Crítica */}
-            <DonutMetric
-              percentage={redPct}
-              count={redCount}
-              total={total}
-              color="var(--traffic-red)"
-              label="Atención Crítica"
-              onClick={() => navigate('/pf/monitoring?filter=red', { state: { filter: 'red' } })}
-            />
-
-            {/* 2. Amarillo - Precaución */}
-            <DonutMetric
-              percentage={yellowPct}
-              count={yellowCount}
-              total={total}
-              color="var(--traffic-yellow)"
-              label="Precaución"
-              onClick={() =>
-                navigate('/pf/monitoring?filter=yellow', { state: { filter: 'yellow' } })
-              }
-            />
-
-            {/* 3. Verde - Óptimos */}
-            <DonutMetric
-              percentage={greenPct}
-              count={greenCount}
-              total={total}
-              color="var(--traffic-green)"
-              label="Óptimos"
-              onClick={() =>
-                navigate('/pf/monitoring?filter=green', { state: { filter: 'green' } })
-              }
-            />
-
-            {/* 4. Gris - Sin Check-in */}
-            <DonutMetric
-              percentage={grayPct}
-              count={grayCount}
-              total={total}
-              color="var(--traffic-gray)"
-              label="Sin Check-in"
-              onClick={() => navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })}
-            />
-          </>
-        )}
-      </div>
-
-      <button
-        type="button"
-        onClick={handleNavigate}
-        className="btn btn-secondary"
-        style={{
-          width: '100%',
-          padding: '0.45rem 0.75rem',
-          fontSize: '0.78rem',
-          fontWeight: 700,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.4rem',
-          borderRadius: '9999px',
-        }}
-      >
-        <span>Ver Semáforo Detallado</span>
-        <ArrowRight size={14} />
-      </button>
-    </div>
+          Ver semáforo detallado
+          <ArrowRight size={14} aria-hidden="true" />
+        </button>
+      )}
+    </section>
   );
 };

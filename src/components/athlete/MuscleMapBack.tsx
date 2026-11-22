@@ -3,6 +3,7 @@ import lineartUrl from '../../assets/back-anatomy-lineart.webp';
 import silhouetteUrl from '../../assets/back-body-silhouette.webp';
 import { BACK_OFFICIAL_MUSCLES, BACK_JOINTS, getColorByPainLevel } from './muscleMap.config';
 import { OfficialMuscleGroup, JointRegion } from './muscleMap.types';
+import { describeMuscleMap } from './muscleMapSummary';
 
 export interface MuscleMapBackProps {
   selectedMuscles?: string[];
@@ -51,6 +52,40 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
     }
   };
 
+  // En modo lectura el mapa es una imagen: un solo nombre accesible que resume
+  // las zonas marcadas, sin regiones enfocables ni anunciadas como botones.
+  const readOnlySummary = readOnly
+    ? describeMuscleMap({
+        regions: [
+          ...BACK_OFFICIAL_MUSCLES.filter((m) => m.backPath),
+          ...BACK_JOINTS.filter((j) => j.backPath),
+        ],
+        musclePains,
+        muscleColors,
+        selectedMuscles,
+        viewLabel: 'vista trasera',
+      })
+    : undefined;
+
+  const regionA11yProps = (
+    region: OfficialMuscleGroup | JointRegion,
+    label: string,
+  ): React.SVGProps<SVGPathElement> =>
+    readOnly
+      ? { 'aria-hidden': true }
+      : {
+          role: 'button',
+          tabIndex: 0,
+          'aria-label': label,
+          'aria-pressed': selectedMuscles.includes(region.id),
+          onClick: () => onMuscleClick?.(region.id),
+          onMouseEnter: () => handleMouseEnter(region),
+          onMouseLeave: handleMouseLeave,
+          onFocus: () => handleMouseEnter(region),
+          onBlur: handleMouseLeave,
+          onKeyDown: (e) => handleKeyDown(e, region.id),
+        };
+
   return (
     <div className="muscle-map-view-column">
       {/* Anatomical view and perspective header */}
@@ -74,7 +109,8 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
               overflow: hideHeader && hideFooter ? 'hidden' : 'visible',
               background: 'transparent',
             }}
-            aria-label="Mapa anatómico muscular y articular en vista trasera"
+            role={readOnly ? 'img' : undefined}
+            aria-label={readOnlySummary ?? 'Mapa anatómico muscular y articular en vista trasera'}
           >
             <defs>
               <filter id="muscle-glow-back" x="-20%" y="-20%" width="140%" height="140%">
@@ -138,24 +174,18 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                     strokeWidth={strokeWidth}
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    role="button"
-                    tabIndex={readOnly ? -1 : 0}
-                    aria-label={`${muscle.name}. ${
-                      hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                    } Vista trasera.`}
-                    aria-pressed={isSelected}
+                    {...regionA11yProps(
+                      muscle,
+                      `${muscle.name}. ${
+                        hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
+                      } Vista trasera.`,
+                    )}
                     filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
                     style={{
                       cursor: readOnly ? 'default' : 'pointer',
                       transition: 'fill 0.18s ease, stroke 0.18s ease',
                       outline: 'none',
                     }}
-                    onClick={() => !readOnly && onMuscleClick?.(muscle.id)}
-                    onMouseEnter={() => handleMouseEnter(muscle)}
-                    onMouseLeave={handleMouseLeave}
-                    onFocus={() => handleMouseEnter(muscle)}
-                    onBlur={handleMouseLeave}
-                    onKeyDown={(e) => handleKeyDown(e, muscle.id)}
                   />
                 );
               })}
@@ -197,24 +227,18 @@ export const MuscleMapBack: React.FC<MuscleMapBackProps> = ({
                     strokeWidth={strokeWidth}
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    role="button"
-                    tabIndex={readOnly ? -1 : 0}
-                    aria-label={`Articulación: ${joint.name}. ${
-                      hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                    } Vista trasera.`}
-                    aria-pressed={isSelected}
+                    {...regionA11yProps(
+                      joint,
+                      `Articulación: ${joint.name}. ${
+                        hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
+                      } Vista trasera.`,
+                    )}
                     filter={isSelected ? 'url(#muscle-glow-back)' : undefined}
                     style={{
                       cursor: readOnly ? 'default' : 'pointer',
                       transition: 'fill 0.18s ease, stroke 0.18s ease',
                       outline: 'none',
                     }}
-                    onClick={() => !readOnly && onMuscleClick?.(joint.id)}
-                    onMouseEnter={() => handleMouseEnter(joint)}
-                    onMouseLeave={handleMouseLeave}
-                    onFocus={() => handleMouseEnter(joint)}
-                    onBlur={handleMouseLeave}
-                    onKeyDown={(e) => handleKeyDown(e, joint.id)}
                   />
                 );
               })}

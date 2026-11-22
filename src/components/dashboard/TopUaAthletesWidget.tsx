@@ -364,18 +364,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
             e.stopPropagation();
             handleOpenAttendance();
           }}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            color: 'var(--brand-blue, #0284c7)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-          }}
+          className="dash-w__link"
           title="Ver planilla completa de asistencia y RPE"
         >
           <span>Ver detalle</span>

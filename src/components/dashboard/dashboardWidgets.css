@@ -1,0 +1,549 @@
+/* ============================================================================
+   dashboardWidgets.css — widgets del Inicio del PF (KAN-594)
+   Requieren atención hoy · Semáforo del día · Alertas de dolor · Check-in
+   Solo tokens de tokens.css: claro y oscuro salen solos.
+   ============================================================================ */
+
+/* ── Base común ─────────────────────────────────────────────────────────── */
+.dash-w {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  padding: 1.15rem 1.25rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.dash-w__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.dash-w__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.dash-w__eyebrow-icon {
+  flex-shrink: 0;
+  color: var(--text-main);
+}
+
+.dash-w__meta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.dash-w__count {
+  flex-shrink: 0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.dash-w__empty {
+  margin: auto 0;
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.dash-w__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentcolor;
+  flex-shrink: 0;
+}
+
+.dash-w__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dash-w__chip--red {
+  background: var(--danger-bg-strong);
+  color: var(--danger-text);
+}
+
+.dash-w__chip--yellow {
+  background: var(--warning-bg-strong);
+  color: var(--warning-text);
+}
+
+.dash-w__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.dash-w__btn:hover {
+  background: var(--bg-subtle);
+  border-color: var(--text-muted);
+}
+
+.dash-w__btn:focus-visible,
+.dash-w__link:focus-visible,
+.tl-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.dash-w__btn--primary {
+  background: var(--brand-navy);
+  border-color: var(--brand-navy);
+  color: var(--on-primary);
+}
+
+.dash-w__btn--primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.dash-w__btn--block {
+  width: 100%;
+  margin-top: auto;
+}
+
+.dash-w__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.dash-w__skeleton-row {
+  display: block;
+  height: 2.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  animation: dashSkeletonPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dashSkeletonPulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-w__skeleton-row {
+    animation: none;
+  }
+}
+
+.dash-w__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: auto 0;
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  text-align: center;
+}
+
+.dash-w__error p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ── Requieren atención hoy ─────────────────────────────────────────────── */
+.attention-widget__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attention-widget__item {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.attention-widget__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.attention-widget__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.attention-widget__name {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attention-widget__category {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.attention-widget__reason {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.attention-widget__conflict {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--danger-text);
+}
+
+.attention-widget__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.attention-widget__missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin-top: auto;
+  padding: 0.55rem 0.75rem;
+  border-radius: 14px;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.82rem;
+}
+
+.attention-widget__missing p {
+  margin: 0;
+  flex: 1;
+  min-width: 12rem;
+}
+
+/* ── Semáforo del día ───────────────────────────────────────────────────── */
+.tl-summary__rings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.tl-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.15rem;
+  border: none;
+  border-radius: 14px;
+  background: none;
+  color: var(--text-main);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.tl-ring:hover {
+  background: var(--bg-subtle);
+}
+
+.tl-ring--green {
+  --ring-color: var(--traffic-green);
+}
+
+.tl-ring--yellow {
+  --ring-color: var(--traffic-yellow);
+}
+
+.tl-ring--red {
+  --ring-color: var(--traffic-red);
+}
+
+.tl-ring--gray {
+  --ring-color: var(--traffic-gray);
+}
+
+.tl-ring__graphic {
+  position: relative;
+  width: 100%;
+  max-width: 76px;
+  aspect-ratio: 1 / 1;
+}
+
+.tl-ring__graphic svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.tl-ring__track,
+.tl-ring__arc {
+  fill: none;
+  stroke-width: 8;
+}
+
+/* El color del anillo se ve aunque la cantidad sea 0 */
+.tl-ring__track {
+  stroke: color-mix(in srgb, var(--ring-color) 25%, transparent);
+}
+
+.tl-ring__arc {
+  stroke: var(--ring-color);
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tl-ring__count {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.tl-ring__label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.tl-ring__pct {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tl-summary__names {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.tl-summary__names div {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.tl-summary__names dt {
+  font-weight: 800;
+}
+
+.tl-summary__names dd {
+  margin: 0;
+}
+
+.tl-summary__none {
+  margin: auto 0;
+  text-align: center;
+}
+
+.tl-summary__none-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.tl-summary__none-count {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-ring__arc {
+    transition: none;
+  }
+}
+
+/* ── Alertas de dolor ───────────────────────────────────────────────────── */
+.pain-widget__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pain-widget__group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.pain-widget__group--red .pain-widget__group-title {
+  color: var(--danger-text);
+}
+
+.pain-widget__group--yellow .pain-widget__group-title {
+  color: var(--warning-text);
+}
+
+.pain-widget__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pain-widget__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.pain-widget__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pain-widget__name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.pain-widget__zone {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── Check-in ───────────────────────────────────────────────────────────── */
+.checkin-widget__figures {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.checkin-widget__count {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.checkin-widget__count strong {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.checkin-widget__pct {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--success-text);
+}
+
+.checkin-widget__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.checkin-widget__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--traffic-green);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.checkin-widget__missing {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
