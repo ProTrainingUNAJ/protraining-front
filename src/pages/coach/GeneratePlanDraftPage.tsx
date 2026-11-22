@@ -168,12 +168,29 @@ export function GeneratePlanDraftPage() {
   };
 
   const toggleTrainingDay = (dayValue: string) => {
-    setTrainingDays((prev) => {
-      const exists = prev.includes(dayValue);
-      const next = exists ? prev.filter((d) => d !== dayValue) : [...prev, dayValue];
-      return TRAINING_DAY_CHIPS.map((chip) => chip.value).filter((val) => next.includes(val));
-    });
-    setErrors((prev) => ({ ...prev, trainingDays: undefined }));
+    const exists = trainingDays.includes(dayValue);
+    if (!exists && trainingDays.length >= DAYS_MAX) {
+      setErrors((prev) => ({
+        ...prev,
+        trainingDays: `Podés elegir como máximo ${DAYS_MAX} días por semana.`,
+      }));
+      return;
+    }
+
+    const rawNext = exists
+      ? trainingDays.filter((d) => d !== dayValue)
+      : [...trainingDays, dayValue];
+    const nextDays = TRAINING_DAY_CHIPS.map((chip) => chip.value).filter((val) =>
+      rawNext.includes(val),
+    );
+
+    setTrainingDays(nextDays);
+    if (nextDays.length >= DAYS_MIN && nextDays.length <= DAYS_MAX) {
+      setDaysPerWeek(nextDays.length);
+      setErrors((prev) => ({ ...prev, daysPerWeek: undefined, trainingDays: undefined }));
+    } else {
+      setErrors((prev) => ({ ...prev, trainingDays: undefined }));
+    }
   };
 
   const validateForm = (): boolean => {
