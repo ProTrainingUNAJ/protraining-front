@@ -137,83 +137,36 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
   const isPending = proposal?.status === 'Pending';
   const isApproved = proposal?.status === 'Approved';
   const isRejected = proposal?.status === 'Rejected';
+  const statusBadgeModifier = isApproved
+    ? 'day-adjustment-status-badge--approved'
+    : isRejected
+      ? 'day-adjustment-status-badge--rejected'
+      : 'day-adjustment-status-badge--pending';
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'var(--routine-modal-overlay)',
-        zIndex: 1200,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
+      className="day-adjustment-overlay"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="day-adjustment-title"
     >
       <div
-        className="card"
-        style={{
-          margin: 0,
-          width: '100%',
-          maxWidth: '680px',
-          maxHeight: '90vh',
-          borderRadius: '20px',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          boxShadow: 'var(--shadow-lg)',
-          overflowY: 'auto',
-          padding: '1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.15rem',
-        }}
+        className="card day-adjustment-modal"
         onClick={(e) => e.stopPropagation()}
         data-testid="day-adjustment-modal"
       >
         {/* Encabezado */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid var(--border)',
-            paddingBottom: '0.85rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                background: 'var(--traffic-yellow-bg)',
-                color: 'var(--traffic-yellow-text)',
-                border: '1px solid var(--traffic-yellow-border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+        <div className="day-adjustment-header">
+          <div className="day-adjustment-header-info">
+            <div className="day-adjustment-header-icon">
               <Sparkles size={20} />
             </div>
             <div>
-              <h3
-                id="day-adjustment-title"
-                style={{
-                  margin: 0,
-                  fontSize: '1.15rem',
-                  fontWeight: 800,
-                  color: 'var(--text-main)',
-                }}
-              >
+              <h3 id="day-adjustment-title" className="day-adjustment-title">
                 Ajuste Sugerido del Día
               </h3>
-              <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <p className="day-adjustment-subtitle">
                 Atleta: <strong>{athleteName}</strong>
               </p>
             </div>
@@ -221,15 +174,8 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
 
           <button
             type="button"
+            className="day-adjustment-close-btn"
             onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              padding: '0.35rem',
-              borderRadius: '8px',
-            }}
             aria-label="Cerrar ajuste sugerido"
           >
             <X size={20} />
@@ -238,19 +184,9 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
 
         {/* Estado de carga */}
         {loading && (
-          <div
-            style={{
-              padding: '2.5rem',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '0.75rem',
-              color: 'var(--text-muted)',
-            }}
-          >
-            <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+          <div className="day-adjustment-loading">
+            <Loader2 size={28} className="animate-spin" />
+            <span className="day-adjustment-loading-text">
               Generando y evaluando propuesta de ajuste del día...
             </span>
           </div>
@@ -258,140 +194,45 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
 
         {/* Mensaje de Error */}
         {!loading && error && (
-          <div
-            role="alert"
-            style={{
-              padding: '0.85rem 1.1rem',
-              borderRadius: '12px',
-              background: 'var(--danger-bg)',
-              border: '1px solid var(--danger-border)',
-              color: 'var(--danger-text)',
-              fontSize: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.65rem',
-            }}
-          >
-            <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+          <div role="alert" className="day-adjustment-feedback day-adjustment-feedback--error">
+            <AlertTriangle size={18} className="day-adjustment-feedback-icon" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Mensaje de Éxito de Acción */}
         {!loading && actionSuccess && (
-          <div
-            role="status"
-            style={{
-              padding: '0.85rem 1.1rem',
-              borderRadius: '12px',
-              background: 'var(--success-bg)',
-              border: '1px solid var(--success-border)',
-              color: 'var(--success-text)',
-              fontSize: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.65rem',
-            }}
-          >
-            <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+          <div role="status" className="day-adjustment-feedback day-adjustment-feedback--success">
+            <CheckCircle2 size={18} className="day-adjustment-feedback-icon" />
             <span>{actionSuccess}</span>
           </div>
         )}
 
         {/* Detalle de la propuesta */}
         {!loading && proposal && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="day-adjustment-body">
             {/* Justificación generada */}
-            <div
-              style={{
-                padding: '0.9rem 1.1rem',
-                borderRadius: '12px',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '0.35rem',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    color: 'var(--text-muted)',
-                    letterSpacing: '0.02em',
-                  }}
-                >
+            <div className="day-adjustment-justification-box">
+              <div className="day-adjustment-justification-header">
+                <span className="day-adjustment-section-label">
                   Justificación Técnica ({proposal.provider})
                 </span>
 
-                <span
-                  className="badge"
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    background: isApproved
-                      ? 'var(--success-bg)'
-                      : isRejected
-                        ? 'var(--danger-bg)'
-                        : 'var(--traffic-yellow-bg)',
-                    color: isApproved
-                      ? 'var(--success-text)'
-                      : isRejected
-                        ? 'var(--danger-text)'
-                        : 'var(--traffic-yellow-text)',
-                    border: `1px solid ${
-                      isApproved
-                        ? 'var(--success-border)'
-                        : isRejected
-                          ? 'var(--danger-border)'
-                          : 'var(--traffic-yellow-border)'
-                    }`,
-                  }}
-                >
+                <span className={`badge day-adjustment-status-badge ${statusBadgeModifier}`}>
                   {isApproved ? 'Aprobada' : isRejected ? 'Rechazada' : 'Pendiente de aprobación'}
                 </span>
               </div>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '0.88rem',
-                  lineHeight: 1.45,
-                  color: 'var(--text-main)',
-                  fontWeight: 600,
-                }}
-              >
-                "{proposal.justification}"
-              </p>
+              <p className="day-adjustment-justification-text">"{proposal.justification}"</p>
               {proposal.rejectionReason && (
-                <p
-                  style={{
-                    margin: '0.45rem 0 0',
-                    fontSize: '0.82rem',
-                    color: 'var(--danger-text)',
-                    fontStyle: 'italic',
-                  }}
-                >
+                <p className="day-adjustment-rejection-note">
                   Motivo de rechazo: {proposal.rejectionReason}
                 </p>
               )}
             </div>
 
             {/* Ejercicios en conflicto y sustitutos */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <span
-                style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  color: 'var(--text-muted)',
-                }}
-              >
+            <div className="day-adjustment-items">
+              <span className="day-adjustment-items-title">
                 Ejercicios adaptados por zona de dolor
               </span>
 
@@ -403,83 +244,26 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
                   item.substituteExerciseName;
 
                 return (
-                  <div
-                    key={item.originalExerciseId}
-                    style={{
-                      padding: '1rem',
-                      borderRadius: '14px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.75rem',
-                    }}
-                  >
+                  <div key={item.originalExerciseId} className="day-adjustment-item-card">
                     {/* Header de la sustitución: Original -> Sustituto */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: '0.92rem',
-                            fontWeight: 700,
-                            color: 'var(--text-muted)',
-                            textDecoration: 'line-through',
-                          }}
-                        >
+                    <div className="day-adjustment-item-header">
+                      <div className="day-adjustment-swap">
+                        <span className="day-adjustment-original-name">
                           {item.originalExerciseName}
                         </span>
-                        <ArrowRight size={15} style={{ color: 'var(--secondary)' }} />
-                        <span
-                          style={{
-                            fontSize: '0.95rem',
-                            fontWeight: 800,
-                            color: 'var(--text-main)',
-                          }}
-                        >
-                          {currentChosenName}
-                        </span>
+                        <ArrowRight size={15} className="day-adjustment-swap-arrow" />
+                        <span className="day-adjustment-substitute-name">{currentChosenName}</span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span
-                          className="badge"
-                          style={{
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                            background: 'var(--danger-bg)',
-                            color: 'var(--danger-text)',
-                            border: '1px solid var(--danger-border)',
-                          }}
-                        >
+                      <div className="day-adjustment-pain-wrap">
+                        <span className="badge day-adjustment-pain-badge">
                           Dolor {item.zone} ({item.painLevel}/5)
                         </span>
                       </div>
                     </div>
 
                     {/* Motivo biomecánico */}
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.82rem',
-                        color: 'var(--text-muted)',
-                        lineHeight: 1.35,
-                      }}
-                    >
+                    <p className="day-adjustment-item-reason">
                       <strong>Motivo:</strong> {item.reason}
                     </p>
 
@@ -487,45 +271,22 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
                     {isPending &&
                       item.availableSubstitutes &&
                       item.availableSubstitutes.length > 0 && (
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            marginTop: '0.2rem',
-                          }}
-                        >
+                        <div className="day-adjustment-selector-row">
                           <label
                             htmlFor={`substitute-select-${item.originalExerciseId}`}
-                            style={{
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              color: 'var(--text-muted)',
-                              whiteSpace: 'nowrap',
-                            }}
+                            className="day-adjustment-selector-label"
                           >
                             Cambiar sustituto:
                           </label>
-                          <div style={{ position: 'relative', flex: 1 }}>
+                          <div className="day-adjustment-select-wrap">
                             <select
                               id={`substitute-select-${item.originalExerciseId}`}
+                              className="day-adjustment-select"
                               value={currentChosenId}
                               onChange={(e) =>
                                 handleSubstituteChange(item.originalExerciseId, e.target.value)
                               }
                               disabled={submitting}
-                              style={{
-                                width: '100%',
-                                padding: '0.4rem 2rem 0.4rem 0.75rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border)',
-                                background: 'var(--bg-subtle)',
-                                color: 'var(--text-main)',
-                                fontSize: '0.82rem',
-                                fontWeight: 700,
-                                appearance: 'none',
-                                cursor: 'pointer',
-                              }}
                             >
                               {item.availableSubstitutes.map((sub) => (
                                 <option key={sub.exerciseId} value={sub.exerciseId}>
@@ -536,17 +297,7 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
                                 </option>
                               ))}
                             </select>
-                            <ChevronDown
-                              size={14}
-                              style={{
-                                position: 'absolute',
-                                right: '0.65rem',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                pointerEvents: 'none',
-                                color: 'var(--text-muted)',
-                              }}
-                            />
+                            <ChevronDown size={14} className="day-adjustment-select-chevron" />
                           </div>
                         </div>
                       )}
@@ -557,38 +308,18 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
 
             {/* Formulario opcional de motivo de rechazo */}
             {isPending && showRejectForm && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.4rem',
-                  padding: '0.85rem',
-                  borderRadius: '12px',
-                  background: 'var(--danger-bg)',
-                  border: '1px solid var(--danger-border)',
-                }}
-              >
-                <label
-                  htmlFor="reject-reason-input"
-                  style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--danger-text)' }}
-                >
+              <div className="day-adjustment-reject-form">
+                <label htmlFor="reject-reason-input" className="day-adjustment-reject-label">
                   Motivo de rechazo (opcional):
                 </label>
                 <input
                   id="reject-reason-input"
+                  className="day-adjustment-reject-input"
                   type="text"
                   placeholder="Ej: Es molestia leve, mantener la planificación original..."
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   disabled={submitting}
-                  style={{
-                    padding: '0.45rem 0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--danger-border)',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.82rem',
-                  }}
                 />
               </div>
             )}
@@ -596,50 +327,24 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
         )}
 
         {/* Acciones del pie */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: '0.65rem',
-            borderTop: '1px solid var(--border)',
-            paddingTop: '0.85rem',
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className="day-adjustment-footer">
           {isPending ? (
             <>
               {!showRejectForm ? (
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-secondary day-adjustment-btn-reject-toggle"
                   onClick={() => setShowRejectForm(true)}
                   disabled={submitting}
-                  style={{
-                    padding: '0.55rem 1rem',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    color: 'var(--danger-text)',
-                  }}
                 >
                   Rechazar...
                 </button>
               ) : (
                 <button
                   type="button"
-                  className="btn"
+                  className="btn day-adjustment-btn-reject-confirm"
                   onClick={handleReject}
                   disabled={submitting}
-                  style={{
-                    padding: '0.55rem 1rem',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    background: 'var(--traffic-red)',
-                    color: 'var(--white)',
-                    border: 'none',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                  }}
                 >
                   {submitting ? 'Rechazando...' : 'Confirmar Rechazo'}
                 </button>
@@ -647,21 +352,13 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
 
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary day-adjustment-btn-approve"
                 onClick={handleApprove}
                 disabled={submitting}
-                style={{
-                  padding: '0.55rem 1.25rem',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                }}
               >
                 {submitting ? (
                   <>
-                    <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                    <Loader2 size={15} className="animate-spin" />
                     <span>Aplicando...</span>
                   </>
                 ) : (
@@ -675,13 +372,8 @@ export const DayAdjustmentModal: React.FC<DayAdjustmentModalProps> = ({
           ) : (
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary day-adjustment-btn-close"
               onClick={onClose}
-              style={{
-                padding: '0.55rem 1.25rem',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-              }}
             >
               Cerrar
             </button>

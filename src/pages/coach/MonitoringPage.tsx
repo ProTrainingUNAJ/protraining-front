@@ -294,19 +294,40 @@ export const MonitoringPage: React.FC = () => {
           };
         });
 
-        const athletesWithConflicts = await Promise.all(
-          mapped.map(async (athlete) => {
-            if (athlete.pains && athlete.pains.length > 0) {
-              try {
-                const conf = await dayAdjustmentsService.getAthleteDayConflicts(athlete.id);
-                return { ...athlete, hasDayConflict: Boolean(conf.hasConflicts) };
-              } catch {
-                return athlete;
+        // KAN-574: consultar conflictos en una sola llamada por categoría (solo en categorías con
+        // atletas que reportaron dolor hoy), evitando el N+1 por atleta.
+        const categoryIdsWithPain = targetCategoryIds.filter((_, idx) =>
+          (summariesByCat[idx] ?? []).some((s) => Boolean(s.indicators?.painZones?.trim())),
+        );
+
+        const conflictedAthleteIds = new Set<string>();
+        if (
+          categoryIdsWithPain.length > 0 &&
+          typeof dayAdjustmentsService?.getCategoryDayConflicts === 'function'
+        ) {
+          const conflictsByCat = await Promise.all(
+            categoryIdsWithPain.map((catId) =>
+              dayAdjustmentsService
+                .getCategoryDayConflicts(catId)
+                // Degradación intencional: si Asistente no responde, el semáforo igual debe mostrarse.
+                .catch(() => null),
+            ),
+          );
+          if (!active) return;
+
+          for (const catConflicts of conflictsByCat) {
+            for (const entry of catConflicts?.athletes ?? []) {
+              if (entry.hasConflicts && entry.athleteId) {
+                conflictedAthleteIds.add(entry.athleteId.toLowerCase());
               }
             }
-            return athlete;
-          }),
-        );
+          }
+        }
+
+        const athletesWithConflicts = mapped.map((athlete) => ({
+          ...athlete,
+          hasDayConflict: conflictedAthleteIds.has(athlete.id.toLowerCase()),
+        }));
 
         if (!active) return;
         setAthletesResult({

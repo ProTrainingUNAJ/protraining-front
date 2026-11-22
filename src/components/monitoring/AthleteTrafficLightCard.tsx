@@ -256,10 +256,12 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
       {/* 4. Pie de tarjeta anclado simétricamente con marginTop auto (KAN-639) */}
       <div className="tl-card-footer">
+        {/* KAN-582 y KAN-574 migraron este mismo botón a clases con propiedades
+            idénticas: se conservan ambas para respetar las dos migraciones. */}
         {athlete.hasDayConflict && (
           <button
             type="button"
-            className="btn btn-warning tl-card-adjust-btn"
+            className="btn btn-warning tl-card-adjust-btn day-adjustment-trigger-card"
             data-testid={`btn-day-adjustment-${athlete.id}`}
             onClick={(e) => {
               e.stopPropagation();

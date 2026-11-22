@@ -233,7 +233,59 @@ export const RoutinePage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedExerciseForModal]);
 
-  const exercises = useMemo(() => routine?.exercises ?? [], [routine]);
+  const exercises = useMemo<RoutineExerciseItem[]>(() => {
+    if (routine?.blocks && routine.blocks.length > 0) {
+      return routine.blocks
+        .slice()
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .flatMap((b) => (b.exercises ?? []) as RoutineExerciseItem[]);
+    }
+    return (routine?.exercises ?? []) as RoutineExerciseItem[];
+  }, [routine]);
+
+  const renderGroups = useMemo<
+    Array<{
+      key: string;
+      title: string | null;
+      order: number;
+      showHeader: boolean;
+      exercises: Array<{ exercise: RoutineExerciseItem; globalIndex: number }>;
+    }>
+  >(() => {
+    const blocks = routine?.blocks;
+    if (Array.isArray(blocks) && blocks.length > 0) {
+      const sorted = blocks.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      let globalIndex = 0;
+      return sorted.map((block, i) => {
+        const blockExercises = (block.exercises ?? []).map((ex) => {
+          const idx = globalIndex;
+          globalIndex += 1;
+          return { exercise: ex as RoutineExerciseItem, globalIndex: idx };
+        });
+        const isPrincipal =
+          sorted.length === 1 && (block.title ?? '').trim().toLowerCase() === 'principal';
+        return {
+          key: block.id ?? `block-${i}`,
+          title: block.title ?? null,
+          order: block.order ?? i + 1,
+          showHeader: !isPrincipal,
+          exercises: blockExercises,
+        };
+      });
+    }
+    return [
+      {
+        key: 'legacy',
+        title: null,
+        order: 1,
+        showHeader: false,
+        exercises: exercises.map((ex, idx) => ({
+          exercise: ex,
+          globalIndex: idx,
+        })),
+      },
+    ];
+  }, [routine, exercises]);
 
   const hasPersonalizedVariant = useMemo(() => exercises.some((ex) => ex.isAdapted), [exercises]);
 
@@ -625,18 +677,16 @@ export const RoutinePage: React.FC = () => {
                       )}
 
                       {routine.adjustedByCoach && (
-                        <span
-                          className="badge"
-                          style={{
-                            gap: '0.35rem',
-                            background: 'var(--traffic-yellow-bg)',
-                            color: 'var(--traffic-yellow-text)',
-                            border: '1px solid var(--traffic-yellow-border)',
-                            fontWeight: 700,
-                          }}
-                        >
+                        <span className="badge routine-adjusted-badge">
                           <ShieldAlert size={13} />
                           <span>Ajuste aplicado por tu PF</span>
+                        </span>
+                      )}
+
+                      {routine.weekNumber != null && (
+                        <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                          <Calendar size={13} />
+                          <span>Semana {routine.weekNumber}</span>
                         </span>
                       )}
                     </div>
@@ -743,90 +793,23 @@ export const RoutinePage: React.FC = () => {
               )}
             </div>
 
-            {/* 3. Cartel de Rutina Ajustada por el PF (#157 · KAN-452) */}
+            {/* 3. Cartel de Rutina Ajustada por el PF (#157 · KAN-452 / KAN-574) */}
             {routine.adjustedByCoach && (
-              <div
-                className="routine-adjusted-banner"
-                data-testid="routine-adjusted-banner"
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.85rem',
-                  padding: '1rem 1.25rem',
-                  borderRadius: '14px',
-                  background: 'var(--traffic-yellow-bg)',
-                  border: '1px solid var(--traffic-yellow-border)',
-                  color: 'var(--text-main)',
-                }}
-              >
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    background: 'var(--traffic-yellow)',
-                    color: 'var(--white)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    marginTop: '2px',
-                  }}
-                >
+              <div className="routine-adjusted-banner" data-testid="routine-adjusted-banner">
+                <div className="routine-adjusted-banner-icon">
                   <ShieldAlert size={20} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      flexWrap: 'wrap',
-                      marginBottom: '0.2rem',
-                    }}
-                  >
-                    <strong
-                      style={{
-                        fontSize: '0.98rem',
-                        fontWeight: 800,
-                        color: 'var(--traffic-yellow-text)',
-                      }}
-                    >
+                <div className="routine-adjusted-banner-content">
+                  <div className="routine-adjusted-banner-header">
+                    <strong className="routine-adjusted-banner-title">
                       Tu PF ajustó la rutina de hoy
                     </strong>
-                    <span
-                      className="badge"
-                      style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        background: 'var(--bg-card)',
-                        color: 'var(--traffic-yellow-text)',
-                        border: '1px solid var(--traffic-yellow-border)',
-                      }}
-                    >
-                      Ajuste del día
-                    </span>
+                    <span className="badge routine-adjusted-banner-tag">Ajuste del día</span>
                   </div>
                   {routine.adjustmentNote ? (
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.86rem',
-                        lineHeight: 1.45,
-                        color: 'var(--text-main)',
-                      }}
-                    >
-                      {routine.adjustmentNote}
-                    </p>
+                    <p className="routine-adjusted-banner-note">{routine.adjustmentNote}</p>
                   ) : (
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '0.86rem',
-                        lineHeight: 1.45,
-                        color: 'var(--text-muted)',
-                      }}
-                    >
+                    <p className="routine-adjusted-banner-note routine-adjusted-banner-note--fallback">
                       Tu preparador físico adaptó los ejercicios para cuidar tu recuperación ante
                       las molestias registradas.
                     </p>
@@ -895,465 +878,528 @@ export const RoutinePage: React.FC = () => {
 
             {/* 5. Lista Ergonómica Móvil de Ejercicios con Series, Reps, Peso y Marcado de Series */}
             {exercises.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
-                {exercises.map((rawExercise, exIdx) => {
-                  const exercise = rawExercise as RoutineExerciseItem;
-                  const exKey = exercise.exerciseId || `ex-${exIdx}`;
-                  const performed = performedSets[exKey];
-
-                  // Contabilizar series completadas para este ejercicio
-                  let completedForEx = 0;
-                  for (let s = 1; s <= exercise.sets; s++) {
-                    if (completedSets[`${exKey}_set_${s}`]) {
-                      completedForEx++;
-                    }
-                  }
-                  const isExerciseComplete = exercise.sets > 0 && completedForEx === exercise.sets;
-
-                  return (
-                    <div
-                      key={exKey}
-                      className={`routine-exercise-card ${
-                        isExerciseComplete ? 'all-completed' : ''
-                      }`}
-                    >
-                      {/* Icono del Ejercicio */}
-                      <button
-                        type="button"
-                        className="routine-exercise-icon-badge"
-                        onClick={() => setSelectedExerciseForModal(exercise)}
-                        title="Ver técnica del ejercicio"
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <Dumbbell size={22} />
-                      </button>
-
-                      {/* Nombre, Grupo Muscular y Datos de Prescripción */}
-                      <div className="routine-exercise-info">
-                        <div className="routine-exercise-name-row">
-                          <h4
-                            className="routine-exercise-name"
-                            onClick={() => setSelectedExerciseForModal(exercise)}
-                            title="Ver técnica del ejercicio"
-                          >
-                            {exercise.name}
-                          </h4>
-                          {exercise.muscleGroup && (
-                            <span className="routine-tag-pill">{exercise.muscleGroup}</span>
-                          )}
-                          {exercise.isAdapted && (
-                            <span
-                              className="badge routine-variant-badge"
-                              data-testid="personalized-variant-badge"
-                            >
-                              <Sparkles size={12} />
-                              <span>Variante personalizada</span>
-                            </span>
-                          )}
-                          {isExerciseComplete && (
-                            <span className="badge badge-success" style={{ gap: '0.25rem' }}>
-                              <CheckCircle2 size={13} />
-                              <span>Completado</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {exercise.isAdapted && (
-                          <div
-                            className="routine-variant-breakdown"
-                            data-testid="personalized-variant-breakdown"
-                          >
-                            {exercise.originalExerciseName && (
-                              <span className="routine-variant-original">
-                                Reemplaza a: {exercise.originalExerciseName}
-                              </span>
-                            )}
-                            <span className="routine-variant-reason">
-                              {exercise.adaptationReason?.trim()
-                                ? exercise.adaptationReason
-                                : 'Adaptación diseñada para cuidar tu condición física actual.'}
-                            </span>
-                          </div>
-                        )}
-
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.65rem',
-                            flexWrap: 'wrap',
-                            marginTop: '0.2rem',
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: '0.88rem',
-                              fontWeight: 800,
-                              color: 'var(--text-main)',
-                            }}
-                          >
-                            {exercise.exerciseType === 'Distance'
-                              ? `${exercise.sets} series × ${exercise.reps} m${
-                                  exercise.targetTimeSeconds != null
-                                    ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
-                                        'es-AR',
-                                        {
-                                          minimumFractionDigits: 1,
-                                          maximumFractionDigits: 1,
-                                        },
-                                      )} s`
-                                    : ''
-                                }`
-                              : exercise.exerciseType === 'Time'
-                                ? `${exercise.sets} series × ${exercise.reps} s${
-                                    exercise.targetTimeSeconds != null
-                                      ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
-                                          'es-AR',
-                                          {
-                                            minimumFractionDigits: 1,
-                                            maximumFractionDigits: 1,
-                                          },
-                                        )} s`
-                                      : ''
-                                  }`
-                                : `${exercise.sets} series × ${exercise.reps} reps`}
-                          </span>
-
-                          {exercise.percentage !== undefined && exercise.percentage > 0 && (
-                            <span
-                              style={{
-                                fontSize: '0.78rem',
-                                fontWeight: 700,
-                                color: 'var(--text-muted)',
-                              }}
-                            >
-                              {exercise.exerciseType === 'Distance' ||
-                              exercise.exerciseType === 'Time'
-                                ? `(${exercise.percentage}%)`
-                                : `(${exercise.percentage}% 1RM)`}
-                            </span>
-                          )}
-
-                          {exercise.current1RmKg !== undefined &&
-                            exercise.current1RmKg !== null && (
-                              <span
-                                style={{
-                                  fontSize: '0.75rem',
-                                  fontWeight: 600,
-                                  color: 'var(--text-muted)',
-                                }}
-                              >
-                                · 1RM ref: {exercise.current1RmKg} kg
-                              </span>
-                            )}
-
-                          <button
-                            type="button"
-                            className="routine-tech-btn"
-                            onClick={() => setSelectedExerciseForModal(exercise)}
-                          >
-                            <Activity size={13} />
-                            <span>Ver técnica</span>
-                          </button>
-
-                          {exercise.exerciseType === 'Time' && (
-                            <button
-                              type="button"
-                              className="routine-tech-btn"
-                              onClick={() => setSelectedExerciseForTimer(exercise)}
-                              title="Hacer series con temporizador Tabata / Intervalos"
-                            >
-                              <Timer size={13} />
-                              <span>Temporizador</span>
-                            </button>
-                          )}
-
-                          {exercise.videoUrl && (
-                            <button
-                              type="button"
-                              className={`routine-tech-btn ${openVideoExerciseId === exercise.exerciseId ? 'active' : ''}`}
-                              onClick={() =>
-                                setOpenVideoExerciseId((prev) =>
-                                  prev === exercise.exerciseId
-                                    ? null
-                                    : (exercise.exerciseId ?? null),
-                                )
-                              }
-                            >
-                              <Play size={13} />
-                              <span>
-                                {openVideoExerciseId === exercise.exerciseId
-                                  ? 'Ocultar video'
-                                  : 'Ver video'}
-                              </span>
-                            </button>
-                          )}
-                        </div>
+              <>
+                {renderGroups.map((group) => (
+                  <React.Fragment key={group.key}>
+                    {group.showHeader && group.title && (
+                      <div className="routine-block-header" data-testid="routine-block-header">
+                        <span className="routine-block-badge">Bloque {group.order}</span>
+                        <h3 className="routine-block-title">{group.title}</h3>
                       </div>
+                    )}
+                    {group.exercises.length === 0 && (
+                      <div
+                        className="card"
+                        style={{
+                          padding: '1rem',
+                          color: 'var(--text-muted)',
+                          fontSize: '0.9rem',
+                        }}
+                      >
+                        Este bloque no tiene ejercicios asignados.
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
+                      {group.exercises.map(({ exercise: rawExercise, globalIndex: exIdx }) => {
+                        const exercise = rawExercise as RoutineExerciseItem;
+                        const exKey = exercise.exerciseId || `ex-${exIdx}`;
+                        const performed = performedSets[exKey];
 
-                      {/* META DE LA SERIE: PESO EN BARRA O TIEMPO */}
-                      {exercise.exerciseType === 'Distance' || exercise.exerciseType === 'Time' ? (
-                        // ── CASO CARRERA / DISTANCIA / TIEMPO ──
-                        exercise.targetTimeSeconds != null ? (
-                          <div
-                            className="routine-weight-callout highlight"
-                            title="Meta de tiempo calculada a partir de tu mejor test"
-                          >
-                            <span className="routine-weight-number">
-                              {exercise.targetTimeSeconds.toLocaleString('es-AR', {
-                                minimumFractionDigits: 1,
-                                maximumFractionDigits: 1,
-                              })}{' '}
-                              <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>s</span>
-                            </span>
-                            <span className="routine-weight-label">Meta de tiempo</span>
-                          </div>
-                        ) : (
-                          <div
-                            className="routine-weight-callout reference"
-                            title="Serie sin test de referencia registrado"
-                          >
-                            <span className="routine-weight-number warning">Sin meta</span>
-                            <span className="routine-weight-label">Ritmo libre</span>
-                          </div>
-                        )
-                      ) : (
-                        // ── CASO FUERZA / PESAS ──
-                        <div
-                          className={`routine-weight-callout ${
-                            exercise.isReference ? 'reference' : 'highlight'
-                          }`}
-                          title={
-                            exercise.isReference
-                              ? 'Serie de referencia sin récord previo'
-                              : 'Peso exacto a colocar en la barra'
+                        // Contabilizar series completadas para este ejercicio
+                        let completedForEx = 0;
+                        for (let s = 1; s <= exercise.sets; s++) {
+                          if (completedSets[`${exKey}_set_${s}`]) {
+                            completedForEx++;
                           }
-                        >
-                          {exercise.weightKg !== null && exercise.weightKg !== undefined ? (
-                            <>
-                              <span className="routine-weight-number">
-                                {exercise.weightKg}{' '}
-                                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>kg</span>
-                              </span>
-                              {getBarbellSideText(exercise) ? (
-                                <span className="routine-weight-side">
-                                  {getBarbellSideText(exercise)}
-                                </span>
-                              ) : (
-                                <span className="routine-weight-label">Objetivo</span>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <span className="routine-weight-number warning">Carga Libre</span>
-                              <span className="routine-weight-label">Calibración</span>
-                            </>
-                          )}
-                        </div>
-                      )}
+                        }
+                        const isExerciseComplete =
+                          exercise.sets > 0 && completedForEx === exercise.sets;
 
-                      {/* TRACKER DE SERIES DEL EJERCICIO */}
-                      <div className="routine-sets-tracker">
-                        <div className="routine-sets-header">
-                          <span>Series a registrar:</span>
-                          <span>
-                            {completedForEx} de {exercise.sets} completadas
-                          </span>
-                        </div>
+                        return (
+                          <div
+                            key={exKey}
+                            className={`routine-exercise-card ${
+                              isExerciseComplete ? 'all-completed' : ''
+                            }`}
+                          >
+                            {/* Icono del Ejercicio */}
+                            <button
+                              type="button"
+                              className="routine-exercise-icon-badge"
+                              onClick={() => setSelectedExerciseForModal(exercise)}
+                              title="Ver técnica del ejercicio"
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <Dumbbell size={22} />
+                            </button>
 
-                        {exercise.exerciseType === 'Distance' ||
-                        exercise.exerciseType === 'Time' ? (
-                          /* ── CASO CARRERA / DISTANCIA / TIEMPO: Campos para cargar tiempo real ── */
-                          <>
-                            {saveTimeError?.exerciseKey === exKey && (
-                              <div role="alert" className="card routine-save-error-banner">
-                                <div className="routine-save-error-content">
-                                  <AlertCircle size={20} className="routine-save-error-icon" />
-                                  <span className="routine-save-error-text">
-                                    {saveTimeError.message}
+                            {/* Nombre, Grupo Muscular y Datos de Prescripción */}
+                            <div className="routine-exercise-info">
+                              <div className="routine-exercise-name-row">
+                                <h4
+                                  className="routine-exercise-name"
+                                  onClick={() => setSelectedExerciseForModal(exercise)}
+                                  title="Ver técnica del ejercicio"
+                                >
+                                  {exercise.name}
+                                </h4>
+                                {exercise.muscleGroup && (
+                                  <span className="routine-tag-pill">{exercise.muscleGroup}</span>
+                                )}
+                                {exercise.isAdapted && (
+                                  <span
+                                    className="badge routine-variant-badge"
+                                    data-testid="personalized-variant-badge"
+                                  >
+                                    <Sparkles size={12} />
+                                    <span>Variante personalizada</span>
+                                  </span>
+                                )}
+                                {isExerciseComplete && (
+                                  <span className="badge badge-success" style={{ gap: '0.25rem' }}>
+                                    <CheckCircle2 size={13} />
+                                    <span>Completado</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {exercise.isAdapted && (
+                                <div
+                                  className="routine-variant-breakdown"
+                                  data-testid="personalized-variant-breakdown"
+                                >
+                                  {exercise.originalExerciseName && (
+                                    <span className="routine-variant-original">
+                                      Reemplaza a: {exercise.originalExerciseName}
+                                    </span>
+                                  )}
+                                  <span className="routine-variant-reason">
+                                    {exercise.adaptationReason?.trim()
+                                      ? exercise.adaptationReason
+                                      : 'Adaptación diseñada para cuidar tu condición física actual.'}
                                   </span>
                                 </div>
+                              )}
+
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.65rem',
+                                  flexWrap: 'wrap',
+                                  marginTop: '0.2rem',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: '0.88rem',
+                                    fontWeight: 800,
+                                    color: 'var(--text-main)',
+                                  }}
+                                >
+                                  {exercise.exerciseType === 'Distance'
+                                    ? `${exercise.sets} series × ${exercise.reps} m${
+                                        exercise.targetTimeSeconds != null
+                                          ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
+                                              'es-AR',
+                                              {
+                                                minimumFractionDigits: 1,
+                                                maximumFractionDigits: 1,
+                                              },
+                                            )} s`
+                                          : ''
+                                      }`
+                                    : exercise.exerciseType === 'Time'
+                                      ? `${exercise.sets} series × ${exercise.reps} s${
+                                          exercise.targetTimeSeconds != null
+                                            ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
+                                                'es-AR',
+                                                {
+                                                  minimumFractionDigits: 1,
+                                                  maximumFractionDigits: 1,
+                                                },
+                                              )} s`
+                                            : ''
+                                        }`
+                                      : `${exercise.sets} series × ${exercise.reps} reps`}
+                                </span>
+
+                                {exercise.percentage !== undefined && exercise.percentage > 0 && (
+                                  <span
+                                    style={{
+                                      fontSize: '0.78rem',
+                                      fontWeight: 700,
+                                      color: 'var(--text-muted)',
+                                    }}
+                                  >
+                                    {exercise.exerciseType === 'Distance' ||
+                                    exercise.exerciseType === 'Time'
+                                      ? `(${exercise.percentage}%)`
+                                      : `(${exercise.percentage}% 1RM)`}
+                                  </span>
+                                )}
+
+                                {exercise.current1RmKg !== undefined &&
+                                  exercise.current1RmKg !== null && (
+                                    <span
+                                      style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        color: 'var(--text-muted)',
+                                      }}
+                                    >
+                                      · 1RM ref: {exercise.current1RmKg} kg
+                                    </span>
+                                  )}
+
+                                {exercise.intensityType === 'RPE' && exercise.targetRpe != null && (
+                                  <span className="routine-tag-pill" title="Intensidad (RPE)">
+                                    RPE {exercise.targetRpe}
+                                  </span>
+                                )}
+                                {exercise.intensityType === 'RIR' && exercise.targetRir != null && (
+                                  <span className="routine-tag-pill" title="Intensidad (RIR)">
+                                    RIR {exercise.targetRir}
+                                  </span>
+                                )}
+
                                 <button
                                   type="button"
-                                  onClick={() => setSaveTimeError(null)}
-                                  className="routine-save-error-close"
-                                  aria-label="Cerrar aviso de error"
+                                  className="routine-tech-btn"
+                                  onClick={() => setSelectedExerciseForModal(exercise)}
                                 >
-                                  <X size={18} />
+                                  <Activity size={13} />
+                                  <span>Ver técnica</span>
                                 </button>
+
+                                {exercise.exerciseType === 'Time' && (
+                                  <button
+                                    type="button"
+                                    className="routine-tech-btn"
+                                    onClick={() => setSelectedExerciseForTimer(exercise)}
+                                    title="Hacer series con temporizador Tabata / Intervalos"
+                                  >
+                                    <Timer size={13} />
+                                    <span>Temporizador</span>
+                                  </button>
+                                )}
+
+                                {exercise.videoUrl && (
+                                  <button
+                                    type="button"
+                                    className={`routine-tech-btn ${openVideoExerciseId === exercise.exerciseId ? 'active' : ''}`}
+                                    onClick={() =>
+                                      setOpenVideoExerciseId((prev) =>
+                                        prev === exercise.exerciseId
+                                          ? null
+                                          : (exercise.exerciseId ?? null),
+                                      )
+                                    }
+                                  >
+                                    <Play size={13} />
+                                    <span>
+                                      {openVideoExerciseId === exercise.exerciseId
+                                        ? 'Ocultar video'
+                                        : 'Ver video'}
+                                    </span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {exercise.notes && exercise.notes.trim() && (
+                              <div className="routine-exercise-note">
+                                <MessageSquare size={13} />
+                                <span>{exercise.notes}</span>
                               </div>
                             )}
-                            <div className="routine-pass-list">
-                              {Array.from({ length: exercise.sets }, (_, i) => i + 1).map(
-                                (sNum) => {
-                                  const setKey = `${exKey}_set_${sNum}`;
-                                  const timeVal = performedSetTimes[setKey];
-                                  const evaluation = evaluateTimeTarget(
-                                    timeVal,
-                                    exercise.targetTimeSeconds,
-                                  );
-                                  const isDone = Boolean(evaluation?.isAchieved);
 
-                                  return (
-                                    <div
-                                      key={sNum}
-                                      className={`routine-pass-row ${
-                                        isDone
-                                          ? 'completed'
-                                          : evaluation && !evaluation.isAchieved
-                                            ? 'exceeded'
-                                            : ''
-                                      }`}
-                                    >
-                                      <div className="routine-pass-label-group">
-                                        <span className="routine-pass-title">Pasada {sNum}</span>
+                            {/* META DE LA SERIE: PESO EN BARRA O TIEMPO */}
+                            {exercise.exerciseType === 'Distance' ||
+                            exercise.exerciseType === 'Time' ? (
+                              // ── CASO CARRERA / DISTANCIA / TIEMPO ──
+                              exercise.targetTimeSeconds != null ? (
+                                <div
+                                  className="routine-weight-callout highlight"
+                                  title="Meta de tiempo calculada a partir de tu mejor test"
+                                >
+                                  <span className="routine-weight-number">
+                                    {exercise.targetTimeSeconds.toLocaleString('es-AR', {
+                                      minimumFractionDigits: 1,
+                                      maximumFractionDigits: 1,
+                                    })}{' '}
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>s</span>
+                                  </span>
+                                  <span className="routine-weight-label">Meta de tiempo</span>
+                                </div>
+                              ) : (
+                                <div
+                                  className="routine-weight-callout reference"
+                                  title="Serie sin test de referencia registrado"
+                                >
+                                  <span className="routine-weight-number warning">Sin meta</span>
+                                  <span className="routine-weight-label">Ritmo libre</span>
+                                </div>
+                              )
+                            ) : (
+                              // ── CASO FUERZA / PESAS ──
+                              <div
+                                className={`routine-weight-callout ${
+                                  exercise.isReference ? 'reference' : 'highlight'
+                                }`}
+                                title={
+                                  exercise.isReference
+                                    ? 'Serie de referencia sin récord previo'
+                                    : 'Peso exacto a colocar en la barra'
+                                }
+                              >
+                                {exercise.weightKg !== null && exercise.weightKg !== undefined ? (
+                                  <>
+                                    <span className="routine-weight-number">
+                                      {exercise.weightKg}{' '}
+                                      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                                        kg
+                                      </span>
+                                    </span>
+                                    {getBarbellSideText(exercise) ? (
+                                      <span className="routine-weight-side">
+                                        {getBarbellSideText(exercise)}
+                                      </span>
+                                    ) : (
+                                      <span className="routine-weight-label">Objetivo</span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="routine-weight-number warning">
+                                      Carga Libre
+                                    </span>
+                                    <span className="routine-weight-label">Calibración</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
 
-                                        {/* Badge de Cumplida / Superó la meta */}
-                                        {evaluation && (
-                                          <span
-                                            className={`routine-pass-badge ${
-                                              evaluation.isAchieved ? 'achieved' : 'missed'
+                            {/* TRACKER DE SERIES DEL EJERCICIO */}
+                            <div className="routine-sets-tracker">
+                              <div className="routine-sets-header">
+                                <span>Series a registrar:</span>
+                                <span>
+                                  {completedForEx} de {exercise.sets} completadas
+                                </span>
+                              </div>
+
+                              {exercise.exerciseType === 'Distance' ||
+                              exercise.exerciseType === 'Time' ? (
+                                /* ── CASO CARRERA / DISTANCIA / TIEMPO: Campos para cargar tiempo real ── */
+                                <>
+                                  {saveTimeError?.exerciseKey === exKey && (
+                                    <div role="alert" className="card routine-save-error-banner">
+                                      <div className="routine-save-error-content">
+                                        <AlertCircle
+                                          size={20}
+                                          className="routine-save-error-icon"
+                                        />
+                                        <span className="routine-save-error-text">
+                                          {saveTimeError.message}
+                                        </span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => setSaveTimeError(null)}
+                                        className="routine-save-error-close"
+                                        aria-label="Cerrar aviso de error"
+                                      >
+                                        <X size={18} />
+                                      </button>
+                                    </div>
+                                  )}
+                                  <div className="routine-pass-list">
+                                    {Array.from({ length: exercise.sets }, (_, i) => i + 1).map(
+                                      (sNum) => {
+                                        const setKey = `${exKey}_set_${sNum}`;
+                                        const timeVal = performedSetTimes[setKey];
+                                        const evaluation = evaluateTimeTarget(
+                                          timeVal,
+                                          exercise.targetTimeSeconds,
+                                        );
+                                        const isDone = Boolean(evaluation?.isAchieved);
+
+                                        return (
+                                          <div
+                                            key={sNum}
+                                            className={`routine-pass-row ${
+                                              isDone
+                                                ? 'completed'
+                                                : evaluation && !evaluation.isAchieved
+                                                  ? 'exceeded'
+                                                  : ''
                                             }`}
                                           >
-                                            {evaluation.isAchieved && <Check size={13} />}
-                                            {evaluation.statusLabel}
-                                            {evaluation.differenceSeconds != null &&
-                                              evaluation.differenceSeconds !== 0 && (
-                                                <span className="routine-pass-diff">
-                                                  (
-                                                  {evaluation.differenceSeconds > 0
-                                                    ? `+${evaluation.differenceSeconds}`
-                                                    : evaluation.differenceSeconds}{' '}
-                                                  s)
+                                            <div className="routine-pass-label-group">
+                                              <span className="routine-pass-title">
+                                                Pasada {sNum}
+                                              </span>
+
+                                              {/* Badge de Cumplida / Superó la meta */}
+                                              {evaluation && (
+                                                <span
+                                                  className={`routine-pass-badge ${
+                                                    evaluation.isAchieved ? 'achieved' : 'missed'
+                                                  }`}
+                                                >
+                                                  {evaluation.isAchieved && <Check size={13} />}
+                                                  {evaluation.statusLabel}
+                                                  {evaluation.differenceSeconds != null &&
+                                                    evaluation.differenceSeconds !== 0 && (
+                                                      <span className="routine-pass-diff">
+                                                        (
+                                                        {evaluation.differenceSeconds > 0
+                                                          ? `+${evaluation.differenceSeconds}`
+                                                          : evaluation.differenceSeconds}{' '}
+                                                        s)
+                                                      </span>
+                                                    )}
                                                 </span>
                                               )}
-                                          </span>
-                                        )}
-                                      </div>
+                                            </div>
 
-                                      {/* Input para tipear el tiempo real en segundos */}
-                                      <div className="routine-pass-input-group">
-                                        <input
-                                          type="number"
-                                          step="0.1"
-                                          min="0"
-                                          placeholder="0.0"
-                                          aria-label={`Tiempo de pasada ${sNum}`}
-                                          value={timeVal ?? ''}
-                                          onChange={(e) => {
-                                            const raw = e.target.value.replace(',', '.');
-                                            const val = raw === '' ? null : parseFloat(raw);
-                                            handleRecordSetTime(exKey, sNum, val);
-                                          }}
-                                          onBlur={(e) => {
-                                            const raw = e.target.value.replace(',', '.');
-                                            const val = raw === '' ? null : parseFloat(raw);
-                                            void handlePersistSetTime(exKey, sNum, val);
-                                          }}
-                                          className="routine-pass-input"
-                                        />
-                                        <span className="routine-pass-unit">s</span>
-                                      </div>
-                                    </div>
-                                  );
-                                },
+                                            {/* Input para tipear el tiempo real en segundos */}
+                                            <div className="routine-pass-input-group">
+                                              <input
+                                                type="number"
+                                                step="0.1"
+                                                min="0"
+                                                placeholder="0.0"
+                                                aria-label={`Tiempo de pasada ${sNum}`}
+                                                value={timeVal ?? ''}
+                                                onChange={(e) => {
+                                                  const raw = e.target.value.replace(',', '.');
+                                                  const val = raw === '' ? null : parseFloat(raw);
+                                                  handleRecordSetTime(exKey, sNum, val);
+                                                }}
+                                                onBlur={(e) => {
+                                                  const raw = e.target.value.replace(',', '.');
+                                                  const val = raw === '' ? null : parseFloat(raw);
+                                                  void handlePersistSetTime(exKey, sNum, val);
+                                                }}
+                                                className="routine-pass-input"
+                                              />
+                                              <span className="routine-pass-unit">s</span>
+                                            </div>
+                                          </div>
+                                        );
+                                      },
+                                    )}
+                                  </div>
+                                </>
+                              ) : (
+                                /* ── CASO FUERZA / PESAS: Chips habituales de marcar serie ── */
+                                <div className="routine-sets-grid">
+                                  {Array.from({ length: exercise.sets }, (_, i) => i + 1).map(
+                                    (sNum) => {
+                                      const isDone = !!completedSets[`${exKey}_set_${sNum}`];
+                                      return (
+                                        <button
+                                          key={sNum}
+                                          type="button"
+                                          className={`routine-set-chip ${isDone ? 'completed' : ''}`}
+                                          onClick={() => toggleSet(exKey, sNum)}
+                                          aria-label={`Serie ${sNum} de ${exercise.name}: ${
+                                            isDone ? 'completada' : 'pendiente'
+                                          }`}
+                                        >
+                                          {isDone ? (
+                                            <Check size={16} />
+                                          ) : (
+                                            <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>
+                                              ●
+                                            </span>
+                                          )}
+                                          <span>Serie {sNum}</span>
+                                        </button>
+                                      );
+                                    },
+                                  )}
+                                </div>
                               )}
                             </div>
-                          </>
-                        ) : (
-                          /* ── CASO FUERZA / PESAS: Chips habituales de marcar serie ── */
-                          <div className="routine-sets-grid">
-                            {Array.from({ length: exercise.sets }, (_, i) => i + 1).map((sNum) => {
-                              const isDone = !!completedSets[`${exKey}_set_${sNum}`];
-                              return (
-                                <button
-                                  key={sNum}
-                                  type="button"
-                                  className={`routine-set-chip ${isDone ? 'completed' : ''}`}
-                                  onClick={() => toggleSet(exKey, sNum)}
-                                  aria-label={`Serie ${sNum} de ${exercise.name}: ${
-                                    isDone ? 'completada' : 'pendiente'
-                                  }`}
-                                >
-                                  {isDone ? (
-                                    <Check size={16} />
-                                  ) : (
-                                    <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>●</span>
-                                  )}
-                                  <span>Serie {sNum}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
 
-                      {/* ACCIÓN: REGISTRAR LO QUE HICE (Epley y propuesta de récord). Solo mostramos registro para ejercicios de pesas/fuerza */}
-                      {exercise.exerciseType !== 'Distance' && exercise.exerciseType !== 'Time' && (
-                        <div
-                          style={{
-                            gridColumn: '1 / -1',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '0.75rem',
-                            flexWrap: 'wrap',
-                            paddingTop: '0.75rem',
-                            borderTop: '1px solid var(--border)',
-                            marginTop: '0.25rem',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              flexWrap: 'wrap',
-                            }}
-                          >
-                            {performed ? (
-                              <span
-                                className="routine-performed-badge"
-                                title="Mejor serie registrada para Epley hoy"
-                              >
-                                <Trophy size={14} />
-                                <span>
-                                  Registrado: {performed.weight} kg × {performed.reps} reps
-                                </span>
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                Registrá tu mejor serie para calcular tu 1RM estimado con Epley
-                              </span>
+                            {/* ACCIÓN: REGISTRAR LO QUE HICE (Epley y propuesta de récord). Solo mostramos registro para ejercicios de pesas/fuerza */}
+                            {exercise.exerciseType !== 'Distance' &&
+                              exercise.exerciseType !== 'Time' && (
+                                <div
+                                  style={{
+                                    gridColumn: '1 / -1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '0.75rem',
+                                    flexWrap: 'wrap',
+                                    paddingTop: '0.75rem',
+                                    borderTop: '1px solid var(--border)',
+                                    marginTop: '0.25rem',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      flexWrap: 'wrap',
+                                    }}
+                                  >
+                                    {performed ? (
+                                      <span
+                                        className="routine-performed-badge"
+                                        title="Mejor serie registrada para Epley hoy"
+                                      >
+                                        <Trophy size={14} />
+                                        <span>
+                                          Registrado: {performed.weight} kg × {performed.reps} reps
+                                        </span>
+                                      </span>
+                                    ) : (
+                                      <span
+                                        style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                                      >
+                                        Registrá tu mejor serie para calcular tu 1RM estimado con
+                                        Epley
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    className="btn btn-primary routine-record-btn"
+                                    onClick={() => setSelectedExerciseForRecord(exercise)}
+                                    title="Registrar los kilos y repeticiones realizados en tu mejor serie"
+                                  >
+                                    <Trophy size={15} />
+                                    <span>
+                                      {performed
+                                        ? 'Modificar lo que hice'
+                                        : 'Registrar lo que hice'}
+                                    </span>
+                                  </button>
+                                </div>
+                              )}
+
+                            {openVideoExerciseId === exercise.exerciseId && exercise.videoUrl && (
+                              <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem' }}>
+                                <ExerciseVideoPlayer
+                                  videoUrl={exercise.videoUrl}
+                                  exerciseName={exercise.name}
+                                />
+                              </div>
                             )}
                           </div>
-
-                          <button
-                            type="button"
-                            className="btn btn-primary routine-record-btn"
-                            onClick={() => setSelectedExerciseForRecord(exercise)}
-                            title="Registrar los kilos y repeticiones realizados en tu mejor serie"
-                          >
-                            <Trophy size={15} />
-                            <span>
-                              {performed ? 'Modificar lo que hice' : 'Registrar lo que hice'}
-                            </span>
-                          </button>
-                        </div>
-                      )}
-
-                      {openVideoExerciseId === exercise.exerciseId && exercise.videoUrl && (
-                        <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem' }}>
-                          <ExerciseVideoPlayer
-                            videoUrl={exercise.videoUrl}
-                            exerciseName={exercise.name}
-                          />
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  </React.Fragment>
+                ))}
+              </>
             )}
 
             {/* 6. Carga de Gimnasio / Finalizar sesión (Imagen 2) */}

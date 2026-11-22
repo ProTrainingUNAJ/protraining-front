@@ -57,24 +57,14 @@ const TrainingPage = lazyPage(() =>
 const MonitoringPage = lazyPage(() =>
   import('./pages/coach/MonitoringPage').then((m) => ({ default: m.MonitoringPage })),
 );
-const RecordsReliabilityPage = lazyPage(() =>
-  import('./pages/coach/RecordsReliabilityPage').then((m) => ({
-    default: m.RecordsReliabilityPage,
-  })),
-);
-const CategoryStatisticsPage = lazyPage(() =>
-  import('./pages/coach/CategoryStatisticsPage').then((m) => ({
-    default: m.CategoryStatisticsPage,
-  })),
+const StatisticsPage = lazyPage(() =>
+  import('./pages/coach/StatisticsPage').then((m) => ({ default: m.StatisticsPage })),
 );
 const FieldTestsPage = lazyPage(() =>
   import('./pages/coach/FieldTestsPage').then((m) => ({ default: m.FieldTestsPage })),
 );
 const FieldTestCapturePage = lazyPage(() =>
   import('./pages/coach/FieldTestCapturePage').then((m) => ({ default: m.FieldTestCapturePage })),
-);
-const ReportsPage = lazyPage(() =>
-  import('./pages/coach/ReportsPage').then((m) => ({ default: m.ReportsPage })),
 );
 const RecommendationsPage = lazyPage(() =>
   import('./pages/coach/RecommendationsPage').then((m) => ({ default: m.RecommendationsPage })),
@@ -192,10 +182,20 @@ export const router = createBrowserRouter([
               { path: 'monitoring', element: <MonitoringPage /> },
               { path: 'field-tests', element: <FieldTestsPage /> },
               { path: 'field-tests/:sessionId', element: <FieldTestCapturePage /> },
-              { path: 'records-reliability', element: <RecordsReliabilityPage /> },
-              { path: 'category-statistics', element: <CategoryStatisticsPage /> },
+              { path: 'statistics', element: <StatisticsPage /> },
+              {
+                path: 'records-reliability',
+                element: <Navigate to="/pf/statistics?tab=reliability" replace />,
+              },
+              {
+                path: 'category-statistics',
+                element: <Navigate to="/pf/statistics?tab=category" replace />,
+              },
               { path: 'recommendations', element: <RecommendationsPage /> },
-              { path: 'reports', element: <ReportsPage /> },
+              {
+                path: 'reports',
+                element: <Navigate to="/pf/statistics?tab=reports" replace />,
+              },
               { path: 'settings', element: <SettingsPage /> },
             ],
           },

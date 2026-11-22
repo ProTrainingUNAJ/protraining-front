@@ -114,6 +114,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
 
   const [showGeneralJustification, setShowGeneralJustification] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [adjustmentLoadWarning, setAdjustmentLoadWarning] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const carouselRef = useRef<HTMLDivElement | null>(null);
@@ -156,6 +157,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
     async function loadPlanAndContext() {
       setLoadingPlan(true);
       setError(null);
+      setAdjustmentLoadWarning(null);
       setSuccessMessage(null);
       setProposal(null);
       setIsApproved(false);
@@ -211,6 +213,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
     async function loadProposalForSession() {
       setLoadingProposal(true);
       setError(null);
+      setAdjustmentLoadWarning(null);
       setSuccessMessage(null);
       setIsApproved(false);
       setIsRejected(false);
@@ -236,7 +239,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         'Adaptación individual de rutina base';
 
       try {
-        const [adaptationData, existingAdjustment] = await Promise.all([
+        const [adaptationResult, existingAdjustmentResult] = await Promise.allSettled([
           athleteAdaptationsService.generateAdaptation(athleteId, {
             goal,
             baseExercises: baseExercises.length > 0 ? baseExercises : undefined,
@@ -247,6 +250,21 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         ]);
 
         if (!active) return;
+
+        if (adaptationResult.status === 'rejected') {
+          throw adaptationResult.reason;
+        }
+
+        const adaptationData = adaptationResult.value;
+        const existingAdjustment =
+          existingAdjustmentResult.status === 'fulfilled' ? existingAdjustmentResult.value : null;
+
+        if (existingAdjustmentResult.status === 'rejected') {
+          setAdjustmentLoadWarning(
+            'No se pudo consultar si ya había un ajuste guardado para esta sesión; podés revisar y aprobar la propuesta igual.',
+          );
+        }
+
         setProposal(adaptationData);
 
         const initialSubstitutes: Record<string, string> = {};
@@ -794,6 +812,19 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
             <span className="plan-inline">
               <AlertTriangle size={16} aria-hidden="true" />
               {error}
+            </span>
+          </div>
+        )}
+
+        {!isLoading && adjustmentLoadWarning && (
+          <div
+            className="alert-banner warning"
+            role="status"
+            data-testid="adaptation-adjustment-warning"
+          >
+            <span className="plan-inline">
+              <AlertTriangle size={16} aria-hidden="true" />
+              {adjustmentLoadWarning}
             </span>
           </div>
         )}
