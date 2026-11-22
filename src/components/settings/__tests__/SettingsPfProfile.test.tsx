@@ -161,4 +161,50 @@ describe('Perfil y baja del PF en Configuración (KAN-601 / KAN-602)', () => {
 
     expect(mockLogout).toHaveBeenCalled();
   });
+
+  it('carga la preferencia del PF y alterna entre Sí y No guardando el cambio', async () => {
+    vi.mocked(usersService.getPfHabitsRecommendations)
+      .mockReset()
+      .mockResolvedValue({ enabled: false });
+    vi.mocked(usersService.updatePfHabitsRecommendations)
+      .mockReset()
+      .mockResolvedValue({ enabled: true });
+
+    render(
+      <MemoryRouter>
+        <SettingsView role="pf" />
+      </MemoryRouter>,
+    );
+
+    const initialToggle = await screen.findByRole('button', { name: 'No' });
+    expect(usersService.getPfHabitsRecommendations).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(initialToggle);
+
+    await waitFor(() => {
+      expect(usersService.updatePfHabitsRecommendations).toHaveBeenCalledWith(true);
+    });
+    expect(await screen.findByRole('button', { name: 'Sí' })).toBeDefined();
+  });
+
+  it('revierte el cambio y muestra el error si no se puede guardar la preferencia', async () => {
+    vi.mocked(usersService.getPfHabitsRecommendations)
+      .mockReset()
+      .mockResolvedValue({ enabled: true });
+    vi.mocked(usersService.updatePfHabitsRecommendations)
+      .mockReset()
+      .mockRejectedValue(new Error('No se pudo guardar'));
+
+    render(
+      <MemoryRouter>
+        <SettingsView role="pf" />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Sí' }));
+
+    expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'No se pudo guardar');
+    expect(await screen.findByRole('button', { name: 'Sí' })).toBeDefined();
+    expect(usersService.updatePfHabitsRecommendations).toHaveBeenCalledWith(false);
+  });
 });

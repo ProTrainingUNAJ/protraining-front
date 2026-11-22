@@ -2,6 +2,8 @@
  * Helper utilities for the Check-In slide navigation and data formatting.
  */
 
+import { todayInArgentina } from '../../../utils/argentinaDate';
+
 export const STEP_TITLES: Record<number, string> = {
   1: 'Ánimo',
   2: 'Descanso y Recuperación',
@@ -251,17 +253,13 @@ export interface CheckInDraftData {
  * confirmación. No incluye el borrador: ese dato médico se borra apenas se envía.
  */
 export interface CheckInCompletedData {
-  result: unknown;
   completedAt: string;
+  trafficLight?: 'Green' | 'Yellow' | 'Red';
+  trafficLightReason?: string | null;
+  isOffline?: boolean;
 }
 
-export const getTodayKey = (): string => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+export const getTodayKey = (): string => todayInArgentina();
 
 const getStorage = (): Storage | null => {
   try {
@@ -280,10 +278,50 @@ const getStorage = (): Storage | null => {
 export const getCheckInCompleted = (athleteId: string): CheckInCompletedData | null => {
   const storage = getStorage();
   if (!storage || !athleteId) return null;
+  const key = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
   try {
-    const raw = storage.getItem(`protraining_checkin_completed_${athleteId}_${getTodayKey()}`);
+    const raw = storage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw) as CheckInCompletedData;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+
+    // Migración: si quedó guardado el resultado completo del backend (salud),
+    // se extrae únicamente el indicador mínimo y se reescribe sin el resultado.
+    if ('result' in parsed && parsed.result && typeof parsed.result === 'object') {
+      const result = parsed.result as {
+        trafficLight?: 'Green' | 'Yellow' | 'Red';
+        trafficLightReason?: string | null;
+        isOffline?: boolean;
+      };
+      const migrated: CheckInCompletedData = {
+        completedAt:
+          typeof parsed.completedAt === 'string' ? parsed.completedAt : new Date().toISOString(),
+        trafficLight: result.trafficLight,
+        trafficLightReason: result.trafficLightReason ?? null,
+        isOffline: result.isOffline,
+      };
+      try {
+        storage.setItem(key, JSON.stringify(migrated));
+      } catch {
+        // Ignored in storage-restricted environments
+      }
+      return migrated;
+    }
+
+    if (typeof parsed.completedAt !== 'string') return null;
+    return {
+      completedAt: parsed.completedAt,
+      trafficLight:
+        parsed.trafficLight === 'Green' ||
+        parsed.trafficLight === 'Yellow' ||
+        parsed.trafficLight === 'Red'
+          ? parsed.trafficLight
+          : undefined,
+      trafficLightReason:
+        parsed.trafficLightReason === null || typeof parsed.trafficLightReason === 'string'
+          ? (parsed.trafficLightReason as string | null)
+          : undefined,
+      isOffline: typeof parsed.isOffline === 'boolean' ? parsed.isOffline : undefined,
+    };
   } catch {
     return null;
   }
@@ -311,26 +349,52 @@ export const purgeLegacyCheckInCompletedData = (athleteId: string): void => {
   const storage = getStorage();
   if (!storage || !athleteId) return;
   const prefix = `protraining_checkin_completed_${athleteId}_`;
-  const legacyKeys: string[] = [];
+  const today = getTodayKey();
+  const keysToRemove: string[] = [];
 
   try {
     for (let index = 0; ; index += 1) {
       const key = storage.key(index);
       if (!key) break;
       if (!key.startsWith(prefix)) continue;
+      const datePart = key.slice(prefix.length);
+      let stored: Record<string, unknown> | null = null;
       try {
-        const stored = JSON.parse(storage.getItem(key) ?? '{}') as Record<string, unknown>;
-        if ('draft' in stored) legacyKeys.push(key);
+        stored = JSON.parse(storage.getItem(key) ?? '{}') as Record<string, unknown>;
       } catch {
-        legacyKeys.push(key);
+        stored = null;
       }
+      const isExpired = datePart !== today;
+      const isLegacy = stored !== null && ('draft' in stored || 'result' in stored);
+      const isInvalid = stored === null || typeof stored.completedAt !== 'string';
+      if (isExpired || isLegacy || isInvalid) keysToRemove.push(key);
     }
   } catch {
     // Ignored in storage-restricted environments
   }
 
   try {
-    legacyKeys.forEach((key) => storage.removeItem(key));
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
+
+export const clearAllCheckInData = (): void => {
+  const storage = getStorage();
+  if (!storage) return;
+  const keysToRemove: string[] = [];
+  try {
+    for (let index = 0; ; index += 1) {
+      const key = storage.key(index);
+      if (!key) break;
+      if (key.startsWith('protraining_checkin_')) keysToRemove.push(key);
+    }
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+  try {
+    keysToRemove.forEach((key) => storage.removeItem(key));
   } catch {
     // Ignored in storage-restricted environments
   }

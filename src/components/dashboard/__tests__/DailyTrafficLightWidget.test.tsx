@@ -87,10 +87,8 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
   it('renders Green light state when check-in is optimal', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
-      result: {
-        trafficLight: 'Green',
-        trafficLightReason: 'Sin dolor reportado y buen descanso',
-      },
+      trafficLight: 'Green',
+      trafficLightReason: 'Sin dolor reportado y buen descanso',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -118,10 +116,8 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
   it('renders Yellow light state when check-in reports attention/fatigue', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
-      result: {
-        trafficLight: 'Yellow',
-        trafficLightReason: 'Fatiga moderada y molestia muscular',
-      },
+      trafficLight: 'Yellow',
+      trafficLightReason: 'Fatiga moderada y molestia muscular',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -145,10 +141,8 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
   it('renders Red light state when check-in reports active injury or acute pain', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
-      result: {
-        trafficLight: 'Red',
-        trafficLightReason: 'Lesión activa reportada',
-      },
+      trafficLight: 'Red',
+      trafficLightReason: 'Lesión activa reportada',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
