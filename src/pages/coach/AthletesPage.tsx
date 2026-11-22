@@ -395,9 +395,7 @@ export const AthletesPage: React.FC = () => {
         {/* Formulario de Alta de Atleta */}
         {showForm && (
           <div className="card athletes-create-card">
-            <h2 className="athletes-create-title">
-              Alta de Atleta en el Plantel
-            </h2>
+            <h2 className="athletes-create-title">Alta de Atleta en el Plantel</h2>
             <p className="athletes-create-desc">
               Ingresá los datos personales y asigná las divisiones iniciales del deportista.
             </p>
@@ -482,9 +480,7 @@ export const AthletesPage: React.FC = () => {
 
               {categories.length > 0 && (
                 <div className="athletes-form-group">
-                  <span className="athletes-form-label">
-                    Asignar a Categorías Iniciales
-                  </span>
+                  <span className="athletes-form-label">Asignar a Categorías Iniciales</span>
                   <div className="athletes-chips-row">
                     {categories.map((cat) => {
                       const isSelected = selectedNewAthleteCategories.includes(cat.id);
@@ -536,11 +532,7 @@ export const AthletesPage: React.FC = () => {
         {/* Barra de Filtros y Búsqueda */}
         <div className="athletes-filter-bar">
           <div className="athletes-search-wrapper">
-            <Search
-              size={16}
-              className="athletes-search-icon"
-              aria-hidden="true"
-            />
+            <Search size={16} className="athletes-search-icon" aria-hidden="true" />
             <input
               type="search"
               placeholder="Buscar por nombre, email o teléfono…"
@@ -595,10 +587,7 @@ export const AthletesPage: React.FC = () => {
         ) : (
           <div className="athletes-list">
             {filteredAthletes.map((athlete) => (
-              <div
-                key={athlete.id}
-                className="card athletes-card"
-              >
+              <div key={athlete.id} className="card athletes-card">
                 <div className="athletes-card-info-wrap">
                   <ProfileAvatar
                     src={
@@ -614,17 +603,11 @@ export const AthletesPage: React.FC = () => {
 
                   <div>
                     <div className="athletes-card-header-row">
-                      <h2 className="athletes-card-name">
-                        {athlete.fullName}
-                      </h2>
+                      <h2 className="athletes-card-name">{athlete.fullName}</h2>
                       {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
                       {athlete.active && <span className="badge badge-success">Activo</span>}
                       {getAthleteOrganizations(athlete).map((org) => (
-                        <div
-                          key={org.id}
-                          title={org.name}
-                          className="athletes-card-org-icon"
-                        >
+                        <div key={org.id} title={org.name} className="athletes-card-org-icon">
                           <ProfileAvatar
                             src={
                               org.hasPhoto
@@ -655,10 +638,7 @@ export const AthletesPage: React.FC = () => {
                     <div className="athletes-card-categories-row">
                       {athlete.categories && athlete.categories.length > 0 ? (
                         athlete.categories.map((c) => (
-                          <span
-                            key={c.id}
-                            className="badge badge-info athletes-category-badge"
-                          >
+                          <span key={c.id} className="badge badge-info athletes-category-badge">
                             <span>{c.name}</span>
                           </span>
                         ))
@@ -805,15 +785,9 @@ export const AthletesPage: React.FC = () => {
           className="athletes-modal-backdrop"
           onClick={() => setManagingAthlete(null)}
         >
-          <div
-            className="card athletes-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="card athletes-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="athletes-modal-header">
-              <h2
-                id="modal-categories-title"
-                className="athletes-modal-title"
-              >
+              <h2 id="modal-categories-title" className="athletes-modal-title">
                 Categorías de {managingAthlete.fullName}
               </h2>
               <button
