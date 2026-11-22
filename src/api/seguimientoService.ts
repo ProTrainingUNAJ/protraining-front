@@ -234,7 +234,7 @@ const OFFICIAL_MUSCLE_IDS = new Set<string>([
 ]);
 
 // painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3", nivel 6 = lesión activa).
-function parsePainZones(raw?: string | null): PainZoneReport[] {
+export function parsePainZones(raw?: string | null): PainZoneReport[] {
   if (!raw?.trim()) return [];
 
   return raw.split(',').flatMap((entry): PainZoneReport[] => {
@@ -255,13 +255,16 @@ function parsePainZones(raw?: string | null): PainZoneReport[] {
         : 0;
     if (level <= 0) return [];
 
-    const muscle = PROTRAINING_MUSCLES.find((item) => item.id === muscleId);
+    const muscle = PROTRAINING_MUSCLES.find(
+      (item) => item.id.toLowerCase() === muscleId.toLowerCase(),
+    );
 
     // el backend agrega las lesiones clínicas con el id heredado de la ficha
     // ("isquiotibiales"), que no es una región del SVG ("isquiotibial_derecho"). Si el id
     // no es oficial, lo resolvemos por nombre para que el mapa del PF pinte la lesión.
-    const resolvedMuscleId = OFFICIAL_MUSCLE_IDS.has(muscleId)
-      ? muscleId
+    const canonicalId = muscle?.id ?? muscleId;
+    const resolvedMuscleId = OFFICIAL_MUSCLE_IDS.has(canonicalId)
+      ? canonicalId
       : resolveMuscleId(muscle?.name ?? muscleId);
 
     return [{ zone: muscle?.name ?? muscleId, muscleId: resolvedMuscleId || undefined, level }];
