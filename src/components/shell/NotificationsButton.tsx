@@ -4,6 +4,7 @@ import { alertsService } from '../../api/alertsService';
 import { NoticeItem } from '../../types/alerts';
 import { useAuth } from '../../context/AuthContext';
 import { formatAlertReason } from '../../utils/painZoneReasonFormatter';
+import { DayAdjustmentModal } from '../monitoring/DayAdjustmentModal';
 
 export const NotificationsButton: React.FC = () => {
   const { user } = useAuth();
@@ -14,6 +15,8 @@ export const NotificationsButton: React.FC = () => {
   const [confirmedInfo, setConfirmedInfo] = useState<{ id: string; message: string } | null>(null);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
   const [loadError, setLoadError] = useState(false);
+  // Aviso de ajuste de rutina abierto en la propuesta del día (KAN-594)
+  const [adjustmentNotice, setAdjustmentNotice] = useState<NoticeItem | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +70,13 @@ export const NotificationsButton: React.FC = () => {
   // Manejo de la acción «Aplicar con 1 Clic» con háptica, confirmación visual verde y archivado persistente
   const handleApplyOneClick = async (notice: NoticeItem) => {
     if (processingId || confirmedInfo) return;
+
+    // El ajuste de rutina no se aplica a ciegas: se abre la propuesta del día para revisarla
+    // y aprobarla (mismo modal que en Seguimiento y en el Inicio, KAN-452 / KAN-594).
+    if (notice.actionType === 'routine_adjustment') {
+      setAdjustmentNotice(notice);
+      return;
+    }
 
     setProcessingId(notice.id);
     setErrorMap((prev) => {
@@ -267,6 +277,21 @@ export const NotificationsButton: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+      {adjustmentNotice && (
+        <DayAdjustmentModal
+          athleteId={adjustmentNotice.athleteId}
+          athleteName={adjustmentNotice.athleteName}
+          isOpen
+          onClose={() => setAdjustmentNotice(null)}
+          onAdjustmentApplied={(adjustment) => {
+            if (adjustment.status !== 'Approved') return;
+            const noticeId = adjustmentNotice.id;
+            setAlerts((prev) => prev.filter((item) => item.id !== noticeId));
+            // Si el archivado falla, el aviso vuelve a aparecer en la próxima carga
+            alertsService.archiveAlert(noticeId).catch(() => undefined);
+          }}
+        />
       )}
     </div>
   );
