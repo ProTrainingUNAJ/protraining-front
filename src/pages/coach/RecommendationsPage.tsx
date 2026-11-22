@@ -1,9 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Search, Sparkles, X } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  RefreshCw,
+  Salad,
+  Search,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
-import { HabitsRecommendationBar } from '../../components/recommendations/HabitsRecommendationBar';
+import {
+  HabitsRecommendationBar,
+  type HabitsAthleteOption,
+} from '../../components/recommendations/HabitsRecommendationBar';
 import {
   SegmentedFilterTabs,
   type SegmentedFilterOption,
@@ -16,6 +28,8 @@ import {
 import { capitalizeFirst } from '../../utils/recommendationFormat';
 import { structureService } from '../../api/structureService';
 import type { Athlete, Category, Organization } from '../../types/structure';
+
+type RecommendationsViewTab = 'analysis' | 'habits';
 
 type FeedbackState = {
   tone: 'success' | 'info' | 'error';
@@ -38,6 +52,7 @@ export function RecommendationsPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<RecommendationsViewTab>('analysis');
   const [statusTab, setStatusTab] = useState<RecommendationStatusFilter>('Pending');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,6 +152,10 @@ export function RecommendationsPage() {
     };
 
     for (const rec of recommendations) {
+      // Filtrar según la pestaña activa (Analizar plantel vs Hábitos y alimentación)
+      if (activeTab === 'habits' && rec.type !== 'Habits') continue;
+      if (activeTab === 'analysis' && rec.type === 'Habits') continue;
+
       if (selectedOrganizationId) {
         const orgId = rec.categoryId ? categoryOrgMap.get(rec.categoryId) : undefined;
         if (orgId !== selectedOrganizationId) continue;
@@ -147,12 +166,16 @@ export function RecommendationsPage() {
       }
     }
     return counts;
-  }, [recommendations, selectedOrganizationId, selectedCategoryFilter, categoryOrgMap]);
+  }, [recommendations, activeTab, selectedOrganizationId, selectedCategoryFilter, categoryOrgMap]);
 
   const filteredRecommendations = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return recommendations.filter((rec) => {
+      // Filtrar según la pestaña activa (Analizar plantel vs Hábitos y alimentación)
+      if (activeTab === 'habits' && rec.type !== 'Habits') return false;
+      if (activeTab === 'analysis' && rec.type === 'Habits') return false;
+
       if (rec.status !== statusTab) return false;
       if (selectedOrganizationId) {
         const orgId = rec.categoryId ? categoryOrgMap.get(rec.categoryId) : undefined;
@@ -172,6 +195,7 @@ export function RecommendationsPage() {
     });
   }, [
     recommendations,
+    activeTab,
     statusTab,
     selectedOrganizationId,
     selectedCategoryFilter,
@@ -256,11 +280,21 @@ export function RecommendationsPage() {
     setRecommendations((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
   };
 
-  // Atletas para pedir hábitos y alimentación (KAN-634), en orden alfabético.
-  const habitsAthleteOptions = useMemo(
+  // Atletas para pedir hábitos y alimentación (KAN-634 · KAN-654), en orden alfabético con foto y categorías.
+  const habitsAthleteOptions: HabitsAthleteOption[] = useMemo(
     () =>
       athletes
-        .map((athlete) => ({ id: athlete.id, name: getAthleteDisplayName(athlete.id) }))
+        .map((athlete) => ({
+          id: athlete.id,
+          name: getAthleteDisplayName(athlete.id),
+          photoUrl: athlete.hasPhoto
+            ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
+            : null,
+          categoryNames:
+            athlete.categoryNames && athlete.categoryNames.length > 0
+              ? athlete.categoryNames
+              : athlete.categories?.map((c) => c.name) || [],
+        }))
         .sort((a, b) => a.name.localeCompare(b.name, 'es')),
     [athletes, getAthleteDisplayName],
   );
@@ -313,6 +347,34 @@ export function RecommendationsPage() {
       <PageHeader
         title="Recomendaciones"
         description="Revisá, editá y aprobá las recomendaciones generadas para tus atletas antes de enviarlas a su app."
+        actions={
+          <div
+            className="recommendations-header-actions"
+            role="tablist"
+            aria-label="Vistas de recomendaciones"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'analysis'}
+              className={`btn recommendations-tab-btn ${activeTab === 'analysis' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setActiveTab('analysis')}
+            >
+              <Sparkles size={15} aria-hidden="true" />
+              <span>Analizar plantel</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'habits'}
+              className={`btn recommendations-tab-btn ${activeTab === 'habits' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setActiveTab('habits')}
+            >
+              <Salad size={15} aria-hidden="true" />
+              <span>Hábitos y alimentación</span>
+            </button>
+          </div>
+        }
       />
 
       <div className="app-page-body recommendations-page-body">
@@ -396,40 +458,45 @@ export function RecommendationsPage() {
           </div>
         </section>
 
-        {/* Bloque de Generación / Análisis de Plantel (Simétrico a la barra de Semáforo) */}
-        <div className="recommendations-engine-section">
-          <section
-            className="recommendations-engine-bar"
-            aria-label="Generar recomendaciones por categoría"
-          >
-            <Sparkles size={20} className="recommendations-engine-sparkle" aria-hidden="true" />
-            <strong className="recommendations-engine-title">
-              Analizar plantel y generar propuestas
-            </strong>
-
-            <button
-              type="button"
-              className="recommendations-engine-btn"
-              onClick={() => void handleRunCategoryEngine()}
-              disabled={analyzing || !targetCategoryForAnalysis}
-              aria-label={analysisBtnText}
+        {/* Bloque de Generación / Análisis de Plantel (Solo en pestaña 'analysis') */}
+        {activeTab === 'analysis' && (
+          <div className="recommendations-engine-section">
+            <section
+              className="recommendations-engine-bar"
+              aria-label="Generar recomendaciones por categoría"
             >
-              {analyzing && <Loader2 size={13} className="plan-spin" aria-hidden="true" />}
-              <span>{analysisBtnText}</span>
-            </button>
-          </section>
+              <Sparkles size={20} className="recommendations-engine-sparkle" aria-hidden="true" />
+              <strong className="recommendations-engine-title">
+                Analizar plantel y generar propuestas
+              </strong>
 
-          <p className="recommendations-engine-desc">
-            Compara tests físicos frente al promedio grupal y tendencias semanales. Todas las
-            propuestas nacen pendientes hasta tu aprobación.
-          </p>
-        </div>
+              <button
+                type="button"
+                className="recommendations-engine-btn"
+                onClick={() => void handleRunCategoryEngine()}
+                disabled={analyzing || !targetCategoryForAnalysis}
+                aria-label={analysisBtnText}
+              >
+                {analyzing && <Loader2 size={13} className="plan-spin" aria-hidden="true" />}
+                <span>{analysisBtnText}</span>
+              </button>
+            </section>
 
-        <HabitsRecommendationBar
-          athletes={habitsAthleteOptions}
-          onGenerated={handleHabitsGenerated}
-          onError={(message) => setFeedback({ tone: 'error', message })}
-        />
+            <p className="recommendations-engine-desc">
+              Compara tests físicos frente al promedio grupal y tendencias semanales. Todas las
+              propuestas nacen pendientes hasta tu aprobación.
+            </p>
+          </div>
+        )}
+
+        {/* Bloque de Hábitos y Alimentación (Solo en pestaña 'habits') */}
+        {activeTab === 'habits' && (
+          <HabitsRecommendationBar
+            athletes={habitsAthleteOptions}
+            onGenerated={handleHabitsGenerated}
+            onError={(message) => setFeedback({ tone: 'error', message })}
+          />
+        )}
 
         {/* Notificación de feedback flotante: no altera ni desplaza la estructura */}
         {feedback && (
@@ -491,20 +558,32 @@ export function RecommendationsPage() {
           />
         ) : groupedByAthlete.length === 0 ? (
           <EmptyState
-            icon={Sparkles}
+            icon={activeTab === 'habits' ? Salad : Sparkles}
             title={
-              statusTab === 'Pending'
-                ? 'No hay recomendaciones pendientes'
-                : statusTab === 'Approved'
-                  ? 'Todavía no aprobaste recomendaciones'
-                  : 'No hay recomendaciones descartadas'
+              activeTab === 'habits'
+                ? statusTab === 'Pending'
+                  ? 'No hay recomendaciones de hábitos pendientes'
+                  : statusTab === 'Approved'
+                    ? 'Todavía no aprobaste recomendaciones de hábitos'
+                    : 'No hay recomendaciones de hábitos descartadas'
+                : statusTab === 'Pending'
+                  ? 'No hay recomendaciones pendientes'
+                  : statusTab === 'Approved'
+                    ? 'Todavía no aprobaste recomendaciones'
+                    : 'No hay recomendaciones descartadas'
             }
             description={
-              statusTab === 'Pending'
-                ? 'Cuando el motor detecte brechas de rendimiento o tendencias relevantes en una categoría, vas a verlas acá para revisarlas y aprobarlas.'
-                : statusTab === 'Approved'
-                  ? 'Las recomendaciones que apruebes quedan registradas acá y se muestran automáticamente al atleta en su Inicio.'
-                  : 'Las recomendaciones que descartes se archivan acá y nunca llegan al atleta.'
+              activeTab === 'habits'
+                ? statusTab === 'Pending'
+                  ? 'Elegí un atleta en el selector superior para generar pautas de hábitos y alimentación personalizadas.'
+                  : statusTab === 'Approved'
+                    ? 'Las recomendaciones de hábitos que apruebes se muestran automáticamente al atleta en su Inicio con el aviso del nutricionista.'
+                    : 'Las recomendaciones de hábitos que descartes se archivan acá y nunca llegan al atleta.'
+                : statusTab === 'Pending'
+                  ? 'Cuando el motor detecte brechas de rendimiento o tendencias relevantes en una categoría, vas a verlas acá para revisarlas y aprobarlas.'
+                  : statusTab === 'Approved'
+                    ? 'Las recomendaciones que apruebes quedan registradas acá y se muestran automáticamente al atleta en su Inicio.'
+                    : 'Las recomendaciones que descartes se archivan acá y nunca llegan al atleta.'
             }
           />
         ) : (
