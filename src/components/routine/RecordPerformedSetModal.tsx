@@ -3,6 +3,7 @@ import { Trophy, Dumbbell, AlertCircle, CheckCircle2, X, Sparkles, Info } from '
 import type { TodayRoutineExercise } from '../../api/generated/entrenamiento';
 import { todayRoutineService } from '../../api/todayRoutine';
 import { calculateEpley } from '../../utils/epley';
+import './RecordPerformedSetModal.css';
 
 export interface RecordPerformedSetModalProps {
   exercise: TodayRoutineExercise;
@@ -107,18 +108,15 @@ export function RecordPerformedSetModal({
       <div className="routine-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Cabecera */}
         <div className="routine-modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <div
-              className="routine-exercise-icon-badge"
-              style={{ width: '38px', height: '38px', borderRadius: '10px' }}
-            >
+          <div className="routine-record-header-left">
+            <div className="routine-exercise-icon-badge routine-record-modal-icon">
               <Trophy size={18} />
             </div>
             <div>
               <h3 id="record-set-title" className="routine-modal-title">
                 Registrar lo que hice
               </h3>
-              <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <p className="routine-record-subtitle">
                 {exercise.name} {exercise.muscleGroup ? `· ${exercise.muscleGroup}` : ''}
               </p>
             </div>
@@ -135,7 +133,7 @@ export function RecordPerformedSetModal({
         </div>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+        <form onSubmit={handleSubmit} className="routine-record-form">
           <div className="routine-modal-body">
             {/* Prescripción de referencia */}
             <div className="routine-prescribed-ref-box">
@@ -218,10 +216,10 @@ export function RecordPerformedSetModal({
 
               {reps > 10 && (
                 <div className="routine-epley-warning">
-                  <Info size={17} style={{ flexShrink: 0 }} />
+                  <Info size={17} className="routine-record-icon" />
                   <div>
                     <strong>Más de 10 repeticiones</strong>
-                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem' }}>
+                    <p className="routine-record-note">
                       La fórmula de Epley pierde precisión con más de 10 repeticiones, por lo que no
                       se calcula 1RM estimado ni se generará propuesta de récord.
                     </p>
@@ -260,10 +258,10 @@ export function RecordPerformedSetModal({
                 >
                   {epley.isEligibleForProposal ? (
                     <>
-                      <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+                      <CheckCircle2 size={18} className="routine-record-icon" />
                       <div>
                         <strong>¡Supera tu récord vigente de {exercise.current1RmKg} kg!</strong>
-                        <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem' }}>
+                        <p className="routine-record-note">
                           Se creará una propuesta pendiente de{' '}
                           <strong>{epley.proposedWeight} kg</strong> para tu preparador físico. Tu
                           récord vigente no se modificará hasta que el PF lo apruebe.
@@ -272,7 +270,7 @@ export function RecordPerformedSetModal({
                     </>
                   ) : exercise.current1RmKg ? (
                     <>
-                      <Info size={18} style={{ flexShrink: 0 }} />
+                      <Info size={18} className="routine-record-icon" />
                       <div>
                         <span>
                           Tu récord vigente es de <strong>{exercise.current1RmKg} kg</strong>. La
@@ -283,7 +281,7 @@ export function RecordPerformedSetModal({
                     </>
                   ) : (
                     <>
-                      <Info size={18} style={{ flexShrink: 0 }} />
+                      <Info size={18} className="routine-record-icon" />
                       <div>
                         <span>
                           Sin récord vigente previo. El primer récord lo registra tu preparador
@@ -298,20 +296,8 @@ export function RecordPerformedSetModal({
 
             {/* Mensaje de error de la API si lo hay */}
             {errorMessage && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.85rem 1rem',
-                  borderRadius: '12px',
-                  background: 'var(--danger-bg)',
-                  border: '1px solid var(--danger-border)',
-                  color: 'var(--danger-text)',
-                  fontSize: '0.86rem',
-                }}
-              >
-                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <div className="routine-record-error">
+                <AlertCircle size={18} className="routine-record-icon" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -330,22 +316,12 @@ export function RecordPerformedSetModal({
 
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-primary routine-record-submit"
               disabled={isSubmitting || weight <= 0 || reps < 1}
-              style={{ gap: '0.45rem' }}
             >
               {isSubmitting ? (
                 <>
-                  <div
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '50%',
-                      border: '2px solid var(--on-primary)',
-                      borderTopColor: 'transparent',
-                      animation: 'spin 0.6s linear infinite',
-                    }}
-                  />
+                  <div className="routine-record-spinner" />
                   <span>Guardando...</span>
                 </>
               ) : (

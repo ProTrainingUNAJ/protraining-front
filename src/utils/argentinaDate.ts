@@ -7,6 +7,16 @@ export function todayInArgentina(): string {
   return dateInArgentina(new Date());
 }
 
+// Hora actual en Argentina con formato HH:mm (24 h).
+export function nowTimeInArgentina(): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: ARGENTINA_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(new Date());
+}
+
 // Fecha (AAAA-MM-DD) de un instante en Argentina. Útil para derivar el día original
 // de un check-in guardado sin conexión a partir de su timestamp UTC (KAN-149).
 export function dateInArgentina(value: string | Date): string {

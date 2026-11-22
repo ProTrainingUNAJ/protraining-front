@@ -107,9 +107,9 @@ describe('AthleteTrafficLightCard (KAN-621)', () => {
     );
     const cardElement = container.firstChild as HTMLElement;
 
-    expect(cardElement.style.display).toBe('flex');
-    expect(cardElement.style.flexDirection).toBe('column');
-    expect(cardElement.style.gap).toBe('0.65rem');
+    // KAN-582: el layout vive en la clase .monitoring-tl-card (MonitoringPage.css
+    // / AthleteTrafficLightCard.css), no más en estilos inline.
+    expect(cardElement.className).toContain('monitoring-tl-card');
     expect(cardElement.style.justifyContent).not.toBe('space-between');
     expect(cardElement.style.height).not.toBe('100%');
   });

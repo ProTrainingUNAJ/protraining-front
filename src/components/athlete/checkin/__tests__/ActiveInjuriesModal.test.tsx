@@ -32,9 +32,9 @@ describe('ActiveInjuriesModal', () => {
     );
 
     expect(screen.getByRole('dialog')).toBeDefined();
-    expect(screen.getByText(/Molestias activas/i)).toBeDefined();
+    expect(screen.getByText(/Lesiones activas/i)).toBeDefined();
     expect(screen.getByText(/isquiotibiales — Distensión grado 1/i)).toBeDefined();
-    expect(screen.getByText(/Molestia 1 de 2/i)).toBeDefined();
+    expect(screen.getByText(/Lesión 1 de 2/i)).toBeDefined();
   });
 
   it('does not render when isOpen is false', () => {
@@ -68,15 +68,38 @@ describe('ActiveInjuriesModal', () => {
       />,
     );
 
-    const nextBtn = screen.getByRole('button', { name: /Siguiente molestia/i });
+    const nextBtn = screen.getByRole('button', { name: /Siguiente lesión/i });
     fireEvent.click(nextBtn);
 
     expect(screen.getByText(/cuádriceps — Sobrecarga muscular/i)).toBeDefined();
-    expect(screen.getByText(/Molestia 2 de 2/i)).toBeDefined();
+    expect(screen.getByText(/Lesión 2 de 2/i)).toBeDefined();
 
-    const finishBtn = screen.getByRole('button', { name: /Confirmar molestia/i });
+    const finishBtn = screen.getByRole('button', { name: /Confirmar lesión/i });
     fireEvent.click(finishBtn);
 
+    expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  // el 0 es una respuesta explícita, no un valor por defecto disfrazado.
+  it('does not auto-assign a score of 0 when confirming without touching the slider', () => {
+    const handleScoreChange = vi.fn();
+    const handleClose = vi.fn();
+
+    render(
+      <ActiveInjuriesModal
+        isOpen={true}
+        onClose={handleClose}
+        activeInjuries={[injuries[0]]}
+        injuryScores={{}}
+        onScoreChange={handleScoreChange}
+      />,
+    );
+
+    expect(screen.getByText(/Deslizá la barra para puntuar esta lesión/i)).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar lesión/i }));
+
+    expect(handleScoreChange).not.toHaveBeenCalled();
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 });

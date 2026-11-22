@@ -31,6 +31,7 @@ import { AthleteMetricsModal } from '../../components/athletes/AthleteMetricsMod
 import { AthleteHealthModal } from '../../components/athletes/AthleteHealthModal';
 import { AthleteSettingsModal } from '../../components/athletes/AthleteSettingsModal';
 import { MedicalRecord } from '../../types/medicalRecord';
+import './AthletesPage.css';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -357,20 +358,14 @@ export const AthletesPage: React.FC = () => {
       <div className="app-page-body">
         {/* Alertas */}
         {successMessage && (
-          <div className="alert-banner success" role="alert" style={{ marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="alert-banner success athletes-error-banner" role="alert">
+            <div className="athletes-error-content">
               <Check size={18} aria-hidden="true" />
               <span>{successMessage}</span>
             </div>
             <button
               type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: 'inherit',
-              }}
+              className="athletes-error-close-btn"
               onClick={() => setSuccessMessage(null)}
               aria-label="Cerrar aviso"
             >
@@ -380,20 +375,14 @@ export const AthletesPage: React.FC = () => {
         )}
 
         {error && (
-          <div className="alert-banner danger" role="alert" style={{ marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="alert-banner danger athletes-error-banner" role="alert">
+            <div className="athletes-error-content">
               <AlertCircle size={18} aria-hidden="true" />
               <span>{error}</span>
             </div>
             <button
               type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: 'inherit',
-              }}
+              className="athletes-error-close-btn"
               onClick={() => setError(null)}
               aria-label="Cerrar error"
             >
@@ -404,47 +393,16 @@ export const AthletesPage: React.FC = () => {
 
         {/* Formulario de Alta de Atleta */}
         {showForm && (
-          <div
-            className="card"
-            style={{
-              marginBottom: '1.5rem',
-              border: '1.5px solid var(--secondary)',
-              background: 'var(--bg-card)',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.15rem',
-                fontWeight: 700,
-                marginBottom: '0.25rem',
-                color: 'var(--primary)',
-              }}
-            >
-              Alta de Atleta en el Plantel
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+          <div className="card athletes-create-card">
+            <h2 className="athletes-create-title">Alta de Atleta en el Plantel</h2>
+            <p className="athletes-create-desc">
               Ingresá los datos personales y asigná las divisiones iniciales del deportista.
             </p>
 
             <form onSubmit={handleCreateAthlete}>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                }}
-              >
+              <div className="athletes-form-grid">
                 <div>
-                  <label
-                    htmlFor="ath-first"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
+                  <label htmlFor="ath-first" className="athletes-form-label">
                     Nombre *
                   </label>
                   <input
@@ -460,15 +418,7 @@ export const AthletesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="ath-last"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
+                  <label htmlFor="ath-last" className="athletes-form-label">
                     Apellido *
                   </label>
                   <input
@@ -484,15 +434,7 @@ export const AthletesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="ath-email"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
+                  <label htmlFor="ath-email" className="athletes-form-label">
                     Correo Electrónico *
                   </label>
                   <input
@@ -507,15 +449,7 @@ export const AthletesPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="ath-phone"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
+                  <label htmlFor="ath-phone" className="athletes-form-label">
                     Teléfono
                   </label>
                   <input
@@ -529,16 +463,8 @@ export const AthletesPage: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label
-                  htmlFor="ath-emergency"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
+              <div className="athletes-form-group">
+                <label htmlFor="ath-emergency" className="athletes-form-label">
                   Contacto de Emergencia
                 </label>
                 <input
@@ -552,36 +478,16 @@ export const AthletesPage: React.FC = () => {
               </div>
 
               {categories.length > 0 && (
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Asignar a Categorías Iniciales
-                  </span>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div className="athletes-form-group">
+                  <span className="athletes-form-label">Asignar a Categorías Iniciales</span>
+                  <div className="athletes-chips-row">
                     {categories.map((cat) => {
                       const isSelected = selectedNewAthleteCategories.includes(cat.id);
                       return (
                         <button
                           key={cat.id}
                           type="button"
-                          style={{
-                            padding: '0.35rem 0.75rem',
-                            borderRadius: '20px',
-                            border: isSelected
-                              ? '1.5px solid var(--secondary)'
-                              : '1px solid var(--border)',
-                            background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
-                            color: isSelected ? 'var(--secondary)' : 'var(--text-main)',
-                            fontWeight: 600,
-                            fontSize: '0.8rem',
-                            cursor: 'pointer',
-                          }}
+                          className={`athletes-category-chip${isSelected ? ' is-selected' : ''}`}
                           onClick={() => {
                             setSelectedNewAthleteCategories((prev) =>
                               isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
@@ -601,7 +507,7 @@ export const AthletesPage: React.FC = () => {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <div className="athletes-form-actions">
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -623,49 +529,21 @@ export const AthletesPage: React.FC = () => {
         )}
 
         {/* Barra de Filtros y Búsqueda */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'center',
-            marginBottom: '1.25rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
-            <Search
-              size={16}
-              style={{
-                position: 'absolute',
-                left: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-              aria-hidden="true"
-            />
+        <div className="athletes-filter-bar">
+          <div className="athletes-search-wrapper">
+            <Search size={16} className="athletes-search-icon" aria-hidden="true" />
             <input
               type="search"
               placeholder="Buscar por nombre, email o teléfono…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: '100%', margin: 0, paddingLeft: '2.25rem' }}
+              className="athletes-search-input"
             />
           </div>
 
           {categories.length > 0 && (
             <select
-              style={{
-                width: 'auto',
-                minWidth: '200px',
-                margin: 0,
-                padding: '0.5rem 0.75rem',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-card)',
-                color: 'var(--text-main)',
-                fontWeight: 500,
-              }}
+              className="athletes-category-select select-field"
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               aria-label="Filtrar por categoría"
@@ -682,38 +560,18 @@ export const AthletesPage: React.FC = () => {
 
         {/* Estados de Carga y Vacío */}
         {loading ? (
-          <div
-            className="card"
-            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
-          >
-            <p style={{ margin: 0, fontWeight: 500 }}>Cargando atletas del plantel…</p>
+          <div className="card athletes-empty-card">
+            <p className="athletes-loading-text">Cargando atletas del plantel…</p>
           </div>
         ) : filteredAthletes.length === 0 ? (
-          <div
-            className="card"
-            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
-          >
-            <Users size={44} style={{ margin: '0 auto 1rem', opacity: 0.35 }} aria-hidden="true" />
-            <h2
-              style={{
-                fontWeight: 700,
-                fontSize: '1.2rem',
-                marginBottom: '0.5rem',
-                color: 'var(--text-main)',
-              }}
-            >
+          <div className="card athletes-empty-card">
+            <Users size={44} className="athletes-empty-icon" aria-hidden="true" />
+            <h2 className="athletes-empty-title">
               {searchTerm || selectedCategoryId
                 ? 'No se encontraron atletas con los filtros aplicados'
                 : 'No hay atletas registrados en el plantel'}
             </h2>
-            <p
-              style={{
-                fontSize: '0.9rem',
-                marginBottom: '1.5rem',
-                maxWidth: '420px',
-                marginInline: 'auto',
-              }}
-            >
+            <p className="athletes-empty-desc">
               {searchTerm || selectedCategoryId
                 ? 'Prueba modificando el término de búsqueda o seleccionando otra división.'
                 : 'Empezá dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
@@ -726,22 +584,10 @@ export const AthletesPage: React.FC = () => {
             )}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="athletes-list">
             {filteredAthletes.map((athlete) => (
-              <div
-                key={athlete.id}
-                className="card"
-                style={{
-                  margin: 0,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '1rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div key={athlete.id} className="card athletes-card">
+                <div className="athletes-card-info-wrap">
                   <ProfileAvatar
                     src={
                       athlete.hasPhoto
@@ -753,36 +599,12 @@ export const AthletesPage: React.FC = () => {
                   />
 
                   <div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <h2
-                        style={{
-                          fontSize: '1.1rem',
-                          fontWeight: 700,
-                          color: 'var(--text-main)',
-                          margin: 0,
-                        }}
-                      >
-                        {athlete.fullName}
-                      </h2>
+                    <div className="athletes-card-header-row">
+                      <h2 className="athletes-card-name">{athlete.fullName}</h2>
                       {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
                       {athlete.active && <span className="badge badge-success">Activo</span>}
                       {getAthleteOrganizations(athlete).map((org) => (
-                        <div
-                          key={org.id}
-                          title={org.name}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            cursor: 'default',
-                          }}
-                        >
+                        <div key={org.id} title={org.name} className="athletes-card-org-icon">
                           <ProfileAvatar
                             src={
                               org.hasPhoto
@@ -801,16 +623,7 @@ export const AthletesPage: React.FC = () => {
                       ))}
                     </div>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.85rem',
-                        marginTop: '0.35rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div className="athletes-card-meta-row">
                       <span>{athlete.email}</span>
                       {athlete.phone && <span>Tel: {athlete.phone}</span>}
                       {athlete.emergencyContact && (
@@ -819,25 +632,10 @@ export const AthletesPage: React.FC = () => {
                     </div>
 
                     {/* Categorías asignadas */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '0.4rem',
-                        marginTop: '0.5rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div className="athletes-card-categories-row">
                       {athlete.categories && athlete.categories.length > 0 ? (
                         athlete.categories.map((c) => (
-                          <span
-                            key={c.id}
-                            className="badge badge-info"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              padding: '0.25rem 0.55rem',
-                            }}
-                          >
+                          <span key={c.id} className="badge badge-info athletes-category-badge">
                             <span>{c.name}</span>
                           </span>
                         ))
@@ -848,13 +646,7 @@ export const AthletesPage: React.FC = () => {
                           </span>
                         ))
                       ) : (
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            color: 'var(--text-muted)',
-                            fontStyle: 'italic',
-                          }}
-                        >
+                        <span className="athletes-no-categories-text">
                           Sin categorías asignadas
                         </span>
                       )}
@@ -863,13 +655,10 @@ export const AthletesPage: React.FC = () => {
                 </div>
 
                 {/* 4 Acciones Semánticas Estandarizadas */}
-                <div
-                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}
-                >
+                <div className="athletes-card-actions">
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    className="btn btn-secondary athletes-action-btn"
                     onClick={() => setManagingAthlete(athlete)}
                     title="Gestionar categorías asignadas (N:N)"
                   >
@@ -878,8 +667,7 @@ export const AthletesPage: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    className="btn btn-secondary athletes-action-btn"
                     onClick={() => setMetricsAthlete(athlete)}
                     title="Consultar Récords, Evolución y Benchmark del atleta"
                     data-testid={`metrics-btn-${athlete.id}`}
@@ -889,8 +677,7 @@ export const AthletesPage: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    className="btn btn-secondary athletes-action-btn"
                     onClick={() => setHealthAthlete(athlete)}
                     title="Consultar Historial de Lesiones y Ficha Médica"
                     data-testid={`health-btn-${athlete.id}`}
@@ -900,8 +687,7 @@ export const AthletesPage: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                    className="btn btn-secondary athletes-action-btn"
                     onClick={() => setSettingsAthlete(athlete)}
                     title="Foto de perfil, cambiar clave, cambiar mail y deshabilitar usuario"
                     data-testid={`settings-btn-${athlete.id}`}
@@ -993,47 +779,12 @@ export const AthletesPage: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-categories-title"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'var(--overlay)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-          }}
+          className="athletes-modal-backdrop"
           onClick={() => setManagingAthlete(null)}
         >
-          <div
-            className="card"
-            style={{
-              width: '100%',
-              maxWidth: '480px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              margin: 0,
-              padding: '1.5rem',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.75rem',
-              }}
-            >
-              <h2
-                id="modal-categories-title"
-                style={{
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                  margin: 0,
-                  color: 'var(--text-main)',
-                }}
-              >
+          <div className="card athletes-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="athletes-modal-header">
+              <h2 id="modal-categories-title" className="athletes-modal-title">
                 Categorías de {managingAthlete.fullName}
               </h2>
               <button
@@ -1046,17 +797,17 @@ export const AthletesPage: React.FC = () => {
               </button>
             </div>
 
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+            <p className="athletes-modal-desc">
               Un atleta puede competir en múltiples divisiones simultáneamente. Tocá para asociar o
               desvincular.
             </p>
 
             {categories.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
+              <div className="athletes-modal-empty">
                 No hay categorías disponibles registradas en el sistema.
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div className="athletes-modal-categories-list">
                 {categories.map((cat) => {
                   const isAssigned = managingAthlete.categories?.some((c) => c.id === cat.id);
                   return (
@@ -1064,27 +815,12 @@ export const AthletesPage: React.FC = () => {
                       key={cat.id}
                       type="button"
                       disabled={updatingCategory}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '8px',
-                        border: isAssigned
-                          ? '1.5px solid var(--secondary)'
-                          : '1px solid var(--border)',
-                        background: isAssigned ? 'var(--primary-light)' : 'var(--bg-card)',
-                        color: 'var(--text-main)',
-                        cursor: updatingCategory ? 'wait' : 'pointer',
-                        textAlign: 'left',
-                        width: '100%',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className={`athletes-modal-category-btn${isAssigned ? ' is-assigned' : ''}`}
                       onClick={() => toggleCategoryAssignment(cat)}
                     >
-                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{cat.name}</span>
+                      <span className="athletes-modal-category-name">{cat.name}</span>
                       {isAssigned ? (
-                        <span className="badge badge-success" style={{ gap: '0.25rem' }}>
+                        <span className="badge badge-success athletes-modal-category-badge">
                           <Check size={12} aria-hidden="true" /> Asignada
                         </span>
                       ) : (
@@ -1096,7 +832,7 @@ export const AthletesPage: React.FC = () => {
               </div>
             )}
 
-            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+            <div className="athletes-modal-footer">
               <button
                 type="button"
                 className="btn btn-primary"

@@ -901,9 +901,10 @@ export const OrganizationsPage: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              className="structure-btn-pill"
+                              className="structure-btn-pill statistics"
                               onClick={() => navigate(`/pf/statistics?catId=${cat.id}`)}
                               title="Ver presentismo, lesiones y carga de esta categoría"
+                              aria-label={`Estadísticas de ${cat.name}`}
                             >
                               <BarChart3 size={14} aria-hidden="true" />
                               <span>Estadísticas</span>

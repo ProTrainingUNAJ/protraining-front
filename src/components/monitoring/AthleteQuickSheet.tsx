@@ -943,21 +943,11 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
             {mode === 'semaforo' && athlete.hasDayConflict && (
               <button
                 type="button"
-                className="btn btn-warning"
+                className="btn btn-warning day-adjustment-trigger-sheet"
                 data-testid="quick-sheet-btn-day-adjustment"
                 onClick={() => {
                   onOpenAdjustment?.(athlete);
                   onClose();
-                }}
-                style={{
-                  flex: 1,
-                  padding: '0.6rem 1rem',
-                  fontSize: '0.82rem',
-                  fontWeight: 800,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
                 }}
               >
                 <Sparkles size={15} />

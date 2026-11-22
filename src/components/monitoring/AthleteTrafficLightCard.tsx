@@ -6,6 +6,7 @@ import { AthleteContactActions } from './AthleteContactActions';
 import { MuscleMapFront } from '../athlete/MuscleMapFront';
 import { MuscleMapBack } from '../athlete/MuscleMapBack';
 import { resolveMuscleId } from '../../utils/painMuscleResolver';
+import './AthleteTrafficLightCard.css';
 
 /**
  * Tarjeta del atleta en MonitoringPage (KAN-365/KAN-366/KAN-621): adaptada al DTO real
@@ -92,23 +93,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
   return (
     <div
       onClick={onClick}
-      className={`card athlete-traffic-light-card ${className}`}
-      style={{
-        margin: 0,
-        padding: '1.15rem',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.65rem',
-        minHeight: '200px',
-        boxSizing: 'border-box',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
-        border: '1px solid var(--border)',
-        borderRadius: '24px',
-        background: 'var(--bg-card)',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
-        position: 'relative',
-      }}
+      className={`card athlete-traffic-light-card monitoring-tl-card ${className}`}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -120,15 +105,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       aria-label={`Ver ficha rápida de ${athlete.name}, estado ${badgeLabel}`}
     >
       {/* 1. Sección superior: Avatar, Nombre + Categoría (limpio, sin botón de asistencia - Imagen 1) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.65rem',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
+      <div className="tl-card-head">
         {/* Componente preparado para foto de perfil con iluminación concéntrica del semáforo */}
         <AthleteAvatar
           name={athlete.name}
@@ -140,72 +117,25 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
         />
 
         {/* Datos principales: Nombre y Subtítulo */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 0,
-            flex: 1,
-          }}
-        >
-          <h4
-            style={{
-              margin: 0,
-              fontSize: '0.92rem',
-              fontWeight: 800,
-              color: 'var(--text-main)',
-              lineHeight: 1.25,
-              wordBreak: 'normal',
-              overflowWrap: 'anywhere',
-              whiteSpace: 'normal',
-            }}
-            title={athlete.name}
-          >
+        <div className="tl-card-names">
+          <h4 className="tl-card-name" title={athlete.name}>
             {athlete.name}
           </h4>
 
-          <p
-            style={{
-              margin: '2px 0 0',
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-              lineHeight: 1.25,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-            title={subtitle}
-          >
+          <p className="tl-card-subtitle" title={subtitle}>
             {subtitle}
           </p>
         </div>
       </div>
 
       {/* 2. Sección intermedia: Badge (músculo/estado) y Métricas (Dolor, Sueño, RPE) con altura fija */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.5rem',
-          height: '32px',
-          minHeight: '32px',
-          boxSizing: 'border-box',
-        }}
-      >
+      <div className="tl-card-metrics">
         <span
-          className="badge"
+          className="badge tl-card-badge"
           style={{
-            fontSize: '0.72rem',
-            fontWeight: 700,
             background: colors.bg,
             color: colors.text,
             border: `1px solid ${colors.border}`,
-            borderRadius: '9999px',
-            padding: '0.2rem 0.6rem',
-            letterSpacing: '0.01em',
-            whiteSpace: 'nowrap',
           }}
         >
           {badgeLabel}
@@ -213,28 +143,10 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
         {/* Indicadores rápidos de métricas */}
         {athlete.status !== 'gray' ? (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              gap: '0.65rem',
-              fontSize: '0.78rem',
-              color: 'var(--text-secondary)',
-              marginLeft: 'auto',
-            }}
-          >
+          <div className="tl-card-indicators">
             {athlete.hasActiveInjury && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem',
-                  fontWeight: 700,
-                  color: 'var(--traffic-red-text)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
+                className="tl-card-indicator tl-card-indicator--injury"
                 title="Lesión activa reportada en el check-in de hoy"
                 aria-label="Lesión activa"
               >
@@ -244,15 +156,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
             {athlete.isSick && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem',
-                  fontWeight: 700,
-                  color: 'var(--warning-text)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
+                className="tl-card-indicator tl-card-indicator--sick"
                 title="Reportó enfermedad en el check-in de hoy"
                 aria-label="Enfermo"
               >
@@ -262,14 +166,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
             {maxPainLevel > 0 && (
               <span
+                className="tl-card-indicator"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem',
-                  fontWeight: 700,
                   color: maxPainLevel >= 4 ? 'var(--danger-text)' : 'var(--warning-text)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
                 }}
                 title={`Dolor máximo nivel ${maxPainLevel}/5`}
               >
@@ -279,15 +178,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
             {athlete.sleepHours !== undefined && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem',
-                  color: 'var(--text-muted)',
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
+                className="tl-card-indicator tl-card-indicator--sleep"
                 title={`${athlete.sleepHours} hs de sueño`}
               >
                 <Moon size={14} /> {athlete.sleepHours}h
@@ -296,14 +187,9 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
 
             {athlete.rpe !== undefined && athlete.rpe > 0 && (
               <span
+                className="tl-card-indicator"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem',
-                  fontWeight: 700,
                   color: athlete.rpe >= 8 ? 'var(--danger-text)' : 'var(--info-text)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
                 }}
                 title={`RPE de la última sesión: ${athlete.rpe}`}
               >
@@ -312,36 +198,18 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             )}
           </div>
         ) : (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--text-muted)',
-              fontStyle: 'italic',
-              fontWeight: 600,
-            }}
-          >
-            Pendiente
-          </span>
+          <span className="tl-card-pending">Pendiente</span>
         )}
       </div>
 
       {/* 2.5 Sección central: Siluetas anatómicas (frente y dorso) del reporte del día (KAN-621) */}
       <div
-        className="athlete-card-muscle-map"
+        className="athlete-card-muscle-map monitoring-tl-muscle-map"
         aria-label={`Mapa anatómico de ${athlete.name}`}
         role="img"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.65rem',
-          height: '115px',
-          width: '100%',
-          overflow: 'hidden',
-          opacity: athlete.status === 'gray' ? 0.7 : 1,
-        }}
+        style={{ opacity: athlete.status === 'gray' ? 0.7 : 1 }}
       >
-        <div className="athlete-card-muscle-silhouette" style={{ width: '58px', height: '115px' }}>
+        <div className="athlete-card-muscle-silhouette">
           <MuscleMapFront
             readOnly={true}
             hideHeader={true}
@@ -349,7 +217,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             musclePains={musclePains}
           />
         </div>
-        <div className="athlete-card-muscle-silhouette" style={{ width: '58px', height: '115px' }}>
+        <div className="athlete-card-muscle-silhouette">
           <MuscleMapBack
             readOnly={true}
             hideHeader={true}
@@ -360,49 +228,17 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
       </div>
 
       {/* 3. Sección inferior: Estado/Recomendación con burbuja completa estandarizada (Imagen 1) */}
-      <div
-        style={{
-          border: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.65rem',
-          borderRadius: '12px',
-          padding: '0.5rem 0.65rem',
-          height: '54px',
-          boxSizing: 'border-box',
-          background: 'transparent',
-        }}
-      >
-        {/* Barra vertical de separación en color con altura fija de 32px */}
-        <div
-          style={{
-            width: '4px',
-            height: '32px',
-            borderRadius: '4px',
-            backgroundColor: colors.ring,
-            flexShrink: 0,
-          }}
-        />
+      <div className="tl-card-status-bubble">
+        {/* Barra vertical de separación en color con altura fija de 32px.
+            El color depende del estado del semáforo y queda inline con tokens. */}
+        <div className="tl-card-status-bar" style={{ backgroundColor: colors.ring }} />
 
         {/* Bloque de dos líneas: Título de estado/recomendación + Subtítulo estandarizado */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 0,
-            flex: 1,
-          }}
-        >
+        <div className="tl-card-status-text">
           <p
+            className="tl-card-status-title"
             style={{
-              margin: 0,
-              fontSize: '0.78rem',
-              fontWeight: 700,
               color: athlete.status === 'gray' ? 'var(--text-muted)' : 'var(--text-main)',
-              lineHeight: 1.25,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
             }}
             title={
               athlete.status === 'gray'
@@ -414,35 +250,18 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
               ? 'Sin Check in completado hoy'
               : athlete.recommendation || 'Apto para completar el 100% de la carga planificada.'}
           </p>
-          <span
-            style={{
-              fontSize: '0.7rem',
-              color: 'var(--text-muted)',
-              marginTop: '2px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            Tocar tarjeta para ver detalle y actividades
-          </span>
+          <span className="tl-card-status-hint">Tocar tarjeta para ver detalle y actividades</span>
         </div>
       </div>
 
       {/* 4. Pie de tarjeta anclado simétricamente con marginTop auto (KAN-639) */}
-      <div
-        style={{
-          marginTop: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.55rem',
-          width: '100%',
-        }}
-      >
+      <div className="tl-card-footer">
+        {/* KAN-582 y KAN-574 migraron este mismo botón a clases con propiedades
+            idénticas: se conservan ambas para respetar las dos migraciones. */}
         {athlete.hasDayConflict && (
           <button
             type="button"
-            className="btn btn-warning"
+            className="btn btn-warning tl-card-adjust-btn day-adjustment-trigger-card"
             data-testid={`btn-day-adjustment-${athlete.id}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -452,13 +271,6 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
                 onClick();
               }
             }}
-            style={{
-              width: '100%',
-              padding: '0.45rem 0.6rem',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              borderRadius: '8px',
-            }}
             title="Ver ajuste sugerido ante conflicto de dolor"
           >
             <Sparkles size={14} aria-hidden="true" />
@@ -466,12 +278,7 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
           </button>
         )}
 
-        <div
-          style={{
-            paddingTop: '0.55rem',
-            borderTop: '1px solid var(--border)',
-          }}
-        >
+        <div className="tl-card-contact">
           <AthleteContactActions athlete={athlete} compact />
         </div>
       </div>

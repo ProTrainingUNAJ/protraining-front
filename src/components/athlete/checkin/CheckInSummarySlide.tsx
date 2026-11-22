@@ -11,7 +11,13 @@ import {
   Check,
 } from 'lucide-react';
 import { PROTRAINING_MUSCLES, PAIN_LEVELS, getPainColor } from '../bodyMuscleData';
-import { getFatigueLabel, getSorenessLabel, getSleepHoursLabel } from './checkInHelper';
+import {
+  getFatigueLabel,
+  getReportedZones,
+  getSorenessLabel,
+  getSleepHoursLabel,
+} from './checkInHelper';
+import { ActiveInjuryItem } from './ActiveInjuriesModal';
 
 export interface CheckInSummarySlideProps {
   sleepHours: number | null;
@@ -23,6 +29,8 @@ export interface CheckInSummarySlideProps {
   isSick: boolean;
   hasActiveInjury: boolean;
   musclePains: Record<string, number>;
+  activeInjuries?: ReadonlyArray<ActiveInjuryItem>;
+  injuryScores?: Record<string, number | null>;
   notes: string;
   onNotesChange: (val: string) => void;
   onEditStep: (step: number) => void;
@@ -266,6 +274,8 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   isSick,
   hasActiveInjury,
   musclePains,
+  activeInjuries = [],
+  injuryScores = {},
   notes,
   onNotesChange,
   onEditStep,
@@ -273,15 +283,17 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   onSubmit,
   isSubmitting,
 }) => {
-  const reportedPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
-  const reportedCount = reportedPains.length;
+  // la ficha clínica manda; una lesión activa no puede ocultarse respondiendo "No".
+  const effectiveHasActiveInjury = hasActiveInjury || activeInjuries.length > 0;
+  const reportedZones = getReportedZones(musclePains, activeInjuries, injuryScores);
+  const reportedCount = reportedZones.length;
 
   const activeMood = MOOD_CONFIGS[moodRate] || MOOD_CONFIGS[3];
 
   const getHealthInjurySummary = () => {
-    if (!isSick && !hasActiveInjury) return 'Salud normal · Sin lesión';
-    if (isSick && !hasActiveInjury) return 'Con síntomas de enfermedad';
-    if (!isSick && hasActiveInjury) return 'Lesión activa reportada';
+    if (!isSick && !effectiveHasActiveInjury) return 'Salud normal · Sin lesión';
+    if (isSick && !effectiveHasActiveInjury) return 'Con síntomas de enfermedad';
+    if (!isSick && effectiveHasActiveInjury) return 'Lesión activa reportada';
     return 'Con síntomas y lesión activa';
   };
 
@@ -292,7 +304,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   const painZonesColor =
     reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
   const healthInjuryColor =
-    isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
+    isSick || effectiveHasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -681,7 +693,9 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     className="checkin-summary-item-val"
                     style={{
                       color:
-                        isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--traffic-green)',
+                        isSick || effectiveHasActiveInjury
+                          ? 'var(--traffic-red)'
+                          : 'var(--traffic-green)',
                     }}
                   >
                     {getHealthInjurySummary()}
@@ -711,7 +725,7 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                     color: 'var(--checkin-title-color)',
                   }}
                 >
-                  Detalle de molestias musculares ({reportedCount}):
+                  Detalle de zonas con dolor ({reportedCount}):
                 </span>
               </div>
               <div
@@ -725,14 +739,18 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                   alignItems: 'center',
                 }}
               >
-                {reportedPains.map(([mId, lvl], idx) => {
-                  const m = PROTRAINING_MUSCLES.find((x) => x.id === mId);
-                  const painInfo = PAIN_LEVELS.find((p) => p.level === lvl);
-                  const isInjury = lvl === 6;
-                  const painLabel = painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${lvl}`);
-                  const color = isInjury ? 'var(--traffic-red)' : getPainColor(lvl);
+                {reportedZones.map((reported, idx) => {
+                  const m = PROTRAINING_MUSCLES.find((x) => x.id === reported.zone);
+                  const isInjury = reported.level === 6;
+                  const painInfo = PAIN_LEVELS.find((p) => p.level === reported.level);
+                  const painLabel =
+                    painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${reported.level}`);
+                  const color = isInjury ? 'var(--traffic-red)' : getPainColor(reported.level);
                   return (
-                    <span key={mId} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <span
+                      key={reported.zone}
+                      style={{ display: 'inline-flex', alignItems: 'center' }}
+                    >
                       <span
                         style={{
                           width: '7px',
@@ -743,13 +761,12 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
                           flexShrink: 0,
                         }}
                       />
-                      <strong>{m?.name || mId}:</strong>&nbsp;
-                      <span
-                        style={{ color: isInjury ? 'var(--traffic-red)' : color, fontWeight: 700 }}
-                      >
+                      <strong>{m?.name || reported.zone}:</strong>&nbsp;
+                      <span style={{ color, fontWeight: 700 }}>
                         {painLabel}
+                        {reported.score !== null ? ` · ${reported.score}/10` : ''}
                       </span>
-                      {idx < reportedPains.length - 1 && <span>,</span>}
+                      {idx < reportedZones.length - 1 && <span>,</span>}
                     </span>
                   );
                 })}

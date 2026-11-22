@@ -1,9 +1,12 @@
 import {
   getAthleteDayConflicts,
+  getCategoryDayConflicts,
   createAthleteDayAdjustment,
   approveDayAdjustment,
   rejectDayAdjustment,
   type DayConflictsResponse,
+  type CategoryDayConflictsResponse,
+  type CategoryAthleteDayConflict,
   type DayAdjustmentResponse,
   type ApproveDayAdjustmentRequest,
   type RejectDayAdjustmentRequest,
@@ -12,6 +15,8 @@ import { extractErrorMessage } from './axiosClient';
 
 export type {
   DayConflictsResponse,
+  CategoryDayConflictsResponse,
+  CategoryAthleteDayConflict,
   DayAdjustmentResponse,
   ApproveDayAdjustmentRequest,
   RejectDayAdjustmentRequest,
@@ -30,6 +35,22 @@ export const dayAdjustmentsService = {
     try {
       const { data } = await getAthleteDayConflicts({
         path: { athleteId },
+        throwOnError: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Detecta en una sola llamada qué atletas de una categoría tienen conflictos entre el dolor
+   * reportado hoy y su rutina de hoy, evitando consultas N+1 en el semáforo (KAN-574).
+   */
+  async getCategoryDayConflicts(categoryId: string): Promise<CategoryDayConflictsResponse> {
+    try {
+      const { data } = await getCategoryDayConflicts({
+        path: { categoryId },
         throwOnError: true,
       });
       return data;

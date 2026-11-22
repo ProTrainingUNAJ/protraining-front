@@ -17,9 +17,12 @@ import { PROTRAINING_MUSCLES, PAIN_LEVELS, getPainColor } from '../bodyMuscleDat
 import {
   getTrafficLightBadgeData,
   getFatigueLabel,
+  getReportedZones,
   getSorenessLabel,
   getSleepHoursLabel,
+  parsePainZones,
 } from './checkInHelper';
+import { ActiveInjuryItem } from './ActiveInjuriesModal';
 
 export interface CheckInCompletedSlideProps {
   submissionResult: CheckInSubmitResponse;
@@ -32,6 +35,8 @@ export interface CheckInCompletedSlideProps {
   isSick: boolean;
   hasActiveInjury: boolean;
   musclePains: Record<string, number>;
+  activeInjuries?: ReadonlyArray<ActiveInjuryItem>;
+  injuryScores?: Record<string, number | null>;
   notes: string;
   pushSupported?: boolean;
   pushSubscribed?: boolean;
@@ -277,6 +282,8 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
   isSick,
   hasActiveInjury,
   musclePains,
+  activeInjuries = [],
+  injuryScores = {},
   notes,
   onEditResponses,
 }) => {
@@ -288,26 +295,62 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
   const isYellow = lightState === 'Yellow';
   const isGreen = lightState === 'Green';
 
-  const reportedPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
-  const reportedCount = reportedPains.length;
+  // apenas se envía, la respuesta trae la verdad consolidada (flag, painZones e
+  // injuries con su dolor 0-10). Si se recarga, KAN-593 borra el borrador y la ficha clínica
+  // vuelve a cargarse desde la API: con eso se reconstruye la misma confirmación.
+  const responseCheckIn = submissionResult.checkIn;
+  const responseInjuries = responseCheckIn?.injuries ?? [];
+  const confirmedInjuries: ReadonlyArray<ActiveInjuryItem> =
+    responseInjuries.length > 0
+      ? responseInjuries.map((injury) => {
+          const clinical = activeInjuries.find((item) => item.id === injury.injuryId);
+          return {
+            id: injury.injuryId,
+            zone: clinical?.zone ?? injury.zone,
+            description: clinical?.description ?? 'Lesión activa registrada en tu ficha clínica.',
+          };
+        })
+      : activeInjuries;
+  const confirmedScores: Record<string, number | null> = { ...injuryScores };
+  responseInjuries.forEach((injury) => {
+    const score = confirmedScores[injury.injuryId];
+    if (score === null || score === undefined) confirmedScores[injury.injuryId] = injury.level;
+  });
+  const confirmedMusclePains = responseCheckIn?.painZones
+    ? parsePainZones(responseCheckIn.painZones)
+    : musclePains;
+  // El borrador se borra apenas se envía (KAN-593). Al recargar, la respuesta guardada
+  // es la única fuente de las métricas del paso 2; sin esto aparecen como "No registrado".
+  const confirmedSleepHours = responseCheckIn?.sleepHours ?? sleepHours;
+  const confirmedFatigueLevel = responseCheckIn?.fatigueLevel ?? fatigueLevel;
+  const confirmedMuscleSoreness = responseCheckIn?.muscleSoreness ?? muscleSoreness;
+  const confirmedMoodRate = responseCheckIn?.moodRate ?? moodRate;
+  const confirmedIsSick = responseCheckIn?.isSick ?? isSick;
+  const effectiveHasActiveInjury =
+    (responseCheckIn?.hasActiveInjury ?? hasActiveInjury) || confirmedInjuries.length > 0;
 
-  const activeMood = MOOD_CONFIGS[moodRate] || MOOD_CONFIGS[3];
+  const reportedZones = getReportedZones(confirmedMusclePains, confirmedInjuries, confirmedScores);
+  const reportedCount = reportedZones.length;
+
+  const activeMood = MOOD_CONFIGS[confirmedMoodRate] || MOOD_CONFIGS[3];
 
   const getHealthInjurySummary = () => {
-    if (!isSick && !hasActiveInjury) return 'Salud normal · Sin lesión';
-    if (isSick && !hasActiveInjury) return 'Con síntomas de enfermedad';
-    if (!isSick && hasActiveInjury) return 'Lesión activa reportada';
+    if (!confirmedIsSick && !effectiveHasActiveInjury) return 'Salud normal · Sin lesión';
+    if (confirmedIsSick && !effectiveHasActiveInjury) return 'Con síntomas de enfermedad';
+    if (!confirmedIsSick && effectiveHasActiveInjury) return 'Lesión activa reportada';
     return 'Con síntomas y lesión activa';
   };
 
   // Colores calculados exactamente según las selecciones de Paso 2
-  const sleepColor = getSleepColor(sleepHours ?? 7.5);
-  const fatigueColor = getFatigueColor(fatigueLevel ?? 2);
-  const sorenessColor = getSorenessColor(muscleSoreness ?? 1);
+  const sleepColor = getSleepColor(confirmedSleepHours ?? 7.5);
+  const fatigueColor = getFatigueColor(confirmedFatigueLevel ?? 2);
+  const sorenessColor = getSorenessColor(confirmedMuscleSoreness ?? 1);
   const painZonesColor =
     reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
   const healthInjuryColor =
-    isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
+    confirmedIsSick || effectiveHasActiveInjury
+      ? 'var(--traffic-red)'
+      : 'var(--checkin-scale-green)';
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -504,7 +547,9 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               <div className="checkin-summary-item-texts">
                 <span className="checkin-summary-item-label">Dolor muscular</span>
                 <strong className="checkin-summary-item-val">
-                  {muscleSoreness !== null ? getSorenessLabel(muscleSoreness) : 'No registrado'}
+                  {confirmedMuscleSoreness !== null
+                    ? getSorenessLabel(confirmedMuscleSoreness)
+                    : 'No registrado'}
                 </strong>
               </div>
             </div>
@@ -532,7 +577,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               <div className="checkin-summary-item-texts">
                 <span className="checkin-summary-item-label">Sueño</span>
                 <strong className="checkin-summary-item-val">
-                  {getSleepHoursLabel(sleepHours)}
+                  {getSleepHoursLabel(confirmedSleepHours)}
                 </strong>
               </div>
             </div>
@@ -590,7 +635,9 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
               <div className="checkin-summary-item-texts">
                 <span className="checkin-summary-item-label">Fatiga física</span>
                 <strong className="checkin-summary-item-val">
-                  {fatigueLevel !== null ? getFatigueLabel(fatigueLevel) : 'No registrado'}
+                  {confirmedFatigueLevel !== null
+                    ? getFatigueLabel(confirmedFatigueLevel)
+                    : 'No registrado'}
                 </strong>
               </div>
             </div>
@@ -621,7 +668,9 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   className="checkin-summary-item-val"
                   style={{
                     color:
-                      isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--traffic-green)',
+                      confirmedIsSick || effectiveHasActiveInjury
+                        ? 'var(--traffic-red)'
+                        : 'var(--traffic-green)',
                   }}
                 >
                   {getHealthInjurySummary()}
@@ -659,7 +708,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                   fontFamily: 'var(--font-base)',
                 }}
               >
-                Detalle de molestias musculares ({reportedCount}):
+                Detalle de zonas con dolor ({reportedCount}):
               </span>
               <button
                 type="button"
@@ -694,14 +743,18 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 alignItems: 'center',
               }}
             >
-              {reportedPains.map(([mId, lvl], idx) => {
-                const m = PROTRAINING_MUSCLES.find((x) => x.id === mId);
-                const painInfo = PAIN_LEVELS.find((p) => p.level === lvl);
-                const isInjury = lvl === 6;
-                const painLabel = painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${lvl}`);
-                const color = isInjury ? 'var(--traffic-red)' : getPainColor(lvl);
+              {reportedZones.map((reported, idx) => {
+                const m = PROTRAINING_MUSCLES.find((x) => x.id === reported.zone);
+                const isInjury = reported.level === 6;
+                const painInfo = PAIN_LEVELS.find((p) => p.level === reported.level);
+                const painLabel =
+                  painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${reported.level}`);
+                const color = isInjury ? 'var(--traffic-red)' : getPainColor(reported.level);
                 return (
-                  <span key={mId} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <span
+                    key={reported.zone}
+                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                  >
                     <span
                       style={{
                         width: '7px',
@@ -712,13 +765,12 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                         flexShrink: 0,
                       }}
                     />
-                    <strong>{m?.name || mId}:</strong>&nbsp;
-                    <span
-                      style={{ color: isInjury ? 'var(--traffic-red)' : color, fontWeight: 700 }}
-                    >
+                    <strong>{m?.name || reported.zone}:</strong>&nbsp;
+                    <span style={{ color, fontWeight: 700 }}>
                       {painLabel}
+                      {reported.score !== null ? ` · ${reported.score}/10` : ''}
                     </span>
-                    {idx < reportedPains.length - 1 && <span>,</span>}
+                    {idx < reportedZones.length - 1 && <span>,</span>}
                   </span>
                 );
               })}
@@ -730,7 +782,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 <div className="checkin-completed-body-map-view">
                   <MuscleMapFront
                     selectedMuscles={[]}
-                    musclePains={musclePains}
+                    musclePains={confirmedMusclePains}
                     readOnly={true}
                     hideHeader={true}
                   />
@@ -738,7 +790,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
                 <div className="checkin-completed-body-map-view">
                   <MuscleMapBack
                     selectedMuscles={[]}
-                    musclePains={musclePains}
+                    musclePains={confirmedMusclePains}
                     readOnly={true}
                     hideHeader={true}
                   />

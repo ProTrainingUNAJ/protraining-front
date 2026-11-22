@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { RecommendationsPage } from '../RecommendationsPage';
 import type { AthleteRecommendation } from '../../../api/recommendations';
+
+// El nombre también aparece en el selector de hábitos (KAN-634): se busca solo dentro de la lista.
+const inList = () => within(screen.getByLabelText('Recomendaciones agrupadas por atleta'));
 
 const {
   listRecommendationsMock,
@@ -101,7 +104,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // Incluso con 1 recomendación arranca comprimida con contador y chip capitalizado
@@ -140,7 +143,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -177,7 +180,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -194,7 +197,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     });
 
     fireEvent.click(screen.getByRole('tab', { name: /Aprobadas/i }));
-    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(inList().getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getByText('1 aprobada')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
     expect(screen.getByText('Ajuste de potencia de salto')).toBeDefined();
@@ -212,7 +215,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -242,7 +245,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -254,7 +257,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     });
 
     fireEvent.click(screen.getByRole('tab', { name: /Descartadas/i }));
-    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(inList().getByText('Lucas Gómez')).toBeDefined();
   });
 
   it('deshabilita el botón sin categoría seleccionada y ejecuta el motor al elegir una (KAN-512)', async () => {
@@ -270,7 +273,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // Sin categoría seleccionada ("Todas las categorías"), el botón está deshabilitado
@@ -310,11 +313,11 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // El nombre del atleta aparece una sola vez aunque tenga 2 recomendaciones
-    expect(screen.getAllByText('Lucas Gómez')).toHaveLength(1);
+    expect(inList().getAllByText('Lucas Gómez')).toHaveLength(1);
     expect(screen.getByText('2 pendientes')).toBeDefined();
     expect(screen.getByText('Salto por debajo del promedio')).toBeDefined();
     expect(screen.getByText('Velocidad por debajo del promedio')).toBeDefined();

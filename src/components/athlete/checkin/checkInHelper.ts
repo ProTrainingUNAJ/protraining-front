@@ -75,6 +75,25 @@ export const formatPainZones = (musclePains: Record<string, number>): string | n
   return reportedPains.map(([mId, lvl]) => `${mId}:${lvl}`).join(',');
 };
 
+// lee el formato canónico del backend ("zona:nivel,zona:nivel") para reconstruir
+// las zonas en la confirmación. Las listas vacías serializadas y las entradas sin nivel se ignoran.
+export const parsePainZones = (painZones?: string | null): Record<string, number> => {
+  if (!painZones) return {};
+  const result: Record<string, number> = {};
+  painZones
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0 && entry !== '[]' && entry !== '{}')
+    .forEach((entry) => {
+      const separator = entry.lastIndexOf(':');
+      if (separator < 1) return;
+      const zone = entry.slice(0, separator).trim();
+      const level = Number(entry.slice(separator + 1));
+      if (zone.length > 0 && Number.isFinite(level)) result[zone] = level;
+    });
+  return result;
+};
+
 // KAN-487: el front no deja avanzar ni enviar si alguna molestia activa no tiene puntaje.
 // El 0 es un puntaje válido: solo se considera "sin puntaje" null o undefined.
 export const hasUnscoredActiveInjuries = (
@@ -86,6 +105,49 @@ export const hasUnscoredActiveInjuries = (
 // KAN-487: el botón seleccionado usa tokens CSS, nunca un color fijo como 'white'.
 export const getInjuryScoreColor = (isSelected: boolean): string =>
   isSelected ? 'var(--on-primary)' : 'inherit';
+
+// una sola lista de zonas para el resumen. Los ids de las 19 zonas del SVG coinciden
+// con los de la ficha clínica, así que se deduplican por id. El marcador de lesión (nivel 6)
+// prevalece sobre el nivel pintado en la silueta; el dolor 0-10 se conserva aparte en `score`.
+export interface ConsolidatedPainZone {
+  zone: string;
+  level: number;
+  source: 'manual' | 'clinical' | 'both';
+  score: number | null;
+  description?: string;
+}
+
+export const getReportedZones = (
+  musclePains: Record<string, number> = {},
+  activeInjuries: ReadonlyArray<{ id: string; zone: string; description?: string }> = [],
+  injuryScores: Readonly<Record<string, number | null>> = {},
+): ConsolidatedPainZone[] => {
+  const byZone = new Map<string, ConsolidatedPainZone>();
+
+  Object.entries(musclePains).forEach(([zone, level]) => {
+    if (level <= 0) return;
+    byZone.set(zone.trim().toLowerCase(), {
+      zone: zone.trim(),
+      level,
+      source: 'manual',
+      score: null,
+    });
+  });
+
+  activeInjuries.forEach((injury) => {
+    const key = injury.zone.trim().toLowerCase();
+    const existing = byZone.get(key);
+    byZone.set(key, {
+      zone: existing?.zone ?? injury.zone.trim(),
+      level: 6,
+      source: existing ? 'both' : 'clinical',
+      score: injuryScores[injury.id] ?? null,
+      description: injury.description,
+    });
+  });
+
+  return [...byZone.values()];
+};
 
 export interface TrafficLightBadgeData {
   label: string;
@@ -140,8 +202,11 @@ export const canAutoAdvanceStep5 = (answeredSick: boolean, answeredInjury: boole
 export const hasRequiredInjuryMark = (
   hasActiveInjury: boolean,
   musclePains: Record<string, number> = {},
+  clinicalZones: ReadonlyArray<string> = [],
 ): boolean => {
   if (!hasActiveInjury) return true;
+  // una lesión clínica ya es la marca de la zona; no hace falta pintarla de negro.
+  if (clinicalZones.length > 0) return true;
   return Object.values(musclePains).some((level) => level === 6);
 };
 
