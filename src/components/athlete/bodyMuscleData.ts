@@ -86,6 +86,9 @@ const LEGACY_GROUPS: MuscleGroupItem[] = [
   { id: 'manos', name: 'Manos', view: 'both', category: 'Tren Superior' },
   { id: 'pies', name: 'Pies', view: 'both', category: 'Tren Inferior' },
   { id: 'cuello_trapecios', name: 'Cuello y Trapecios', view: 'both', category: 'Tren Superior' },
+  { id: 'hombro', name: 'Hombro', view: 'both', category: 'Tren Superior' },
+  { id: 'lumbar', name: 'Lumbar', view: 'back', category: 'Zona Media' },
+  { id: 'rodilla', name: 'Rodilla', view: 'front', category: 'Articulaciones' },
 ];
 
 // Integrate independent SVG regions into the muscle catalog

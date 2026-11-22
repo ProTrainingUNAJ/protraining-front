@@ -185,7 +185,7 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          /Abdominales \[Nivel 1\], Bíceps izquierdo \[Nivel 6 - Lesión activa\], Pecho derecho \[Nivel 5\]/,
+          /Abdominales \[Nivel 1\], Bíceps izquierdo \[Lesión activa\], Pecho derecho \[Nivel 5\]/,
         ),
       ).toBeTruthy();
     });
