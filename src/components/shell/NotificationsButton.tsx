@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
-import { alertsService } from '../../api/alertsService';
+import { ALERTS_CHANGED_EVENT, alertsService } from '../../api/alertsService';
 import { NoticeItem } from '../../types/alerts';
 import { useAuth } from '../../context/AuthContext';
 import { formatAlertReason } from '../../utils/painZoneReasonFormatter';
@@ -27,23 +27,29 @@ export const NotificationsButton: React.FC = () => {
     }
 
     let isMounted = true;
-    alertsService
-      .getPendingAlerts()
-      .then((data) => {
-        if (isMounted) {
-          setAlerts(data);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setLoadError(true);
-          setLoading(false);
-        }
-      });
+    const load = () =>
+      alertsService
+        .getPendingAlerts()
+        .then((data) => {
+          if (isMounted) {
+            setAlerts(data);
+            setLoadError(false);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            setLoadError(true);
+            setLoading(false);
+          }
+        });
+    load();
+    // Si un aviso se aplica desde el Inicio, la campana se actualiza (KAN-594)
+    window.addEventListener(ALERTS_CHANGED_EVENT, load);
 
     return () => {
       isMounted = false;
+      window.removeEventListener(ALERTS_CHANGED_EVENT, load);
     };
   }, [user?.role]);
 
@@ -105,6 +111,8 @@ export const NotificationsButton: React.FC = () => {
       setTimeout(() => {
         setAlerts((prev) => prev.filter((item) => item.id !== notice.id));
         setConfirmedInfo((curr) => (curr?.id === notice.id ? null : curr));
+        // El Inicio muestra la misma sugerencia: que se entere (después de la confirmación verde)
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
       }, 1500);
     } catch (err: unknown) {
       // Ante error del backend: NO confirmación verde, NO archivar, NO eliminar de la lista

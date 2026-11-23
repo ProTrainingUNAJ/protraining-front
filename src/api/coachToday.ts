@@ -2,6 +2,25 @@ import { structureService } from './structureService';
 import { getCategoryTrafficLightToday, mapTrafficLightSummaryToItem } from './seguimientoService';
 import { dayAdjustmentsService } from './dayAdjustments';
 import type { AthleteTrafficLightItem } from '../components/monitoring/trafficLight.types';
+import type { Athlete } from '../types/structure';
+
+// Datos de contacto de la ficha, con la misma regla que Seguimiento: a un menor se le escribe al
+// tutor, nunca a él (KAN-503).
+function contactFieldsOf(detail?: Athlete): Partial<AthleteTrafficLightItem> {
+  if (!detail) return {};
+  const isMinor = Boolean(detail.isMinor);
+  return {
+    phone: isMinor ? null : (detail.phone ?? null),
+    telegramUsername: isMinor ? null : (detail.telegramUsername ?? null),
+    isMinor,
+    guardianPhone: detail.guardianConsent?.guardianPhone ?? null,
+    guardianName: detail.guardianConsent?.guardianName ?? null,
+    // Sin foto cargada no se pide la imagen (evita un 404 por atleta)
+    avatarUrl: detail.hasPhoto
+      ? structureService.getAthletePhotoUrl(detail.id, detail.photoUpdatedAt)
+      : undefined,
+  };
+}
 
 export interface CoachTodayOverview {
   /** Atletas del semáforo de hoy de todas las categorías del PF, sin repetir. */
@@ -48,12 +67,20 @@ export async function fetchCoachTodayOverview(): Promise<CoachTodayOverview> {
   const results = await Promise.all(
     categories.map(async (category) => {
       try {
-        const summaries = await getCategoryTrafficLightToday(category.id);
+        // La ficha (teléfono, tutor, foto) es un extra: si falla, se sigue sin "Escribirle"
+        const [summaries, details] = await Promise.all([
+          getCategoryTrafficLightToday(category.id),
+          structureService.getAthletes({ categoriaId: category.id }).catch((): Athlete[] => []),
+        ]);
+        const detailById = new Map(details.map((d) => [d.id.toLowerCase(), d]));
         return {
           categoryId: category.id,
           ok: true,
           hasPain: summaries.some((s) => Boolean(s.indicators?.painZones?.trim())),
-          items: summaries.map((summary) => mapTrafficLightSummaryToItem(summary, category.name)),
+          items: summaries.map((summary) => ({
+            ...mapTrafficLightSummaryToItem(summary, category.name),
+            ...contactFieldsOf(detailById.get(summary.athleteId.toLowerCase())),
+          })),
         };
       } catch {
         return { categoryId: category.id, ok: false, hasPain: false, items: [] };

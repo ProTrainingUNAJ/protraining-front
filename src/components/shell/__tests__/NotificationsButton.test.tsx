@@ -5,6 +5,7 @@ import { alertsService } from '../../../api/alertsService';
 import { useAuth } from '../../../context/AuthContext';
 
 vi.mock('../../../api/alertsService', () => ({
+  ALERTS_CHANGED_EVENT: 'protraining-alerts-changed',
   alertsService: {
     getPendingAlerts: vi.fn(),
     applyNoticeAction: vi.fn(),

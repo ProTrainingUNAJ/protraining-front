@@ -4,7 +4,6 @@ import { Activity, ArrowRight } from 'lucide-react';
 import { TrafficLightCounts } from '../../api/seguimientoService';
 import type { AthleteTrafficLightItem, TrafficLightStatus } from '../monitoring/trafficLight.types';
 import { useDelayedLoading } from '../../hooks/useDelayedLoading';
-import { summarizeNames } from '../../utils/attentionToday';
 import { WidgetErrorState } from './WidgetErrorState';
 import './dashboardWidgets.css';
 
@@ -99,14 +98,23 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
   const total = counts?.all ?? red + yellow + green + gray;
   const reported = total - gray;
 
-  const redNames = useMemo(
-    () => athletes.filter((a) => a.status === 'red').map((a) => a.name),
-    [athletes],
-  );
-  const yellowNames = useMemo(
-    () => athletes.filter((a) => a.status === 'yellow').map((a) => a.name),
-    [athletes],
-  );
+  // Todos los nombres por color: la tarjeta tiene lugar y "y 3 más" obligaba a ir a Seguimiento
+  // para saber quiénes eran (KAN-594). Primero los que hay que mirar.
+  const nameGroups = useMemo(() => {
+    const namesOf = (status: TrafficLightStatus) =>
+      athletes
+        .filter((a) => a.status === status)
+        .map((a) => a.name)
+        .sort((a, b) => a.localeCompare(b, 'es'));
+    return (
+      [
+        { status: 'red', label: 'En rojo', names: namesOf('red') },
+        { status: 'yellow', label: 'En amarillo', names: namesOf('yellow') },
+        { status: 'gray', label: 'Sin check-in', names: namesOf('gray') },
+        { status: 'green', label: 'En verde', names: namesOf('green') },
+      ] as const
+    ).filter((group) => group.names.length > 0);
+  }, [athletes]);
 
   const goTo = (filter: TrafficLightStatus) =>
     navigate(`/pf/monitoring?filter=${filter}`, { state: { filter } });
@@ -154,20 +162,20 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
               <Ring key={ring.status} {...ring} total={total} onClick={() => goTo(ring.status)} />
             ))}
           </div>
-          {(redNames.length > 0 || yellowNames.length > 0) && (
+          {nameGroups.length > 0 && (
             <dl className="tl-summary__names">
-              {redNames.length > 0 && (
-                <div>
-                  <dt>En rojo:</dt>
-                  <dd>{summarizeNames(redNames, 2, false)}</dd>
+              {nameGroups.map((group) => (
+                <div
+                  key={group.status}
+                  className={`tl-summary__group tl-summary__group--${group.status}`}
+                >
+                  <dt>
+                    <span className="tl-summary__group-dot" aria-hidden="true" />
+                    {group.label} · {group.names.length}
+                  </dt>
+                  <dd>{group.names.join(', ')}</dd>
                 </div>
-              )}
-              {yellowNames.length > 0 && (
-                <div>
-                  <dt>En amarillo:</dt>
-                  <dd>{summarizeNames(yellowNames, 3)}</dd>
-                </div>
-              )}
+              ))}
             </dl>
           )}
         </>
@@ -176,7 +184,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
       {!error && (
         <button
           type="button"
-          className="dash-w__btn dash-w__btn--block"
+          className="btn btn-primary dash-w__cta"
           onClick={() => navigate('/pf/monitoring')}
         >
           Ver semáforo detallado

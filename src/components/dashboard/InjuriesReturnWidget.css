@@ -1,0 +1,56 @@
+/* Lesiones y retornos (menú "+" del Inicio del PF, KAN-594) */
+.injuries-return-widget__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.injuries-return-widget__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.1rem 0.5rem;
+  align-items: center;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+
+.injuries-return-widget__athlete {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.injuries-return-widget__zone,
+.injuries-return-widget__return {
+  grid-column: 1 / -1;
+  font-size: 0.8rem;
+}
+
+.injuries-return-widget__zone {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.injuries-return-widget__return {
+  color: var(--text-muted);
+}
+
+.injuries-return-widget__more {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.injuries-return-widget__action {
+  align-self: flex-end;
+  margin-top: auto;
+}

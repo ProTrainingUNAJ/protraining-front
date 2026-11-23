@@ -1,0 +1,101 @@
+/* ============================================================================
+   PainBodyMapWidget.css — Alertas de dolor como mapa del cuerpo del plantel
+   (Inicio del PF, KAN-594). Solo tokens del sistema de diseño.
+   ============================================================================ */
+
+.pain-map__bodies {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.6rem 0.5rem 0.4rem;
+  border-radius: 16px;
+  background: var(--bg-subtle);
+}
+
+.pain-map__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* El mapa ocupa el ancho de su mitad, con tope para que no domine la tarjeta */
+.pain-map__body .muscle-map-view-column,
+.pain-map__body .muscle-map-svg-wrapper {
+  width: 100%;
+  max-width: 140px;
+}
+
+.pain-map__body svg {
+  max-height: 230px;
+}
+
+.pain-map__view {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.pain-map__zones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pain-map__zone {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.55rem;
+}
+
+.pain-map__dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 0.3rem;
+  border-radius: 50%;
+}
+
+.pain-map__zone--red .pain-map__dot {
+  background: var(--traffic-red);
+}
+
+.pain-map__zone--yellow .pain-map__dot {
+  background: var(--traffic-yellow);
+}
+
+.pain-map__zone-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.pain-map__zone-text {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.pain-map__zone-text strong {
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.pain-map__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pain-map__more {
+  align-self: flex-end;
+  margin-top: auto;
+}
