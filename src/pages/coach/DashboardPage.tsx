@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Plus,
   Sparkles,
+  X,
 } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.webp';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -21,6 +22,9 @@ import { EpleyProposalsWidget } from '../../components/dashboard/EpleyProposalsW
 import { AttentionTodayWidget } from '../../components/dashboard/AttentionTodayWidget';
 import { TopUaAthletesWidget } from '../../components/dashboard/TopUaAthletesWidget';
 import { NextTrainingWidget } from '../../components/dashboard/NextTrainingWidget';
+import { HabitsPendingWidget } from '../../components/dashboard/HabitsPendingWidget';
+import { NextMatchWidget } from '../../components/dashboard/NextMatchWidget';
+import { InjuriesReturnWidget } from '../../components/dashboard/InjuriesReturnWidget';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
@@ -50,7 +54,10 @@ export type DashboardCardType =
   | 'daily-load'
   | 'daily-traffic-light'
   | 'top-ua-athletes'
-  | 'attention-today';
+  | 'attention-today'
+  | 'habits-pending'
+  | 'next-match'
+  | 'injuries-return';
 
 export interface WireframeCardItem {
   id: string;
@@ -114,6 +121,37 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
       { id: 'w-epley', name: 'Propuestas de récord Epley', colSpan: 1, type: 'epley-proposals' },
       { id: 'w-r3-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
+  },
+];
+
+// Tarjetas que el PF puede poner en un espacio libre con el "+" (KAN-594). El menú muestra solo
+// las que no están ya en el Inicio: si quita una de las de siempre, la puede volver a poner.
+const COACH_WIDGET_CATALOG: { type: DashboardCardType; name: string; description: string }[] = [
+  {
+    type: 'habits-pending',
+    name: 'Recomendaciones por aprobar',
+    description: 'Hábitos y entrenamiento que la IA propuso y esperan tu OK',
+  },
+  {
+    type: 'next-match',
+    name: 'Próximo partido',
+    description: 'Rival, día y cuántos días faltan',
+  },
+  {
+    type: 'injuries-return',
+    name: 'Lesiones y retornos',
+    description: 'Quién está lesionado y cuándo vuelve',
+  },
+  { type: 'attention-today', name: 'Requieren atención hoy', description: 'Quién y qué hacer' },
+  { type: 'traffic-light-summary', name: 'Semáforo del día', description: 'Cómo llega el plantel' },
+  { type: 'pain-alerts', name: 'Alertas de dolor', description: 'Dónde duele el plantel' },
+  { type: 'next-training', name: 'Próximo entrenamiento', description: 'La sesión que viene' },
+  { type: 'checkin-progress', name: 'Check-in', description: 'Quiénes faltan' },
+  { type: 'top-ua-athletes', name: 'Mayor carga (UA)', description: 'Podio de carga del día' },
+  {
+    type: 'epley-proposals',
+    name: 'Propuestas de récord Epley',
+    description: 'Récords nuevos para aprobar',
   },
 ];
 
@@ -473,6 +511,21 @@ export const DashboardPage: React.FC = () => {
     swapCards(rowId, currentIndex, rowId, targetIndex);
   };
 
+  // Poner una tarjeta del catálogo en un espacio libre, o volver una tarjeta a espacio libre.
+  // Conserva el id del lugar: el orden y el guardado en el navegador siguen igual.
+  const [pickerCardId, setPickerCardId] = useState<string | null>(null);
+  const replaceCard = (cardId: string, next: { type: DashboardCardType; name: string }) => {
+    setRows((prevRows) =>
+      prevRows.map((row) => ({
+        ...row,
+        cards: row.cards.map((card) => (card.id === cardId ? { ...card, ...next } : card)),
+      })),
+    );
+    setPickerCardId(null);
+  };
+  const usedTypes = new Set(rows.flatMap((row) => row.cards.map((card) => card.type)));
+  const addableWidgets = COACH_WIDGET_CATALOG.filter((item) => !usedTypes.has(item.type));
+
   // Reset to default layout
   const resetLayout = () => {
     setRows(defaultRows);
@@ -526,6 +579,12 @@ export const DashboardPage: React.FC = () => {
     switch (card.type) {
       case 'top-ua-athletes':
         return <TopUaAthletesWidget />;
+      case 'habits-pending':
+        return <HabitsPendingWidget />;
+      case 'next-match':
+        return <NextMatchWidget />;
+      case 'injuries-return':
+        return <InjuriesReturnWidget />;
       case 'next-training':
         return (
           <NextTrainingWidget
@@ -642,13 +701,63 @@ export const DashboardPage: React.FC = () => {
         );
       case 'empty':
       default:
-        return (
-          <div className="dashboard-empty-card">
-            <div className="dashboard-empty-icon">
-              <Plus size={16} />
+        // El atleta no elige tarjetas: su espacio libre queda como está
+        if (isAthlete) {
+          return (
+            <div className="dashboard-empty-card">
+              <div className="dashboard-empty-icon">
+                <Plus size={16} />
+              </div>
+              <span className="dashboard-empty-label">Espacio disponible</span>
             </div>
-            <span className="dashboard-empty-label">Espacio disponible</span>
-          </div>
+          );
+        }
+        if (pickerCardId === card.id) {
+          return (
+            <div className="dashboard-picker" role="group" aria-label="Elegí qué tarjeta poner acá">
+              <div className="dashboard-picker__header">
+                <span className="dashboard-picker__title">Agregar una tarjeta</span>
+                <button
+                  type="button"
+                  className="dashboard-picker__close"
+                  onClick={() => setPickerCardId(null)}
+                  aria-label="Cerrar"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              {addableWidgets.length === 0 ? (
+                <p className="dashboard-picker__empty">Ya están todas las tarjetas en tu Inicio.</p>
+              ) : (
+                <ul className="dashboard-picker__list">
+                  {addableWidgets.map((item) => (
+                    <li key={item.type}>
+                      <button
+                        type="button"
+                        className="dashboard-picker__option"
+                        onClick={() => replaceCard(card.id, { type: item.type, name: item.name })}
+                      >
+                        <span className="dashboard-picker__option-name">{item.name}</span>
+                        <span className="dashboard-picker__option-desc">{item.description}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        }
+        return (
+          <button
+            type="button"
+            className="dashboard-empty-card dashboard-empty-card--action"
+            onClick={() => setPickerCardId(card.id)}
+          >
+            <span className="dashboard-empty-icon" aria-hidden="true">
+              <Plus size={16} />
+            </span>
+            <span className="dashboard-empty-label">Agregar una tarjeta</span>
+          </button>
         );
     }
   };
@@ -790,6 +899,21 @@ export const DashboardPage: React.FC = () => {
                         aria-label="Mover a la derecha"
                       >
                         <ChevronRight size={16} />
+                      </button>
+                    )}
+
+                    {!isAthlete && card.type !== 'empty' && (
+                      <button
+                        type="button"
+                        className="wireframe-control-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          replaceCard(card.id, { type: 'empty', name: 'Espacio disponible' });
+                        }}
+                        title={`Quitar "${card.name}" del Inicio`}
+                        aria-label={`Quitar ${card.name} del Inicio`}
+                      >
+                        <X size={16} />
                       </button>
                     )}
 
