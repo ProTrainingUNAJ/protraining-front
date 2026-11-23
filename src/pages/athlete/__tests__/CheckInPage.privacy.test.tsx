@@ -11,6 +11,16 @@ const INITIAL_DAY = '2026-11-22';
 
 const state = vi.hoisted(() => ({ day: '2026-11-22' }));
 
+vi.mock('../../../utils/argentinaDate', async () => {
+  const actual = await vi.importActual<typeof import('../../../utils/argentinaDate')>(
+    '../../../utils/argentinaDate',
+  );
+  return {
+    ...actual,
+    todayInArgentina: () => state.day,
+  };
+});
+
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'user-privacidad', email: 'atleta@protraining.com', role: 'Atleta' },

@@ -320,4 +320,15 @@ describe('FieldTestsPage · Sesiones de test de campo (KAN-427)', () => {
     fireEvent.click(screen.getByRole('button', { name: /30-15 Test/ }));
     expect(screen.getByText('2 tests seleccionados')).toBeDefined();
   });
+
+  it('incluye el selector de categoría dentro del modal de nueva sesión (KAN-656)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+
+    const categorySelect = screen.getByLabelText('Categoría') as HTMLSelectElement;
+    expect(categorySelect).toBeDefined();
+    expect(categorySelect.value).toBe('cat-1');
+  });
 });
