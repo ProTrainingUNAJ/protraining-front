@@ -1,4 +1,5 @@
-export const ATHLETE_DASHBOARD_STORAGE_KEY = 'protraining_bento_rows_athlete_v8';
+// v9 (KAN-594): Inicio del atleta nuevo. Los layouts guardados con la v8 pasan al orden nuevo una vez.
+export const ATHLETE_DASHBOARD_STORAGE_KEY = 'protraining_bento_rows_athlete_v9';
 export const DAILY_LOAD_CARD_ID = 'a-daily-load';
 export const DAILY_TRAFFIC_LIGHT_CARD_ID = 'a-daily-traffic-light';
 
@@ -17,75 +18,49 @@ export interface StoredRow {
   cards: StoredCard[];
 }
 
-// Inicio del atleta por defecto (antes de que lo personalice)
+// Inicio del atleta por defecto (antes de que lo personalice), KAN-594: arriba cómo llega hoy, cómo
+// viene la semana y qué entrena; después su carga; abajo sus marcas en una sola tira.
 export const DEFAULT_ATHLETE_ROWS: StoredRow[] = [
   {
     id: 'row-1',
-    name: 'Fila 1 · Indicadores en Vivo',
+    name: 'Fila 1 · Hoy',
     className: 'wireframe-row-1',
     cards: [
-      { id: 'a-r1-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
       {
-        id: 'a-daily-traffic-light',
-        name: 'Semáforo Diario',
+        id: 'a-checkin-today',
+        name: 'Mi check-in de hoy',
         colSpan: 1,
-        type: 'daily-traffic-light',
+        type: 'athlete-checkin-today',
       },
-      { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      {
+        id: 'a-week-traffic',
+        name: 'Mis últimos 7 días',
+        colSpan: 1,
+        type: 'athlete-week-traffic',
+      },
+      {
+        id: 'a-next-training',
+        name: 'Mi próximo entrenamiento',
+        colSpan: 1,
+        type: 'athlete-next-training',
+      },
     ],
   },
   {
     id: 'row-2',
-    name: 'Fila 2 · Mi Estado y Rutina',
+    name: 'Fila 2 · Mi carga',
     className: 'wireframe-row-2',
     cards: [
-      { id: 'a-daily-load', name: 'Carga del Día', colSpan: 1, type: 'daily-load' },
-      { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
-      { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
+      { id: DAILY_LOAD_CARD_ID, name: 'Carga del Día', colSpan: 1, type: 'daily-load' },
+      { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
+      { id: 'a-r2-3', name: 'Espacio disponible', colSpan: 1, type: 'empty' },
     ],
   },
   {
     id: 'row-3',
-    name: 'Fila 3 · Suite y Carga',
-    className: 'wireframe-row-3',
-    cards: [
-      { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
-      {
-        id: 'a-chart-cmj',
-        name: 'Evolución Salto CMJ',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'cmj',
-      },
-    ],
-  },
-  {
-    id: 'row-4',
-    name: 'Fila 4 · Rendimiento y Métricas',
-    className: 'wireframe-row-4',
-    cards: [
-      {
-        id: 'a-chart-squat',
-        name: 'Sentadilla 1RM',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'squat',
-      },
-      {
-        id: 'a-chart-sprint',
-        name: 'Sprint 30m',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'sprint',
-      },
-      {
-        id: 'a-chart-yoyo',
-        name: 'Resistencia',
-        colSpan: 1,
-        type: 'progress-chart',
-        chartMetric: 'yoyo',
-      },
-    ],
+    name: 'Fila 3 · Mis marcas',
+    className: 'wireframe-row-strip',
+    cards: [{ id: 'a-metrics', name: 'Mis marcas', colSpan: 1, type: 'athlete-metrics-strip' }],
   },
 ];
 
@@ -147,73 +122,9 @@ export const pinDailyLoadWidget = (): boolean => {
     );
     if (alreadyPinned) return true;
 
-    // Initialize with default athlete layout if no previous layout exists
+    // Sin layout guardado: el orden por defecto ya trae la carga del día
     if (rows.length === 0) {
-      rows = [
-        {
-          id: 'row-1',
-          name: 'Fila 1 · Indicadores en Vivo',
-          className: 'wireframe-row-1',
-          cards: [
-            { id: 'a-r1-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-            { ...DAILY_TRAFFIC_LIGHT_CARD },
-            { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-          ],
-        },
-        {
-          id: 'row-2',
-          name: 'Fila 2 · Mi Estado y Rutina',
-          className: 'wireframe-row-2',
-          cards: [
-            { ...DAILY_LOAD_CARD },
-            { id: 'a-r2-2', name: 'Módulo 2-B', colSpan: 1, type: 'empty' },
-            { id: 'a-r2-3', name: 'Módulo 2-C', colSpan: 1, type: 'empty' },
-          ],
-        },
-        {
-          id: 'row-3',
-          name: 'Fila 3 · Suite y Carga',
-          className: 'wireframe-row-3',
-          cards: [
-            { id: 'a-suite', name: 'ProTraining Atleta', colSpan: 1, type: 'suite' },
-            {
-              id: 'a-chart-cmj',
-              name: 'Evolución Salto CMJ',
-              colSpan: 1,
-              type: 'progress-chart',
-              chartMetric: 'cmj',
-            },
-          ],
-        },
-        {
-          id: 'row-4',
-          name: 'Fila 4 · Rendimiento y Métricas',
-          className: 'wireframe-row-4',
-          cards: [
-            {
-              id: 'a-chart-squat',
-              name: 'Sentadilla 1RM',
-              colSpan: 1,
-              type: 'progress-chart',
-              chartMetric: 'squat',
-            },
-            {
-              id: 'a-chart-sprint',
-              name: 'Sprint 30m',
-              colSpan: 1,
-              type: 'progress-chart',
-              chartMetric: 'sprint',
-            },
-            {
-              id: 'a-chart-yoyo',
-              name: 'Resistencia',
-              colSpan: 1,
-              type: 'progress-chart',
-              chartMetric: 'yoyo',
-            },
-          ],
-        },
-      ];
+      rows = JSON.parse(JSON.stringify(DEFAULT_ATHLETE_ROWS)) as StoredRow[];
     } else {
       // Find row-2 and replace first empty slot
       const row2 = rows.find((r) => r.id === 'row-2');
