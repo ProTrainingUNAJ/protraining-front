@@ -23,8 +23,9 @@ import { athleteAdaptationsService } from '../../api/athleteAdaptations';
 import type { Athlete } from '../../types/structure';
 import { formatDayMonth } from '../../utils/argentinaDate';
 import {
-  getDefaultPlanSessionId,
+  getPlanSessionIds,
   resolveSessionAdjustmentDecision,
+  summarizeAthletePlanDecisions,
   type AthleteAdaptationDecision,
 } from '../../utils/planAdaptation';
 
@@ -59,12 +60,14 @@ const ManagePlanAssignmentsModalContent: React.FC<
   const [athleteInjuryStates, setAthleteInjuryStates] = useState<
     Record<string, AthleteInjuryCheckState>
   >({});
-  const [adaptationDecisions, setAdaptationDecisions] = useState<
-    Record<string, AthleteAdaptationDecision>
+  const [planSessionIds, setPlanSessionIds] = useState<string[]>([]);
+  const [adaptationDecisionsBySession, setAdaptationDecisionsBySession] = useState<
+    Record<string, Record<string, AthleteAdaptationDecision>>
   >({});
   const [adaptationTarget, setAdaptationTarget] = useState<{
     athleteId: string;
     athleteName: string;
+    initialSessionId?: string | null;
   } | null>(null);
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -181,24 +184,34 @@ const ManagePlanAssignmentsModalContent: React.FC<
           };
         }
 
-        // Consultar en paralelo si los atletas lesionados ya tienen adaptación aprobada (KAN-636)
-        const nextDecisions: Record<string, AthleteAdaptationDecision> = {};
+        // Consultar en paralelo si los atletas lesionados ya tienen adaptación aprobada o rechazada
+        // en cualquiera de las sesiones del plan (KAN-636)
+        const nextDecisionsBySession: Record<
+          string,
+          Record<string, AthleteAdaptationDecision>
+        > = {};
+        let nextPlanSessionIds: string[] = [];
         let nextErrorMessage: string | null = null;
         if (injuredAthleteIds.length > 0 && planId) {
           try {
             const plan = await trainingPlansService.get(planId);
             if (!active) return;
 
-            const defaultSessionId = getDefaultPlanSessionId(plan);
-            if (defaultSessionId) {
+            nextPlanSessionIds = getPlanSessionIds(plan);
+            if (nextPlanSessionIds.length > 0) {
+              const adjustmentQueries = injuredAthleteIds.flatMap((athleteId) =>
+                nextPlanSessionIds.map((sessionId) => ({ athleteId, sessionId })),
+              );
+
               const adjustmentChecks = await Promise.allSettled(
-                injuredAthleteIds.map(async (athleteId) => {
+                adjustmentQueries.map(async ({ athleteId, sessionId }) => {
                   const adjustment = await athleteAdaptationsService.getSessionAdjustment(
-                    defaultSessionId,
+                    sessionId,
                     athleteId,
                   );
                   return {
                     athleteId,
+                    sessionId,
                     decision: resolveSessionAdjustmentDecision(adjustment),
                   };
                 }),
@@ -209,7 +222,11 @@ const ManagePlanAssignmentsModalContent: React.FC<
               for (const check of adjustmentChecks) {
                 if (check.status === 'fulfilled') {
                   if (check.value.decision) {
-                    nextDecisions[check.value.athleteId] = check.value.decision;
+                    if (!nextDecisionsBySession[check.value.athleteId]) {
+                      nextDecisionsBySession[check.value.athleteId] = {};
+                    }
+                    nextDecisionsBySession[check.value.athleteId][check.value.sessionId] =
+                      check.value.decision;
                   }
                 } else {
                   hasAdjustmentCheckError = true;
@@ -239,7 +256,8 @@ const ManagePlanAssignmentsModalContent: React.FC<
         }
 
         setErrorMessage(nextErrorMessage);
-        setAdaptationDecisions(nextDecisions);
+        setPlanSessionIds(nextPlanSessionIds);
+        setAdaptationDecisionsBySession(nextDecisionsBySession);
         setAthleteInjuryStates(nextStates);
       } catch {
         if (!active) return;
@@ -247,7 +265,8 @@ const ManagePlanAssignmentsModalContent: React.FC<
         for (const athleteId of allAthleteIds) {
           errorStates[athleteId] = { status: 'error', activeCount: 0 };
         }
-        setAdaptationDecisions({});
+        setPlanSessionIds([]);
+        setAdaptationDecisionsBySession({});
         setAthleteInjuryStates(errorStates);
       }
     }
@@ -258,6 +277,9 @@ const ManagePlanAssignmentsModalContent: React.FC<
       active = false;
     };
   }, [planId, assignees]);
+
+  const getAthleteDecisionSummary = (athleteId: string) =>
+    summarizeAthletePlanDecisions(adaptationDecisionsBySession[athleteId], planSessionIds);
 
   const renderAdaptationStatusControl = (
     athleteId: string,
@@ -276,9 +298,9 @@ const ManagePlanAssignmentsModalContent: React.FC<
     }
 
     if (injuryState.status === 'injured') {
-      const decision = adaptationDecisions[athleteId];
-      if (decision === 'approved' || decision === 'rejected') {
-        const isApproved = decision === 'approved';
+      const decisionSummary = getAthleteDecisionSummary(athleteId);
+      if (decisionSummary) {
+        const isApproved = decisionSummary.decision === 'approved';
         return (
           <div className="manage-assignments-decision-group">
             <span
@@ -302,6 +324,7 @@ const ManagePlanAssignmentsModalContent: React.FC<
                 setAdaptationTarget({
                   athleteId,
                   athleteName,
+                  initialSessionId: decisionSummary.sessionId,
                 })
               }
               disabled={disabled}
@@ -366,7 +389,7 @@ const ManagePlanAssignmentsModalContent: React.FC<
   const getStatusPriority = (athleteId: string): number => {
     const status = athleteInjuryStates[athleteId]?.status;
     if (status === 'injured') {
-      return adaptationDecisions[athleteId] ? 2 : 0;
+      return getAthleteDecisionSummary(athleteId) ? 2 : 0;
     }
     if (status === 'error') return 1;
     if (status === 'loading') return 3;
@@ -669,15 +692,25 @@ const ManagePlanAssignmentsModalContent: React.FC<
           planName={planName}
           athleteId={adaptationTarget.athleteId}
           athleteName={adaptationTarget.athleteName}
+          initialSessionId={adaptationTarget.initialSessionId}
           onClose={() => setAdaptationTarget(null)}
-          onAdaptationApproved={() => {
+          onAdaptationApproved={(approvedSessionId) => {
             const { athleteId: approvedAthleteId, athleteName: approvedAthleteName } =
               adaptationTarget;
-            const wasAlreadyApproved = adaptationDecisions[approvedAthleteId] === 'approved';
+            const effectiveSessionId =
+              approvedSessionId ||
+              adaptationTarget.initialSessionId ||
+              planSessionIds[0] ||
+              'default';
+            const wasAlreadyApproved =
+              adaptationDecisionsBySession[approvedAthleteId]?.[effectiveSessionId] === 'approved';
 
-            setAdaptationDecisions((prev) => ({
+            setAdaptationDecisionsBySession((prev) => ({
               ...prev,
-              [approvedAthleteId]: 'approved',
+              [approvedAthleteId]: {
+                ...(prev[approvedAthleteId] ?? {}),
+                [effectiveSessionId]: 'approved',
+              },
             }));
             setErrorMessage(null);
             setAdaptationTarget(null);
@@ -687,12 +720,21 @@ const ManagePlanAssignmentsModalContent: React.FC<
                 : `Variante adaptada aprobada con éxito para ${approvedAthleteName}.`,
             );
           }}
-          onAdaptationRejected={() => {
+          onAdaptationRejected={(_reason, rejectedSessionId) => {
             const { athleteId: rejectedAthleteId, athleteName: rejectedAthleteName } =
               adaptationTarget;
-            setAdaptationDecisions((prev) => ({
+            const effectiveSessionId =
+              rejectedSessionId ||
+              adaptationTarget.initialSessionId ||
+              planSessionIds[0] ||
+              'default';
+
+            setAdaptationDecisionsBySession((prev) => ({
               ...prev,
-              [rejectedAthleteId]: 'rejected',
+              [rejectedAthleteId]: {
+                ...(prev[rejectedAthleteId] ?? {}),
+                [effectiveSessionId]: 'rejected',
+              },
             }));
             setErrorMessage(null);
             setAdaptationTarget(null);

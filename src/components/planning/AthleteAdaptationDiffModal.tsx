@@ -37,6 +37,7 @@ import { todayInArgentina } from '../../utils/argentinaDate';
 import { parseRepsNumber } from '../../utils/planDraft';
 import {
   getDefaultPlanSessionId,
+  getPlanSessionIds,
   resolveSessionAdjustmentDecision,
 } from '../../utils/planAdaptation';
 
@@ -48,9 +49,10 @@ export interface AthleteAdaptationDiffModalProps {
   planName: string;
   athleteId: string;
   athleteName: string;
+  initialSessionId?: string | null;
   onClose: () => void;
-  onAdaptationApproved?: () => void;
-  onAdaptationRejected?: (reason?: string) => void;
+  onAdaptationApproved?: (sessionId?: string) => void;
+  onAdaptationRejected?: (reason?: string, sessionId?: string) => void;
 }
 
 interface FlattenedPlanSession {
@@ -86,6 +88,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
   planName,
   athleteId,
   athleteName,
+  initialSessionId,
   onClose,
   onAdaptationApproved,
   onAdaptationRejected,
@@ -195,7 +198,12 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         setPlanDetail(loadedPlan);
         setContext(loadedContext);
 
-        setSelectedSessionId(getDefaultPlanSessionId(loadedPlan) ?? '');
+        const planSessionIds = getPlanSessionIds(loadedPlan);
+        const resolvedInitialSessionId =
+          initialSessionId && planSessionIds.includes(initialSessionId)
+            ? initialSessionId
+            : (getDefaultPlanSessionId(loadedPlan) ?? '');
+        setSelectedSessionId(resolvedInitialSessionId);
       } catch (err: unknown) {
         if (!active) return;
         setError(
@@ -213,7 +221,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
     return () => {
       active = false;
     };
-  }, [isOpen, planId, athleteId]);
+  }, [isOpen, planId, athleteId, initialSessionId]);
 
   // 2. Generar la propuesta de adaptación para la sesión seleccionada
   useEffect(() => {
@@ -293,7 +301,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
           setIsApproved(true);
         } else if (savedDecision === 'rejected') {
           setIsRejected(true);
-          setRejectionReason(existingAdjustment?.note ?? '');
+          setRejectionReason(existingAdjustment?.rejectionReason ?? existingAdjustment?.note ?? '');
         }
         setSelectedSubstitutes(initialSubstitutes);
         setPickerTarget(null);
@@ -340,7 +348,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
         );
         setCustomNote(defaultNote);
         setLoadReductionPercentage(
-          existingAdjustment?.loadReductionPercentage
+          savedDecision === 'approved' && existingAdjustment?.loadReductionPercentage
             ? String(existingAdjustment.loadReductionPercentage)
             : '',
         );
@@ -593,7 +601,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
       setSuccessMessage(
         `¡Variante adaptada aprobada y guardada para ${athleteName} en la planificación!`,
       );
-      onAdaptationApproved?.();
+      onAdaptationApproved?.(sessionId);
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : 'No se pudo aprobar la adaptación. Probá de nuevo.',
@@ -629,7 +637,7 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
       setSuccessMessage(
         `Propuesta de adaptación rechazada. Se mantiene la rutina base de la categoría para ${athleteName}.`,
       );
-      onAdaptationRejected?.(trimmedReason || undefined);
+      onAdaptationRejected?.(trimmedReason || undefined, sessionId);
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : 'No se pudo rechazar la adaptación. Probá de nuevo.',
@@ -889,6 +897,19 @@ export const AthleteAdaptationDiffModal: React.FC<AthleteAdaptationDiffModalProp
                   ? ` Motivo: "${rejectionReason.trim()}".`
                   : ''}
               </span>
+            </span>
+          </div>
+        )}
+
+        {!isLoading && !successMessage && isRejected && rejectionReason.trim() && (
+          <div
+            className="alert-banner danger"
+            role="status"
+            data-testid="adaptation-rejected-reason-banner"
+          >
+            <span className="plan-inline">
+              <XCircle size={16} aria-hidden="true" />
+              <span>Motivo del rechazo: &ldquo;{rejectionReason.trim()}&rdquo;.</span>
             </span>
           </div>
         )}

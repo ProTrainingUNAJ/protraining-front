@@ -477,7 +477,7 @@ export const applyAthleteSessionAdjustment = <ThrowOnError extends boolean = fal
 /**
  * Rechazar propuesta de adaptación de sesión por atleta y fecha
  *
- * Registra el rechazo del preparador físico sobre la propuesta de adaptación para un atleta, sesión y fecha, desactiva variantes activas previas de los ejercicios de la sesión y mantiene la rutina base del grupo (KAN-636). Requiere rol PreparadorFisico.
+ * Registra el rechazo del preparador físico sobre la propuesta de adaptación para un atleta, sesión y fecha, desactiva únicamente las variantes activas creadas por el ajuste previo de esa sesión y fecha, preserva el registro de lo que se había aprobado y mantiene la rutina base del grupo (KAN-636). Requiere rol PreparadorFisico.
  *
  */
 export const rejectAthleteSessionAdjustment = <ThrowOnError extends boolean = false>(options: Options<RejectAthleteSessionAdjustmentData, ThrowOnError>): RequestResult<RejectAthleteSessionAdjustmentResponses, RejectAthleteSessionAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<RejectAthleteSessionAdjustmentResponses, RejectAthleteSessionAdjustmentErrors, ThrowOnError>({
