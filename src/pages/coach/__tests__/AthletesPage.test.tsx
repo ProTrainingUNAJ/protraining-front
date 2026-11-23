@@ -242,4 +242,45 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
       expect(screen.queryByText('Joaquín Díaz')).toBeNull();
     });
   });
+
+  it('aplica jerarquía visual diferenciada para Salud/Lesiones, Métricas/Evolución y acciones neutras (KAN-596)', async () => {
+    const athletesWithInjury = [
+      { ...mockAthletes[0], activeInjuriesCount: 2 },
+      { ...mockAthletes[1], activeInjuriesCount: 0 },
+    ];
+    vi.mocked(structureService.withCategories).mockResolvedValueOnce(
+      athletesWithInjury as unknown as Athlete[],
+    );
+
+    render(
+      <MemoryRouter>
+        <AthletesPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('health-btn-ath-1')).toBeDefined();
+    });
+
+    const healthWithInjury = screen.getByTestId('health-btn-ath-1');
+    const healthWithoutInjury = screen.getByTestId('health-btn-ath-2');
+    const metricsBtn = screen.getByTestId('metrics-btn-ath-1');
+    const settingsBtn = screen.getByTestId('settings-btn-ath-1');
+    const categoriesBtns = screen.getAllByRole('button', { name: /Categorías/i });
+
+    expect(healthWithInjury.className).toContain('athlete-action--injuries');
+    expect(healthWithInjury.className).toContain('athlete-action--active-injury');
+    expect(healthWithInjury.textContent).toContain('Activa');
+    expect(healthWithInjury.getAttribute('aria-label')).toContain('lesión activa (2)');
+
+    expect(healthWithoutInjury.className).toContain('athlete-action--injuries');
+    expect(healthWithoutInjury.className).not.toContain('athlete-action--active-injury');
+    expect(healthWithoutInjury.textContent).not.toContain('Activa');
+
+    expect(metricsBtn.className).toContain('athlete-action--evolution');
+    expect(settingsBtn.className).toContain('btn-secondary');
+    expect(settingsBtn.className).toContain('athlete-action--secondary');
+    expect(categoriesBtns[0].className).toContain('btn-secondary');
+    expect(categoriesBtns[0].className).toContain('athlete-action--secondary');
+  });
 });

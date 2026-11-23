@@ -610,7 +610,7 @@
 /* ── Wireframe Bento Layout (Inicio PF) ── */
 .wireframe-dashboard-container {
   width: 100%;
-  max-width: 1600px;
+  max-width: none;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
