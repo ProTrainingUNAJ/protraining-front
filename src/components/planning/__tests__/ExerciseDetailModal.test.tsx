@@ -1,8 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { ExerciseDetailModal } from '../ExerciseDetailModal';
+import { exercisesService } from '../../../api/exercises';
+
+vi.mock('../../../api/exercises', () => ({
+  exercisesService: {
+    updateVideoUrl: vi.fn(),
+  },
+}));
 
 describe('ExerciseDetailModal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const sampleExercise = {
     id: 'ex-123',
     exerciseName: 'Sentadilla con barra',
@@ -79,5 +90,114 @@ describe('ExerciseDetailModal', () => {
     expect(
       screen.getByText(/ilustración técnica en preparación para este ejercicio/i),
     ).toBeDefined();
+  });
+
+  describe('Edición de video de YouTube (KAN-659)', () => {
+    it('no muestra el enlace de video cuando allowVideoEdit es false', () => {
+      render(<ExerciseDetailModal isOpen={true} onClose={vi.fn()} exercise={sampleExercise} />);
+
+      expect(screen.queryByRole('button', { name: /agregar video de youtube/i })).toBeNull();
+      expect(screen.queryByRole('button', { name: /cambiar video/i })).toBeNull();
+    });
+
+    it('muestra el enlace oculto inicialmente, valida URL no válida y guarda un link válido de YouTube', async () => {
+      vi.mocked(exercisesService.updateVideoUrl).mockResolvedValue(undefined);
+      const onVideoChange = vi.fn();
+
+      render(
+        <ExerciseDetailModal
+          isOpen={true}
+          onClose={vi.fn()}
+          exercise={sampleExercise}
+          allowVideoEdit
+          onVideoChange={onVideoChange}
+        />,
+      );
+
+      // El campo arranca oculto detrás del link discreto
+      expect(screen.queryByLabelText(/link de video de youtube/i)).toBeNull();
+
+      const trigger = screen.getByRole('button', { name: /agregar video de youtube/i });
+      fireEvent.click(trigger);
+
+      const input = screen.getByLabelText(/link de video de youtube/i) as HTMLInputElement;
+      const saveBtn = screen.getByRole('button', { name: /^guardar$/i });
+
+      // Link que no es de YouTube -> no llama a la API y muestra mensaje de error
+      fireEvent.change(input, { target: { value: 'https://vimeo.com/123456' } });
+      fireEvent.click(saveBtn);
+
+      expect(exercisesService.updateVideoUrl).not.toHaveBeenCalled();
+      expect(screen.getByText('El link tiene que ser un video de YouTube.')).toBeDefined();
+
+      // Link válido de YouTube -> guarda y muestra confirmación
+      const validUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      fireEvent.change(input, { target: { value: validUrl } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(exercisesService.updateVideoUrl).toHaveBeenCalledWith('ex-123', validUrl);
+      });
+      expect(onVideoChange).toHaveBeenCalledWith('ex-123', validUrl);
+      expect(await screen.findByText('¡Video de YouTube actualizado con éxito!')).toBeDefined();
+    });
+
+    it('muestra mensaje de error si falla el guardado en el servidor', async () => {
+      vi.mocked(exercisesService.updateVideoUrl).mockRejectedValue(
+        new Error('No se pudo actualizar el video.'),
+      );
+
+      render(
+        <ExerciseDetailModal
+          isOpen={true}
+          onClose={vi.fn()}
+          exercise={sampleExercise}
+          allowVideoEdit
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /agregar video de youtube/i }));
+      fireEvent.change(screen.getByLabelText(/link de video de youtube/i), {
+        target: { value: 'https://youtu.be/dQw4w9WgXcQ' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^guardar$/i }));
+
+      expect(await screen.findByText('No se pudo actualizar el video.')).toBeDefined();
+    });
+
+    it('muestra "Cambiar video" si ya tiene video y permite quitarlo', async () => {
+      vi.mocked(exercisesService.updateVideoUrl).mockResolvedValue(undefined);
+      const onVideoChange = vi.fn();
+
+      render(
+        <ExerciseDetailModal
+          isOpen={true}
+          onClose={vi.fn()}
+          exercise={{
+            ...sampleExercise,
+            videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            videoSource: 'Pf',
+          }}
+          allowVideoEdit
+          onVideoChange={onVideoChange}
+        />,
+      );
+
+      const changeBtn = screen.getByRole('button', { name: /cambiar video/i });
+      fireEvent.click(changeBtn);
+
+      const input = screen.getByLabelText(/link de video de youtube/i) as HTMLInputElement;
+      expect(input.value).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+
+      const removeBtn = screen.getByRole('button', { name: /quitar video/i });
+      fireEvent.click(removeBtn);
+
+      await waitFor(() => {
+        expect(exercisesService.updateVideoUrl).toHaveBeenCalledWith('ex-123', null);
+      });
+      expect(onVideoChange).toHaveBeenCalledWith('ex-123', null);
+      expect(await screen.findByText('Se quitó tu video.')).toBeDefined();
+      expect(input.value).toBe('');
+    });
   });
 });
