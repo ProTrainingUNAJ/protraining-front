@@ -70,7 +70,8 @@ const Ring: React.FC<RingSpec & { total: number; onClick: () => void }> = ({
         <span className="tl-ring__count">{count}</span>
       </span>
       <span className="tl-ring__label" aria-hidden="true">
-        {label}
+        {/* Guion que no corta: "Sin check-in" baja entero a la segunda línea, no "check- / in" */}
+        {label.replace('-', '\u2011')}
       </span>
       <span className="tl-ring__pct" aria-hidden="true">
         {percentage} %

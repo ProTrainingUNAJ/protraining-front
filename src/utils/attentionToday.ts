@@ -23,7 +23,7 @@ export function buildAttentionReasons(athlete: AthleteTrafficLightItem): string[
     reasons.push('Lesión activa');
   }
   for (const pain of painOnly) {
-    reasons.push(`Dolor ${pain.zone} · nivel ${pain.level}`);
+    reasons.push(`Dolor ${lowerFirst(pain.zone)} · nivel ${pain.level}`);
   }
   if (athlete.isSick) reasons.push('Enfermedad');
   if (typeof athlete.sleepHours === 'number' && athlete.sleepHours < LOW_SLEEP_HOURS) {
@@ -61,6 +61,11 @@ export function summarizeNames(names: string[], max = 2, firstNameOnly = true): 
 
 function firstName(fullName: string): string {
   return fullName.trim().split(/\s+/)[0] ?? fullName;
+}
+
+// "Cuádriceps derecho" → "cuádriceps derecho": va en el medio de la frase ("Dolor cuádriceps…")
+function lowerFirst(text: string): string {
+  return text.charAt(0).toLocaleLowerCase('es') + text.slice(1);
 }
 
 function formatHours(hours: number): string {
