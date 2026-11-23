@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowRight, ClipboardCheck, UserRound, Wrench } from 'lucide-react';
 import { ProfileAvatar } from '../common/ProfileAvatar';
@@ -18,6 +18,10 @@ interface AttentionTodayWidgetProps {
 }
 
 const STATUS_LABEL = { red: 'Rojo', yellow: 'Amarillo' } as const;
+
+// Los primeros (rojos antes que amarillos) se ven siempre; el resto, con "Ver N más". Con 8 atletas
+// marcados la tarjeta medía ~1400 px y estiraba toda la fila 1 (KAN-594).
+const VISIBLE_ATHLETES = 3;
 
 /**
  * Panel "Requieren atención hoy" del Inicio del PF (KAN-594): los atletas en rojo o amarillo con
@@ -40,6 +44,9 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
     [athletes],
   );
   const missing = useMemo(() => athletes.filter((a) => a.status === 'gray'), [athletes]);
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = Math.max(0, flagged.length - VISIBLE_ATHLETES);
+  const visible = expanded ? flagged : flagged.slice(0, VISIBLE_ATHLETES);
 
   return (
     <section className="dash-w attention-widget" aria-labelledby="attention-widget-title">
@@ -77,8 +84,8 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                   : 'Nadie necesita atención hoy.'}
             </p>
           ) : (
-            <ul className="attention-widget__list">
-              {flagged.map((athlete) => {
+            <ul className="attention-widget__list" id="attention-widget-list">
+              {visible.map((athlete) => {
                 const reasons = buildAttentionReasons(athlete);
                 const status = athlete.status as 'red' | 'yellow';
                 return (
@@ -101,33 +108,46 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                           La rutina de hoy carga esa zona
                         </p>
                       )}
-                      <div className="attention-widget__actions">
+                    </div>
+                    {/* Fuera del bloque del nombre: usan todo el ancho y entran en una línea */}
+                    <div className="attention-widget__actions">
+                      <button
+                        type="button"
+                        className="dash-w__btn"
+                        onClick={() => onViewProfile(athlete)}
+                        aria-label={`Ver ficha de ${athlete.name}`}
+                      >
+                        <UserRound size={14} aria-hidden="true" />
+                        Ver ficha
+                      </button>
+                      {athlete.hasDayConflict && (
                         <button
                           type="button"
-                          className="dash-w__btn"
-                          onClick={() => onViewProfile(athlete)}
-                          aria-label={`Ver ficha de ${athlete.name}`}
+                          className="dash-w__btn dash-w__btn--primary"
+                          onClick={() => onAdjustRoutine(athlete)}
+                          aria-label={`Ajustar rutina de hoy de ${athlete.name}`}
                         >
-                          <UserRound size={14} aria-hidden="true" />
-                          Ver ficha
+                          <Wrench size={14} aria-hidden="true" />
+                          Ajustar rutina
                         </button>
-                        {athlete.hasDayConflict && (
-                          <button
-                            type="button"
-                            className="dash-w__btn dash-w__btn--primary"
-                            onClick={() => onAdjustRoutine(athlete)}
-                            aria-label={`Ajustar rutina de hoy de ${athlete.name}`}
-                          >
-                            <Wrench size={14} aria-hidden="true" />
-                            Ajustar rutina
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </li>
                 );
               })}
             </ul>
+          )}
+
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              className="dash-w__link attention-widget__more"
+              aria-expanded={expanded}
+              aria-controls="attention-widget-list"
+              onClick={() => setExpanded((value) => !value)}
+            >
+              {expanded ? 'Ver menos' : `Ver ${hiddenCount} más`}
+            </button>
           )}
 
           {missing.length > 0 && (
