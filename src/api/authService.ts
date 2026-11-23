@@ -8,6 +8,8 @@ import {
 import {
   changePassword as changePasswordSdk,
   resetAthletePassword as resetAthletePasswordSdk,
+  forgotPassword as forgotPasswordSdk,
+  resetPassword as resetPasswordSdk,
   registerByInvitation as registerByInvitationSdk,
   registerPf as registerPfSdk,
   confirmEmail as confirmEmailSdk,
@@ -240,12 +242,12 @@ export const authService = {
    */
   async forgotPassword(email: string): Promise<string> {
     try {
-      const response = await httpClient.post<{ message: string }>(
-        '/identidad/api/v1/auth/forgot-password',
-        {
+      const response = await forgotPasswordSdk({
+        body: {
           email: email.trim(),
         },
-      );
+        throwOnError: true,
+      });
       return (
         response.data?.message ||
         'Si el correo está registrado, recibirás un enlace para recuperar tu contraseña.'
@@ -264,14 +266,14 @@ export const authService = {
     newPassword: string;
   }): Promise<string> {
     try {
-      const response = await httpClient.post<{ message: string }>(
-        '/identidad/api/v1/auth/reset-password',
-        {
+      const response = await resetPasswordSdk({
+        body: {
           email: payload.email.trim(),
           token: payload.token,
           newPassword: payload.newPassword,
         },
-      );
+        throwOnError: true,
+      });
       return response.data?.message || 'Contraseña actualizada exitosamente.';
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });

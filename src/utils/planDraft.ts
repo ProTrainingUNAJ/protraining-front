@@ -174,12 +174,12 @@ export function parseDayOfWeek(day: unknown): number {
 }
 
 // Posición del día en la semana del PF (lunes = 0, domingo = 6), para ordenar.
-export function dayPosition(dayOfWeek: unknown): number {
+export function dayPosition(dayOfWeek: number | string): number {
   const normalized = parseDayOfWeek(dayOfWeek);
   return (normalized + 6) % 7;
 }
 
-export function dayLabel(dayOfWeek: unknown): string {
+export function dayLabel(dayOfWeek: number | string): string {
   const normalized = parseDayOfWeek(dayOfWeek);
   return WEEK_DAYS.find((day) => day.value === normalized)?.label ?? '';
 }
@@ -225,11 +225,18 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
             title: b.title,
             order: b.order,
             exercises: (b.exercises ?? []).map((exercise) => {
-              const ex = exercise as unknown as Record<string, unknown>;
-              const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+              const exType = (exercise.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
               const repsStr = exercise.reps != null ? String(exercise.reps) : '10';
               const parsedReps = parseRepsNumber(repsStr, 10);
               const intensity = (exercise.intensityType as IntensityMetric) || 'RPE';
+              const targetDistanceMeters =
+                exType === 'Distance'
+                  ? (exercise.targetDistanceMeters ?? parsedReps)
+                  : (exercise.targetDistanceMeters ?? null);
+              const targetTimeSeconds =
+                exType === 'Time'
+                  ? (exercise.targetTimeSeconds ?? parsedReps)
+                  : (exercise.targetTimeSeconds ?? null);
               return {
                 key: newKey(),
                 id: exercise.id,
@@ -248,13 +255,15 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
                     intensityType: intensity,
                     targetRpe: exercise.targetRpe ?? null,
                     targetRir: exercise.targetRir ?? null,
+                    targetDistanceMeters,
+                    targetTimeSeconds,
                     notes: exercise.notes ?? null,
                   },
                 },
-                images: (ex.images as string[]) ?? [],
-                primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
-                secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
-                muscleGroup: (ex.muscleGroup as string) ?? undefined,
+                images: exercise.images ?? [],
+                primaryMuscles: exercise.primaryMuscles ?? [],
+                secondaryMuscles: exercise.secondaryMuscles ?? [],
+                muscleGroup: exercise.muscleGroup ?? undefined,
               };
             }),
           };
@@ -265,8 +274,7 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
           blocks.length > 0
             ? blocks.flatMap((b) => b.exercises)
             : session.exercises.map((e) => {
-                const ex = e as unknown as Record<string, unknown>;
-                const exType = (ex.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
+                const exType = (e.exerciseType as DraftExercise['exerciseType']) ?? 'Weight';
                 const exMeta = meta.exercises?.[e.exerciseId] || {};
                 const repsStr = e.reps != null ? String(e.reps) : null;
                 return {
@@ -281,11 +289,11 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
                   targetDistanceMeters:
                     exType === 'Distance'
                       ? parseRepsNumber(repsStr, 10)
-                      : ((ex.targetDistanceMeters as number) ?? null),
+                      : (e.targetDistanceMeters ?? null),
                   targetTimeSeconds:
                     exType === 'Time'
                       ? parseRepsNumber(repsStr, 10)
-                      : ((ex.targetTimeSeconds as number) ?? null),
+                      : (e.targetTimeSeconds ?? null),
                   targetPercentage: e.targetPercentage ?? null,
                   intensityType:
                     (e.intensityType as IntensityMetric) ?? exMeta.intensityType ?? 'RPE',
@@ -293,10 +301,10 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
                   targetRir: e.targetRir ?? exMeta.targetRir ?? null,
                   repsRange: repsStr ?? exMeta.repsRange ?? null,
                   notes: e.notes ?? exMeta.notes ?? null,
-                  images: (ex.images as string[]) ?? [],
-                  primaryMuscles: (ex.primaryMuscles as string[]) ?? [],
-                  secondaryMuscles: (ex.secondaryMuscles as string[]) ?? [],
-                  muscleGroup: (ex.muscleGroup as string) ?? undefined,
+                  images: e.images ?? [],
+                  primaryMuscles: e.primaryMuscles ?? [],
+                  secondaryMuscles: e.secondaryMuscles ?? [],
+                  muscleGroup: e.muscleGroup ?? undefined,
                 };
               });
 
@@ -362,6 +370,73 @@ export function toDraft(plan: TrainingPlanDetail): PlanDraft {
   };
 }
 
+function mapExerciseToSaveRequest(
+  exercise: DraftExercise | BlockExercise,
+  weekNumber: number,
+  idx: number,
+) {
+  const isBlockEx = 'weeklyProgression' in exercise;
+  const prog = isBlockEx ? (exercise as BlockExercise).weeklyProgression?.[weekNumber] : null;
+  const exType = exercise.exerciseType ?? 'Weight';
+
+  const repsVal = prog?.repsRange
+    ? String(prog.repsRange).trim()
+    : prog?.reps != null
+      ? String(prog.reps).trim()
+      : 'repsRange' in exercise && exercise.repsRange
+        ? String(exercise.repsRange).trim()
+        : 'reps' in exercise && exercise.reps != null
+          ? String(exercise.reps).trim()
+          : '10';
+
+  const setsVal =
+    prog?.sets ?? ('sets' in exercise && typeof exercise.sets === 'number' ? exercise.sets : 3);
+  const intensityVal: IntensityMetric =
+    exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR' ? 'RIR' : 'RPE';
+
+  const rawDist =
+    prog?.targetDistanceMeters ??
+    ('targetDistanceMeters' in exercise ? exercise.targetDistanceMeters : null);
+  const rawTime =
+    prog?.targetTimeSeconds ??
+    ('targetTimeSeconds' in exercise ? exercise.targetTimeSeconds : null);
+
+  const targetDistanceMeters =
+    exType === 'Distance'
+      ? rawDist != null && rawDist > 0
+        ? rawDist
+        : parseRepsNumber(repsVal, 100)
+      : null;
+  const targetTimeSeconds =
+    exType === 'Time'
+      ? rawTime != null && rawTime > 0
+        ? rawTime
+        : parseRepsNumber(repsVal, 30)
+      : null;
+
+  return {
+    id: exercise.id || null,
+    exerciseId: exercise.exerciseId!.trim(),
+    order: exercise.order || idx + 1,
+    sets: setsVal,
+    reps: repsVal || '10',
+    targetPercentage:
+      prog?.targetPercentage ?? ('targetPercentage' in exercise ? exercise.targetPercentage : null),
+    intensityType: intensityVal,
+    targetRpe:
+      intensityVal === 'RPE'
+        ? (prog?.targetRpe ?? ('targetRpe' in exercise ? exercise.targetRpe : null))
+        : null,
+    targetRir:
+      intensityVal === 'RIR'
+        ? (prog?.targetRir ?? ('targetRir' in exercise ? exercise.targetRir : null))
+        : null,
+    targetDistanceMeters,
+    targetTimeSeconds,
+    notes: prog?.notes ?? ('notes' in exercise ? exercise.notes : null),
+  };
+}
+
 export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
   return {
     name: draft.name.trim(),
@@ -390,85 +465,13 @@ export function toSaveRequest(draft: PlanDraft): SaveTrainingPlanRequest {
                 order: block.order,
                 exercises: block.exercises
                   .filter((exercise) => Boolean(exercise.exerciseId?.trim()))
-                  .map((exercise, idx) => {
-                    const prog = exercise.weeklyProgression?.[week.weekNumber];
-                    const repsVal = prog?.repsRange
-                      ? String(prog.repsRange).trim()
-                      : prog?.reps != null
-                        ? String(prog.reps).trim()
-                        : exercise.repsRange
-                          ? String(exercise.repsRange).trim()
-                          : String(exercise.reps ?? '10').trim();
-                    const setsVal =
-                      prog?.sets ?? (typeof exercise.sets === 'number' ? exercise.sets : 3);
-                    const intensityVal: IntensityMetric =
-                      exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR'
-                        ? 'RIR'
-                        : 'RPE';
-                    return {
-                      id: exercise.id || null,
-                      exerciseId: exercise.exerciseId!.trim(),
-                      order: exercise.order || idx + 1,
-                      sets: setsVal,
-                      reps: repsVal || '10',
-                      targetPercentage: prog?.targetPercentage ?? exercise.targetPercentage ?? null,
-                      intensityType: intensityVal,
-                      targetRpe:
-                        intensityVal === 'RPE'
-                          ? (prog?.targetRpe ?? exercise.targetRpe ?? null)
-                          : null,
-                      targetRir:
-                        intensityVal === 'RIR'
-                          ? (prog?.targetRir ?? exercise.targetRir ?? null)
-                          : null,
-                      notes: prog?.notes ?? exercise.notes ?? null,
-                    };
-                  }),
+                  .map((exercise, idx) => mapExerciseToSaveRequest(exercise, week.weekNumber, idx)),
               }))
             : undefined;
 
         const flatExercises = sessionExercises
           .filter((exercise) => Boolean(exercise.exerciseId?.trim()))
-          .map((exercise, idx) => {
-            const isBlockEx = 'weeklyProgression' in exercise;
-            const prog = isBlockEx
-              ? (exercise as BlockExercise).weeklyProgression?.[week.weekNumber]
-              : null;
-            const repsVal = prog?.repsRange
-              ? String(prog.repsRange).trim()
-              : prog?.reps != null
-                ? String(prog.reps).trim()
-                : 'repsRange' in exercise && exercise.repsRange
-                  ? String(exercise.repsRange).trim()
-                  : 'reps' in exercise && exercise.reps != null
-                    ? String(exercise.reps).trim()
-                    : '10';
-            const setsVal =
-              prog?.sets ??
-              ('sets' in exercise && typeof exercise.sets === 'number' ? exercise.sets : 3);
-            const intensityVal: IntensityMetric =
-              exercise.intensityType === 'RIR' || prog?.intensityType === 'RIR' ? 'RIR' : 'RPE';
-            return {
-              id: exercise.id || null,
-              exerciseId: exercise.exerciseId!.trim(),
-              order: exercise.order || idx + 1,
-              sets: setsVal,
-              reps: repsVal || '10',
-              targetPercentage:
-                prog?.targetPercentage ??
-                ('targetPercentage' in exercise ? exercise.targetPercentage : null),
-              intensityType: intensityVal,
-              targetRpe:
-                intensityVal === 'RPE'
-                  ? (prog?.targetRpe ?? ('targetRpe' in exercise ? exercise.targetRpe : null))
-                  : null,
-              targetRir:
-                intensityVal === 'RIR'
-                  ? (prog?.targetRir ?? ('targetRir' in exercise ? exercise.targetRir : null))
-                  : null,
-              notes: prog?.notes ?? ('notes' in exercise ? exercise.notes : null),
-            };
-          });
+          .map((exercise, idx) => mapExerciseToSaveRequest(exercise, week.weekNumber, idx));
 
         return {
           id: session.id,
@@ -602,7 +605,7 @@ export function moveExercise(
 }
 
 // Sesiones del mismo día que `session`, en el orden en que se muestran.
-export function sameDaySessions(week: DraftWeek, dayOfWeek: unknown): DraftSession[] {
+export function sameDaySessions(week: DraftWeek, dayOfWeek: number | string): DraftSession[] {
   const targetDay = parseDayOfWeek(dayOfWeek);
   return week.sessions
     .filter((s) => parseDayOfWeek(s.dayOfWeek) === targetDay)
@@ -660,7 +663,7 @@ export function assistantDayToNumber(day: unknown): number {
   return parseDayOfWeek(day);
 }
 
-export function numberToAssistantDay(dayOfWeek: unknown): AssistantDayOfWeek {
+export function numberToAssistantDay(dayOfWeek: number | string): AssistantDayOfWeek {
   const normalized = parseDayOfWeek(dayOfWeek);
   return NUMBER_TO_ASSISTANT_DAY[normalized] ?? 'Monday';
 }
@@ -793,7 +796,7 @@ export function createDefaultBlocks(): DayBlock[] {
   }));
 }
 
-export function createDayPlan(dayOfWeek: unknown, dayName?: string): DayPlan {
+export function createDayPlan(dayOfWeek: number | string, dayName?: string): DayPlan {
   const normalized = parseDayOfWeek(dayOfWeek);
   const label = dayLabel(normalized);
   const plan: DayPlan = {
@@ -1104,6 +1107,8 @@ export function planDraftToDays(draft: PlanDraft): DayPlan[] {
                   intensityType: ex.intensityType,
                   targetRpe: null,
                   targetRir: null,
+                  targetDistanceMeters: ex.exerciseType === 'Distance' ? 100 : null,
+                  targetTimeSeconds: ex.exerciseType === 'Time' ? 30 : null,
                   notes: null,
                 };
                 ex.weeklyProgression[w] = { ...baseProg, weekNumber: w };
@@ -1173,6 +1178,8 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             intensityType: bEx.intensityType,
             targetRpe: null,
             targetRir: null,
+            targetDistanceMeters: null,
+            targetTimeSeconds: null,
             notes: null,
           };
 
@@ -1192,6 +1199,8 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             intensityType: bEx.intensityType,
             targetRpe: bEx.intensityType === 'RPE' ? (prog.targetRpe ?? null) : null,
             targetRir: bEx.intensityType === 'RIR' ? (prog.targetRir ?? null) : null,
+            targetDistanceMeters: prog.targetDistanceMeters ?? null,
+            targetTimeSeconds: prog.targetTimeSeconds ?? null,
             notes: prog.notes ?? null,
           };
         });
@@ -1216,6 +1225,8 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             intensityType: bEx.intensityType,
             targetRpe: null,
             targetRir: null,
+            targetDistanceMeters: null,
+            targetTimeSeconds: null,
             notes: null,
           };
 
@@ -1228,7 +1239,10 @@ export function daysToPlanDraft(days: DayPlan[], existingDraft: PlanDraft): Plan
             order: bEx.order,
             exerciseType: bEx.exerciseType || 'Weight',
             sets: prog.sets,
-            reps: parseRepsNumber(prog.repsRange, prog.reps),
+            reps:
+              prog.reps === 0 && (prog.repsRange === '' || prog.repsRange == null)
+                ? 0
+                : parseRepsNumber(prog.repsRange, prog.reps),
             targetPercentage: prog.targetPercentage,
             targetDistanceMeters: prog.targetDistanceMeters ?? null,
             targetTimeSeconds: prog.targetTimeSeconds ?? null,

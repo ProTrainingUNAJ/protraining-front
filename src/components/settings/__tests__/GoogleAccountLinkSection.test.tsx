@@ -15,6 +15,8 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'true');
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id');
   });
 
   it('muestra estado desvinculado con acción y exige reautenticación con contraseña antes de vincular', async () => {
@@ -110,6 +112,7 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
   });
 
   it('permite desvincular Google tras confirmar contraseña actual', async () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'test-client-id');
     vi.mocked(authService.getGoogleLinkStatus).mockResolvedValueOnce(true);
     vi.mocked(authService.unlinkGoogleAccount).mockResolvedValueOnce(false);
 
@@ -128,6 +131,16 @@ describe('GoogleAccountLinkSection (KAN-541)', () => {
       expect(authService.unlinkGoogleAccount).toHaveBeenCalledWith('Password123!');
       expect(screen.getByText('Cuenta de Google desvinculada correctamente.')).toBeDefined();
       expect(screen.getByRole('button', { name: /Vincular cuenta de Google/i })).toBeDefined();
+    });
+  });
+
+  it('no renderiza la sección si Google no está configurado y el usuario no está vinculado (KAN-512)', async () => {
+    vi.stubEnv('VITE_GOOGLE_LOGIN_ENABLED', 'false');
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', '');
+    vi.mocked(authService.getGoogleLinkStatus).mockResolvedValueOnce(false);
+    const { container } = render(<GoogleAccountLinkSection />);
+    await waitFor(() => {
+      expect(container.firstChild).toBeNull();
     });
   });
 });

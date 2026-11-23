@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { RecommendationsPage } from '../RecommendationsPage';
 import type { AthleteRecommendation } from '../../../api/recommendations';
+
+// El nombre también aparece en el selector de hábitos (KAN-634): se busca solo dentro de la lista.
+const inList = () => within(screen.getByLabelText('Recomendaciones agrupadas por atleta'));
 
 const {
   listRecommendationsMock,
@@ -101,7 +104,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // Incluso con 1 recomendación arranca comprimida con contador y chip capitalizado
@@ -140,7 +143,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -177,7 +180,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -194,7 +197,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     });
 
     fireEvent.click(screen.getByRole('tab', { name: /Aprobadas/i }));
-    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(inList().getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getByText('1 aprobada')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
     expect(screen.getByText('Ajuste de potencia de salto')).toBeDefined();
@@ -212,7 +215,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -242,7 +245,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -254,10 +257,10 @@ describe('RecommendationsPage (KAN-492)', () => {
     });
 
     fireEvent.click(screen.getByRole('tab', { name: /Descartadas/i }));
-    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(inList().getByText('Lucas Gómez')).toBeDefined();
   });
 
-  it('ejecuta el motor para la categoría seleccionada y muestra el resumen', async () => {
+  it('deshabilita el botón sin categoría seleccionada y ejecuta el motor al elegir una (KAN-512)', async () => {
     generateForCategoryMock.mockResolvedValue({
       categoryId: 'cat-1',
       categoryName: 'Primera División',
@@ -270,10 +273,21 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Analizar categoría/i }));
+    // Sin categoría seleccionada ("Todas las categorías"), el botón está deshabilitado
+    const defaultBtn = screen.getByRole('button', { name: /Analizar plantel/i });
+    expect((defaultBtn as HTMLButtonElement).disabled).toBe(true);
+
+    // Seleccionamos Primera División
+    fireEvent.change(screen.getByLabelText(/Filtrar por categoría/i), {
+      target: { value: 'cat-1' },
+    });
+
+    const analyzeBtn = screen.getByRole('button', { name: /Analizar: Primera División/i });
+    expect((analyzeBtn as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(analyzeBtn);
 
     await waitFor(() => {
       expect(generateForCategoryMock).toHaveBeenCalledWith('cat-1', 4);
@@ -299,11 +313,11 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // El nombre del atleta aparece una sola vez aunque tenga 2 recomendaciones
-    expect(screen.getAllByText('Lucas Gómez')).toHaveLength(1);
+    expect(inList().getAllByText('Lucas Gómez')).toHaveLength(1);
     expect(screen.getByText('2 pendientes')).toBeDefined();
     expect(screen.getByText('Salto por debajo del promedio')).toBeDefined();
     expect(screen.getByText('Velocidad por debajo del promedio')).toBeDefined();
@@ -316,5 +330,44 @@ describe('RecommendationsPage (KAN-492)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendaciones \(2\)/i }));
     expect(screen.getByText('Ajuste de potencia de salto')).toBeDefined();
     expect(screen.getByText('Ajuste de velocidad')).toBeDefined();
+  });
+
+  it('permite alternar entre "Analizar plantel" y "Hábitos y alimentación" separando las secciones (KAN-654)', async () => {
+    const habitsRec: AthleteRecommendation = {
+      ...pendingRec,
+      id: 'rec-habits-1',
+      type: 'Habits',
+      title: 'Ajuste de hidratación y proteína',
+      reason: 'objetivo de masa muscular',
+      recommendationText: 'Ingesta de 1.8g/kg de proteína y 2.5L de agua diarios.',
+    };
+    listRecommendationsMock.mockResolvedValue([pendingRec, habitsRec]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // Pestaña inicial: "Analizar plantel"
+    const analysisTab = screen.getByRole('tab', { name: /Analizar plantel/i });
+    const habitsTab = screen.getByRole('tab', { name: /Hábitos y alimentación/i });
+    expect(analysisTab).toBeDefined();
+    expect(habitsTab).toBeDefined();
+    expect(analysisTab.getAttribute('aria-selected')).toBe('true');
+    expect(habitsTab.getAttribute('aria-selected')).toBe('false');
+
+    // En "Analizar plantel": visible el motor y la recomendación física, oculto Hábitos
+    expect(screen.getByText('Analizar plantel y generar propuestas')).toBeDefined();
+    expect(screen.queryByLabelText('Generar recomendación de hábitos y alimentación')).toBeNull();
+
+    // Cambiamos a "Hábitos y alimentación"
+    fireEvent.click(habitsTab);
+    expect(habitsTab.getAttribute('aria-selected')).toBe('true');
+    expect(analysisTab.getAttribute('aria-selected')).toBe('false');
+
+    // En "Hábitos y alimentación": visible el bloque de hábitos, oculto el motor físico
+    expect(screen.getByLabelText('Generar recomendación de hábitos y alimentación')).toBeDefined();
+    expect(screen.queryByText('Analizar plantel y generar propuestas')).toBeNull();
   });
 });

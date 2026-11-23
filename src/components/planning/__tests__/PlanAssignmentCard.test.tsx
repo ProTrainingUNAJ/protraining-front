@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PlanAssignmentCard } from '../PlanAssignmentCard';
 import type { PlanAssignmentSummary } from '../../../api/trainingPlans';
@@ -92,5 +92,53 @@ describe('PlanAssignmentCard (KAN-623)', () => {
 
     expect(chestPath?.getAttribute('fill')).toBe('#0284c7');
     expect(tricepsPath?.getAttribute('fill')).toBe('#94a3b8');
+  });
+
+  it('muestra el botón "Gestionar" con el contador y abre la gestión al hacer clic', () => {
+    const onOpenManage = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <PlanAssignmentCard
+          group={{
+            trainingPlanId: 'plan-101',
+            planName: 'Fuerza base',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+            assignees: [
+              {
+                assignmentId: 'assign-1',
+                type: 'category',
+                targetId: 'cat-1',
+                name: 'Primera División',
+                startDate: '2026-11-16',
+                endDate: '2026-12-13',
+                status: 'Active',
+              },
+              {
+                assignmentId: 'assign-2',
+                type: 'athlete',
+                targetId: 'ath-1',
+                name: 'Lucas Gómez',
+                startDate: '2026-11-16',
+                endDate: '2026-12-13',
+                status: 'Active',
+              },
+            ],
+          }}
+          onOpenManage={onOpenManage}
+        />
+      </MemoryRouter>,
+    );
+
+    const manageBtn = screen.getByRole('button', {
+      name: /ver y administrar 2 asignados a fuerza base/i,
+    });
+    expect(manageBtn.textContent).toContain('Gestionar');
+    expect(manageBtn.textContent).toContain('2');
+
+    fireEvent.click(manageBtn);
+    expect(onOpenManage).toHaveBeenCalledTimes(1);
   });
 });

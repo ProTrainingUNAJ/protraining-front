@@ -514,6 +514,10 @@ export type MyRecommendation = {
     recommendationText: string;
     reviewedAtUtc?: string | null;
     createdAt: string;
+    /**
+     * Aviso del nutricionista, aparte del texto para que el front lo destaque (KAN-634). Solo en las de tipo Habits, y siempre con el texto oficial aunque el PF haya editado la recomendación. En las de entrenamiento es null.
+     */
+    legalDisclaimer?: string | null;
 };
 
 export type ListAlertsData = {

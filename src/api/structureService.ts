@@ -578,7 +578,7 @@ export const structureService = {
    * Devuelve la URL del endpoint de foto del atleta (WebP) con soporte de cache-busting opcional (KAN-512).
    */
   getAthletePhotoUrl(athleteId: string, photoUpdatedAt?: string | null): string {
-    const base = `/api/estructura/api/v1/athletes/${athleteId}/photo`;
+    const base = `/estructura/api/v1/athletes/${athleteId}/photo`;
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 
@@ -619,7 +619,7 @@ export const structureService = {
    * Devuelve la URL del logo de la organización con soporte de cache-busting opcional (KAN-512).
    */
   getOrganizationPhotoUrl(organizationId: string, photoUpdatedAt?: string | null): string {
-    const base = `/api/estructura/api/v1/organizations/${organizationId}/photo`;
+    const base = `/estructura/api/v1/organizations/${organizationId}/photo`;
     return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
   },
 

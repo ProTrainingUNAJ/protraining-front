@@ -149,6 +149,7 @@
 /* ── Grid y Tarjetas de Planificación (KAN-622) ── */
 .plan-cards-grid {
   display: grid;
+  /* auto-fill y no auto-fit: con pocas planificaciones las tarjetas no se estiran a todo el ancho */
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.25rem;
   margin: 0;
@@ -224,7 +225,7 @@
   height: 2.25rem;
   border-radius: 10px;
   background: var(--color-primary-subtle);
-  color: var(--primary);
+  color: var(--primary-text);
   flex-shrink: 0;
 }
 
@@ -288,7 +289,7 @@
 }
 
 .plan-card-title-link:hover {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .plan-card-desc {
@@ -357,9 +358,9 @@
 }
 
 .plan-card-muscle-silhouette svg {
-  width: 100% !important;
-  height: 100% !important;
-  max-height: 125px !important;
+  width: 100%;
+  height: 100%;
+  max-height: 125px;
   object-fit: contain;
   display: block;
 }
@@ -412,6 +413,8 @@
   padding: 0.45rem 0.85rem;
   font-size: 0.84rem;
   text-decoration: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .plan-card-footer-actions-left {
@@ -603,9 +606,9 @@
 }
 
 .plan-session-time {
-  border: none !important;
-  background: transparent !important;
-  padding: 0 !important;
+  border: none;
+  background: transparent;
+  padding: 0;
   color: var(--text-main);
   font-family: inherit;
   font-size: 0.85rem;
@@ -679,7 +682,7 @@
 }
 
 .plan-exercise-name-btn:hover {
-  color: var(--primary);
+  color: var(--primary-text);
   text-decoration: underline;
 }
 
@@ -1325,7 +1328,7 @@
 
 .plan-view-btn.active {
   background: var(--bg-card);
-  color: var(--primary);
+  color: var(--primary-text);
   box-shadow: var(--shadow-sm);
 }
 
@@ -1472,7 +1475,7 @@
 
 .plan-add-day-option:hover {
   background: var(--bg-subtle);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 /* Cabecera del día */
@@ -1750,7 +1753,7 @@
   display: inline-block;
   padding: 0.15rem 0.4rem;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
   border-radius: 4px;
   font-size: 0.75rem;
 }
@@ -1957,7 +1960,7 @@
 }
 
 .plan-volume-badge strong {
-  color: var(--primary);
+  color: var(--primary-text);
   font-weight: 700;
 }
 
@@ -1972,7 +1975,7 @@
 }
 
 .plan-collapse-btn:hover {
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--bg-subtle);
 }
 
@@ -2115,13 +2118,13 @@
 .plan-card-muscle-silhouette .muscle-map-view-header,
 .plan-exercise-muscle-silhouette .muscle-map-view-sub,
 .plan-exercise-muscle-silhouette .muscle-map-view-header {
-  display: none !important;
+  display: none;
 }
 
 .plan-exercise-muscle-silhouette svg {
-  width: 100% !important;
-  height: 100% !important;
-  max-height: 120px !important;
+  width: 100%;
+  height: 100%;
+  max-height: 120px;
   object-fit: contain;
   display: block;
 }
@@ -2654,7 +2657,7 @@
   height: 32px;
   border-radius: 8px;
   background: var(--bg-subtle);
-  color: var(--primary);
+  color: var(--primary-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2802,7 +2805,7 @@
 }
 
 .exercise-detail-section-icon {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .exercise-detail-silhouette-wrap {
@@ -2862,6 +2865,7 @@
 .plan-card-assignees-col {
   display: flex;
   align-items: center;
+  flex: 1;
   min-width: 0;
 }
 
@@ -2869,51 +2873,59 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.2rem 0.4rem;
-  border-radius: 9999px;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.18s ease;
   user-select: none;
-  background: transparent;
-  border: 1px solid transparent;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-family: inherit;
 }
 
 .plan-assignees-stack-trigger:hover {
-  background: var(--bg-subtle);
-  border-color: var(--border);
+  background: var(--info-bg);
+  border-color: var(--secondary);
+  color: var(--info-text);
 }
 
 .plan-assignees-stack-avatars {
   display: inline-flex;
   align-items: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .plan-assignee-avatar-wrapper {
   position: relative;
+  display: inline-flex;
   transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.4, 1);
 }
 
 .plan-assignee-avatar-wrapper:hover {
   transform: translateY(-2px) scale(1.08);
-  z-index: 25 !important;
+  z-index: 25;
 }
 
 .plan-assignee-avatar-circle {
-  border: 2px solid var(--bg-card) !important;
-  box-shadow: var(--shadow-sm) !important;
+  border: 2px solid var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .plan-assignee-more-circle {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: var(--bg-subtle);
-  border: 2px solid var(--border);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
   color: var(--text-main);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-sm);
@@ -2925,16 +2937,30 @@
   color: var(--white);
   border-color: var(--primary);
   transform: translateY(-2px) scale(1.08);
-  z-index: 25 !important;
+  z-index: 25;
+}
+
+.plan-assignees-trigger-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .plan-assignees-count-label {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 800;
   color: var(--text-muted);
-  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.1rem 0.4rem;
+  display: inline-flex;
   align-items: center;
   gap: 0.2rem;
+  flex-shrink: 0;
 }
 
 .plan-assignees-empty-btn {
@@ -2954,7 +2980,7 @@
 
 .plan-assignees-empty-btn:hover {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--bg-subtle);
 }
 
@@ -3080,7 +3106,7 @@
 
 .manage-assignments-item {
   display: grid;
-  grid-template-columns: 44px 1fr 180px;
+  grid-template-columns: 44px minmax(0, 1fr) 224px;
   align-items: center;
   gap: 0.95rem;
   padding: 0.9rem 1.1rem;
@@ -3088,6 +3114,7 @@
   border: 1px solid var(--border);
   background: var(--bg-card);
   transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
@@ -3162,7 +3189,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  width: 180px;
+  width: 100%;
+  min-width: 0;
   align-items: stretch;
 }
 
@@ -3189,7 +3217,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--primary);
+  color: var(--primary-text);
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
@@ -3210,6 +3238,72 @@
 .btn.btn-secondary.manage-assignments-adapt-danger-btn:hover {
   background: var(--danger-bg);
   border-color: var(--danger);
+}
+
+.manage-assignments-decision-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.manage-assignments-approved-status,
+.manage-assignments-rejected-status {
+  flex: 1;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.manage-assignments-approved-status {
+  color: var(--success-text);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+}
+
+.manage-assignments-rejected-status {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+}
+
+.manage-assignments-edit-adaptation-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.manage-assignments-edit-adaptation-btn:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+.manage-assignments-edit-adaptation-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .manage-assignments-normal-status {
@@ -3234,7 +3328,8 @@
 }
 
 .manage-assignments-category-athletes {
-  margin-left: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.65rem 0.85rem;
   border-radius: 12px;
   background: var(--bg-subtle);
@@ -3835,7 +3930,11 @@
   gap: 0.45rem;
   font-size: 0.88rem;
   font-weight: 800;
-  color: var(--brand-navy);
+  color: var(--primary-text);
+}
+
+[data-theme='dark'] .adaptation-diff-context-title {
+  color: var(--secondary);
 }
 
 .adaptation-shield-icon-wrap {

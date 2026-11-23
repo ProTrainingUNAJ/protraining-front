@@ -28,12 +28,6 @@ const ATHLETE_CHECK_IN_PATH = '/athlete/check-in';
 
 export type TrafficLightColor = 'Green' | 'Yellow' | 'Red';
 
-interface CheckInLocalResult {
-  trafficLight?: TrafficLightColor;
-  trafficLightReason?: string | null;
-  isOffline?: boolean;
-}
-
 export const DailyTrafficLightWidget: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -76,13 +70,11 @@ export const DailyTrafficLightWidget: React.FC = () => {
     // 1. Try local completed state first for instantaneous display
     const localCompleted = getCheckInCompleted(id);
     if (localCompleted) {
-      const result = localCompleted.result as CheckInLocalResult | undefined;
-      const color = result?.trafficLight;
+      const color = localCompleted.trafficLight;
       if (color === 'Green' || color === 'Yellow' || color === 'Red') {
         setTrafficColor(color);
-        setReason(result?.trafficLightReason || null);
-        // KAN-593: el registro local ya no guarda horas de sueño (dato médico).
-        // Solo se muestran cuando vienen del backend.
+        // El motivo del semáforo no se persiste: se usa el texto por defecto del color.
+        setReason(null);
         setSleepHours(null);
         setIsLoading(false);
         return;

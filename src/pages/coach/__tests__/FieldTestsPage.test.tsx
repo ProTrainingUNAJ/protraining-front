@@ -258,4 +258,77 @@ describe('FieldTestsPage · Sesiones de test de campo (KAN-427)', () => {
 
     expect(await screen.findByText('Una o más pruebas del catálogo no existen.')).toBeDefined();
   });
+
+  it('cierra el modal al presionar Cancelar o el botón de cierre (KAN-656)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+    expect(screen.getByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeDefined();
+
+    // Cerrar con botón X
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar modal' }));
+    expect(screen.queryByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeNull();
+
+    // Reabrir y cerrar con botón Cancelar
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+    expect(screen.getByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeNull();
+  });
+
+  it('cierra el modal al presionar la tecla Escape (KAN-656)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+    expect(screen.getByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeDefined();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeNull();
+  });
+
+  it('filtra pruebas en el modal usando el buscador de texto y actualiza el contador dinámico (KAN-656)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+
+    // El listado de sesiones en la pantalla de fondo sigue presente
+    expect(screen.getByText('Evaluación de pretemporada')).toBeDefined();
+
+    // Contador inicial
+    expect(screen.getByText('Sin pruebas seleccionadas')).toBeDefined();
+
+    // Buscador por nombre
+    const searchInput = screen.getByRole('textbox', { name: 'Buscar test por nombre' });
+    fireEvent.change(searchInput, { target: { value: 'Sentadilla' } });
+
+    expect(screen.getByRole('button', { name: /Sentadilla 1RM/ })).toBeDefined();
+    expect(screen.queryByRole('button', { name: /30-15 Test/ })).toBeNull();
+
+    // Seleccionar test filtrado
+    fireEvent.click(screen.getByRole('button', { name: /Sentadilla 1RM/ }));
+    expect(screen.getByText('1 test seleccionado')).toBeDefined();
+
+    // Limpiar búsqueda con el botón de limpiar
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar búsqueda' }));
+    expect(screen.getByRole('button', { name: /30-15 Test/ })).toBeDefined();
+
+    // Seleccionar segundo test
+    fireEvent.click(screen.getByRole('button', { name: /30-15 Test/ }));
+    expect(screen.getByText('2 tests seleccionados')).toBeDefined();
+  });
+
+  it('incluye el selector de categoría dentro del modal de nueva sesión (KAN-656)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    fireEvent.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+
+    const categorySelect = screen.getByLabelText('Categoría') as HTMLSelectElement;
+    expect(categorySelect).toBeDefined();
+    expect(categorySelect.value).toBe('cat-1');
+  });
 });

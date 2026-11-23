@@ -128,7 +128,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     };
   }, []);
 
-  const isPushActive = pushSubscribed || pushPermission === 'granted';
+  const isPushActive = pushSubscribed;
 
   const handleTogglePush = async () => {
     setPushLoading(true);

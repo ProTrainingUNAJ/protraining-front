@@ -251,7 +251,7 @@
 
 .season-calendar-nav-btn:hover {
   background-color: var(--bg-card);
-  color: var(--brand-blue);
+  color: var(--primary-text);
   border-color: var(--border-hover, var(--border));
 }
 

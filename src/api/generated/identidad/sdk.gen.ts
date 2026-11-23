@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetGoogleLinkStatusData, GetGoogleLinkStatusErrors, GetGoogleLinkStatusResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LinkGoogleAccountData, LinkGoogleAccountErrors, LinkGoogleAccountResponses, LoginData, LoginErrors, LoginResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UnlinkGoogleAccountData, UnlinkGoogleAccountErrors, UnlinkGoogleAccountResponses, UpdateMyUserTelegramData, UpdateMyUserTelegramErrors, UpdateMyUserTelegramResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
+import type { ChangePasswordData, ChangePasswordErrors, ChangePasswordResponses, ConfirmEmailData, ConfirmEmailErrors, ConfirmEmailResponses, DeactivateAccountData, DeactivateAccountErrors, DeactivateAccountResponses, DeleteMyPhotoData, DeleteMyPhotoErrors, DeleteMyPhotoResponses, ForgotPasswordData, ForgotPasswordErrors, ForgotPasswordResponses, GetAthletePfHabitsRecommendationsData, GetAthletePfHabitsRecommendationsErrors, GetAthletePfHabitsRecommendationsResponses, GetGoogleLinkStatusData, GetGoogleLinkStatusErrors, GetGoogleLinkStatusResponses, GetMyHabitsRecommendationsData, GetMyHabitsRecommendationsErrors, GetMyHabitsRecommendationsResponses, GetMyPfPhotoData, GetMyPfPhotoErrors, GetMyPfPhotoResponses, GetMyPhotoData, GetMyPhotoErrors, GetMyPhotoResponses, GetPfContactData, GetPfContactErrors, GetPfContactResponses, GetUserPhotoData, GetUserPhotoErrors, GetUserPhotoResponses, GoogleLoginData, GoogleLoginErrors, GoogleLoginResponses, HealthCheckData, HealthCheckErrors, HealthCheckResponses, LinkGoogleAccountData, LinkGoogleAccountErrors, LinkGoogleAccountResponses, LoginData, LoginErrors, LoginResponses, PurgeAthleteInternalData, PurgeAthleteInternalErrors, PurgeAthleteInternalResponses, RefreshTokenData, RefreshTokenErrors, RefreshTokenResponses, RegisterByInvitationData, RegisterByInvitationErrors, RegisterByInvitationResponses, RegisterPfData, RegisterPfErrors, RegisterPfResponses, ResendConfirmationData, ResendConfirmationErrors, ResendConfirmationResponses, ResetAthletePasswordData, ResetAthletePasswordErrors, ResetAthletePasswordResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UnlinkGoogleAccountData, UnlinkGoogleAccountErrors, UnlinkGoogleAccountResponses, UpdateMyHabitsRecommendationsData, UpdateMyHabitsRecommendationsErrors, UpdateMyHabitsRecommendationsResponses, UpdateMyUserTelegramData, UpdateMyUserTelegramErrors, UpdateMyUserTelegramResponses, UpdateProfileData, UpdateProfileErrors, UpdateProfileResponses, UpdateWhatsAppPhoneData, UpdateWhatsAppPhoneErrors, UpdateWhatsAppPhoneResponses, UploadMyPhotoData, UploadMyPhotoErrors, UploadMyPhotoResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -245,6 +245,49 @@ export const updateProfile = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
+ * Obtener la preferencia de recomendaciones de hábitos del PF autenticado (KAN-493)
+ *
+ * Devuelve si el preparador físico autenticado tiene habilitadas las recomendaciones de hábitos y alimentación para sus atletas. El valor predeterminado es true.
+ *
+ */
+export const getMyHabitsRecommendations = <ThrowOnError extends boolean = false>(options?: Options<GetMyHabitsRecommendationsData, ThrowOnError>): RequestResult<GetMyHabitsRecommendationsResponses, GetMyHabitsRecommendationsErrors, ThrowOnError> => (options?.client ?? client).get<GetMyHabitsRecommendationsResponses, GetMyHabitsRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/habits-recommendations',
+    ...options
+});
+
+/**
+ * Actualizar la preferencia de recomendaciones de hábitos del PF autenticado (KAN-493)
+ *
+ * Activa o desactiva las recomendaciones de hábitos y alimentación para todos los atletas del preparador físico autenticado. La restricción se aplica en el backend del Asistente.
+ *
+ */
+export const updateMyHabitsRecommendations = <ThrowOnError extends boolean = false>(options: Options<UpdateMyHabitsRecommendationsData, ThrowOnError>): RequestResult<UpdateMyHabitsRecommendationsResponses, UpdateMyHabitsRecommendationsErrors, ThrowOnError> => (options.client ?? client).put<UpdateMyHabitsRecommendationsResponses, UpdateMyHabitsRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/habits-recommendations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener la preferencia de recomendaciones del PF del atleta autenticado (KAN-493)
+ *
+ * Devuelve si el preparador físico asignado al atleta autenticado habilitó las recomendaciones de hábitos y alimentación. El PF se resuelve desde el claim pf_id del token.
+ *
+ */
+export const getAthletePfHabitsRecommendations = <ThrowOnError extends boolean = false>(options?: Options<GetAthletePfHabitsRecommendationsData, ThrowOnError>): RequestResult<GetAthletePfHabitsRecommendationsResponses, GetAthletePfHabitsRecommendationsErrors, ThrowOnError> => (options?.client ?? client).get<GetAthletePfHabitsRecommendationsResponses, GetAthletePfHabitsRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/pf-habits-recommendations',
+    ...options
+});
+
+/**
  * Actualizar usuario de Telegram propio (PF y Atleta, KAN-503)
  *
  * Actualiza exclusivamente el usuario de Telegram del usuario autenticado (PF o Atleta). Para atletas, sincroniza primero con Estructura antes de confirmar el cambio en Identidad.
@@ -364,6 +407,18 @@ export const getMyPfPhoto = <ThrowOnError extends boolean = false>(options?: Opt
     responseType: 'blob',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/users/me/pf-photo',
+    ...options
+});
+
+/**
+ * Purga física de cuenta y datos de un atleta/usuario
+ *
+ * Endpoint interno inter-servicio (rol Servicio) para el job de purga de datos. Elimina de forma atómica la cuenta de usuario del atleta, fotos de perfil, tokens de refresco y roles. El parámetro accountId corresponde al AccountId en Identidad.
+ */
+export const purgeAthleteInternal = <ThrowOnError extends boolean = false>(options: Options<PurgeAthleteInternalData, ThrowOnError>): RequestResult<PurgeAthleteInternalResponses, PurgeAthleteInternalErrors, ThrowOnError> => (options.client ?? client).delete<PurgeAthleteInternalResponses, PurgeAthleteInternalErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/internal/athletes/{accountId}/purge',
     ...options
 });
 

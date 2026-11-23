@@ -35,13 +35,12 @@ import { RoutineSessionMuscleMap } from '../../components/routine/RoutineSession
 import { FinishRoutineModal } from '../../components/routine/FinishRoutineModal';
 import { useRoutineTimer } from '../../hooks/useRoutineTimer';
 import { IntervalTimerModal } from '../../components/timer/IntervalTimerModal';
-import { evaluateTimeTarget } from '../../utils/timeTarget';
+import { evaluateTimeTarget, formatTargetTime } from '../../utils/timeTarget';
 import { unpackCoachNotes } from '../../utils/planDraft';
 import type { StoredPerformedSet } from '../../types';
+import './RoutinePage.css';
 
 type RoutineExerciseItem = TodayRoutineExercise & {
-  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
-  targetTimeSeconds?: number | null;
   bestMarkSeconds?: number | null;
 };
 
@@ -487,12 +486,11 @@ export const RoutinePage: React.FC = () => {
             : 'Planificación de hoy con pesos calculados en barra e indicaciones técnicas del PF.'
         }
         actions={
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="routine-page-actions">
             {selectedDate && (
               <button
                 type="button"
-                className="btn btn-primary"
-                style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem', gap: '0.4rem' }}
+                className="btn btn-primary routine-page-header-btn"
                 onClick={() => setSearchParams({})}
               >
                 <Calendar size={15} />
@@ -501,8 +499,7 @@ export const RoutinePage: React.FC = () => {
             )}
             <button
               type="button"
-              className="btn btn-secondary"
-              style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem', gap: '0.4rem' }}
+              className="btn btn-secondary routine-page-header-btn"
               onClick={fetchRoutine}
               title="Actualizar rutina"
             >
@@ -516,28 +513,9 @@ export const RoutinePage: React.FC = () => {
       <div className="app-page-body">
         {/* ── Estado de Carga ── */}
         {isLoading && (
-          <div
-            className="card"
-            style={{
-              padding: '2.5rem 1.5rem',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '1rem',
-            }}
-          >
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                border: '3px solid var(--border)',
-                borderTopColor: 'var(--secondary)',
-                animation: 'spin 0.8s linear infinite',
-              }}
-            />
-            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+          <div className="card routine-page-loading">
+            <div className="routine-page-spinner" />
+            <span className="routine-page-loading-text">
               Cargando tu planificación del día y pesos en barra...
             </span>
           </div>
@@ -545,31 +523,16 @@ export const RoutinePage: React.FC = () => {
 
         {/* ── Error al Cargar ── */}
         {!isLoading && error && (
-          <div
-            className="card"
-            style={{
-              padding: '1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              background: 'var(--danger-bg)',
-              borderColor: 'var(--danger-border)',
-            }}
-          >
-            <AlertCircle size={28} style={{ color: 'var(--danger)', flexShrink: 0 }} />
+          <div className="card routine-page-error">
+            <AlertCircle size={28} className="routine-page-error-icon" />
             <div>
-              <strong style={{ color: 'var(--danger-text)', display: 'block' }}>
-                Error al consultar la rutina
-              </strong>
-              <p style={{ margin: '0.2rem 0 0', fontSize: '0.88rem', color: 'var(--danger-text)' }}>
-                {error}
-              </p>
+              <strong className="routine-page-error-title">Error al consultar la rutina</strong>
+              <p className="routine-page-error-text">{error}</p>
             </div>
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary routine-page-retry"
               onClick={fetchRoutine}
-              style={{ marginLeft: 'auto' }}
             >
               Reintentar
             </button>
@@ -578,23 +541,14 @@ export const RoutinePage: React.FC = () => {
 
         {/* ── Banner de Celebración de Nueva Propuesta de Récord ── */}
         {!isLoading && proposalBanner && (
-          <div
-            className="routine-progress-celebration"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-              padding: '1rem 1.25rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <Trophy size={24} style={{ color: 'var(--stat-green)', flexShrink: 0 }} />
+          <div className="routine-progress-celebration routine-page-proposal-banner">
+            <div className="routine-page-proposal-left">
+              <Trophy size={24} className="routine-page-icon-success" />
               <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem' }}>
+                <strong className="routine-page-proposal-title">
                   ¡Propuesta de nuevo récord generada para tu PF!
                 </strong>
-                <span style={{ fontSize: '0.84rem' }}>
+                <span className="routine-page-proposal-text">
                   Registraste {proposalBanner.weight} kg × {proposalBanner.reps} reps en{' '}
                   {proposalBanner.exerciseName}. Tu preparador físico recibirá la propuesta para
                   evaluarla y aprobarla.
@@ -604,16 +558,7 @@ export const RoutinePage: React.FC = () => {
             <button
               type="button"
               onClick={() => setProposalBanner(null)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--success-text)',
-                cursor: 'pointer',
-                padding: '0.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className="routine-page-banner-close"
               aria-label="Cerrar aviso"
             >
               <X size={18} />
@@ -628,27 +573,11 @@ export const RoutinePage: React.FC = () => {
             <div className="routine-hero-sticky-container">
               {/* 1. Tarjeta Resumen de la Sesión */}
               <div className="card routine-session-hero-card">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '0.75rem',
-                  }}
-                >
+                <div className="routine-page-hero-head">
                   <div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        marginBottom: '0.25rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div className="routine-page-hero-badges">
                       {routine.startTime ? (
-                        <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                        <span className="badge badge-info routine-page-badge-gap">
                           <Clock size={13} aria-hidden="true" />
                           <span>
                             {!selectedDate || selectedDate === todayInArgentina()
@@ -657,16 +586,16 @@ export const RoutinePage: React.FC = () => {
                           </span>
                         </span>
                       ) : (
-                        <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                        <span className="badge badge-info routine-page-badge-gap">
                           <Calendar size={13} />
-                          <span style={{ textTransform: 'capitalize' }}>
+                          <span className="routine-page-date-cap">
                             {formatSpanishDate(routine.date)}
                           </span>
                         </span>
                       )}
 
                       {routine.routineAdapted && !routine.adjustedByCoach && (
-                        <span className="badge badge-warning" style={{ gap: '0.35rem' }}>
+                        <span className="badge badge-warning routine-page-badge-gap">
                           <Sparkles size={13} />
                           <span>
                             {hasPersonalizedVariant
@@ -684,7 +613,7 @@ export const RoutinePage: React.FC = () => {
                       )}
 
                       {routine.weekNumber != null && (
-                        <span className="badge badge-info" style={{ gap: '0.35rem' }}>
+                        <span className="badge badge-info routine-page-badge-gap">
                           <Calendar size={13} />
                           <span>Semana {routine.weekNumber}</span>
                         </span>
@@ -721,7 +650,7 @@ export const RoutinePage: React.FC = () => {
                           {routineTimer.isRunning ? (
                             <Pause size={24} />
                           ) : (
-                            <Play size={24} style={{ marginLeft: '3px' }} />
+                            <Play size={24} className="routine-page-play-icon" />
                           )}
                         </button>
                         <div className="routine-hero-timer-info">
@@ -757,13 +686,13 @@ export const RoutinePage: React.FC = () => {
                 <div className="routine-session-progress">
                   <div className="routine-progress-header">
                     <span className="routine-progress-title">
-                      <Activity size={17} style={{ color: 'var(--secondary)' }} />
+                      <Activity size={17} className="routine-page-icon-accent" />
                       <span>Progreso de Series de Hoy</span>
                     </span>
+                    {/* Color dinámico: verde cuando se completaron todas las series */}
                     <span
+                      className="routine-page-progress-count"
                       style={{
-                        fontSize: '0.85rem',
-                        fontWeight: 800,
                         color: sessionStats.isAllCompleted
                           ? 'var(--stat-green)'
                           : 'var(--text-main)',
@@ -783,7 +712,7 @@ export const RoutinePage: React.FC = () => {
 
                   {sessionStats.isAllCompleted && (
                     <div className="routine-progress-celebration">
-                      <Trophy size={20} style={{ color: 'var(--stat-green)', flexShrink: 0 }} />
+                      <Trophy size={20} className="routine-page-icon-success" />
                       <span>
                         ¡Excelente trabajo! Completaste todas las series planificadas para hoy.
                       </span>
@@ -835,40 +764,12 @@ export const RoutinePage: React.FC = () => {
             {/* 4. Caso Día de Descanso o Sin Ejercicios Prescritos */}
             {exercises.length === 0 && (
               <div className="card routine-rest-card">
-                <div
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    background: 'var(--info-bg)',
-                    color: 'var(--secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className="routine-page-rest-icon">
                   <Award size={32} />
                 </div>
                 <div>
-                  <h3
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 900,
-                      color: 'var(--text-main)',
-                      margin: '0 0 0.35rem',
-                    }}
-                  >
-                    Día de Descanso o Recuperación
-                  </h3>
-                  <p
-                    style={{
-                      color: 'var(--text-muted)',
-                      fontSize: '0.9rem',
-                      maxWidth: '460px',
-                      margin: 0,
-                      lineHeight: 1.5,
-                    }}
-                  >
+                  <h3 className="routine-page-rest-title">Día de Descanso o Recuperación</h3>
+                  <p className="routine-page-rest-text">
                     Hoy no tenés ejercicios prescritos en tu planificación activa. Aprovechá para
                     descansar, mantener una buena nutrición e hidratación y recargar energías.
                   </p>
@@ -888,18 +789,11 @@ export const RoutinePage: React.FC = () => {
                       </div>
                     )}
                     {group.exercises.length === 0 && (
-                      <div
-                        className="card"
-                        style={{
-                          padding: '1rem',
-                          color: 'var(--text-muted)',
-                          fontSize: '0.9rem',
-                        }}
-                      >
+                      <div className="card routine-page-empty-block">
                         Este bloque no tiene ejercicios asignados.
                       </div>
                     )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
+                    <div className="routine-page-exercise-list">
                       {group.exercises.map(({ exercise: rawExercise, globalIndex: exIdx }) => {
                         const exercise = rawExercise as RoutineExerciseItem;
                         const exKey = exercise.exerciseId || `ex-${exIdx}`;
@@ -925,10 +819,9 @@ export const RoutinePage: React.FC = () => {
                             {/* Icono del Ejercicio */}
                             <button
                               type="button"
-                              className="routine-exercise-icon-badge"
+                              className="routine-exercise-icon-badge routine-page-icon-btn"
                               onClick={() => setSelectedExerciseForModal(exercise)}
                               title="Ver técnica del ejercicio"
-                              style={{ cursor: 'pointer' }}
                             >
                               <Dumbbell size={22} />
                             </button>
@@ -956,7 +849,7 @@ export const RoutinePage: React.FC = () => {
                                   </span>
                                 )}
                                 {isExerciseComplete && (
-                                  <span className="badge badge-success" style={{ gap: '0.25rem' }}>
+                                  <span className="badge badge-success routine-page-badge-gap-sm">
                                     <CheckCircle2 size={13} />
                                     <span>Completado</span>
                                   </span>
@@ -981,57 +874,25 @@ export const RoutinePage: React.FC = () => {
                                 </div>
                               )}
 
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.65rem',
-                                  flexWrap: 'wrap',
-                                  marginTop: '0.2rem',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: '0.88rem',
-                                    fontWeight: 800,
-                                    color: 'var(--text-main)',
-                                  }}
-                                >
+                              <div className="routine-prescription-row">
+                                <span className="routine-prescription-main">
                                   {exercise.exerciseType === 'Distance'
-                                    ? `${exercise.sets} series × ${exercise.reps} m${
+                                    ? `${exercise.sets} series × ${exercise.targetDistanceMeters ?? exercise.reps} m${
                                         exercise.targetTimeSeconds != null
-                                          ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
-                                              'es-AR',
-                                              {
-                                                minimumFractionDigits: 1,
-                                                maximumFractionDigits: 1,
-                                              },
-                                            )} s`
+                                          ? ` · meta ${formatTargetTime(exercise.targetTimeSeconds).text}`
                                           : ''
                                       }`
                                     : exercise.exerciseType === 'Time'
-                                      ? `${exercise.sets} series × ${exercise.reps} s${
-                                          exercise.targetTimeSeconds != null
-                                            ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
-                                                'es-AR',
-                                                {
-                                                  minimumFractionDigits: 1,
-                                                  maximumFractionDigits: 1,
-                                                },
-                                              )} s`
-                                            : ''
+                                      ? `${exercise.sets} series × ${
+                                          formatTargetTime(
+                                            exercise.targetTimeSeconds ?? exercise.reps,
+                                          ).text
                                         }`
                                       : `${exercise.sets} series × ${exercise.reps} reps`}
                                 </span>
 
                                 {exercise.percentage !== undefined && exercise.percentage > 0 && (
-                                  <span
-                                    style={{
-                                      fontSize: '0.78rem',
-                                      fontWeight: 700,
-                                      color: 'var(--text-muted)',
-                                    }}
-                                  >
+                                  <span className="routine-prescription-pct">
                                     {exercise.exerciseType === 'Distance' ||
                                     exercise.exerciseType === 'Time'
                                       ? `(${exercise.percentage}%)`
@@ -1041,13 +902,7 @@ export const RoutinePage: React.FC = () => {
 
                                 {exercise.current1RmKg !== undefined &&
                                   exercise.current1RmKg !== null && (
-                                    <span
-                                      style={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                        color: 'var(--text-muted)',
-                                      }}
-                                    >
+                                    <span className="routine-prescription-1rm">
                                       · 1RM ref: {exercise.current1RmKg} kg
                                     </span>
                                   )}
@@ -1119,19 +974,23 @@ export const RoutinePage: React.FC = () => {
                             exercise.exerciseType === 'Time' ? (
                               // ── CASO CARRERA / DISTANCIA / TIEMPO ──
                               exercise.targetTimeSeconds != null ? (
-                                <div
-                                  className="routine-weight-callout highlight"
-                                  title="Meta de tiempo calculada a partir de tu mejor test"
-                                >
-                                  <span className="routine-weight-number">
-                                    {exercise.targetTimeSeconds.toLocaleString('es-AR', {
-                                      minimumFractionDigits: 1,
-                                      maximumFractionDigits: 1,
-                                    })}{' '}
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>s</span>
-                                  </span>
-                                  <span className="routine-weight-label">Meta de tiempo</span>
-                                </div>
+                                (() => {
+                                  const formatted = formatTargetTime(exercise.targetTimeSeconds);
+                                  return (
+                                    <div
+                                      className="routine-weight-callout highlight"
+                                      title="Meta de tiempo calculada a partir de tu mejor test"
+                                    >
+                                      <span className="routine-weight-number">
+                                        {formatted.value}{' '}
+                                        <span className="routine-page-weight-unit">
+                                          {formatted.unit}
+                                        </span>
+                                      </span>
+                                      <span className="routine-weight-label">Meta de tiempo</span>
+                                    </div>
+                                  );
+                                })()
                               ) : (
                                 <div
                                   className="routine-weight-callout reference"
@@ -1157,9 +1016,7 @@ export const RoutinePage: React.FC = () => {
                                   <>
                                     <span className="routine-weight-number">
                                       {exercise.weightKg}{' '}
-                                      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                                        kg
-                                      </span>
+                                      <span className="routine-page-weight-unit">kg</span>
                                     </span>
                                     {getBarbellSideText(exercise) ? (
                                       <span className="routine-weight-side">
@@ -1312,9 +1169,7 @@ export const RoutinePage: React.FC = () => {
                                           {isDone ? (
                                             <Check size={16} />
                                           ) : (
-                                            <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>
-                                              ●
-                                            </span>
+                                            <span className="routine-page-set-dot">●</span>
                                           )}
                                           <span>Serie {sNum}</span>
                                         </button>
@@ -1328,27 +1183,8 @@ export const RoutinePage: React.FC = () => {
                             {/* ACCIÓN: REGISTRAR LO QUE HICE (Epley y propuesta de récord). Solo mostramos registro para ejercicios de pesas/fuerza */}
                             {exercise.exerciseType !== 'Distance' &&
                               exercise.exerciseType !== 'Time' && (
-                                <div
-                                  style={{
-                                    gridColumn: '1 / -1',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    gap: '0.75rem',
-                                    flexWrap: 'wrap',
-                                    paddingTop: '0.75rem',
-                                    borderTop: '1px solid var(--border)',
-                                    marginTop: '0.25rem',
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.5rem',
-                                      flexWrap: 'wrap',
-                                    }}
-                                  >
+                                <div className="routine-page-record-row">
+                                  <div className="routine-page-record-left">
                                     {performed ? (
                                       <span
                                         className="routine-performed-badge"
@@ -1360,9 +1196,7 @@ export const RoutinePage: React.FC = () => {
                                         </span>
                                       </span>
                                     ) : (
-                                      <span
-                                        style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}
-                                      >
+                                      <span className="routine-page-record-hint">
                                         Registrá tu mejor serie para calcular tu 1RM estimado con
                                         Epley
                                       </span>
@@ -1386,7 +1220,7 @@ export const RoutinePage: React.FC = () => {
                               )}
 
                             {openVideoExerciseId === exercise.exerciseId && exercise.videoUrl && (
-                              <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem' }}>
+                              <div className="routine-page-video-slot">
                                 <ExerciseVideoPlayer
                                   videoUrl={exercise.videoUrl}
                                   exerciseName={exercise.name}
@@ -1454,7 +1288,7 @@ export const RoutinePage: React.FC = () => {
             {/* Encabezado del Modal */}
             <div className="routine-modal-header">
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="routine-page-modal-title-row">
                   <h3 id="routine-modal-title" className="routine-modal-title">
                     {selectedExerciseForModal.name}
                   </h3>
@@ -1462,9 +1296,7 @@ export const RoutinePage: React.FC = () => {
                     <span className="routine-tag-pill">{selectedExerciseForModal.muscleGroup}</span>
                   )}
                 </div>
-                <p
-                  style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}
-                >
+                <p className="routine-page-modal-subtitle">
                   Guía técnica de ejecución y prescripción para hoy
                 </p>
               </div>
@@ -1482,24 +1314,13 @@ export const RoutinePage: React.FC = () => {
             {/* Cuerpo del Modal */}
             <div className="routine-modal-body">
               {/* Prescripción Resumida */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.65rem',
-                  flexWrap: 'wrap',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '12px',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--secondary)' }}>
-                    {(selectedExerciseForModal as RoutineExerciseItem).exerciseType ===
-                      'Distance' ||
-                    (selectedExerciseForModal as RoutineExerciseItem).exerciseType === 'Time'
-                      ? (selectedExerciseForModal as RoutineExerciseItem).targetTimeSeconds != null
-                        ? `${(selectedExerciseForModal as RoutineExerciseItem).targetTimeSeconds} s`
+              <div className="routine-page-modal-ref">
+                <div className="routine-page-modal-ref-col">
+                  <span className="routine-page-modal-ref-value--accent">
+                    {selectedExerciseForModal.exerciseType === 'Distance' ||
+                    selectedExerciseForModal.exerciseType === 'Time'
+                      ? selectedExerciseForModal.targetTimeSeconds != null
+                        ? formatTargetTime(selectedExerciseForModal.targetTimeSeconds).text
                         : 'Sin meta (Ritmo libre)'
                       : selectedExerciseForModal.weightKg !== null &&
                           selectedExerciseForModal.weightKg !== undefined
@@ -1510,52 +1331,31 @@ export const RoutinePage: React.FC = () => {
                   </span>
                 </div>
 
-                <div
-                  style={{
-                    width: '1px',
-                    background: 'var(--border)',
-                    margin: '0 0.5rem',
-                  }}
-                />
+                <div className="routine-page-modal-divider" />
 
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span
-                    style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}
-                  >
-                    VOLUMEN
-                  </span>
-                  <span style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--text-main)' }}>
-                    {selectedExerciseForModal.sets} series × {selectedExerciseForModal.reps} reps
+                <div className="routine-page-modal-ref-col">
+                  <span className="routine-page-modal-ref-label">VOLUMEN</span>
+                  <span className="routine-page-modal-ref-value">
+                    {selectedExerciseForModal.exerciseType === 'Distance'
+                      ? `${selectedExerciseForModal.sets} series × ${selectedExerciseForModal.targetDistanceMeters ?? selectedExerciseForModal.reps} m`
+                      : selectedExerciseForModal.exerciseType === 'Time'
+                        ? `${selectedExerciseForModal.sets} series × ${
+                            formatTargetTime(
+                              selectedExerciseForModal.targetTimeSeconds ??
+                                selectedExerciseForModal.reps,
+                            ).text
+                          }`
+                        : `${selectedExerciseForModal.sets} series × ${selectedExerciseForModal.reps} reps`}
                   </span>
                 </div>
 
                 {selectedExerciseForModal.percentage !== undefined &&
                   selectedExerciseForModal.percentage > 0 && (
                     <>
-                      <div
-                        style={{
-                          width: '1px',
-                          background: 'var(--border)',
-                          margin: '0 0.5rem',
-                        }}
-                      />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span
-                          style={{
-                            fontSize: '0.72rem',
-                            color: 'var(--text-muted)',
-                            fontWeight: 700,
-                          }}
-                        >
-                          INTENSIDAD
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '1.05rem',
-                            fontWeight: 900,
-                            color: 'var(--text-main)',
-                          }}
-                        >
+                      <div className="routine-page-modal-divider" />
+                      <div className="routine-page-modal-ref-col">
+                        <span className="routine-page-modal-ref-label">INTENSIDAD</span>
+                        <span className="routine-page-modal-ref-value">
                           {(selectedExerciseForModal as RoutineExerciseItem).exerciseType ===
                             'Distance' ||
                           (selectedExerciseForModal as RoutineExerciseItem).exerciseType === 'Time'
@@ -1575,35 +1375,15 @@ export const RoutinePage: React.FC = () => {
               />
 
               {/* Mapa Anatómico de Activación Muscular */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <Activity size={17} style={{ color: 'var(--secondary)' }} />
-                  <h4
-                    style={{
-                      fontSize: '0.92rem',
-                      fontWeight: 800,
-                      color: 'var(--text-main)',
-                      margin: 0,
-                    }}
-                  >
+              <div className="routine-page-modal-muscles">
+                <div className="routine-page-modal-muscles-head">
+                  <Activity size={17} className="routine-page-icon-accent" />
+                  <h4 className="routine-page-modal-muscles-title">
                     Activación Muscular Anatómica
                   </h4>
                 </div>
 
-                <div
-                  style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '14px',
-                    padding: '1rem',
-                  }}
-                >
+                <div className="routine-page-modal-muscles-box">
                   {(!selectedExerciseForModal.primaryMuscles ||
                     selectedExerciseForModal.primaryMuscles.length === 0) &&
                   (!selectedExerciseForModal.secondaryMuscles ||
@@ -1625,42 +1405,12 @@ export const RoutinePage: React.FC = () => {
 
               {/* Indicación Técnica del Preparador Físico para la Sesión */}
               {displayCoachNotes && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.35rem',
-                    padding: '0.95rem 1.15rem',
-                    borderRadius: '12px',
-                    background: 'var(--info-bg)',
-                    border: '1px solid var(--info-border)',
-                  }}
-                >
-                  <strong
-                    style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--secondary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.02em',
-                    }}
-                  >
+                <div className="routine-page-modal-note">
+                  <strong className="routine-page-modal-note-title">
                     <MessageSquare size={15} />
                     <span>Indicación del Preparador Físico:</span>
                   </strong>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '0.86rem',
-                      color: 'var(--text-main)',
-                      lineHeight: 1.5,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    "{displayCoachNotes}"
-                  </p>
+                  <p className="routine-page-modal-note-text">"{displayCoachNotes}"</p>
                 </div>
               )}
 
@@ -1684,9 +1434,8 @@ export const RoutinePage: React.FC = () => {
 
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary routine-page-modal-accept"
                 onClick={() => setSelectedExerciseForModal(null)}
-                style={{ gap: '0.4rem' }}
               >
                 <Check size={16} />
                 <span>Entendido, volver a entrenar</span>

@@ -12,8 +12,10 @@ import {
 import {
   applyAthleteSessionAdjustment,
   getAthleteSessionAdjustment,
+  rejectAthleteSessionAdjustment,
   type ApplyAthleteSessionAdjustmentRequest,
   type ApplyAthleteSessionAdjustmentResponse,
+  type RejectAthleteSessionAdjustmentRequest,
 } from './generated/entrenamiento';
 import { extractErrorMessage } from './axiosClient';
 
@@ -30,6 +32,7 @@ export type {
   SuggestedRoutineExercise,
   ApplyAthleteSessionAdjustmentRequest,
   ApplyAthleteSessionAdjustmentResponse,
+  RejectAthleteSessionAdjustmentRequest,
 };
 
 const AI_ADAPTATION_TIMEOUT_MS = 120_000;
@@ -119,6 +122,26 @@ export const athleteAdaptationsService = {
   ): Promise<ApplyAthleteSessionAdjustmentResponse> {
     try {
       const { data } = await applyAthleteSessionAdjustment({
+        path: { sessionId },
+        body: payload,
+        throwOnError: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Registra y persiste en Entrenamiento el rechazo del PF sobre la adaptación propuesta,
+   * desactivando variantes previas y manteniendo la rutina base de la categoría (KAN-636).
+   */
+  async rejectSessionAdjustment(
+    sessionId: string,
+    payload: RejectAthleteSessionAdjustmentRequest,
+  ): Promise<ApplyAthleteSessionAdjustmentResponse> {
+    try {
+      const { data } = await rejectAthleteSessionAdjustment({
         path: { sessionId },
         body: payload,
         throwOnError: true,

@@ -1,0 +1,68 @@
+/*
+ * Estilos del modal "Registrar lo que hice" (KAN-582).
+ * Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+ * tokens de tokens.css. Sin valores dinámicos: los 14 bloques inline de este
+ * componente eran todos fijos. Donde la clase choca con una regla global
+ * igual de más específica (.routine-exercise-icon-badge, .btn), se usa
+ * selector compuesto para que el resultado sea el mismo que daba el inline.
+ */
+
+.routine-record-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Compuesto para pisar 44px/12px de .routine-exercise-icon-badge (athlete.css),
+   igual que hacía el style inline (38px/10px). */
+.routine-exercise-icon-badge.routine-record-modal-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.routine-record-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.routine-record-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.routine-record-note {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+}
+
+.routine-record-icon {
+  flex-shrink: 0;
+}
+
+.routine-record-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-size: 0.86rem;
+}
+
+/* Compuesto para pisar el gap: 0.5rem de .btn (components.css). */
+.btn.routine-record-submit {
+  gap: 0.45rem;
+}
+
+.routine-record-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--on-primary);
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}

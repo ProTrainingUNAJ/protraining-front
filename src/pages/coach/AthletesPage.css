@@ -1,0 +1,419 @@
+/* src/pages/coach/AthletesPage.css */
+
+.athletes-error-banner {
+  margin-bottom: var(--spacing-md);
+}
+
+.athletes-error-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.athletes-error-close-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.athletes-create-card {
+  margin-bottom: var(--spacing-lg);
+  border: 1.5px solid var(--secondary);
+  background: var(--bg-card);
+}
+
+.athletes-create-title {
+  margin-bottom: var(--spacing-2xs);
+  color: var(--primary-text);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.athletes-create-desc {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.athletes-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.athletes-form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.athletes-form-label {
+  display: block;
+  margin-bottom: var(--spacing-2xs);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.athletes-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.athletes-category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.athletes-category-chip.is-selected {
+  border-color: var(--secondary);
+  border-width: 1.5px;
+  background: var(--primary-light);
+  color: var(--secondary);
+}
+
+.athletes-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.athletes-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.athletes-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.athletes-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  color: var(--text-muted);
+  transform: translateY(-50%);
+}
+
+.athletes-search-input {
+  width: 100%;
+  margin: 0;
+  padding-left: 2.25rem;
+}
+
+.athletes-category-select {
+  width: auto;
+  min-width: 200px;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.athletes-empty-card {
+  padding: 3.5rem var(--spacing-md);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.athletes-loading-text {
+  margin: 0;
+  font-weight: 500;
+}
+
+.athletes-empty-icon {
+  margin: 0 auto 1rem;
+  opacity: 0.35;
+}
+
+.athletes-empty-title {
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-main);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.athletes-empty-desc {
+  max-width: 420px;
+  margin-inline: auto;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+}
+
+.athletes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.athletes-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
+}
+
+.athletes-card-info-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.athletes-card-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.athletes-card-name {
+  margin: 0;
+  color: var(--text-main);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+}
+
+.athletes-card-org-icon {
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
+}
+
+.athletes-card-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.athletes-card-categories-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.athletes-category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+}
+
+.athletes-no-categories-text {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-style: italic;
+}
+
+.athletes-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.athletes-action-btn {
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  font-size: var(--font-size-sm);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.athletes-action-btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.athlete-action--injuries {
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.athlete-action--injuries:hover:not(:disabled),
+.athlete-action--injuries:active:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger-bg-strong);
+}
+
+.athlete-action--active-injury {
+  border: 1.5px solid var(--danger);
+  background: var(--danger-bg-strong);
+  color: var(--danger-text);
+  font-weight: 700;
+}
+
+.athlete-action--active-injury:hover:not(:disabled),
+.athlete-action--active-injury:active:not(:disabled) {
+  border-color: var(--danger-text);
+  background: var(--danger-bg-strong);
+}
+
+.athlete-action-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+  background: var(--danger);
+  color: var(--on-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.athlete-action--evolution {
+  border: 1px solid var(--info-border);
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.athlete-action--evolution:hover:not(:disabled),
+.athlete-action--evolution:active:not(:disabled) {
+  border-color: var(--secondary);
+  background: var(--primary-light);
+}
+
+.athlete-action--secondary {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.athletes-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: var(--overlay);
+}
+
+.athletes-modal-content {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  margin: 0;
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+}
+
+.athletes-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.athletes-modal-title {
+  margin: 0;
+  color: var(--text-main);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.athletes-modal-desc {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.athletes-modal-empty {
+  padding: var(--spacing-xl);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.athletes-modal-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.athletes-modal-category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.athletes-modal-category-btn.is-assigned {
+  border: 1.5px solid var(--secondary);
+  background: var(--primary-light);
+}
+
+.athletes-modal-category-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.athletes-modal-category-badge {
+  gap: var(--spacing-2xs);
+}
+
+.athletes-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-lg);
+}
+
+@media (max-width: 640px) {
+  .athletes-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .athletes-category-select {
+    width: 100%;
+  }
+
+  .athletes-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .athletes-card-actions {
+    justify-content: flex-end;
+  }
+
+  .athletes-action-btn {
+    min-height: 38px;
+  }
+}

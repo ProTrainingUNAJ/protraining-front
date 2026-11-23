@@ -32,6 +32,7 @@ import {
   shareToWhatsApp,
   shareToAnyApp,
 } from '../../utils/routineShareImage';
+import './FinishRoutineModal.css';
 
 const InstagramIcon: React.FC = () => (
   <svg
@@ -253,20 +254,6 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
           onClick={onClose}
           disabled={isSubmitting}
           className="routine-finish-modal-close"
-          style={{
-            position: 'absolute',
-            top: '1rem',
-            right: '1rem',
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            padding: '0.35rem',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
           aria-label="Cerrar ventana"
         >
           <X size={20} />
@@ -274,100 +261,35 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
 
         {!isCompleted ? (
           /* ════════════ PASO 1: FORMULARIO DE REGISTRO ════════════ */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div className="finish-routine-form">
             {/* Cabecera */}
             <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  marginBottom: '0.35rem',
-                }}
-              >
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    background: 'var(--info-bg)',
-                    color: 'var(--secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
+              <div className="finish-routine-head">
+                <div className="finish-routine-head-icon">
                   <Dumbbell size={20} />
                 </div>
-                <h3
-                  id="finish-routine-modal-title"
-                  style={{
-                    margin: 0,
-                    fontSize: '1.25rem',
-                    fontWeight: 900,
-                    color: 'var(--text-main)',
-                  }}
-                >
+                <h3 id="finish-routine-modal-title" className="finish-routine-title">
                   Finalizar entrenamiento
                 </h3>
               </div>
-              <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+              <p className="finish-routine-subtitle">
                 Registrá tu tiempo y esfuerzo para calcular tus Unidades Arbitrarias (UA) y
                 sincronizarlas con tu preparador físico.
               </p>
             </div>
 
             {/* SECCIÓN 1: MÚSCULOS QUE TRABAJARON */}
-            <div
-              style={{
-                background: 'var(--bg-subtle)',
-                borderRadius: '14px',
-                border: '1px solid var(--border)',
-                padding: '1rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 800,
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <Flame size={16} style={{ color: 'var(--secondary)' }} />
+            <div className="finish-routine-muscles-box">
+              <div className="finish-routine-muscles-head">
+                <span className="finish-routine-muscles-title">
+                  <Flame size={16} className="finish-routine-icon-accent" />
                   <span>Músculos que trabajaron hoy</span>
                 </span>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  {muscleNames.length} grupos
-                </span>
+                <span className="finish-routine-muscles-count">{muscleNames.length} grupos</span>
               </div>
 
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '1.5rem',
-                  padding: '0.5rem 0',
-                }}
-              >
-                <div style={{ width: '64px', height: '110px' }}>
+              <div className="finish-routine-muscles-row">
+                <div className="finish-routine-silhouette-sm">
                   <MuscleMapFront
                     readOnly={true}
                     hideHeader={true}
@@ -375,7 +297,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                     muscleColors={highlight.muscleColors}
                   />
                 </div>
-                <div style={{ width: '64px', height: '110px' }}>
+                <div className="finish-routine-silhouette-sm">
                   <MuscleMapBack
                     readOnly={true}
                     hideHeader={true}
@@ -386,28 +308,9 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               </div>
 
               {muscleNames.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '0.4rem',
-                    marginTop: '0.65rem',
-                    justifyContent: 'center',
-                  }}
-                >
+                <div className="finish-routine-muscle-chips">
                   {muscleNames.map((name) => (
-                    <span
-                      key={name}
-                      style={{
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        padding: '0.2rem 0.6rem',
-                        borderRadius: '9999px',
-                        background: 'var(--info-bg)',
-                        color: 'var(--secondary)',
-                        border: '1px solid var(--border)',
-                      }}
-                    >
+                    <span key={name} className="finish-routine-muscle-chip">
                       {name}
                     </span>
                   ))}
@@ -416,32 +319,10 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
             </div>
 
             {/* SECCIÓN 2: TIEMPO ENTRENADO (FORMATO 00:00, CENTRADO Y MÁS GRANDE) */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <label
-                  htmlFor="finish-time-input"
-                  style={{
-                    fontSize: '0.88rem',
-                    fontWeight: 800,
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <Clock size={16} style={{ color: 'var(--secondary)' }} />
+            <div className="finish-routine-section-stack">
+              <div className="finish-routine-section-head">
+                <label htmlFor="finish-time-input" className="finish-routine-section-label">
+                  <Clock size={16} className="finish-routine-icon-accent" />
                   <span>Tiempo de sesión entrenado</span>
                 </label>
               </div>
@@ -482,40 +363,13 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
             </div>
 
             {/* SECCIÓN 3: SELECTOR INTERACTIVO DE RPE (COLOREADO SEGÚN TIERS DE DAILYLOADPAGE) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.88rem',
-                    fontWeight: 800,
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <Zap size={16} style={{ color: 'var(--warning)' }} />
+            <div className="finish-routine-section-stack">
+              <div className="finish-routine-section-head">
+                <span className="finish-routine-section-label">
+                  <Zap size={16} className="finish-routine-icon-warning" />
                   <span>Esfuerzo percibido (RPE 1-10)</span>
                 </span>
-                <span
-                  style={{
-                    fontSize: '0.82rem',
-                    fontWeight: 800,
-                    padding: '0.15rem 0.6rem',
-                    borderRadius: '9999px',
-                    background: 'var(--bg-subtle)',
-                    color: 'var(--secondary)',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  Nivel {rpe}
-                </span>
+                <span className="finish-routine-rpe-level">Nivel {rpe}</span>
               </div>
 
               {/* Barra continua y deslizable de RPE (conservando la gama de colores oficial) */}
@@ -538,75 +392,28 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
             </div>
 
             {/* SECCIÓN 4: CÁLCULO DE UA EN TIEMPO REAL */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.85rem 1.15rem',
-                borderRadius: '14px',
-                background: 'var(--info-bg)',
-                border: '1px solid var(--border)',
-              }}
-            >
+            <div className="finish-routine-ua-box">
               <div>
-                <span
-                  style={{
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    color: 'var(--text-muted)',
-                    display: 'block',
-                  }}
-                >
+                <span className="finish-routine-ua-label">
                   Unidades Arbitrarias calculadas ({formatMmSs(totalSeconds)} × RPE {rpe}):
                 </span>
-                <span
-                  style={{
-                    fontSize: '1.45rem',
-                    fontWeight: 900,
-                    color: 'var(--text-main)',
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  {calculatedUa}{' '}
-                  <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--secondary)' }}>
-                    UA
-                  </span>
+                <span className="finish-routine-ua-value">
+                  {calculatedUa} <span className="finish-routine-ua-unit">UA</span>
                 </span>
               </div>
 
-              <div
-                className="finish-routine-ua-progress-track"
-                style={{
-                  width: '90px',
-                  height: '8px',
-                }}
-              >
+              <div className="finish-routine-ua-progress-track finish-routine-ua-track--compact">
+                {/* Ancho dinámico: porcentaje de UA calculadas (0 a 600) */}
                 <div
-                  className="finish-routine-ua-progress-fill"
-                  style={{
-                    width: `${uaPercent}%`,
-                    transition: 'width 0.3s ease',
-                  }}
+                  className="finish-routine-ua-progress-fill finish-routine-ua-fill--form"
+                  style={{ width: `${uaPercent}%` }}
                 />
               </div>
             </div>
 
             {errorMessage && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '10px',
-                  background: 'var(--danger-bg)',
-                  border: '1px solid var(--danger-border)',
-                  color: 'var(--danger-text)',
-                  fontSize: '0.85rem',
-                }}
-              >
-                <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+              <div className="finish-routine-error">
+                <AlertTriangle size={16} className="finish-routine-icon-no-shrink" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -665,7 +472,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               aria-label="Silueta de músculos trabajados en la sesión"
               role="img"
             >
-              <div style={{ width: '80px', height: '144px' }}>
+              <div className="finish-routine-silhouette-lg">
                 <MuscleMapFront
                   readOnly={true}
                   hideHeader={true}
@@ -673,7 +480,7 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
                   muscleColors={highlight.muscleColors}
                 />
               </div>
-              <div style={{ width: '80px', height: '144px' }}>
+              <div className="finish-routine-silhouette-lg">
                 <MuscleMapBack
                   readOnly={true}
                   hideHeader={true}
@@ -684,75 +491,26 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
             </div>
 
             {/* BARRA DE UA CONSEGUIDA (Imagen 2) */}
-            <div
-              style={{
-                width: '100%',
-                background: 'var(--bg-subtle)',
-                borderRadius: '16px',
-                border: '1.5px solid var(--border)',
-                padding: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.85rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  Carga conseguida en la sesión
-                </span>
-                <span
-                  style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 900,
-                    color: 'var(--secondary)',
-                    letterSpacing: '-0.03em',
-                  }}
-                >
+            <div className="finish-routine-ua-card">
+              <div className="finish-routine-ua-card-head">
+                <span className="finish-routine-ua-card-label">Carga conseguida en la sesión</span>
+                <span className="finish-routine-ua-card-value">
                   {savedResponse?.totalLoad ?? calculatedUa}{' '}
-                  <span style={{ fontSize: '0.95rem', fontWeight: 800 }}>UA</span>
+                  <span className="finish-routine-ua-card-unit">UA</span>
                 </span>
               </div>
 
               {/* Barra animada de UA con degradado multicolor (KAN-623) */}
-              <div
-                className="finish-routine-ua-progress-track"
-                style={{
-                  width: '100%',
-                  height: '14px',
-                }}
-              >
+              <div className="finish-routine-ua-progress-track finish-routine-ua-track--card">
+                {/* Ancho dinámico: porcentaje de UA calculadas (0 a 600) */}
                 <div
-                  className="finish-routine-ua-progress-fill"
-                  style={{
-                    width: `${uaPercent}%`,
-                    transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  }}
+                  className="finish-routine-ua-progress-fill finish-routine-ua-fill--celebration"
+                  style={{ width: `${uaPercent}%` }}
                 />
               </div>
 
               {/* Indicadores de referencia de la escala de Foster */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  color: 'var(--text-muted)',
-                  marginTop: '-0.2rem',
-                }}
-              >
+              <div className="finish-routine-ua-scale">
                 <span>0 UA (Mínimo)</span>
                 <span>200 UA (Medio)</span>
                 <span>400 UA (Óptimo)</span>
@@ -760,23 +518,14 @@ export const FinishRoutineModal: React.FC<FinishRoutineModalProps> = ({
               </div>
 
               {/* Resumen de Minutos y RPE */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-around',
-                  paddingTop: '0.65rem',
-                  borderTop: '1px solid var(--border)',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                }}
-              >
+              <div className="finish-routine-summary">
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Duración: </span>
-                  <span style={{ color: 'var(--text-main)' }}>{formatMmSs(totalSeconds)}</span>
+                  <span className="finish-routine-summary-label">Duración: </span>
+                  <span className="finish-routine-summary-value">{formatMmSs(totalSeconds)}</span>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Esfuerzo: </span>
-                  <span style={{ color: 'var(--text-main)' }}>RPE {rpe}</span>
+                  <span className="finish-routine-summary-label">Esfuerzo: </span>
+                  <span className="finish-routine-summary-value">RPE {rpe}</span>
                 </div>
               </div>
             </div>

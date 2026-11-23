@@ -172,8 +172,7 @@ export const PainSliderBar: React.FC<PainSliderBarProps> = ({
           width: '100%',
           height: '1.45rem',
           borderRadius: '9999px',
-          background:
-            'linear-gradient(90deg, #0088cc 0%, #10b981 25%, #85a900 50%, #f97316 75%, #ef4444 100%)',
+          background: 'var(--pain-track-grad)',
           boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.06)',
           cursor: disabled ? 'not-allowed' : isDragging ? 'grabbing' : 'pointer',
           touchAction: 'none',
@@ -196,7 +195,7 @@ export const PainSliderBar: React.FC<PainSliderBarProps> = ({
               height: '2.25rem',
               borderRadius: '50%',
               backgroundColor: activeColor,
-              border: '3.5px solid #ffffff',
+              border: '3.5px solid var(--pain-scale-thumb-border)',
               boxShadow: '0 3px 10px rgba(0, 0, 0, 0.3)',
               display: 'flex',
               alignItems: 'center',

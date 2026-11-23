@@ -27,6 +27,7 @@ import {
 } from '../../api/seguimientoService';
 import type { AthleteTrafficLightSummary } from '../../api/generated/seguimiento';
 import { Athlete, Category, Organization } from '../../types/structure';
+import { todayInArgentina } from '../../utils/argentinaDate';
 import './MonitoringPage.css';
 
 type FilterColor = 'all' | TrafficLightStatus;
@@ -399,7 +400,7 @@ export const MonitoringPage: React.FC = () => {
 
         const combinedSummary: CategoryAttendanceSummary = {
           categoryId: selectedCategoryId || 'all',
-          date: new Date().toISOString().slice(0, 10),
+          date: todayInArgentina(),
           totalRoster: combinedAthletes.length,
           presentCount,
           attendancePercentage:
@@ -658,10 +659,11 @@ export const MonitoringPage: React.FC = () => {
 
           {/* Athlete Search Input */}
           <div className="monitoring-search">
-            <Search size={15} className="monitoring-search-icon" />
+            <Search size={15} className="monitoring-search-icon" aria-hidden="true" />
             <input
               type="text"
               placeholder="Buscar atleta por nombre o posición..."
+              aria-label="Buscar atleta"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="monitoring-search-input"
@@ -889,6 +891,9 @@ export const MonitoringPage: React.FC = () => {
 
                     const totalMinutes = athlete.totalMinutes ?? 0;
                     const totalLoad = athlete.totalLoad ?? 0;
+                    const hasRecordedLoad = Boolean(
+                      totalLoad > 0 || (athlete.activities && athlete.activities.length > 0),
+                    );
 
                     const athleteTraffic = athletes.find(
                       (a) => a.id.toLowerCase() === athlete.athleteId.toLowerCase(),
@@ -907,7 +912,9 @@ export const MonitoringPage: React.FC = () => {
                       status: isPresent ? 'green' : 'gray',
                       statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
                       recommendation: isPresent
-                        ? 'Atleta presente con carga registrada en el día.'
+                        ? hasRecordedLoad
+                          ? 'Atleta presente con carga registrada en el día.'
+                          : 'Atleta presente sin carga registrada en el día.'
                         : 'Atleta sin registro de carga ni asistencia en el día.',
                       avatarUrl: photoUrl,
                       ...contactFields,
@@ -1078,7 +1085,7 @@ export const MonitoringPage: React.FC = () => {
                               style={{
                                 width:
                                   totalLoad > 0
-                                    ? `${Math.min(100, Math.max(6, Math.round((totalLoad / 900) * 100)))}%`
+                                    ? `${Math.min(100, Math.max(6, Math.round((totalLoad / Math.max(1000, Math.ceil((totalLoad * 1.25) / 100) * 100)) * 100)))}%`
                                     : '0%',
                               }}
                             />
@@ -1115,7 +1122,7 @@ export const MonitoringPage: React.FC = () => {
 
                         {/* Botón de Carga / Edición + Contacto anclados simétricamente al pie */}
                         <div className="monitoring-att-actions">
-                          {isPresent ? (
+                          {hasRecordedLoad ? (
                             <button
                               type="button"
                               data-testid={`edit-load-btn-${athlete.athleteId}`}

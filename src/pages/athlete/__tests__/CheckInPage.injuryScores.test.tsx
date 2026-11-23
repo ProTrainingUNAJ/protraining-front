@@ -28,6 +28,7 @@ vi.mock('../../../api/seguimientoService', async () => {
     ...actual,
     submitCheckIn: vi.fn(),
     listCheckInInjuries: vi.fn(),
+    getAthleteTodayCheckIn: vi.fn(),
     syncPendingCheckIns: vi.fn(),
     countPendingCheckIns: vi.fn(),
     discardPendingCheckInsForDate: vi.fn(),
@@ -271,25 +272,27 @@ describe('CheckInPage with active injury scores', () => {
   it('restores the submitted responses when editing a completed check-in', async () => {
     checkInHelper.clearCheckInDraft(ATHLETE_ID);
     checkInHelper.saveCheckInCompleted(ATHLETE_ID, {
-      result: {
-        message: 'Check-in registrado',
-        trafficLight: 'Red',
-        trafficLightReason: 'Lesión activa reportada',
-        checkIn: {
-          sleepHours: 8,
-          sleepQuality: 3,
-          muscleSoreness: 2,
-          fatigueLevel: 2,
-          moodRate: 4,
-          stressLevel: 2,
-          isSick: false,
-          painZones: 'isquiotibiales:6',
-          hasActiveInjury: true,
-          injuries: [{ injuryId: INJURY_ID, zone: 'isquiotibiales', level: 7 }],
-        },
-      } as never,
+      trafficLight: 'Red',
       completedAt: new Date().toISOString(),
     });
+
+    vi.mocked(seguimientoService.getAthleteTodayCheckIn).mockResolvedValue({
+      id: 'checkin-1',
+      athleteId: ATHLETE_ID,
+      date: '2026-11-16',
+      trafficLight: 'Red',
+      trafficLightReason: 'Lesión activa reportada',
+      sleepHours: 8,
+      sleepQuality: 3,
+      muscleSoreness: 2,
+      fatigueLevel: 2,
+      moodRate: 4,
+      stressLevel: 2,
+      isSick: false,
+      painZones: 'isquiotibiales:6',
+      hasActiveInjury: true,
+      injuries: [{ injuryId: INJURY_ID, zone: 'isquiotibiales', level: 7 }],
+    } as never);
 
     renderPage();
 

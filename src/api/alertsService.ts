@@ -1,12 +1,9 @@
-import axios from 'axios';
 import {
   applyAlertAdjustment,
   listAlerts,
   reviewAlert,
-  suggestTodayAdjustment,
   type PreventiveAlert,
 } from './generated/asistente';
-import { getTodayCheckIn, listAthleteCheckIns } from './generated/seguimiento';
 import { extractErrorMessage } from './axiosClient';
 import { NoticeItem, ApplyNoticeResult } from '../types/alerts';
 
@@ -52,7 +49,7 @@ const toArgentinaDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
 
 // El back sugiere el tipo de ajuste para cada aviso:
-// - RoutineAdjustment: adapta la rutina con las zonas de dolor del check-in.
+// - RoutineAdjustment: abre la propuesta de ajuste del día para que el PF la apruebe.
 // - LoadReduction (KAN-478): aplica en 1 clic la reducción de carga en Entrenamiento.
 // - Otros: solo revisión manual (archivo).
 function mapAlertToNotice(alert: PreventiveAlert): NoticeItem {
@@ -67,7 +64,7 @@ function mapAlertToNotice(alert: PreventiveAlert): NoticeItem {
     actionLabel = 'Aplicar ajuste (1 clic)';
   } else if (isRoutineAdjustment) {
     actionType = 'routine_adjustment';
-    actionLabel = 'Aplicar ajuste recomendado';
+    actionLabel = 'Ver propuesta de ajuste';
   }
 
   return {
@@ -89,45 +86,8 @@ function mapAlertToNotice(alert: PreventiveAlert): NoticeItem {
   };
 }
 
-// Zonas de dolor para /today-adjustment: las del check-in de hoy y, si no hay
-// (p. ej. el aviso se generó ayer y el día cambió), las del día en que se
-// generó el aviso, que es el que motivó la alerta. Devuelve null cuando no hay
-// check-in en ninguna de las dos fechas o cuando no trae zonas de dolor.
-async function resolvePainZones(notice: NoticeItem): Promise<string | null> {
-  // 1) Check-in de hoy (caso habitual: aviso del mismo día).
-  try {
-    const { data } = await getTodayCheckIn({
-      path: { athleteId: notice.athleteId },
-      throwOnError: true,
-    });
-    const painZones = data.painZones?.trim();
-    // Hay check-in de hoy: si no trae dolor no hay zonas que enviar. Sin
-    // fallback a días viejos: hoy el atleta no reporta dolor.
-    return painZones ? painZones : null;
-  } catch (error) {
-    if (!(axios.isAxiosError(error) && error.response?.status === 404)) {
-      throw toServiceError(error);
-    }
-  }
-
-  // 2) Sin check-in de hoy → check-in del día del aviso (KAN-495: evita el falso
-  //    "no tiene zonas de dolor" cuando el aviso es de un día anterior).
-  if (!notice.generatedDate) return null;
-  try {
-    const { data } = await listAthleteCheckIns({
-      path: { athleteId: notice.athleteId },
-      query: { from: notice.generatedDate, to: notice.generatedDate, limit: 1 },
-      throwOnError: true,
-    });
-    const painZones = data[0]?.painZones?.trim();
-    return painZones ? painZones : null;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null;
-    }
-    throw toServiceError(error);
-  }
-}
+/** Se dispara cuando un aviso se aplica o se revisa, para que la campana y el Inicio se actualicen. */
+export const ALERTS_CHANGED_EVENT = 'protraining-alerts-changed';
 
 export const alertsService = {
   /**
@@ -185,41 +145,10 @@ export const alertsService = {
       return { success: true, message: 'Aviso marcado como revisado' };
     }
 
-    // 3) Ajuste de rutina con zonas de dolor
-    const reportedPainZones = await resolvePainZones(notice);
-    if (!reportedPainZones) {
-      throw new Error(
-        'Este atleta no tiene zonas de dolor en el check-in de hoy, así que no se puede adaptar la rutina automáticamente.',
-      );
-    }
-
-    try {
-      await suggestTodayAdjustment({
-        body: {
-          athleteId: notice.athleteId,
-          reportedPainZones,
-        },
-        throwOnError: true,
-      });
-    } catch (error) {
-      throw toServiceError(error);
-    }
-
-    // Archivado persistente tras éxito del ajuste
-    let pendingArchiving = false;
-    try {
-      await this.archiveAlert(notice.id);
-    } catch {
-      pendingArchiving = true;
-    }
-
-    return {
-      success: true,
-      message: pendingArchiving
-        ? 'Ajuste aplicado. Se va a terminar de guardar en unos segundos.'
-        : 'Ajuste aplicado correctamente',
-      pendingArchiving,
-    };
+    // 3) Ajuste de rutina: no se aplica a ciegas. El PF revisa la propuesta del día en
+    //    DayAdjustmentModal (POST athletes/{id}/day-adjustments, KAN-452) y la aprueba ahí.
+    //    El endpoint /today-adjustment que se usaba acá no existe en el Asistente (KAN-594).
+    throw new Error('El ajuste de rutina se revisa y aprueba desde la propuesta del día.');
   },
 
   /**

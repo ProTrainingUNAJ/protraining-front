@@ -18,6 +18,8 @@
 
   /* Bordes */
   --border: #cdd1d6;
+  --border-subtle: var(--border);
+  --border-hover: #a0aec0;
 
   /* Texto y superficies sobre el navy (menús laterales y drawer) */
   --on-primary: #ffffff;
@@ -29,6 +31,7 @@
 
   /* Roles semánticos */
   --primary: var(--brand-navy);
+  --primary-text: var(--primary);
   --primary-hover: #03446e;
   --primary-light: #e6eef4;
   --secondary: var(--brand-blue);
@@ -71,6 +74,7 @@
   --shell-panel-border: #cdd1d6;
   --shell-sidebar-bg: #023050;
   --shell-sidebar-width: 82px;
+  --shell-sidebar-expanded-width: 272px;
   --shell-active-item-bg: #0b4570;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #f0f2f5;
@@ -227,10 +231,15 @@
   --stat-cyan-bg: rgb(2 132 199 / 0.1);
   --stat-green: #15803d;
   --stat-green-bg: rgb(22 163 74 / 0.1);
+  /* Texto sobre un relleno --stat-green (botón "Aprobar en 1 clic" de Epley, KAN-594) */
+  --on-stat-green: var(--white);
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante en :root. */
   --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
   --stat-amber: #d97706;
   --stat-amber-bg: rgb(217 119 6 / 0.1);
+  /* Rojo de las estadísticas: lo usa la comparación con el grupo y no existía */
+  --stat-red: #dc2626;
+  --stat-red-bg: rgb(220 38 38 / 0.1);
 
   /* Cyan avatar for user profile */
   --avatar-cyan-bg: #e0f2fe;
@@ -299,6 +308,27 @@
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Escala de espaciado y de tamaño de letra. Atletas, Progreso, Evolución, la comparación con el grupo
+     y el calendario de temporada ya las usaban sin que existieran: el navegador descartaba esas
+     reglas y quedaban sin márgenes ni tamaños (ej.: el modal de categorías de Atletas). */
+  --spacing-2xs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+
+  /* Fondo al pasar el mouse por una fila (planificación, evolución) */
+  --bg-hover: var(--bg-subtle);
 
   --status-danger-bg: var(--danger-bg-strong);
   --status-danger-text: var(--danger-text);
@@ -479,6 +509,17 @@
   --traffic-bulb-border: rgb(0 0 0 / 0.6);
   --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
   --traffic-reflection-bg: rgb(255 255 255 / 0.85);
+
+  /* Pain scale tokens (KAN-512, KAN-642) */
+  --pain-scale-0: var(--primary);
+  --pain-scale-1-2: #0ea5e9;
+  --pain-scale-3-4: #10b981;
+  --pain-scale-5-6: #85a900;
+  --pain-scale-7-8: #f97316;
+  --pain-scale-9-10: #ef4444;
+
+  /* Load bar fill (KAN-512, KAN-646) - neutral color */
+  --load-bar-fill: var(--primary);
 }
 
 [data-theme='dark'] {
@@ -495,9 +536,12 @@
 
   /* Bordes */
   --border: #2e3846;
+  --border-subtle: var(--border);
+  --border-hover: #3d4a5c;
 
   /* Roles semánticos en modo oscuro */
   --primary: var(--brand-blue);
+  --primary-text: var(--secondary);
   --primary-hover: #0ea5e9;
   --primary-light: rgb(56 189 248 / 0.16);
   --secondary: #38bdf8;
@@ -519,6 +563,17 @@
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5);
 
+  /* Pain scale tokens (KAN-512, KAN-642) */
+  --pain-scale-0: var(--brand-blue);
+  --pain-scale-1-2: #38bdf8;
+  --pain-scale-3-4: #34d399;
+  --pain-scale-5-6: #a3e635;
+  --pain-scale-7-8: #fb923c;
+  --pain-scale-9-10: #f87171;
+
+  /* Load bar fill (KAN-512, KAN-646) */
+  --load-bar-fill: var(--brand-blue);
+
   /* Inputs and states in dark mode */
   --bg-surface-subtle: #1c2025;
   --color-text-subtle: #6d7784;
@@ -539,10 +594,14 @@
   --stat-cyan-bg: rgb(56 189 248 / 0.16);
   --stat-green: #4ade80;
   --stat-green-bg: rgb(74 222 128 / 0.16);
+  /* En oscuro el verde es claro: el blanco daba 1,74:1; con este verde muy oscuro da más de 10:1 */
+  --on-stat-green: #052e16;
   /* Glow de la barra del Check-in del dashboard (KAN-366); variante oscura. */
   --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
   --stat-amber: #fbbf24;
   --stat-amber-bg: rgb(251 191 36 / 0.16);
+  --stat-red: #f87171;
+  --stat-red-bg: rgb(248 113 113 / 0.16);
 
   /* Cyan avatar for user profile (dark mode) */
   --avatar-cyan-bg: rgb(2 132 199 / 0.22);
@@ -555,6 +614,7 @@
   --shell-panel-border: #2e3846;
   --shell-sidebar-bg: #023050;
   --shell-sidebar-width: 82px;
+  --shell-sidebar-expanded-width: 272px;
   --shell-active-item-bg: #0e4c7b;
   --shell-active-item-color: #ffffff;
   --shell-search-bg: #202732;
@@ -783,4 +843,15 @@
   --traffic-bulb-border: rgb(0 0 0 / 0.6);
   --traffic-bulb-shadow: inset 0 2px 4px rgb(0 0 0 / 0.8);
   --traffic-reflection-bg: rgb(255 255 255 / 0.85);
+
+  /* Pain scale tokens (KAN-512, KAN-642) */
+  --pain-scale-0: var(--primary);
+  --pain-scale-1-2: #0ea5e9;
+  --pain-scale-3-4: #10b981;
+  --pain-scale-5-6: #85a900;
+  --pain-scale-7-8: #f97316;
+  --pain-scale-9-10: #ef4444;
+
+  /* Load bar fill (KAN-512, KAN-646) - neutral color */
+  --load-bar-fill: var(--primary);
 }

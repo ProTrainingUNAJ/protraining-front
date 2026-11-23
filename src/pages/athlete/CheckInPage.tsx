@@ -8,8 +8,9 @@ import {
   countPendingCheckIns,
   discardPendingCheckInsForDate,
   CheckInSubmitResponse,
-  type CheckInEntityDto,
+  type CheckIn,
   listCheckInInjuries,
+  getAthleteTodayCheckIn,
 } from '../../api/seguimientoService';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
@@ -35,6 +36,9 @@ import {
   saveCheckInDraft,
   clearCheckInDraft,
   purgeLegacyCheckInCompletedData,
+  purgeStaleCheckInData,
+  clearAllCheckInData,
+  getTodayKey,
   hasRequiredInjuryMark,
   hasUnscoredActiveInjuries,
   getReportedZones,
@@ -75,10 +79,12 @@ interface SubmittedCheckInState {
 
 // KAN-593: el borrador se borra al enviar. Al recargar o al editar un check-in
 // completado, la respuesta guardada es la única fuente de las respuestas.
-const getStateFromSubmittedCheckIn = (checkIn?: CheckInEntityDto): SubmittedCheckInState => {
+const getStateFromSubmittedCheckIn = (checkIn?: CheckIn): SubmittedCheckInState => {
   const injuryScores: Record<string, number | null> = {};
   (checkIn?.injuries ?? []).forEach((injury) => {
-    injuryScores[injury.injuryId] = injury.level;
+    const id = injury.injuryId;
+    if (!id) return;
+    injuryScores[id] = injury.level ?? null;
   });
 
   return {
@@ -98,20 +104,19 @@ const getStateFromSubmittedCheckIn = (checkIn?: CheckInEntityDto): SubmittedChec
 
 export const CheckInPage: React.FC = () => {
   const { user } = useAuth();
-  const [athleteId, setAthleteId] = useState<string>(() => {
-    return (
-      (user?.id ? getCachedAthleteId(user.id) : null) || '99eedc58-65dd-4417-a087-e3cc03f01043'
-    );
-  });
+  const [athleteId, setAthleteId] = useState<string>(
+    () => (user?.id ? getCachedAthleteId(user.id) : null) || '',
+  );
   const [athleteResolutionError, setAthleteResolutionError] = useState<string | null>(null);
+  const [todayKey, setTodayKey] = useState(getTodayKey);
+  const previousDay = useRef(todayKey);
+  const isEditingSubmitted = useRef(false);
+  // Evita que la consulta al backend sobrescriba la navegación del atleta si éste
+  // interactúa antes de que llegue la respuesta.
+  const userNavigatedRef = useRef(false);
 
-  // Initial check from local storage for today
+  // Solo se conserva el indicador local; las respuestas se recuperan del backend.
   const initialCompleted = getCheckInCompleted(athleteId);
-  const initialSubmittedCheckIn = (initialCompleted?.result as CheckInSubmitResponse | undefined)
-    ?.checkIn;
-  const initialSubmittedState = initialSubmittedCheckIn
-    ? getStateFromSubmittedCheckIn(initialSubmittedCheckIn)
-    : null;
   const initialDraft = initialCompleted ? null : getCheckInDraft(athleteId);
 
   // Check-in metrics state (conserved across all slides)
@@ -119,34 +124,28 @@ export const CheckInPage: React.FC = () => {
   // desde la respuesta del submit para que la confirmación y la edición muestren
   // los mismos valores que se enviaron.
   const [sleepHours, setSleepHours] = useState<number | null>(
-    () => initialDraft?.sleepHours ?? initialSubmittedState?.sleepHours ?? null,
+    () => initialDraft?.sleepHours ?? null,
   );
   const [sleepQuality, setSleepQuality] = useState<number | null>(
-    () => initialDraft?.sleepQuality ?? initialSubmittedState?.sleepQuality ?? null,
+    () => initialDraft?.sleepQuality ?? null,
   );
   const [fatigueLevel, setFatigueLevel] = useState<number | null>(
-    () => initialDraft?.fatigueLevel ?? initialSubmittedState?.fatigueLevel ?? null,
+    () => initialDraft?.fatigueLevel ?? null,
   );
   const [muscleSoreness, setMuscleSoreness] = useState<number | null>(
-    () => initialDraft?.muscleSoreness ?? initialSubmittedState?.muscleSoreness ?? null,
+    () => initialDraft?.muscleSoreness ?? null,
   );
-  const [moodRate, setMoodRate] = useState<number>(
-    () => initialDraft?.moodRate ?? initialSubmittedState?.moodRate ?? 3,
-  );
-  const [stressLevel, setStressLevel] = useState<number>(
-    () => initialDraft?.stressLevel ?? initialSubmittedState?.stressLevel ?? 2,
-  );
-  const [isSick, setIsSick] = useState<boolean>(
-    () => initialDraft?.isSick ?? initialSubmittedState?.isSick ?? false,
-  );
+  const [moodRate, setMoodRate] = useState<number>(() => initialDraft?.moodRate ?? 3);
+  const [stressLevel, setStressLevel] = useState<number>(() => initialDraft?.stressLevel ?? 2);
+  const [isSick, setIsSick] = useState<boolean>(() => initialDraft?.isSick ?? false);
   const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(
-    () => initialDraft?.hasActiveInjury ?? initialSubmittedState?.hasActiveInjury ?? false,
+    () => initialDraft?.hasActiveInjury ?? false,
   );
   const [activeInjuries, setActiveInjuries] = useState<
     { id: string; zone: string; description: string }[]
   >([]);
   const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>(
-    () => initialDraft?.injuryScores ?? initialSubmittedState?.injuryScores ?? {},
+    () => initialDraft?.injuryScores ?? {},
   );
   const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
 
@@ -156,13 +155,10 @@ export const CheckInPage: React.FC = () => {
   const clinicalZones = activeInjuries.map((injury) => injury.zone);
 
   const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(
-    () =>
-      initialDraft?.healthQuestionsAnswered ??
-      initialSubmittedState?.healthQuestionsAnswered ??
-      false,
+    () => initialDraft?.healthQuestionsAnswered ?? false,
   );
   const [musclePains, setMusclePains] = useState<Record<string, number>>(() => {
-    if (!initialDraft) return initialSubmittedState?.musclePains ?? {};
+    if (!initialDraft) return {};
     const raw = initialDraft.musclePains || {};
     return initialDraft.hasActiveInjury ? raw : clearInjuryPains(raw);
   });
@@ -192,9 +188,9 @@ export const CheckInPage: React.FC = () => {
 
   // Submission & Offline State
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState<CheckInSubmitResponse | null>(() => {
-    return (initialCompleted?.result as CheckInSubmitResponse) || null;
-  });
+  const [submissionResult, setSubmissionResult] = useState<CheckInSubmitResponse | null>(null);
+  const [completedCheckIn, setCompletedCheckIn] = useState<CheckIn | null>(null);
+  const [isLoadingCompleted, setIsLoadingCompleted] = useState<boolean>(!!initialCompleted);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true,
@@ -204,15 +200,8 @@ export const CheckInPage: React.FC = () => {
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
-  const handleEditResponses = useCallback(() => {
-    setSubmissionResult(null);
-    setHasStarted(true);
-    setCurrentStep(4);
-    setShowConfetti(false);
-  }, []);
-
-  const applySubmittedState = useCallback((response: CheckInSubmitResponse) => {
-    const next = getStateFromSubmittedCheckIn(response.checkIn);
+  const applySubmittedState = useCallback((checkIn?: CheckIn) => {
+    const next = getStateFromSubmittedCheckIn(checkIn);
     setSleepHours(next.sleepHours);
     setSleepQuality(next.sleepQuality);
     setFatigueLevel(next.fatigueLevel);
@@ -228,18 +217,47 @@ export const CheckInPage: React.FC = () => {
 
   // Helper to rehydrate state if athleteId resolves asynchronously from /me
   const applyAthleteData = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const completed = getCheckInCompleted(id);
       if (completed) {
-        const response = completed.result as CheckInSubmitResponse;
-        applySubmittedState(response);
-        setSubmissionResult(response);
         setHasStarted(true);
         setCurrentStep(4);
         setMaxReachedStep(4);
+        setIsLoadingCompleted(true);
+        try {
+          const remote = await getAthleteTodayCheckIn(id);
+          if (remote) {
+            setCompletedCheckIn(remote);
+            applySubmittedState(remote);
+            setSubmissionResult({
+              message: 'Check-in registrado',
+              trafficLight: remote.trafficLight,
+              trafficLightReason: remote.trafficLightReason ?? null,
+              checkIn: remote,
+              isOffline: false,
+            });
+          } else {
+            setCompletedCheckIn(null);
+            setSubmissionResult({
+              message: 'Check-in completado',
+              trafficLight: completed.trafficLight ?? 'Yellow',
+              isOffline: completed.isOffline,
+            });
+          }
+        } catch {
+          setCompletedCheckIn(null);
+          setSubmissionResult({
+            message: 'Check-in completado',
+            trafficLight: completed.trafficLight ?? 'Yellow',
+            isOffline: completed.isOffline,
+          });
+        } finally {
+          setIsLoadingCompleted(false);
+        }
         return;
       }
 
+      setIsLoadingCompleted(false);
       const draft = getCheckInDraft(id);
       if (draft && draft.hasStarted) {
         setHasStarted(true);
@@ -259,14 +277,129 @@ export const CheckInPage: React.FC = () => {
         setInjuryScores(draft.injuryScores || {});
         setNotes(draft.notes || '');
       }
+
+      // El widget del semáforo consulta el backend: si hoy ya hay check-in, hay que
+      // mostrar la confirmación aunque no exista el indicador local (otro dispositivo,
+      // localStorage limpio, etc.). Si no, "Ver o actualizar" vuelve al registro.
+      try {
+        const remote = await getAthleteTodayCheckIn(id);
+        if (remote && !userNavigatedRef.current) {
+          setHasStarted(true);
+          setCurrentStep(4);
+          setMaxReachedStep(4);
+          setCompletedCheckIn(remote);
+          applySubmittedState(remote);
+          setSubmissionResult({
+            message: 'Check-in registrado',
+            trafficLight: remote.trafficLight,
+            trafficLightReason: remote.trafficLightReason ?? null,
+            checkIn: remote,
+            isOffline: false,
+          });
+          // Repara el indicador local sin persistir respuestas médicas.
+          saveCheckInCompleted(id, {
+            completedAt: new Date().toISOString(),
+            trafficLight: remote.trafficLight,
+            isOffline: false,
+          });
+        }
+      } catch {
+        // Sin conexión se conserva el indicador local o el borrador; no se abre el
+        // formulario con valores por defecto encima de un check-in ya enviado.
+      }
     },
     [applySubmittedState],
   );
 
-  // KAN-593: descarta los registros viejos que guardaban el borrador médico completo.
+  const handleEditResponses = useCallback(async () => {
+    userNavigatedRef.current = true;
+    if (!completedCheckIn) {
+      let remote: CheckIn | null;
+      try {
+        remote = await getAthleteTodayCheckIn(athleteId);
+      } catch {
+        setErrorMessage('No se pudieron recuperar tus respuestas. Intentá nuevamente.');
+        return;
+      }
+      // Sin respuesta del back no se abre el formulario: los valores por defecto
+      // (ánimo 3, estrés 2) pisarían el check-in real si el atleta reenvía.
+      if (!remote) {
+        setErrorMessage('No hay respuestas guardadas para editar.');
+        return;
+      }
+      setCompletedCheckIn(remote);
+      applySubmittedState(remote);
+      setSubmissionResult({
+        message: 'Check-in registrado',
+        trafficLight: remote.trafficLight,
+        trafficLightReason: remote.trafficLightReason ?? null,
+        checkIn: remote,
+        isOffline: false,
+      });
+    } else {
+      applySubmittedState(completedCheckIn);
+    }
+    isEditingSubmitted.current = true;
+    setSubmissionResult(null);
+    setHasStarted(true);
+    setCurrentStep(4);
+    setShowConfetti(false);
+  }, [athleteId, completedCheckIn, applySubmittedState]);
+
   useEffect(() => {
+    const refreshDay = () => setTodayKey(getTodayKey());
+    const timer = window.setInterval(refreshDay, 60_000);
+    window.addEventListener('focus', refreshDay);
+    document.addEventListener('visibilitychange', refreshDay);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshDay);
+      document.removeEventListener('visibilitychange', refreshDay);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previousDay.current === todayKey) return;
+    previousDay.current = todayKey;
+    clearAllCheckInData();
+    isEditingSubmitted.current = false;
+    userNavigatedRef.current = false;
+    setHasStarted(false);
+    setCurrentStep(1);
+    setMaxReachedStep(1);
+    setSubmissionResult(null);
+    setCompletedCheckIn(null);
+    setSleepHours(null);
+    setSleepQuality(null);
+    setFatigueLevel(null);
+    setMuscleSoreness(null);
+    setMoodRate(3);
+    setStressLevel(2);
+    setIsSick(false);
+    setHasActiveInjury(false);
+    setHealthQuestionsAnswered(false);
+    setMusclePains({});
+    setInjuryScores({});
+    setNotes('');
+    setShowConfetti(false);
+    setErrorMessage(null);
+    setIsLoadingCompleted(false);
+  }, [todayKey]);
+
+  // Al montar (y al cambiar de día) se descartan los datos con fecha de otro día:
+  // si la app se cerró a mitad del check-in, el borrador de ayer no debe quedar en el celular.
+  useEffect(() => {
+    purgeStaleCheckInData();
     purgeLegacyCheckInCompletedData(athleteId);
-  }, [athleteId]);
+  }, [athleteId, todayKey]);
+
+  useEffect(() => {
+    if (!athleteId) return;
+    const timer = setTimeout(() => {
+      void applyAthleteData(athleteId);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [athleteId, applyAthleteData, todayKey]);
 
   // Synchronize athlete id from Structure microservice GET /api/v1/me (KAN-329)
   useEffect(() => {
@@ -282,7 +415,6 @@ export const CheckInPage: React.FC = () => {
             setAthleteId(me.athleteId);
             setCachedAthleteId(user.id, me.athleteId);
             setAthleteResolutionError(null);
-            applyAthleteData(me.athleteId);
           }
         })
         .catch((err: unknown) => {
@@ -299,7 +431,7 @@ export const CheckInPage: React.FC = () => {
 
   // Carga las lesiones activas del atleta para exigir su puntaje (0-10) en el check-in.
   useEffect(() => {
-    if (!athleteId || athleteId.startsWith('99eedc')) return;
+    if (!athleteId) return;
     let cancelled = false;
     listCheckInInjuries(athleteId)
       .then((injuries) => {
@@ -331,7 +463,13 @@ export const CheckInPage: React.FC = () => {
 
   // Persist draft to local storage on any state change if started and not yet submitted
   useEffect(() => {
-    if (!hasStarted || submissionResult !== null) return;
+    if (
+      isLoadingCompleted ||
+      !hasStarted ||
+      submissionResult !== null ||
+      isEditingSubmitted.current
+    )
+      return;
 
     saveCheckInDraft(athleteId, {
       hasStarted,
@@ -353,6 +491,7 @@ export const CheckInPage: React.FC = () => {
   }, [
     athleteId,
     hasStarted,
+    isLoadingCompleted,
     submissionResult,
     currentStep,
     maxReachedStep,
@@ -370,7 +509,14 @@ export const CheckInPage: React.FC = () => {
     notes,
   ]);
 
+  // Un check-in ya enviado no debe dejar un borrador aunque se recargue mientras se consulta el backend.
+  useEffect(() => {
+    if (!athleteId || isLoadingCompleted || submissionResult === null) return;
+    clearCheckInDraft(athleteId);
+  }, [athleteId, isLoadingCompleted, submissionResult]);
+
   const handleStartCheckIn = () => {
+    userNavigatedRef.current = true;
     setHasStarted(true);
     setCurrentStep(1);
     setMaxReachedStep(1);
@@ -533,11 +679,14 @@ export const CheckInPage: React.FC = () => {
 
   // Slide Navigation Handlers
   const goToStep = (stepNum: number) => {
+    userNavigatedRef.current = true;
     // Si intenta regresar a la pantalla 0 (Inicio / Bienvenida):
     if (stepNum <= 0) {
       setErrorMessage(null);
+      isEditingSubmitted.current = false;
       setHasStarted(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (submissionResult !== null) return;
       saveCheckInDraft(athleteId, {
         hasStarted: false,
         currentStep: 1,
@@ -728,11 +877,16 @@ export const CheckInPage: React.FC = () => {
         injuries: injuriesPayload,
       });
 
+      isEditingSubmitted.current = false;
       setSubmissionResult(response);
-      // KAN-593: solo se guarda lo necesario para la confirmación. El borrador con
-      // datos médicos se descarta apenas se envía (clearCheckInDraft, más abajo).
+      if (response.checkIn) {
+        setCompletedCheckIn(response.checkIn as CheckIn);
+        applySubmittedState(response.checkIn);
+      }
+      // Solo se guarda el indicador mínimo de check-in completado.
       saveCheckInCompleted(athleteId, {
-        result: response,
+        trafficLight: response.trafficLight,
+        isOffline: response.isOffline,
         completedAt: new Date().toISOString(),
       });
       clearCheckInDraft(athleteId);
@@ -916,7 +1070,9 @@ export const CheckInPage: React.FC = () => {
         <div
           className={`checkin-main-bubble${submissionResult ? ' checkin-main-bubble--completed' : ''}`}
         >
-          {submissionResult ? (
+          {isLoadingCompleted ? (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando...</div>
+          ) : submissionResult ? (
             /* ── PANTALLA DE CONFIRMACIÓN FINAL (ADAPTADA AL ESTILO DE LOS SLIDES ANTERIORES) ── */
             <div className="checkin-slide-container">
               {/* Barra de progreso completada con todos los pasos e icono de estrella */}

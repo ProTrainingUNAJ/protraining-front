@@ -90,7 +90,7 @@
 .athlete-marks-item-weight {
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--primary-text);
   white-space: nowrap;
 }
 

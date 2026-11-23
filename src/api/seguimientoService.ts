@@ -52,30 +52,11 @@ export interface CheckInSubmitRequest {
   injuries?: { injuryId: string; level: number }[];
 }
 
-export interface CheckInEntityDto {
-  id: string;
-  athleteId: string;
-  date: string;
-  trafficLight: 'Green' | 'Yellow' | 'Red';
-  trafficLightReason?: string | null;
-  sleepHours: number;
-  sleepQuality?: number;
-  muscleSoreness: number;
-  fatigueLevel: number;
-  moodRate: number;
-  stressLevel: number;
-  effortRate?: number;
-  isSick: boolean;
-  painZones?: string | null;
-  hasActiveInjury: boolean;
-  injuries?: { injuryId: string; zone: string; level: number }[];
-}
-
 export interface CheckInSubmitResponse {
   message: string;
   trafficLight: 'Green' | 'Yellow' | 'Red';
   trafficLightReason?: string | null;
-  checkIn?: CheckInEntityDto;
+  checkIn?: CheckIn;
   isOffline?: boolean;
 }
 
@@ -234,7 +215,7 @@ const OFFICIAL_MUSCLE_IDS = new Set<string>([
 ]);
 
 // painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3", nivel 6 = lesión activa).
-function parsePainZones(raw?: string | null): PainZoneReport[] {
+export function parsePainZones(raw?: string | null): PainZoneReport[] {
   if (!raw?.trim()) return [];
 
   return raw.split(',').flatMap((entry): PainZoneReport[] => {
@@ -255,13 +236,16 @@ function parsePainZones(raw?: string | null): PainZoneReport[] {
         : 0;
     if (level <= 0) return [];
 
-    const muscle = PROTRAINING_MUSCLES.find((item) => item.id === muscleId);
+    const muscle = PROTRAINING_MUSCLES.find(
+      (item) => item.id.toLowerCase() === muscleId.toLowerCase(),
+    );
 
     // el backend agrega las lesiones clínicas con el id heredado de la ficha
     // ("isquiotibiales"), que no es una región del SVG ("isquiotibial_derecho"). Si el id
     // no es oficial, lo resolvemos por nombre para que el mapa del PF pinte la lesión.
-    const resolvedMuscleId = OFFICIAL_MUSCLE_IDS.has(muscleId)
-      ? muscleId
+    const canonicalId = muscle?.id ?? muscleId;
+    const resolvedMuscleId = OFFICIAL_MUSCLE_IDS.has(canonicalId)
+      ? canonicalId
       : resolveMuscleId(muscle?.name ?? muscleId);
 
     return [{ zone: muscle?.name ?? muscleId, muscleId: resolvedMuscleId || undefined, level }];
@@ -360,46 +344,6 @@ export async function getCategoryTrafficLightToday(
     }
     throw new Error(extractErrorMessage(err), { cause: err });
   }
-}
-
-/**
- * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
- * (dashboard: donas, alertas de dolor y progreso de check-in). Alimenta también
- * la deduplicación de atletas que pertenecen a más de una categoría.
- * Modo degradado: si la estructura de organizaciones/categorías cae o
- * una categoría responde error, esa categoría se omite silenciosamente y el
- * resto del plantel se sigue mostrando; nunca rompe el dashboard completo.
- */
-export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLightItem[]> {
-  const organizations = await structureService.getOrganizations().catch(() => []);
-  const categoriesByOrg = await Promise.all(
-    organizations.map((organization) =>
-      structureService.getCategories(organization.id).catch(() => [] as Category[]),
-    ),
-  );
-  const categories = categoriesByOrg.flat();
-  if (categories.length === 0) return [];
-
-  const results = await Promise.all(
-    categories.map(async (category) => {
-      try {
-        const summaries = await getCategoryTrafficLightToday(category.id);
-        return summaries.map((summary) => mapTrafficLightSummaryToItem(summary, category.name));
-      } catch {
-        return [] as AthleteTrafficLightItem[];
-      }
-    }),
-  );
-
-  // Un atleta puede pertenecer a más de una categoría: se deduplica por id.
-  const seen = new Set<string>();
-  const unique: AthleteTrafficLightItem[] = [];
-  for (const item of results.flat()) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    unique.push(item);
-  }
-  return unique;
 }
 
 /**
@@ -725,31 +669,28 @@ export async function fetchAllCategoriesAttendanceToday(): Promise<AthleteAttend
 export type { CheckIn };
 
 /**
- * Retrieves today's check-in for the athlete (if any).
- * Returns null if no check-in was registered for today.
+ * Devuelve el check-in de hoy del atleta, o null solo si no hay uno registrado.
+ * Los errores de red o de la API se propagan para que el llamador pueda distinguir
+ * "sin check-in" de "no se pudo recuperar" (por ejemplo, al editar respuestas).
  */
 export async function getAthleteTodayCheckIn(
   athleteId: string,
   targetDate?: string,
 ): Promise<CheckIn | null> {
   const date = targetDate || todayInArgentina();
-  try {
-    const response = await httpClient.get<CheckIn[]>(
-      `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
-      {
-        params: {
-          from: date,
-          to: date,
-          limit: 1,
-        },
+  const response = await httpClient.get<CheckIn[]>(
+    `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
+    {
+      params: {
+        from: date,
+        to: date,
+        limit: 1,
       },
-    );
-    const list = response.data;
-    if (Array.isArray(list) && list.length > 0) {
-      return list[0];
-    }
-    return null;
-  } catch {
-    return null;
+    },
+  );
+  const list = response.data;
+  if (Array.isArray(list) && list.length > 0) {
+    return list[0];
   }
+  return null;
 }

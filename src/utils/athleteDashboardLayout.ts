@@ -24,7 +24,7 @@ export const DEFAULT_ATHLETE_ROWS: StoredRow[] = [
     name: 'Fila 1 · Indicadores en Vivo',
     className: 'wireframe-row-1',
     cards: [
-      { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+      { id: 'a-r1-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
       {
         id: 'a-daily-traffic-light',
         name: 'Semáforo Diario',
@@ -155,7 +155,7 @@ export const pinDailyLoadWidget = (): boolean => {
           name: 'Fila 1 · Indicadores en Vivo',
           className: 'wireframe-row-1',
           cards: [
-            { id: 'a-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
+            { id: 'a-r1-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
             { ...DAILY_TRAFFIC_LIGHT_CARD },
             { id: 'a-r1-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
           ],
