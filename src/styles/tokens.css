@@ -237,6 +237,9 @@
   --stat-green-glow: 0 0 10px rgb(22 163 74 / 0.35);
   --stat-amber: #d97706;
   --stat-amber-bg: rgb(217 119 6 / 0.1);
+  /* Rojo de las estadísticas: lo usa la comparación con el grupo y no existía */
+  --stat-red: #dc2626;
+  --stat-red-bg: rgb(220 38 38 / 0.1);
 
   /* Cyan avatar for user profile */
   --avatar-cyan-bg: #e0f2fe;
@@ -305,6 +308,27 @@
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Escala de espaciado y de tamaño de letra. Atletas, Progreso, Evolución, la comparación con el grupo
+     y el calendario de temporada ya las usaban sin que existieran: el navegador descartaba esas
+     reglas y quedaban sin márgenes ni tamaños (ej.: el modal de categorías de Atletas). */
+  --spacing-2xs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+
+  /* Fondo al pasar el mouse por una fila (planificación, evolución) */
+  --bg-hover: var(--bg-subtle);
 
   --status-danger-bg: var(--danger-bg-strong);
   --status-danger-text: var(--danger-text);
@@ -576,6 +600,8 @@
   --stat-green-glow: 0 0 10px rgb(74 222 128 / 0.35);
   --stat-amber: #fbbf24;
   --stat-amber-bg: rgb(251 191 36 / 0.16);
+  --stat-red: #f87171;
+  --stat-red-bg: rgb(248 113 113 / 0.16);
 
   /* Cyan avatar for user profile (dark mode) */
   --avatar-cyan-bg: rgb(2 132 199 / 0.22);
