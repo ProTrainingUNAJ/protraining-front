@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { NotificationsButton } from '../NotificationsButton';
 import { alertsService } from '../../../api/alertsService';
+import { recommendationsService } from '../../../api/recommendations';
 import { useAuth } from '../../../context/AuthContext';
 
 vi.mock('../../../api/alertsService', () => ({
@@ -12,12 +13,18 @@ vi.mock('../../../api/alertsService', () => ({
     archiveAlert: vi.fn(),
   },
 }));
+vi.mock('../../../api/recommendations', () => ({
+  recommendationsService: {
+    listMyRecommendations: vi.fn(),
+  },
+}));
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
 const mockedGetPendingAlerts = vi.mocked(alertsService.getPendingAlerts);
 const mockedApplyNoticeAction = vi.mocked(alertsService.applyNoticeAction);
+const mockedListMyRecommendations = vi.mocked(recommendationsService.listMyRecommendations);
 const mockedUseAuth = vi.mocked(useAuth);
 
 describe('NotificationsButton (Centro de Avisos)', () => {
@@ -26,12 +33,63 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     sessionStorage.clear();
   });
 
-  it('no renderiza la campana si el rol no es PreparadorFisico', () => {
-    mockedUseAuth.mockReturnValue({ user: { role: 'Atleta' } } as never);
+  it('no renderiza la campana ni consulta endpoints si el usuario no está autenticado', () => {
+    mockedUseAuth.mockReturnValue({ user: null } as never);
 
     render(<NotificationsButton />);
 
     expect(screen.queryByTitle('Centro de Avisos')).toBeNull();
+    expect(screen.queryByTitle('Notificaciones')).toBeNull();
+    expect(mockedGetPendingAlerts).not.toHaveBeenCalled();
+    expect(mockedListMyRecommendations).not.toHaveBeenCalled();
+  });
+
+  it('para Atleta renderiza la campana de Notificaciones con recomendaciones aprobadas, sin avisos exclusivos del PF y soporta Escape', async () => {
+    mockedUseAuth.mockReturnValue({ user: { role: 'Atleta' } } as never);
+    mockedListMyRecommendations.mockResolvedValue([
+      {
+        id: 'rec-1',
+        type: 'Training',
+        categoryName: 'Primera',
+        title: 'Mantener volumen de fuerza',
+        reason: 'buena tolerancia semanal',
+        recommendationText: 'Continuá con la progresión planificada esta semana.',
+      } as never,
+    ]);
+
+    render(<NotificationsButton />);
+
+    expect(mockedGetPendingAlerts).not.toHaveBeenCalled();
+    const bellBtn = await screen.findByRole('button', {
+      name: /Notificaciones \(1 disponibles\)/i,
+    });
+    expect(screen.queryByTitle('Centro de Avisos')).toBeNull();
+
+    fireEvent.click(bellBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Mantener volumen de fuerza')).toBeTruthy();
+    });
+    expect(screen.getByText('Continuá con la progresión planificada esta semana.')).toBeTruthy();
+    expect(screen.queryByText(/Aplicar con 1 clic/i)).toBeNull();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('region', { name: 'Notificaciones' })).toBeNull();
+    });
+  });
+
+  it('para Atleta muestra estado amigable cuando no hay notificaciones o falla la carga', async () => {
+    mockedUseAuth.mockReturnValue({ user: { role: 'Atleta' } } as never);
+    mockedListMyRecommendations.mockRejectedValueOnce(new Error('Network error'));
+
+    render(<NotificationsButton />);
+    fireEvent.click(screen.getByTitle('Notificaciones'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Sin notificaciones por el momento')).toBeTruthy();
+    });
+    expect(screen.queryByText('Network error')).toBeNull();
   });
 
   it('muestra un estado vacío amigable cuando el back de avisos falla', async () => {
