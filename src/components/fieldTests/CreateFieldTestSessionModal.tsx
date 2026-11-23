@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Search, Check, ListChecks, Calendar, Sparkles } from 'lucide-react';
+import { X, Search, Check, ListChecks } from 'lucide-react';
 import { createFieldTestSession } from '../../api/fieldTestSessions';
 import type { FitnessTest, MotorCapacity } from '../../api/generated/seguimiento';
 
 // Etiquetas de las capacidades motoras en el orden del enum del backend (KAN-458 / KAN-656).
-export const CAPACITY_LABEL: Record<MotorCapacity, string> = {
+const CAPACITY_LABEL: Record<MotorCapacity, string> = {
   Strength: 'Fuerza',
   Velocity: 'Velocidad',
   Endurance: 'Resistencia',
@@ -44,19 +44,6 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
   const [searchQuery, setSearchQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  // Reiniciar estado cada vez que se abre el modal
-  useEffect(() => {
-    if (isOpen) {
-      setName('');
-      setDate(todayIso());
-      setSelectedTestIds([]);
-      setCapacityFilter('');
-      setSearchQuery('');
-      setFormError(null);
-      setSaving(false);
-    }
-  }, [isOpen]);
 
   // Cierre con la tecla Escape
   useEffect(() => {

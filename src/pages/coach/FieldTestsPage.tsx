@@ -197,14 +197,16 @@ export const FieldTestsPage: React.FC = () => {
         )}
 
         {/* Modal amplio y centrado de creación de sesión (KAN-656) */}
-        <CreateFieldTestSessionModal
-          isOpen={showForm}
-          onClose={() => setShowForm(false)}
-          categoryId={selectedCategoryId}
-          catalogTests={catalogTests}
-          catalogError={catalogError}
-          onSessionCreated={() => void loadSessions(selectedCategoryId)}
-        />
+        {showForm && (
+          <CreateFieldTestSessionModal
+            isOpen={showForm}
+            onClose={() => setShowForm(false)}
+            categoryId={selectedCategoryId}
+            catalogTests={catalogTests}
+            catalogError={catalogError}
+            onSessionCreated={() => void loadSessions(selectedCategoryId)}
+          />
+        )}
 
         {actionError && <div className="alert-banner danger">{actionError}</div>}
         {sessionsError && <div className="alert-banner danger">{sessionsError}</div>}
