@@ -5,6 +5,10 @@
 
 /* Los tokens semánticos --checkin-* se definen en tokens.css según las convenciones del proyecto */
 
+/* KAN-595: el cuerpo del check-in compacta su ritmo vertical según la altura de
+   viewport. Cada paso (bienvenida, ánimo, descanso, dolor/zonas, resumen y
+   confirmación) se comprueba con DevTools: overflow interno controlado, sin
+   scroll de página en ninguna resolución, sin cortar botones ni títulos. */
 .checkin-body-compact {
   gap: 0.35rem !important;
 }
@@ -13,6 +17,147 @@
   .checkin-body-compact {
     gap: 0.2rem !important;
   }
+}
+
+@media (max-height: 768px) {
+  .checkin-body-compact {
+    gap: 0.15rem !important;
+  }
+}
+
+@media (max-height: 640px) {
+  .checkin-body-compact {
+    gap: 0.1rem !important;
+  }
+}
+
+/* Layout del paso: ajuste de tamaños por altura (desde measure on DEV). */
+@media (min-width: 769px) and (max-height: 860px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 1rem 1rem 1.2rem;
+  }
+
+  .pixel-slide-card .pixel-slide-title {
+    font-size: clamp(1.35rem, 2.8dvh, 1.85rem);
+    line-height: 1.14;
+    margin: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-height: 768px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.9rem 0.85rem 1.1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-height: 720px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.8rem 0.75rem 1rem;
+  }
+
+  .pixel-slide-card .pixel-slide-title {
+    font-size: clamp(1.3rem, 2.8dvh, 1.75rem);
+    line-height: 1.2;
+  }
+}
+
+/* Celular: cada pantalla más baja reduce espaciado y tamaños. */
+@media (max-width: 768px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    height: auto;
+    min-height: 0;
+    justify-content: flex-start;
+    padding: 0.8rem 0.65rem 1rem;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.7rem 0.55rem 0.9rem;
+    border-radius: 18px;
+  }
+
+  .checkin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dial: altura fija por altura de viewport para evitar desborde en móviles */
+@media (min-width: 769px) {
+  .mood-dial-touch-zone {
+    height: clamp(200px, 25dvh, 240px);
+  }
+}
+@media (max-width: 768px) {
+  .mood-dial-touch-zone {
+    height: clamp(150px, 20dvh, 180px);
+  }
+}
+
+/* Reducción progresiva de gap en alturas intermedias-bajas */
+@media (min-width: 769px) and (max-height: 540px) {
+  .checkin-body-compact { gap: 0.05rem !important; }
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card { padding: 0.7rem 0.5rem 0.85rem; }
+  .pixel-slide-card .pixel-slide-title,
+  .pixel-slide-card .pixel-slide-subtitle { font-size: clamp(1rem, 2.2dvh, 1.25rem); }
+}
+@media (max-width: 768px) and (max-height: 640px) {
+  .checkin-body-compact { gap: 0.05rem !important; }
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card { padding: 0.65rem 0.5rem 0.8rem; }
+  .pixel-slide-card .pixel-slide-title,
+  .pixel-slide-card .pixel-slide-subtitle { font-size: clamp(0.95rem, 2.2dvh, 1.2rem); }
+}
+
+/* Bienvenida: altura definida por contenido (sin tope fijo 812px), con tope
+   relativo al viewport para evitar scroll innecesario. Sólo si el contenido no
+   entra; el contenido puede navegar internamente. */
+.pixel-welcome-card {
+  min-height: 0;
+  max-height: min(100dvh - 100px, 520px);
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .pixel-welcome-card {
+    max-height: min(100dvh - 60px, 420px);
+  }
+}
+
+/* Confirmación: sin tope forzado de altura; el contenido crece con el mapa
+   anatómico. Sin overflow fuera del ordinario. */
+.checkin-main-bubble--completed {
+  height: auto;
+  min-height: 0;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+/* Cuerpo del check-in: tope sensible a la altura, con scroll interno solo si
+   algún paso no cabe. El encabezado de página no se mueve. */
+main.app-content-body:has(.checkin-body-compact) > .app-page-container {
+  height: 100%;
+}
+
+.checkin-body-compact {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* ── Burbuja Contenedora Principal ── */
