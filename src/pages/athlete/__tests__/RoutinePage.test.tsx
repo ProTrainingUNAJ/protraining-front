@@ -934,4 +934,83 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       expect(screen.getByLabelText('2 series completadas')).toBeTruthy();
     });
   });
+
+  describe('RoutinePage · Metas de tiempo y distancia del PF (KAN-655)', () => {
+    it('DADO "Trote" (Time) con targetTimeSeconds: 300 ENTONCES el atleta ve "5 min"', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-22',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-trote',
+            name: 'Trote',
+            muscleGroup: 'Cardio',
+            sets: 1,
+            reps: 300,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+            exerciseType: 'Time',
+            targetTimeSeconds: 300,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Trote')).toBeTruthy();
+      });
+
+      expect(screen.getByText(/1 series × 5 min/)).toBeTruthy();
+      expect(screen.getByText('Meta de tiempo')).toBeTruthy();
+      expect(screen.getByText('min')).toBeTruthy();
+    });
+
+    it('DADO un ejercicio Distance con targetDistanceMeters: 400 ENTONCES muestra 400 m aunque reps difiera', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-22',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-400',
+            name: 'Pasadas 400',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 10,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetDistanceMeters: 400,
+            targetTimeSeconds: null,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas 400')).toBeTruthy();
+      });
+
+      expect(screen.getByText('4 series × 400 m')).toBeTruthy();
+    });
+  });
 });

@@ -714,11 +714,6 @@ export type PrescribedExerciseRequest = {
      * Notas técnicas o indicaciones específicas para la semana.
      */
     notes?: string | null;
-    exerciseType?: string;
-    images?: Array<string>;
-    primaryMuscles?: Array<string>;
-    secondaryMuscles?: Array<string>;
-    muscleGroup?: string;
     /**
      * Distancia objetivo prescripta en metros.
      */
@@ -727,7 +722,6 @@ export type PrescribedExerciseRequest = {
      * Tiempo objetivo prescripto en segundos.
      */
     targetTimeSeconds?: number | null;
-    repsRange?: string | null;
 };
 
 export type TrainingBlockRequest = {
@@ -808,11 +802,6 @@ export type PrescribedExerciseDetail = {
      * Notas técnicas o indicaciones específicas para la semana.
      */
     notes?: string | null;
-    exerciseType?: string;
-    images?: Array<string>;
-    primaryMuscles?: Array<string>;
-    secondaryMuscles?: Array<string>;
-    muscleGroup?: string;
     /**
      * Distancia objetivo prescripta en metros.
      */
@@ -821,7 +810,26 @@ export type PrescribedExerciseDetail = {
      * Tiempo objetivo prescripto en segundos.
      */
     targetTimeSeconds?: number | null;
-    repsRange?: string | null;
+    /**
+     * Modalidad o tipo de ejercicio (con carga, tiempo, distancia, repeticiones).
+     */
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+    /**
+     * Fotos del ejercicio (inicio y fin del movimiento).
+     */
+    images?: Array<string>;
+    /**
+     * Grupos musculares principales involucrados en la ejecución.
+     */
+    primaryMuscles?: Array<string>;
+    /**
+     * Músculos secundarios o estabilizadores involucrados.
+     */
+    secondaryMuscles?: Array<string>;
+    /**
+     * Grupo muscular principal del ejercicio.
+     */
+    muscleGroup?: string | null;
 };
 
 export type TrainingBlockDetail = {
