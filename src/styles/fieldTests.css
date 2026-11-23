@@ -614,53 +614,67 @@
   color: var(--text-muted);
 }
 
-/* Barra de filtro por plantel en pantalla principal (cuando hay > 1 categoría) */
-.ft-category-filter-bar {
+/* Toolbar de filtros en pantalla principal (KAN-656) */
+.ft-filter-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.25rem 0.15rem 0.5rem;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
 }
 
-.ft-category-filter-label {
-  font-size: 0.82rem;
+.ft-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ft-filter-label {
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
-.ft-category-pills {
+.ft-filter-select {
+  min-width: 220px;
+  max-width: 320px;
+  height: 42px;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ft-filter-select:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.ft-session-badges {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.ft-category-pill {
-  min-height: 36px;
-  padding: 0.35rem 0.85rem;
-  border: 1px solid var(--border);
+.ft-session-category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  background: var(--bg-card);
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.ft-category-pill:hover {
-  border-color: var(--secondary);
-  color: var(--text-main);
-}
-
-.ft-category-pill--active {
-  border-color: var(--secondary);
-  background: var(--primary-light);
-  color: var(--text-main);
-  font-weight: 700;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 /* Grilla de 3 columnas para campos generales en modal (Categoría, Nombre y Fecha) */
