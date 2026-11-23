@@ -1,0 +1,64 @@
+/* "Mis últimos 7 días" del Inicio del atleta (KAN-594) */
+.athlete-week-traffic__summary {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.athlete-week-traffic__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.athlete-week-traffic__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.athlete-week-traffic__dot {
+  width: 100%;
+  max-width: 2.25rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--dot-color);
+}
+
+.athlete-week-traffic__dot--green {
+  --dot-color: var(--traffic-green);
+}
+
+.athlete-week-traffic__dot--yellow {
+  --dot-color: var(--traffic-yellow);
+}
+
+.athlete-week-traffic__dot--red {
+  --dot-color: var(--traffic-red);
+}
+
+.athlete-week-traffic__dot--none {
+  border: 2px dashed var(--traffic-gray-border);
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.athlete-week-traffic__day.is-today .athlete-week-traffic__dot {
+  outline: 2px solid var(--primary-text);
+  outline-offset: 2px;
+}
+
+.athlete-week-traffic__initial {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.athlete-week-traffic__day.is-today .athlete-week-traffic__initial {
+  color: var(--text-main);
+}
