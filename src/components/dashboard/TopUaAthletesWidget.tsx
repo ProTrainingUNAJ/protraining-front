@@ -78,7 +78,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
       avatarSize: 44,
       bg: athlete1 ? 'var(--info-bg)' : 'var(--bg-secondary)',
       border: athlete1 ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-      numberColor: athlete1 ? 'var(--primary)' : 'var(--text-muted)',
+      numberColor: athlete1 ? 'var(--primary-text)' : 'var(--text-muted)',
       isWinner: Boolean(athlete1),
       testId: 'podium-step-1',
     },
@@ -141,7 +141,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
           <span
             style={{
               background: 'var(--info-bg)',
-              color: 'var(--primary)',
+              color: 'var(--primary-text)',
               border: '1px solid var(--primary)',
               fontSize: '0.68rem',
               fontWeight: 800,
@@ -361,7 +361,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                       style={{
                         fontSize: step.isWinner ? '0.74rem' : '0.68rem',
                         fontWeight: 800,
-                        color: step.isWinner ? 'var(--primary)' : 'var(--text-secondary)',
+                        color: step.isWinner ? 'var(--primary-text)' : 'var(--text-secondary)',
                         lineHeight: 1,
                         whiteSpace: 'nowrap',
                       }}

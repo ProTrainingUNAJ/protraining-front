@@ -374,14 +374,22 @@ describe('DashboardPage - Requieren atención hoy (KAN-594)', () => {
     const scoped = within(panel);
     await waitFor(() => expect(scoped.getByText('Diego Ramírez')).toBeDefined());
 
-    expect(scoped.getByText('Dolor Cuádriceps derecho · nivel 4')).toBeDefined();
+    expect(scoped.getByText('Dolor cuádriceps derecho · nivel 4')).toBeDefined();
     expect(scoped.getByText('La rutina de hoy carga esa zona')).toBeDefined();
     expect(
       scoped.getByRole('button', { name: 'Ajustar rutina de hoy de Diego Ramírez' }),
     ).toBeDefined();
     expect(scoped.getByText('Durmió 5 h')).toBeDefined();
     expect(scoped.getByText('Esfuerzo alto · RPE 9')).toBeDefined();
+    // Se ven los 3 primeros; el 4.º queda detrás de "Ver 1 más" para no estirar la fila 1
+    expect(scoped.queryByText('Enfermedad')).toBeNull();
+    const more = scoped.getByRole('button', { name: 'Ver 1 más' });
+    expect(more.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(more);
     expect(scoped.getByText('Enfermedad')).toBeDefined();
+    expect(scoped.getByRole('button', { name: 'Ver menos' }).getAttribute('aria-expanded')).toBe(
+      'true',
+    );
     // Solo Diego tiene conflicto con la rutina: los demás tienen "Ver ficha" y nada más
     expect(scoped.getAllByRole('button', { name: /Ajustar rutina/ })).toHaveLength(1);
     // Los que no hicieron el check-in van contados en una línea, no como tarjetas

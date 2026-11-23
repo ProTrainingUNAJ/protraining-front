@@ -217,8 +217,9 @@
 }
 
 .attention-widget__item {
-  display: flex;
-  gap: 0.7rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.2rem 0.7rem;
   padding: 0.7rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -270,10 +271,15 @@
 }
 
 .attention-widget__actions {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
+}
+
+.attention-widget__more {
+  align-self: flex-start;
 }
 
 .attention-widget__missing {
