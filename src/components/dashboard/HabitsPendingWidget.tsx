@@ -116,7 +116,7 @@ export const HabitsPendingWidget: React.FC<{ className?: string }> = ({ classNam
           )}
           <button
             type="button"
-            className="dash-w__btn dash-w__btn--primary habits-pending-widget__action"
+            className="btn btn-primary dash-w__cta habits-pending-widget__action"
             onClick={() => navigate('/pf/recommendations')}
           >
             Revisar

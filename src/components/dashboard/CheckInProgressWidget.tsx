@@ -89,7 +89,7 @@ export const CheckInProgressWidget: React.FC<CheckInProgressProps> = ({
           {missingNames.length > 0 && (
             <button
               type="button"
-              className="dash-w__link"
+              className="btn btn-primary dash-w__cta"
               onClick={() => navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })}
             >
               Ver en el semáforo

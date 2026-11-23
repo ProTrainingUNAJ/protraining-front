@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowRight,
+  CalendarClock,
   Check,
   ClipboardCheck,
   Lightbulb,
@@ -12,7 +13,10 @@ import {
 import { ProfileAvatar } from '../common/ProfileAvatar';
 import { useDelayedLoading } from '../../hooks/useDelayedLoading';
 import type { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
-import { AthleteContactActions } from '../monitoring/AthleteContactActions';
+import { TelegramIcon, WhatsAppIcon } from '../common/BrandIcons';
+import { buildWhatsAppLink } from '../../utils/whatsapp';
+import { buildTelegramLink } from '../../utils/telegram';
+import { buildPfToAthleteMessage } from '../../utils/contactTemplates';
 import { buildAttentionReasons, sortByAttention, summarizeNames } from '../../utils/attentionToday';
 import { ALERTS_CHANGED_EVENT, alertsService } from '../../api/alertsService';
 import type { NoticeItem } from '../../types/alerts';
@@ -37,14 +41,64 @@ const VISIBLE_ATHLETES = 3;
 const SEVERITY_WEIGHT = { High: 0, Medium: 1, Low: 2 } as const;
 
 // Botón de la sugerencia según lo que el back propone hacer con el aviso
-function noticeActionLabel(notice: NoticeItem): string {
+// La propuesta de ajuste de rutina solo existe si la rutina de HOY carga la zona con dolor
+// (hasDayConflict). Si no, abrirla da "no tiene conflictos": no hay nada que ajustar hoy.
+function hasRoutineProposalToday(notice: NoticeItem, athlete: AthleteTrafficLightItem): boolean {
+  return notice.actionType === 'routine_adjustment' && Boolean(athlete.hasDayConflict);
+}
+
+function noticeActionLabel(notice: NoticeItem, athlete: AthleteTrafficLightItem): string {
   if (notice.actionType === 'load_reduction') return 'Aplicar ajuste';
-  if (notice.actionType === 'routine_adjustment') return 'Ver propuesta';
+  if (hasRoutineProposalToday(notice, athlete)) return 'Ver propuesta';
   return 'Marcar revisado';
 }
 
+// WhatsApp y Telegram con el mismo botón que "Ver ficha". A un menor se le escribe al tutor, y
+// nunca por Telegram (misma regla que Seguimiento, KAN-503).
+const ContactButtons: React.FC<{ athlete: AthleteTrafficLightItem }> = ({ athlete }) => {
+  const isMinor = Boolean(athlete.isMinor);
+  const whatsapp = buildWhatsAppLink(
+    isMinor ? athlete.guardianPhone : athlete.phone,
+    buildPfToAthleteMessage(athlete),
+  );
+  const telegram = isMinor ? null : buildTelegramLink(athlete.telegramUsername);
+  return (
+    <>
+      {whatsapp && (
+        <a
+          href={whatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="dash-w__btn"
+          aria-label={
+            isMinor
+              ? `Escribirle al tutor de ${athlete.name} por WhatsApp`
+              : `Escribirle a ${athlete.name} por WhatsApp`
+          }
+        >
+          <WhatsAppIcon size={14} aria-hidden="true" />
+          WhatsApp
+        </a>
+      )}
+      {telegram && (
+        <a
+          href={telegram}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="dash-w__btn"
+          aria-label={`Escribirle a ${athlete.name} por Telegram`}
+        >
+          <TelegramIcon size={14} aria-hidden="true" />
+          Telegram
+        </a>
+      )}
+    </>
+  );
+};
+
 type NoticeState =
   | { status: 'working' }
+  | { status: 'later' }
   | { status: 'done'; message: string }
   | { status: 'error'; message: string };
 
@@ -106,13 +160,19 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
 
   const handleNotice = async (notice: NoticeItem, athlete: AthleteTrafficLightItem) => {
     // El ajuste de rutina no se aplica a ciegas: se abre la propuesta del día (KAN-452)
-    if (notice.actionType === 'routine_adjustment') {
+    if (hasRoutineProposalToday(notice, athlete)) {
       onAdjustRoutine(athlete);
       return;
     }
     setNoticeState((prev) => ({ ...prev, [notice.id]: { status: 'working' } }));
     try {
-      const result = await alertsService.applyNoticeAction(notice);
+      // Un ajuste de rutina sin propuesta hoy solo se puede marcar como revisado
+      const result =
+        notice.actionType === 'routine_adjustment'
+          ? await alertsService
+              .archiveAlert(notice.id)
+              .then(() => ({ success: true, message: 'Aviso marcado como revisado' }))
+          : await alertsService.applyNoticeAction(notice);
       setResolvedById((prev) => ({ ...prev, [notice.id]: notice }));
       setNoticeState((prev) => ({
         ...prev,
@@ -122,7 +182,13 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
       window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'No se pudo aplicar. Probá de nuevo.';
-      setNoticeState((prev) => ({ ...prev, [notice.id]: { status: 'error', message } }));
+      // El ajuste se aplica sobre la sesión de hoy: si hoy no entrena no es un error, el aviso
+      // sigue pendiente para el próximo día con sesión (el back no acepta otra fecha todavía).
+      const noSessionToday = /no tiene una sesi[oó]n/i.test(message);
+      setNoticeState((prev) => ({
+        ...prev,
+        [notice.id]: noSessionToday ? { status: 'later' } : { status: 'error', message },
+      }));
     }
   };
 
@@ -175,6 +241,8 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                 // Si el aviso ya propone el ajuste de rutina, "Ajustar rutina" sería el mismo botón
                 const showAdjust =
                   athlete.hasDayConflict && notice?.actionType !== 'routine_adjustment';
+                const nothingToAdjustToday =
+                  notice?.actionType === 'routine_adjustment' && !athlete.hasDayConflict;
                 return (
                   <li key={athlete.id} className="attention-widget__item">
                     <ProfileAvatar src={athlete.avatarUrl} name={athlete.name} size={36} />
@@ -204,11 +272,6 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                           <span className="attention-widget__suggestion-label">Qué hacer:</span>{' '}
                           {notice.suggestion}
                         </p>
-                        {state?.status === 'error' && (
-                          <p className="attention-widget__suggestion-error" role="alert">
-                            {state.message}
-                          </p>
-                        )}
                       </div>
                     )}
 
@@ -226,9 +289,11 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                             className="dash-w__btn dash-w__btn--primary"
                             onClick={() => handleNotice(notice, athlete)}
                             disabled={state?.status === 'working'}
-                            aria-label={`${noticeActionLabel(notice)} para ${athlete.name}: ${notice.suggestion}`}
+                            aria-label={`${noticeActionLabel(notice, athlete)} para ${athlete.name}: ${notice.suggestion}`}
                           >
-                            {state?.status === 'working' ? 'Aplicando…' : noticeActionLabel(notice)}
+                            {state?.status === 'working'
+                              ? 'Aplicando…'
+                              : noticeActionLabel(notice, athlete)}
                           </button>
                         ))}
                       <button
@@ -251,8 +316,29 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                           Ajustar rutina
                         </button>
                       )}
-                      <AthleteContactActions athlete={athlete} compact fill={false} />
+                      <ContactButtons athlete={athlete} />
                     </div>
+                    {/* El error del back va pegado al botón que lo causó (ej.: "no tiene sesión hoy") */}
+                    {notice && state?.status === 'error' && (
+                      <p className="attention-widget__suggestion-error" role="alert">
+                        <AlertCircle size={14} aria-hidden="true" />
+                        No se pudo aplicar: {state.message}
+                      </p>
+                    )}
+                    {notice && nothingToAdjustToday && state?.status !== 'done' && (
+                      <p className="attention-widget__suggestion-later" role="status">
+                        <CalendarClock size={14} aria-hidden="true" />
+                        Hoy su rutina no carga esa zona: no hay nada que ajustar. El día que la
+                        cargue, vas a ver acá la propuesta.
+                      </p>
+                    )}
+                    {notice && state?.status === 'later' && (
+                      <p className="attention-widget__suggestion-later" role="status">
+                        <CalendarClock size={14} aria-hidden="true" />
+                        Hoy no entrena. El aviso queda pendiente: lo vas a ver acá para aplicarlo el
+                        próximo día que tenga sesión.
+                      </p>
+                    )}
                   </li>
                 );
               })}
@@ -280,7 +366,7 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
               </p>
               <button
                 type="button"
-                className="dash-w__link"
+                className="btn btn-primary dash-w__cta"
                 onClick={() =>
                   navigate('/pf/monitoring?filter=gray', { state: { filter: 'gray' } })
                 }

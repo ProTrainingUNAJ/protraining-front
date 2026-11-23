@@ -163,7 +163,7 @@ export const NextMatchWidget: React.FC<{ className?: string }> = ({ className = 
           </div>
           <button
             type="button"
-            className="dash-w__btn next-match-widget__action"
+            className="btn btn-primary dash-w__cta next-match-widget__action"
             onClick={() => navigate('/pf/calendar')}
           >
             Ver calendario

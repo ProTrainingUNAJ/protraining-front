@@ -184,7 +184,7 @@ export const TrafficLightSummaryWidget: React.FC<TrafficLightSummaryProps> = ({
       {!error && (
         <button
           type="button"
-          className="dash-w__btn dash-w__btn--block"
+          className="btn btn-primary dash-w__cta"
           onClick={() => navigate('/pf/monitoring')}
         >
           Ver semáforo detallado

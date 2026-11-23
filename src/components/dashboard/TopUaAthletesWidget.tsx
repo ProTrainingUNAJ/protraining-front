@@ -405,7 +405,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
             e.stopPropagation();
             handleOpenAttendance();
           }}
-          className="dash-w__link"
+          className="btn btn-primary dash-w__cta"
           title="Ver planilla completa de asistencia y RPE"
         >
           <span>Ver detalle</span>

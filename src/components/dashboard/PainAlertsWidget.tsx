@@ -239,7 +239,7 @@ export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
 
           <button
             type="button"
-            className="dash-w__link pain-map__more"
+            className="btn btn-primary dash-w__cta pain-map__more"
             onClick={() => navigate('/pf/monitoring')}
           >
             Ver en Seguimiento

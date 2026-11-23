@@ -15,8 +15,6 @@ export interface AthleteContactActionsProps {
   compact?: boolean;
   context?: 'traffic-light' | 'attendance';
   isPresent?: boolean;
-  /** En modo compacto, si los botones ocupan todo el ancho (por defecto) o van en línea. */
-  fill?: boolean;
 }
 
 export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
@@ -24,9 +22,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
   compact = false,
   context = 'traffic-light',
   isPresent = false,
-  fill = true,
 }) => {
-  const stretch = compact && fill;
   const [telegramFeedback, setTelegramFeedback] = useState<'idle' | 'copied' | 'manual'>('idle');
 
   const isMinor = Boolean(athlete.isMinor);
@@ -81,7 +77,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
         display: 'flex',
         flexDirection: 'column',
         gap: '0.4rem',
-        width: stretch ? '100%' : undefined,
+        width: compact ? '100%' : undefined,
       }}
     >
       <div
@@ -116,7 +112,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
               padding: compact ? '0.35rem 0.6rem' : '0.55rem 0.9rem',
               fontSize: compact ? '0.76rem' : '0.82rem',
               fontWeight: 700,
-              flex: stretch ? 1 : undefined,
+              flex: compact ? 1 : undefined,
               justifyContent: 'center',
             }}
           >
@@ -141,7 +137,7 @@ export const AthleteContactActions: React.FC<AthleteContactActionsProps> = ({
               padding: compact ? '0.35rem 0.6rem' : '0.55rem 0.9rem',
               fontSize: compact ? '0.76rem' : '0.82rem',
               fontWeight: 700,
-              flex: stretch ? 1 : undefined,
+              flex: compact ? 1 : undefined,
               justifyContent: 'center',
             }}
           >

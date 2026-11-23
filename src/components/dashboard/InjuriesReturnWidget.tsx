@@ -155,7 +155,7 @@ export const InjuriesReturnWidget: React.FC<{ className?: string }> = ({ classNa
           )}
           <button
             type="button"
-            className="dash-w__btn injuries-return-widget__action"
+            className="btn btn-primary dash-w__cta injuries-return-widget__action"
             onClick={() => navigate('/pf/monitoring')}
           >
             Ver en Seguimiento

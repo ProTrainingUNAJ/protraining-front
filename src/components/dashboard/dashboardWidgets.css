@@ -132,9 +132,10 @@
   box-shadow: var(--focus-ring);
 }
 
+/* Mismo color que btn-primary ("Ver planificación"): navy en claro y azul en oscuro */
 .dash-w__btn--primary {
-  background: var(--brand-navy);
-  border-color: var(--brand-navy);
+  background: var(--primary);
+  border-color: var(--primary);
   color: var(--on-primary);
 }
 
@@ -323,10 +324,47 @@
 }
 
 .attention-widget__suggestion-error {
-  flex-basis: 100%;
-  margin: 0;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  background: var(--danger-bg);
   color: var(--danger-text);
+  font-size: 0.78rem;
   font-weight: 700;
+}
+
+.attention-widget__suggestion-error svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.attention-widget__suggestion-later {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.attention-widget__suggestion-later svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--primary-text);
+}
+
+/* Los links de contacto usan el mismo botón que "Ver ficha" */
+a.dash-w__btn {
+  text-decoration: none;
 }
 
 .attention-widget__missing {
@@ -625,4 +663,18 @@
   margin: 0;
   font-size: 0.82rem;
   color: var(--text-main);
+}
+
+/* Botón de acción del pie de cada tarjeta del Inicio: el mismo que "Ver planificación" (btn btn-primary)
+   en todas, con el mismo tamaño y a la derecha (KAN-594). */
+.btn.dash-w__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-end;
+  margin-top: auto;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  text-decoration: none;
+  white-space: nowrap;
 }

@@ -96,6 +96,6 @@
 }
 
 .pain-map__more {
-  align-self: flex-start;
+  align-self: flex-end;
   margin-top: auto;
 }

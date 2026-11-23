@@ -210,7 +210,7 @@ export const NextTrainingWidget: React.FC<NextTrainingWidgetProps> = ({
             )}
             <button
               type="button"
-              className="btn btn-primary next-training-widget__action"
+              className="btn btn-primary dash-w__cta"
               onClick={() => navigate(`/pf/planning/${session.trainingPlanId}`)}
             >
               Ver planificación
