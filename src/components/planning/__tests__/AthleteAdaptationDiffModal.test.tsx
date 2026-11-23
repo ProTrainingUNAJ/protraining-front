@@ -515,7 +515,10 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
         note: 'Molestia leve superada, entrena con el grupo.',
       }),
     );
-    expect(onRejected).toHaveBeenCalledWith('Molestia leve superada, entrena con el grupo.');
+    expect(onRejected).toHaveBeenCalledWith(
+      'Molestia leve superada, entrena con el grupo.',
+      sessionId,
+    );
   });
 
   it('permite cambiar cualquier ejercicio de la variante propuesta desde el catálogo al editar adaptación (KAN-465)', async () => {
@@ -1240,5 +1243,445 @@ describe('AthleteAdaptationDiffModal y acceso desde Asignaciones (KAN-464)', () 
     expect(
       await screen.findByRole('heading', { name: /comparativa base vs\. adaptada/i }),
     ).toBeDefined();
+  });
+
+  it('DADO un plan con múltiples sesiones CUANDO el PF aprueba la adaptación en otra sesión desde el selector ENTONCES al reabrir la lista conserva Adaptación aprobada y el lápiz abre directo en esa sesión (KAN-636)', async () => {
+    const secondSessionId = 'session-dia-b';
+
+    vi.spyOn(trainingPlansService, 'get').mockResolvedValue({
+      id: planId,
+      name: 'Fuerza base',
+      objective: 'Base de fuerza para la pretemporada',
+      weeks: [
+        {
+          id: 'week-1',
+          weekNumber: 1,
+          sessions: [
+            {
+              id: sessionId,
+              name: 'Día A · Fuerza',
+              order: 1,
+              dayOfWeek: 1,
+              blocks: [],
+              exercises: [
+                {
+                  id: 'presc-1',
+                  exerciseId: squatId,
+                  exerciseName: 'Sentadilla con barra',
+                  order: 1,
+                  sets: 4,
+                  reps: '5',
+                  targetPercentage: 75,
+                },
+              ],
+            },
+            {
+              id: secondSessionId,
+              name: 'Día B · Potencia',
+              order: 2,
+              dayOfWeek: 3,
+              blocks: [],
+              exercises: [
+                {
+                  id: 'presc-2',
+                  exerciseId: squatId,
+                  exerciseName: 'Sentadilla con barra',
+                  order: 1,
+                  sets: 3,
+                  reps: '6',
+                  targetPercentage: 70,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+
+    let secondSessionApproved = false;
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockImplementation(
+      async (requestedSessionId) => {
+        if (requestedSessionId === secondSessionId && secondSessionApproved) {
+          return {
+            id: 'adj-lucas-dia-b',
+            sessionId: secondSessionId,
+            athleteId: lucasId,
+            trainingPlanId: planId,
+            date: '2026-11-22',
+            note: 'Aprobada en Día B.',
+            adjustedByCoach: true,
+            status: 'Approved',
+            items: [
+              {
+                originalExerciseId: squatId,
+                substituteExerciseId: legPressId,
+              },
+            ],
+          };
+        }
+        return null;
+      },
+    );
+
+    vi.spyOn(athleteAdaptationsService, 'applySessionAdjustment').mockImplementation(
+      async (requestedSessionId, payload) => {
+        if (requestedSessionId === secondSessionId) {
+          secondSessionApproved = true;
+        }
+        return {
+          id: 'adj-lucas-dia-b',
+          sessionId: requestedSessionId,
+          athleteId: payload.athleteId,
+          trainingPlanId: payload.trainingPlanId ?? planId,
+          date: payload.date,
+          note: payload.note ?? null,
+          adjustedByCoach: true,
+          status: 'Approved',
+          items: payload.items ?? [],
+        };
+      },
+    );
+
+    const assignees = [
+      {
+        assignmentId: 'assign-lucas',
+        type: 'athlete' as const,
+        targetId: lucasId,
+        name: 'Lucas Gómez',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active' as const,
+      },
+    ];
+
+    const { rerender } = render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /revisar adaptación de lucas gómez/i }),
+    );
+    expect(await screen.findByText('Prensa de piernas')).toBeDefined();
+
+    // Seleccionar la segunda sesión desde el carrusel y aprobar ahí
+    const secondSessionTab = screen.getByRole('tab', { name: /día b · potencia/i });
+    fireEvent.click(secondSessionTab);
+    expect(await screen.findByText('Prensa de piernas')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /aprobar adaptación/i }));
+
+    await waitFor(() => {
+      expect(athleteAdaptationsService.applySessionAdjustment).toHaveBeenCalledWith(
+        secondSessionId,
+        expect.objectContaining({ athleteId: lucasId }),
+      );
+      expect(screen.queryByRole('heading', { name: /comparativa base vs\. adaptada/i })).toBeNull();
+    });
+
+    expect(screen.getByText('Adaptación aprobada')).toBeDefined();
+
+    // Cerrar y reabrir Gestionar asignaciones: sigue detectando la aprobación en Día B
+    rerender(
+      <ManagePlanAssignmentsModal
+        isOpen={false}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+    rerender(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={assignees}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Adaptación aprobada')).toBeDefined();
+    expect(screen.queryByRole('button', { name: /revisar adaptación de lucas gómez/i })).toBeNull();
+
+    // Al tocar el lápiz, el modal abre posicionado directamente en Día B
+    fireEvent.click(
+      screen.getByRole('button', { name: /revisar nuevamente la adaptación de lucas gómez/i }),
+    );
+
+    const reopenedSecondTab = await screen.findByRole('tab', { name: /día b · potencia/i });
+    await waitFor(() => {
+      expect(reopenedSecondTab.getAttribute('aria-selected')).toBe('true');
+    });
+  });
+
+  it('DADO un ajuste rechazado que preserva ítems, nota y reducción históricas junto a rejectionReason CUANDO el PF reabre la lista y el modal ENTONCES muestra Adaptación rechazada, lee rejectionReason y no precarga la reducción histórica (KAN-636)', async () => {
+    const secondSessionId = 'session-dia-b';
+
+    vi.spyOn(trainingPlansService, 'get').mockResolvedValue({
+      id: planId,
+      name: 'Fuerza base',
+      objective: 'Base de fuerza para la pretemporada',
+      weeks: [
+        {
+          id: 'week-1',
+          weekNumber: 1,
+          sessions: [
+            {
+              id: sessionId,
+              name: 'Día A · Fuerza',
+              order: 1,
+              dayOfWeek: 1,
+              blocks: [],
+              exercises: [
+                {
+                  id: 'presc-1',
+                  exerciseId: squatId,
+                  exerciseName: 'Sentadilla con barra',
+                  order: 1,
+                  sets: 4,
+                  reps: '5',
+                  targetPercentage: 75,
+                },
+              ],
+            },
+            {
+              id: secondSessionId,
+              name: 'Día B · Potencia',
+              order: 2,
+              dayOfWeek: 3,
+              blocks: [],
+              exercises: [
+                {
+                  id: 'presc-2',
+                  exerciseId: squatId,
+                  exerciseName: 'Sentadilla con barra',
+                  order: 1,
+                  sets: 3,
+                  reps: '6',
+                  targetPercentage: 70,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockImplementation(
+      async (requestedSessionId) => {
+        if (requestedSessionId === secondSessionId) {
+          return {
+            id: 'adj-lucas-rej',
+            sessionId: secondSessionId,
+            athleteId: lucasId,
+            trainingPlanId: planId,
+            date: '2026-11-22',
+            note: 'Nota histórica aprobada previamente.',
+            rejectionReason: 'Molestia leve superada.',
+            loadReductionPercentage: 20,
+            adjustedByCoach: false,
+            status: 'Rejected',
+            items: [
+              {
+                originalExerciseId: squatId,
+                substituteExerciseId: legPressId,
+              },
+            ],
+          };
+        }
+        return null;
+      },
+    );
+
+    render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={[
+          {
+            assignmentId: 'assign-lucas',
+            type: 'athlete',
+            targetId: lucasId,
+            name: 'Lucas Gómez',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+          },
+        ]}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Adaptación rechazada')).toBeDefined();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /revisar nuevamente la adaptación de lucas gómez/i }),
+    );
+
+    const secondTab = await screen.findByRole('tab', { name: /día b · potencia/i });
+    await waitFor(() => {
+      expect(secondTab.getAttribute('aria-selected')).toBe('true');
+    });
+    expect(await screen.findByText('Propuesta rechazada')).toBeDefined();
+
+    // Al reabrir una sesión rechazada se muestra el rejectionReason (y no la nota histórica de aprobación)
+    const rejectedBanner = await screen.findByTestId('adaptation-rejected-reason-banner');
+    expect(rejectedBanner.textContent).toContain('Molestia leve superada.');
+    expect(rejectedBanner.textContent).not.toContain('Nota histórica aprobada previamente.');
+
+    // Al editar no se precarga la reducción de carga histórica del ajuste rechazado
+    fireEvent.click(screen.getByRole('button', { name: /editar adaptación/i }));
+    const loadReductionInput = screen.getByLabelText(/reducción de carga/i) as HTMLInputElement;
+    expect(loadReductionInput.value).toBe('');
+  });
+
+  it('DADO un plan con Día A rechazada y Día B aprobada CUANDO se abre Gestionar asignaciones ENTONCES prioriza Adaptación aprobada y el lápiz abre en Día B (KAN-636)', async () => {
+    const secondSessionId = 'session-dia-b';
+
+    vi.spyOn(trainingPlansService, 'get').mockResolvedValue({
+      id: planId,
+      name: 'Fuerza base',
+      objective: 'Base de fuerza para la pretemporada',
+      weeks: [
+        {
+          id: 'week-1',
+          weekNumber: 1,
+          sessions: [
+            {
+              id: sessionId,
+              name: 'Día A · Fuerza',
+              order: 1,
+              dayOfWeek: 1,
+              blocks: [],
+              exercises: [
+                {
+                  id: 'presc-1',
+                  exerciseId: squatId,
+                  exerciseName: 'Sentadilla con barra',
+                  order: 1,
+                  sets: 4,
+                  reps: '5',
+                  targetPercentage: 75,
+                },
+              ],
+            },
+            {
+              id: secondSessionId,
+              name: 'Día B · Potencia',
+              order: 2,
+              dayOfWeek: 3,
+              blocks: [],
+              exercises: [
+                {
+                  id: 'presc-2',
+                  exerciseId: squatId,
+                  exerciseName: 'Sentadilla con barra',
+                  order: 1,
+                  sets: 3,
+                  reps: '6',
+                  targetPercentage: 70,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    vi.spyOn(seguimientoService, 'getActiveInjuriesSummary').mockResolvedValue([
+      { athleteId: lucasId, activeCount: 1 },
+    ]);
+
+    vi.spyOn(athleteAdaptationsService, 'getSessionAdjustment').mockImplementation(
+      async (requestedSessionId) => {
+        if (requestedSessionId === sessionId) {
+          return {
+            id: 'adj-dia-a-rej',
+            sessionId,
+            athleteId: lucasId,
+            trainingPlanId: planId,
+            date: '2026-11-22',
+            note: null,
+            rejectionReason: 'No hacía falta en Día A.',
+            adjustedByCoach: false,
+            status: 'Rejected',
+            items: [],
+          };
+        }
+        return {
+          id: 'adj-dia-b-ok',
+          sessionId: secondSessionId,
+          athleteId: lucasId,
+          trainingPlanId: planId,
+          date: '2026-11-22',
+          note: 'Prensa aprobada en Día B.',
+          adjustedByCoach: true,
+          status: 'Approved',
+          items: [
+            {
+              originalExerciseId: squatId,
+              substituteExerciseId: legPressId,
+            },
+          ],
+        };
+      },
+    );
+
+    render(
+      <ManagePlanAssignmentsModal
+        isOpen={true}
+        planId={planId}
+        planName="Fuerza base"
+        assignees={[
+          {
+            assignmentId: 'assign-lucas',
+            type: 'athlete',
+            targetId: lucasId,
+            name: 'Lucas Gómez',
+            startDate: '2026-11-16',
+            endDate: '2026-12-13',
+            status: 'Active',
+          },
+        ]}
+        onClose={vi.fn()}
+        onUnassign={vi.fn()}
+        onOpenAddAssignment={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Adaptación aprobada')).toBeDefined();
+    expect(screen.queryByText('Adaptación rechazada')).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /revisar nuevamente la adaptación de lucas gómez/i }),
+    );
+
+    const secondTab = await screen.findByRole('tab', { name: /día b · potencia/i });
+    await waitFor(() => {
+      expect(secondTab.getAttribute('aria-selected')).toBe('true');
+    });
   });
 });

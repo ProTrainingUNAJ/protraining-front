@@ -667,7 +667,17 @@ export type ApplyAthleteSessionAdjustmentResponse = {
      */
     status?: 'Approved' | 'Rejected';
     loadReductionPercentage?: number | null;
+    /**
+     * Nota del ajuste aprobado (se preserva como historial aunque el ajuste luego se rechace).
+     */
     note?: string | null;
+    /**
+     * Motivo del rechazo registrado por el PF cuando status es Rejected (KAN-636).
+     */
+    rejectionReason?: string | null;
+    /**
+     * Sustituciones de ejercicios aprobadas (se preservan como historial si el ajuste luego se rechaza; no se aplican a la rutina cuando status es Rejected).
+     */
     items: Array<ApplyAthleteSessionAdjustmentItem>;
 };
 
@@ -2112,6 +2122,10 @@ export type ApplyAthleteSessionAdjustmentErrors = {
      * Recurso o atleta no encontrado.
      */
     404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
 };
 
 export type ApplyAthleteSessionAdjustmentError = ApplyAthleteSessionAdjustmentErrors[keyof ApplyAthleteSessionAdjustmentErrors];
@@ -2154,6 +2168,10 @@ export type RejectAthleteSessionAdjustmentErrors = {
      * Recurso o atleta no encontrado.
      */
     404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
 };
 
 export type RejectAthleteSessionAdjustmentError = RejectAthleteSessionAdjustmentErrors[keyof RejectAthleteSessionAdjustmentErrors];
