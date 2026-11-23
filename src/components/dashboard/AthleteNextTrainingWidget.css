@@ -1,0 +1,93 @@
+/* ============================================================================
+   AthleteNextTrainingWidget.css — "Mi próximo entrenamiento" en el Inicio del atleta (KAN-594)
+   Solo tokens del sistema de diseño
+   ============================================================================ */
+
+.athlete-next-training__when {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.athlete-next-training__day {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary-text);
+  text-transform: capitalize;
+}
+
+.athlete-next-training__time {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.athlete-next-training__session {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.athlete-next-training__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.athlete-next-training__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.athlete-next-training__exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.6rem 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.athlete-next-training__exercises li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.athlete-next-training__more {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.athlete-next-training__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  background: var(--info-bg);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.athlete-next-training__note svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--primary-text);
+}
