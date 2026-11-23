@@ -35,14 +35,12 @@ import { RoutineSessionMuscleMap } from '../../components/routine/RoutineSession
 import { FinishRoutineModal } from '../../components/routine/FinishRoutineModal';
 import { useRoutineTimer } from '../../hooks/useRoutineTimer';
 import { IntervalTimerModal } from '../../components/timer/IntervalTimerModal';
-import { evaluateTimeTarget } from '../../utils/timeTarget';
+import { evaluateTimeTarget, formatTargetTime } from '../../utils/timeTarget';
 import { unpackCoachNotes } from '../../utils/planDraft';
 import type { StoredPerformedSet } from '../../types';
 import './RoutinePage.css';
 
 type RoutineExerciseItem = TodayRoutineExercise & {
-  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
-  targetTimeSeconds?: number | null;
   bestMarkSeconds?: number | null;
 };
 
@@ -879,28 +877,16 @@ export const RoutinePage: React.FC = () => {
                               <div className="routine-prescription-row">
                                 <span className="routine-prescription-main">
                                   {exercise.exerciseType === 'Distance'
-                                    ? `${exercise.sets} series × ${exercise.reps} m${
+                                    ? `${exercise.sets} series × ${exercise.targetDistanceMeters ?? exercise.reps} m${
                                         exercise.targetTimeSeconds != null
-                                          ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
-                                              'es-AR',
-                                              {
-                                                minimumFractionDigits: 1,
-                                                maximumFractionDigits: 1,
-                                              },
-                                            )} s`
+                                          ? ` · meta ${formatTargetTime(exercise.targetTimeSeconds).text}`
                                           : ''
                                       }`
                                     : exercise.exerciseType === 'Time'
-                                      ? `${exercise.sets} series × ${exercise.reps} s${
-                                          exercise.targetTimeSeconds != null
-                                            ? ` · meta ${exercise.targetTimeSeconds.toLocaleString(
-                                                'es-AR',
-                                                {
-                                                  minimumFractionDigits: 1,
-                                                  maximumFractionDigits: 1,
-                                                },
-                                              )} s`
-                                            : ''
+                                      ? `${exercise.sets} series × ${
+                                          formatTargetTime(
+                                            exercise.targetTimeSeconds ?? exercise.reps,
+                                          ).text
                                         }`
                                       : `${exercise.sets} series × ${exercise.reps} reps`}
                                 </span>
@@ -988,19 +974,23 @@ export const RoutinePage: React.FC = () => {
                             exercise.exerciseType === 'Time' ? (
                               // ── CASO CARRERA / DISTANCIA / TIEMPO ──
                               exercise.targetTimeSeconds != null ? (
-                                <div
-                                  className="routine-weight-callout highlight"
-                                  title="Meta de tiempo calculada a partir de tu mejor test"
-                                >
-                                  <span className="routine-weight-number">
-                                    {exercise.targetTimeSeconds.toLocaleString('es-AR', {
-                                      minimumFractionDigits: 1,
-                                      maximumFractionDigits: 1,
-                                    })}{' '}
-                                    <span className="routine-page-weight-unit">s</span>
-                                  </span>
-                                  <span className="routine-weight-label">Meta de tiempo</span>
-                                </div>
+                                (() => {
+                                  const formatted = formatTargetTime(exercise.targetTimeSeconds);
+                                  return (
+                                    <div
+                                      className="routine-weight-callout highlight"
+                                      title="Meta de tiempo calculada a partir de tu mejor test"
+                                    >
+                                      <span className="routine-weight-number">
+                                        {formatted.value}{' '}
+                                        <span className="routine-page-weight-unit">
+                                          {formatted.unit}
+                                        </span>
+                                      </span>
+                                      <span className="routine-weight-label">Meta de tiempo</span>
+                                    </div>
+                                  );
+                                })()
                               ) : (
                                 <div
                                   className="routine-weight-callout reference"
@@ -1327,11 +1317,10 @@ export const RoutinePage: React.FC = () => {
               <div className="routine-page-modal-ref">
                 <div className="routine-page-modal-ref-col">
                   <span className="routine-page-modal-ref-value--accent">
-                    {(selectedExerciseForModal as RoutineExerciseItem).exerciseType ===
-                      'Distance' ||
-                    (selectedExerciseForModal as RoutineExerciseItem).exerciseType === 'Time'
-                      ? (selectedExerciseForModal as RoutineExerciseItem).targetTimeSeconds != null
-                        ? `${(selectedExerciseForModal as RoutineExerciseItem).targetTimeSeconds} s`
+                    {selectedExerciseForModal.exerciseType === 'Distance' ||
+                    selectedExerciseForModal.exerciseType === 'Time'
+                      ? selectedExerciseForModal.targetTimeSeconds != null
+                        ? formatTargetTime(selectedExerciseForModal.targetTimeSeconds).text
                         : 'Sin meta (Ritmo libre)'
                       : selectedExerciseForModal.weightKg !== null &&
                           selectedExerciseForModal.weightKg !== undefined
@@ -1347,7 +1336,16 @@ export const RoutinePage: React.FC = () => {
                 <div className="routine-page-modal-ref-col">
                   <span className="routine-page-modal-ref-label">VOLUMEN</span>
                   <span className="routine-page-modal-ref-value">
-                    {selectedExerciseForModal.sets} series × {selectedExerciseForModal.reps} reps
+                    {selectedExerciseForModal.exerciseType === 'Distance'
+                      ? `${selectedExerciseForModal.sets} series × ${selectedExerciseForModal.targetDistanceMeters ?? selectedExerciseForModal.reps} m`
+                      : selectedExerciseForModal.exerciseType === 'Time'
+                        ? `${selectedExerciseForModal.sets} series × ${
+                            formatTargetTime(
+                              selectedExerciseForModal.targetTimeSeconds ??
+                                selectedExerciseForModal.reps,
+                            ).text
+                          }`
+                        : `${selectedExerciseForModal.sets} series × ${selectedExerciseForModal.reps} reps`}
                   </span>
                 </div>
 
