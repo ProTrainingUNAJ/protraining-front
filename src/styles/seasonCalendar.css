@@ -897,6 +897,73 @@
 }
 
 /* ==========================================================================
+   Weekly View: Simple Vertical List (< 600px)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .season-calendar-week-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .season-calendar-week-col {
+    min-height: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .season-calendar-week-header {
+    flex: 0 0 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.25rem;
+    border-bottom: none;
+    border-radius: calc(var(--radius) - 4px);
+    background-color: var(--bg-subtle);
+  }
+
+  .season-calendar-week-dayname {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .season-calendar-week-daynum {
+    font-size: 1rem;
+    font-weight: 700;
+    width: 26px;
+    height: 26px;
+  }
+
+  .season-calendar-week-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0;
+  }
+
+  .season-calendar-week-empty-day {
+    padding: 0.35rem 0;
+    text-align: left;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .season-calendar-week-add-btn {
+    align-self: flex-start;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* ==========================================================================
    Responsive Rules (Mobile friendly)
    ========================================================================== */
 @media (max-width: 768px) {
