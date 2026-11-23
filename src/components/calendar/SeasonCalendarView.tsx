@@ -481,7 +481,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                     title="Programar Partido en este día"
                   >
                     <Plus size={13} />
-                    <span>+ Partido</span>
+                    <span>Partido</span>
                   </button>
 
                   {activities.length === 0 ? (
