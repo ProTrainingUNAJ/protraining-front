@@ -497,9 +497,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow:
-    0 20px 25px -5px rgb(2 48 80 / 0.18),
-    0 10px 10px -5px rgb(2 48 80 / 0.08);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   animation: ftSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
