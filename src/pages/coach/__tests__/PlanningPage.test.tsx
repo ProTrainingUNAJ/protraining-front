@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PlanningPage } from '../PlanningPage';
 import { trainingPlansService } from '../../../api/trainingPlans';
@@ -304,5 +304,64 @@ describe('PlanningPage (KAN-440 / KAN-622)', () => {
     expect(screen.getByText(/esta planificación tiene asignaciones en curso/i)).toBeDefined();
     expect(screen.getByText(/organización \/ categoría/i)).toBeDefined();
     expect(screen.getByText(/atleta individual/i)).toBeDefined();
+  });
+
+  it('descarga el PDF desde la tarjeta mostrando "Generando…" y rehabilita el botón al terminar (KAN-658)', async () => {
+    let resolveDownload!: () => void;
+    const downloadSpy = vi.spyOn(trainingPlansService, 'downloadPdf').mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const pdfBtn = screen.getByRole('button', {
+      name: /descargar pdf de potencia tren superior/i,
+    }) as HTMLButtonElement;
+    expect(pdfBtn.disabled).toBe(false);
+
+    fireEvent.click(pdfBtn);
+
+    expect(downloadSpy).toHaveBeenCalledWith('plan-1', 'Potencia Tren Superior');
+    expect(pdfBtn.disabled).toBe(true);
+    expect(pdfBtn.textContent).toContain('Generando…');
+
+    resolveDownload();
+
+    await waitFor(() => {
+      expect(pdfBtn.disabled).toBe(false);
+      expect(pdfBtn.textContent).toContain('Descargar PDF');
+    });
+  });
+
+  it('muestra mensaje de error en español y rehabilita el botón si falla la descarga del PDF desde la tarjeta (KAN-658)', async () => {
+    vi.spyOn(trainingPlansService, 'downloadPdf').mockRejectedValue(
+      new Error('Hubo un error en el servidor al generar el PDF.'),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const pdfBtn = screen.getByRole('button', {
+      name: /descargar pdf de potencia tren superior/i,
+    }) as HTMLButtonElement;
+    fireEvent.click(pdfBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('Hubo un error en el servidor al generar el PDF.');
+    expect(pdfBtn.disabled).toBe(false);
   });
 });

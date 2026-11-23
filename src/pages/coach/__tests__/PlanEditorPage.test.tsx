@@ -119,4 +119,60 @@ describe('PlanEditorPage (KAN-623)', () => {
     // Vuelve a la vista por bloques con resumen de volumen
     expect(screen.getByLabelText('Días de entrenamiento')).toBeDefined();
   });
+
+  it('descarga el PDF de la planificación mostrando "Generando…" mientras espera y rehabilita el botón al terminar (KAN-658)', async () => {
+    let resolveDownload!: () => void;
+    const downloadSpy = vi.spyOn(trainingPlansService, 'downloadPdf').mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning/plan-100/edit']}>
+        <Routes>
+          <Route path="/pf/planning/:planId/edit" element={<PlanEditorPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const pdfBtn = (await screen.findByRole('button', {
+      name: /descargar pdf/i,
+    })) as HTMLButtonElement;
+    expect(pdfBtn.disabled).toBe(false);
+
+    fireEvent.click(pdfBtn);
+
+    expect(downloadSpy).toHaveBeenCalledWith('plan-100', 'Plan de Fuerza Explosiva');
+    expect(screen.getByRole('button', { name: /generando…/i })).toHaveProperty('disabled', true);
+
+    resolveDownload();
+
+    const enabledBtn = await screen.findByRole('button', { name: /descargar pdf/i });
+    expect((enabledBtn as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('muestra un mensaje de error en español y rehabilita el botón si falla la descarga del PDF (KAN-658)', async () => {
+    vi.spyOn(trainingPlansService, 'downloadPdf').mockRejectedValue(
+      new Error('No se pudo generar el PDF de la rutina.'),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning/plan-100/edit']}>
+        <Routes>
+          <Route path="/pf/planning/:planId/edit" element={<PlanEditorPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const pdfBtn = await screen.findByRole('button', { name: /descargar pdf/i });
+    fireEvent.click(pdfBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('No se pudo generar el PDF de la rutina.');
+
+    const enabledBtn = screen.getByRole('button', { name: /descargar pdf/i }) as HTMLButtonElement;
+    expect(enabledBtn.disabled).toBe(false);
+  });
 });
