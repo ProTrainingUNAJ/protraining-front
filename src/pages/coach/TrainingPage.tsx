@@ -155,6 +155,22 @@ export const TrainingPage: React.FC = () => {
     setModalExercise(exercise);
   };
 
+  const handleExerciseVideoChange = (exerciseId: string, nextVideoUrl: string | null) => {
+    const nextSource: 'Pf' | null = nextVideoUrl ? 'Pf' : null;
+    const applyUpdate = (item: ExerciseItem): ExerciseItem => ({
+      ...item,
+      ...(item.id === exerciseId ? { videoUrl: nextVideoUrl, videoSource: nextSource } : {}),
+      variants: item.variants.map((variant) =>
+        variant.id === exerciseId
+          ? { ...variant, videoUrl: nextVideoUrl, videoSource: nextSource }
+          : variant,
+      ),
+    });
+
+    setExercises((prev) => prev.map(applyUpdate));
+    setModalExercise((prev) => (prev ? applyUpdate(prev) : null));
+  };
+
   const shownExercise =
     activeVariantId && modalExercise
       ? (modalExercise.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise)
@@ -645,6 +661,8 @@ export const TrainingPage: React.FC = () => {
           exercise={currentExerciseForModal}
           activeVariantId={activeVariantId}
           onSelectVariant={(variantId) => setActiveVariantId(variantId)}
+          allowVideoEdit
+          onVideoChange={handleExerciseVideoChange}
         />
       </div>
     </div>

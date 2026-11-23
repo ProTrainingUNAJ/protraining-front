@@ -2898,6 +2898,107 @@
   background: var(--bg-card);
 }
 
+.exercise-detail-modal-footer--with-video {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.exercise-detail-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.exercise-detail-video-trigger {
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.exercise-detail-video-trigger:hover {
+  color: var(--secondary);
+  text-decoration: underline;
+}
+
+.exercise-detail-video-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 6px;
+}
+
+.exercise-detail-video-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+.exercise-detail-video-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.exercise-detail-video-input {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.exercise-detail-video-input::placeholder {
+  color: var(--text-muted);
+}
+
+.exercise-detail-video-input:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.exercise-detail-video-feedback {
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.exercise-detail-video-feedback.success {
+  color: var(--success-text);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+}
+
+.exercise-detail-video-feedback.error {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+}
+
 .exercise-detail-close-btn {
   min-width: 120px;
   font-weight: 700;

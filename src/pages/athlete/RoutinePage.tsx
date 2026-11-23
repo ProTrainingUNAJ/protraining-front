@@ -960,14 +960,14 @@ export const RoutinePage: React.FC = () => {
                                   </button>
                                 )}
                               </div>
-                            </div>
 
-                            {exercise.notes && exercise.notes.trim() && (
-                              <div className="routine-exercise-note">
-                                <MessageSquare size={13} />
-                                <span>{exercise.notes}</span>
-                              </div>
-                            )}
+                              {exercise.notes && exercise.notes.trim() && (
+                                <div className="routine-exercise-note">
+                                  <MessageSquare size={13} />
+                                  <span>{exercise.notes}</span>
+                                </div>
+                              )}
+                            </div>
 
                             {/* META DE LA SERIE: PESO EN BARRA O TIEMPO */}
                             {exercise.exerciseType === 'Distance' ||

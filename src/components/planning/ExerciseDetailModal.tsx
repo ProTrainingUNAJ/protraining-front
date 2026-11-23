@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Dumbbell, Flame, CheckCircle, Info } from 'lucide-react';
+import { X, Dumbbell, Flame, CheckCircle, Info, Video } from 'lucide-react';
 import { ExerciseGifImage } from '../exercises/ExerciseGifImage';
 import { ExerciseMuscleMiniMap } from './ExerciseMuscleMiniMap';
 import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
+import { exercisesService } from '../../api/exercises';
+import { extractYouTubeId } from '../../utils/youtube';
 import type { ExerciseMediaDto } from '../../api/generated/entrenamiento';
 
 export interface ExerciseDetailModalProps {
@@ -17,6 +19,8 @@ export interface ExerciseDetailModalProps {
     category?: string;
     muscleGroup?: string;
     exerciseType?: string | null;
+    videoUrl?: string | null;
+    videoSource?: 'Pf' | 'Catalog' | null;
     images?: string[];
     media?: ExerciseMediaDto[];
     primaryMuscles?: string[];
@@ -30,6 +34,8 @@ export interface ExerciseDetailModalProps {
   } | null;
   activeVariantId?: string | null;
   onSelectVariant?: (variantId: string | null) => void;
+  allowVideoEdit?: boolean;
+  onVideoChange?: (exerciseId: string, videoUrl: string | null) => void;
 }
 
 export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
@@ -38,7 +44,28 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   exercise,
   activeVariantId,
   onSelectVariant,
+  allowVideoEdit = false,
+  onVideoChange,
 }) => {
+  const exerciseId = exercise?.id ?? exercise?.exerciseId ?? null;
+  const currentVideoUrl = exercise?.videoUrl ?? '';
+  const exerciseKey = `${isOpen}:${exerciseId ?? ''}`;
+  const [prevExerciseKey, setPrevExerciseKey] = useState(exerciseKey);
+  const [isVideoEditorOpen, setIsVideoEditorOpen] = useState(false);
+  const [videoInput, setVideoInput] = useState(currentVideoUrl);
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const [videoFeedback, setVideoFeedback] = useState<{ text: string; error?: boolean } | null>(
+    null,
+  );
+
+  // Reiniciar el editor de video cuando se abre/cierra el modal o cambia el ejercicio/variante.
+  if (prevExerciseKey !== exerciseKey) {
+    setPrevExerciseKey(exerciseKey);
+    setIsVideoEditorOpen(false);
+    setVideoInput(currentVideoUrl);
+    setVideoFeedback(null);
+  }
+
   // Cerrar con Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -51,6 +78,68 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   }, [isOpen, onClose]);
 
   if (!isOpen || !exercise) return null;
+
+  const hasVideo = Boolean(exercise.videoUrl);
+  const canEditVideo = Boolean(allowVideoEdit && exerciseId);
+
+  const handleToggleVideoEditor = () => {
+    setIsVideoEditorOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setVideoInput(exercise.videoUrl ?? '');
+        setVideoFeedback(null);
+      }
+      return next;
+    });
+  };
+
+  const handleSaveVideo = async () => {
+    if (!exerciseId) return;
+
+    const trimmed = videoInput.trim();
+    if (!trimmed || !extractYouTubeId(trimmed)) {
+      setVideoFeedback({
+        text: 'El link tiene que ser un video de YouTube.',
+        error: true,
+      });
+      return;
+    }
+
+    setIsSavingVideo(true);
+    setVideoFeedback(null);
+    try {
+      await exercisesService.updateVideoUrl(exerciseId, trimmed);
+      onVideoChange?.(exerciseId, trimmed);
+      setVideoFeedback({ text: '¡Video de YouTube actualizado con éxito!' });
+    } catch (err) {
+      setVideoFeedback({
+        text: err instanceof Error && err.message ? err.message : 'Error al guardar el video.',
+        error: true,
+      });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
+
+  const handleRemoveVideo = async () => {
+    if (!exerciseId) return;
+
+    setIsSavingVideo(true);
+    setVideoFeedback(null);
+    try {
+      await exercisesService.updateVideoUrl(exerciseId, null);
+      onVideoChange?.(exerciseId, null);
+      setVideoInput('');
+      setVideoFeedback({ text: 'Se quitó tu video.' });
+    } catch (err) {
+      setVideoFeedback({
+        text: err instanceof Error && err.message ? err.message : 'Error al quitar el video.',
+        error: true,
+      });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
 
   const title = exercise.exerciseName || exercise.name || 'Detalle del Ejercicio';
   const hasImages = Boolean(
@@ -238,14 +327,78 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
         </div>
 
         {/* Pie del modal */}
-        <footer className="exercise-detail-modal-footer">
-          <button
-            type="button"
-            className="btn btn-primary exercise-detail-close-btn"
-            onClick={onClose}
-          >
-            Entendido
-          </button>
+        <footer
+          className={`exercise-detail-modal-footer${canEditVideo ? ' exercise-detail-modal-footer--with-video' : ''}`}
+        >
+          {canEditVideo && isVideoEditorOpen && (
+            <div className="exercise-detail-video-editor">
+              <div className="exercise-detail-video-row">
+                <input
+                  type="url"
+                  className="exercise-detail-video-input"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  aria-label="Link de video de YouTube"
+                  value={videoInput}
+                  onChange={(e) => setVideoInput(e.target.value)}
+                  disabled={isSavingVideo}
+                />
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSaveVideo}
+                  disabled={isSavingVideo}
+                >
+                  {isSavingVideo ? 'Guardando...' : 'Guardar'}
+                </button>
+                {hasVideo && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleRemoveVideo}
+                    disabled={isSavingVideo}
+                  >
+                    Quitar video
+                  </button>
+                )}
+              </div>
+              {videoFeedback && (
+                <p
+                  className={`exercise-detail-video-feedback ${videoFeedback.error ? 'error' : 'success'}`}
+                  role="status"
+                >
+                  {videoFeedback.text}
+                </p>
+              )}
+            </div>
+          )}
+
+          {canEditVideo ? (
+            <div className="exercise-detail-footer-actions">
+              <button
+                type="button"
+                className="exercise-detail-video-trigger"
+                onClick={handleToggleVideoEditor}
+              >
+                <Video size={15} aria-hidden="true" />
+                <span>{hasVideo ? 'Cambiar video' : 'Agregar video de YouTube'}</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary exercise-detail-close-btn"
+                onClick={onClose}
+              >
+                Entendido
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary exercise-detail-close-btn"
+              onClick={onClose}
+            >
+              Entendido
+            </button>
+          )}
         </footer>
       </div>
     </div>

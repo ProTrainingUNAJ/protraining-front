@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { TrainingPage } from '../TrainingPage';
 import * as entrenamientoApi from '../../../api/generated/entrenamiento';
+import { exercisesService } from '../../../api/exercises';
 
 vi.mock('../../../api/generated/entrenamiento', async () => {
   const actual = await vi.importActual<typeof entrenamientoApi>(
@@ -13,6 +14,12 @@ vi.mock('../../../api/generated/entrenamiento', async () => {
     listExercises: vi.fn(),
   };
 });
+
+vi.mock('../../../api/exercises', () => ({
+  exercisesService: {
+    updateVideoUrl: vi.fn(),
+  },
+}));
 
 describe('TrainingPage · Filtro por Músculo Puntual', () => {
   beforeEach(() => {
@@ -303,6 +310,33 @@ describe('TrainingPage · Filtro por Músculo Puntual', () => {
       const dialog = await screen.findByRole('dialog');
       expect(dialog).toBeTruthy();
       expect(screen.getByText('Pautas para una buena técnica')).toBeTruthy();
+    });
+
+    it('permite agregar un video de YouTube desde el modal en la biblioteca (KAN-659)', async () => {
+      vi.mocked(exercisesService.updateVideoUrl).mockResolvedValue(undefined);
+
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Anatomía' }));
+      fireEvent.click(await screen.findByRole('button', { name: /agregar video de youtube/i }));
+
+      const input = screen.getByLabelText(/link de video de youtube/i);
+      fireEvent.change(input, {
+        target: { value: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^guardar$/i }));
+
+      await waitFor(() => {
+        expect(exercisesService.updateVideoUrl).toHaveBeenCalledWith(
+          'ex-1',
+          'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        );
+      });
+      expect(await screen.findByRole('button', { name: /cambiar video/i })).toBeTruthy();
     });
   });
 
