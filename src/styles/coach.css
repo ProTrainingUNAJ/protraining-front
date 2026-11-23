@@ -2237,6 +2237,14 @@
   container-type: inline-size;
 }
 
+/* Las 3 tarjetas de la fila 2 siempre del mismo ancho: con 1fr, un título largo ("Próximo
+   entrenamiento" + "Mañana") ensanchaba su columna y apretaba a "Mayor carga". */
+@media (min-width: 1101px) {
+  .wireframe-dashboard-container--coach .wireframe-row-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @container (min-width: 1200px) {
   .wireframe-dashboard-container--coach .wireframe-row-1 {
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);

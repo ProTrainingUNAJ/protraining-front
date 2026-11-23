@@ -31,7 +31,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  white-space: nowrap;
 }
 
 .next-training-widget__icon-wrap {
