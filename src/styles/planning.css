@@ -149,7 +149,8 @@
 /* ── Grid y Tarjetas de Planificación (KAN-622) ── */
 .plan-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  /* auto-fill y no auto-fit: con pocas planificaciones las tarjetas no se estiran a todo el ancho */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.25rem;
   margin: 0;
   padding: 0;
