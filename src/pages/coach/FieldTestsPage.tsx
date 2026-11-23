@@ -6,41 +6,19 @@ import { EmptyState } from '../../components/EmptyState';
 import { formatIsoDate } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
 import {
-  createFieldTestSession,
   listFieldTestSessions,
   listFitnessTests,
   updateFieldTestSessionStatus,
 } from '../../api/fieldTestSessions';
-import type {
-  FieldTestSessionSummary,
-  FitnessTest,
-  MotorCapacity,
-} from '../../api/generated/seguimiento';
+import type { FieldTestSessionSummary, FitnessTest } from '../../api/generated/seguimiento';
 import type { Category } from '../../types/structure';
+import { CreateFieldTestSessionModal } from '../../components/fieldTests/CreateFieldTestSessionModal';
 
 // Estados de la sesión, en el mismo orden que el backend.
 const STATUS_LABEL: Record<FieldTestSessionSummary['status'], string> = {
   Planned: 'Planificada',
   InProgress: 'En curso',
   Closed: 'Cerrada',
-};
-
-// Etiquetas de las capacidades motoras en el orden del enum del backend (KAN-458):
-// se usan como chips de filtro del catálogo y solo se muestran las presentes en él.
-const CAPACITY_LABEL: Record<MotorCapacity, string> = {
-  Strength: 'Fuerza',
-  Velocity: 'Velocidad',
-  Endurance: 'Resistencia',
-  Power: 'Potencia',
-  Flexibility: 'Flexibilidad',
-  Agility: 'Agilidad',
-  Coordination: 'Coordinación',
-};
-
-const todayIso = (): string => {
-  const now = new Date();
-  const offset = now.getTimezoneOffset();
-  return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 };
 
 // Pantalla de entrada al test de campo: elegir la categoría, ver (o crear) la sesión
@@ -59,20 +37,12 @@ export const FieldTestsPage: React.FC = () => {
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Formulario de alta de sesión.
+  // Modal de alta de sesión (KAN-656).
   const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState('');
-  const [date, setDate] = useState(todayIso);
-  const [selectedTestIds, setSelectedTestIds] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const [catalogTests, setCatalogTests] = useState<FitnessTest[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
-
-  // Filtro por capacidad motora sobre el catálogo ya cargado (KAN-458).
-  const [capacityFilter, setCapacityFilter] = useState<MotorCapacity | ''>('');
 
   useEffect(() => {
     let active = true;
@@ -169,56 +139,6 @@ export const FieldTestsPage: React.FC = () => {
     }
   };
 
-  const submitNewSession = async (event: React.FormEvent): Promise<void> => {
-    event.preventDefault();
-    setFormError(null);
-
-    if (!name.trim()) {
-      setFormError('Poné un nombre para la sesión.');
-      return;
-    }
-    if (selectedTestIds.length === 0) {
-      setFormError('Elegí al menos un test del catálogo.');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await createFieldTestSession({
-        categoryId: selectedCategoryId,
-        date,
-        name: name.trim(),
-        tests: selectedTestIds.map((catalogTestId, index) => ({
-          catalogTestId,
-          order: index + 1,
-        })),
-      });
-      setShowForm(false);
-      setName('');
-      setSelectedTestIds([]);
-      await loadSessions(selectedCategoryId);
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'No se pudo crear la sesión.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const toggleTest = (testId: string): void => {
-    setSelectedTestIds((current) =>
-      current.includes(testId) ? current.filter((id) => id !== testId) : [...current, testId],
-    );
-  };
-
-  // Solo se ofrecen los filtros de capacidades que existen en el catálogo.
-  const availableCapacities = (Object.keys(CAPACITY_LABEL) as MotorCapacity[]).filter((capacity) =>
-    catalogTests.some((test) => test.motorCapacity === capacity),
-  );
-
-  const visibleTests = capacityFilter
-    ? catalogTests.filter((test) => test.motorCapacity === capacityFilter)
-    : catalogTests;
-
   return (
     <div className="app-page-container">
       <PageHeader
@@ -228,7 +148,7 @@ export const FieldTestsPage: React.FC = () => {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => setShowForm((open) => !open)}
+            onClick={() => setShowForm(true)}
             disabled={!selectedCategoryId}
           >
             <Plus size={16} aria-hidden="true" />
@@ -276,92 +196,16 @@ export const FieldTestsPage: React.FC = () => {
           </div>
         )}
 
+        {/* Modal amplio y centrado de creación de sesión (KAN-656) */}
         {showForm && (
-          <form className="card ft-form" onSubmit={submitNewSession}>
-            <h3>Nueva sesión de test</h3>
-
-            <label className="ft-field">
-              <span>Nombre</span>
-              <input
-                type="text"
-                maxLength={150}
-                value={name}
-                placeholder="Evaluación de pretemporada"
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-
-            <label className="ft-field">
-              <span>Fecha</span>
-              <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-            </label>
-
-            <fieldset className="ft-field">
-              <legend>Tests (en el orden en que se evalúan)</legend>
-              {catalogError && <div className="alert-banner danger">{catalogError}</div>}
-              {catalogTests.length > 0 && (
-                <div
-                  className="ft-test-filters"
-                  role="group"
-                  aria-label="Filtrar por capacidad motora"
-                >
-                  <button
-                    type="button"
-                    className={`ft-test-filter${capacityFilter === '' ? ' ft-test-filter--active' : ''}`}
-                    aria-pressed={capacityFilter === ''}
-                    onClick={() => setCapacityFilter('')}
-                  >
-                    Todos
-                  </button>
-                  {availableCapacities.map((capacity) => (
-                    <button
-                      key={capacity}
-                      type="button"
-                      className={`ft-test-filter${capacityFilter === capacity ? ' ft-test-filter--active' : ''}`}
-                      aria-pressed={capacityFilter === capacity}
-                      onClick={() => setCapacityFilter(capacity)}
-                    >
-                      {CAPACITY_LABEL[capacity]}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="ft-test-options">
-                {visibleTests.map((test) => {
-                  const order = selectedTestIds.indexOf(test.id);
-                  return (
-                    <button
-                      key={test.id}
-                      type="button"
-                      className={`ft-test-option${order >= 0 ? ' ft-test-option--selected' : ''}`}
-                      onClick={() => toggleTest(test.id)}
-                      aria-pressed={order >= 0}
-                    >
-                      <span className="ft-test-option__order">{order >= 0 ? order + 1 : '·'}</span>
-                      <span className="ft-test-option__name">{test.name}</span>
-                      <span className="ft-test-option__unit">{test.measurementUnit}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-
-            {formError && <div className="alert-banner danger">{formError}</div>}
-
-            <div className="ft-form-actions">
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? 'Creando…' : 'Crear sesión'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setShowForm(false)}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+          <CreateFieldTestSessionModal
+            isOpen={showForm}
+            onClose={() => setShowForm(false)}
+            categoryId={selectedCategoryId}
+            catalogTests={catalogTests}
+            catalogError={catalogError}
+            onSessionCreated={() => void loadSessions(selectedCategoryId)}
+          />
         )}
 
         {actionError && <div className="alert-banner danger">{actionError}</div>}
