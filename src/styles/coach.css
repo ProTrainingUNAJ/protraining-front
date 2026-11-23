@@ -2259,3 +2259,8 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Fila de una sola tarjeta a todo el ancho (la tira "Mis marcas" del atleta, KAN-594) */
+.wireframe-row.wireframe-row-strip {
+  grid-template-columns: minmax(0, 1fr);
+}
