@@ -178,21 +178,23 @@ export const FieldTestsPage: React.FC = () => {
           />
         )}
 
-        {!categoriesLoading && !categoriesError && categories.length > 0 && (
-          <div className="card ft-toolbar">
-            <label className="ft-field">
-              <span>Categoría</span>
-              <select
-                value={selectedCategoryId}
-                onChange={(event) => setSelectedCategoryId(event.target.value)}
-              >
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+        {!categoriesLoading && !categoriesError && categories.length > 1 && (
+          <div className="ft-category-filter-bar">
+            <span className="ft-category-filter-label">Plantel:</span>
+            <div className="ft-category-pills">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  className={`ft-category-pill${
+                    selectedCategoryId === category.id ? ' ft-category-pill--active' : ''
+                  }`}
+                  onClick={() => setSelectedCategoryId(category.id)}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -201,10 +203,14 @@ export const FieldTestsPage: React.FC = () => {
           <CreateFieldTestSessionModal
             isOpen={showForm}
             onClose={() => setShowForm(false)}
-            categoryId={selectedCategoryId}
+            categories={categories}
+            initialCategoryId={selectedCategoryId}
             catalogTests={catalogTests}
             catalogError={catalogError}
-            onSessionCreated={() => void loadSessions(selectedCategoryId)}
+            onSessionCreated={async (catId) => {
+              if (catId) setSelectedCategoryId(catId);
+              await loadSessions(catId || selectedCategoryId);
+            }}
           />
         )}
 

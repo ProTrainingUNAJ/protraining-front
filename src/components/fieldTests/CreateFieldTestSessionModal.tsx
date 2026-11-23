@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X, Search, Check, ListChecks } from 'lucide-react';
 import { createFieldTestSession } from '../../api/fieldTestSessions';
 import type { FitnessTest, MotorCapacity } from '../../api/generated/seguimiento';
+import type { Category } from '../../types/structure';
 
 // Etiquetas de las capacidades motoras en el orden del enum del backend (KAN-458 / KAN-656).
 const CAPACITY_LABEL: Record<MotorCapacity, string> = {
@@ -23,20 +24,25 @@ const todayIso = (): string => {
 export interface CreateFieldTestSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  categoryId: string;
+  categories: Category[];
+  initialCategoryId?: string;
   catalogTests: FitnessTest[];
   catalogError?: string | null;
-  onSessionCreated: () => Promise<void> | void;
+  onSessionCreated: (categoryId: string) => Promise<void> | void;
 }
 
 export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalProps> = ({
   isOpen,
   onClose,
-  categoryId,
+  categories,
+  initialCategoryId,
   catalogTests,
   catalogError,
   onSessionCreated,
 }) => {
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+    initialCategoryId || categories[0]?.id || '',
+  );
   const [name, setName] = useState('');
   const [date, setDate] = useState(todayIso);
   const [selectedTestIds, setSelectedTestIds] = useState<string[]>([]);
@@ -89,6 +95,10 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
     event.preventDefault();
     setFormError(null);
 
+    if (!selectedCategoryId) {
+      setFormError('Elegí una categoría para la sesión.');
+      return;
+    }
     if (!name.trim()) {
       setFormError('Poné un nombre para la sesión.');
       return;
@@ -101,7 +111,7 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
     setSaving(true);
     try {
       await createFieldTestSession({
-        categoryId,
+        categoryId: selectedCategoryId,
         date,
         name: name.trim(),
         tests: selectedTestIds.map((catalogTestId, index) => ({
@@ -109,7 +119,7 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
           order: index + 1,
         })),
       });
-      await onSessionCreated();
+      await onSessionCreated(selectedCategoryId);
       onClose();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'No se pudo crear la sesión.');
@@ -168,9 +178,26 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
               </div>
             )}
 
-            {/* Sección B: Información general (Nombre y Fecha en 1 fila) */}
+            {/* Sección B: Información general (Categoría, Nombre y Fecha) */}
             <div className="ft-modal-section">
-              <div className="ft-modal-grid-2">
+              <div className="ft-modal-grid-3">
+                <label className="ft-field">
+                  <span>Categoría *</span>
+                  <select
+                    value={selectedCategoryId}
+                    onChange={(e) => setSelectedCategoryId(e.target.value)}
+                    disabled={saving}
+                    aria-label="Categoría"
+                  >
+                    {categories.length === 0 && <option value="">Sin categorías</option>}
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
                 <label className="ft-field">
                   <span>Nombre de la sesión *</span>
                   <input
