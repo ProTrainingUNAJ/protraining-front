@@ -430,7 +430,7 @@ describe('DashboardPage - Requieren atención hoy (KAN-594)', () => {
     renderCoachHome();
 
     expect(await screen.findByText('Nadie necesita atención hoy.')).toBeDefined();
-    expect(screen.getByText('Sin alertas de dolor hoy.')).toBeDefined();
+    expect(screen.getByText('Sin dolores reportados hoy.')).toBeDefined();
     expect(screen.queryByText('Molestia crítica')).toBeNull();
   });
 
