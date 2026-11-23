@@ -35,9 +35,8 @@ describe('trainingPlansService.downloadPdf (KAN-658)', () => {
     expect(URL.createObjectURL).toHaveBeenCalledWith(fakeBlob);
     expect(clickSpy).toHaveBeenCalledTimes(1);
 
-    const anchor = appendSpy.mock.calls.find(
-      ([node]) => node instanceof HTMLAnchorElement,
-    )?.[0] as HTMLAnchorElement | undefined;
+    const anchor = appendSpy.mock.calls.find(([node]) => node instanceof HTMLAnchorElement)?.[0] as
+      HTMLAnchorElement | undefined;
     expect(anchor).toBeDefined();
     expect(anchor?.download).toBe('Fuerza - Potencia- Nivel 1.pdf');
     expect(anchor?.href).toBe('blob:http://localhost/pdf-test');
@@ -68,4 +67,3 @@ describe('trainingPlansService.downloadPdf (KAN-658)', () => {
     );
   });
 });
-
