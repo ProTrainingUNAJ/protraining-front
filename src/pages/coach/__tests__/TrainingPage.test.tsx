@@ -385,4 +385,149 @@ describe('TrainingPage · Filtro por Músculo Puntual', () => {
       expect(input.value).toBe('');
     });
   });
+
+  describe('Paginación con flechas', () => {
+    it('navega entre páginas con Anterior y Siguiente manteniendo 24 ejercicios por página', async () => {
+      const makeItems = (pageNum: number, count: number) =>
+        Array.from({ length: count }, (_, idx) => ({
+          id: `ex-p${pageNum}-${idx + 1}`,
+          name: `Ejercicio P${pageNum}-${idx + 1}`,
+          category: 'Fuerza',
+          muscleGroup: 'Core',
+          equipment: 'solo el cuerpo',
+          primaryMuscles: ['abdominales'],
+          variants: [],
+        }));
+
+      vi.mocked(entrenamientoApi.listExercises).mockImplementation((async (
+        options: Parameters<typeof entrenamientoApi.listExercises>[0],
+      ) => {
+        const currentPage = options?.query?.page ?? 1;
+        const count = currentPage === 3 ? 5 : 24;
+        return {
+          data: {
+            items: makeItems(currentPage, count),
+            page: currentPage,
+            pageSize: 24,
+            totalCount: 53,
+            totalPages: 3,
+          },
+        } as unknown as Awaited<ReturnType<typeof entrenamientoApi.listExercises>>;
+      }) as never);
+
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      expect(await screen.findByText('Ejercicio P1-1')).toBeTruthy();
+      expect(entrenamientoApi.listExercises).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            page: 1,
+            pageSize: 24,
+          }),
+        }),
+      );
+      expect(screen.getByText('Página 1 de 3')).toBeTruthy();
+      expect(screen.getByText(/Mostrando 1–24\s+de 53 ejercicios/)).toBeTruthy();
+
+      const prevBtn = screen.getByRole('button', { name: 'Página anterior' }) as HTMLButtonElement;
+      const nextBtn = screen.getByRole('button', { name: 'Página siguiente' }) as HTMLButtonElement;
+      expect(prevBtn.disabled).toBe(true);
+      expect(nextBtn.disabled).toBe(false);
+
+      // Pasar a página 2
+      fireEvent.click(nextBtn);
+
+      expect(await screen.findByText('Ejercicio P2-1')).toBeTruthy();
+      expect(screen.queryByText('Ejercicio P1-1')).toBeNull();
+      expect(screen.getByText('Página 2 de 3')).toBeTruthy();
+      expect(screen.getByText(/Mostrando 25–48\s+de 53 ejercicios/)).toBeTruthy();
+      expect(prevBtn.disabled).toBe(false);
+      expect(nextBtn.disabled).toBe(false);
+
+      // Pasar a la última página (3)
+      fireEvent.click(nextBtn);
+
+      expect(await screen.findByText('Ejercicio P3-5')).toBeTruthy();
+      expect(screen.getByText('Página 3 de 3')).toBeTruthy();
+      expect(screen.getByText(/Mostrando 49–53\s+de 53 ejercicios/)).toBeTruthy();
+      expect(nextBtn.disabled).toBe(true);
+
+      // Volver a página 2
+      fireEvent.click(prevBtn);
+
+      expect(await screen.findByText('Ejercicio P2-1')).toBeTruthy();
+      expect(screen.getByText('Página 2 de 3')).toBeTruthy();
+    });
+
+    it('vuelve a la página 1 al cambiar un filtro estando en otra página', async () => {
+      vi.mocked(entrenamientoApi.listExercises).mockImplementation((async (
+        options: Parameters<typeof entrenamientoApi.listExercises>[0],
+      ) => {
+        const currentPage = options?.query?.page ?? 1;
+        const isPiernas = options?.query?.muscleGroup === 'Piernas';
+        return {
+          data: {
+            items: [
+              {
+                id: isPiernas ? 'ex-piernas-1' : `ex-p${currentPage}`,
+                name: isPiernas ? 'Sentadilla' : `Ejercicio página ${currentPage}`,
+                category: 'Fuerza',
+                muscleGroup: isPiernas ? 'Piernas' : 'Core',
+                equipment: 'solo el cuerpo',
+                primaryMuscles: ['cuádriceps'],
+                variants: [],
+              },
+            ],
+            page: currentPage,
+            pageSize: 24,
+            totalCount: isPiernas ? 1 : 48,
+            totalPages: isPiernas ? 1 : 2,
+          },
+        } as unknown as Awaited<ReturnType<typeof entrenamientoApi.listExercises>>;
+      }) as never);
+
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      expect(await screen.findByText('Ejercicio página 1')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Página siguiente' }));
+      expect(await screen.findByText('Ejercicio página 2')).toBeTruthy();
+
+      // Al filtrar por Piernas debe pedir page: 1
+      fireEvent.click(screen.getByRole('button', { name: 'Piernas' }));
+
+      await waitFor(() => {
+        expect(entrenamientoApi.listExercises).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              page: 1,
+              muscleGroup: 'Piernas',
+            }),
+          }),
+        );
+      });
+
+      expect(await screen.findByText('Sentadilla')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Página siguiente' })).toBeNull();
+    });
+
+    it('no muestra controles de paginación cuando hay una sola página', async () => {
+      render(
+        <MemoryRouter>
+          <TrainingPage />
+        </MemoryRouter>,
+      );
+
+      expect(await screen.findByText('Peso muerto rumano')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Página anterior' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Página siguiente' })).toBeNull();
+    });
+  });
 });
