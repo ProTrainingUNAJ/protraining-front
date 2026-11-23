@@ -331,4 +331,65 @@ describe('FieldTestsPage · Sesiones de test de campo (KAN-427)', () => {
     expect(categorySelect).toBeDefined();
     expect(categorySelect.value).toBe('cat-1');
   });
+
+  it('permite filtrar sesiones por categoría usando el selector tipo dropdown (KAN-656)', async () => {
+    const twoCategories: Category[] = [
+      {
+        id: 'cat-1',
+        organizationId: 'org-1',
+        name: 'Primera División',
+        description: null,
+        athletesCount: 18,
+      },
+      {
+        id: 'cat-2',
+        organizationId: 'org-1',
+        name: 'Reserva',
+        description: null,
+        athletesCount: 15,
+      },
+    ];
+
+    vi.mocked(structureService.getCategories).mockResolvedValue(twoCategories);
+    vi.mocked(listFieldTestSessions).mockImplementation(async (catId: string) => {
+      if (catId === 'cat-1') {
+        return [makeSummary({ id: 's-1', name: 'Sesión Primera', categoryId: 'cat-1' })];
+      }
+      if (catId === 'cat-2') {
+        return [makeSummary({ id: 's-2', name: 'Sesión Reserva', categoryId: 'cat-2' })];
+      }
+      return [];
+    });
+
+    renderPage();
+
+    // Inicialmente carga "Todas las categorías" y muestra ambas
+    expect(await screen.findByText('Sesión Primera')).toBeDefined();
+    expect(await screen.findByText('Sesión Reserva')).toBeDefined();
+
+    const filterSelect = screen.getByLabelText('Filtrar por categoría') as HTMLSelectElement;
+    expect(filterSelect).toBeDefined();
+    expect(screen.getByRole('option', { name: 'Todas las categorías' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'Primera División' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'Reserva' })).toBeDefined();
+
+    // Filtramos solo por Reserva
+    fireEvent.change(filterSelect, { target: { value: 'cat-2' } });
+
+    await waitFor(() => {
+      expect(listFieldTestSessions).toHaveBeenCalledWith('cat-2');
+    });
+    expect(await screen.findByText('Sesión Reserva')).toBeDefined();
+  });
+
+  it('muestra el badge con el nombre de la categoría en cada tarjeta de sesión (KAN-656)', async () => {
+    renderPage();
+    await screen.findByText('Evaluación de pretemporada');
+
+    // Muestra el badge con el nombre de la categoría mapeada
+    const badge = screen.getByText('Primera División', {
+      selector: '.ft-session-category-badge',
+    });
+    expect(badge).toBeDefined();
+  });
 });
