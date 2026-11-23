@@ -902,62 +902,64 @@
 @media (max-width: 600px) {
   .season-calendar-week-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.5rem;
   }
 
   .season-calendar-week-col {
     min-height: auto;
+    display: flex;
     flex-direction: row;
     align-items: flex-start;
-    padding: 0.5rem 0;
+    padding: 0.5rem;
+    gap: 0.75rem;
   }
 
   .season-calendar-week-header {
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
-    padding: 0.4rem 0.3rem 0;
+    flex: 0 0 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.25rem;
     border-bottom: none;
+    border-radius: calc(var(--radius) - 4px);
+    background-color: var(--bg-subtle);
   }
 
-  .season-calendar-week-dayname,
-  .season-calendar-week-daynum {
-    font-size: 0.65rem;
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    color: var(--text-main);
+  .season-calendar-week-dayname {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.1;
   }
 
   .season-calendar-week-daynum {
-    margin-right: 0.5rem;
-    order: 1;
+    font-size: 1rem;
+    font-weight: 700;
+    width: 26px;
+    height: 26px;
   }
 
   .season-calendar-week-content {
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
-    padding: 0.4rem 0.3rem;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0;
   }
 
-  /* Day without events: "Sin actividad" */
-  .season-calendar-week-content.empty::before {
-    content: '"Sin actividad"';
-    order: 0;
-    font-size: 0.6rem;
+  .season-calendar-week-empty-day {
+    padding: 0.35rem 0;
+    text-align: left;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     white-space: nowrap;
-    margin-right: 0.5rem;
-  }
-
-  .season-calendar-week-content:not(.empty) > *:first-child {
-    order: 1;
   }
 
   .season-calendar-week-add-btn {
-    order: 2;
-    margin-left: auto;
+    align-self: flex-start;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
   }
 }
 
