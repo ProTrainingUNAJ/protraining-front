@@ -86,6 +86,9 @@ function mapAlertToNotice(alert: PreventiveAlert): NoticeItem {
   };
 }
 
+/** Se dispara cuando un aviso se aplica o se revisa, para que la campana y el Inicio se actualicen. */
+export const ALERTS_CHANGED_EVENT = 'protraining-alerts-changed';
+
 export const alertsService = {
   /**
    * Obtiene la lista de avisos pendientes de revisión para el PF.

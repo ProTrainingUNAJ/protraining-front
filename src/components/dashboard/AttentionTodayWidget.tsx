@@ -1,10 +1,21 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowRight, ClipboardCheck, UserRound, Wrench } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowRight,
+  Check,
+  ClipboardCheck,
+  Lightbulb,
+  UserRound,
+  Wrench,
+} from 'lucide-react';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 import { useDelayedLoading } from '../../hooks/useDelayedLoading';
 import type { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
+import { AthleteContactActions } from '../monitoring/AthleteContactActions';
 import { buildAttentionReasons, sortByAttention, summarizeNames } from '../../utils/attentionToday';
+import { ALERTS_CHANGED_EVENT, alertsService } from '../../api/alertsService';
+import type { NoticeItem } from '../../types/alerts';
 import { WidgetErrorState } from './WidgetErrorState';
 import './dashboardWidgets.css';
 
@@ -23,10 +34,26 @@ const STATUS_LABEL = { red: 'Rojo', yellow: 'Amarillo' } as const;
 // marcados la tarjeta medía ~1400 px y estiraba toda la fila 1 (KAN-594).
 const VISIBLE_ATHLETES = 3;
 
+const SEVERITY_WEIGHT = { High: 0, Medium: 1, Low: 2 } as const;
+
+// Botón de la sugerencia según lo que el back propone hacer con el aviso
+function noticeActionLabel(notice: NoticeItem): string {
+  if (notice.actionType === 'load_reduction') return 'Aplicar ajuste';
+  if (notice.actionType === 'routine_adjustment') return 'Ver propuesta';
+  return 'Marcar revisado';
+}
+
+type NoticeState =
+  | { status: 'working' }
+  | { status: 'done'; message: string }
+  | { status: 'error'; message: string };
+
 /**
  * Panel "Requieren atención hoy" del Inicio del PF (KAN-594): los atletas en rojo o amarillo con
- * el motivo, acciones para resolverlos ("Ver ficha" y, si la rutina de hoy carga una zona con
- * dolor, "Ajustar rutina") y cuántos todavía no hicieron el check-in, contados en una línea.
+ * el motivo y QUÉ HACER: la sugerencia del aviso pendiente del Centro de Avisos con su acción
+ * ("Aplicar ajuste", "Ver propuesta" o "Marcar revisado"), "Ajustar rutina" si la rutina de hoy
+ * carga una zona con dolor, "Ver ficha" y el contacto por WhatsApp o Telegram (a un menor, al
+ * tutor). Los que no hicieron el check-in van contados en una línea.
  */
 export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
   athletes,
@@ -47,6 +74,61 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
   const [expanded, setExpanded] = useState(false);
   const hiddenCount = Math.max(0, flagged.length - VISIBLE_ATHLETES);
   const visible = expanded ? flagged : flagged.slice(0, VISIBLE_ATHLETES);
+
+  // La sugerencia del aviso pendiente de cada atleta (KAN-474/478). Si el Asistente no responde,
+  // la tarjeta sigue mostrando el motivo, sin sugerencia: el resto del Inicio no depende de la IA.
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
+  const [noticeState, setNoticeState] = useState<Record<string, NoticeState>>({});
+  // Un aviso aplicado deja de estar pendiente y desaparecería: se guarda para mostrar "Aplicado"
+  const [resolvedById, setResolvedById] = useState<Record<string, NoticeItem>>({});
+  const loadNotices = useCallback(() => {
+    alertsService
+      .getPendingAlerts()
+      .then(setNotices)
+      .catch(() => setNotices([]));
+  }, []);
+  useEffect(() => {
+    loadNotices();
+    window.addEventListener(ALERTS_CHANGED_EVENT, loadNotices);
+    return () => window.removeEventListener(ALERTS_CHANGED_EVENT, loadNotices);
+  }, [loadNotices]);
+  const noticeByAthlete = useMemo(() => {
+    const map = new Map<string, NoticeItem>();
+    for (const notice of notices) {
+      const key = notice.athleteId.toLowerCase();
+      const current = map.get(key);
+      if (!current || SEVERITY_WEIGHT[notice.severity] < SEVERITY_WEIGHT[current.severity]) {
+        map.set(key, notice);
+      }
+    }
+    return map;
+  }, [notices]);
+
+  const handleNotice = async (notice: NoticeItem, athlete: AthleteTrafficLightItem) => {
+    // El ajuste de rutina no se aplica a ciegas: se abre la propuesta del día (KAN-452)
+    if (notice.actionType === 'routine_adjustment') {
+      onAdjustRoutine(athlete);
+      return;
+    }
+    setNoticeState((prev) => ({ ...prev, [notice.id]: { status: 'working' } }));
+    try {
+      const result = await alertsService.applyNoticeAction(notice);
+      setResolvedById((prev) => ({ ...prev, [notice.id]: notice }));
+      setNoticeState((prev) => ({
+        ...prev,
+        [notice.id]: { status: 'done', message: result.message },
+      }));
+      // La campana se actualiza sola; esta tarjeta mantiene el "Aplicado" hasta recargar
+      window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'No se pudo aplicar. Probá de nuevo.';
+      setNoticeState((prev) => ({ ...prev, [notice.id]: { status: 'error', message } }));
+    }
+  };
+
+  const noticeFor = (athlete: AthleteTrafficLightItem): NoticeItem | undefined =>
+    noticeByAthlete.get(athlete.id.toLowerCase()) ??
+    Object.values(resolvedById).find((n) => n.athleteId.toLowerCase() === athlete.id.toLowerCase());
 
   return (
     <section className="dash-w attention-widget" aria-labelledby="attention-widget-title">
@@ -88,6 +170,11 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
               {visible.map((athlete) => {
                 const reasons = buildAttentionReasons(athlete);
                 const status = athlete.status as 'red' | 'yellow';
+                const notice = noticeFor(athlete);
+                const state = notice ? noticeState[notice.id] : undefined;
+                // Si el aviso ya propone el ajuste de rutina, "Ajustar rutina" sería el mismo botón
+                const showAdjust =
+                  athlete.hasDayConflict && notice?.actionType !== 'routine_adjustment';
                 return (
                   <li key={athlete.id} className="attention-widget__item">
                     <ProfileAvatar src={athlete.avatarUrl} name={athlete.name} size={36} />
@@ -109,8 +196,41 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                         </p>
                       )}
                     </div>
+
+                    {notice && (
+                      <div className="attention-widget__suggestion">
+                        <Lightbulb size={14} aria-hidden="true" />
+                        <p>
+                          <span className="attention-widget__suggestion-label">Qué hacer:</span>{' '}
+                          {notice.suggestion}
+                        </p>
+                        {state?.status === 'error' && (
+                          <p className="attention-widget__suggestion-error" role="alert">
+                            {state.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Fuera del bloque del nombre: usan todo el ancho y entran en una línea */}
                     <div className="attention-widget__actions">
+                      {notice &&
+                        (state?.status === 'done' ? (
+                          <span className="attention-widget__done" role="status">
+                            <Check size={14} aria-hidden="true" />
+                            {notice.actionType === 'load_reduction' ? 'Aplicado' : 'Revisado'}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="dash-w__btn dash-w__btn--primary"
+                            onClick={() => handleNotice(notice, athlete)}
+                            disabled={state?.status === 'working'}
+                            aria-label={`${noticeActionLabel(notice)} para ${athlete.name}: ${notice.suggestion}`}
+                          >
+                            {state?.status === 'working' ? 'Aplicando…' : noticeActionLabel(notice)}
+                          </button>
+                        ))}
                       <button
                         type="button"
                         className="dash-w__btn"
@@ -120,7 +240,7 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                         <UserRound size={14} aria-hidden="true" />
                         Ver ficha
                       </button>
-                      {athlete.hasDayConflict && (
+                      {showAdjust && (
                         <button
                           type="button"
                           className="dash-w__btn dash-w__btn--primary"
@@ -131,6 +251,7 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                           Ajustar rutina
                         </button>
                       )}
+                      <AthleteContactActions athlete={athlete} compact fill={false} />
                     </div>
                   </li>
                 );
