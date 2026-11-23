@@ -214,4 +214,51 @@ describe('privacidad del check-in al cambiar de día y al editar', () => {
       ),
     ).toMatchObject({ trafficLight: 'Green', isOffline: false });
   });
+
+  it('precarga los valores de descanso del día anterior si existen en el backend', async () => {
+    vi.mocked(seguimientoService.getAthleteTodayCheckIn).mockImplementation(
+      async (_id, targetDate) => {
+        if (targetDate === '2026-11-21') {
+          return {
+            id: 'checkin-ayer',
+            athleteId: ATHLETE_ID,
+            date: '2026-11-21',
+            trafficLight: 'Green',
+            sleepHours: 7,
+            sleepQuality: 4,
+            fatigueLevel: 2,
+            muscleSoreness: 2,
+            moodRate: 4,
+            stressLevel: 2,
+            isSick: false,
+            hasActiveInjury: false,
+          } as never;
+        }
+        return null;
+      },
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Iniciar' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Ir al siguiente paso' }));
+
+    expect(await screen.findByText('7 horas')).toBeTruthy();
+    expect(screen.getByText('buena')).toBeTruthy();
+    expect(screen.getByText('fresco')).toBeTruthy();
+    expect(screen.getByText('leve')).toBeTruthy();
+  });
+
+  it('usa los valores preajustados (8 horas y 5/5 en las restantes) si no existe registro del día anterior', async () => {
+    vi.mocked(seguimientoService.getAthleteTodayCheckIn).mockResolvedValue(null);
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Iniciar' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Ir al siguiente paso' }));
+
+    expect(await screen.findByText('8 horas')).toBeTruthy();
+    expect(screen.getByText('excelente')).toBeTruthy();
+    expect(screen.getByText('enérgico')).toBeTruthy();
+    expect(screen.getByText('sin dolor')).toBeTruthy();
+    expect(screen.getAllByText('Nivel 5/5').length).toBe(3);
+  });
 });
