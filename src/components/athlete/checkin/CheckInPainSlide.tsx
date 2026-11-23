@@ -174,12 +174,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       >
         {/* ── Cabecera Superior con Botones Circulares de Navegación a la altura del Título ── */}
         <div
+          className="pixel-mood-nav-wrap"
           style={{
             width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '0.35rem',
+            marginBottom: '0.15rem',
             position: 'relative',
           }}
         >
@@ -332,7 +333,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
         {/* ── MAPA ANATÓMICO MUSCULAR Y ARTICULAR (VISTA FRONTAL Y POSTERIOR) CON ESCÁNER BIOMÉTRICO ── */}
         <div
           className={`biometric-scanner-container ${isScanning ? 'biometric-scanning-target' : ''}`}
-          style={{ width: '100%', overflow: 'visible', paddingBottom: '0.65rem' }}
+          style={{ width: '100%', overflow: 'visible', paddingBottom: '0.15rem' }}
         >
           {isScanning && (
             <div className="biometric-scan-overlay" aria-hidden="true">

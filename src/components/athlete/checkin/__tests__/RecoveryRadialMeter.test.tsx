@@ -1,18 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecoveryRadialMeter } from '../recovery/RecoveryRadialMeter';
+import { CheckInRecoverySlide } from '../CheckInRecoverySlide';
 import {
   MetricKey,
-  getMetricFromPoint,
-  getValueFromPoint,
-  CX,
-  CY,
-  METRIC_CONFIGS,
-  STROKE_WIDTH,
-  ACTIVE_STROKE_WIDTH,
+  METRIC_ORDER,
+  DEFAULT_RECOVERY_VALUES,
+  getMetricProgressPct,
+  getValueFromHorizontalPct,
+  getMetricDisplayInfo,
 } from '../recovery/recovery.types';
 
-describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', () => {
+describe('RecoveryRadialMeter - Rediseño con 4 barras horizontales y controles laterales', () => {
   const defaultProps = {
     activeMetric: 'sleepHours' as MetricKey,
     sleepHours: 8,
@@ -21,208 +20,249 @@ describe('RecoveryRadialMeter - Optimización táctil avanzada (Touch-First)', (
     muscleSoreness: 1,
     onSelectMetric: vi.fn(),
     onValueChange: vi.fn(),
-    getArcEndAngle: vi.fn((key: MetricKey) => {
-      const cfg = METRIC_CONFIGS[key];
-      return (cfg.startAngle + 120) % 360;
-    }),
+    onDecrement: vi.fn(),
+    onIncrement: vi.fn(),
+    isMin: false,
+    isMax: false,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('1. Geometría y dimensiones optimizadas para dedos', () => {
-    it('los anillos tienen una separación radial amplia y grosor ergonómico', () => {
-      expect(STROKE_WIDTH).toBeGreaterThanOrEqual(20);
-      expect(ACTIVE_STROKE_WIDTH).toBeGreaterThan(STROKE_WIDTH);
-
-      const rSleepHours = METRIC_CONFIGS.sleepHours.radius;
-      const rQuality = METRIC_CONFIGS.sleepQuality.radius;
-      const rFatigue = METRIC_CONFIGS.fatigueLevel.radius;
-      const rSoreness = METRIC_CONFIGS.muscleSoreness.radius;
-
-      // La separación entre centros de anillos consecutivos debe ser de al menos 44px
-      expect(rSleepHours - rQuality).toBeGreaterThanOrEqual(44);
-      expect(rQuality - rFatigue).toBeGreaterThanOrEqual(44);
-      expect(rFatigue - rSoreness).toBeGreaterThanOrEqual(44);
-
-      // El espacio libre visible (entre bordes) debe ser de al menos 18px
-      const freeSpace = rSleepHours - rQuality - STROKE_WIDTH;
-      expect(freeSpace).toBeGreaterThanOrEqual(18);
-    });
-
-    it('renderiza el SVG con viewBox responsivo y las 4 opciones de bienestar', () => {
+  describe('1. Renderizado de las cuatro barras horizontales independientes', () => {
+    it('elimina los anillos circulares concéntricos SVG y renderiza 4 barras horizontales', () => {
       const { container } = render(<RecoveryRadialMeter {...defaultProps} />);
-      const svg = container.querySelector('.recovery-meter-svg');
-      expect(svg).toBeTruthy();
-      expect(svg?.getAttribute('viewBox')).toBe('0 0 520 465');
+
+      expect(container.querySelector('.recovery-meter-svg')).toBeNull();
+
+      const cards = container.querySelectorAll('.recovery-bar-card');
+      expect(cards.length).toBe(4);
+
+      for (const key of METRIC_ORDER) {
+        expect(screen.getByTestId(`recovery-bar-track-${key}`)).toBeTruthy();
+        expect(screen.getByTestId(`recovery-bar-fill-${key}`)).toBeTruthy();
+      }
 
       expect(screen.getByText(/Horas de sueño/i)).toBeDefined();
       expect(screen.getByText(/Calidad del descanso/i)).toBeDefined();
       expect(screen.getByText(/Nivel de fatiga muscular/i)).toBeDefined();
       expect(screen.getByText(/Dolor muscular/i)).toBeDefined();
     });
+
+    it('muestra claramente el valor actual y su estado (o Neutro cuando no está respondido)', () => {
+      render(
+        <RecoveryRadialMeter
+          {...defaultProps}
+          sleepHours={8}
+          sleepQuality={null}
+          fatigueLevel={2}
+          muscleSoreness={1}
+        />,
+      );
+
+      expect(screen.getByText('8 horas')).toBeDefined();
+      expect(screen.getByText('Óptimo')).toBeDefined();
+      expect(screen.getByText('Neutro')).toBeDefined();
+      expect(screen.getByText('Sin marcar')).toBeDefined();
+      expect(screen.getByText('fresco')).toBeDefined();
+      expect(screen.getByText('sin dolor')).toBeDefined();
+    });
+
+    it('verifica que los valores preajustados (DEFAULT_RECOVERY_VALUES) muestren 8 horas y Nivel 5/5 en las restantes', () => {
+      render(
+        <RecoveryRadialMeter
+          {...defaultProps}
+          sleepHours={DEFAULT_RECOVERY_VALUES.sleepHours}
+          sleepQuality={DEFAULT_RECOVERY_VALUES.sleepQuality}
+          fatigueLevel={DEFAULT_RECOVERY_VALUES.fatigueLevel}
+          muscleSoreness={DEFAULT_RECOVERY_VALUES.muscleSoreness}
+        />,
+      );
+
+      expect(screen.getByText('8 horas')).toBeDefined();
+      expect(screen.getByText('excelente')).toBeDefined();
+      expect(screen.getByText('enérgico')).toBeDefined();
+      expect(screen.getByText('sin dolor')).toBeDefined();
+      expect(screen.getAllByText('Nivel 5/5').length).toBe(3);
+    });
   });
 
-  describe('2. Detección táctil inteligente por hit-testing radial (getMetricFromPoint)', () => {
-    it('detecta correctamente cada anillo según la distancia radial al centro', () => {
-      // sleepHours (anillo exterior, R=205)
-      expect(getMetricFromPoint(CX + 205, CY)).toBe('sleepHours');
-      // sleepQuality (R=157)
-      expect(getMetricFromPoint(CX + 157, CY)).toBe('sleepQuality');
-      // fatigueLevel (R=109)
-      expect(getMetricFromPoint(CX + 109, CY)).toBe('fatigueLevel');
-      // muscleSoreness (anillo interior, R=61)
-      expect(getMetricFromPoint(CX + 61, CY)).toBe('muscleSoreness');
+  describe('2. Botones de incremento (+) y decremento (−) en los extremos de la barra', () => {
+    it('ubica el botón − a la izquierda y el botón + a la derecha de la barra horizontal', () => {
+      const { container } = render(<RecoveryRadialMeter {...defaultProps} />);
+      const activeCard = container.querySelector('.recovery-bar-card.is-active');
+      expect(activeCard).toBeTruthy();
+
+      const controlsRow = activeCard?.querySelector('.recovery-bar-controls-row');
+      expect(controlsRow).toBeTruthy();
+
+      const children = Array.from(controlsRow?.children ?? []);
+      expect(children.length).toBe(3);
+      expect(children[0].classList.contains('recovery-bar-stepper-minus')).toBe(true);
+      expect(children[1].classList.contains('recovery-bar-track')).toBe(true);
+      expect(children[2].classList.contains('recovery-bar-stepper-plus')).toBe(true);
     });
 
-    it('devuelve null si el toque ocurre fuera del área de los anillos (centro o muy lejos)', () => {
-      // Centro hueco del gráfico
-      expect(getMetricFromPoint(CX, CY)).toBeNull();
-      expect(getMetricFromPoint(CX + 20, CY)).toBeNull();
+    it('los botones − y + modifican únicamente el indicador seleccionado y respetan límites', () => {
+      const onDecrement = vi.fn();
+      const onIncrement = vi.fn();
 
-      // Fuera del radio máximo
-      expect(getMetricFromPoint(CX + 350, CY)).toBeNull();
+      render(
+        <RecoveryRadialMeter
+          {...defaultProps}
+          activeMetric="sleepHours"
+          onDecrement={onDecrement}
+          onIncrement={onIncrement}
+        />,
+      );
+
+      const minusBtn = screen.getByLabelText('Disminuir valor');
+      const plusBtn = screen.getByLabelText('Aumentar valor');
+
+      fireEvent.click(minusBtn);
+      expect(onDecrement).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(plusBtn);
+      expect(onIncrement).toHaveBeenCalledTimes(1);
+
+      // Los botones de los indicadores no seleccionados están deshabilitados
+      const inactivePlusBtn = screen.getByLabelText('Aumentar Calidad del descanso');
+      expect((inactivePlusBtn as HTMLButtonElement).disabled).toBe(true);
     });
 
-    it('aplica histéresis en zonas ambiguas para evitar saltos erráticos por temblor del dedo', () => {
-      // Frontera entre fatiga (109) y dolor (61) está nominalmente en 85.
-      // Si el usuario ya tiene seleccionada la fatiga, a 83px mantiene fatiga (gracias a la histéresis de 8px)
-      expect(getMetricFromPoint(CX + 83, CY, 'fatigueLevel')).toBe('fatigueLevel');
+    it('en CheckInRecoverySlide los botones − y + actualizan solo el indicador activo', () => {
+      const onSleepHoursChange = vi.fn();
+      const onSleepQualityChange = vi.fn();
+      const onFatigueChange = vi.fn();
+      const onSorenessChange = vi.fn();
 
-      // Si el usuario ya tenía seleccionado dolor muscular, a 83px mantiene dolor muscular
-      expect(getMetricFromPoint(CX + 83, CY, 'muscleSoreness')).toBe('muscleSoreness');
+      render(
+        <CheckInRecoverySlide
+          sleepHours={8}
+          onSleepHoursChange={onSleepHoursChange}
+          sleepQuality={3}
+          onSleepQualityChange={onSleepQualityChange}
+          fatigueLevel={3}
+          onFatigueChange={onFatigueChange}
+          muscleSoreness={2}
+          onSorenessChange={onSorenessChange}
+          onPrev={vi.fn()}
+          onNext={vi.fn()}
+        />,
+      );
 
-      // Si el desplazamiento supera el umbral de histéresis (ej. 70px), conmuta a dolor muscular
-      expect(getMetricFromPoint(CX + 70, CY, 'fatigueLevel')).toBe('muscleSoreness');
+      fireEvent.click(screen.getByLabelText('Aumentar valor'));
+      expect(onSleepHoursChange).toHaveBeenCalledWith(9);
+      expect(onSleepQualityChange).not.toHaveBeenCalled();
+
+      // Seleccionar Calidad del descanso y presionar −
+      fireEvent.click(screen.getByLabelText(/Seleccionar indicador Calidad del descanso/i));
+      fireEvent.click(screen.getByLabelText('Disminuir valor'));
+      expect(onSleepQualityChange).toHaveBeenCalledWith(2);
     });
   });
 
-  describe('3. Mover la barra táctilmente (getValueFromPoint)', () => {
-    it('calcula correctamente el valor al deslizar sobre el arco', () => {
-      // Para horas de sueño (0 a 12)
-      // Cerca del inicio del arco (arriba a la izquierda): 0 o 1 hora
-      const startCfg = METRIC_CONFIGS.sleepHours;
-      expect(getValueFromPoint(CX, CY - startCfg.radius, 'sleepHours')).toBeGreaterThanOrEqual(0);
-
-      // En el extremo derecho (90°, 3 o'clock): valor alto
-      const midVal = getValueFromPoint(CX + startCfg.radius, CY, 'sleepHours');
-      expect(midVal).toBeGreaterThanOrEqual(4);
-      expect(midVal).toBeLessThanOrEqual(12);
+  describe('3. Interacción táctil sobre las barras horizontales', () => {
+    it('calcula correctamente el porcentaje y valor horizontal de cada métrica', () => {
+      expect(getMetricProgressPct('sleepHours', null)).toBe(0);
+      expect(getMetricProgressPct('sleepHours', 6)).toBeCloseTo(0.5);
+      expect(getValueFromHorizontalPct(0.5, 'sleepHours')).toBe(6);
+      expect(getValueFromHorizontalPct(1, 'sleepQuality')).toBe(5);
+      expect(getValueFromHorizontalPct(1, 'fatigueLevel')).toBe(1);
+      expect(getValueFromHorizontalPct(0, 'muscleSoreness')).toBe(5);
+      expect(getMetricDisplayInfo('sleepHours', null).valueText).toBe('Neutro');
     });
 
     it('al tocar otra barra primero solo la selecciona sin cambiar su valor', () => {
       const onValueChange = vi.fn();
       const onSelectMetric = vi.fn();
-      const { container } = render(
+
+      render(
         <RecoveryRadialMeter
           {...defaultProps}
           activeMetric="sleepQuality"
-          sleepHours={0}
+          sleepHours={8}
           onSelectMetric={onSelectMetric}
           onValueChange={onValueChange}
         />,
       );
-      const svg = container.querySelector('.recovery-meter-svg');
-      expect(svg).toBeTruthy();
 
-      if (svg) {
-        vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-          left: 0,
-          top: 0,
-          width: 520,
-          height: 465,
-          right: 520,
-          bottom: 465,
-          x: 0,
-          y: 0,
-          toJSON: () => {},
-        });
+      const sleepTrack = screen.getByTestId('recovery-bar-track-sleepHours');
+      fireEvent.pointerDown(sleepTrack, { clientX: 120, clientY: 10, pointerId: 1 });
 
-        // Simular toque en el cuadrante derecho del anillo de horas de sueño (R=205)
-        fireEvent.pointerDown(svg, {
-          clientX: CX + 205,
-          clientY: CY,
-          pointerId: 1,
-        });
-
-        // Primero debe seleccionar horas de sueño (porque el activo era sleepQuality)
-        expect(onSelectMetric).toHaveBeenCalledWith('sleepHours');
-        // NO debe cambiar el valor en el primer toque de selección
-        expect(onValueChange).not.toHaveBeenCalled();
-      }
+      expect(onSelectMetric).toHaveBeenCalledWith('sleepHours');
+      expect(onValueChange).not.toHaveBeenCalled();
     });
 
-    it('una vez marcada la barra, un segundo toque o arrastre sí modifica el valor', () => {
+    it('una vez seleccionada la barra, un toque o arrastre sobre ella modifica su valor', () => {
       const onValueChange = vi.fn();
       const onSelectMetric = vi.fn();
-      const { container } = render(
+
+      render(
         <RecoveryRadialMeter
           {...defaultProps}
           activeMetric="sleepHours"
-          sleepHours={0}
+          sleepHours={4}
           onSelectMetric={onSelectMetric}
           onValueChange={onValueChange}
         />,
       );
-      const svg = container.querySelector('.recovery-meter-svg');
-      expect(svg).toBeTruthy();
 
-      if (svg) {
-        vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-          left: 0,
-          top: 0,
-          width: 520,
-          height: 465,
-          right: 520,
-          bottom: 465,
-          x: 0,
-          y: 0,
-          toJSON: () => {},
-        });
+      const sleepTrack = screen.getByTestId('recovery-bar-track-sleepHours');
+      vi.spyOn(sleepTrack, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        top: 0,
+        width: 240,
+        height: 18,
+        right: 240,
+        bottom: 18,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      });
 
-        // Tocar sobre la barra que YA está activa (R=205)
-        fireEvent.pointerDown(svg, {
-          clientX: CX + 205,
-          clientY: CY,
-          pointerId: 1,
-        });
-
-        // Al estar ya activa, sí actualiza el valor según las coordenadas
-        expect(onValueChange).toHaveBeenCalledWith('sleepHours', expect.any(Number));
-      }
+      fireEvent.pointerDown(sleepTrack, { clientX: 180, clientY: 9, pointerId: 1 });
+      expect(onValueChange).toHaveBeenCalledWith('sleepHours', 9);
     });
   });
 
-  describe('4. Feedback visual y alternativas accesibles de selección', () => {
-    it('selecciona un indicador al hacer clic en su etiqueta o insignia lateral', () => {
+  describe('4. Destaque visual del indicador seleccionado y accesibilidad', () => {
+    it('selecciona un indicador al hacer clic en su tarjeta o etiqueta', () => {
       render(<RecoveryRadialMeter {...defaultProps} />);
 
-      const qualityGroup = screen.getByLabelText(/Seleccionar indicador Calidad del descanso/i);
-      fireEvent.click(qualityGroup);
+      const qualityCard = screen.getByLabelText(/Seleccionar indicador Calidad del descanso/i);
+      fireEvent.click(qualityCard);
 
       expect(defaultProps.onSelectMetric).toHaveBeenCalledWith('sleepQuality');
     });
 
-    it('soporta navegación y selección mediante teclado (Enter / Espacio)', () => {
+    it('soporta navegación y selección mediante teclado (Enter / Espacio / Flechas)', () => {
       render(<RecoveryRadialMeter {...defaultProps} />);
 
-      const sorenessGroup = screen.getByLabelText(/Seleccionar indicador Dolor muscular/i);
-      fireEvent.keyDown(sorenessGroup, { key: 'Enter' });
-
+      const sorenessCard = screen.getByLabelText(/Seleccionar indicador Dolor muscular/i);
+      fireEvent.keyDown(sorenessCard, { key: 'Enter' });
       expect(defaultProps.onSelectMetric).toHaveBeenCalledWith('muscleSoreness');
+
+      const activeCard = screen.getByLabelText(/Seleccionar indicador Horas de sueño/i);
+      fireEvent.keyDown(activeCard, { key: 'ArrowRight' });
+      expect(defaultProps.onIncrement).toHaveBeenCalledTimes(1);
     });
 
-    it('aplica clases activas de resaltado al indicador actualmente seleccionado', () => {
+    it('aplica clases activas de resaltado al indicador seleccionado y menor protagonismo al resto', () => {
       const { container } = render(
         <RecoveryRadialMeter {...defaultProps} activeMetric="fatigueLevel" />,
       );
 
-      // Carril base activo
-      const activeTrack = container.querySelector('.recovery-track-arc.is-active');
+      const activeCard = container.querySelector('.recovery-bar-card.is-active');
+      expect(activeCard?.getAttribute('data-metric')).toBe('fatigueLevel');
+
+      const inactiveCards = container.querySelectorAll('.recovery-bar-card.is-inactive');
+      expect(inactiveCards.length).toBe(3);
+
+      const activeTrack = container.querySelector('.recovery-bar-track.is-active');
       expect(activeTrack).toBeTruthy();
 
-      // Texto activo
       const activeText = screen.getByText(/Nivel de fatiga muscular/i);
       expect(activeText.classList.contains('is-active')).toBe(true);
     });

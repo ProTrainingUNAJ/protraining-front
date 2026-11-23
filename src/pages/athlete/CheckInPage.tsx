@@ -12,7 +12,8 @@ import {
   listCheckInInjuries,
   getAthleteTodayCheckIn,
 } from '../../api/seguimientoService';
-import { todayInArgentina } from '../../utils/argentinaDate';
+import { todayInArgentina, yesterdayInArgentina } from '../../utils/argentinaDate';
+import { DEFAULT_RECOVERY_VALUES } from '../../components/athlete/checkin/recovery/recovery.types';
 import { structureService } from '../../api/structureService';
 import {
   subscribeUserToPush,
@@ -114,26 +115,26 @@ export const CheckInPage: React.FC = () => {
   // Evita que la consulta al backend sobrescriba la navegación del atleta si éste
   // interactúa antes de que llegue la respuesta.
   const userNavigatedRef = useRef(false);
+  const recoveryTouchedRef = useRef(false);
 
   // Solo se conserva el indicador local; las respuestas se recuperan del backend.
   const initialCompleted = getCheckInCompleted(athleteId);
   const initialDraft = initialCompleted ? null : getCheckInDraft(athleteId);
 
   // Check-in metrics state (conserved across all slides)
-  // KAN-593: si ya se envió, el borrador no existe; las respuestas se reconstruyen
-  // desde la respuesta del submit para que la confirmación y la edición muestren
-  // los mismos valores que se enviaron.
+  // Si no hay borrador activo ni registro del día anterior aún cargado, inicia con
+  // los valores preajustados (8 horas de sueño y 5/5 en el resto).
   const [sleepHours, setSleepHours] = useState<number | null>(
-    () => initialDraft?.sleepHours ?? null,
+    () => initialDraft?.sleepHours ?? DEFAULT_RECOVERY_VALUES.sleepHours,
   );
   const [sleepQuality, setSleepQuality] = useState<number | null>(
-    () => initialDraft?.sleepQuality ?? null,
+    () => initialDraft?.sleepQuality ?? DEFAULT_RECOVERY_VALUES.sleepQuality,
   );
   const [fatigueLevel, setFatigueLevel] = useState<number | null>(
-    () => initialDraft?.fatigueLevel ?? null,
+    () => initialDraft?.fatigueLevel ?? DEFAULT_RECOVERY_VALUES.fatigueLevel,
   );
   const [muscleSoreness, setMuscleSoreness] = useState<number | null>(
-    () => initialDraft?.muscleSoreness ?? null,
+    () => initialDraft?.muscleSoreness ?? DEFAULT_RECOVERY_VALUES.muscleSoreness,
   );
   const [moodRate, setMoodRate] = useState<number>(() => initialDraft?.moodRate ?? 3);
   const [stressLevel, setStressLevel] = useState<number>(() => initialDraft?.stressLevel ?? 2);
@@ -280,7 +281,8 @@ export const CheckInPage: React.FC = () => {
 
       // El widget del semáforo consulta el backend: si hoy ya hay check-in, hay que
       // mostrar la confirmación aunque no exista el indicador local (otro dispositivo,
-      // localStorage limpio, etc.). Si no, "Ver o actualizar" vuelve al registro.
+      // localStorage limpio, etc.). Si no, se intenta precargar la plantilla de descanso
+      // con el registro del día anterior (o se mantienen los valores preajustados 8h y 5/5).
       try {
         const remote = await getAthleteTodayCheckIn(id);
         if (remote && !userNavigatedRef.current) {
@@ -302,10 +304,23 @@ export const CheckInPage: React.FC = () => {
             trafficLight: remote.trafficLight,
             isOffline: false,
           });
+          return;
+        }
+
+        if (!remote && !(draft && draft.hasStarted)) {
+          const yesterdayDate = yesterdayInArgentina(getTodayKey());
+          const yesterdayCheckIn = await getAthleteTodayCheckIn(id, yesterdayDate);
+          if (yesterdayCheckIn && !recoveryTouchedRef.current) {
+            setSleepHours(yesterdayCheckIn.sleepHours ?? DEFAULT_RECOVERY_VALUES.sleepHours);
+            setSleepQuality(yesterdayCheckIn.sleepQuality ?? DEFAULT_RECOVERY_VALUES.sleepQuality);
+            setFatigueLevel(yesterdayCheckIn.fatigueLevel ?? DEFAULT_RECOVERY_VALUES.fatigueLevel);
+            setMuscleSoreness(
+              yesterdayCheckIn.muscleSoreness ?? DEFAULT_RECOVERY_VALUES.muscleSoreness,
+            );
+          }
         }
       } catch {
-        // Sin conexión se conserva el indicador local o el borrador; no se abre el
-        // formulario con valores por defecto encima de un check-in ya enviado.
+        // Sin conexión se conserva el indicador local, el borrador o los valores preajustados (8h y 5/5).
       }
     },
     [applySubmittedState],
@@ -364,15 +379,16 @@ export const CheckInPage: React.FC = () => {
     clearAllCheckInData();
     isEditingSubmitted.current = false;
     userNavigatedRef.current = false;
+    recoveryTouchedRef.current = false;
     setHasStarted(false);
     setCurrentStep(1);
     setMaxReachedStep(1);
     setSubmissionResult(null);
     setCompletedCheckIn(null);
-    setSleepHours(null);
-    setSleepQuality(null);
-    setFatigueLevel(null);
-    setMuscleSoreness(null);
+    setSleepHours(DEFAULT_RECOVERY_VALUES.sleepHours);
+    setSleepQuality(DEFAULT_RECOVERY_VALUES.sleepQuality);
+    setFatigueLevel(DEFAULT_RECOVERY_VALUES.fatigueLevel);
+    setMuscleSoreness(DEFAULT_RECOVERY_VALUES.muscleSoreness);
     setMoodRate(3);
     setStressLevel(2);
     setIsSick(false);
@@ -865,10 +881,10 @@ export const CheckInPage: React.FC = () => {
 
     try {
       const response = await submitCheckIn(athleteId, {
-        sleepHours: sleepHours ?? 8,
-        sleepQuality: sleepQuality ?? 4,
-        muscleSoreness: muscleSoreness ?? 1,
-        fatigueLevel: fatigueLevel ?? 2,
+        sleepHours: sleepHours ?? DEFAULT_RECOVERY_VALUES.sleepHours,
+        sleepQuality: sleepQuality ?? DEFAULT_RECOVERY_VALUES.sleepQuality,
+        muscleSoreness: muscleSoreness ?? DEFAULT_RECOVERY_VALUES.muscleSoreness,
+        fatigueLevel: fatigueLevel ?? DEFAULT_RECOVERY_VALUES.fatigueLevel,
         moodRate,
         stressLevel,
         isSick,
@@ -1144,13 +1160,25 @@ export const CheckInPage: React.FC = () => {
               {currentStep === 2 && (
                 <CheckInRecoverySlide
                   sleepHours={sleepHours}
-                  onSleepHoursChange={setSleepHours}
+                  onSleepHoursChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setSleepHours(val);
+                  }}
                   sleepQuality={sleepQuality}
-                  onSleepQualityChange={setSleepQuality}
+                  onSleepQualityChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setSleepQuality(val);
+                  }}
                   fatigueLevel={fatigueLevel}
-                  onFatigueChange={setFatigueLevel}
+                  onFatigueChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setFatigueLevel(val);
+                  }}
                   muscleSoreness={muscleSoreness}
-                  onSorenessChange={setMuscleSoreness}
+                  onSorenessChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setMuscleSoreness(val);
+                  }}
                   onPrev={handlePrev}
                   onNext={handleNext}
                 />

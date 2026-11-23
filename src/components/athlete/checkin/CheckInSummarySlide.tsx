@@ -312,15 +312,16 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
         onSubmit={onSubmit}
         style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
       >
-        <div className="pixel-slide-card">
+        <div className="pixel-slide-card checkin-summary-card">
           {/* ── Cabecera Superior con Botón Circular Atrás a la altura del Título ── */}
           <div
+            className="pixel-mood-nav-wrap"
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '0.35rem',
+              marginBottom: '0.1rem',
               position: 'relative',
             }}
           >
@@ -377,25 +378,25 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
           </div>
 
           {/* Subtítulo en Montserrat */}
-          <p className="pixel-slide-subtitle">
+          <p className="pixel-slide-subtitle checkin-summary-subtitle">
             Revisá tus respuestas antes de enviar tu informe al cuerpo técnico.
           </p>
 
-          {/* Burbuja Central Flotante (120px) */}
+          {/* Burbuja Central Flotante Compacta */}
           <div
-            className="pixel-bubble-hero"
+            className="pixel-bubble-hero checkin-summary-hero"
             style={{
               background: 'var(--checkin-next-btn-bg)',
-              boxShadow: '0 8px 24px rgba(0, 119, 200, 0.35)',
+              boxShadow: '0 6px 18px rgba(0, 119, 200, 0.3)',
               color: 'var(--white)',
             }}
             aria-hidden="true"
           >
-            <Check size={48} color="var(--white)" strokeWidth={3} />
+            <Check size={32} color="var(--white)" strokeWidth={3} />
           </div>
 
           {/* Trazos curvos decorativos (︵ ︵) */}
-          <div className="pixel-bubble-waves" aria-hidden="true">
+          <div className="pixel-bubble-waves checkin-summary-waves" aria-hidden="true">
             <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
               <path
                 d="M 3 4 Q 11 9 19 4"
@@ -711,13 +712,13 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
               style={{
                 width: '100%',
                 maxWidth: '680px',
-                marginBottom: '1.25rem',
+                marginBottom: '0.5rem',
                 textAlign: 'left',
                 boxSizing: 'border-box',
                 fontFamily: 'var(--font-base)',
               }}
             >
-              <div style={{ marginBottom: '0.45rem' }}>
+              <div style={{ marginBottom: '0.2rem' }}>
                 <span
                   style={{
                     fontSize: '0.84rem',
@@ -781,22 +782,22 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
               maxWidth: '680px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.45rem',
+              gap: '0.3rem',
             }}
           >
             <label
               htmlFor="checkin-notes-input"
               style={{
-                fontSize: '0.86rem',
+                fontSize: '0.82rem',
                 fontWeight: 700,
                 color: 'var(--checkin-title-color)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.35rem',
                 fontFamily: 'var(--font-base)',
               }}
             >
-              <MessageSquare size={16} style={{ color: 'var(--checkin-title-color)' }} />
+              <MessageSquare size={15} style={{ color: 'var(--checkin-title-color)' }} />
               <span>Observaciones adicionales para tu preparador físico (opcional):</span>
             </label>
             <textarea
@@ -807,11 +808,11 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
               rows={2}
               style={{
                 width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '16px',
+                padding: '0.55rem 0.85rem',
+                borderRadius: '14px',
                 border: '1.5px solid var(--checkin-input-border)',
                 background: 'var(--checkin-input-bg)',
-                fontSize: '0.88rem',
+                fontSize: '0.84rem',
                 fontFamily: 'var(--font-base)',
                 color: 'var(--checkin-input-color)',
                 boxSizing: 'border-box',

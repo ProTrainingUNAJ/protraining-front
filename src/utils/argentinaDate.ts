@@ -7,6 +7,15 @@ export function todayInArgentina(): string {
   return dateInArgentina(new Date());
 }
 
+// Fecha del día anterior en Argentina con formato AAAA-MM-DD.
+export function yesterdayInArgentina(baseDate: string = todayInArgentina()): string {
+  const [year, month, day] = baseDate.split('-').map(Number);
+  if (!year || !month || !day) return baseDate;
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  utcDate.setUTCDate(utcDate.getUTCDate() - 1);
+  return utcDate.toISOString().slice(0, 10);
+}
+
 // Hora actual en Argentina con formato HH:mm (24 h).
 export function nowTimeInArgentina(): string {
   return new Intl.DateTimeFormat('en-GB', {

@@ -16,10 +16,10 @@ interface RecoveryHeroControlProps {
   isStarColor: boolean;
   starPalette: string[];
   burstKey: number;
-  isMin: boolean;
-  isMax: boolean;
-  onDecrement: () => void;
-  onIncrement: () => void;
+  isMin?: boolean;
+  isMax?: boolean;
+  onDecrement?: () => void;
+  onIncrement?: () => void;
 }
 
 export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
@@ -29,10 +29,6 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
   isStarColor,
   starPalette,
   burstKey,
-  isMin,
-  isMax,
-  onDecrement,
-  onIncrement,
 }) => {
   const isAnswered = currentVal !== null;
 
@@ -41,11 +37,11 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
       case 'sleepHours':
         return (
           <svg
-            width="44"
-            height="44"
+            width="28"
+            height="28"
             viewBox="0 0 24 24"
-            fill={isAnswered ? '#ffffff' : 'var(--input-placeholder)'}
-            style={{ fill: isAnswered ? '#ffffff' : 'var(--input-placeholder)' }}
+            fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
+            style={{ fill: isAnswered ? 'var(--white)' : 'var(--input-placeholder)' }}
             stroke="none"
           >
             <path d="M 21 12.79 A 9 9 0 1 1 11.21 3 A 7 7 0 0 0 21 12.79 Z" />
@@ -54,8 +50,8 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
       case 'sleepQuality':
         return (
           <svg
-            width="44"
-            height="44"
+            width="28"
+            height="28"
             viewBox="0 0 24 24"
             fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
             stroke="none"
@@ -65,7 +61,7 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
         );
       case 'fatigueLevel':
         return (
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
             <rect
               x="2"
               y="6"
@@ -97,7 +93,7 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
         );
       case 'muscleSoreness':
         return renderBicepsMuscle(
-          44,
+          28,
           isAnswered ? 'rgba(0,0,0,0.22)' : 'var(--checkin-scale-neutral)',
           isAnswered ? 'var(--white)' : 'var(--input-placeholder)',
         );
@@ -108,7 +104,7 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
     if (!isAnswered) {
       return (
         <div className="recovery-value-empty">
-          <span className="recovery-value-empty-title">Sin responder</span>
+          <span className="recovery-value-empty-title">Neutro</span>
         </div>
       );
     }
@@ -148,38 +144,14 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
 
   return (
     <div className="recovery-hero-control">
-      {/* Botón Decremento (−) */}
-      <button
-        type="button"
-        onClick={onDecrement}
-        disabled={isMin}
-        aria-label="Disminuir valor"
-        className={`recovery-stepper-btn ${isMin ? 'is-disabled' : ''}`}
-        title="Disminuir valor"
-      >
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-        >
-          <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
-        </svg>
-      </button>
-
-      {/* Hero Central */}
       <div className="recovery-hero-center">
-        {/* Contenedor relativo centrado para el círculo hero y sus partículas orbitales */}
         <div className="recovery-hero-circle-wrap">
-          {/* Ráfaga de estrellitas (Burst) centrada en el círculo */}
           {isStarColor && (
             <div key={`burst-${burstKey}`} className="mood-burst-layer" aria-hidden="true">
               {BURST_STARS.map((s) => {
                 const rad = (s.angle * Math.PI) / 180;
-                const dx = Math.round(s.distance * Math.cos(rad));
-                const dy = Math.round(s.distance * Math.sin(rad));
+                const dx = Math.round(s.distance * 0.65 * Math.cos(rad));
+                const dy = Math.round(s.distance * 0.65 * Math.sin(rad));
                 const color = starPalette[s.colorIdx];
 
                 return (
@@ -193,14 +165,13 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
                       animationDelay: `${s.delay}ms`,
                     }}
                   >
-                    {renderStarSvg(s.type, s.size, color)}
+                    {renderStarSvg(s.type, Math.round(s.size * 0.8), color)}
                   </span>
                 );
               })}
             </div>
           )}
 
-          {/* Estrellitas ambientales continuas centradas en el círculo */}
           {isStarColor && (
             <div className="mood-ambient-layer" aria-hidden="true">
               {AMBIENT_STARS.map((s) => {
@@ -210,28 +181,27 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
                     key={`amb-${s.id}`}
                     className="mood-star-ambient-item"
                     style={{
-                      top: `${s.y}px`,
-                      left: `${s.x}px`,
+                      top: `${Math.round(s.y * 0.65)}px`,
+                      left: `${Math.round(s.x * 0.65)}px`,
                       animationDuration: `${s.duration}s`,
                       animationDelay: `${s.delay}s`,
                     }}
                   >
-                    {renderStarSvg(s.type, s.size, color)}
+                    {renderStarSvg(s.type, Math.round(s.size * 0.8), color)}
                   </span>
                 );
               })}
             </div>
           )}
 
-          {/* Círculo Hero Superior (120px, matching Step 1) */}
           <div
             key={`hero-circle-${activeMetric}-${currentVal ?? 'un'}`}
             className="recovery-hero-circle"
             style={{
               backgroundColor: activeHeroColor,
               boxShadow: isStarColor
-                ? `0 0 26px var(--checkin-star-violet), 0 8px 24px rgba(0, 0, 0, 0.2)`
-                : `0 8px 24px rgba(0, 0, 0, 0.15)`,
+                ? `0 0 22px var(--checkin-star-violet), 0 6px 18px rgba(0, 0, 0, 0.18)`
+                : `0 6px 18px rgba(0, 0, 0, 0.14)`,
             }}
             aria-hidden="true"
           >
@@ -239,31 +209,8 @@ export const RecoveryHeroControl: React.FC<RecoveryHeroControlProps> = ({
           </div>
         </div>
 
-        {/* Valor central destacado (sin subtítulo "Nivel 1 de 5" ni "Excelente descanso") */}
         {renderCentralValue()}
       </div>
-
-      {/* Botón Incremento (+) */}
-      <button
-        type="button"
-        onClick={onIncrement}
-        disabled={isMax}
-        aria-label="Aumentar valor"
-        className={`recovery-stepper-btn ${isMax ? 'is-disabled' : ''}`}
-        title="Aumentar valor"
-      >
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-        >
-          <line x1="12" y1="5" x2="12" y2="19" strokeLinecap="round" />
-          <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
-        </svg>
-      </button>
     </div>
   );
 };
