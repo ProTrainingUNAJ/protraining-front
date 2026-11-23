@@ -655,48 +655,61 @@ export const AthletesPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 4 Acciones Semánticas Estandarizadas */}
-                <div className="athletes-card-actions">
-                  <button
-                    type="button"
-                    className="btn btn-secondary athletes-action-btn"
-                    onClick={() => setManagingAthlete(athlete)}
-                    title="Gestionar categorías asignadas (N:N)"
-                  >
-                    <Tag size={15} aria-hidden="true" />
-                    <span>Categorías</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary athletes-action-btn"
-                    onClick={() => setMetricsAthlete(athlete)}
-                    title="Consultar Récords, Evolución y Benchmark del atleta"
-                    data-testid={`metrics-btn-${athlete.id}`}
-                  >
-                    <TrendingUp size={15} aria-hidden="true" />
-                    <span>Métricas</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary athletes-action-btn"
-                    onClick={() => setHealthAthlete(athlete)}
-                    title="Consultar Historial de Lesiones y Ficha Médica"
-                    data-testid={`health-btn-${athlete.id}`}
-                  >
-                    <HeartPulse size={15} aria-hidden="true" />
-                    <span>Salud</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary athletes-action-btn"
-                    onClick={() => setSettingsAthlete(athlete)}
-                    title="Foto de perfil, cambiar clave, cambiar mail y deshabilitar usuario"
-                    data-testid={`settings-btn-${athlete.id}`}
-                  >
-                    <Settings size={15} aria-hidden="true" />
-                    <span>Configuración</span>
-                  </button>
-                </div>
+                {/* 4 Acciones con Jerarquía Visual (KAN-596) */}
+                {(() => {
+                  const hasActiveInjury = (athlete.activeInjuriesCount ?? 0) > 0;
+                  return (
+                    <div className="athletes-card-actions">
+                      <button
+                        type="button"
+                        className="btn btn-secondary athletes-action-btn athlete-action--secondary"
+                        onClick={() => setManagingAthlete(athlete)}
+                        title="Gestionar categorías asignadas (N:N)"
+                      >
+                        <Tag size={15} aria-hidden="true" />
+                        <span>Categorías</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn athletes-action-btn athlete-action--evolution"
+                        onClick={() => setMetricsAthlete(athlete)}
+                        title="Consultar Récords, Evolución y Benchmark del atleta"
+                        data-testid={`metrics-btn-${athlete.id}`}
+                      >
+                        <TrendingUp size={15} aria-hidden="true" />
+                        <span>Métricas</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn athletes-action-btn athlete-action--injuries${
+                          hasActiveInjury ? ' athlete-action--active-injury' : ''
+                        }`}
+                        onClick={() => setHealthAthlete(athlete)}
+                        title="Consultar Historial de Lesiones y Ficha Médica"
+                        aria-label={
+                          hasActiveInjury
+                            ? `Salud: lesión activa (${athlete.activeInjuriesCount})`
+                            : undefined
+                        }
+                        data-testid={`health-btn-${athlete.id}`}
+                      >
+                        <HeartPulse size={15} aria-hidden="true" />
+                        <span>Salud</span>
+                        {hasActiveInjury && <span className="athlete-action-badge">Activa</span>}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary athletes-action-btn athlete-action--secondary"
+                        onClick={() => setSettingsAthlete(athlete)}
+                        title="Foto de perfil, cambiar clave, cambiar mail y deshabilitar usuario"
+                        data-testid={`settings-btn-${athlete.id}`}
+                      >
+                        <Settings size={15} aria-hidden="true" />
+                        <span>Configuración</span>
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

@@ -21,7 +21,7 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  max-width: 1720px;
+  max-width: none;
   height: calc(100vh - 2.5rem);
   height: calc(100dvh - 2.5rem);
   max-height: calc(100vh - 2.5rem);
@@ -724,7 +724,9 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
-  width: 100%;
+  width: calc(100% - 0.35rem);
+  margin-right: 0.35rem;
+  margin-bottom: 0.75rem;
   padding: 1.75rem 2rem 2.5rem;
   overflow-y: auto;
   overflow-x: hidden;
