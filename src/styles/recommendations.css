@@ -1497,7 +1497,86 @@
   color: var(--primary-text);
 }
 
-@media (width <=640px) {
+.recommendations-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.recommendations-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+@media (width <= 640px) {
+  .recommendations-header-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 0.35rem;
+  }
+
+  .recommendations-tab-btn {
+    flex: 1 1 50%;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: 0.76rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .recommendations-top-filters {
+    padding: 0.65rem 0.75rem;
+    gap: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .recommendations-plantel-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .recommendations-select-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+    width: 100%;
+  }
+
+  .recommendations-plantel-label {
+    font-size: 0.72rem;
+    margin: 0;
+  }
+
+  .recommendations-plantel-select {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  .recommendations-search-box {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .recommendations-engine-bar {
+    padding: 0.5rem 0.75rem;
+    min-height: auto;
+    border-radius: 12px;
+  }
+
+  .recommendations-engine-title {
+    font-size: 0.85rem;
+  }
+
+  .recommendations-engine-desc {
+    font-size: 0.72rem;
+    line-height: 1.25;
+    margin-top: 0.2rem;
+  }
+
   .recommendations-list,
   .athlete-recommendations-grid {
     grid-template-columns: 1fr;

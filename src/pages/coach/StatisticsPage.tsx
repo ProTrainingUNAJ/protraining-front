@@ -255,19 +255,11 @@ export const StatisticsPage: React.FC = () => {
         title="Estadísticas & Informes"
         description="Métricas agregadas del plantel, confiabilidad de 1RM y generación de informes ejecutivos."
         actions={
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div className="statistics-header-actions">
             <button
               type="button"
-              className={`btn ${activeTab === 'statistics' ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn statistics-tab-btn ${activeTab === 'statistics' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => handleTabChange('statistics')}
-              style={{
-                borderRadius: '9999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-              }}
             >
               <BarChart3 size={15} />
               <span>Estadísticas y Confiabilidad</span>
@@ -275,16 +267,8 @@ export const StatisticsPage: React.FC = () => {
 
             <button
               type="button"
-              className={`btn ${activeTab === 'reports' ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn statistics-tab-btn ${activeTab === 'reports' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => handleTabChange('reports')}
-              style={{
-                borderRadius: '9999px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-              }}
             >
               <FileText size={15} />
               <span>Informes & Exportación</span>
@@ -298,28 +282,11 @@ export const StatisticsPage: React.FC = () => {
         style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
       >
         {/* Barra Superior de Filtros Coordinada (Organización + Categoría + Filtro Contextual) */}
-        <div
-          className="card"
-          style={{
-            margin: 0,
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: '16px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className="card statistics-top-filters">
+          <div className="statistics-filter-fields">
             {/* Organización */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <label
-                htmlFor="statistics-org-select"
-                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-              >
+            <div className="statistics-filter-group">
+              <label htmlFor="statistics-org-select" className="statistics-filter-label">
                 Organización:
               </label>
               <select
@@ -328,16 +295,7 @@ export const StatisticsPage: React.FC = () => {
                 value={selectedOrganizationId}
                 onChange={(e) => handleOrganizationChange(e.target.value)}
                 disabled={loadingStructure}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
+                className="statistics-filter-select"
               >
                 <option value="">Todas las organizaciones</option>
                 {organizations.map((org) => (
@@ -349,11 +307,8 @@ export const StatisticsPage: React.FC = () => {
             </div>
 
             {/* Categoría */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <label
-                htmlFor="statistics-category-select"
-                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-              >
+            <div className="statistics-filter-group">
+              <label htmlFor="statistics-category-select" className="statistics-filter-label">
                 Categoría:
               </label>
               <select
@@ -362,16 +317,7 @@ export const StatisticsPage: React.FC = () => {
                 value={selectedCategoryId}
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 disabled={loadingStructure || availableCategories.length === 0}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
+                className="statistics-filter-select"
               >
                 <option value="">Todas las categorías</option>
                 {availableCategories.map((category) => (
@@ -383,11 +329,8 @@ export const StatisticsPage: React.FC = () => {
             </div>
 
             {/* Filtro Contextual: Período (para Estadísticas del Plantel e Informes) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <label
-                htmlFor="statistics-period-select"
-                style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-              >
+            <div className="statistics-filter-group">
+              <label htmlFor="statistics-period-select" className="statistics-filter-label">
                 Período:
               </label>
               <select
@@ -395,16 +338,7 @@ export const StatisticsPage: React.FC = () => {
                 aria-label="Seleccionar período de análisis"
                 value={period}
                 onChange={(e) => handlePeriodChange(parseCategoryDashboardPeriod(e.target.value))}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
+                className="statistics-filter-select"
               >
                 {DASHBOARD_PERIOD_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -416,11 +350,8 @@ export const StatisticsPage: React.FC = () => {
 
             {/* Filtro Contextual: Ejercicio (para Confiabilidad de Récords) */}
             {activeTab === 'statistics' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <label
-                  htmlFor="statistics-exercise-select"
-                  style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}
-                >
+              <div className="statistics-filter-group">
+                <label htmlFor="statistics-exercise-select" className="statistics-filter-label">
                   Ejercicio:
                 </label>
                 <select
@@ -428,17 +359,7 @@ export const StatisticsPage: React.FC = () => {
                   aria-label="Filtrar por ejercicio"
                   value={selectedExerciseId}
                   onChange={(e) => handleExerciseChange(e.target.value)}
-                  style={{
-                    padding: '0.4rem 0.85rem',
-                    borderRadius: '10px',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-subtle)',
-                    color: 'var(--text-main)',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    maxWidth: '220px',
-                  }}
+                  className="statistics-filter-select"
                 >
                   <option value="">Todos los ejercicios</option>
                   {exercises.map((ex) => (

@@ -215,9 +215,8 @@ export const MonitoringPage: React.FC = () => {
 
   // Nombre de organización y categoría real del atleta (KAN-660)
   const getAthleteDisplayCategory = useCallback(
-    (athlete?: Athlete | null): string => {
-      if (!athlete) return selectedCategoryId ? selectedCategoryName : 'Sin categoría';
-      if (athlete.categories && athlete.categories.length > 0) {
+    (athlete?: Athlete | null, fallbackCategoryName?: string): string => {
+      if (athlete?.categories && athlete.categories.length > 0) {
         const primary = athlete.categories[0];
         const catName = primary.name?.trim();
         const orgName = primary.organizationName?.trim();
@@ -226,7 +225,7 @@ export const MonitoringPage: React.FC = () => {
         }
         if (catName) return catName;
       }
-      if (athlete.categoryNames && athlete.categoryNames.length > 0) {
+      if (athlete?.categoryNames && athlete.categoryNames.length > 0) {
         const catName = athlete.categoryNames[0];
         const matchedCategory = categories.find(
           (c) => c.name.toLowerCase() === catName.toLowerCase(),
@@ -239,7 +238,13 @@ export const MonitoringPage: React.FC = () => {
         }
         return catName;
       }
-      return selectedCategoryId ? selectedCategoryName : 'Sin categoría';
+      if (fallbackCategoryName && fallbackCategoryName !== 'Todos los planteles') {
+        return fallbackCategoryName;
+      }
+      if (selectedCategoryId) {
+        return selectedCategoryName;
+      }
+      return 'Sin categoría';
     },
     [categories, organizations, selectedCategoryId, selectedCategoryName],
   );
@@ -320,6 +325,19 @@ export const MonitoringPage: React.FC = () => {
         setCategoryAthletes(fetchedAthletes);
         const athleteMap = new Map(fetchedAthletes.map((a) => [a.id.toLowerCase(), a]));
 
+        // Mapeo de athleteId a categoría de origen para preservar organización y categoría real (KAN-660)
+        const athleteOriginCatMap = new Map<string, string>();
+        summariesByCat.forEach((summaries, idx) => {
+          const catId = targetCategoryIds[idx];
+          if (!catId) return;
+          for (const s of summaries) {
+            const aId = s.athleteId?.toLowerCase();
+            if (aId && !athleteOriginCatMap.has(aId)) {
+              athleteOriginCatMap.set(aId, catId);
+            }
+          }
+        });
+
         const allSummaries = summariesByCat.flat();
         const seen = new Set<string>();
         const uniqueSummaries: AthleteTrafficLightSummary[] = [];
@@ -337,7 +355,20 @@ export const MonitoringPage: React.FC = () => {
           const photoUrl =
             detail && detail.hasPhoto ? getPhotoUrl(detail.id, detail.photoUpdatedAt) : undefined;
 
-          const catName = getAthleteDisplayCategory(detail);
+          const originCatId = summaryId ? athleteOriginCatMap.get(summaryId) : undefined;
+          const originCategory = originCatId
+            ? categories.find((c) => c.id === originCatId)
+            : undefined;
+          const originOrg = originCategory
+            ? organizations.find((o) => o.id === originCategory.organizationId)
+            : undefined;
+          const originFallbackName = originCategory
+            ? originOrg?.name
+              ? `${originOrg.name} · ${originCategory.name}`
+              : originCategory.name
+            : undefined;
+
+          const catName = getAthleteDisplayCategory(detail, originFallbackName);
 
           const item = mapTrafficLightSummaryToItem(summary, catName);
           return {
@@ -1087,9 +1118,9 @@ export const MonitoringPage: React.FC = () => {
                               </span>
                               <span
                                 className="monitoring-att-category"
-                                title={getAthleteDisplayCategory(detail)}
+                                title={baseAttendanceItem.category}
                               >
-                                {getAthleteDisplayCategory(detail)}
+                                {baseAttendanceItem.category}
                               </span>
                             </div>
                           </div>
