@@ -293,6 +293,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -448,7 +449,7 @@
   height: 40px;
   padding: 0 0.85rem 0 0.35rem;
   background-color: var(--bg-card);
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--shell-pill-border);
   border-radius: 9999px;
   box-shadow: var(--shadow);
   box-sizing: border-box;
@@ -458,7 +459,7 @@
 }
 
 .contact-pf-pill:hover {
-  border-color: var(--brand-blue);
+  background-color: var(--shell-pill-hover);
   box-shadow: var(--shadow-md);
 }
 
@@ -483,7 +484,7 @@
   justify-content: center;
   padding: 0.3rem 0.35rem;
   border-radius: 8px;
-  color: var(--brand-blue);
+  color: var(--shell-pill-border);
   background: transparent;
   text-decoration: none;
   border: none;
@@ -508,7 +509,7 @@
 .contact-pf-pill-label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--brand-navy, var(--text-main));
+  color: var(--shell-pill-border);
   margin-left: 0.35rem;
   white-space: nowrap;
   user-select: none;
@@ -960,6 +961,7 @@
   grid-template-columns: repeat(3, 1fr);
   min-height: 140px;
 }
+
 .wireframe-row-1 .wireframe-card {
   grid-column: span 1;
   min-height: 140px;
@@ -969,6 +971,7 @@
   grid-template-columns: repeat(3, 1fr);
   min-height: 250px;
 }
+
 .wireframe-row-2 .wireframe-card {
   grid-column: span 1;
   min-height: 250px;
@@ -978,6 +981,7 @@
   grid-template-columns: repeat(2, 1fr);
   min-height: 220px;
 }
+
 .wireframe-row-3 .wireframe-card {
   grid-column: span 1;
   min-height: 220px;
@@ -987,6 +991,7 @@
   grid-template-columns: repeat(3, 1fr);
   min-height: 200px;
 }
+
 .wireframe-row-4 .wireframe-card {
   grid-column: span 1;
   min-height: 200px;
@@ -1405,35 +1410,44 @@
   .app-shell-viewport {
     padding: 0.75rem;
   }
+
   .app-shell-container {
     height: calc(100vh - 1.5rem);
     height: calc(100dvh - 1.5rem);
     max-height: calc(100vh - 1.5rem);
     max-height: calc(100dvh - 1.5rem);
   }
+
   .app-sidebar-desktop {
     padding: 1rem 0.5rem 0.85rem;
   }
+
   .app-sidebar-desktop .app-sidebar-logo-link {
     margin-bottom: 1rem;
   }
+
   .app-sidebar-desktop .app-sidebar-nav {
     gap: 0.35rem;
   }
+
   .app-sidebar-desktop .app-sidebar-link {
     width: 42px;
     height: 42px;
   }
+
   .app-sidebar-desktop .app-sidebar-bottom {
     gap: 0.75rem;
     padding-top: 0.75rem;
   }
+
   .app-sidebar-desktop.is-expanded {
     padding: 1rem 0.75rem 0.85rem;
   }
+
   .app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
     margin-bottom: 1rem;
   }
+
   .app-sidebar-desktop.is-expanded .app-sidebar-link {
     min-height: 40px;
     padding-block: 0.45rem;
@@ -1444,28 +1458,35 @@
   .app-sidebar-desktop {
     padding: 0.75rem 0.5rem;
   }
+
   .app-sidebar-desktop .app-sidebar-logo-link {
     width: 40px;
     height: 40px;
     margin-bottom: 0.5rem;
   }
+
   .app-sidebar-desktop .app-sidebar-nav {
     gap: 0.2rem;
   }
+
   .app-sidebar-desktop .app-sidebar-link {
     width: 38px;
     height: 38px;
   }
+
   .app-sidebar-desktop .shell-sidebar-avatar {
     width: 36px;
     height: 36px;
   }
+
   .app-sidebar-desktop.is-expanded {
     padding: 0.75rem;
   }
+
   .app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
     margin-bottom: 0.5rem;
   }
+
   .app-sidebar-desktop.is-expanded .app-sidebar-link {
     min-height: 36px;
     padding-block: 0.3rem;
