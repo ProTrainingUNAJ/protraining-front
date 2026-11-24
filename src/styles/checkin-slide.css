@@ -5,10 +5,184 @@
 
 /* Los tokens semánticos --checkin-* se definen en tokens.css según las convenciones del proyecto */
 
+/* KAN-595: el cuerpo del check-in compacta su ritmo vertical según la altura de
+   viewport. Cada paso (bienvenida, ánimo, descanso, dolor/zonas, resumen y
+   confirmación) se comprueba con DevTools: overflow interno controlado, sin
+   scroll de página en ninguna resolución, sin cortar botones ni títulos. */
+.checkin-body-compact {
+  gap: 0.35rem !important;
+}
+
+@media (max-height: 860px) {
+  .checkin-body-compact {
+    gap: 0.2rem !important;
+  }
+}
+
+@media (max-height: 768px) {
+  .checkin-body-compact {
+    gap: 0.15rem !important;
+  }
+}
+
+@media (max-height: 640px) {
+  .checkin-body-compact {
+    gap: 0.1rem !important;
+  }
+}
+
+/* Layout del paso: ajuste de tamaños por altura (desde measure on DEV). */
+@media (min-width: 769px) and (max-height: 860px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 1rem 1rem 1.2rem;
+  }
+
+  .pixel-slide-card .pixel-slide-title {
+    font-size: clamp(1.35rem, 2.8dvh, 1.85rem);
+    line-height: 1.14;
+    margin: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-height: 768px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.9rem 0.85rem 1.1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-height: 720px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.8rem 0.75rem 1rem;
+  }
+
+  .pixel-slide-card .pixel-slide-title {
+    font-size: clamp(1.3rem, 2.8dvh, 1.75rem);
+    line-height: 1.2;
+  }
+}
+
+/* Celular: cada pantalla más baja reduce espaciado y tamaños. */
+@media (max-width: 768px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    height: auto;
+    min-height: 0;
+    justify-content: flex-start;
+    padding: 0.8rem 0.65rem 1rem;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.7rem 0.55rem 0.9rem;
+    border-radius: 18px;
+  }
+
+  .checkin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dial: altura fija por altura de viewport para evitar desborde en móviles */
+@media (min-width: 769px) {
+  .mood-dial-touch-zone {
+    height: clamp(200px, 25dvh, 240px);
+  }
+}
+@media (max-width: 768px) {
+  .mood-dial-touch-zone {
+    height: clamp(150px, 20dvh, 180px);
+  }
+}
+
+/* Reducción progresiva de gap en alturas intermedias-bajas */
+@media (min-width: 769px) and (max-height: 540px) {
+  .checkin-body-compact {
+    gap: 0.05rem !important;
+  }
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.7rem 0.5rem 0.85rem;
+  }
+  .pixel-slide-card .pixel-slide-title,
+  .pixel-slide-card .pixel-slide-subtitle {
+    font-size: clamp(1rem, 2.2dvh, 1.25rem);
+  }
+}
+@media (max-width: 768px) and (max-height: 640px) {
+  .checkin-body-compact {
+    gap: 0.05rem !important;
+  }
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 0.65rem 0.5rem 0.8rem;
+  }
+  .pixel-slide-card .pixel-slide-title,
+  .pixel-slide-card .pixel-slide-subtitle {
+    font-size: clamp(0.95rem, 2.2dvh, 1.2rem);
+  }
+}
+
+/* Bienvenida: altura definida por contenido; sólo si en viewports muy bajos el
+   contenido no entra, la propia tarjeta hace scroll interno (scroll único). */
+.pixel-welcome-card {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.pixel-welcome-subtitle {
+  margin: 0.35rem 0 2.25rem;
+}
+
+@media (max-height: 700px) {
+  .pixel-welcome-subtitle {
+    margin: 0.25rem 0 1.25rem;
+  }
+}
+
+/* Confirmación: misma jerarquía de scroll que los demás pasos; si el mapa
+   anatómico desborda, el scroll queda en .checkin-card-scroll. */
+.checkin-main-bubble--completed {
+  height: auto;
+  min-height: 0;
+  justify-content: flex-start;
+}
+
+/* Cuerpo del check-in: altura fija. El scroll vive dentro de la tarjeta
+   (.checkin-card-scroll) para que la barra de progreso y los botones de
+   navegación queden siempre visibles. El encabezado de página no se mueve. */
+main.app-content-body:has(.checkin-body-compact) > .app-page-container {
+  height: 100%;
+}
+
+.checkin-body-compact {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
 /* ── Burbuja Contenedora Principal ── */
 .checkin-main-bubble,
 .card.checkin-main-bubble {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   margin: 0;
   padding: 0.1rem 0;
   box-sizing: border-box;
@@ -16,6 +190,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  overflow: hidden;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -27,16 +202,48 @@
 .checkin-slide-container {
   max-width: 860px;
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   touch-action: pan-y;
+  overflow: visible;
+}
+
+/* ── KAN-595: cadena de altura para que el scroll viva dentro de la tarjeta ── */
+/* Raíz de cada paso dentro de .checkin-slide-container (dolor, resumen,
+   completado) y del wrapper del paso de ánimo. */
+.checkin-slide-root,
+.checkin-slide-form,
+.checkin-pixel-mood-slide,
+.pixel-mood-screen-container {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Zona scrolleable del contenido de cada paso: el scroll queda acá para que la
+   barra de progreso y los botones de Atrás/Siguiente/Enviar siempre queden
+   visibles, sin tapar ni cortar el contenido. */
+.checkin-card-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: inherit;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 /* ── Top Progress Bar ── */
 .checkin-progress-wrap {
   position: relative;
+  flex-shrink: 0;
   background: var(--checkin-card-bg);
   padding: 0.45rem 1.25rem;
   border-radius: 14px;
@@ -219,7 +426,7 @@
 .checkin-face-btn.active {
   border-color: var(--primary);
   background: var(--primary-light);
-  color: var(--primary-text);
+  color: var(--primary);
   box-shadow: var(--shadow-md);
   transform: scale(1.04);
 }
@@ -314,7 +521,7 @@
   font-size: 2.8rem;
   font-weight: 900;
   line-height: 1;
-  color: var(--primary-text);
+  color: var(--primary);
   letter-spacing: -0.02em;
 }
 
@@ -665,6 +872,7 @@
   max-width: 820px;
   height: auto;
   min-height: 0;
+  max-height: 100%;
   background: var(--checkin-card-bg);
   border-radius: 24px;
   border: 1.5px solid var(--checkin-card-border);
@@ -678,7 +886,6 @@
     clamp(0.85rem, 2dvh, 1.25rem);
   box-sizing: border-box;
   position: relative;
-  overflow: visible;
   user-select: none;
   transition:
     background-color 0.25s ease,
@@ -764,6 +971,88 @@
     width: 38px !important;
     height: 38px !important;
     min-width: 38px !important;
+  }
+}
+
+/* ── Paso 1 (ánimo): reducir dial, cara y pasos subsiguientes en pantallas bajas ── */
+/* Desktop: min-width 769px y max-height 860px (cubre 1366×768 y 1280×720) */
+@media (min-width: 769px) and (max-height: 860px) {
+  .pixel-slide-card,
+  .pixel-mood-card,
+  .pixel-welcome-card {
+    padding: 1rem 1rem 1.2rem;
+  }
+  .mood-dial-touch-zone {
+    width: min(440px, 100%);
+    max-width: 440px;
+    height: 240px;
+  }
+  .pixel-bubble-hero {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 0.15rem;
+  }
+  .recovery-hero-circle-wrap,
+  .recovery-hero-circle {
+    width: 78px;
+    height: 78px;
+  }
+  .recovery-meter-wrap {
+    max-width: 380px;
+  }
+  /* Pasos 2 y 3: reducir tarjetas binary y summary */
+  .checkin-binary-carousel {
+    gap: 0.4rem;
+  }
+  .checkin-binary-card {
+    aspect-ratio: 2 / 1;
+    padding: 0.8rem 0.6rem;
+    gap: 0.3rem;
+  }
+  .checkin-binary-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .checkin-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .checkin-summary-item {
+    padding: 0.2rem 0.1rem;
+  }
+}
+
+/* Celular: max-height 680px (cubre 360×640) */
+@media (max-height: 680px) {
+  .mood-dial-touch-zone {
+    width: min(390px, 100%);
+    max-width: 390px;
+  }
+  .pixel-bubble-hero {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0.15rem;
+  }
+  /* Pasos 2 y 3: reducir tarjetas binary y summary */
+  .checkin-binary-carousel {
+    gap: 0.3rem;
+  }
+  .checkin-binary-card {
+    aspect-ratio: 2 / 1;
+    padding: 0.6rem 0.4rem;
+    gap: 0.2rem;
+  }
+  .checkin-binary-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .checkin-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+  .checkin-summary-item {
+    padding: 0.15rem 0.05rem;
+    font-size: 0.7rem;
   }
 }
 
@@ -1149,11 +1438,11 @@
   }
 }
 
-@media (max-width: 340px) {
+@media (max-width: 420px) {
   .checkin-summary-unified-grid {
     grid-template-columns: 1fr;
-    padding: 0.6rem;
-    gap: 0.5rem;
+    padding: 0.75rem 0.65rem;
+    gap: 0.65rem;
   }
 }
 
@@ -1440,6 +1729,7 @@
   justify-content: space-between;
   margin-bottom: 0.1rem;
   position: relative;
+  flex-shrink: 0;
 }
 
 .pixel-mood-bubble-center {
@@ -1526,6 +1816,24 @@
   max-height: clamp(270px, 46dvh, 420px) !important;
   display: block;
   margin: 0 auto;
+}
+
+/* KAN-595: con alturas de viewport bajas la silueta se achica para que el paso
+   de dolor entre sin scroll interno (1366x768) y sin cortar la navegación. */
+@media (min-width: 769px) and (max-height: 820px) {
+  .pixel-slide-card .muscle-map-front-svg,
+  .pixel-slide-card .muscle-map-back-svg {
+    height: clamp(240px, 40dvh, 340px) !important;
+    max-height: clamp(240px, 40dvh, 340px) !important;
+  }
+}
+
+@media (max-width: 768px) and (max-height: 700px) {
+  .pixel-slide-card .muscle-map-front-svg,
+  .pixel-slide-card .muscle-map-back-svg {
+    height: clamp(220px, 38dvh, 320px) !important;
+    max-height: clamp(220px, 38dvh, 320px) !important;
+  }
 }
 
 .pixel-slide-card .checkin-health-bar {
@@ -1756,7 +2064,7 @@
 
 .recovery-meter-wrap {
   width: 100%;
-  max-width: 480px;
+  max-width: min(480px, 100%);
   height: auto;
   position: relative;
   user-select: none;
@@ -1981,6 +2289,12 @@
   width: 24px;
   height: 24px;
   border-width: 4.5px;
+}
+
+@media (max-width: 420px) {
+  .recovery-badge-text {
+    font-size: 12.5px;
+  }
 }
 
 .recovery-meter-svg {

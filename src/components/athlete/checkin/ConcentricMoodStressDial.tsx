@@ -182,75 +182,83 @@ export const ConcentricMoodStressDial: React.FC<ConcentricMoodStressDialProps> =
           )}
         </div>
 
-        {/* ── Subtitle in Medium Blue ── */}
-        <p
-          className="pixel-slide-subtitle"
-          style={{
-            fontWeight: 500,
-            color: 'var(--checkin-subtitle-color)',
-            textAlign: 'center',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          {activeMood.phrase}
-        </p>
-
-        {/* ── Floating Bubble con Efecto de Estrellitas para Motivado o Excelente ── */}
-        <div className="pixel-mood-bubble-center">
-          <MoodStarEffects isStarMood={isStarMood} burstKey={burstKey} starPalette={starPalette} />
-          <MoodBubbleFace activeMood={activeMood} isStarMood={isStarMood} tearKey={tearKey} />
-        </div>
-
-        {/* ── Dos trazos curvos indicadores (︶ ︶) ── */}
-        <div
-          className="pixel-bubble-waves"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '2px',
-            marginBottom: '0.1rem',
-            zIndex: 2,
-          }}
-          aria-hidden="true"
-        >
-          <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
-            <path
-              d="M 3 4 Q 11 9 19 4"
-              stroke="var(--checkin-waves-stroke)"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 3 9 Q 11 14 19 9"
-              stroke="var(--checkin-waves-stroke)"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
-
-        {/* ── 180° Semicircular Selector con las 5 caras y aguja ── */}
-        <div
-          className={`mood-dial-touch-zone ${isDragging ? 'is-dragging' : ''}`}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-        >
-          <svg
-            ref={svgRef}
-            viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT + 36}`}
+        {/* Zona scrolleable: el scroll queda acá para que los botones de la
+            cabecera siempre queden visibles (KAN-595) */}
+        <div className="checkin-card-scroll">
+          {/* ── Subtitle in Medium Blue ── */}
+          <p
+            className="pixel-slide-subtitle"
             style={{
-              width: '100%',
-              height: '100%',
-              display: 'block',
-              overflow: 'visible',
+              fontWeight: 500,
+              color: 'var(--checkin-subtitle-color)',
+              textAlign: 'center',
+              letterSpacing: '-0.01em',
             }}
           >
-            <MoodWedges onSectorClick={handleSectorClick} />
-            <MoodSpeedometerNeedle angle={currentAngle} isDragging={isDragging} />
-          </svg>
+            {activeMood.phrase}
+          </p>
+
+          {/* ── Floating Bubble con Efecto de Estrellitas para Motivado o Excelente ── */}
+          <div className="pixel-mood-bubble-center">
+            <MoodStarEffects
+              isStarMood={isStarMood}
+              burstKey={burstKey}
+              starPalette={starPalette}
+            />
+            <MoodBubbleFace activeMood={activeMood} isStarMood={isStarMood} tearKey={tearKey} />
+          </div>
+
+          {/* ── Dos trazos curvos indicadores (︶ ︶) ── */}
+          <div
+            className="pixel-bubble-waves"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              marginBottom: '0.1rem',
+              zIndex: 2,
+            }}
+            aria-hidden="true"
+          >
+            <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
+              <path
+                d="M 3 4 Q 11 9 19 4"
+                stroke="var(--checkin-waves-stroke)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 3 9 Q 11 14 19 9"
+                stroke="var(--checkin-waves-stroke)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+
+          {/* ── 180° Semicircular Selector con las 5 caras y aguja ── */}
+          <div
+            className={`mood-dial-touch-zone ${isDragging ? 'is-dragging' : ''}`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+          >
+            <svg
+              ref={svgRef}
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT + 36}`}
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'block',
+                overflow: 'visible',
+              }}
+            >
+              <MoodWedges onSectorClick={handleSectorClick} />
+              <MoodSpeedometerNeedle angle={currentAngle} isDragging={isDragging} />
+            </svg>
+          </div>
         </div>
       </div>
     </div>
