@@ -283,4 +283,63 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
     expect(categoriesBtns[0].className).toContain('btn-secondary');
     expect(categoriesBtns[0].className).toContain('athlete-action--secondary');
   });
+
+  describe('atletas inactivos (KAN-660)', () => {
+    const withInactive = [
+      ...mockAthletes,
+      {
+        ...mockAthletes[1],
+        id: 'ath-3',
+        firstName: 'Ramiro',
+        lastName: 'Paz',
+        fullName: 'Ramiro Paz',
+        email: 'ramiro@protraining.com',
+        active: false,
+      },
+    ];
+
+    beforeEach(() => {
+      vi.mocked(structureService.getAthletes).mockResolvedValue(
+        withInactive as unknown as Athlete[],
+      );
+      vi.mocked(structureService.withCategories).mockResolvedValue(
+        withInactive as unknown as Athlete[],
+      );
+    });
+
+    it('marca al inactivo con badge "Inactivo" y la tarjeta atenuada', async () => {
+      render(
+        <MemoryRouter>
+          <AthletesPage />
+        </MemoryRouter>,
+      );
+
+      const card = await screen.findByTestId('athlete-card-ath-3');
+      expect(card.className).toContain('athletes-card--inactive');
+      expect(card.textContent).toContain('Inactivo');
+      expect(card.textContent).not.toContain('Activo ');
+      expect(screen.getByTestId('athlete-card-ath-1').className).not.toContain(
+        'athletes-card--inactive',
+      );
+    });
+
+    it('"Solo activos" oculta a los inactivos y actualiza el conteo', async () => {
+      render(
+        <MemoryRouter>
+          <AthletesPage />
+        </MemoryRouter>,
+      );
+
+      expect(await screen.findByText('Ramiro Paz')).toBeDefined();
+      expect(screen.getByTestId('athletes-count').textContent).toBe('3 atletas');
+
+      fireEvent.click(screen.getByRole('checkbox', { name: 'Solo activos' }));
+
+      await waitFor(() => {
+        expect(screen.queryByText('Ramiro Paz')).toBeNull();
+      });
+      expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+      expect(screen.getByTestId('athletes-count').textContent).toBe('2 de 3 atletas');
+    });
+  });
 });

@@ -14,6 +14,7 @@ import {
   QrCode,
   TrendingUp,
   Settings,
+  UserX,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
@@ -44,6 +45,8 @@ export const AthletesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Error del correo en el alta (409: ya existe un atleta con ese correo), junto al campo (KAN-660)
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Filtros
@@ -52,6 +55,8 @@ export const AthletesPage: React.FC = () => {
   );
   const [prevLocationCatId, setPrevLocationCatId] = useState<string | undefined>(stateCatId);
   const [searchTerm, setSearchTerm] = useState('');
+  // Por defecto se ven todos (como hasta ahora); el PF puede ocultar los dados de baja (KAN-660)
+  const [onlyActive, setOnlyActive] = useState(false);
 
   if (stateCatId && stateCatId !== prevLocationCatId) {
     setPrevLocationCatId(stateCatId);
@@ -172,6 +177,7 @@ export const AthletesPage: React.FC = () => {
 
     setSaving(true);
     setError(null);
+    setEmailError(null);
     setSuccessMessage(null);
 
     try {
@@ -194,7 +200,11 @@ export const AthletesPage: React.FC = () => {
       setShowForm(false);
       setAthletes((prev) => [created, ...prev]);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al dar de alta el atleta.');
+      const message = err instanceof Error ? err.message : 'Error al dar de alta el atleta.';
+      const status = (err as { cause?: { response?: { status?: number } } })?.cause?.response
+        ?.status;
+      if (status === 409) setEmailError(message);
+      else setError(message);
     } finally {
       setSaving(false);
     }
@@ -251,6 +261,8 @@ export const AthletesPage: React.FC = () => {
   // 4. Filtrado en memoria
   const filteredAthletes = useMemo(() => {
     return athletes.filter((athlete) => {
+      if (onlyActive && !athlete.active) return false;
+
       // Filtro por categoría
       if (selectedCategoryId) {
         const inCategory =
@@ -273,7 +285,7 @@ export const AthletesPage: React.FC = () => {
 
       return true;
     });
-  }, [athletes, selectedCategoryId, searchTerm, categories]);
+  }, [athletes, selectedCategoryId, searchTerm, categories, onlyActive]);
 
   const getAthleteOrganizations = (athlete: Athlete): Organization[] => {
     if (!athlete.categories || athlete.categories.length === 0) return [];
@@ -443,9 +455,19 @@ export const AthletesPage: React.FC = () => {
                     required
                     placeholder="atleta@correo.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError(null);
+                    }}
                     disabled={saving}
+                    aria-invalid={emailError ? true : undefined}
+                    aria-describedby={emailError ? 'ath-email-error' : undefined}
                   />
+                  {emailError && (
+                    <p id="ath-email-error" className="athletes-field-error" role="alert">
+                      {emailError}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -557,6 +579,23 @@ export const AthletesPage: React.FC = () => {
               ))}
             </select>
           )}
+
+          <label className="athletes-only-active">
+            <input
+              type="checkbox"
+              checked={onlyActive}
+              onChange={(e) => setOnlyActive(e.target.checked)}
+            />
+            <span>Solo activos</span>
+          </label>
+
+          {!loading && athletes.length > 0 && (
+            <p className="athletes-count" aria-live="polite" data-testid="athletes-count">
+              {filteredAthletes.length === athletes.length
+                ? `${athletes.length} ${athletes.length === 1 ? 'atleta' : 'atletas'}`
+                : `${filteredAthletes.length} de ${athletes.length} atletas`}
+            </p>
+          )}
         </div>
 
         {/* Estados de Carga y Vacío */}
@@ -568,16 +607,16 @@ export const AthletesPage: React.FC = () => {
           <div className="card athletes-empty-card">
             <Users size={44} className="athletes-empty-icon" aria-hidden="true" />
             <h2 className="athletes-empty-title">
-              {searchTerm || selectedCategoryId
+              {searchTerm || selectedCategoryId || onlyActive
                 ? 'No se encontraron atletas con los filtros aplicados'
                 : 'No hay atletas registrados en el plantel'}
             </h2>
             <p className="athletes-empty-desc">
-              {searchTerm || selectedCategoryId
+              {searchTerm || selectedCategoryId || onlyActive
                 ? 'Prueba modificando el término de búsqueda o seleccionando otra división.'
                 : 'Empezá dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
             </p>
-            {!searchTerm && !selectedCategoryId && (
+            {!searchTerm && !selectedCategoryId && !onlyActive && (
               <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
                 <Plus size={16} aria-hidden="true" />
                 <span>Registrar Primer Atleta</span>
@@ -587,7 +626,11 @@ export const AthletesPage: React.FC = () => {
         ) : (
           <div className="athletes-list">
             {filteredAthletes.map((athlete) => (
-              <div key={athlete.id} className="card athletes-card">
+              <div
+                key={athlete.id}
+                className={`card athletes-card${athlete.active ? '' : ' athletes-card--inactive'}`}
+                data-testid={`athlete-card-${athlete.id}`}
+              >
                 <div className="athletes-card-info-wrap">
                   <ProfileAvatar
                     src={
@@ -603,7 +646,14 @@ export const AthletesPage: React.FC = () => {
                     <div className="athletes-card-header-row">
                       <h2 className="athletes-card-name">{athlete.fullName}</h2>
                       {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
-                      {athlete.active && <span className="badge badge-success">Activo</span>}
+                      {athlete.active ? (
+                        <span className="badge badge-success">Activo</span>
+                      ) : (
+                        <span className="badge athletes-badge-inactive">
+                          <UserX size={12} aria-hidden="true" />
+                          Inactivo
+                        </span>
+                      )}
                       {getAthleteOrganizations(athlete).map((org) => (
                         <div key={org.id} title={org.name} className="athletes-card-org-icon">
                           <ProfileAvatar
