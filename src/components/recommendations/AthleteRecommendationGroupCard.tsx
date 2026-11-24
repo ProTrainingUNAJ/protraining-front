@@ -51,6 +51,12 @@ export function AthleteRecommendationGroupCard({
     new Set(recommendations.map((rec) => capitalizeFirst(rec.reason)).filter(Boolean)),
   );
 
+  // Filtrar motivos genéricos o no informados para evitar redundancia (KAN-665)
+  const filteredReasons = uniqueReasons.filter((r) => {
+    const lower = r.toLowerCase().trim();
+    return !lower.startsWith('objetivo: objetivo no informado') && lower !== 'objetivo no informado';
+  });
+
   const countLabel = getCountLabel(recommendations.length, statusTab);
 
   return (
@@ -96,9 +102,10 @@ export function AthleteRecommendationGroupCard({
                 </div>
               )}
 
-              {uniqueReasons.length > 0 && (
+              {/* Los motivos solo se muestran en vista colapsada si aportan información concreta (evita duplicación con la vista expandida, KAN-665) */}
+              {!expanded && filteredReasons.length > 0 && (
                 <div className="recommendation-reason-chips">
-                  {uniqueReasons.map((reason) => (
+                  {filteredReasons.map((reason) => (
                     <span key={reason} className="recommendation-reason-chip">
                       {reason}
                     </span>

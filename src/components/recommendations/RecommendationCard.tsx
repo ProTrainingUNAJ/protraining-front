@@ -208,30 +208,28 @@ export function RecommendationCard({
                 {getStatusLabel(recommendation.status)}
               </span>
               <span className="recommendation-badge type">{getTypeLabel(recommendation.type)}</span>
+              {recommendation.categoryName && (
+                <span className="recommendation-badge category">{recommendation.categoryName}</span>
+              )}
             </div>
             <time className="recommendation-date" dateTime={timestampIso}>
-              {recommendation.status === 'Approved'
-                ? `Aprobada · ${formatArgentinaDate(timestampIso)}`
-                : recommendation.status === 'Discarded'
-                  ? `Descartada · ${formatArgentinaDate(timestampIso)}`
-                  : formatArgentinaDate(timestampIso)}
+              {formatArgentinaDate(timestampIso)}
             </time>
           </div>
-
-          {recommendation.categoryName && (
-            <div className="recommendation-category-row">
-              <span className="recommendation-badge category">{recommendation.categoryName}</span>
-            </div>
-          )}
 
           {!hideAthleteName && <h4 className="recommendation-athlete-name">{athleteName}</h4>}
         </div>
       </header>
 
-      <div className="recommendation-reason-box">
-        <span className="recommendation-reason-label">Motivo detectado</span>
-        <span className="recommendation-reason-text">{capitalizeFirst(recommendation.reason)}</span>
-      </div>
+      {/* Recuadro Destacado de Motivo: solo si aporta información y no es genérico (KAN-665) */}
+      {recommendation.reason &&
+        !recommendation.reason.toLowerCase().trim().startsWith('objetivo: objetivo no informado') &&
+        recommendation.reason.toLowerCase().trim() !== 'objetivo no informado' && (
+          <div className="recommendation-reason-box">
+            <span className="recommendation-reason-label">Motivo detectado</span>
+            <span className="recommendation-reason-text">{capitalizeFirst(recommendation.reason)}</span>
+          </div>
+        )}
 
       {isEditing ? (
         <div className="recommendation-edit-form">

@@ -496,4 +496,68 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(dropdownList.getByText('Alumnos particulares')).toBeDefined();
     expect(dropdownList.queryByText('Sin categoría')).toBeNull();
   });
+
+  it('elimina información redundante: la fecha no repite el estado y la categoría comparte fila de badges (KAN-665)', async () => {
+    const approvedRec: AthleteRecommendation = {
+      ...pendingRec,
+      id: 'rec-approved-1',
+      status: 'Approved',
+      reviewedAtUtc: '2026-11-20T18:30:00Z',
+    };
+    listRecommendationsMock.mockResolvedValue([approvedRec]);
+
+    renderPage();
+
+    // Cambiamos a la pestaña de Aprobadas
+    fireEvent.click(await screen.findByRole('tab', { name: /Aprobadas/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // Expandimos la tarjeta del atleta
+    fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
+
+    // Verificamos que la fecha formateada esté limpia y NO contenga el prefijo "Aprobada · "
+    const timeElem = document.querySelector('time.recommendation-date');
+    expect(timeElem).toBeDefined();
+    expect(timeElem?.textContent).not.toContain('Aprobada ·');
+
+    // Verificamos que el badge de categoría esté dentro de la fila de badges
+    const badgesContainer = document.querySelector('.recommendation-card-badges');
+    expect(badgesContainer?.querySelector('.recommendation-badge.category')?.textContent).toBe(
+      'Primera División',
+    );
+  });
+
+  it('oculta motivos genéricos del tipo "Objetivo no informado" y no duplica motivos al expandir (KAN-665)', async () => {
+    const genericHabitsRec: AthleteRecommendation = {
+      ...pendingRec,
+      id: 'rec-habits-generic',
+      type: 'Habits',
+      reason: 'Objetivo: Objetivo no informado. Se sugiere consultar a un profesional de la salud.',
+      title: 'Recomendación de hábitos con derivación profesional',
+      recommendationText: 'Por seguridad, se recomienda consultar a un profesional de nutrición...',
+    };
+    listRecommendationsMock.mockResolvedValue([genericHabitsRec]);
+
+    renderPage('/pf/recommendations?view=habits');
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // En la vista contraída, no debe haber chip genérico de "Objetivo no informado"
+    expect(screen.queryByText(/Objetivo: Objetivo no informado/i)).toBeNull();
+
+    // Al expandir la recomendación
+    fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
+
+    // No debe renderizar el cuadro de motivo detectado para "Objetivo no informado"
+    expect(document.querySelector('.recommendation-reason-box')).toBeNull();
+    // Pero sí muestra el título y el cuerpo de la recomendación normalmente
+    expect(
+      screen.getByText('Recomendación de hábitos con derivación profesional'),
+    ).toBeDefined();
+  });
 });
