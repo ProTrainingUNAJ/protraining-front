@@ -367,13 +367,13 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                 onDelete={
                   athlete.hasPhoto
                     ? async () => {
-                      await structureService.deleteAthletePhoto(athlete.id);
-                      onAthleteUpdated({
-                        ...athlete,
-                        hasPhoto: false,
-                        photoUpdatedAt: null,
-                      });
-                    }
+                        await structureService.deleteAthletePhoto(athlete.id);
+                        onAthleteUpdated({
+                          ...athlete,
+                          hasPhoto: false,
+                          photoUpdatedAt: null,
+                        });
+                      }
                     : undefined
                 }
               />
@@ -629,11 +629,7 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
             </p>
 
             {physicalError && (
-              <div
-                className="alert-banner danger"
-                role="alert"
-                style={{ marginBottom: '0.75rem' }}
-              >
+              <div className="alert-banner danger" role="alert" style={{ marginBottom: '0.75rem' }}>
                 <AlertCircle size={16} aria-hidden="true" />
                 <span>{physicalError}</span>
               </div>
