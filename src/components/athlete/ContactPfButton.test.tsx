@@ -76,7 +76,7 @@ describe('ContactPfButton', () => {
     expect(screen.queryByText(/Mensaje copiado al portapapeles/i)).toBeNull();
   });
 
-  it('muestra selector de WhatsApp y Telegram cuando ambos canales están disponibles', async () => {
+  it('muestra doble botón directo para WhatsApp y Telegram sin menú desplegable cuando ambos canales están disponibles', async () => {
     mockGetPfContact.mockResolvedValue({
       phoneNumber: '5491123456789',
       telegramUsername: 'profe_juan',
@@ -84,14 +84,10 @@ describe('ContactPfButton', () => {
 
     render(<ContactPfButton />);
 
-    const trigger = await screen.findByRole('button', { name: /Contactar a mi PF/i });
-    fireEvent.click(trigger);
+    const whatsappLink = await screen.findByRole('link', { name: /WhatsApp/i });
+    const telegramLink = await screen.findByRole('link', { name: /Telegram/i });
 
-    expect(screen.getByRole('menuitem', { name: /WhatsApp/i }).getAttribute('href')).toContain(
-      'https://wa.me/5491123456789',
-    );
-    expect(screen.getByRole('menuitem', { name: /Telegram/i }).getAttribute('href')).toBe(
-      'https://t.me/profe_juan',
-    );
+    expect(whatsappLink.getAttribute('href')).toContain('https://wa.me/5491123456789');
+    expect(telegramLink.getAttribute('href')).toBe('https://t.me/profe_juan');
   });
 });
