@@ -87,6 +87,10 @@ interface RawAthlete {
   pesoKg?: number | null;
   athleticGoal?: string | null;
   objetivoAtletico?: string | null;
+  birthDate?: string | null;
+  fechaNacimiento?: string | null;
+  gender?: string | null;
+  genero?: string | null;
   physicalProfileUpdatedAt?: string | null;
 }
 
@@ -155,6 +159,8 @@ function mapAthlete(raw: RawAthlete): Athlete {
           ? Number(raw.pesoKg)
           : null,
     athleticGoal: raw.athleticGoal ?? raw.objetivoAtletico ?? null,
+    birthDate: raw.birthDate ?? raw.fechaNacimiento ?? null,
+    gender: raw.gender ?? raw.genero ?? null,
     physicalProfileUpdatedAt: raw.physicalProfileUpdatedAt ?? null,
   };
 }
@@ -521,7 +527,7 @@ export const structureService = {
   },
 
   /**
-   * Actualiza el perfil físico (peso y objetivo deportivo) de un atleta por el PF (KAN-479 / KAN-664).
+   * Actualiza el perfil físico (peso, objetivo deportivo, fecha de nacimiento y género) de un atleta por el PF (KAN-479 / KAN-664 / KAN-660).
    */
   async updateAthletePhysicalProfile(
     athleteId: string,
@@ -534,6 +540,9 @@ export const structureService = {
           weightKg:
             req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
           athleticGoal: req.athleticGoal?.trim() || null,
+          birthDate:
+            req.birthDate !== undefined ? (req.birthDate ? req.birthDate.trim() : null) : undefined,
+          gender: req.gender !== undefined ? (req.gender ? req.gender.trim() : null) : undefined,
         },
       );
       return mapAthlete(response.data);
@@ -543,22 +552,34 @@ export const structureService = {
   },
 
   /**
-   * Autoservicio del atleta: actualiza su propio peso y objetivo deportivo (KAN-479 / KAN-664).
+   * Autoservicio del atleta: actualiza su propio peso, objetivo, fecha de nacimiento y género (KAN-479 / KAN-664 / KAN-660).
    */
   async updateMyPhysicalProfile(req: UpdatePhysicalProfileRequest): Promise<{
     weightKg?: number | null;
     athleticGoal?: string | null;
+    birthDate?: string | null;
+    gender?: string | null;
     physicalProfileUpdatedAt?: string | null;
   }> {
     try {
+      const payload: Record<string, unknown> = {
+        weightKg: req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
+        athleticGoal: req.athleticGoal?.trim() || null,
+      };
+      if (req.birthDate !== undefined) {
+        payload.birthDate = req.birthDate ? req.birthDate.trim() : null;
+      }
+      if (req.gender !== undefined) {
+        payload.gender = req.gender ? req.gender.trim() : null;
+      }
+
       const response = await httpClient.patch<{
         weightKg?: number | null;
         athleticGoal?: string;
+        birthDate?: string | null;
+        gender?: string | null;
         physicalProfileUpdatedAt?: string | null;
-      }>('/estructura/api/v1/me/physical-profile', {
-        weightKg: req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
-        athleticGoal: req.athleticGoal?.trim() || null,
-      });
+      }>('/estructura/api/v1/me/physical-profile', payload);
       return response.data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });

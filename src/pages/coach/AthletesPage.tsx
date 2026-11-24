@@ -355,13 +355,14 @@ export const AthletesPage: React.FC = () => {
               type="button"
               className="btn btn-primary"
               onClick={() => {
-                setShowForm(!showForm);
+                setShowForm(true);
                 setError(null);
+                setEmailError(null);
               }}
               disabled={saving}
             >
               <Plus size={16} aria-hidden="true" />
-              <span>{showForm ? 'Cancelar' : 'Nuevo Atleta'}</span>
+              <span>Nuevo Atleta</span>
             </button>
           </>
         }
@@ -403,150 +404,175 @@ export const AthletesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Formulario de Alta de Atleta */}
+        {/* Modal Emergente de Alta de Atleta (KAN-660) */}
         {showForm && (
-          <div className="card athletes-create-card">
-            <h2 className="athletes-create-title">Alta de Atleta en el Plantel</h2>
-            <p className="athletes-create-desc">
-              Ingresá los datos personales y asigná las divisiones iniciales del deportista.
-            </p>
-
-            <form onSubmit={handleCreateAthlete}>
-              <div className="athletes-form-grid">
-                <div>
-                  <label htmlFor="ath-first" className="athletes-form-label">
-                    Nombre *
-                  </label>
-                  <input
-                    id="ath-first"
-                    type="text"
-                    required
-                    maxLength={60}
-                    placeholder="Ej. Lucas"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="ath-last" className="athletes-form-label">
-                    Apellido *
-                  </label>
-                  <input
-                    id="ath-last"
-                    type="text"
-                    required
-                    maxLength={60}
-                    placeholder="Ej. Fernández"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="ath-email" className="athletes-form-label">
-                    Correo Electrónico *
-                  </label>
-                  <input
-                    id="ath-email"
-                    type="email"
-                    required
-                    placeholder="atleta@correo.com"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setEmailError(null);
-                    }}
-                    disabled={saving}
-                    aria-invalid={emailError ? true : undefined}
-                    aria-describedby={emailError ? 'ath-email-error' : undefined}
-                  />
-                  {emailError && (
-                    <p id="ath-email-error" className="athletes-field-error" role="alert">
-                      {emailError}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="ath-phone" className="athletes-form-label">
-                    Teléfono
-                  </label>
-                  <input
-                    id="ath-phone"
-                    type="tel"
-                    placeholder="+54 11 1234-5678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-
-              <div className="athletes-form-group">
-                <label htmlFor="ath-emergency" className="athletes-form-label">
-                  Contacto de Emergencia
-                </label>
-                <input
-                  id="ath-emergency"
-                  type="text"
-                  placeholder="Ej. Madre: 11-9876-5432"
-                  value={emergencyContact}
-                  onChange={(e) => setEmergencyContact(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              {categories.length > 0 && (
-                <div className="athletes-form-group">
-                  <span className="athletes-form-label">Asignar a Categorías Iniciales</span>
-                  <div className="athletes-chips-row">
-                    {categories.map((cat) => {
-                      const isSelected = selectedNewAthleteCategories.includes(cat.id);
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          className={`athletes-category-chip${isSelected ? ' is-selected' : ''}`}
-                          onClick={() => {
-                            setSelectedNewAthleteCategories((prev) =>
-                              isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
-                            );
-                          }}
-                        >
-                          {isSelected ? (
-                            <Check size={13} aria-hidden="true" />
-                          ) : (
-                            <Plus size={13} aria-hidden="true" />
-                          )}
-                          {cat.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="athletes-form-actions">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-create-athlete-title"
+            className="athletes-modal-backdrop"
+            onClick={() => !saving && setShowForm(false)}
+          >
+            <div
+              className="card athletes-modal-content athletes-create-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="athletes-modal-header">
+                <h2 id="modal-create-athlete-title" className="athletes-modal-title">
+                  Alta de Atleta en el Plantel
+                </h2>
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowForm(false)}
+                  className="coach-icon-btn"
+                  onClick={() => !saving && setShowForm(false)}
+                  aria-label="Cerrar modal"
                   disabled={saving}
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
-                >
-                  {saving ? 'Guardando…' : 'Registrar Atleta'}
+                  <X size={20} aria-hidden="true" />
                 </button>
               </div>
-            </form>
+
+              <p className="athletes-modal-desc">
+                Ingresá los datos personales y asigná las divisiones iniciales del deportista.
+              </p>
+
+              <form onSubmit={handleCreateAthlete}>
+                <div className="athletes-form-grid">
+                  <div>
+                    <label htmlFor="ath-first" className="athletes-form-label">
+                      Nombre *
+                    </label>
+                    <input
+                      id="ath-first"
+                      type="text"
+                      required
+                      maxLength={60}
+                      placeholder="Ej. Lucas"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="ath-last" className="athletes-form-label">
+                      Apellido *
+                    </label>
+                    <input
+                      id="ath-last"
+                      type="text"
+                      required
+                      maxLength={60}
+                      placeholder="Ej. Fernández"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="ath-email" className="athletes-form-label">
+                      Correo Electrónico *
+                    </label>
+                    <input
+                      id="ath-email"
+                      type="email"
+                      required
+                      placeholder="atleta@correo.com"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setEmailError(null);
+                      }}
+                      disabled={saving}
+                      aria-invalid={emailError ? true : undefined}
+                      aria-describedby={emailError ? 'ath-email-error' : undefined}
+                    />
+                    {emailError && (
+                      <p id="ath-email-error" className="athletes-field-error" role="alert">
+                        {emailError}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="ath-phone" className="athletes-form-label">
+                      Teléfono
+                    </label>
+                    <input
+                      id="ath-phone"
+                      type="tel"
+                      placeholder="+54 11 1234-5678"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+
+                <div className="athletes-form-group">
+                  <label htmlFor="ath-emergency" className="athletes-form-label">
+                    Contacto de Emergencia
+                  </label>
+                  <input
+                    id="ath-emergency"
+                    type="text"
+                    placeholder="Ej. Madre: 11-9876-5432"
+                    value={emergencyContact}
+                    onChange={(e) => setEmergencyContact(e.target.value)}
+                    disabled={saving}
+                  />
+                </div>
+
+                {categories.length > 0 && (
+                  <div className="athletes-form-group">
+                    <span className="athletes-form-label">Asignar a Categorías Iniciales</span>
+                    <div className="athletes-chips-row">
+                      {categories.map((cat) => {
+                        const isSelected = selectedNewAthleteCategories.includes(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            className={`athletes-category-chip${isSelected ? ' is-selected' : ''}`}
+                            onClick={() => {
+                              setSelectedNewAthleteCategories((prev) =>
+                                isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
+                              );
+                            }}
+                          >
+                            {isSelected ? (
+                              <Check size={13} aria-hidden="true" />
+                            ) : (
+                              <Plus size={13} aria-hidden="true" />
+                            )}
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="athletes-form-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowForm(false)}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
+                  >
+                    {saving ? 'Guardando…' : 'Registrar Atleta'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 

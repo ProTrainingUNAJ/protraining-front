@@ -114,4 +114,57 @@ describe('Autogestión de Perfil Físico del atleta en SettingsView (KAN-479 / K
 
     expect(screen.getByText('Perfil físico actualizado correctamente.')).toBeDefined();
   });
+
+  it('permite cargar y actualizar fecha de nacimiento y género (KAN-660)', async () => {
+    vi.spyOn(structureService, 'getMe').mockResolvedValue({
+      athleteId: 'ath-1',
+      firstName: 'Lucas',
+      lastName: 'Gómez',
+      fullName: 'Lucas Gómez',
+      active: true,
+      categories: [],
+      weightKg: 78,
+      athleticGoal: 'Rendimiento deportivo',
+      birthDate: '2001-08-20',
+      gender: 'Masculino',
+    });
+
+    const updateSpy = vi.spyOn(structureService, 'updateMyPhysicalProfile').mockResolvedValue({
+      weightKg: 78,
+      athleticGoal: 'Rendimiento deportivo',
+      birthDate: '2000-05-15',
+      gender: 'Femenino',
+      physicalProfileUpdatedAt: '2026-11-24T12:00:00Z',
+    });
+
+    render(
+      <MemoryRouter>
+        <SettingsView role="athlete" />
+      </MemoryRouter>,
+    );
+
+    const birthDateInput = (await screen.findByTestId(
+      'athlete-birthdate-input',
+    )) as HTMLInputElement;
+    const genderSelect = (await screen.findByTestId('athlete-gender-select')) as HTMLSelectElement;
+    const saveBtn = screen.getByTestId('save-athlete-physical-btn');
+
+    expect(birthDateInput.value).toBe('2001-08-20');
+    expect(genderSelect.value).toBe('Masculino');
+
+    fireEvent.change(birthDateInput, { target: { value: '2000-05-15' } });
+    fireEvent.change(genderSelect, { target: { value: 'Femenino' } });
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith({
+        weightKg: 78,
+        athleticGoal: 'Rendimiento deportivo',
+        birthDate: '2000-05-15',
+        gender: 'Femenino',
+      });
+    });
+
+    expect(screen.getByText('Perfil físico actualizado correctamente.')).toBeDefined();
+  });
 });
