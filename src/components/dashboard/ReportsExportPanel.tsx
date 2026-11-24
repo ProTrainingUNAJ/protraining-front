@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Printer,
-  Share2,
+  ClipboardCopy,
   Check,
   Calendar,
   Users,
@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import type { CategoryDashboardSummary } from '../../types/categoryDashboard';
+import './ReportsExportPanel.css';
 
 export interface ReportsExportPanelProps {
   organizationName?: string;
@@ -19,6 +20,13 @@ export interface ReportsExportPanelProps {
 }
 
 export type ReportType = 'executive' | 'attendance' | 'health' | 'records';
+
+const REPORT_TITLES: Record<ReportType, string> = {
+  executive: 'Informe Ejecutivo: Rendimiento y Disponibilidad del Plantel',
+  attendance: 'Reporte Detallado de Asistencia, Minutos y Carga Diaria',
+  health: 'Reporte Epidemiológico y Monitoreo de Lesiones',
+  records: 'Auditoría de Marcas Personales y Confiabilidad de 1RM',
+};
 
 export const ReportsExportPanel: React.FC<ReportsExportPanelProps> = ({
   organizationName = 'Todas las organizaciones',
@@ -85,28 +93,33 @@ export const ReportsExportPanel: React.FC<ReportsExportPanelProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  // Copiar resumen en formato WhatsApp para el cuerpo técnico
-  const handleCopyWhatsApp = () => {
-    const text = `📋 *PROTRAINING · INFORME EJECUTIVO*
-🏢 *Organización:* ${organizationName}
-👥 *Categoría:* ${categoryName}
-🗓️ *Período:* ${periodLabel}
-
-📊 *Métricas del Plantel:*
-• Atletas en seguimiento: ${summary?.athleteCount ?? 0}
-• Presentismo promedio: ${summary?.attendance.attendancePercentage ?? 0}% (${summary?.attendance.presentDays ?? 0} asistencias)
-• Carga total acumulada: ${summary?.load.totalLoad ?? 0} UA (${summary?.load.totalMinutes ?? 0} min)
-• Lesiones activas: ${summary?.injuries.activeCount ?? 0}
-• En readaptación: ${summary?.injuries.inRecoveryCount ?? 0}
-• Altas médicas en el período: ${summary?.injuries.clearedInPeriodCount ?? 0}
-
-_Generado automáticamente desde ProTraining PWA_`;
-
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
+  // Copia un resumen en texto plano, legible en un mail, un chat o un documento (KAN-660)
+  const handleCopyReport = () => {
+    navigator.clipboard.writeText(buildReportSummaryText()).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      },
+      () => setCopied(false),
+    );
   };
+
+  const buildReportSummaryText = () =>
+    [
+      `ProTraining · ${REPORT_TITLES[reportType]}`,
+      `Organización: ${organizationName}`,
+      `Categoría: ${categoryName}`,
+      `Período: ${periodLabel}`,
+      `Emitido: ${new Date().toLocaleDateString('es-AR')}`,
+      '',
+      'Métricas del plantel',
+      `- Atletas en seguimiento: ${summary?.athleteCount ?? 0}`,
+      `- Presentismo promedio: ${summary?.attendance.attendancePercentage ?? 0} % (${summary?.attendance.presentDays ?? 0} presentes, ${summary?.attendance.absentDays ?? 0} ausentes)`,
+      `- Carga total acumulada: ${summary?.load.totalLoad ?? 0} UA (${summary?.load.totalMinutes ?? 0} min)`,
+      `- Lesiones activas: ${summary?.injuries.activeCount ?? 0}`,
+      `- En readaptación: ${summary?.injuries.inRecoveryCount ?? 0}`,
+      `- Altas en el período: ${summary?.injuries.clearedInPeriodCount ?? 0}`,
+    ].join('\n');
 
   // Imprimir reporte maquetado
   const handlePrint = () => {
@@ -114,10 +127,13 @@ _Generado automáticamente desde ProTraining PWA_`;
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* Barra de opciones de reporte y acciones de exportación */}
+    <div
+      className="reports-export"
+      style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+    >
+      {/* Barra de opciones de reporte y acciones de exportación (no se imprime) */}
       <div
-        className="card"
+        className="card reports-export__toolbar"
         style={{
           margin: 0,
           padding: '1rem 1.25rem',
@@ -202,8 +218,8 @@ _Generado automáticamente desde ProTraining PWA_`;
           <button
             type="button"
             className={`btn ${copied ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={handleCopyWhatsApp}
-            title="Copiar texto con formato para enviar por WhatsApp"
+            onClick={handleCopyReport}
+            title="Copiar el resumen del informe como texto"
             style={{
               borderRadius: '10px',
               fontSize: '0.8rem',
@@ -213,15 +229,22 @@ _Generado automáticamente desde ProTraining PWA_`;
               gap: '0.4rem',
             }}
           >
-            {copied ? <Check size={16} /> : <Share2 size={16} />}
-            <span>{copied ? '¡Copiado!' : 'WhatsApp'}</span>
+            {copied ? (
+              <Check size={16} aria-hidden="true" />
+            ) : (
+              <ClipboardCopy size={16} aria-hidden="true" />
+            )}
+            <span>{copied ? 'Copiado' : 'Copiar informe'}</span>
           </button>
+          <span className="sr-only" role="status" aria-live="polite">
+            {copied ? 'Informe copiado al portapapeles' : ''}
+          </span>
         </div>
       </div>
 
-      {/* Previsualización del Informe */}
+      {/* Previsualización del Informe: es lo único que sale al imprimir */}
       <div
-        className="card"
+        className="card reports-export__sheet"
         style={{
           margin: 0,
           padding: '1.75rem',
@@ -272,12 +295,7 @@ _Generado automáticamente desde ProTraining PWA_`;
             <h2
               style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}
             >
-              {reportType === 'executive' &&
-                'Informe Ejecutivo: Rendimiento y Disponibilidad del Plantel'}
-              {reportType === 'attendance' &&
-                'Reporte Detallado de Asistencia, Minutos y Carga Diaria'}
-              {reportType === 'health' && 'Reporte Epidemiológico y Monitoreo de Lesiones'}
-              {reportType === 'records' && 'Auditoría de Marcas Personales y Confiabilidad de 1RM'}
+              {REPORT_TITLES[reportType]}
             </h2>
             <div
               style={{
@@ -477,7 +495,10 @@ _Generado automáticamente desde ProTraining PWA_`;
         </div>
 
         {/* Tabla resumen del reporte */}
-        <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
+        <div
+          className="reports-export__table"
+          style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}
+        >
           <table
             style={{
               width: '100%',
