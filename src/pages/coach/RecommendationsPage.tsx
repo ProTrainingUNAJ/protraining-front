@@ -84,12 +84,19 @@ export function RecommendationsPage() {
       structureService.getCategories().catch(() => [] as Category[]),
       structureService.getAthletes().catch(() => [] as Athlete[]),
     ])
-      .then(([recsData, orgsData, catsData, athletesData]) => {
+      .then(async ([recsData, orgsData, catsData, athletesData]) => {
+        if (!active) return;
+        let finalAthletes = athletesData;
+        if (typeof structureService?.withCategories === 'function') {
+          finalAthletes = await structureService
+            .withCategories(athletesData, catsData, orgsData)
+            .catch(() => athletesData);
+        }
         if (!active) return;
         setRecommendations(recsData);
         setOrganizations(orgsData);
         setCategories(catsData);
-        setAthletes(athletesData);
+        setAthletes(finalAthletes);
         // Por defecto: "Todas las organizaciones" ('') y "Todas las categorías" ('')
         setSelectedOrganizationId('');
         setSelectedCategoryFilter('');
@@ -526,6 +533,31 @@ export function RecommendationsPage() {
               <strong className="recommendations-engine-title">
                 Analizar plantel y generar propuestas
               </strong>
+
+              {/* Selector para marcar en qué categoría analizar (KAN-663) */}
+              <div className="recommendations-analysis-category-wrap">
+                <label htmlFor="recommendations-analysis-category-select" className="sr-only">
+                  Categoría para analizar
+                </label>
+                <select
+                  id="recommendations-analysis-category-select"
+                  aria-label="Categoría para analizar"
+                  className="recommendations-select recommendations-analysis-select"
+                  value={targetCategoryForAnalysis}
+                  onChange={(e) => {
+                    const catId = e.target.value;
+                    setAnalysisCategoryId(catId);
+                  }}
+                  disabled={analyzing}
+                >
+                  <option value="">Elegí una categoría…</option>
+                  {visibleCategories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <button
                 type="button"
