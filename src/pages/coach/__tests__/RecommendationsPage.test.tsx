@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom';
 import { RecommendationsPage } from '../RecommendationsPage';
 import type { AthleteRecommendation } from '../../../api/recommendations';
+import type { Athlete } from '../../../types/structure';
 
 // El nombre también aparece en el selector de hábitos (KAN-634): se busca solo dentro de la lista.
 const inList = () => within(screen.getByLabelText('Recomendaciones agrupadas por atleta'));
@@ -15,6 +16,7 @@ const {
   discardRecommendationMock,
   getCategoriesMock,
   getAthletesMock,
+  withCategoriesMock,
 } = vi.hoisted(() => ({
   listRecommendationsMock: vi.fn(),
   generateForCategoryMock: vi.fn(),
@@ -23,6 +25,7 @@ const {
   discardRecommendationMock: vi.fn(),
   getCategoriesMock: vi.fn(),
   getAthletesMock: vi.fn(),
+  withCategoriesMock: vi.fn((athletes: Athlete[]) => Promise.resolve(athletes)),
 }));
 
 vi.mock('../../../api/recommendations', () => ({
@@ -39,6 +42,7 @@ vi.mock('../../../api/structureService', () => ({
   structureService: {
     getCategories: getCategoriesMock,
     getAthletes: getAthletesMock,
+    withCategories: withCategoriesMock,
     getAthletePhotoUrl: vi.fn(
       (id: string, v?: string | null) =>
         `/estructura/api/v1/athletes/${id}/photo${v ? `?v=${encodeURIComponent(v)}` : ''}`,
@@ -409,5 +413,87 @@ describe('RecommendationsPage (KAN-492)', () => {
 
     const habitsTab = await screen.findByRole('tab', { name: /Hábitos y alimentación/i });
     expect(habitsTab.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('permite marcar en qué categoría analizar directamente en la barra de análisis (KAN-663)', async () => {
+    getCategoriesMock.mockResolvedValue([
+      { id: 'cat-1', organizationId: 'org-1', name: 'Primera División', athletesCount: 10 },
+      { id: 'cat-3', organizationId: 'org-2', name: 'Alumnos particulares', athletesCount: 5 },
+    ]);
+    generateForCategoryMock.mockResolvedValue({
+      categoryId: 'cat-3',
+      categoryName: 'Alumnos particulares',
+      evaluatedAthletes: 5,
+      generatedCount: 1,
+      existingPendingCount: 0,
+      recommendations: [pendingRec],
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    const analysisCategorySelect = screen.getByLabelText(/Categoría para analizar/i);
+    expect(analysisCategorySelect).toBeDefined();
+
+    // Marcamos la categoría "Alumnos particulares" en el selector de la barra de análisis
+    fireEvent.change(analysisCategorySelect, { target: { value: 'cat-3' } });
+
+    // El botón debe reflejar dinámicamente "Analizar: Alumnos particulares"
+    const analyzeBtn = screen.getByRole('button', { name: /Analizar: Alumnos particulares/i });
+    expect(analyzeBtn).toBeDefined();
+    expect((analyzeBtn as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(analyzeBtn);
+
+    await waitFor(() => {
+      expect(generateForCategoryMock).toHaveBeenCalledWith('cat-3', 4);
+    });
+  });
+
+  it('muestra la categoría del atleta en el selector de hábitos en lugar de "Sin categoría" (KAN-663)', async () => {
+    withCategoriesMock.mockResolvedValue([
+      {
+        id: 'ath-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'lucas@example.com',
+        phone: '123456789',
+        active: true,
+        categoryNames: ['Primera División'],
+        categories: [{ id: 'cat-1', name: 'Primera División' }],
+      },
+      {
+        id: 'ath-2',
+        firstName: 'Agustina',
+        lastName: 'Morales',
+        fullName: 'Agustina Morales',
+        email: 'agustina@example.com',
+        phone: '987654321',
+        active: true,
+        categoryNames: ['Alumnos particulares'],
+        categories: [{ id: 'cat-3', name: 'Alumnos particulares' }],
+      },
+    ]);
+
+    renderPage('/pf/recommendations?view=habits');
+
+    await waitFor(() => {
+      expect(screen.getByText('Elegí un atleta…')).toBeDefined();
+    });
+
+    // Abrimos el dropdown interactivo de hábitos
+    fireEvent.click(
+      screen.getByRole('button', { name: /Desplegar lista de atletas para hábitos/i }),
+    );
+
+    const dropdownList = within(screen.getByRole('listbox'));
+    // Verificamos que aparezca la categoría del atleta y no "Sin categoría"
+    expect(dropdownList.getByText('Primera División')).toBeDefined();
+    expect(dropdownList.getByText('Alumnos particulares')).toBeDefined();
+    expect(dropdownList.queryByText('Sin categoría')).toBeNull();
   });
 });
