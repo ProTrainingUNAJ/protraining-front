@@ -678,3 +678,35 @@ a.dash-w__btn {
   text-decoration: none;
   white-space: nowrap;
 }
+
+@media (max-width: 640px) {
+  .attention-widget__actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .attention-widget__actions > .dash-w__btn,
+  .attention-widget__actions > a.dash-w__btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .attention-widget__actions > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .attention-widget__actions .contact-actions {
+    width: 100%;
+    display: flex;
+    grid-column: 1 / -1;
+  }
+
+  .attention-widget__actions .contact-actions a.dash-w__btn {
+    flex: 1;
+    justify-content: center;
+    width: 100%;
+  }
+}
