@@ -76,8 +76,13 @@ export interface Athlete {
   photoUpdatedAt?: string | null;
   weightKg?: number | null;
   athleticGoal?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
   physicalProfileUpdatedAt?: string | null;
 }
+
+export const ATHLETE_GENDER_OPTIONS = ['Masculino', 'Femenino'] as const;
+export type AthleteGenderOption = (typeof ATHLETE_GENDER_OPTIONS)[number];
 
 export const ATHLETIC_GOAL_OPTIONS = [
   'Objetivo no informado',
@@ -91,6 +96,8 @@ export type AthleticGoalOption = (typeof ATHLETIC_GOAL_OPTIONS)[number];
 export interface UpdatePhysicalProfileRequest {
   weightKg?: number | null;
   athleticGoal?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
 }
 
 export interface CreateAthleteRequest {
@@ -115,6 +122,8 @@ export interface AthleteMe {
   isMinor?: boolean;
   weightKg?: number | null;
   athleticGoal?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
   physicalProfileUpdatedAt?: string | null;
 }
 

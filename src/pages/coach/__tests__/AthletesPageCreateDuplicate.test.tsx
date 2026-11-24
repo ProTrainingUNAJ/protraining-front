@@ -88,4 +88,20 @@ describe('AthletesPage · alta con correo ya registrado (KAN-660)', () => {
     expect(await screen.findByText('Base de datos no disponible.')).toBeDefined();
     expect(document.getElementById('ath-email-error')).toBeNull();
   });
+
+  it('abre el alta de atleta dentro de una ventana modal emergente accesible (KAN-660)', async () => {
+    renderPage();
+    const openBtn = await screen.findByRole('button', { name: 'Nuevo Atleta' });
+    fireEvent.click(openBtn);
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toBeDefined();
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    expect(screen.getByRole('heading', { name: 'Alta de Atleta en el Plantel' })).toBeDefined();
+
+    // Puede cerrarse con el botón cancelar
+    const cancelBtn = screen.getByRole('button', { name: 'Cancelar' });
+    fireEvent.click(cancelBtn);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 });

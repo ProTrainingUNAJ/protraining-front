@@ -27,7 +27,7 @@ import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
 import { validateTelegramUsername } from '../../utils/telegram';
 import { structureService } from '../../api/structureService';
-import { ATHLETIC_GOAL_OPTIONS } from '../../types/structure';
+import { ATHLETIC_GOAL_OPTIONS, ATHLETE_GENDER_OPTIONS, UpdatePhysicalProfileRequest } from '../../types/structure';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
 import { ChangePasswordSection } from './ChangePasswordSection';
@@ -103,9 +103,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
 
   const [athleteId, setAthleteId] = useState<string | null>(null);
 
-  // Perfil físico del atleta (KAN-479 / KAN-664)
+  // Perfil físico y datos personales del atleta (KAN-479 / KAN-664 / KAN-660)
   const [athleteWeight, setAthleteWeight] = useState<string>('');
   const [athleteGoal, setAthleteGoal] = useState<string>('Objetivo no informado');
+  const [athleteBirthDate, setAthleteBirthDate] = useState<string>('');
+  const [athleteGender, setAthleteGender] = useState<string>('');
   const [physicalSaving, setPhysicalSaving] = useState(false);
   const [physicalSuccess, setPhysicalSuccess] = useState(false);
   const [physicalError, setPhysicalError] = useState<string | null>(null);
@@ -123,6 +125,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
           }
           if (me?.athleticGoal) {
             setAthleteGoal(me.athleticGoal);
+          }
+          if (me?.birthDate) {
+            setAthleteBirthDate(me.birthDate.split('T')[0]);
+          }
+          if (me?.gender) {
+            setAthleteGender(me.gender);
           }
         })
         .catch(() => {});
@@ -234,8 +242,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     }
   };
 
-  const handleSavePhysicalProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSavePhysicalProfile = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const cleanWeight = athleteWeight.trim() ? parseFloat(athleteWeight.trim()) : null;
     if (cleanWeight !== null && (isNaN(cleanWeight) || cleanWeight <= 0 || cleanWeight > 300)) {
       setPhysicalError('Ingresá un peso válido en kilogramos (entre 30 y 300 kg).');
@@ -247,10 +255,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     setPhysicalSuccess(false);
 
     try {
-      await structureService.updateMyPhysicalProfile({
+      const payload: UpdatePhysicalProfileRequest = {
         weightKg: cleanWeight,
         athleticGoal: athleteGoal.trim() || null,
-      });
+        ...(athleteBirthDate.trim() ? { birthDate: athleteBirthDate.trim() } : {}),
+        ...(athleteGender.trim() ? { gender: athleteGender.trim() } : {}),
+      };
+      await structureService.updateMyPhysicalProfile(payload);
       setPhysicalSuccess(true);
       setTimeout(() => setPhysicalSuccess(false), 3000);
     } catch (err: unknown) {
@@ -324,6 +335,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
             telegramUsername: result.telegramUsername ?? null,
           });
         }
+        await handleSavePhysicalProfile();
         setSavedSuccess(true);
         setTimeout(() => {
           setSavedSuccess(false);
@@ -934,6 +946,60 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                                 {ATHLETIC_GOAL_OPTIONS.map((opt) => (
                                   <option key={opt} value={opt}>
                                     {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor="athlete-birth-date"
+                                style={{
+                                  display: 'block',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  marginBottom: '0.35rem',
+                                }}
+                              >
+                                Fecha de Nacimiento
+                              </label>
+                              <input
+                                id="athlete-birth-date"
+                                type="date"
+                                value={athleteBirthDate}
+                                onChange={(e) => {
+                                  setAthleteBirthDate(e.target.value);
+                                  if (physicalError) setPhysicalError(null);
+                                }}
+                                data-testid="athlete-birthdate-input"
+                              />
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor="athlete-gender"
+                                style={{
+                                  display: 'block',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  marginBottom: '0.35rem',
+                                }}
+                              >
+                                Género
+                              </label>
+                              <select
+                                id="athlete-gender"
+                                value={athleteGender}
+                                onChange={(e) => {
+                                  setAthleteGender(e.target.value);
+                                  if (physicalError) setPhysicalError(null);
+                                }}
+                                data-testid="athlete-gender-select"
+                              >
+                                <option value="">Seleccionar género...</option>
+                                {ATHLETE_GENDER_OPTIONS.map((gender) => (
+                                  <option key={gender} value={gender}>
+                                    {gender}
                                   </option>
                                 ))}
                               </select>
