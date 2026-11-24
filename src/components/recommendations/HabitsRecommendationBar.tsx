@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Loader2, Salad, Search, ChevronDown, Check } from 'lucide-react';
+import { Loader2, Salad, Search, ChevronDown, Check, User } from 'lucide-react';
 import { recommendationsService } from '../../api/recommendations';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 
@@ -113,11 +113,18 @@ export function HabitsRecommendationBar({
             aria-label="Desplegar lista de atletas para hábitos"
           >
             <div className="habits-select-selected-row">
-              <ProfileAvatar
-                src={selectedAthlete?.photoUrl}
-                name={selectedAthlete?.name || 'Atleta'}
-                size={28}
-              />
+              {selectedAthlete ? (
+                <ProfileAvatar
+                  key={`habits-selected-${selectedAthlete.id}`}
+                  src={selectedAthlete.photoUrl}
+                  name={selectedAthlete.name}
+                  size={28}
+                />
+              ) : (
+                <div className="habits-select-avatar-placeholder" aria-hidden="true">
+                  <User size={15} />
+                </div>
+              )}
               <div className="habits-select-selected-text">
                 <span className="habits-select-selected-name">
                   {selectedAthlete?.name || 'Elegí un atleta…'}
@@ -173,7 +180,12 @@ export function HabitsRecommendationBar({
                         role="option"
                         aria-selected={isSelected}
                       >
-                        <ProfileAvatar src={ath.photoUrl} name={ath.name} size={28} />
+                        <ProfileAvatar
+                          key={`habits-opt-${ath.id}`}
+                          src={ath.photoUrl}
+                          name={ath.name}
+                          size={28}
+                        />
                         <div className="habits-dropdown-item-info">
                           <span className="habits-dropdown-item-name">{ath.name}</span>
                           {ath.categoryNames && ath.categoryNames.length > 0 ? (
