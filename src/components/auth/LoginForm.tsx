@@ -380,7 +380,6 @@ export const LoginForm: React.FC = () => {
             className="auth-secondary-btn"
             id="btn-register-link"
           >
-          >
             Registrate
           </button>
         </div>
