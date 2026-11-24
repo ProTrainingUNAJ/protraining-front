@@ -388,9 +388,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
 
           {/* Título en Montserrat negrita azul marino */}
           <h1 className="pixel-slide-title" style={{ margin: 0, flex: 1, textAlign: 'center' }}>
-            ¡Check-in
-            <br />
-            completado con éxito!
+            ¡Check-in completado con éxito!
           </h1>
 
           <div style={{ width: '40px', minWidth: '40px' }} />
@@ -410,7 +408,7 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
           <div
             className="pixel-bubble-hero"
             style={{
-              background: 'var(--checkin-next-btn-bg)',
+              background: 'var(--checkin-step-active-bg)',
               boxShadow: '0 8px 24px rgba(0, 119, 200, 0.35)',
               display: 'flex',
               alignItems: 'center',
