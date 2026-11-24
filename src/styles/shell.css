@@ -1282,12 +1282,10 @@
   .app-page-header-actions {
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 0.35rem;
+    width: 100%;
     max-width: 100%;
     min-width: 0;
+    gap: 0.25rem;
     padding-bottom: 0.2rem;
   }
 
@@ -1295,8 +1293,25 @@
     display: none;
   }
 
+  .app-page-header-actions > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.45rem 0.25rem;
+    font-size: 0.72rem;
+    letter-spacing: -0.01em;
+    gap: 0.2rem;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .app-page-header-actions > .btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
   /* Un selector con opciones largas no puede estirar el encabezado más allá de la pantalla */
-  .app-page-header-actions > *,
+  .app-page-header-actions > *:not(.btn),
   .app-page-header-actions select {
     max-width: 100%;
     min-width: 0;
