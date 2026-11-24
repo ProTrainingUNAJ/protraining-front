@@ -73,15 +73,8 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     expect(screen.getByText('Lesión y Enfermedad')).toBeDefined();
   });
 
-  it('en modo semáforo muestra mapa anatómico, métricas de check-in y botón asignar plan, sin bloque de actividades', () => {
-    render(
-      <AthleteQuickSheet
-        athlete={athleteWithIndicators}
-        mode="semaforo"
-        onClose={vi.fn()}
-        onAssignDifferentiated={vi.fn()}
-      />,
-    );
+  it('en modo semáforo muestra mapa anatómico y métricas de check-in, sin el botón falso de plan diferenciado ni actividades', () => {
+    render(<AthleteQuickSheet athlete={athleteWithIndicators} mode="semaforo" onClose={vi.fn()} />);
 
     // Cabecera compartida
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
@@ -90,7 +83,9 @@ describe('AthleteQuickSheet (KAN-621)', () => {
     // En verde: métricas y mapa anatómico
     expect(screen.getByText(/Sueño y Descanso/i)).toBeDefined();
     expect(screen.getByText(/MAPA ANATÓMICO DEL CHECK-IN/i)).toBeDefined();
-    expect(screen.getByText('Asignar Plan Diferenciado')).toBeDefined();
+    // KAN-660: el botón no guardaba nada; el ajuste real es "Ver ajuste sugerido"
+    expect(screen.queryByText('Asignar Plan Diferenciado')).toBeNull();
+    expect(screen.queryByTestId('quick-sheet-adjusted-today')).toBeNull();
     expect(screen.getByText('Cerrar Ficha')).toBeDefined();
 
     // No debe aparecer la sección de actividades de asistencia
@@ -115,7 +110,6 @@ describe('AthleteQuickSheet (KAN-621)', () => {
           ],
         }}
         onClose={vi.fn()}
-        onAssignDifferentiated={vi.fn()}
       />,
     );
 
@@ -144,5 +138,21 @@ describe('AthleteQuickSheet (KAN-621)', () => {
 
     // Botón cerrar compartido
     expect(screen.getByText('Cerrar Ficha')).toBeDefined();
+  });
+
+  it('si el PF ya ajustó la sesión de hoy, lo informa y no ofrece el ajuste de nuevo (KAN-660)', () => {
+    render(
+      <AthleteQuickSheet
+        athlete={{ ...athleteWithIndicators, hasDayConflict: false, adjustedToday: true }}
+        mode="semaforo"
+        onClose={vi.fn()}
+        onOpenAdjustment={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('quick-sheet-adjusted-today').textContent).toContain(
+      'Ajuste del día aplicado',
+    );
+    expect(screen.queryByTestId('quick-sheet-btn-day-adjustment')).toBeNull();
   });
 });

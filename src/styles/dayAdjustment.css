@@ -367,6 +367,20 @@
   font-weight: 700;
 }
 
+/* Estado "Ajuste del día aplicado" en card y ficha rápida (KAN-660) */
+.day-adjustment-applied {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 /* Botones disparadores "Ver ajuste sugerido" en card y ficha rápida */
 .btn.day-adjustment-trigger-card {
   width: 100%;

@@ -41,14 +41,7 @@ describe('lesión clínica activa en el panel del Preparador Físico', () => {
   });
 
   it('muestra «Lesión activa reportada» y pinta la zona clínica en el mapa anatómico', () => {
-    render(
-      <AthleteQuickSheet
-        athlete={itemDelPf()}
-        mode="semaforo"
-        onClose={vi.fn()}
-        onAssignDifferentiated={vi.fn()}
-      />,
-    );
+    render(<AthleteQuickSheet athlete={itemDelPf()} mode="semaforo" onClose={vi.fn()} />);
 
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getByText('Lesión activa reportada')).toBeDefined();

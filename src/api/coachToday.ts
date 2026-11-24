@@ -94,6 +94,7 @@ export async function fetchCoachTodayOverview(): Promise<CoachTodayOverview> {
   if (results.some((result) => !result.ok)) partial = true;
 
   const conflicted = new Set<string>();
+  const adjusted = new Set<string>();
   const categoriesWithPain = results.filter((result) => result.ok && result.hasPain);
   const conflictsByCategory = await Promise.all(
     categoriesWithPain.map((result) =>
@@ -103,6 +104,7 @@ export async function fetchCoachTodayOverview(): Promise<CoachTodayOverview> {
   for (const response of conflictsByCategory) {
     for (const entry of response?.athletes ?? []) {
       if (entry.hasConflicts && entry.athleteId) conflicted.add(entry.athleteId.toLowerCase());
+      if (entry.adjustedToday && entry.athleteId) adjusted.add(entry.athleteId.toLowerCase());
     }
   }
 
@@ -112,7 +114,11 @@ export async function fetchCoachTodayOverview(): Promise<CoachTodayOverview> {
   for (const item of results.flatMap((result) => result.items)) {
     if (seen.has(item.id)) continue;
     seen.add(item.id);
-    athletes.push({ ...item, hasDayConflict: conflicted.has(item.id.toLowerCase()) });
+    athletes.push({
+      ...item,
+      hasDayConflict: conflicted.has(item.id.toLowerCase()),
+      adjustedToday: adjusted.has(item.id.toLowerCase()),
+    });
   }
 
   const athleteIdsByCategory: Record<string, string[]> = {};

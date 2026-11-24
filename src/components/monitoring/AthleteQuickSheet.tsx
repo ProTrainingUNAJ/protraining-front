@@ -46,7 +46,6 @@ interface AthleteQuickSheetProps {
     activities?: QuickSheetActivityDetail[];
   };
   onClose: () => void;
-  onAssignDifferentiated?: (athleteId: string) => void;
   onOpenAdjustment?: (athlete: AthleteTrafficLightItem) => void;
 }
 
@@ -55,7 +54,6 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
   mode = 'semaforo',
   attendanceData,
   onClose,
-  onAssignDifferentiated,
   onOpenAdjustment,
 }) => {
   // Close with Esc key
@@ -955,24 +953,18 @@ export const AthleteQuickSheet: React.FC<AthleteQuickSheetProps> = ({
               </button>
             )}
 
-            {mode === 'semaforo' && (isRed || isYellow) ? (
-              <button
-                type="button"
-                className="btn btn-warning"
-                onClick={() => {
-                  onAssignDifferentiated?.(athlete.id);
-                  onClose();
-                }}
-                style={{
-                  flex: 1,
-                  padding: '0.6rem 1rem',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                }}
+            {/* KAN-660: "Asignar plan diferenciado" solo cambiaba la pantalla y no guardaba nada.
+                El ajuste real es "Ver ajuste sugerido"; si ya se aplicó hoy, se informa. */}
+            {mode === 'semaforo' && athlete.adjustedToday && (
+              <span
+                className="day-adjustment-applied"
+                role="status"
+                data-testid="quick-sheet-adjusted-today"
               >
-                Asignar Plan Diferenciado
-              </button>
-            ) : null}
+                <CheckCircle2 size={15} aria-hidden="true" />
+                Ajuste del día aplicado
+              </span>
+            )}
 
             <button
               type="button"
