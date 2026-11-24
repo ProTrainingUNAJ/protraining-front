@@ -363,7 +363,7 @@ export const LoginForm: React.FC = () => {
           />
         )}
 
-        {/* Accesos Secundarios: Recuperación de contraseña y Registro (KAN-602) */}
+        {/* Accesos Secundarios: Recuperación de contraseña y Registro (KAN-660) */}
         <div className="auth-secondary-actions">
           <button
             type="button"
@@ -374,16 +374,11 @@ export const LoginForm: React.FC = () => {
             Olvidé mi contraseña
           </button>
 
-          <span className="auth-secondary-divider" aria-hidden="true">
-            •
-          </span>
-
           <button
             type="button"
             onClick={handleRegisterClick}
             className="auth-secondary-btn"
             id="btn-register-link"
-            style={{ fontWeight: 700, color: 'var(--color-primary)' }}
           >
             Registrate
           </button>
