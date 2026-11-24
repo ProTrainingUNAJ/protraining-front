@@ -1,6 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, AlertTriangle, Check, Loader2, Pencil, Plus, Search, Users } from 'lucide-react';
+import {
+  Activity,
+  AlertTriangle,
+  Check,
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Search,
+  Users,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { AthleteTrafficLightCard } from '../../components/monitoring/AthleteTrafficLightCard';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
@@ -237,6 +247,10 @@ export const MonitoringPage: React.FC = () => {
 
   const [refreshTrafficLightKey, setRefreshTrafficLightKey] = useState(0);
   const [refreshAttendanceKey, setRefreshAttendanceKey] = useState(0);
+  // "Actualizar" mantiene la lista a la vista y muestra el giro en el botón hasta que llegan
+  // los datos nuevos (KAN-660, hallazgo 4)
+  const [refreshingTrafficLight, setRefreshingTrafficLight] = useState(false);
+  const [refreshingAttendance, setRefreshingAttendance] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -302,6 +316,7 @@ export const MonitoringPage: React.FC = () => {
         );
 
         const conflictedAthleteIds = new Set<string>();
+        const adjustedAthleteIds = new Set<string>();
         if (
           categoryIdsWithPain.length > 0 &&
           typeof dayAdjustmentsService?.getCategoryDayConflicts === 'function'
@@ -321,6 +336,9 @@ export const MonitoringPage: React.FC = () => {
               if (entry.hasConflicts && entry.athleteId) {
                 conflictedAthleteIds.add(entry.athleteId.toLowerCase());
               }
+              if (entry.adjustedToday && entry.athleteId) {
+                adjustedAthleteIds.add(entry.athleteId.toLowerCase());
+              }
             }
           }
         }
@@ -328,6 +346,7 @@ export const MonitoringPage: React.FC = () => {
         const athletesWithConflicts = mapped.map((athlete) => ({
           ...athlete,
           hasDayConflict: conflictedAthleteIds.has(athlete.id.toLowerCase()),
+          adjustedToday: adjustedAthleteIds.has(athlete.id.toLowerCase()),
         }));
 
         if (!active) return;
@@ -336,6 +355,7 @@ export const MonitoringPage: React.FC = () => {
           athletes: athletesWithConflicts,
           error: null,
         });
+        setRefreshingTrafficLight(false);
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -344,6 +364,7 @@ export const MonitoringPage: React.FC = () => {
           athletes: [],
           error: err instanceof Error ? err.message : 'No se pudo consultar el semáforo del día.',
         });
+        setRefreshingTrafficLight(false);
       });
 
     return () => {
@@ -413,6 +434,7 @@ export const MonitoringPage: React.FC = () => {
           summary: combinedSummary,
           error: null,
         });
+        setRefreshingAttendance(false);
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -421,6 +443,7 @@ export const MonitoringPage: React.FC = () => {
           summary: null,
           error: err instanceof Error ? err.message : 'No se pudo consultar la asistencia.',
         });
+        setRefreshingAttendance(false);
       });
 
     return () => {
@@ -435,11 +458,19 @@ export const MonitoringPage: React.FC = () => {
     refreshAttendanceKey,
   ]);
 
+  // Los cambios hechos en pantalla (ajuste aprobado, presente marcado a mano) se descartan:
+  // si no, taparían los datos recién traídos del servidor.
   const refreshTrafficLight = () => {
+    if (refreshingTrafficLight) return;
+    setRefreshingTrafficLight(true);
+    setStatusOverrides({});
     setRefreshTrafficLightKey((k) => k + 1);
   };
 
   const refreshAttendance = () => {
+    if (refreshingAttendance) return;
+    setRefreshingAttendance(true);
+    setAttendanceOverrides({});
     setRefreshAttendanceKey((k) => k + 1);
   };
 
@@ -553,18 +584,6 @@ export const MonitoringPage: React.FC = () => {
       return true;
     });
   }, [attendanceResult, attendanceOverrides, attendanceFilter, searchTerm]);
-
-  // Assign differentiated training regimen directly from quick sheet
-  const handleAssignDifferentiated = (athleteId: string) => {
-    setStatusOverrides((prev) => ({
-      ...prev,
-      [athleteId]: {
-        status: 'yellow',
-        statusLabel: 'Precaución',
-        recommendation: 'Asignado a plan de rehabilitación y descarga muscular.',
-      },
-    }));
-  };
 
   return (
     <div className="app-page-container">
@@ -689,8 +708,15 @@ export const MonitoringPage: React.FC = () => {
                 data-testid="refresh-traffic-light-btn"
                 onClick={refreshTrafficLight}
                 className="monitoring-refresh-btn"
+                disabled={refreshingTrafficLight}
+                aria-busy={refreshingTrafficLight}
               >
-                Actualizar
+                <RefreshCw
+                  size={13}
+                  aria-hidden="true"
+                  className={refreshingTrafficLight ? 'monitoring-refresh-spin' : undefined}
+                />
+                {refreshingTrafficLight ? 'Actualizando…' : 'Actualizar'}
               </button>
             </div>
             <p className="monitoring-hint">
@@ -834,10 +860,18 @@ export const MonitoringPage: React.FC = () => {
                   </span>
                   <button
                     type="button"
+                    data-testid="refresh-attendance-btn"
                     onClick={refreshAttendance}
                     className="monitoring-refresh-btn"
+                    disabled={refreshingAttendance}
+                    aria-busy={refreshingAttendance}
                   >
-                    Actualizar
+                    <RefreshCw
+                      size={13}
+                      aria-hidden="true"
+                      className={refreshingAttendance ? 'monitoring-refresh-spin' : undefined}
+                    />
+                    {refreshingAttendance ? 'Actualizando…' : 'Actualizar'}
                   </button>
                 </div>
                 <p className="monitoring-hint">
@@ -1197,7 +1231,6 @@ export const MonitoringPage: React.FC = () => {
             setSelectedAthlete(null);
             setSelectedAthleteAttendance(null);
           }}
-          onAssignDifferentiated={handleAssignDifferentiated}
           onOpenAdjustment={(ath) => setAdjustmentAthlete(ath)}
         />
 
@@ -1214,6 +1247,7 @@ export const MonitoringPage: React.FC = () => {
                   ...prev,
                   [adjustment.athleteId]: {
                     hasDayConflict: false,
+                    adjustedToday: true,
                     recommendation: `Ajuste del día aprobado: ${adjustment.justification}`,
                   },
                 }));
