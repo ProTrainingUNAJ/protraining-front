@@ -686,9 +686,9 @@ export const AthletesPage: React.FC = () => {
                             src={
                               org.hasPhoto
                                 ? structureService.getOrganizationPhotoUrl(
-                                  org.id,
-                                  org.photoUpdatedAt,
-                                )
+                                    org.id,
+                                    org.photoUpdatedAt,
+                                  )
                                 : null
                             }
                             name={org.name}
@@ -757,8 +757,9 @@ export const AthletesPage: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        className={`btn athletes-action-btn athlete-action--injuries${hasActiveInjury ? ' athlete-action--active-injury' : ''
-                          }`}
+                        className={`btn athletes-action-btn athlete-action--injuries${
+                          hasActiveInjury ? ' athlete-action--active-injury' : ''
+                        }`}
                         onClick={() => setHealthAthlete(athlete)}
                         title="Consultar Historial de Lesiones y Ficha Médica"
                         aria-label={

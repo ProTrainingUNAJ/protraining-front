@@ -143,7 +143,9 @@ describe('Autogestión de Perfil Físico del atleta en SettingsView (KAN-479 / K
       </MemoryRouter>,
     );
 
-    const birthDateInput = (await screen.findByTestId('athlete-birthdate-input')) as HTMLInputElement;
+    const birthDateInput = (await screen.findByTestId(
+      'athlete-birthdate-input',
+    )) as HTMLInputElement;
     const genderSelect = (await screen.findByTestId('athlete-gender-select')) as HTMLSelectElement;
     const saveBtn = screen.getByTestId('save-athlete-physical-btn');
 

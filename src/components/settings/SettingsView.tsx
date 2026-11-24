@@ -27,7 +27,11 @@ import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
 import { validateTelegramUsername } from '../../utils/telegram';
 import { structureService } from '../../api/structureService';
-import { ATHLETIC_GOAL_OPTIONS, ATHLETE_GENDER_OPTIONS, UpdatePhysicalProfileRequest } from '../../types/structure';
+import {
+  ATHLETIC_GOAL_OPTIONS,
+  ATHLETE_GENDER_OPTIONS,
+  UpdatePhysicalProfileRequest,
+} from '../../types/structure';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
 import { ChangePasswordSection } from './ChangePasswordSection';
