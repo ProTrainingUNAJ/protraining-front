@@ -182,7 +182,8 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /descargar csv/i })).toBeDefined();
       expect(screen.getByRole('button', { name: /imprimir \/ pdf/i })).toBeDefined();
-      expect(screen.getByRole('button', { name: /whatsapp/i })).toBeDefined();
+      expect(screen.getByRole('button', { name: /Copiar informe/i })).toBeDefined();
+      expect(screen.queryByRole('button', { name: /whatsapp/i })).toBeNull();
     });
   });
 

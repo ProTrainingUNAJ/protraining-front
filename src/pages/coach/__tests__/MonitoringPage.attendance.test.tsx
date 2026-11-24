@@ -305,10 +305,32 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(screen.getByTestId('refresh-traffic-light-btn')).toBeDefined();
     });
 
+    const callsBefore = vi.mocked(getCategoryTrafficLightToday).mock.calls.length;
+    // La recarga queda colgada para ver el estado intermedio del botón
+    let release: (
+      value: Awaited<ReturnType<typeof getCategoryTrafficLightToday>>,
+    ) => void = () => {};
+    vi.mocked(getCategoryTrafficLightToday).mockImplementationOnce(
+      () => new Promise((resolve) => (release = resolve)),
+    );
+
     fireEvent.click(screen.getByTestId('refresh-traffic-light-btn'));
 
+    // KAN-660: mientras recarga, el botón avisa y no se puede volver a tocar; la lista sigue visible
     await waitFor(() => {
-      expect(getCategoryTrafficLightToday).toHaveBeenCalled();
+      const btn = screen.getByTestId('refresh-traffic-light-btn') as HTMLButtonElement;
+      expect(btn.disabled).toBe(true);
+      expect(btn.textContent).toContain('Actualizando');
+    });
+    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(vi.mocked(getCategoryTrafficLightToday).mock.calls.length).toBe(callsBefore + 1);
+
+    release([]);
+
+    await waitFor(() => {
+      const btn = screen.getByTestId('refresh-traffic-light-btn') as HTMLButtonElement;
+      expect(btn.disabled).toBe(false);
+      expect(btn.textContent).toContain('Actualizar');
     });
   });
 

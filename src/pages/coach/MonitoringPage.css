@@ -150,6 +150,9 @@
 }
 
 .monitoring-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   margin-left: auto;
   padding: 0.3rem 0.7rem;
   border-radius: 9999px;
@@ -527,5 +530,26 @@
   .monitoring-tab-panel .segmented-tabs {
     flex-wrap: wrap;
     overflow-x: visible;
+  }
+}
+
+.monitoring-refresh-btn:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.monitoring-refresh-spin {
+  animation: monitoring-refresh-spin 0.8s linear infinite;
+}
+
+@keyframes monitoring-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monitoring-refresh-spin {
+    animation: none;
   }
 }

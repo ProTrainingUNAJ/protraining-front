@@ -349,6 +349,10 @@ export type DayConflictsResponse = {
 export type CategoryAthleteDayConflict = {
     athleteId: string;
     hasConflicts: boolean;
+    /**
+     * El PF ya ajustó la sesión de hoy del atleta; no se vuelve a ofrecer el ajuste.
+     */
+    adjustedToday?: boolean;
 };
 
 export type CategoryDayConflictsResponse = {

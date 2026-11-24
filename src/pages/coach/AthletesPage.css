@@ -197,6 +197,53 @@
   font-weight: 700;
 }
 
+/* Atleta dado de baja (KAN-660): se atenúan la foto, los datos y las acciones, no el nombre,
+   para que siga legible (contraste AA) y se reconozca a quién reactivar. */
+.athletes-card--inactive {
+  background: var(--bg-subtle);
+  border-style: dashed;
+}
+
+.athletes-card--inactive .athletes-card-info-wrap > :first-child,
+.athletes-card--inactive .athletes-card-meta-row,
+.athletes-card--inactive .athletes-card-categories-row,
+.athletes-card--inactive .athletes-card-org-icon {
+  opacity: 0.65;
+}
+
+.athletes-badge-inactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.athletes-only-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.athletes-only-active input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.athletes-count {
+  margin: 0 0 0 auto;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
 .athletes-card-org-icon {
   display: inline-flex;
   align-items: center;
@@ -416,4 +463,12 @@
   .athletes-action-btn {
     min-height: 38px;
   }
+}
+
+/* Error de un campo del alta (correo ya registrado, KAN-660) */
+.athletes-field-error {
+  margin: 0.35rem 0 0;
+  color: var(--danger-text);
+  font-size: 0.8rem;
+  font-weight: 600;
 }

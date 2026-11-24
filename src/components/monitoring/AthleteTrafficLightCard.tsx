@@ -1,5 +1,13 @@
 import React, { useMemo } from 'react';
-import { AlertCircle, Moon, Activity, Siren, Thermometer, Sparkles } from 'lucide-react';
+import {
+  AlertCircle,
+  Moon,
+  Activity,
+  Siren,
+  Thermometer,
+  Sparkles,
+  CheckCircle2,
+} from 'lucide-react';
 import { AthleteTrafficLightItem, TrafficLightStatus } from './trafficLight.types';
 import { AthleteAvatar } from './AthleteAvatar';
 import { AthleteContactActions } from './AthleteContactActions';
@@ -276,6 +284,17 @@ export const AthleteTrafficLightCard: React.FC<AthleteTrafficLightCardProps> = (
             <Sparkles size={14} aria-hidden="true" />
             <span>Ver ajuste sugerido</span>
           </button>
+        )}
+
+        {athlete.adjustedToday && !athlete.hasDayConflict && (
+          <span
+            className="day-adjustment-applied"
+            role="status"
+            data-testid={`adjusted-today-${athlete.id}`}
+          >
+            <CheckCircle2 size={14} aria-hidden="true" />
+            Ajuste del día aplicado
+          </span>
         )}
 
         <div className="tl-card-contact">
