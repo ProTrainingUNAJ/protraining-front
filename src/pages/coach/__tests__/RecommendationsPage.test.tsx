@@ -357,6 +357,10 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(analysisTab.getAttribute('aria-selected')).toBe('true');
     expect(habitsTab.getAttribute('aria-selected')).toBe('false');
 
+    // Cada vista muestra cuántas pendientes tiene, para que las de hábitos no pasen desapercibidas
+    expect(screen.getByTestId('pending-count-analysis').textContent).toBe('1');
+    expect(screen.getByTestId('pending-count-habits').textContent).toBe('1');
+
     // En "Analizar plantel": visible el motor y la recomendación física, oculto Hábitos
     expect(screen.getByText('Analizar plantel y generar propuestas')).toBeDefined();
     expect(screen.queryByLabelText('Generar recomendación de hábitos y alimentación')).toBeNull();

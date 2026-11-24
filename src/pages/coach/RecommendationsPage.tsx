@@ -168,6 +168,22 @@ export function RecommendationsPage() {
     return counts;
   }, [recommendations, activeTab, selectedOrganizationId, selectedCategoryFilter, categoryOrgMap]);
 
+  // Pendientes de cada vista, para el contador de los botones de arriba: la página abre en
+  // "Analizar plantel" y, sin el número, las de hábitos pendientes no se ven (reporte del ensayo).
+  const pendingByView = useMemo(() => {
+    const counts: Record<RecommendationsViewTab, number> = { analysis: 0, habits: 0 };
+    for (const rec of recommendations) {
+      if (rec.status !== 'Pending') continue;
+      if (selectedOrganizationId) {
+        const orgId = rec.categoryId ? categoryOrgMap.get(rec.categoryId) : undefined;
+        if (orgId !== selectedOrganizationId) continue;
+      }
+      if (selectedCategoryFilter && rec.categoryId !== selectedCategoryFilter) continue;
+      counts[rec.type === 'Habits' ? 'habits' : 'analysis'] += 1;
+    }
+    return counts;
+  }, [recommendations, selectedOrganizationId, selectedCategoryFilter, categoryOrgMap]);
+
   const filteredRecommendations = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -362,6 +378,15 @@ export function RecommendationsPage() {
             >
               <Sparkles size={15} aria-hidden="true" />
               <span>Analizar plantel</span>
+              {pendingByView.analysis > 0 && (
+                <span
+                  className="recommendations-view-count"
+                  aria-label={`${pendingByView.analysis} por revisar`}
+                  data-testid="pending-count-analysis"
+                >
+                  {pendingByView.analysis}
+                </span>
+              )}
             </button>
             <button
               type="button"
@@ -372,6 +397,15 @@ export function RecommendationsPage() {
             >
               <Salad size={15} aria-hidden="true" />
               <span>Hábitos y alimentación</span>
+              {pendingByView.habits > 0 && (
+                <span
+                  className="recommendations-view-count"
+                  aria-label={`${pendingByView.habits} por revisar`}
+                  data-testid="pending-count-habits"
+                >
+                  {pendingByView.habits}
+                </span>
+              )}
             </button>
           </div>
         }
