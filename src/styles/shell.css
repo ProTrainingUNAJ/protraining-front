@@ -441,6 +441,123 @@
   transform: translateY(-1px);
 }
 
+/* ── Píldora de Contacto con el PF (Header de Atleta - KAN-660) ── */
+.contact-pf-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 0.85rem 0 0.35rem;
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 9999px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill:hover {
+  border-color: var(--brand-blue);
+  box-shadow: var(--shadow-md);
+}
+
+.contact-pf-pill-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill-divider {
+  width: 1px;
+  height: 18px;
+  background-color: var(--border);
+  margin: 0 0.45rem;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.35rem;
+  border-radius: 8px;
+  color: var(--brand-blue);
+  background: transparent;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill-btn:hover {
+  background-color: var(--bg-subtle);
+  transform: scale(1.1);
+}
+
+.contact-pf-pill-btn--whatsapp:hover {
+  color: var(--social-whatsapp);
+}
+
+.contact-pf-pill-btn--telegram:hover {
+  color: var(--social-telegram);
+}
+
+.contact-pf-pill-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--brand-navy, var(--text-main));
+  margin-left: 0.35rem;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.contact-pf-pill-feedback {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 100;
+  min-width: 250px;
+  max-width: calc(100vw - 2rem);
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.8rem;
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.contact-pf-feedback-copied {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--success-text);
+  font-weight: 600;
+}
+
+.contact-pf-feedback-manual-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.contact-pf-feedback-textarea {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 0.3rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--border);
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
 /* Botón Calendario */
 .shell-calendar-wrap {
   position: relative;
@@ -1180,19 +1297,22 @@
   }
 
   .app-header {
-    height: 60px;
+    height: 56px;
     padding: 0 0.75rem;
-    gap: 0.5rem;
+    gap: 0.45rem;
   }
 
   .app-header-left {
-    flex: 1;
+    flex: 0 0 auto;
+    max-width: none;
     min-width: 0;
   }
 
   .app-header-actions {
+    flex: 1 1 auto;
+    justify-content: flex-end;
     gap: 0.35rem;
-    flex-shrink: 0;
+    min-width: 0;
   }
 
   .shell-pill-btn {
@@ -1203,6 +1323,25 @@
 
   /* En pantallas móviles el botón de calendario se compacta con su icono */
   .shell-calendar-btn span {
+    display: none;
+  }
+
+  /* Píldora de contacto con el PF compacta en mobile [Avatar | WA | TG] */
+  .contact-pf-pill {
+    height: 36px;
+    padding: 0 0.45rem 0 0.25rem;
+  }
+
+  .contact-pf-pill-divider {
+    height: 14px;
+    margin: 0 0.25rem;
+  }
+
+  .contact-pf-pill-btn {
+    padding: 0.2rem;
+  }
+
+  .contact-pf-pill-label {
     display: none;
   }
 
@@ -1219,10 +1358,43 @@
   min-height: 60vh;
 }
 
-/* En celulares chicos el botón de contacto queda solo con el ícono, para que entren todos los del encabezado */
+/* En celulares chicos optimizar paddings y dimensiones para que el header nunca desborde */
 @media (max-width: 420px) {
-  .app-header-actions .contact-pf-label {
-    display: none;
+  .app-header {
+    padding: 0 0.45rem;
+    gap: 0.3rem;
+  }
+
+  .app-mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-header-actions {
+    gap: 0.2rem;
+  }
+
+  .shell-pill-btn {
+    height: 34px;
+    padding: 0 0.4rem;
+  }
+
+  .contact-pf-pill {
+    height: 34px;
+    padding: 0 0.35rem 0 0.2rem;
+  }
+
+  .contact-pf-pill-divider {
+    margin: 0 0.15rem;
+  }
+
+  .contact-pf-pill-btn {
+    padding: 0.15rem;
+  }
+
+  .contact-pf-pill-btn svg {
+    width: 17px;
+    height: 17px;
   }
 }
 
