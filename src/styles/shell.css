@@ -468,6 +468,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1.5px solid var(--shell-pill-border);
+  border-radius: 9999px;
+  overflow: hidden;
 }
 
 .contact-pf-pill-divider {
