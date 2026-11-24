@@ -1,19 +1,4 @@
-/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492 · KAN-647 · KAN-654) */
-
-/* ── Acciones del encabezado: tabs "Analizar plantel" y "Hábitos y alimentación" (Simétrico a Monitoring - KAN-654) ── */
-.recommendations-header-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.recommendations-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
+/* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492 · KAN-647) */
 
 .recommendations-page-body {
   display: flex;
@@ -182,12 +167,12 @@
   box-shadow: var(--focus-ring);
 }
 
-/* Selector interactivo de atletas con foto (KAN-654) */
+/* Selector interactivo de atleta con foto y búsqueda para Hábitos y alimentación (KAN-654) */
 .habits-select-container {
   position: relative;
-  flex: 1;
-  min-width: 260px;
-  max-width: 440px;
+  min-width: 240px;
+  max-width: 340px;
+  flex: 1 1 260px;
 }
 
 .habits-select-trigger {
@@ -196,18 +181,34 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  padding: 0.45rem 0.85rem;
-  background: var(--bg-card);
+  padding: 0.4rem 0.85rem;
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
+  color: var(--text-main);
   cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
   text-align: left;
-  transition: border-color 0.15s ease-in-out;
+  font-family: inherit;
 }
 
-.habits-select-trigger:hover,
-.habits-select-trigger.open {
-  border-color: var(--secondary);
+.habits-select-trigger:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+}
+
+.habits-select-trigger.open,
+.habits-select-trigger:focus-visible {
+  outline: none;
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+.habits-select-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .habits-select-selected-row {
@@ -218,15 +219,29 @@
   flex: 1;
 }
 
+.habits-select-avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .habits-select-selected-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  text-align: left;
+  line-height: 1.25;
 }
 
 .habits-select-selected-name {
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
@@ -253,24 +268,38 @@
 
 .habits-dropdown-panel {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
-  right: 0;
+  width: 100%;
+  min-width: 280px;
+  max-width: 360px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  z-index: 50;
+  z-index: 100;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: habitsDropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes habitsDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .habits-dropdown-search-wrap {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-subtle);
 }
@@ -287,27 +316,36 @@
   color: var(--text-main);
   font-size: 0.82rem;
   outline: none;
-  padding: 0.2rem 0;
+  font-family: inherit;
+}
+
+.habits-dropdown-search-input::placeholder {
+  color: var(--text-muted);
 }
 
 .habits-dropdown-list {
-  max-height: 220px;
+  max-height: 240px;
   overflow-y: auto;
+  padding: 0.35rem;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .habits-dropdown-item {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.65rem;
   border: none;
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
   text-align: left;
-  width: 100%;
-  transition: background 0.1s ease;
+  font-family: inherit;
+  transition: background 0.12s ease;
+  box-sizing: border-box;
 }
 
 .habits-dropdown-item:hover {
@@ -315,18 +353,20 @@
 }
 
 .habits-dropdown-item.selected {
-  background: var(--primary-light);
+  background: var(--bg-subtle);
+  font-weight: 600;
 }
 
 .habits-dropdown-item-info {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-width: 0;
+  flex: 1;
+  line-height: 1.25;
 }
 
 .habits-dropdown-item-name {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
@@ -343,10 +383,10 @@
 }
 
 .habits-dropdown-empty {
-  padding: 1.25rem 0.75rem;
+  padding: 1rem;
   text-align: center;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .recommendations-toolbar {
@@ -493,6 +533,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.recommendation-athlete-avatar-img {
+  border: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -1103,16 +1148,23 @@
   color: var(--primary-text);
 }
 
-@media (width <= 640px) {
+@media (width <=640px) {
   .recommendations-list,
   .athlete-recommendations-grid {
     grid-template-columns: 1fr;
   }
 
   .recommendations-select,
-  .recommendations-search-input {
+  .recommendations-search-input,
+  .habits-select-container {
     width: 100%;
     min-width: 0;
+    max-width: none;
+  }
+
+  .habits-dropdown-panel {
+    width: 100%;
+    max-width: none;
   }
 
   .recommendation-actions-container {

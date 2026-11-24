@@ -45,11 +45,23 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   const isApi = Boolean(src && isApiPhotoUrl(src));
   const cachedBlob = isApi && src ? blobUrlCache.get(src) : null;
   const [blobUrl, setBlobUrl] = useState<string | null>(cachedBlob || null);
+  const [currentSrc, setCurrentSrc] = useState<string | null | undefined>(src);
   const [hasError, setHasError] = useState(false);
 
+  // Al cambiar src entre renders, resetear inmediatamente para no mostrar el avatar anterior
+  if (currentSrc !== src) {
+    setCurrentSrc(src);
+    setBlobUrl(cachedBlob || null);
+    setHasError(false);
+  }
+
   useEffect(() => {
-    if (!isApi || !src) return;
-    if (blobUrlCache.has(src)) return;
+    if (!isApi || !src) {
+      return;
+    }
+    if (blobUrlCache.has(src)) {
+      return;
+    }
 
     if (!httpClient || typeof httpClient.get !== 'function') {
       return;
@@ -94,9 +106,8 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   // En entorno de testing (JSDOM), si no hay blob aún, se admite el src como fallback para permitir aserciones
   // síncronas de imagen accesible en tests unitarios de componentes padre.
   const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
-  const effectiveSrc = isApi
-    ? blobUrl || cachedBlob || (isTest && !hasError ? src : null)
-    : src || null;
+  const activeBlobUrl = currentSrc === src ? cachedBlob || blobUrl : cachedBlob || null;
+  const effectiveSrc = isApi ? activeBlobUrl || (isTest && !hasError ? src : null) : src || null;
 
   const dimension = typeof size === 'number' ? size : SIZE_MAP[size] || 48;
   const fontSize = Math.max(10, Math.round(dimension * 0.38));

@@ -816,6 +816,7 @@ export const OrganizationsPage: React.FC = () => {
                         }}
                       >
                         <ProfileAvatar
+                          key={`org-detail-avatar-${selectedOrg.id}`}
                           src={
                             selectedOrg.hasPhoto
                               ? structureService.getOrganizationPhotoUrl(
@@ -1356,6 +1357,7 @@ export const OrganizationsPage: React.FC = () => {
             </div>
 
             <PhotoUploadControl
+              key={`org-photo-upload-${photoOrg.id}`}
               currentPhotoUrl={
                 photoOrg.hasPhoto
                   ? structureService.getOrganizationPhotoUrl(photoOrg.id, photoOrg.photoUpdatedAt)

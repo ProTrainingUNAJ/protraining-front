@@ -80,4 +80,43 @@ describe('ProfileAvatar Component', () => {
       expect(screen.getByText('PF')).toBeDefined();
     });
   });
+
+  it('updates blob image immediately and does not show stale image when src changes to another athlete', async () => {
+    const blob1 = new Blob(['img1'], { type: 'image/webp' });
+    const blob2 = new Blob(['img2'], { type: 'image/webp' });
+    let urlCounter = 0;
+    global.URL.createObjectURL = vi.fn(() => `blob:http://localhost/mock-blob-${++urlCounter}`);
+
+    vi.mocked(httpClient.get)
+      .mockResolvedValueOnce({ data: blob1 })
+      .mockResolvedValueOnce({ data: blob2 });
+
+    const { rerender } = render(
+      <ProfileAvatar name="Agustina Morales" src="/estructura/api/v1/athletes/ath-1/photo" />,
+    );
+
+    await waitFor(() => {
+      const img = screen.getByRole('img');
+      expect(img.getAttribute('src')).toBe('blob:http://localhost/mock-blob-1');
+    });
+
+    rerender(<ProfileAvatar name="Bruno Castro" src="/estructura/api/v1/athletes/ath-2/photo" />);
+
+    await waitFor(() => {
+      const img = screen.getByRole('img');
+      expect(img.getAttribute('src')).toBe('blob:http://localhost/mock-blob-2');
+    });
+  });
+
+  it('al registrar un nuevo PF no tiene foto de perfil precargada y muestra sus iniciales (KAN-662)', () => {
+    render(<ProfileAvatar name="Franco López" src={null} />);
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getByText('FL')).toBeDefined();
+  });
+
+  it('al crear un nuevo atleta no tiene foto de perfil precargada y muestra sus iniciales (KAN-662)', () => {
+    render(<ProfileAvatar name="Mateo Gómez" src={undefined} />);
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getByText('MG')).toBeDefined();
+  });
 });

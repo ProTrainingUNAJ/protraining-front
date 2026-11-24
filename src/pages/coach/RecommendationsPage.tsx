@@ -139,9 +139,26 @@ export function RecommendationsPage() {
     return map;
   }, [athletes]);
 
+  const athleteMap = useMemo(() => {
+    const map = new Map<string, Athlete>();
+    for (const a of athletes) {
+      map.set(a.id, a);
+    }
+    return map;
+  }, [athletes]);
+
   const getAthleteDisplayName = useCallback(
     (athleteId: string) => athleteNamesById.get(athleteId) ?? `Atleta ${athleteId.slice(0, 8)}`,
     [athleteNamesById],
+  );
+
+  const getAthletePhotoUrl = useCallback(
+    (athleteId: string) => {
+      const athlete = athleteMap.get(athleteId);
+      if (!athlete || !athlete.hasPhoto) return null;
+      return structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt);
+    },
+    [athleteMap],
   );
 
   const countsByStatus = useMemo(() => {
@@ -218,9 +235,10 @@ export function RecommendationsPage() {
     return Array.from(groups.entries()).map(([athleteId, items]) => ({
       athleteId,
       athleteName: getAthleteDisplayName(athleteId),
+      athletePhotoUrl: getAthletePhotoUrl(athleteId),
       items,
     }));
-  }, [filteredRecommendations, getAthleteDisplayName]);
+  }, [filteredRecommendations, getAthleteDisplayName, getAthletePhotoUrl]);
 
   const targetCategoryForAnalysis = analysisCategoryId || selectedCategoryFilter;
   const selectedCategoryForAnalysis = categories.find((c) => c.id === targetCategoryForAnalysis);
@@ -596,6 +614,7 @@ export function RecommendationsPage() {
                 key={group.athleteId}
                 athleteId={group.athleteId}
                 athleteName={group.athleteName}
+                athletePhotoUrl={group.athletePhotoUrl}
                 recommendations={group.items}
                 statusTab={statusTab}
                 onUpdate={handleUpdate}

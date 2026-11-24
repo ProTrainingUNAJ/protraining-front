@@ -39,6 +39,10 @@ vi.mock('../../../api/structureService', () => ({
   structureService: {
     getCategories: getCategoriesMock,
     getAthletes: getAthletesMock,
+    getAthletePhotoUrl: vi.fn(
+      (id: string, v?: string | null) =>
+        `/estructura/api/v1/athletes/${id}/photo${v ? `?v=${encodeURIComponent(v)}` : ''}`,
+    ),
   },
 }));
 
@@ -131,6 +135,31 @@ describe('RecommendationsPage (KAN-492)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Ver datos de respaldo/i }));
     expect(screen.getByText('Salto Vertical CMJ (cm)')).toBeDefined();
     expect(screen.getByText('Tendencia estable')).toBeDefined();
+  });
+
+  it('muestra el avatar con foto del atleta cuando tiene foto cargada', async () => {
+    getAthletesMock.mockResolvedValue([
+      {
+        id: 'ath-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        active: true,
+        hasPhoto: true,
+        photoUpdatedAt: '2026-11-24T02:59:13Z',
+        categories: [],
+      },
+    ]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    const avatarImg = inList().getByRole('img', { name: /Foto de perfil de Lucas Gómez/i });
+    expect(avatarImg).toBeDefined();
+    expect(avatarImg.getAttribute('src')).toContain('/estructura/api/v1/athletes/ath-1/photo');
   });
 
   it('permite editar título y texto manteniendo el motivo inmutable', async () => {
