@@ -72,9 +72,9 @@ const pendingRec: AthleteRecommendation = {
   reviewedAtUtc: null,
 };
 
-function renderPage() {
+function renderPage(initialPath = '/pf/recommendations') {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialPath]}>
       <RecommendationsPage />
     </MemoryRouter>,
   );
@@ -373,5 +373,12 @@ describe('RecommendationsPage (KAN-492)', () => {
     // En "Hábitos y alimentación": visible el bloque de hábitos, oculto el motor físico
     expect(screen.getByLabelText('Generar recomendación de hábitos y alimentación')).toBeDefined();
     expect(screen.queryByText('Analizar plantel y generar propuestas')).toBeNull();
+  });
+
+  it('con ?view=habits abre directo en "Hábitos y alimentación"', async () => {
+    renderPage('/pf/recommendations?view=habits');
+
+    const habitsTab = await screen.findByRole('tab', { name: /Hábitos y alimentación/i });
+    expect(habitsTab.getAttribute('aria-selected')).toBe('true');
   });
 });
