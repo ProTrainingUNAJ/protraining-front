@@ -7,6 +7,7 @@ import {
   canAutoAdvanceStep5,
   hasRequiredInjuryMark,
   clearInjuryPains,
+  mapClinicalInjuriesToMusclePains,
   getSleepQualityLabel,
   getFatigueLabel,
   getSorenessLabel,
@@ -421,14 +422,40 @@ describe('checkInHelper · KAN-487', () => {
 
 // la ficha clínica y la silueta describen las mismas zonas; se consolidan en una sola.
 describe('checkInHelper · ficha clínica y silueta', () => {
-  describe('hasRequiredInjuryMark con lesión clínica', () => {
-    it('no exige pintar de negro una zona que ya viene de la ficha clínica', () => {
-      expect(hasRequiredInjuryMark(true, {}, ['isquiotibiales'])).toBe(true);
+  describe('hasRequiredInjuryMark con lesión clínica (KAN-660)', () => {
+    it('exige pintar de negro (nivel 6) la lesión en el cuerpo humano para poder avanzar', () => {
+      // Si el atleta tiene lesión activa pero el mapa aún no tiene nivel 6, no debe permitir avanzar
+      expect(hasRequiredInjuryMark(true, {})).toBe(false);
+      expect(hasRequiredInjuryMark(true, { isquiotibiales: 3 })).toBe(false);
+
+      // Una vez marcada con nivel 6 (o mapeada automáticamente), permite avanzar
+      expect(hasRequiredInjuryMark(true, { isquiotibial_derecho: 6 })).toBe(true);
     });
 
-    it('sigue exigiendo la marca manual si no hay lesión clínica', () => {
-      expect(hasRequiredInjuryMark(true, { cuadriceps: 2 }, [])).toBe(false);
-      expect(hasRequiredInjuryMark(true, { cuadriceps: 6 }, [])).toBe(true);
+    it('permite avanzar si el atleta indica que no hay lesión (hasActiveInjury === false)', () => {
+      expect(hasRequiredInjuryMark(false, {})).toBe(true);
+      expect(hasRequiredInjuryMark(false, { cuadriceps: 2 })).toBe(true);
+    });
+
+    it('sigue exigiendo la marca manual si no hay lesión clínica pero se indicó lesión activa', () => {
+      expect(hasRequiredInjuryMark(true, { cuadriceps: 2 })).toBe(false);
+      expect(hasRequiredInjuryMark(true, { cuadriceps: 6 })).toBe(true);
+    });
+  });
+
+  describe('mapClinicalInjuriesToMusclePains (KAN-660)', () => {
+    it('mapea lesiones reportadas a identificadores anatómicos del cuerpo humano con nivel 6', () => {
+      const pains = mapClinicalInjuriesToMusclePains([
+        { zone: 'Isquiotibiales' },
+        { zone: 'Rodilla izquierda' },
+      ]);
+      expect(pains.isquiotibial_derecho).toBe(6);
+      expect(pains.isquiotibial_izquierdo).toBe(6);
+      expect(pains.rodilla_izquierda).toBe(6);
+    });
+
+    it('devuelve objeto vacío si no hay lesiones reportadas', () => {
+      expect(mapClinicalInjuriesToMusclePains([])).toEqual({});
     });
   });
 
