@@ -1450,11 +1450,15 @@ export const RoutinePage: React.FC = () => {
           isOpen={Boolean(selectedExerciseForTimer)}
           onClose={() => setSelectedExerciseForTimer(null)}
           exerciseName={selectedExerciseForTimer.name}
-          defaultWorkSeconds={selectedExerciseForTimer.reps || 30}
+          // La meta de tiempo del PF viene en segundos (targetTimeSeconds); `reps` es la cantidad
+          // de repeticiones y daba "1 segundo" para una meta de 1 min (ensayo, KAN-481).
+          defaultWorkSeconds={selectedExerciseForTimer.targetTimeSeconds ?? 30}
+          lockWorkSeconds={selectedExerciseForTimer.targetTimeSeconds != null}
           totalSets={selectedExerciseForTimer.sets}
-          onSetCompleted={(setNum) => {
+          onSetCompleted={(setNum, workSeconds) => {
             const exKey = selectedExerciseForTimer.exerciseId || 'ex-0';
-            toggleSet(exKey, setNum);
+            // Carga el tiempo trabajado en la serie (y la tilda); el atleta lo corrige si hizo menos
+            handleRecordSetTime(exKey, setNum, workSeconds);
           }}
         />
       )}
