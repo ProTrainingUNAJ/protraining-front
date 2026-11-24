@@ -35,7 +35,7 @@ describe('ContactPfButton', () => {
     mockGetPfContact.mockResolvedValue({ phoneNumber: '5491123456789', telegramUsername: null });
     render(<ContactPfButton />);
 
-    const link = await screen.findByRole('link', { name: /Contactar a mi preparador/i });
+    const link = await screen.findByRole('link', { name: /Contactar a mi PF/i });
     expect(link.getAttribute('href')).toContain('https://wa.me/5491123456789?text=');
   });
 
@@ -84,7 +84,7 @@ describe('ContactPfButton', () => {
 
     render(<ContactPfButton />);
 
-    const trigger = await screen.findByRole('button', { name: /Contactar a mi preparador/i });
+    const trigger = await screen.findByRole('button', { name: /Contactar a mi PF/i });
     fireEvent.click(trigger);
 
     expect(screen.getByRole('menuitem', { name: /WhatsApp/i }).getAttribute('href')).toContain(
