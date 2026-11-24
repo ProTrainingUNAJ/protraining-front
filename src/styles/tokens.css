@@ -330,6 +330,13 @@
   /* Fondo al pasar el mouse por una fila (planificación, evolución) */
   --bg-hover: var(--bg-subtle);
 
+  /* Nombres que usaban algunas hojas sin estar definidos: una var() sin definir anula la
+     declaración entera (sin sombra, sin color). Se apoyan en los tokens existentes, así siguen
+     al modo oscuro. */
+  --shadow-md: var(--shadow);
+  --primary-subtle: var(--primary-light);
+  --text-secondary: var(--text-muted);
+
   --status-danger-bg: var(--danger-bg-strong);
   --status-danger-text: var(--danger-text);
   --status-success-bg: var(--success-bg-strong);
