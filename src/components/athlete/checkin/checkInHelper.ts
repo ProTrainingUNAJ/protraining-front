@@ -3,6 +3,7 @@
  */
 
 import { todayInArgentina } from '../../../utils/argentinaDate';
+import { MUSCLE_NAME_TO_SVG_IDS, normalizeMuscleString } from '../../../utils/exerciseMuscleMapper';
 
 export const STEP_TITLES: Record<number, string> = {
   1: 'Ánimo',
@@ -198,18 +199,50 @@ export const canAutoAdvanceStep5 = (answeredSick: boolean, answeredInjury: boole
 };
 
 /**
+ * Mapea las zonas de lesiones reportadas (de la ficha clínica / backend)
+ * a los identificadores anatómicos del mapa SVG con nivel 6 (color negro).
+ * (KAN-660: autoselección automática en cuerpo humano para lesiones reportadas)
+ */
+export const mapClinicalInjuriesToMusclePains = (
+  activeInjuries: ReadonlyArray<{ zone: string }>,
+): Record<string, number> => {
+  const pains: Record<string, number> = {};
+  if (!activeInjuries || activeInjuries.length === 0) return pains;
+
+  activeInjuries.forEach((injury) => {
+    if (!injury.zone) return;
+    const rawZone = injury.zone.trim().toLowerCase();
+    const normalized = normalizeMuscleString(rawZone);
+
+    // 1. Coincidencia con diccionario SVG IDs
+    const svgIds = MUSCLE_NAME_TO_SVG_IDS[normalized] || MUSCLE_NAME_TO_SVG_IDS[rawZone];
+    if (svgIds && svgIds.length > 0) {
+      svgIds.forEach((id) => {
+        pains[id] = 6;
+      });
+      return;
+    }
+
+    // 2. Coincidencia directa o formateada con guiones bajos
+    const directId = normalized.replace(/\s+/g, '_');
+    pains[directId] = 6;
+  });
+
+  return pains;
+};
+
+/**
  * Valida si el atleta cumple con marcar la lesión con color negro (level: 6)
- * cuando indica que tiene una lesión activa.
+ * cuando indica o tiene una lesión activa (KAN-660).
+ * La flecha no debe permitir avanzar hasta que se marque la lesión en el cuerpo
+ * humano (con nivel 6 / negro), o hasta que se ponga que no hay lesión (hasActiveInjury === false).
  */
 export const hasRequiredInjuryMark = (
   hasActiveInjury: boolean,
   musclePains: Record<string, number> = {},
-  clinicalZones: ReadonlyArray<string> = [],
 ): boolean => {
   if (!hasActiveInjury) return true;
-  // una lesión clínica ya es la marca de la zona; no hace falta pintarla de negro.
-  if (clinicalZones.length > 0) return true;
-  return Object.values(musclePains).some((level) => level === 6);
+  return Object.values(musclePains).some((level) => Number(level) === 6);
 };
 
 /**

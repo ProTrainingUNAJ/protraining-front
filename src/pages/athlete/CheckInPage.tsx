@@ -45,6 +45,7 @@ import {
   getReportedZones,
   clearInjuryPains,
   parsePainZones,
+  mapClinicalInjuriesToMusclePains,
 } from '../../components/athlete/checkin/checkInHelper';
 
 const getCachedAthleteId = (userId?: string): string | null => {
@@ -150,10 +151,8 @@ export const CheckInPage: React.FC = () => {
   );
   const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
 
-  // la ficha clínica es autoridad. El flag del wizard nunca puede negar una lesión activa.
-  const clinicalInjuryPresent = activeInjuries.length > 0;
-  const effectiveHasActiveInjury = hasActiveInjury || clinicalInjuryPresent;
-  const clinicalZones = activeInjuries.map((injury) => injury.zone);
+  // la ficha clínica activa inicialmente la lesión, pero el atleta puede indicar que no hay lesión hoy
+  const effectiveHasActiveInjury = hasActiveInjury;
 
   const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(
     () => initialDraft?.healthQuestionsAnswered ?? false,
@@ -455,6 +454,16 @@ export const CheckInPage: React.FC = () => {
         setActiveInjuries(
           injuries.map((i) => ({ id: i.id, zone: i.zone, description: i.description })),
         );
+        if (injuries.length > 0) {
+          // KAN-660: Si tiene lesión activa reportada, activar flag y precargar automáticamente con negro (nivel 6)
+          setHasActiveInjury(true);
+          setMusclePains((prev) => {
+            const hasLvl6 = Object.values(prev).some((lvl) => Number(lvl) === 6);
+            if (hasLvl6) return prev;
+            const autoPains = mapClinicalInjuriesToMusclePains(injuries);
+            return { ...prev, ...autoPains };
+          });
+        }
         setInjuryScores((prev) => {
           const next: Record<string, number | null> = {};
           for (const injury of injuries) {
@@ -680,18 +689,13 @@ export const CheckInPage: React.FC = () => {
     setMusclePains({});
   };
 
-  const handleInjuryChange = useCallback(
-    (hasInjury: boolean) => {
-      setErrorMessage(null);
-      // No se puede responder "sin lesión" si el cuerpo técnico registró una lesión activa.
-      if (!hasInjury && clinicalInjuryPresent) return;
-      setHasActiveInjury(hasInjury);
-      if (!hasInjury) {
-        setMusclePains((prev) => clearInjuryPains(prev));
-      }
-    },
-    [clinicalInjuryPresent],
-  );
+  const handleInjuryChange = useCallback((hasInjury: boolean) => {
+    setErrorMessage(null);
+    setHasActiveInjury(hasInjury);
+    if (!hasInjury) {
+      setMusclePains((prev) => clearInjuryPains(prev));
+    }
+  }, []);
 
   // Slide Navigation Handlers
   const goToStep = (stepNum: number) => {
@@ -738,10 +742,7 @@ export const CheckInPage: React.FC = () => {
     }
 
     // Si intenta ir más allá del paso 3 y tiene lesión activa sin marcar con negro:
-    if (
-      stepNum > 3 &&
-      !hasRequiredInjuryMark(effectiveHasActiveInjury, musclePains, clinicalZones)
-    ) {
+    if (stepNum > 3 && !hasRequiredInjuryMark(hasActiveInjury, musclePains)) {
       setErrorMessage(
         'Debés marcar en la silueta la zona lesionada con color negro (Lesión) para poder avanzar.',
       );
@@ -772,10 +773,7 @@ export const CheckInPage: React.FC = () => {
       );
       return;
     }
-    if (
-      currentStep === 3 &&
-      !hasRequiredInjuryMark(effectiveHasActiveInjury, musclePains, clinicalZones)
-    ) {
+    if (currentStep === 3 && !hasRequiredInjuryMark(hasActiveInjury, musclePains)) {
       setErrorMessage(
         'Debés marcar en la silueta la zona lesionada con color negro (Lesión) para poder avanzar.',
       );
@@ -1192,7 +1190,7 @@ export const CheckInPage: React.FC = () => {
                   onClearAll={handleClearPains}
                   isSick={isSick}
                   onSickChange={setIsSick}
-                  hasActiveInjury={effectiveHasActiveInjury}
+                  hasActiveInjury={hasActiveInjury}
                   onInjuryChange={handleInjuryChange}
                   healthQuestionsAnswered={healthQuestionsAnswered}
                   onHealthQuestionsAnswered={setHealthQuestionsAnswered}

@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan, Activity } from 'lucide-react';
 import { InteractiveMuscleMap } from '../InteractiveMuscleMap';
-import { hasRequiredInjuryMark, hasUnscoredActiveInjuries } from './checkInHelper';
+import {
+  hasRequiredInjuryMark,
+  hasUnscoredActiveInjuries,
+  mapClinicalInjuriesToMusclePains,
+} from './checkInHelper';
 import { ActiveInjuriesModal, ActiveInjuryItem } from './ActiveInjuriesModal';
 import { getMuscleSpanishName } from '../../../utils/exerciseMuscleMapper';
 
@@ -85,8 +89,21 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   const reportedPainsCount = Object.values(musclePains).filter((lvl) => lvl > 0).length;
   // el estado clínico se reconstruye desde la ficha, sin esperar al modal.
   const clinicalLesion = (activeInjuries?.length ?? 0) > 0;
-  const lesionActive = hasActiveInjury || clinicalLesion;
+  const lesionActive = hasActiveInjury ?? clinicalLesion;
   const missingScores = hasUnscoredActiveInjuries(activeInjuries ?? [], injuryScores);
+
+  // KAN-660: Si hay lesiones reportadas y no están marcadas con nivel 6 en el mapa anatómico,
+  // se marcan automáticamente en el cuerpo humano con negro (nivel 6).
+  useEffect(() => {
+    if (!activeInjuries || activeInjuries.length === 0) return;
+    const hasInjuryLevel6 = Object.values(musclePains).some((lvl) => Number(lvl) === 6);
+    if (!hasInjuryLevel6 && lesionActive) {
+      const autoPains = mapClinicalInjuriesToMusclePains(activeInjuries);
+      Object.entries(autoPains).forEach(([mId, lvl]) => {
+        onPainChange(mId, lvl);
+      });
+    }
+  }, [activeInjuries, lesionActive, musclePains, onPainChange]);
 
   // La ficha clínica puede llegar después del mount. Derivamos la apertura en render para
   // cubrir ese caso sin setState en un effect, y respetamos el cierre explícito del atleta.
@@ -101,15 +118,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   const injuriesModalOpen =
     !isBlocked && !injuriesModalDismissed && (showInjuriesModal || clinicalLesion);
 
-  const canProceed =
-    hasRequiredInjuryMark(
-      lesionActive,
-      musclePains,
-      activeInjuries?.map((i) => i.zone),
-    ) && !missingScores;
-  const nextBlockedReason = missingScores
-    ? 'Debés puntuar el dolor (0 a 10) de cada lesión activa para continuar.'
-    : 'Debés marcar la lesión para continuar.';
+  const hasInjuryMark = hasRequiredInjuryMark(lesionActive, musclePains);
+  const canProceed = hasInjuryMark && !missingScores;
+  const nextBlockedReason = !hasInjuryMark
+    ? 'Debés marcar la lesión en el cuerpo humano con color negro para poder avanzar.'
+    : missingScores
+      ? 'Debés puntuar el dolor (0 a 10) de cada lesión activa para continuar.'
+      : 'Debés marcar la lesión para continuar.';
 
   const lesionChip = (
     <button
