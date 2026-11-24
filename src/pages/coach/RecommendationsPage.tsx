@@ -328,23 +328,41 @@ export function RecommendationsPage() {
   };
 
   // Atletas para pedir hábitos y alimentación (KAN-634 · KAN-654), en orden alfabético con foto y categorías.
-  const habitsAthleteOptions: HabitsAthleteOption[] = useMemo(
-    () =>
-      athletes
-        .map((athlete) => ({
+  const habitsAthleteOptions: HabitsAthleteOption[] = useMemo(() => {
+    // Mapa rápido de categoría conocida por recomendación o histórico
+    const recCategoryByAthleteId = new Map<string, string>();
+    for (const rec of recommendations) {
+      if (rec.athleteId && rec.categoryId && !recCategoryByAthleteId.has(rec.athleteId)) {
+        const cat = categories.find((c) => c.id === rec.categoryId);
+        if (cat?.name) recCategoryByAthleteId.set(rec.athleteId, cat.name);
+      }
+    }
+
+    return athletes
+      .map((athlete) => {
+        let catNames =
+          athlete.categoryNames && athlete.categoryNames.length > 0
+            ? athlete.categoryNames
+            : athlete.categories?.map((c) => c.name) || [];
+
+        if (catNames.length === 0) {
+          const fallbackName = recCategoryByAthleteId.get(athlete.id);
+          if (fallbackName) {
+            catNames = [fallbackName];
+          }
+        }
+
+        return {
           id: athlete.id,
           name: getAthleteDisplayName(athlete.id),
           photoUrl: athlete.hasPhoto
             ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
             : null,
-          categoryNames:
-            athlete.categoryNames && athlete.categoryNames.length > 0
-              ? athlete.categoryNames
-              : athlete.categories?.map((c) => c.name) || [],
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'es')),
-    [athletes, getAthleteDisplayName],
-  );
+          categoryNames: catNames,
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  }, [athletes, recommendations, categories, getAthleteDisplayName]);
 
   const handleHabitsGenerated = async (athleteName: string) => {
     const refreshed = await recommendationsService.listRecommendations();

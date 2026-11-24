@@ -1253,6 +1253,17 @@
     min-width: 0;
   }
 
+  .app-page-header {
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+
+  .app-page-header-info {
+    width: 100%;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
   .app-page-title {
     font-size: 1.25rem;
     line-height: 1.15;
@@ -1266,10 +1277,19 @@
   }
 
   .app-page-header-actions {
-    flex-wrap: wrap;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     gap: 0.35rem;
     max-width: 100%;
     min-width: 0;
+    padding-bottom: 0.2rem;
+  }
+
+  .app-page-header-actions::-webkit-scrollbar {
+    display: none;
   }
 
   /* Un selector con opciones largas no puede estirar el encabezado más allá de la pantalla */
@@ -1277,6 +1297,8 @@
   .app-page-header-actions select {
     max-width: 100%;
     min-width: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .app-page-body {
