@@ -359,7 +359,10 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
       : 'var(--checkin-scale-green)';
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div
+      className="checkin-slide-root"
+      style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
       <div className="pixel-slide-card checkin-completed-card">
         {/* ── Cabecera Superior con Botón Circular Editar Respuestas a la altura del Título ── */}
         <div
@@ -393,460 +396,464 @@ export const CheckInCompletedSlide: React.FC<CheckInCompletedSlideProps> = ({
           <div style={{ width: '40px', minWidth: '40px' }} />
         </div>
 
-        {/* Subtítulo en Montserrat */}
-        <p className="pixel-slide-subtitle">
-          {submissionResult.isOffline
-            ? 'Tu check-in se guardó localmente. Se enviará en cuanto recuperes conexión.'
-            : 'Tus sensaciones ya fueron calibradas para la planificación de tu cuerpo técnico.'}
-        </p>
+        {/* Zona scrolleable: el scroll queda acá para que "Editar respuestas"
+            siempre quede visible (KAN-595) */}
+        <div className="checkin-card-scroll">
+          {/* Subtítulo en Montserrat */}
+          <p className="pixel-slide-subtitle">
+            {submissionResult.isOffline
+              ? 'Tu check-in se guardó localmente. Se enviará en cuanto recuperes conexión.'
+              : 'Tus sensaciones ya fueron calibradas para la planificación de tu cuerpo técnico.'}
+          </p>
 
-        {/* Burbuja Central Hero (120px) con el semáforo adentro para igualar forma y posición con la 3ra imagen */}
-        <div
-          className="pixel-bubble-hero"
-          style={{
-            background: 'var(--checkin-next-btn-bg)',
-            boxShadow: '0 8px 24px rgba(0, 119, 200, 0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          aria-label={`Semáforo de estado: ${badge.label}`}
-        >
-          {/* Carcasa del semáforo estilo cápsula compacta dentro del círculo */}
-          <div className="checkin-traffic-shell checkin-traffic-shell--compact" role="img">
-            {/* Luz Roja (Arriba) */}
-            <div
-              className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isRed ? 'checkin-traffic-bulb--red-on' : 'checkin-traffic-bulb--red-off'}`}
-            >
-              {isRed && <div className="checkin-traffic-bulb-reflection" />}
-            </div>
-
-            {/* Luz Amarilla (Al medio) */}
-            <div
-              className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isYellow ? 'checkin-traffic-bulb--yellow-on' : 'checkin-traffic-bulb--yellow-off'}`}
-            >
-              {isYellow && <div className="checkin-traffic-bulb-reflection" />}
-            </div>
-
-            {/* Luz Verde (Abajo) */}
-            <div
-              className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isGreen ? 'checkin-traffic-bulb--green-on' : 'checkin-traffic-bulb--green-off'}`}
-            >
-              {isGreen && <div className="checkin-traffic-bulb-reflection" />}
-            </div>
-          </div>
-        </div>
-
-        {/* Trazos curvos decorativos (︵ ︵) */}
-        <div className="pixel-bubble-waves" aria-hidden="true">
-          <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
-            <path
-              d="M 3 4 Q 11 9 19 4"
-              stroke="var(--checkin-waves-stroke)"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 3 9 Q 11 14 19 9"
-              stroke="var(--checkin-waves-stroke)"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
-
-        {/* Texto Semáforo Técnico */}
-        <div
-          style={{
-            margin: '0.2rem auto 0.65rem',
-            fontWeight: 800,
-            fontSize: '1.05rem',
-            color: badge.color,
-            fontFamily: 'var(--font-base)',
-            textAlign: 'center',
-            letterSpacing: '-0.015em',
-          }}
-        >
-          {badge.label}
-        </div>
-
-        {/* Diagnóstico de carga (si fue devuelto por el motor) */}
-        {submissionResult.trafficLightReason && (
+          {/* Burbuja Central Hero (120px) con el semáforo adentro para igualar forma y posición con la 3ra imagen */}
           <div
+            className="pixel-bubble-hero"
             style={{
-              width: '100%',
-              maxWidth: '680px',
-              background: 'var(--checkin-subtle-box-bg)',
-              border: '1.5px solid var(--checkin-subtle-box-border)',
-              borderRadius: '16px',
-              padding: '0.65rem 1rem',
-              margin: '0 auto 0.85rem',
-              textAlign: 'left',
-              fontSize: '0.84rem',
-              color: 'var(--checkin-title-color)',
+              background: 'var(--checkin-next-btn-bg)',
+              boxShadow: '0 8px 24px rgba(0, 119, 200, 0.35)',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.65rem',
-              boxSizing: 'border-box',
-              fontFamily: 'var(--font-base)',
+              justifyContent: 'center',
             }}
+            aria-label={`Semáforo de estado: ${badge.label}`}
           >
-            <AlertTriangle size={17} style={{ color: badge.color, flexShrink: 0 }} />
-            <div>
-              <strong style={{ color: 'var(--checkin-title-color)', marginRight: '0.35rem' }}>
-                Diagnóstico de carga:
-              </strong>
-              <span style={{ color: 'var(--checkin-subtitle-color)' }}>
-                {submissionResult.trafficLightReason}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* ── Panel Unificado de Métricas de Resumen en 2 Columnas Compactas ── */}
-        <div className="checkin-summary-unified-grid">
-          {/* 1. ÁNIMO — Paso 1 */}
-          <div className="checkin-summary-item checkin-summary-item--readonly">
-            <div className="checkin-summary-item-content">
+            {/* Carcasa del semáforo estilo cápsula compacta dentro del círculo */}
+            <div className="checkin-traffic-shell checkin-traffic-shell--compact" role="img">
+              {/* Luz Roja (Arriba) */}
               <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: activeMood.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 4px 10px ${activeMood.color}40`,
-                }}
+                className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isRed ? 'checkin-traffic-bulb--red-on' : 'checkin-traffic-bulb--red-off'}`}
               >
-                {renderMoodFace(activeMood.eyeType, 26)}
+                {isRed && <div className="checkin-traffic-bulb-reflection" />}
               </div>
 
-              <div className="checkin-summary-item-texts">
-                <span className="checkin-summary-item-label">Ánimo</span>
-                <strong className="checkin-summary-item-val">{activeMood.label}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. DOLOR MUSCULAR — Paso 2 */}
-          <div className="checkin-summary-item checkin-summary-item--readonly">
-            <div className="checkin-summary-item-content">
+              {/* Luz Amarilla (Al medio) */}
               <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: sorenessColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 4px 10px ${sorenessColor}40`,
-                }}
+                className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isYellow ? 'checkin-traffic-bulb--yellow-on' : 'checkin-traffic-bulb--yellow-off'}`}
               >
-                {renderBicepsMuscle(22, 'var(--white)')}
+                {isYellow && <div className="checkin-traffic-bulb-reflection" />}
               </div>
 
-              <div className="checkin-summary-item-texts">
-                <span className="checkin-summary-item-label">Dolor muscular</span>
-                <strong className="checkin-summary-item-val">
-                  {confirmedMuscleSoreness !== null
-                    ? getSorenessLabel(confirmedMuscleSoreness)
-                    : 'No registrado'}
-                </strong>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. SUEÑO — Paso 2 */}
-          <div className="checkin-summary-item checkin-summary-item--readonly">
-            <div className="checkin-summary-item-content">
+              {/* Luz Verde (Abajo) */}
               <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: sleepColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 4px 10px ${sleepColor}40`,
-                }}
+                className={`checkin-traffic-bulb checkin-traffic-bulb--compact ${isGreen ? 'checkin-traffic-bulb--green-on' : 'checkin-traffic-bulb--green-off'}`}
               >
-                <Moon size={22} color="var(--white)" fill="var(--white)" />
-              </div>
-
-              <div className="checkin-summary-item-texts">
-                <span className="checkin-summary-item-label">Sueño</span>
-                <strong className="checkin-summary-item-val">
-                  {getSleepHoursLabel(confirmedSleepHours)}
-                </strong>
+                {isGreen && <div className="checkin-traffic-bulb-reflection" />}
               </div>
             </div>
           </div>
 
-          {/* 4. ZONAS CON DOLOR — Paso 3 */}
-          <div className="checkin-summary-item checkin-summary-item--readonly">
-            <div className="checkin-summary-item-content">
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: painZonesColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 4px 10px ${painZonesColor}40`,
-                }}
-              >
-                <Activity size={22} color="var(--white)" strokeWidth={2.6} />
-              </div>
-
-              <div className="checkin-summary-item-texts">
-                <span className="checkin-summary-item-label">Zonas con dolor</span>
-                <strong className="checkin-summary-item-val">
-                  {reportedCount === 0
-                    ? 'Sin zonas señaladas'
-                    : `${reportedCount} zona(s) marcada(s)`}
-                </strong>
-              </div>
-            </div>
+          {/* Trazos curvos decorativos (︵ ︵) */}
+          <div className="pixel-bubble-waves" aria-hidden="true">
+            <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
+              <path
+                d="M 3 4 Q 11 9 19 4"
+                stroke="var(--checkin-waves-stroke)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 3 9 Q 11 14 19 9"
+                stroke="var(--checkin-waves-stroke)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
 
-          {/* 5. FATIGA FÍSICA — Paso 2 */}
-          <div className="checkin-summary-item checkin-summary-item--readonly">
-            <div className="checkin-summary-item-content">
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: fatigueColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 4px 10px ${fatigueColor}40`,
-                }}
-              >
-                <Zap size={22} color="var(--white)" fill="var(--white)" />
-              </div>
-
-              <div className="checkin-summary-item-texts">
-                <span className="checkin-summary-item-label">Fatiga física</span>
-                <strong className="checkin-summary-item-val">
-                  {confirmedFatigueLevel !== null
-                    ? getFatigueLabel(confirmedFatigueLevel)
-                    : 'No registrado'}
-                </strong>
-              </div>
-            </div>
-          </div>
-
-          {/* 6. SALUD Y LESIÓN — Paso 3 */}
-          <div className="checkin-summary-item checkin-summary-item--readonly">
-            <div className="checkin-summary-item-content">
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: healthInjuryColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 4px 10px ${healthInjuryColor}40`,
-                }}
-              >
-                <HeartPulse size={22} color="var(--white)" strokeWidth={2.6} />
-              </div>
-
-              <div className="checkin-summary-item-texts">
-                <span className="checkin-summary-item-label">Salud y Lesión</span>
-                <strong
-                  className="checkin-summary-item-val"
-                  style={{
-                    color:
-                      confirmedIsSick || effectiveHasActiveInjury
-                        ? 'var(--traffic-red)'
-                        : 'var(--traffic-green)',
-                  }}
-                >
-                  {getHealthInjurySummary()}
-                </strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Detalle de Zonas de Dolor Reportadas (si hay) */}
-        {reportedCount > 0 && (
+          {/* Texto Semáforo Técnico */}
           <div
             style={{
-              width: '100%',
-              maxWidth: '680px',
-              marginBottom: '1.1rem',
-              textAlign: 'left',
-              boxSizing: 'border-box',
+              margin: '0.2rem auto 0.65rem',
+              fontWeight: 800,
+              fontSize: '1.05rem',
+              color: badge.color,
               fontFamily: 'var(--font-base)',
+              textAlign: 'center',
+              letterSpacing: '-0.015em',
             }}
           >
+            {badge.label}
+          </div>
+
+          {/* Diagnóstico de carga (si fue devuelto por el motor) */}
+          {submissionResult.trafficLightReason && (
             <div
               style={{
+                width: '100%',
+                maxWidth: '680px',
+                background: 'var(--checkin-subtle-box-bg)',
+                border: '1.5px solid var(--checkin-subtle-box-border)',
+                borderRadius: '16px',
+                padding: '0.65rem 1rem',
+                margin: '0 auto 0.85rem',
+                textAlign: 'left',
+                fontSize: '0.84rem',
+                color: 'var(--checkin-title-color)',
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '0.45rem',
+                gap: '0.65rem',
+                boxSizing: 'border-box',
+                fontFamily: 'var(--font-base)',
               }}
             >
-              <span
+              <AlertTriangle size={17} style={{ color: badge.color, flexShrink: 0 }} />
+              <div>
+                <strong style={{ color: 'var(--checkin-title-color)', marginRight: '0.35rem' }}>
+                  Diagnóstico de carga:
+                </strong>
+                <span style={{ color: 'var(--checkin-subtitle-color)' }}>
+                  {submissionResult.trafficLightReason}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ── Panel Unificado de Métricas de Resumen en 2 Columnas Compactas ── */}
+          <div className="checkin-summary-unified-grid">
+            {/* 1. ÁNIMO — Paso 1 */}
+            <div className="checkin-summary-item checkin-summary-item--readonly">
+              <div className="checkin-summary-item-content">
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: activeMood.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: `0 4px 10px ${activeMood.color}40`,
+                  }}
+                >
+                  {renderMoodFace(activeMood.eyeType, 26)}
+                </div>
+
+                <div className="checkin-summary-item-texts">
+                  <span className="checkin-summary-item-label">Ánimo</span>
+                  <strong className="checkin-summary-item-val">{activeMood.label}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. DOLOR MUSCULAR — Paso 2 */}
+            <div className="checkin-summary-item checkin-summary-item--readonly">
+              <div className="checkin-summary-item-content">
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: sorenessColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: `0 4px 10px ${sorenessColor}40`,
+                  }}
+                >
+                  {renderBicepsMuscle(22, 'var(--white)')}
+                </div>
+
+                <div className="checkin-summary-item-texts">
+                  <span className="checkin-summary-item-label">Dolor muscular</span>
+                  <strong className="checkin-summary-item-val">
+                    {confirmedMuscleSoreness !== null
+                      ? getSorenessLabel(confirmedMuscleSoreness)
+                      : 'No registrado'}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. SUEÑO — Paso 2 */}
+            <div className="checkin-summary-item checkin-summary-item--readonly">
+              <div className="checkin-summary-item-content">
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: sleepColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: `0 4px 10px ${sleepColor}40`,
+                  }}
+                >
+                  <Moon size={22} color="var(--white)" fill="var(--white)" />
+                </div>
+
+                <div className="checkin-summary-item-texts">
+                  <span className="checkin-summary-item-label">Sueño</span>
+                  <strong className="checkin-summary-item-val">
+                    {getSleepHoursLabel(confirmedSleepHours)}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. ZONAS CON DOLOR — Paso 3 */}
+            <div className="checkin-summary-item checkin-summary-item--readonly">
+              <div className="checkin-summary-item-content">
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: painZonesColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: `0 4px 10px ${painZonesColor}40`,
+                  }}
+                >
+                  <Activity size={22} color="var(--white)" strokeWidth={2.6} />
+                </div>
+
+                <div className="checkin-summary-item-texts">
+                  <span className="checkin-summary-item-label">Zonas con dolor</span>
+                  <strong className="checkin-summary-item-val">
+                    {reportedCount === 0
+                      ? 'Sin zonas señaladas'
+                      : `${reportedCount} zona(s) marcada(s)`}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. FATIGA FÍSICA — Paso 2 */}
+            <div className="checkin-summary-item checkin-summary-item--readonly">
+              <div className="checkin-summary-item-content">
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: fatigueColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: `0 4px 10px ${fatigueColor}40`,
+                  }}
+                >
+                  <Zap size={22} color="var(--white)" fill="var(--white)" />
+                </div>
+
+                <div className="checkin-summary-item-texts">
+                  <span className="checkin-summary-item-label">Fatiga física</span>
+                  <strong className="checkin-summary-item-val">
+                    {confirmedFatigueLevel !== null
+                      ? getFatigueLabel(confirmedFatigueLevel)
+                      : 'No registrado'}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* 6. SALUD Y LESIÓN — Paso 3 */}
+            <div className="checkin-summary-item checkin-summary-item--readonly">
+              <div className="checkin-summary-item-content">
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: healthInjuryColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: `0 4px 10px ${healthInjuryColor}40`,
+                  }}
+                >
+                  <HeartPulse size={22} color="var(--white)" strokeWidth={2.6} />
+                </div>
+
+                <div className="checkin-summary-item-texts">
+                  <span className="checkin-summary-item-label">Salud y Lesión</span>
+                  <strong
+                    className="checkin-summary-item-val"
+                    style={{
+                      color:
+                        confirmedIsSick || effectiveHasActiveInjury
+                          ? 'var(--traffic-red)'
+                          : 'var(--traffic-green)',
+                    }}
+                  >
+                    {getHealthInjurySummary()}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detalle de Zonas de Dolor Reportadas (si hay) */}
+          {reportedCount > 0 && (
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '680px',
+                marginBottom: '1.1rem',
+                textAlign: 'left',
+                boxSizing: 'border-box',
+                fontFamily: 'var(--font-base)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '0.45rem',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.84rem',
+                    fontWeight: 800,
+                    color: 'var(--checkin-title-color)',
+                    fontFamily: 'var(--font-base)',
+                  }}
+                >
+                  Detalle de zonas con dolor ({reportedCount}):
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowBodyMap(!showBodyMap)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--primary)',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    padding: 0,
+                    fontFamily: 'var(--font-base)',
+                  }}
+                >
+                  <span>{showBodyMap ? 'Ocultar silueta' : 'Ver en silueta'}</span>
+                  {showBodyMap ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+              </div>
+
+              <div
                 style={{
                   fontSize: '0.84rem',
-                  fontWeight: 800,
+                  lineHeight: '1.5',
+                  color: 'var(--checkin-title-color)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.35rem 0.55rem',
+                  alignItems: 'center',
+                }}
+              >
+                {reportedZones.map((reported, idx) => {
+                  const m = PROTRAINING_MUSCLES.find((x) => x.id === reported.zone);
+                  const isInjury = reported.level === 6;
+                  const painInfo = PAIN_LEVELS.find((p) => p.level === reported.level);
+                  const painLabel =
+                    painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${reported.level}`);
+                  const color = isInjury ? 'var(--traffic-red)' : getPainColor(reported.level);
+                  return (
+                    <span
+                      key={reported.zone}
+                      style={{ display: 'inline-flex', alignItems: 'center' }}
+                    >
+                      <span
+                        style={{
+                          width: '7px',
+                          height: '7px',
+                          borderRadius: '50%',
+                          background: color,
+                          marginRight: '0.35rem',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <strong>{m?.name || reported.zone}:</strong>&nbsp;
+                      <span style={{ color, fontWeight: 700 }}>
+                        {painLabel}
+                        {reported.score !== null ? ` · ${reported.score}/10` : ''}
+                      </span>
+                      {idx < reportedZones.length - 1 && <span>,</span>}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Vista desplegable del mapa muscular anatómico */}
+              {showBodyMap && (
+                <div className="checkin-completed-body-map">
+                  <div className="checkin-completed-body-map-view">
+                    <MuscleMapFront
+                      selectedMuscles={[]}
+                      musclePains={confirmedMusclePains}
+                      readOnly={true}
+                      hideHeader={true}
+                    />
+                  </div>
+                  <div className="checkin-completed-body-map-view">
+                    <MuscleMapBack
+                      selectedMuscles={[]}
+                      musclePains={confirmedMusclePains}
+                      readOnly={true}
+                      hideHeader={true}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Observaciones adicionales (si existen) */}
+          {notes && notes.trim().length > 0 && (
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '680px',
+                marginBottom: '1.1rem',
+                padding: '0.75rem 1.15rem',
+                background: 'var(--checkin-subtle-box-bg)',
+                border: '1.5px solid var(--checkin-subtle-box-border)',
+                borderRadius: '16px',
+                textAlign: 'left',
+                boxSizing: 'border-box',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  marginBottom: '0.25rem',
                   color: 'var(--checkin-title-color)',
                   fontFamily: 'var(--font-base)',
                 }}
               >
-                Detalle de zonas con dolor ({reportedCount}):
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowBodyMap(!showBodyMap)}
+                <MessageSquare size={16} style={{ color: 'var(--primary)' }} />
+                <strong style={{ fontSize: '0.84rem' }}>Observaciones enviadas:</strong>
+              </div>
+              <p
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--primary)',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  padding: 0,
+                  margin: 0,
+                  fontSize: '0.84rem',
+                  color: 'var(--checkin-subtitle-color)',
+                  fontStyle: 'italic',
                   fontFamily: 'var(--font-base)',
                 }}
               >
-                <span>{showBodyMap ? 'Ocultar silueta' : 'Ver en silueta'}</span>
-                {showBodyMap ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
+                "{notes}"
+              </p>
             </div>
-
-            <div
-              style={{
-                fontSize: '0.84rem',
-                lineHeight: '1.5',
-                color: 'var(--checkin-title-color)',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '0.35rem 0.55rem',
-                alignItems: 'center',
-              }}
-            >
-              {reportedZones.map((reported, idx) => {
-                const m = PROTRAINING_MUSCLES.find((x) => x.id === reported.zone);
-                const isInjury = reported.level === 6;
-                const painInfo = PAIN_LEVELS.find((p) => p.level === reported.level);
-                const painLabel =
-                  painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${reported.level}`);
-                const color = isInjury ? 'var(--traffic-red)' : getPainColor(reported.level);
-                return (
-                  <span
-                    key={reported.zone}
-                    style={{ display: 'inline-flex', alignItems: 'center' }}
-                  >
-                    <span
-                      style={{
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        background: color,
-                        marginRight: '0.35rem',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <strong>{m?.name || reported.zone}:</strong>&nbsp;
-                    <span style={{ color, fontWeight: 700 }}>
-                      {painLabel}
-                      {reported.score !== null ? ` · ${reported.score}/10` : ''}
-                    </span>
-                    {idx < reportedZones.length - 1 && <span>,</span>}
-                  </span>
-                );
-              })}
-            </div>
-
-            {/* Vista desplegable del mapa muscular anatómico */}
-            {showBodyMap && (
-              <div className="checkin-completed-body-map">
-                <div className="checkin-completed-body-map-view">
-                  <MuscleMapFront
-                    selectedMuscles={[]}
-                    musclePains={confirmedMusclePains}
-                    readOnly={true}
-                    hideHeader={true}
-                  />
-                </div>
-                <div className="checkin-completed-body-map-view">
-                  <MuscleMapBack
-                    selectedMuscles={[]}
-                    musclePains={confirmedMusclePains}
-                    readOnly={true}
-                    hideHeader={true}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Observaciones adicionales (si existen) */}
-        {notes && notes.trim().length > 0 && (
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '680px',
-              marginBottom: '1.1rem',
-              padding: '0.75rem 1.15rem',
-              background: 'var(--checkin-subtle-box-bg)',
-              border: '1.5px solid var(--checkin-subtle-box-border)',
-              borderRadius: '16px',
-              textAlign: 'left',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                marginBottom: '0.25rem',
-                color: 'var(--checkin-title-color)',
-                fontFamily: 'var(--font-base)',
-              }}
-            >
-              <MessageSquare size={16} style={{ color: 'var(--primary)' }} />
-              <strong style={{ fontSize: '0.84rem' }}>Observaciones enviadas:</strong>
-            </div>
-            <p
-              style={{
-                margin: 0,
-                fontSize: '0.84rem',
-                color: 'var(--checkin-subtitle-color)',
-                fontStyle: 'italic',
-                fontFamily: 'var(--font-base)',
-              }}
-            >
-              "{notes}"
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

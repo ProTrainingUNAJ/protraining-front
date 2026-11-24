@@ -107,48 +107,65 @@
 
 /* Reducción progresiva de gap en alturas intermedias-bajas */
 @media (min-width: 769px) and (max-height: 540px) {
-  .checkin-body-compact { gap: 0.05rem !important; }
+  .checkin-body-compact {
+    gap: 0.05rem !important;
+  }
   .pixel-slide-card,
   .pixel-mood-card,
-  .pixel-welcome-card { padding: 0.7rem 0.5rem 0.85rem; }
+  .pixel-welcome-card {
+    padding: 0.7rem 0.5rem 0.85rem;
+  }
   .pixel-slide-card .pixel-slide-title,
-  .pixel-slide-card .pixel-slide-subtitle { font-size: clamp(1rem, 2.2dvh, 1.25rem); }
+  .pixel-slide-card .pixel-slide-subtitle {
+    font-size: clamp(1rem, 2.2dvh, 1.25rem);
+  }
 }
 @media (max-width: 768px) and (max-height: 640px) {
-  .checkin-body-compact { gap: 0.05rem !important; }
+  .checkin-body-compact {
+    gap: 0.05rem !important;
+  }
   .pixel-slide-card,
   .pixel-mood-card,
-  .pixel-welcome-card { padding: 0.65rem 0.5rem 0.8rem; }
-  .pixel-slide-card .pixel-slide-title,
-  .pixel-slide-card .pixel-slide-subtitle { font-size: clamp(0.95rem, 2.2dvh, 1.2rem); }
-}
-
-/* Bienvenida: altura definida por contenido (sin tope fijo 812px), con tope
-   relativo al viewport para evitar scroll innecesario. Sólo si el contenido no
-   entra; el contenido puede navegar internamente. */
-.pixel-welcome-card {
-  min-height: 0;
-  max-height: min(100dvh - 100px, 520px);
-  overflow-y: auto;
-}
-
-@media (max-width: 768px) {
   .pixel-welcome-card {
-    max-height: min(100dvh - 60px, 420px);
+    padding: 0.65rem 0.5rem 0.8rem;
+  }
+  .pixel-slide-card .pixel-slide-title,
+  .pixel-slide-card .pixel-slide-subtitle {
+    font-size: clamp(0.95rem, 2.2dvh, 1.2rem);
   }
 }
 
-/* Confirmación: sin tope forzado de altura; el contenido crece con el mapa
-   anatómico. Sin overflow fuera del ordinario. */
+/* Bienvenida: altura definida por contenido; sólo si en viewports muy bajos el
+   contenido no entra, la propia tarjeta hace scroll interno (scroll único). */
+.pixel-welcome-card {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.pixel-welcome-subtitle {
+  margin: 0.35rem 0 2.25rem;
+}
+
+@media (max-height: 700px) {
+  .pixel-welcome-subtitle {
+    margin: 0.25rem 0 1.25rem;
+  }
+}
+
+/* Confirmación: misma jerarquía de scroll que los demás pasos; si el mapa
+   anatómico desborda, el scroll queda en .checkin-card-scroll. */
 .checkin-main-bubble--completed {
   height: auto;
   min-height: 0;
   justify-content: flex-start;
-  overflow: visible;
 }
 
-/* Cuerpo del check-in: tope sensible a la altura, con scroll interno solo si
-   algún paso no cabe. El encabezado de página no se mueve. */
+/* Cuerpo del check-in: altura fija. El scroll vive dentro de la tarjeta
+   (.checkin-card-scroll) para que la barra de progreso y los botones de
+   navegación queden siempre visibles. El encabezado de página no se mueve. */
 main.app-content-body:has(.checkin-body-compact) > .app-page-container {
   height: 100%;
 }
@@ -156,7 +173,7 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
 .checkin-body-compact {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
 }
 
@@ -164,6 +181,8 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
 .checkin-main-bubble,
 .card.checkin-main-bubble {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   margin: 0;
   padding: 0.1rem 0;
   box-sizing: border-box;
@@ -171,6 +190,7 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  overflow: hidden;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -182,6 +202,8 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
 .checkin-slide-container {
   max-width: 860px;
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 100%;
   margin: 0 auto;
   display: flex;
@@ -191,9 +213,37 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
   overflow: visible;
 }
 
+/* ── KAN-595: cadena de altura para que el scroll viva dentro de la tarjeta ── */
+/* Raíz de cada paso dentro de .checkin-slide-container (dolor, resumen,
+   completado) y del wrapper del paso de ánimo. */
+.checkin-slide-root,
+.checkin-slide-form,
+.checkin-pixel-mood-slide,
+.pixel-mood-screen-container {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Zona scrolleable del contenido de cada paso: el scroll queda acá para que la
+   barra de progreso y los botones de Atrás/Siguiente/Enviar siempre queden
+   visibles, sin tapar ni cortar el contenido. */
+.checkin-card-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: inherit;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
 /* ── Top Progress Bar ── */
 .checkin-progress-wrap {
   position: relative;
+  flex-shrink: 0;
   background: var(--checkin-card-bg);
   padding: 0.45rem 1.25rem;
   border-radius: 14px;
@@ -1679,6 +1729,7 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
   justify-content: space-between;
   margin-bottom: 0.1rem;
   position: relative;
+  flex-shrink: 0;
 }
 
 .pixel-mood-bubble-center {
@@ -1765,6 +1816,24 @@ main.app-content-body:has(.checkin-body-compact) > .app-page-container {
   max-height: clamp(270px, 46dvh, 420px) !important;
   display: block;
   margin: 0 auto;
+}
+
+/* KAN-595: con alturas de viewport bajas la silueta se achica para que el paso
+   de dolor entre sin scroll interno (1366x768) y sin cortar la navegación. */
+@media (min-width: 769px) and (max-height: 820px) {
+  .pixel-slide-card .muscle-map-front-svg,
+  .pixel-slide-card .muscle-map-back-svg {
+    height: clamp(240px, 40dvh, 340px) !important;
+    max-height: clamp(240px, 40dvh, 340px) !important;
+  }
+}
+
+@media (max-width: 768px) and (max-height: 700px) {
+  .pixel-slide-card .muscle-map-front-svg,
+  .pixel-slide-card .muscle-map-back-svg {
+    height: clamp(220px, 38dvh, 320px) !important;
+    max-height: clamp(220px, 38dvh, 320px) !important;
+  }
 }
 
 .pixel-slide-card .checkin-health-bar {
