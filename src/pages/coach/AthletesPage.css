@@ -25,6 +25,10 @@
   background: var(--bg-card);
 }
 
+.athletes-create-modal {
+  max-width: 640px;
+}
+
 .athletes-create-title {
   margin-bottom: var(--spacing-2xs);
   color: var(--primary-text);
