@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
+  Activity,
   User,
   Bell,
   Palette,
@@ -19,12 +20,14 @@ import {
   EyeOff,
   AlertCircle,
   Shield,
+  Loader2,
 } from 'lucide-react';
 import { PageHeader } from '../shell/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
 import { validateTelegramUsername } from '../../utils/telegram';
 import { structureService } from '../../api/structureService';
+import { ATHLETIC_GOAL_OPTIONS } from '../../types/structure';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
 import { AthleteMarksSection } from './AthleteMarksSection';
 import { ChangePasswordSection } from './ChangePasswordSection';
@@ -42,7 +45,12 @@ interface SettingsViewProps {
 }
 
 type SettingsTab =
-  'profile' | 'security' | 'appearance' | 'notifications' | 'roleOptions' | 'marks';
+  | 'profile'
+  | 'security'
+  | 'appearance'
+  | 'notifications'
+  | 'roleOptions'
+  | 'marks';
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const { user, themePreference, setThemePreference, updateCurrentUser, logout } = useAuth();
@@ -100,6 +108,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
 
   const [athleteId, setAthleteId] = useState<string | null>(null);
 
+  // Perfil físico del atleta (KAN-479 / KAN-664)
+  const [athleteWeight, setAthleteWeight] = useState<string>('');
+  const [athleteGoal, setAthleteGoal] = useState<string>('Objetivo no informado');
+  const [physicalSaving, setPhysicalSaving] = useState(false);
+  const [physicalSuccess, setPhysicalSuccess] = useState(false);
+  const [physicalError, setPhysicalError] = useState<string | null>(null);
+
   useEffect(() => {
     if (role === 'athlete') {
       structureService
@@ -108,8 +123,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
           if (me?.athleteId) {
             setAthleteId(me.athleteId);
           }
+          if (me?.weightKg !== undefined && me?.weightKg !== null) {
+            setAthleteWeight(String(me.weightKg));
+          }
+          if (me?.athleticGoal) {
+            setAthleteGoal(me.athleticGoal);
+          }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [role]);
 
@@ -215,6 +236,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     } catch (err: unknown) {
       setHabitsEnabled(!next);
       setHabitsError(err instanceof Error ? err.message : 'Error al guardar la preferencia');
+    }
+  };
+
+  const handleSavePhysicalProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanWeight = athleteWeight.trim() ? parseFloat(athleteWeight.trim()) : null;
+    if (cleanWeight !== null && (isNaN(cleanWeight) || cleanWeight <= 0 || cleanWeight > 300)) {
+      setPhysicalError('Ingresá un peso válido en kilogramos (entre 30 y 300 kg).');
+      return;
+    }
+
+    setPhysicalSaving(true);
+    setPhysicalError(null);
+    setPhysicalSuccess(false);
+
+    try {
+      await structureService.updateMyPhysicalProfile({
+        weightKg: cleanWeight,
+        athleticGoal: athleteGoal.trim() || null,
+      });
+      setPhysicalSuccess(true);
+      setTimeout(() => setPhysicalSuccess(false), 3000);
+    } catch (err: unknown) {
+      setPhysicalError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el perfil físico.',
+      );
+    } finally {
+      setPhysicalSaving(false);
     }
   };
 
@@ -773,6 +822,146 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           )}
                         </div>
                       )}
+
+                      {role === 'athlete' && (
+                        <div className="card" style={{ margin: '1.25rem 0 0', padding: '1.5rem' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.6rem',
+                              marginBottom: '0.35rem',
+                            }}
+                          >
+                            <Activity size={20} color="var(--primary)" aria-hidden="true" />
+                            <h2
+                              style={{
+                                fontSize: '1.15rem',
+                                fontWeight: 700,
+                                margin: 0,
+                                color: 'var(--text-main)',
+                              }}
+                            >
+                              Perfil Físico y Nutrición
+                            </h2>
+                          </div>
+                          <p
+                            style={{
+                              color: 'var(--text-muted)',
+                              fontSize: '0.85rem',
+                              marginBottom: '1.25rem',
+                            }}
+                          >
+                            Tu peso corporal y objetivo deportivo son utilizados por tu preparador
+                            físico y el Asistente en Hábitos y Alimentación para calcular el
+                            requerimiento proteico diario e hidratación personalizada.
+                          </p>
+
+                          {physicalError && (
+                            <div
+                              className="alert-banner danger"
+                              role="alert"
+                              style={{ marginBottom: '1rem' }}
+                            >
+                              <AlertCircle size={16} aria-hidden="true" />
+                              <span>{physicalError}</span>
+                            </div>
+                          )}
+
+                          {physicalSuccess && (
+                            <div
+                              className="alert-banner success"
+                              role="alert"
+                              style={{ marginBottom: '1rem' }}
+                            >
+                              <Check size={16} aria-hidden="true" />
+                              <span>Perfil físico actualizado correctamente.</span>
+                            </div>
+                          )}
+
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                              gap: '1.25rem',
+                              marginBottom: '1.25rem',
+                            }}
+                          >
+                            <div>
+                              <label
+                                htmlFor="athlete-weight"
+                                style={{
+                                  display: 'block',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  marginBottom: '0.35rem',
+                                }}
+                              >
+                                Peso Corporal (kg)
+                              </label>
+                              <input
+                                id="athlete-weight"
+                                type="number"
+                                step="0.1"
+                                min="30"
+                                max="300"
+                                placeholder="Ej: 78.5"
+                                value={athleteWeight}
+                                onChange={(e) => {
+                                  setAthleteWeight(e.target.value);
+                                  if (physicalError) setPhysicalError(null);
+                                }}
+                                data-testid="athlete-weight-input"
+                              />
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor="athlete-goal"
+                                style={{
+                                  display: 'block',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  marginBottom: '0.35rem',
+                                }}
+                              >
+                                Objetivo Deportivo
+                              </label>
+                              <select
+                                id="athlete-goal"
+                                value={athleteGoal}
+                                onChange={(e) => {
+                                  setAthleteGoal(e.target.value);
+                                  if (physicalError) setPhysicalError(null);
+                                }}
+                                data-testid="athlete-goal-select"
+                              >
+                                {ATHLETIC_GOAL_OPTIONS.map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleSavePhysicalProfile}
+                            disabled={physicalSaving}
+                            data-testid="save-athlete-physical-btn"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                          >
+                            {physicalSaving ? (
+                              <Loader2 size={16} className="spin" aria-hidden="true" />
+                            ) : (
+                              <Save size={16} aria-hidden="true" />
+                            )}
+                            <span>{physicalSaving ? 'Guardando...' : 'Guardar perfil físico'}</span>
+                          </button>
+                        </div>
+                      )}
                     </form>
                   </>
                 )}
@@ -1124,11 +1313,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               style={{
                                 padding: '0.9rem',
                                 borderRadius: '10px',
-                                border: `2px solid ${
-                                  themePreference === 'system'
-                                    ? 'var(--secondary)'
-                                    : 'var(--border)'
-                                }`,
+                                border: `2px solid ${themePreference === 'system'
+                                  ? 'var(--secondary)'
+                                  : 'var(--border)'
+                                  }`,
                                 background:
                                   themePreference === 'system'
                                     ? 'var(--avatar-cyan-bg)'
@@ -1202,9 +1390,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               style={{
                                 padding: '0.9rem',
                                 borderRadius: '10px',
-                                border: `2px solid ${
-                                  themePreference === 'light' ? 'var(--secondary)' : 'var(--border)'
-                                }`,
+                                border: `2px solid ${themePreference === 'light' ? 'var(--secondary)' : 'var(--border)'
+                                  }`,
                                 background:
                                   themePreference === 'light'
                                     ? 'var(--avatar-cyan-bg)'
@@ -1278,9 +1465,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               style={{
                                 padding: '0.9rem',
                                 borderRadius: '10px',
-                                border: `2px solid ${
-                                  themePreference === 'dark' ? 'var(--secondary)' : 'var(--border)'
-                                }`,
+                                border: `2px solid ${themePreference === 'dark' ? 'var(--secondary)' : 'var(--border)'
+                                  }`,
                                 background:
                                   themePreference === 'dark'
                                     ? 'var(--avatar-cyan-bg)'
@@ -1569,9 +1755,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                                 pushFeedback.type === 'success'
                                   ? 'var(--success-text)'
                                   : 'var(--danger-text)',
-                              border: `1px solid ${
-                                pushFeedback.type === 'success' ? 'var(--success)' : 'var(--danger)'
-                              }`,
+                              border: `1px solid ${pushFeedback.type === 'success' ? 'var(--success)' : 'var(--danger)'
+                                }`,
                             }}
                           >
                             {pushFeedback.type === 'success' ? (

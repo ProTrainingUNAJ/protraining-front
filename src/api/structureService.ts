@@ -17,6 +17,7 @@ import {
   AthleteGuardianConsent,
   CreateAthleteRequest,
   AthleteMe,
+  UpdatePhysicalProfileRequest,
   Match,
   CreateMatchRequest,
   CompetitiveEvent,
@@ -82,6 +83,11 @@ interface RawAthlete {
   activeInjuriesCount?: number;
   hasPhoto?: boolean;
   photoUpdatedAt?: string | null;
+  weightKg?: number | null;
+  pesoKg?: number | null;
+  athleticGoal?: string | null;
+  objetivoAtletico?: string | null;
+  physicalProfileUpdatedAt?: string | null;
 }
 
 function mapOrganization(raw: RawOrganization): Organization {
@@ -142,6 +148,14 @@ function mapAthlete(raw: RawAthlete): Athlete {
     activeInjuriesCount: raw.activeInjuriesCount ?? 0,
     hasPhoto: raw.hasPhoto ?? false,
     photoUpdatedAt: raw.photoUpdatedAt ?? null,
+    weightKg:
+      raw.weightKg !== undefined && raw.weightKg !== null
+        ? Number(raw.weightKg)
+        : raw.pesoKg !== undefined && raw.pesoKg !== null
+          ? Number(raw.pesoKg)
+          : null,
+    athleticGoal: raw.athleticGoal ?? raw.objetivoAtletico ?? null,
+    physicalProfileUpdatedAt: raw.physicalProfileUpdatedAt ?? null,
   };
 }
 
@@ -500,6 +514,51 @@ export const structureService = {
   async getMe(): Promise<AthleteMe> {
     try {
       const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Actualiza el perfil físico (peso y objetivo deportivo) de un atleta por el PF (KAN-479 / KAN-664).
+   */
+  async updateAthletePhysicalProfile(
+    athleteId: string,
+    req: UpdatePhysicalProfileRequest,
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<RawAthlete>(
+        `/estructura/api/v1/athletes/${athleteId}/physical-profile`,
+        {
+          weightKg:
+            req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
+          athleticGoal: req.athleticGoal?.trim() || null,
+        },
+      );
+      return mapAthlete(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Autoservicio del atleta: actualiza su propio peso y objetivo deportivo (KAN-479 / KAN-664).
+   */
+  async updateMyPhysicalProfile(req: UpdatePhysicalProfileRequest): Promise<{
+    weightKg?: number | null;
+    athleticGoal?: string | null;
+    physicalProfileUpdatedAt?: string | null;
+  }> {
+    try {
+      const response = await httpClient.patch<{
+        weightKg?: number | null;
+        athleticGoal?: string;
+        physicalProfileUpdatedAt?: string | null;
+      }>('/estructura/api/v1/me/physical-profile', {
+        weightKg: req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
+        athleticGoal: req.athleticGoal?.trim() || null,
+      });
       return response.data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });

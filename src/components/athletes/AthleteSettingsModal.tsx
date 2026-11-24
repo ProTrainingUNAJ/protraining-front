@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Activity,
   AlertCircle,
   AlertTriangle,
   Camera,
@@ -10,13 +11,14 @@ import {
   Mail,
   Phone,
   Power,
+  Save,
   Send,
   Settings,
   UserCheck,
   UserX,
   X,
 } from 'lucide-react';
-import { Athlete } from '../../types/structure';
+import { Athlete, ATHLETIC_GOAL_OPTIONS } from '../../types/structure';
 import { structureService } from '../../api/structureService';
 import { authService } from '../../api/authService';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
@@ -52,6 +54,17 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
   const [telegramSaving, setTelegramSaving] = useState(false);
   const [telegramSuccess, setTelegramSuccess] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
+
+  // --- Perfil Físico (Peso y Objetivo) (KAN-479 / KAN-664) ---
+  const [weightKg, setWeightKg] = useState<string>(
+    athlete.weightKg !== undefined && athlete.weightKg !== null ? String(athlete.weightKg) : '',
+  );
+  const [athleticGoal, setAthleticGoal] = useState<string>(
+    athlete.athleticGoal || 'Objetivo no informado',
+  );
+  const [physicalSaving, setPhysicalSaving] = useState(false);
+  const [physicalSuccess, setPhysicalSuccess] = useState(false);
+  const [physicalError, setPhysicalError] = useState<string | null>(null);
 
   // --- Restablecer Contraseña ---
   const [resetStep, setResetStep] = useState<'initial' | 'loading' | 'success'>('initial');
@@ -169,6 +182,42 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
       );
     } finally {
       setTelegramSaving(false);
+    }
+  };
+
+  // Guardar Perfil Físico (KAN-479 / KAN-664)
+  const handleSavePhysicalProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanWeight = weightKg.trim() ? parseFloat(weightKg.trim()) : null;
+    if (cleanWeight !== null && (isNaN(cleanWeight) || cleanWeight <= 0 || cleanWeight > 300)) {
+      setPhysicalError('Ingresá un peso válido en kilogramos (entre 30 y 300 kg).');
+      return;
+    }
+
+    setPhysicalSaving(true);
+    setPhysicalError(null);
+    setPhysicalSuccess(false);
+
+    try {
+      const updated = await structureService.updateAthletePhysicalProfile(athlete.id, {
+        weightKg: cleanWeight,
+        athleticGoal: athleticGoal.trim() || null,
+      });
+      const merged: Athlete = {
+        ...athlete,
+        weightKg: updated.weightKg ?? cleanWeight,
+        athleticGoal: updated.athleticGoal ?? athleticGoal,
+        physicalProfileUpdatedAt: updated.physicalProfileUpdatedAt,
+      };
+      onAthleteUpdated(merged);
+      setPhysicalSuccess(true);
+      setTimeout(() => setPhysicalSuccess(false), 3000);
+    } catch (err: unknown) {
+      setPhysicalError(
+        err instanceof Error ? err.message : 'No se pudo actualizar el perfil físico.',
+      );
+    } finally {
+      setPhysicalSaving(false);
     }
   };
 
@@ -318,13 +367,13 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                 onDelete={
                   athlete.hasPhoto
                     ? async () => {
-                        await structureService.deleteAthletePhoto(athlete.id);
-                        onAthleteUpdated({
-                          ...athlete,
-                          hasPhoto: false,
-                          photoUpdatedAt: null,
-                        });
-                      }
+                      await structureService.deleteAthletePhoto(athlete.id);
+                      onAthleteUpdated({
+                        ...athlete,
+                        hasPhoto: false,
+                        photoUpdatedAt: null,
+                      });
+                    }
                     : undefined
                 }
               />
@@ -548,6 +597,140 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                   <span>Guardar Telegram</span>
                 </button>
               </div>
+            </form>
+          </div>
+
+          {/* SECCIÓN 3B: PERFIL FÍSICO Y NUTRICIÓN (KAN-479 / KAN-664) */}
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              padding: '1.25rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.35rem',
+              }}
+            >
+              <Activity size={18} color="var(--primary)" aria-hidden="true" />
+              <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                Perfil Físico y Nutrición
+              </h3>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+              Configurá el peso corporal y el objetivo deportivo del atleta. Estos datos son
+              utilizados por el Asistente en Hábitos y Alimentación para calcular el requerimiento
+              proteico diario e hidratación personalizada.
+            </p>
+
+            {physicalError && (
+              <div
+                className="alert-banner danger"
+                role="alert"
+                style={{ marginBottom: '0.75rem' }}
+              >
+                <AlertCircle size={16} aria-hidden="true" />
+                <span>{physicalError}</span>
+              </div>
+            )}
+
+            {physicalSuccess && (
+              <div
+                className="alert-banner success"
+                role="alert"
+                style={{ marginBottom: '0.75rem' }}
+              >
+                <Check size={16} aria-hidden="true" />
+                <span>Perfil físico actualizado correctamente.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSavePhysicalProfile}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.75rem',
+                  marginBottom: '0.75rem',
+                }}
+              >
+                <div>
+                  <label
+                    htmlFor="athlete-weight"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Peso corporal (kg)
+                  </label>
+                  <input
+                    id="athlete-weight"
+                    type="number"
+                    step="0.1"
+                    min="30"
+                    max="300"
+                    placeholder="Ej: 78.5"
+                    value={weightKg}
+                    onChange={(e) => {
+                      setWeightKg(e.target.value);
+                      if (physicalError) setPhysicalError(null);
+                    }}
+                    data-testid="athlete-weight-input"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="athlete-goal"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Objetivo deportivo
+                  </label>
+                  <select
+                    id="athlete-goal"
+                    value={athleticGoal}
+                    onChange={(e) => {
+                      setAthleticGoal(e.target.value);
+                      if (physicalError) setPhysicalError(null);
+                    }}
+                    data-testid="athlete-goal-select"
+                  >
+                    {ATHLETIC_GOAL_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={physicalSaving}
+                data-testid="save-physical-profile-btn"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                {physicalSaving ? (
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Save size={16} aria-hidden="true" />
+                )}
+                <span>{physicalSaving ? 'Guardando...' : 'Guardar perfil físico'}</span>
+              </button>
             </form>
           </div>
 

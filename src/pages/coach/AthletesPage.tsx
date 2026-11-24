@@ -946,6 +946,9 @@ export const AthletesPage: React.FC = () => {
           record={viewingMedicalRecord.record}
           justificationUsed={viewingMedicalRecord.justification}
           onClose={() => setViewingMedicalRecord(null)}
+          onRecordUpdated={(updated) => {
+            setViewingMedicalRecord((prev) => (prev ? { ...prev, record: updated } : null));
+          }}
         />
       )}
     </div>
