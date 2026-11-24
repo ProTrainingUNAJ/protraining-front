@@ -378,26 +378,15 @@ export const LoginForm: React.FC = () => {
             •
           </span>
 
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.82rem',
-              color: 'var(--color-text-muted)',
-            }}
+          <button
+            type="button"
+            onClick={handleRegisterClick}
+            className="auth-secondary-btn"
+            id="btn-register-link"
+            style={{ fontWeight: 700, color: 'var(--color-primary)' }}
           >
-            <span>¿No tenés cuenta?</span>
-            <button
-              type="button"
-              onClick={handleRegisterClick}
-              className="auth-secondary-btn"
-              id="btn-register-link"
-              style={{ fontWeight: 700, color: 'var(--color-primary)' }}
-            >
-              Registrate
-            </button>
-          </div>
+            Registrate
+          </button>
         </div>
       </form>
     </div>
