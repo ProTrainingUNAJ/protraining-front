@@ -9,7 +9,12 @@ import type { NoticeItem } from '../../../types/alerts';
 
 vi.mock('../../../api/alertsService', () => ({
   ALERTS_CHANGED_EVENT: 'protraining-alerts-changed',
-  alertsService: { getPendingAlerts: vi.fn(), applyNoticeAction: vi.fn(), archiveAlert: vi.fn() },
+  alertsService: {
+    getPendingAlerts: vi.fn(),
+    applyNoticeAction: vi.fn(),
+    applyToNextSession: vi.fn(),
+    archiveAlert: vi.fn(),
+  },
 }));
 
 const athlete = (over: Partial<AthleteTrafficLightItem>): AthleteTrafficLightItem => ({
@@ -96,19 +101,53 @@ describe('AttentionTodayWidget · qué hacer (KAN-594)', () => {
     expect(screen.queryByText(/Qué hacer/)).toBeNull();
   });
 
-  it('si hoy no tiene sesión, avisa que queda pendiente para el próximo día en vez de un error', async () => {
+  it('si hoy no tiene sesión, ofrece aplicar el ajuste a la próxima sesión en vez de un error (KAN-481)', async () => {
     vi.mocked(alertsService.getPendingAlerts).mockResolvedValue([notice({})]);
     vi.mocked(alertsService.applyNoticeAction).mockRejectedValue(
       new Error('El atleta no tiene una sesión de entrenamiento programada para el día de hoy.'),
     );
+    vi.mocked(alertsService.applyToNextSession).mockResolvedValue({
+      success: true,
+      message: 'Ajuste preventivo aplicado a la próxima sesión (26/11).',
+      sessionDate: '2026-11-26',
+    });
+    const changed = vi.fn();
+    window.addEventListener('protraining-alerts-changed', changed);
     renderWidget([athlete({})]);
 
     fireEvent.click(await screen.findByRole('button', { name: /Aplicar ajuste para Mateo Ríos/ }));
 
-    expect(await screen.findByText(/Hoy no entrena\. El aviso queda pendiente/)).toBeDefined();
+    expect(
+      await screen.findByText(/Hoy no entrena\. Podés dejar el ajuste aplicado/),
+    ).toBeDefined();
     expect(screen.queryByRole('alert')).toBeNull();
-    // Se puede volver a intentar cuando tenga sesión
-    expect(screen.getByRole('button', { name: /Aplicar ajuste para Mateo Ríos/ })).toBeDefined();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /Aplicar en la próxima sesión de Mateo Ríos/ }),
+    );
+
+    expect(await screen.findByText(/Aplicado para el jue 26\/11/)).toBeDefined();
+    expect(alertsService.applyToNextSession).toHaveBeenCalledWith('al-1');
+    expect(changed).toHaveBeenCalled();
+    window.removeEventListener('protraining-alerts-changed', changed);
+  });
+
+  it('si tampoco tiene sesión en la semana, muestra el motivo del back', async () => {
+    vi.mocked(alertsService.getPendingAlerts).mockResolvedValue([notice({})]);
+    vi.mocked(alertsService.applyNoticeAction).mockRejectedValue(
+      new Error('El atleta no tiene una sesión de entrenamiento programada para el día de hoy.'),
+    );
+    vi.mocked(alertsService.applyToNextSession).mockRejectedValue(
+      new Error('El atleta no tiene sesiones de entrenamiento programadas en los próximos 7 días.'),
+    );
+    renderWidget([athlete({})]);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Aplicar ajuste para Mateo Ríos/ }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: /Aplicar en la próxima sesión de Mateo Ríos/ }),
+    );
+
+    expect((await screen.findByRole('alert')).textContent).toContain('próximos 7 días');
   });
 
   it('WhatsApp va al tutor si el atleta es menor', async () => {

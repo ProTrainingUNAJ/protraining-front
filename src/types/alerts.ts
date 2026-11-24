@@ -20,4 +20,6 @@ export interface ApplyNoticeResult {
   success: boolean;
   message: string;
   pendingArchiving?: boolean;
+  /** Fecha (AAAA-MM-DD) de la sesión ajustada, cuando se aplicó a la próxima sesión. */
+  sessionDate?: string;
 }

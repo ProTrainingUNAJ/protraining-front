@@ -99,7 +99,7 @@ const ContactButtons: React.FC<{ athlete: AthleteTrafficLightItem }> = ({ athlet
 type NoticeState =
   | { status: 'working' }
   | { status: 'later' }
-  | { status: 'done'; message: string }
+  | { status: 'done'; message: string; sessionDate?: string }
   | { status: 'error'; message: string };
 
 /**
@@ -109,6 +109,15 @@ type NoticeState =
  * carga una zona con dolor, "Ver ficha" y el contacto por WhatsApp o Telegram (a un menor, al
  * tutor). Los que no hicieron el check-in van contados en una línea.
  */
+/** "jue 26/11" a partir de "2026-11-26", sin pasar por UTC (que corre el día). */
+const formatSessionDay = (isoDate: string): string => {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(year, month - 1, day);
+  const weekday = date.toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '');
+  return `${weekday} ${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`;
+};
+
 export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
   athletes,
   loading = false,
@@ -189,6 +198,23 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
         ...prev,
         [notice.id]: noSessionToday ? { status: 'later' } : { status: 'error', message },
       }));
+    }
+  };
+
+  // Hoy no entrena: el PF puede dejar el ajuste hecho para la próxima sesión (KAN-481)
+  const handleNextSession = async (notice: NoticeItem) => {
+    setNoticeState((prev) => ({ ...prev, [notice.id]: { status: 'working' } }));
+    try {
+      const result = await alertsService.applyToNextSession(notice.id);
+      setResolvedById((prev) => ({ ...prev, [notice.id]: notice }));
+      setNoticeState((prev) => ({
+        ...prev,
+        [notice.id]: { status: 'done', message: result.message, sessionDate: result.sessionDate },
+      }));
+      window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'No se pudo aplicar. Probá de nuevo.';
+      setNoticeState((prev) => ({ ...prev, [notice.id]: { status: 'error', message } }));
     }
   };
 
@@ -281,8 +307,22 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                         (state?.status === 'done' ? (
                           <span className="attention-widget__done" role="status">
                             <Check size={14} aria-hidden="true" />
-                            {notice.actionType === 'load_reduction' ? 'Aplicado' : 'Revisado'}
+                            {notice.actionType !== 'load_reduction'
+                              ? 'Revisado'
+                              : state.sessionDate
+                                ? `Aplicado para el ${formatSessionDay(state.sessionDate)}`
+                                : 'Aplicado'}
                           </span>
+                        ) : state?.status === 'later' ? (
+                          <button
+                            type="button"
+                            className="dash-w__btn dash-w__btn--primary"
+                            onClick={() => handleNextSession(notice)}
+                            aria-label={`Aplicar en la próxima sesión de ${athlete.name}: ${notice.suggestion}`}
+                          >
+                            <CalendarClock size={14} aria-hidden="true" />
+                            Aplicar en la próxima sesión
+                          </button>
                         ) : (
                           <button
                             type="button"
@@ -335,8 +375,7 @@ export const AttentionTodayWidget: React.FC<AttentionTodayWidgetProps> = ({
                     {notice && state?.status === 'later' && (
                       <p className="attention-widget__suggestion-later" role="status">
                         <CalendarClock size={14} aria-hidden="true" />
-                        Hoy no entrena. El aviso queda pendiente: lo vas a ver acá para aplicarlo el
-                        próximo día que tenga sesión.
+                        Hoy no entrena. Podés dejar el ajuste aplicado en su próxima sesión.
                       </p>
                     )}
                   </li>
