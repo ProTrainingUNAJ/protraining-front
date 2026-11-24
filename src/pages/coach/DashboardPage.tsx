@@ -423,6 +423,8 @@ export const DashboardPage: React.FC = () => {
   // Las propuestas de récord Epley se ven solo en su widget: el banner de arriba de todo, que
   // repetía las mismas tarjetas, salió del Inicio (KAN-594).
   const [pendingRecommendationsCount, setPendingRecommendationsCount] = useState(0);
+  // Si todas las pendientes son de hábitos, el banner lleva directo a esa vista (KAN-481)
+  const [pendingAreAllHabits, setPendingAreAllHabits] = useState(false);
   const [recordsAthlete, setRecordsAthlete] = useState<{ id: string; name: string } | null>(null);
   const [proposalsRefreshKey, setProposalsRefreshKey] = useState(0);
 
@@ -437,7 +439,9 @@ export const DashboardPage: React.FC = () => {
     recommendationsService
       .listRecommendations({ status: 'Pending' })
       .then((data) => {
-        if (active) setPendingRecommendationsCount(data.length);
+        if (!active) return;
+        setPendingRecommendationsCount(data.length);
+        setPendingAreAllHabits(data.length > 0 && data.every((rec) => rec.type === 'Habits'));
       })
       .catch(() => {
         if (active) setPendingRecommendationsCount(0);
@@ -852,8 +856,6 @@ export const DashboardPage: React.FC = () => {
           </section>
         )}
 
-        {isAthlete && <AthleteRecommendationsSection />}
-
         {!isAthlete && pendingRecommendationsCount > 0 && (
           <section
             className="recommendations-coach-banner"
@@ -877,7 +879,11 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => navigate('/pf/recommendations')}
+              onClick={() =>
+                navigate(
+                  pendingAreAllHabits ? '/pf/recommendations?view=habits' : '/pf/recommendations',
+                )
+              }
             >
               <span>Revisar recomendaciones</span>
               <ArrowRight size={15} aria-hidden="true" />
@@ -968,6 +974,10 @@ export const DashboardPage: React.FC = () => {
             })}
           </div>
         ))}
+
+        {/* Debajo de las cards del día: primero cómo llega y qué le toca, después las
+            recomendaciones, que son de lectura más larga (ensayo, KAN-481) */}
+        {isAthlete && <AthleteRecommendationsSection />}
       </div>
       {!isAthlete && (
         <PfWelcomeModal

@@ -1,11 +1,27 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { DashboardPage } from '../DashboardPage';
 import type { Organization } from '../../../types/structure';
 import type { AthleteTrafficLightItem } from '../../../components/monitoring/trafficLight.types';
 import { fetchCoachTodayOverview } from '../../../api/coachToday';
+
+const { listRecommendationsMock } = vi.hoisted(() => ({
+  listRecommendationsMock: vi.fn().mockResolvedValue([]),
+}));
+vi.mock('../../../api/recommendations', async () => {
+  const actual = await vi.importActual<typeof import('../../../api/recommendations')>(
+    '../../../api/recommendations',
+  );
+  return {
+    ...actual,
+    recommendationsService: {
+      ...actual.recommendationsService,
+      listRecommendations: listRecommendationsMock,
+    },
+  };
+});
 
 vi.mock('../../../api/structureService', () => ({
   structureService: {
@@ -478,5 +494,39 @@ describe('DashboardPage - Requieren atención hoy (KAN-594)', () => {
 
     expect(await screen.findByText('Nadie hizo el check-in todavía')).toBeDefined();
     expect(screen.getByText('0/2 atletas')).toBeDefined();
+  });
+});
+
+function ShowLocation() {
+  const location = useLocation();
+  return <p data-testid="location">{location.pathname + location.search}</p>;
+}
+
+describe('DashboardPage - banner de recomendaciones pendientes (KAN-481)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('si todas las pendientes son de hábitos, "Revisar" abre directo esa vista', async () => {
+    listRecommendationsMock.mockResolvedValue([
+      { id: 'r-1', athleteId: 'a-1', type: 'Habits', status: 'Pending', title: 'Hábitos' },
+      { id: 'r-2', athleteId: 'a-2', type: 'Habits', status: 'Pending', title: 'Hábitos' },
+    ]);
+    render(
+      <MemoryRouter initialEntries={['/pf/dashboard']}>
+        <Routes>
+          <Route path="/pf/dashboard" element={<DashboardPage />} />
+          <Route path="/pf/recommendations" element={<ShowLocation />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const banner = await screen.findByRole('region', {
+      name: 'Recomendaciones pendientes de revisión',
+    });
+    fireEvent.click(within(banner).getByRole('button'));
+
+    expect(screen.getByTestId('location').textContent).toBe('/pf/recommendations?view=habits');
   });
 });
