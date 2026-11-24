@@ -16,6 +16,7 @@ const {
   discardRecommendationMock,
   getCategoriesMock,
   getAthletesMock,
+  getOrganizationsMock,
   withCategoriesMock,
 } = vi.hoisted(() => ({
   listRecommendationsMock: vi.fn(),
@@ -25,6 +26,7 @@ const {
   discardRecommendationMock: vi.fn(),
   getCategoriesMock: vi.fn(),
   getAthletesMock: vi.fn(),
+  getOrganizationsMock: vi.fn(),
   withCategoriesMock: vi.fn((athletes: Athlete[]) => Promise.resolve(athletes)),
 }));
 
@@ -40,6 +42,7 @@ vi.mock('../../../api/recommendations', () => ({
 
 vi.mock('../../../api/structureService', () => ({
   structureService: {
+    getOrganizations: getOrganizationsMock,
     getCategories: getCategoriesMock,
     getAthletes: getAthletesMock,
     withCategories: withCategoriesMock,
@@ -91,6 +94,7 @@ function renderPage(initialPath = '/pf/recommendations') {
 describe('RecommendationsPage (KAN-492)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getOrganizationsMock.mockResolvedValue([{ id: 'org-1', name: 'Club Quilmes' }]);
     getCategoriesMock.mockResolvedValue([
       { id: 'cat-1', organizationId: 'org-1', name: 'Primera División', athletesCount: 10 },
       { id: 'cat-2', organizationId: 'org-1', name: 'Reserva', athletesCount: 8 },
@@ -556,8 +560,86 @@ describe('RecommendationsPage (KAN-492)', () => {
     // No debe renderizar el cuadro de motivo detectado para "Objetivo no informado"
     expect(document.querySelector('.recommendation-reason-box')).toBeNull();
     // Pero sí muestra el título y el cuerpo de la recomendación normalmente
+    expect(screen.getByText('Recomendación de hábitos con derivación profesional')).toBeDefined();
+  });
+
+  it('renderiza la burbuja en modelo minimalista con números de métricas y estado (KAN-665)', async () => {
+    getCategoriesMock.mockResolvedValue([
+      { id: 'cat-1', organizationId: 'org-1', name: 'Primera División' },
+    ]);
+    getAthletesMock.mockResolvedValue([
+      {
+        id: 'ath-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        active: true,
+        categories: [
+          {
+            id: 'cat-1',
+            name: 'Primera División',
+            organizationId: 'org-1',
+            organizationName: 'Club Quilmes',
+          },
+        ],
+      },
+    ]);
+    listRecommendationsMock.mockResolvedValue([pendingRec]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // Subtítulo con formato minimalista: Club · Categoría
+    expect(screen.getByText('Club Quilmes · Primera División')).toBeDefined();
+
+    // Etiqueta de estado en la burbuja
+    expect(screen.getByText('Pendiente')).toBeDefined();
+
+    // Número de métrica destacado (-19%)
+    expect(screen.getByText('-19%')).toBeDefined();
+    expect(screen.getByText(/Salto Vertical CMJ/i)).toBeDefined();
+  });
+
+  it('abre la tarjeta en modo ventana (modal emergente) con todo el detalle y permite cerrarla (KAN-665)', async () => {
+    listRecommendationsMock.mockResolvedValue([pendingRec]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // Antes de abrir la ventana, el diálogo modal no existe
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Clic en Ver recomendación para abrir la tarjeta en modo ventana
+    fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
+
+    // Diálogo modal abierto con todo el detalle
+    const modal = screen.getByRole('dialog');
+    expect(modal).toBeDefined();
+    expect(within(modal).getByText('Ajuste de potencia de salto')).toBeDefined();
     expect(
-      screen.getByText('Recomendación de hábitos con derivación profesional'),
+      within(modal).getByText('Sumar dos bloques de saltos pliométricos controlados por semana.'),
     ).toBeDefined();
+    expect(within(modal).getByRole('button', { name: /Aprobar y enviar/i })).toBeDefined();
+    expect(within(modal).getByRole('button', { name: /Descartar/i })).toBeDefined();
+
+    // Cierre mediante el botón "Cerrar ventana"
+    const closeBtns = within(modal).getAllByRole('button', { name: /Cerrar ventana/i });
+    expect(closeBtns.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(closeBtns[0]);
+
+    // El diálogo modal se cerró
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Reabrir y verificar cierre con tecla Escape
+    fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
+    expect(screen.getByRole('dialog')).toBeDefined();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

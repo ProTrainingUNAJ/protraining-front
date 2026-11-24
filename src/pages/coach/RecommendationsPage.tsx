@@ -261,13 +261,38 @@ export function RecommendationsPage() {
       }
     }
 
-    return Array.from(groups.entries()).map(([athleteId, items]) => ({
-      athleteId,
-      athleteName: getAthleteDisplayName(athleteId),
-      athletePhotoUrl: getAthletePhotoUrl(athleteId),
-      items,
-    }));
-  }, [filteredRecommendations, getAthleteDisplayName, getAthletePhotoUrl]);
+    return Array.from(groups.entries()).map(([athleteId, items]) => {
+      const athlete = athleteMap.get(athleteId);
+      const athleteCat = athlete?.categories?.[0];
+      const recCatName = items[0]?.categoryName?.trim();
+      const catName = athleteCat?.name?.trim() || recCatName || '';
+
+      const recCatId = items[0]?.categoryId;
+      const orgId = recCatId
+        ? categoryOrgMap.get(recCatId)
+        : athleteCat?.organizationId || selectedOrganizationId;
+      const org = organizations.find((o) => o.id === orgId);
+      const orgName = org?.name?.trim() || athleteCat?.organizationName?.trim() || '';
+
+      const subtitle = [orgName, catName].filter(Boolean).join(' · ');
+
+      return {
+        athleteId,
+        athleteName: getAthleteDisplayName(athleteId),
+        athletePhotoUrl: getAthletePhotoUrl(athleteId),
+        subtitle: subtitle || catName || 'Plantel deportivo',
+        items,
+      };
+    });
+  }, [
+    filteredRecommendations,
+    getAthleteDisplayName,
+    getAthletePhotoUrl,
+    athleteMap,
+    categoryOrgMap,
+    organizations,
+    selectedOrganizationId,
+  ]);
 
   const targetCategoryForAnalysis = analysisCategoryId || selectedCategoryFilter;
   const selectedCategoryForAnalysis = categories.find((c) => c.id === targetCategoryForAnalysis);
@@ -689,6 +714,7 @@ export function RecommendationsPage() {
                 athleteId={group.athleteId}
                 athleteName={group.athleteName}
                 athletePhotoUrl={group.athletePhotoUrl}
+                subtitle={group.subtitle}
                 recommendations={group.items}
                 statusTab={statusTab}
                 onUpdate={handleUpdate}

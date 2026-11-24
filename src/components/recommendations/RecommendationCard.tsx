@@ -227,7 +227,9 @@ export function RecommendationCard({
         recommendation.reason.toLowerCase().trim() !== 'objetivo no informado' && (
           <div className="recommendation-reason-box">
             <span className="recommendation-reason-label">Motivo detectado</span>
-            <span className="recommendation-reason-text">{capitalizeFirst(recommendation.reason)}</span>
+            <span className="recommendation-reason-text">
+              {capitalizeFirst(recommendation.reason)}
+            </span>
           </div>
         )}
 
