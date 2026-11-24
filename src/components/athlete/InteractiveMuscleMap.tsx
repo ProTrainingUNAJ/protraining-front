@@ -140,7 +140,7 @@ export const InteractiveMuscleMap: React.FC<InteractiveMuscleMapProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.85rem',
+        gap: hideControls ? '0.25rem' : '0.85rem',
         width: '100%',
         color: 'var(--text-main)',
       }}

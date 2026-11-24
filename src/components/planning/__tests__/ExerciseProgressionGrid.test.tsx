@@ -320,4 +320,184 @@ describe('ExerciseProgressionGrid', () => {
     fireEvent.click(thumbBtn);
     expect(screen.getByRole('dialog')).toBeDefined();
   });
+
+  it('para ejercicios Time muestra columna Segundos y actualiza targetTimeSeconds', () => {
+    const onUpdateProgression = vi.fn();
+    const timeExercise: BlockExercise = {
+      key: 'ex-time',
+      exerciseId: 'cat-trote',
+      exerciseName: 'Trote',
+      exerciseType: 'Time',
+      order: 1,
+      intensityType: 'RPE',
+      weeklyProgression: {
+        1: {
+          weekNumber: 1,
+          sets: 4,
+          reps: 30,
+          repsRange: '30',
+          targetPercentage: null,
+          intensityType: 'RPE',
+          targetRpe: 7,
+          targetRir: null,
+          targetTimeSeconds: 30,
+          targetDistanceMeters: null,
+          notes: null,
+        },
+      },
+    };
+
+    render(
+      <ExerciseProgressionGrid
+        exercise={timeExercise}
+        weekNumbers={[1]}
+        disabled={false}
+        onUpdateProgression={onUpdateProgression}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Segundos')).toBeDefined();
+    expect(screen.queryByText('Reps / Rango')).toBeNull();
+
+    const secondsInput = screen.getByLabelText('Segundos de Trote semana 1') as HTMLInputElement;
+    expect(secondsInput.value).toBe('30');
+
+    fireEvent.change(secondsInput, { target: { value: '300' } });
+    expect(onUpdateProgression).toHaveBeenCalledWith(1, {
+      targetTimeSeconds: 300,
+      reps: 300,
+      repsRange: '300',
+    });
+  });
+
+  it('para ejercicios Distance muestra columna Metros y actualiza targetDistanceMeters', () => {
+    const onUpdateProgression = vi.fn();
+    const distanceExercise: BlockExercise = {
+      key: 'ex-dist',
+      exerciseId: 'cat-pasadas',
+      exerciseName: 'Pasadas 400m',
+      exerciseType: 'Distance',
+      order: 1,
+      intensityType: 'RPE',
+      weeklyProgression: {
+        1: {
+          weekNumber: 1,
+          sets: 6,
+          reps: 100,
+          repsRange: '100',
+          targetPercentage: 90,
+          intensityType: 'RPE',
+          targetRpe: 8,
+          targetRir: null,
+          targetDistanceMeters: 100,
+          targetTimeSeconds: null,
+          notes: null,
+        },
+      },
+    };
+
+    render(
+      <ExerciseProgressionGrid
+        exercise={distanceExercise}
+        weekNumbers={[1]}
+        disabled={false}
+        onUpdateProgression={onUpdateProgression}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Metros')).toBeDefined();
+    expect(screen.queryByText('Reps / Rango')).toBeNull();
+
+    const metersInput = screen.getByLabelText(
+      'Metros de Pasadas 400m semana 1',
+    ) as HTMLInputElement;
+    expect(metersInput.value).toBe('100');
+
+    fireEvent.change(metersInput, { target: { value: '400' } });
+    expect(onUpdateProgression).toHaveBeenCalledWith(1, {
+      targetDistanceMeters: 400,
+      reps: 400,
+      repsRange: '400',
+    });
+  });
+
+  it('para ejercicios de fuerza mantiene la columna Reps / Rango y copia metas al copiar Sem 1', () => {
+    const onUpdateProgression = vi.fn();
+    const { rerender } = render(
+      <ExerciseProgressionGrid
+        exercise={sampleExercise}
+        weekNumbers={[1, 2]}
+        disabled={false}
+        onUpdateProgression={onUpdateProgression}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Reps / Rango')).toBeDefined();
+
+    const timeExercise: BlockExercise = {
+      key: 'ex-time-copy',
+      exerciseId: 'cat-trote',
+      exerciseName: 'Trote',
+      exerciseType: 'Time',
+      order: 1,
+      intensityType: 'RPE',
+      weeklyProgression: {
+        1: {
+          weekNumber: 1,
+          sets: 1,
+          reps: 300,
+          repsRange: '300',
+          targetPercentage: null,
+          intensityType: 'RPE',
+          targetRpe: 6,
+          targetRir: null,
+          targetTimeSeconds: 300,
+          targetDistanceMeters: null,
+          notes: 'Continuo',
+        },
+        2: {
+          weekNumber: 2,
+          sets: 1,
+          reps: 30,
+          repsRange: '30',
+          targetPercentage: null,
+          intensityType: 'RPE',
+          targetRpe: 6,
+          targetRir: null,
+          targetTimeSeconds: 30,
+          targetDistanceMeters: null,
+          notes: null,
+        },
+      },
+    };
+
+    rerender(
+      <ExerciseProgressionGrid
+        exercise={timeExercise}
+        weekNumbers={[1, 2]}
+        disabled={false}
+        onUpdateProgression={onUpdateProgression}
+        onUpdateIntensityType={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /copiar semana 1 de trote a todas las semanas/i }),
+    );
+    expect(onUpdateProgression).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({
+        targetTimeSeconds: 300,
+        targetDistanceMeters: null,
+        notes: 'Continuo',
+      }),
+    );
+  });
 });

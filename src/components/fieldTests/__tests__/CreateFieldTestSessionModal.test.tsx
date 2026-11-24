@@ -4,10 +4,28 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CreateFieldTestSessionModal } from '../CreateFieldTestSessionModal';
 import { createFieldTestSession } from '../../../api/fieldTestSessions';
 import type { FitnessTest } from '../../../api/generated/seguimiento';
+import type { Category } from '../../../types/structure';
 
 vi.mock('../../../api/fieldTestSessions', () => ({
   createFieldTestSession: vi.fn(),
 }));
+
+const MOCK_CATEGORIES: Category[] = [
+  {
+    id: 'cat-123',
+    organizationId: 'org-1',
+    name: 'Primera División',
+    description: null,
+    athletesCount: 20,
+  },
+  {
+    id: 'cat-456',
+    organizationId: 'org-1',
+    name: 'Reserva',
+    description: null,
+    athletesCount: 15,
+  },
+];
 
 const MOCK_TESTS: FitnessTest[] = [
   {
@@ -49,7 +67,7 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
       <CreateFieldTestSessionModal
         isOpen={false}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
         catalogTests={MOCK_TESTS}
         onSessionCreated={onSessionCreated}
       />,
@@ -58,18 +76,19 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renderiza encabezado, campos generales y listado de tests cuando está abierto', () => {
+  it('renderiza encabezado, selector de categoría, campos generales y listado de tests cuando está abierto', () => {
     render(
       <CreateFieldTestSessionModal
         isOpen={true}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
         catalogTests={MOCK_TESTS}
         onSessionCreated={onSessionCreated}
       />,
     );
 
     expect(screen.getByRole('heading', { name: 'Nueva sesión de evaluación' })).toBeDefined();
+    expect(screen.getByLabelText('Categoría')).toBeDefined();
     expect(screen.getByPlaceholderText('Evaluación de pretemporada')).toBeDefined();
     expect(screen.getByText('Sentadilla 1RM')).toBeDefined();
     expect(screen.getByText('Test de Cooper')).toBeDefined();
@@ -81,7 +100,7 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
       <CreateFieldTestSessionModal
         isOpen={true}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
         catalogTests={MOCK_TESTS}
         onSessionCreated={onSessionCreated}
       />,
@@ -98,7 +117,7 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
       <CreateFieldTestSessionModal
         isOpen={true}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
         catalogTests={MOCK_TESTS}
         onSessionCreated={onSessionCreated}
       />,
@@ -115,7 +134,7 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
       <CreateFieldTestSessionModal
         isOpen={true}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
         catalogTests={[]}
         catalogError="Error al conectar con el servidor"
         onSessionCreated={onSessionCreated}
@@ -130,7 +149,7 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
       <CreateFieldTestSessionModal
         isOpen={true}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
         catalogTests={MOCK_TESTS}
         onSessionCreated={onSessionCreated}
       />,
@@ -149,12 +168,12 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
     expect(screen.getByText('1 test seleccionado')).toBeDefined();
   });
 
-  it('envía los datos correctamente al submit y llama a onSessionCreated y onClose', async () => {
+  it('permite cambiar la categoría dentro del modal y envía los datos correctamente al submit', async () => {
     vi.mocked(createFieldTestSession).mockResolvedValue({
       id: 'session-new',
-      categoryId: 'cat-123',
+      categoryId: 'cat-456',
       date: '2026-11-23',
-      name: 'Test de Potencia',
+      name: 'Test de Potencia Reserva',
       status: 'Planned',
       tests: [{ catalogTestId: 'test-1', order: 1 }],
       results: [],
@@ -164,26 +183,32 @@ describe('CreateFieldTestSessionModal (KAN-656)', () => {
       <CreateFieldTestSessionModal
         isOpen={true}
         onClose={onClose}
-        categoryId="cat-123"
+        categories={MOCK_CATEGORIES}
+        initialCategoryId="cat-123"
         catalogTests={MOCK_TESTS}
         onSessionCreated={onSessionCreated}
       />,
     );
 
+    // Cambiar categoría a Reserva
+    fireEvent.change(screen.getByLabelText('Categoría'), {
+      target: { value: 'cat-456' },
+    });
+
     fireEvent.change(screen.getByPlaceholderText('Evaluación de pretemporada'), {
-      target: { value: 'Test de Potencia' },
+      target: { value: 'Test de Potencia Reserva' },
     });
     fireEvent.click(screen.getByRole('button', { name: /Sentadilla 1RM/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Crear sesión' }));
 
     await waitFor(() => {
       expect(createFieldTestSession).toHaveBeenCalledWith({
-        categoryId: 'cat-123',
+        categoryId: 'cat-456',
         date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-        name: 'Test de Potencia',
+        name: 'Test de Potencia Reserva',
         tests: [{ catalogTestId: 'test-1', order: 1 }],
       });
-      expect(onSessionCreated).toHaveBeenCalledTimes(1);
+      expect(onSessionCreated).toHaveBeenCalledWith('cat-456');
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });

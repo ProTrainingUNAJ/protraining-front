@@ -669,6 +669,22 @@ export async function fetchAllCategoriesAttendanceToday(): Promise<AthleteAttend
 export type { CheckIn };
 
 /**
+ * Check-ins del atleta entre dos fechas (AAAA-MM-DD, incluidas), para "Mis últimos 7 días" del Inicio
+ * del atleta (KAN-594). Los errores se propagan: no es lo mismo "no hizo check-in" que "no se pudo leer".
+ */
+export async function listAthleteCheckIns(
+  athleteId: string,
+  from: string,
+  to: string,
+): Promise<CheckIn[]> {
+  const response = await httpClient.get<CheckIn[]>(
+    `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
+    { params: { from, to } },
+  );
+  return Array.isArray(response.data) ? response.data : [];
+}
+
+/**
  * Devuelve el check-in de hoy del atleta, o null solo si no hay uno registrado.
  * Los errores de red o de la API se propagan para que el llamador pueda distinguir
  * "sin check-in" de "no se pudo recuperar" (por ejemplo, al editar respuestas).

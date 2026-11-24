@@ -2,19 +2,10 @@ import React, { useRef } from 'react';
 import {
   MetricKey,
   METRIC_CONFIGS,
-  SVG_WIDTH,
-  SVG_HEIGHT,
-  CX,
-  CY,
-  BADGE_X,
-  STROKE_WIDTH,
-  ACTIVE_STROKE_WIDTH,
-  HIT_TEST_STROKE_WIDTH,
-  END_ANGLE,
-  describeArc,
-  polarToCartesian,
-  getMetricFromPoint,
-  getValueFromPoint,
+  METRIC_ORDER,
+  getMetricProgressPct,
+  getValueFromHorizontalPct,
+  getMetricDisplayInfo,
 } from './recovery.types';
 import {
   getSleepColor,
@@ -33,7 +24,12 @@ interface RecoveryRadialMeterProps {
   muscleSoreness: number | null;
   onSelectMetric: (key: MetricKey) => void;
   onValueChange?: (key: MetricKey, value: number) => void;
-  getArcEndAngle: (key: MetricKey) => number;
+  getArcEndAngle?: (key: MetricKey) => number;
+  getProgressPct?: (key: MetricKey) => number;
+  isMin?: boolean;
+  isMax?: boolean;
+  onDecrement?: () => void;
+  onIncrement?: () => void;
 }
 
 export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
@@ -44,14 +40,22 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
   muscleSoreness,
   onSelectMetric,
   onValueChange,
-  getArcEndAngle,
+  getProgressPct,
+  isMin: isMinProp,
+  isMax: isMaxProp,
+  onDecrement,
+  onIncrement,
 }) => {
-  const svgRef = useRef<SVGSVGElement | null>(null);
+  const trackRefs = useRef<Record<MetricKey, HTMLDivElement | null>>({
+    sleepHours: null,
+    sleepQuality: null,
+    fatigueLevel: null,
+    muscleSoreness: null,
+  });
   const isPointerDownRef = useRef<boolean>(false);
   const activeDragMetricRef = useRef<MetricKey | null>(null);
   const lastValRef = useRef<number | null>(null);
 
-  // ── Subtle haptic vibration for mobile tactile confirmation ──
   const triggerHaptic = () => {
     try {
       if (
@@ -62,7 +66,7 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
         navigator.vibrate(10);
       }
     } catch {
-      // Ignore in environments where vibration is unsupported or blocked
+      // Ignore in environments where vibration is unsupported
     }
   };
 
@@ -70,125 +74,6 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
     if (key !== activeMetric) {
       triggerHaptic();
       onSelectMetric(key);
-    }
-  };
-
-  // ── Screen coordinates to SVG viewBox conversion ──
-  const getSvgCoordinates = (clientX: number, clientY: number) => {
-    const svg = svgRef.current;
-    if (!svg) return null;
-
-    try {
-      const pt = svg.createSVGPoint();
-      pt.x = clientX;
-      pt.y = clientY;
-      const ctm = svg.getScreenCTM();
-      if (ctm) {
-        const transformed = pt.matrixTransform(ctm.inverse());
-        return { x: transformed.x, y: transformed.y };
-      }
-    } catch {
-      // Fallback
-    }
-
-    const rect = svg.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return null;
-    return {
-      x: ((clientX - rect.left) / rect.width) * SVG_WIDTH,
-      y: ((clientY - rect.top) / rect.height) * SVG_HEIGHT,
-    };
-  };
-
-  const updateValueAtCoords = (coords: { x: number; y: number }, metric: MetricKey) => {
-    if (!onValueChange) return;
-    const newVal = getValueFromPoint(coords.x, coords.y, metric);
-    if (newVal !== lastValRef.current) {
-      lastValRef.current = newVal;
-      triggerHaptic();
-      onValueChange(metric, newVal);
-    }
-  };
-
-  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    // If touch originates directly from an item label button, let its handler handle it
-    const target = e.target as Element | null;
-    if (target?.closest('.checkin-recovery-label-group')) {
-      return;
-    }
-
-    const coords = getSvgCoordinates(e.clientX, e.clientY);
-    if (!coords) return;
-
-    const matched = getMetricFromPoint(coords.x, coords.y, activeMetric);
-    if (matched) {
-      // Si se toca otra barra distinta a la activa: primero solo marcar / seleccionar sin cambiar valor
-      if (matched !== activeMetric) {
-        handleSelectWithFeedback(matched);
-        return;
-      }
-
-      // Si ya está marcada (es la activa), permitir interactuar con el slider y ajustar valor
-      isPointerDownRef.current = true;
-      activeDragMetricRef.current = matched;
-      lastValRef.current = getMetricVal(matched);
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        // Ignored
-      }
-      updateValueAtCoords(coords, matched);
-
-      // Global window listeners so dragging smoothly continues even if finger leaves SVG boundary
-      const onGlobalPointerMove = (evt: PointerEvent) => {
-        if (!isPointerDownRef.current || !activeDragMetricRef.current) return;
-        const moveCoords = getSvgCoordinates(evt.clientX, evt.clientY);
-        if (!moveCoords) return;
-        updateValueAtCoords(moveCoords, activeDragMetricRef.current);
-      };
-
-      const onGlobalPointerUp = () => {
-        window.removeEventListener('pointermove', onGlobalPointerMove);
-        window.removeEventListener('pointerup', onGlobalPointerUp);
-        window.removeEventListener('pointercancel', onGlobalPointerUp);
-        isPointerDownRef.current = false;
-        activeDragMetricRef.current = null;
-        lastValRef.current = null;
-      };
-
-      window.addEventListener('pointermove', onGlobalPointerMove, { passive: true });
-      window.addEventListener('pointerup', onGlobalPointerUp);
-      window.addEventListener('pointercancel', onGlobalPointerUp);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!isPointerDownRef.current || !activeDragMetricRef.current) return;
-    const coords = getSvgCoordinates(e.clientX, e.clientY);
-    if (!coords) return;
-    updateValueAtCoords(coords, activeDragMetricRef.current);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
-    isPointerDownRef.current = false;
-    activeDragMetricRef.current = null;
-    lastValRef.current = null;
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      // Ignored
-    }
-  };
-
-  const isMetricAnswered = (key: MetricKey): boolean => {
-    switch (key) {
-      case 'sleepHours':
-        return sleepHours !== null;
-      case 'sleepQuality':
-        return sleepQuality !== null;
-      case 'fatigueLevel':
-        return fatigueLevel !== null;
-      case 'muscleSoreness':
-        return muscleSoreness !== null;
     }
   };
 
@@ -205,299 +90,411 @@ export const RecoveryRadialMeter: React.FC<RecoveryRadialMeterProps> = ({
     }
   };
 
-  const metricBadges = [
-    {
-      key: 'sleepHours' as MetricKey,
-      label: 'Horas de sueño',
-      color: sleepHours !== null ? getSleepColor(sleepHours) : 'var(--checkin-scale-neutral)',
-      isAnswered: sleepHours !== null,
-      icon: (
-        <path
-          d="M 16 8 A 6.5 6.5 0 1 1 9 1.5 A 5 5 0 0 0 16 8 Z"
-          fill={sleepHours !== null ? '#ffffff' : 'var(--input-placeholder)'}
-          style={{ fill: sleepHours !== null ? '#ffffff' : 'var(--input-placeholder)' }}
-          transform="translate(-8.5, -8.5)"
-        />
-      ),
-    },
-    {
-      key: 'sleepQuality' as MetricKey,
-      label: 'Calidad del descanso',
-      color: sleepQuality !== null ? getQualityColor(sleepQuality) : 'var(--checkin-scale-neutral)',
-      isAnswered: sleepQuality !== null,
-      icon: (
-        <path
-          d="M 9.5 2 L 3 10.5 L 8.5 10.5 L 6.5 17 L 15 7.5 L 9.5 7.5 Z"
-          fill={sleepQuality !== null ? 'var(--white)' : 'var(--input-placeholder)'}
-          transform="translate(-9, -9.5)"
-        />
-      ),
-    },
-    {
-      key: 'fatigueLevel' as MetricKey,
-      label: 'Nivel de fatiga muscular',
-      color: fatigueLevel !== null ? getFatigueColor(fatigueLevel) : 'var(--checkin-scale-neutral)',
-      isAnswered: fatigueLevel !== null,
-      icon: (
-        <g transform="translate(-8.5, -6.5)">
-          <rect
-            x="1"
-            y="2"
-            width="13"
-            height="9"
-            rx="2.2"
-            stroke={fatigueLevel !== null ? 'var(--white)' : 'var(--input-placeholder)'}
-            strokeWidth="1.6"
-            fill="none"
-          />
-          <rect
-            x="15"
-            y="4.8"
-            width="1.8"
-            height="3.4"
-            rx="0.8"
-            fill={fatigueLevel !== null ? 'var(--white)' : 'var(--input-placeholder)'}
-          />
-          <rect
-            x="2.6"
-            y="3.6"
-            width={Math.max(1.8, ((6 - (fatigueLevel ?? 6)) / 5) * 9.8)}
-            height="5.8"
-            rx="1"
-            fill={fatigueLevel !== null ? 'var(--white)' : 'var(--checkin-scale-neutral)'}
-            style={{ transition: 'width 0.25s ease' }}
-          />
-        </g>
-      ),
-    },
-    {
-      key: 'muscleSoreness' as MetricKey,
-      label: 'Dolor muscular',
-      color:
-        muscleSoreness !== null ? getSorenessColor(muscleSoreness) : 'var(--checkin-scale-neutral)',
-      isAnswered: muscleSoreness !== null,
-      icon: (
-        <g transform="translate(-8.5, -8.5)">
-          {renderBicepsMuscle(
-            17,
-            muscleSoreness !== null
-              ? getSorenessColor(muscleSoreness)
-              : 'var(--checkin-scale-neutral)',
-            muscleSoreness !== null ? 'var(--white)' : 'var(--input-placeholder)',
-          )}
-        </g>
-      ),
-    },
-  ];
+  const isMetricMin = (key: MetricKey): boolean => {
+    if (key === activeMetric && typeof isMinProp === 'boolean') {
+      return isMinProp;
+    }
+    const val = getMetricVal(key);
+    if (val === null) return false;
+    switch (key) {
+      case 'sleepHours':
+        return val <= 0;
+      case 'sleepQuality':
+        return val <= 1;
+      case 'fatigueLevel':
+        return val >= 5;
+      case 'muscleSoreness':
+        return val >= 5;
+    }
+  };
+
+  const isMetricMax = (key: MetricKey): boolean => {
+    if (key === activeMetric && typeof isMaxProp === 'boolean') {
+      return isMaxProp;
+    }
+    const val = getMetricVal(key);
+    if (val === null) return false;
+    switch (key) {
+      case 'sleepHours':
+        return val >= 13;
+      case 'sleepQuality':
+        return val >= 5;
+      case 'fatigueLevel':
+        return val <= 1;
+      case 'muscleSoreness':
+        return val <= 1;
+    }
+  };
+
+  const handleStepDecrement = (key: MetricKey) => {
+    if (key !== activeMetric) return;
+    triggerHaptic();
+    if (onDecrement) {
+      onDecrement();
+      return;
+    }
+    if (!onValueChange) return;
+    const current = getMetricVal(key);
+    switch (key) {
+      case 'sleepHours':
+        onValueChange(key, current === null ? 7 : Math.max(0, current - 1));
+        break;
+      case 'sleepQuality':
+        onValueChange(key, current === null ? 3 : Math.max(1, current - 1));
+        break;
+      case 'fatigueLevel':
+        onValueChange(key, current === null ? 4 : Math.min(5, current + 1));
+        break;
+      case 'muscleSoreness':
+        onValueChange(key, current === null ? 3 : Math.min(5, current + 1));
+        break;
+    }
+  };
+
+  const handleStepIncrement = (key: MetricKey) => {
+    if (key !== activeMetric) return;
+    triggerHaptic();
+    if (onIncrement) {
+      onIncrement();
+      return;
+    }
+    if (!onValueChange) return;
+    const current = getMetricVal(key);
+    switch (key) {
+      case 'sleepHours':
+        onValueChange(key, current === null ? 8 : Math.min(12, current + 1));
+        break;
+      case 'sleepQuality':
+        onValueChange(key, current === null ? 4 : Math.min(5, current + 1));
+        break;
+      case 'fatigueLevel':
+        onValueChange(key, current === null ? 2 : Math.max(1, current - 1));
+        break;
+      case 'muscleSoreness':
+        onValueChange(key, current === null ? 1 : Math.max(1, current - 1));
+        break;
+    }
+  };
+
+  const updateValueFromClientX = (clientX: number, key: MetricKey) => {
+    if (!onValueChange) return;
+    const trackEl = trackRefs.current[key];
+    if (!trackEl) return;
+    const rect = trackEl.getBoundingClientRect();
+    const width = rect.width > 0 ? rect.width : 240;
+    const rawPct = (clientX - rect.left) / width;
+    const newVal = getValueFromHorizontalPct(rawPct, key);
+
+    if (lastValRef.current !== newVal) {
+      lastValRef.current = newVal;
+      triggerHaptic();
+      onValueChange(key, newVal);
+    }
+  };
+
+  const handleTrackPointerDown = (e: React.PointerEvent<HTMLDivElement>, key: MetricKey) => {
+    e.stopPropagation();
+    // Si el indicador aún no estaba seleccionado, el primer toque solo lo selecciona
+    if (key !== activeMetric) {
+      isPointerDownRef.current = false;
+      activeDragMetricRef.current = null;
+      handleSelectWithFeedback(key);
+      return;
+    }
+
+    isPointerDownRef.current = true;
+    activeDragMetricRef.current = key;
+    lastValRef.current = getMetricVal(key);
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore if pointer capture is unsupported in JSDOM
+    }
+
+    updateValueFromClientX(e.clientX, key);
+  };
+
+  const handleTrackPointerMove = (e: React.PointerEvent<HTMLDivElement>, key: MetricKey) => {
+    if (!isPointerDownRef.current || activeDragMetricRef.current !== key) return;
+    updateValueFromClientX(e.clientX, key);
+  };
+
+  const handleTrackPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+    activeDragMetricRef.current = null;
+    lastValRef.current = null;
+    try {
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const renderMetricIcon = (key: MetricKey, isAnswered: boolean, color: string) => {
+    switch (key) {
+      case 'sleepHours':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M 21 12.79 A 9 9 0 1 1 11.21 3 A 7 7 0 0 0 21 12.79 Z"
+              fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
+            />
+          </svg>
+        );
+      case 'sleepQuality':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M 13 2 L 3 14 L 12 14 L 11 22 L 21 10 L 12 10 Z"
+              fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
+            />
+          </svg>
+        );
+      case 'fatigueLevel':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect
+              x="2"
+              y="6"
+              width="17"
+              height="12"
+              rx="3"
+              stroke={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
+              strokeWidth="2"
+            />
+            <rect
+              x="20.5"
+              y="9.8"
+              width="2.5"
+              height="4.4"
+              rx="1.2"
+              fill={isAnswered ? 'var(--white)' : 'var(--input-placeholder)'}
+            />
+            <rect
+              x="4.2"
+              y="8.2"
+              width={Math.max(2.5, ((6 - (fatigueLevel ?? 6)) / 5) * 12.5)}
+              height="7.6"
+              rx="1.5"
+              fill={isAnswered ? 'var(--white)' : 'var(--checkin-scale-neutral)'}
+            />
+          </svg>
+        );
+      case 'muscleSoreness':
+        return renderBicepsMuscle(
+          18,
+          isAnswered ? color : 'var(--checkin-scale-neutral)',
+          isAnswered ? 'var(--white)' : 'var(--input-placeholder)',
+        );
+    }
+  };
+
+  const metricItems = METRIC_ORDER.map((key) => {
+    const cfg = METRIC_CONFIGS[key];
+    const val = getMetricVal(key);
+    const isAnswered = val !== null;
+    const color =
+      key === 'sleepHours'
+        ? val !== null
+          ? getSleepColor(val)
+          : 'var(--checkin-scale-neutral)'
+        : key === 'sleepQuality'
+          ? val !== null
+            ? getQualityColor(val)
+            : 'var(--checkin-scale-neutral)'
+          : key === 'fatigueLevel'
+            ? val !== null
+              ? getFatigueColor(val)
+              : 'var(--checkin-scale-neutral)'
+            : val !== null
+              ? getSorenessColor(val)
+              : 'var(--checkin-scale-neutral)';
+
+    const progressPct = getProgressPct ? getProgressPct(key) : getMetricProgressPct(key, val);
+    const displayInfo = getMetricDisplayInfo(key, val);
+
+    return {
+      key,
+      label: cfg.name,
+      val,
+      isAnswered,
+      color: getMetricCurrentColor(key, val) || color,
+      progressPct,
+      valueText: displayInfo.valueText,
+      stateText: displayInfo.stateText,
+      isMin: isMetricMin(key),
+      isMax: isMetricMax(key),
+    };
+  });
 
   return (
-    <div className="recovery-meter-wrap">
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-        className="recovery-meter-svg"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        style={{ touchAction: 'none' }}
-      >
-        {/* ── 1. HIT-BOXES TÁCTILES AMPLIADAS PARA CADA ANILLO (48-58px de ancho) ── */}
-        {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
-          const cfg = METRIC_CONFIGS[key];
-          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, END_ANGLE);
+    <div
+      className="recovery-meter-wrap recovery-bars-container"
+      role="group"
+      aria-label="Indicadores de descanso y recuperación"
+    >
+      {metricItems.map((item) => {
+        const isActive = activeMetric === item.key;
+        const fillPct = item.isAnswered ? Math.round(item.progressPct * 100) : 0;
 
-          return (
-            <path
-              key={`hitbox-${key}`}
-              d={pathD}
-              fill="none"
-              stroke="transparent"
-              strokeWidth={HIT_TEST_STROKE_WIDTH}
-              strokeLinecap="round"
-              className="recovery-touch-hitbox"
-              onClick={() => handleSelectWithFeedback(key)}
-              aria-label={`Seleccionar ${cfg.name}`}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleSelectWithFeedback(key);
-                }
-              }}
-            />
-          );
-        })}
-
-        {/* ── 2. CARRILES BASE DE FONDO CON SEPARACIÓN RADIAL AMPLIA ── */}
-        {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
-          const cfg = METRIC_CONFIGS[key];
-          const isActive = activeMetric === key;
-          const currentStroke = isActive ? ACTIVE_STROKE_WIDTH : STROKE_WIDTH;
-          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, END_ANGLE);
-
-          return (
-            <g key={`track-group-${key}`}>
-              {/* Carril base */}
-              <path
-                d={pathD}
-                fill="none"
-                stroke="var(--checkin-track-base)"
-                strokeWidth={currentStroke}
-                strokeLinecap="round"
-                className={`recovery-track-arc ${isActive ? 'is-active' : ''}`}
-                onClick={() => handleSelectWithFeedback(key)}
-              />
-
-              {/* Resplandor y borde suave del anillo seleccionado */}
-              {isActive && (
-                <path
-                  d={pathD}
-                  fill="none"
-                  stroke="var(--cyan-accent)"
-                  strokeWidth={ACTIVE_STROKE_WIDTH + 4}
-                  strokeLinecap="round"
-                  opacity={0.35}
-                  className="recovery-track-highlight"
-                />
-              )}
-            </g>
-          );
-        })}
-
-        {/* ── 3. ARCOS DE PROGRESO DINÁMICOS ── */}
-        {(Object.keys(METRIC_CONFIGS) as MetricKey[]).map((key) => {
-          if (!isMetricAnswered(key)) return null;
-          const cfg = METRIC_CONFIGS[key];
-          const isActive = activeMetric === key;
-          const endDeg = getArcEndAngle(key);
-          const pathD = describeArc(CX, CY, cfg.radius, cfg.startAngle, endDeg);
-          const dynamicColor = getMetricCurrentColor(key, getMetricVal(key));
-          const currentStroke = isActive ? ACTIVE_STROKE_WIDTH : STROKE_WIDTH;
-
-          return (
-            <path
-              key={`progress-${key}`}
-              d={pathD}
-              fill="none"
-              stroke={dynamicColor}
-              strokeWidth={currentStroke}
-              strokeLinecap="round"
-              className={`recovery-progress-arc ${isActive ? 'is-active' : ''}`}
-              onClick={() => handleSelectWithFeedback(key)}
-            />
-          );
-        })}
-
-        {/* ── 4. CONTROL DESLIZADOR TÁCTIL (THUMB) EN EL EXTREMO DEL ARCO ACTIVO ── */}
-        {isMetricAnswered(activeMetric) &&
-          (() => {
-            const cfg = METRIC_CONFIGS[activeMetric];
-            const endDeg = getArcEndAngle(activeMetric);
-            const thumbPos = polarToCartesian(CX, CY, cfg.radius, endDeg);
-            const activeColor = getMetricCurrentColor(activeMetric, getMetricVal(activeMetric));
-
-            return (
-              <g className="recovery-thumb-group" aria-hidden="true">
-                {/* Hit target invisible de 56px para arrastre táctil cómodo con dedo humano */}
-                <circle
-                  cx={thumbPos.x}
-                  cy={thumbPos.y}
-                  r={26}
-                  fill="transparent"
-                  className="recovery-thumb-hitbox"
-                />
-                {/* Thumb exterior blanco */}
-                <circle
-                  cx={thumbPos.x}
-                  cy={thumbPos.y}
-                  r={15}
-                  fill="#ffffff"
-                  stroke={activeColor}
-                  strokeWidth={4.5}
-                  className="recovery-slider-thumb"
-                />
-                {/* Núcleo central del color del estado */}
-                <circle cx={thumbPos.x} cy={thumbPos.y} r={5.5} fill={activeColor} />
-              </g>
-            );
-          })()}
-
-        {/* ── 4. ETIQUETAS E INSIGNIAS ACCESIBLES SINCRONIZADAS (Touch target >= 48px) ── */}
-        {metricBadges.map((item) => {
-          const cfg = METRIC_CONFIGS[item.key];
-          const isActive = activeMetric === item.key;
-          const posY = cfg.badgeY;
-
-          return (
-            <g
-              key={`label-group-${item.key}`}
-              className={`checkin-recovery-label-group ${isActive ? 'is-active' : ''}`}
-              onClick={() => handleSelectWithFeedback(item.key)}
-              role="button"
-              tabIndex={0}
-              aria-label={`Seleccionar indicador ${item.label}`}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleSelectWithFeedback(item.key);
-                }
-              }}
-            >
-              {/* Hit target transparente envolvente de toda la fila para selección táctil con una mano */}
-              <rect
-                x={0}
-                y={posY - 26}
-                width={BADGE_X + 26}
-                height={52}
-                fill="transparent"
-                className="recovery-label-touch-target"
-              />
-
-              {/* Texto del nombre del indicador */}
-              <text
-                x={BADGE_X - 22}
-                y={posY + 5.5}
-                textAnchor="end"
-                className={`recovery-badge-text ${isActive ? 'is-active' : ''}`}
-                fill={
-                  isActive
-                    ? 'var(--brand-blue)'
-                    : item.isAnswered
-                      ? 'var(--checkin-title-color)'
-                      : 'var(--checkin-subtitle-color)'
-                }
-              >
-                {item.label}
-                {!item.isAnswered ? ' (Neutro)' : ''}
-              </text>
-
-              {/* Grupo del logo / insignia */}
-              <g className={isActive ? 'recovery-badge-blinking' : undefined}>
-                <circle
-                  cx={BADGE_X}
-                  cy={posY}
-                  r="15"
-                  fill={item.isAnswered ? item.color : 'var(--checkin-counter-bg)'}
-                  stroke={
-                    isActive
+        return (
+          <div
+            key={item.key}
+            data-metric={item.key}
+            className={`recovery-bar-card checkin-recovery-label-group ${isActive ? 'is-active' : 'is-inactive'} ${item.isAnswered ? 'is-answered' : 'is-unanswered'}`}
+            onClick={() => handleSelectWithFeedback(item.key)}
+            role="button"
+            tabIndex={0}
+            aria-pressed={isActive}
+            aria-label={`Seleccionar indicador ${item.label}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleSelectWithFeedback(item.key);
+              } else if (isActive && e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (!item.isMin) handleStepDecrement(item.key);
+              } else if (isActive && e.key === 'ArrowRight') {
+                e.preventDefault();
+                if (!item.isMax) handleStepIncrement(item.key);
+              }
+            }}
+          >
+            {/* Cabecera del indicador: Icono + Nombre a la izquierda, Valor y Estado a la derecha */}
+            <div className="recovery-bar-header">
+              <div className="recovery-bar-identity">
+                <span
+                  className={`recovery-bar-icon-badge ${isActive ? 'is-active' : ''}`}
+                  style={{
+                    backgroundColor: item.isAnswered ? item.color : 'var(--checkin-counter-bg)',
+                    borderColor: isActive
                       ? 'var(--cyan-accent)'
                       : item.isAnswered
-                        ? 'var(--checkin-inner-bg)'
-                        : 'var(--border)'
+                        ? 'transparent'
+                        : 'var(--border)',
+                  }}
+                  aria-hidden="true"
+                >
+                  {renderMetricIcon(item.key, item.isAnswered, item.color)}
+                </span>
+                <span
+                  className={`recovery-badge-text recovery-bar-title ${isActive ? 'is-active' : ''}`}
+                >
+                  {item.label}
+                </span>
+              </div>
+
+              <div className={`recovery-bar-status ${isActive ? 'is-active' : ''}`}>
+                <span
+                  className={`recovery-bar-value-text ${isActive ? 'is-active' : ''} ${!item.isAnswered ? 'is-neutral' : ''}`}
+                >
+                  {item.valueText}
+                </span>
+                <span className={`recovery-bar-state-pill ${isActive ? 'is-active' : ''}`}>
+                  {item.stateText}
+                </span>
+              </div>
+            </div>
+
+            {/* Fila de control horizontal: [ − ] ━━━━━━━━━━━━━━━ [ + ] */}
+            <div className="recovery-bar-controls-row">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isActive && !item.isMin) {
+                    handleStepDecrement(item.key);
+                  } else if (!isActive) {
+                    handleSelectWithFeedback(item.key);
                   }
-                  strokeWidth={isActive ? '2.5' : '1.5'}
-                  strokeDasharray={item.isAnswered ? 'none' : '3 2'}
-                  className="recovery-badge-circle"
+                }}
+                disabled={!isActive || item.isMin}
+                aria-label={isActive ? 'Disminuir valor' : `Disminuir ${item.label}`}
+                title={isActive ? 'Disminuir valor' : `Selecciona ${item.label} para modificar`}
+                tabIndex={isActive ? 0 : -1}
+                className={`recovery-stepper-btn recovery-bar-stepper recovery-bar-stepper-minus ${isActive ? 'is-active' : 'is-inactive'} ${!isActive || item.isMin ? 'is-disabled' : ''}`}
+              >
+                <svg
+                  width={isActive ? '20' : '16'}
+                  height={isActive ? '20' : '16'}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  aria-hidden="true"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
+                </svg>
+              </button>
+
+              <div
+                ref={(el) => {
+                  trackRefs.current[item.key] = el;
+                }}
+                className={`recovery-bar-track recovery-track-arc ${isActive ? 'is-active' : ''}`}
+                onPointerDown={(e) => handleTrackPointerDown(e, item.key)}
+                onPointerMove={(e) => handleTrackPointerMove(e, item.key)}
+                onPointerUp={handleTrackPointerUp}
+                onPointerCancel={handleTrackPointerUp}
+                data-testid={`recovery-bar-track-${item.key}`}
+              >
+                <div
+                  className={`recovery-bar-fill recovery-progress-arc ${isActive ? 'is-active' : ''}`}
+                  style={{
+                    width: `${fillPct}%`,
+                    backgroundColor: item.isAnswered ? item.color : 'var(--checkin-scale-neutral)',
+                  }}
+                  data-testid={`recovery-bar-fill-${item.key}`}
                 />
-                <g transform={`translate(${BADGE_X}, ${posY})`}>{item.icon}</g>
-              </g>
-            </g>
-          );
-        })}
-      </svg>
+                {item.isAnswered && (
+                  <span
+                    className={`recovery-bar-thumb recovery-slider-thumb ${isActive ? 'is-active' : ''}`}
+                    style={{
+                      left: `${fillPct}%`,
+                      borderColor: item.color,
+                    }}
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isActive && !item.isMax) {
+                    handleStepIncrement(item.key);
+                  } else if (!isActive) {
+                    handleSelectWithFeedback(item.key);
+                  }
+                }}
+                disabled={!isActive || item.isMax}
+                aria-label={isActive ? 'Aumentar valor' : `Aumentar ${item.label}`}
+                title={isActive ? 'Aumentar valor' : `Selecciona ${item.label} para modificar`}
+                tabIndex={isActive ? 0 : -1}
+                className={`recovery-stepper-btn recovery-bar-stepper recovery-bar-stepper-plus ${isActive ? 'is-active' : 'is-inactive'} ${!isActive || item.isMax ? 'is-disabled' : ''}`}
+              >
+                <svg
+                  width={isActive ? '20' : '16'}
+                  height={isActive ? '20' : '16'}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" strokeLinecap="round" />
+                  <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

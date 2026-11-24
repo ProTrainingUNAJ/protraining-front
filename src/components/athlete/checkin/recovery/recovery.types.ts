@@ -305,3 +305,105 @@ export const AMBIENT_STARS: AmbientStar[] = [
   { id: 'a5', x: -20, y: -54, size: 12, type: 'five', duration: 2.3, delay: 1.2, colorIdx: 1 },
   { id: 'a6', x: 24, y: -52, size: 15, type: 'four', duration: 2.5, delay: 0.7, colorIdx: 2 },
 ];
+
+export const METRIC_ORDER: MetricKey[] = [
+  'sleepHours',
+  'sleepQuality',
+  'fatigueLevel',
+  'muscleSoreness',
+];
+
+/**
+ * Valores preajustados por defecto cuando no existe registro del día anterior:
+ * - Horas de sueño: 8 horas (Óptimo)
+ * - Calidad del descanso: 5 (5/5 · Excelente)
+ * - Nivel de fatiga muscular: 1 (5/5 en escala de bienestar · Enérgico)
+ * - Dolor muscular: 1 (5/5 en escala de bienestar · Sin dolor)
+ */
+export const DEFAULT_RECOVERY_VALUES = {
+  sleepHours: 8,
+  sleepQuality: 5,
+  fatigueLevel: 1,
+  muscleSoreness: 1,
+} as const;
+
+export const SLEEP_STATUS_LABELS = (hours: number): string => {
+  if (hours <= 3) return 'Bajo';
+  if (hours === 4) return 'Insuficiente';
+  if (hours === 5) return 'Regular';
+  if (hours <= 7) return 'Bueno';
+  return 'Óptimo';
+};
+
+export function getMetricProgressPct(key: MetricKey, val: number | null): number {
+  if (val === null) return 0;
+  let pct = 0;
+  switch (key) {
+    case 'sleepHours':
+      pct = Math.min(12, val) / 12;
+      break;
+    case 'sleepQuality':
+      pct = (val - 1) / 4;
+      break;
+    case 'fatigueLevel':
+      pct = (5 - val) / 4;
+      break;
+    case 'muscleSoreness':
+      pct = (5 - val) / 4;
+      break;
+  }
+  return Math.max(0.08, Math.min(1, pct));
+}
+
+export function getValueFromHorizontalPct(rawPct: number, key: MetricKey): number {
+  const pct = Math.max(0, Math.min(1, rawPct));
+  switch (key) {
+    case 'sleepHours': {
+      const val = Math.round(pct * 12);
+      return Math.max(0, Math.min(12, val));
+    }
+    case 'sleepQuality': {
+      const val = Math.round(1 + pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+    case 'fatigueLevel': {
+      const val = Math.round(5 - pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+    case 'muscleSoreness': {
+      const val = Math.round(5 - pct * 4);
+      return Math.max(1, Math.min(5, val));
+    }
+  }
+}
+
+export function getMetricDisplayInfo(
+  key: MetricKey,
+  val: number | null,
+): { valueText: string; stateText: string } {
+  if (val === null) {
+    return { valueText: 'Neutro', stateText: 'Sin marcar' };
+  }
+  switch (key) {
+    case 'sleepHours':
+      return {
+        valueText: `${val} ${val === 1 ? 'hora' : 'horas'}`,
+        stateText: SLEEP_STATUS_LABELS(val),
+      };
+    case 'sleepQuality':
+      return {
+        valueText: QUALITY_LABELS[val] ?? `${val}/5`,
+        stateText: `Nivel ${val}/5`,
+      };
+    case 'fatigueLevel':
+      return {
+        valueText: FATIGUE_LABELS[val] ?? `${6 - val}/5`,
+        stateText: `Nivel ${6 - val}/5`,
+      };
+    case 'muscleSoreness':
+      return {
+        valueText: SORENESS_LABELS[val] ?? `${6 - val}/5`,
+        stateText: `Nivel ${6 - val}/5`,
+      };
+  }
+}

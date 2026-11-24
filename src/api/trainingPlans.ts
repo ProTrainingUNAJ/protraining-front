@@ -3,6 +3,7 @@ import {
   assignTrainingPlan,
   createTrainingPlan,
   getTrainingPlan,
+  getTrainingPlanPdf,
   getTrainingPlanSchedule,
   listPlanAssignments,
   listPlanTemplates,
@@ -168,6 +169,52 @@ export const trainingPlansService = {
         throwOnError: true,
       }),
     );
+  },
+
+  async downloadPdf(planId: string, planName: string): Promise<void> {
+    let blob: Blob | File;
+    try {
+      const { data } = await getTrainingPlanPdf({ path: { id: planId }, throwOnError: true });
+      blob = data;
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response === 'object' &&
+        error.response !== null &&
+        'data' in error.response &&
+        error.response.data instanceof Blob
+      ) {
+        try {
+          const text = await error.response.data.text();
+          const parsed = JSON.parse(text) as { detail?: string; title?: string };
+          const message = parsed.detail || parsed.title;
+          if (message) {
+            throw new Error(message, { cause: error });
+          }
+        } catch (parseErr) {
+          if (parseErr instanceof Error && parseErr.cause === error) {
+            throw parseErr;
+          }
+        }
+      }
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+
+    const safeName = planName.trim().replace(/[/\\?%*:|"<>]/g, '-') || 'planificacion';
+    const fileName = `${safeName}.pdf`;
+    const url = URL.createObjectURL(blob);
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   },
 };
 

@@ -352,9 +352,11 @@
 .dl-widget__footer {
   position: relative;
   z-index: 1;
-  margin-top: 0.65rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
   display: flex;
-  justify-content: stretch;
+  /* Mismo botón y ubicación que el resto de las tarjetas del Inicio (KAN-594) */
+  justify-content: flex-end;
 }
 
 .dl-widget__btn-action {

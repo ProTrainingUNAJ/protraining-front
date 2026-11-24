@@ -41,3 +41,28 @@ export function evaluateTimeTarget(
     statusLabel: isAchieved ? 'Cumplida' : 'Superó la meta',
   };
 }
+
+export interface FormattedTargetTime {
+  value: string;
+  unit: string;
+  text: string;
+}
+
+export function formatTargetTime(seconds: number): FormattedTargetTime {
+  if (seconds >= 60) {
+    const mins = Math.floor(seconds / 60);
+    const rem = Math.round((seconds - mins * 60) * 10) / 10;
+    if (rem === 0) {
+      return { value: String(mins), unit: 'min', text: `${mins} min` };
+    }
+    const remStr = Number.isInteger(rem)
+      ? String(rem)
+      : rem.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return { value: `${mins} min ${remStr}`, unit: 's', text: `${mins} min ${remStr} s` };
+  }
+
+  const value = Number.isInteger(seconds)
+    ? String(seconds)
+    : seconds.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return { value, unit: 's', text: `${value} s` };
+}

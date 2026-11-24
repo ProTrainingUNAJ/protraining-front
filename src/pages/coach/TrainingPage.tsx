@@ -9,6 +9,8 @@ import {
   Layers,
   X,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Check,
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
@@ -45,7 +47,7 @@ const EXERCISE_TYPES = [
   { label: 'Con carga', value: 'Weight' },
 ] as const;
 
-const PAGE_SIZE = 20; // Cantidad de ejercicios por página
+const PAGE_SIZE = 24; // Cantidad de ejercicios por página (múltiplo de 2, 3 y 4)
 
 interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants' | 'exerciseType'> {
   id?: string | number;
@@ -144,8 +146,7 @@ export const TrainingPage: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
   // Variante elegida dentro del detalle; null muestra el ejercicio base.
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
@@ -153,6 +154,22 @@ export const TrainingPage: React.FC = () => {
   const openDetail = (exercise: ExerciseItem) => {
     setActiveVariantId(null);
     setModalExercise(exercise);
+  };
+
+  const handleExerciseVideoChange = (exerciseId: string, nextVideoUrl: string | null) => {
+    const nextSource: 'Pf' | null = nextVideoUrl ? 'Pf' : null;
+    const applyUpdate = (item: ExerciseItem): ExerciseItem => ({
+      ...item,
+      ...(item.id === exerciseId ? { videoUrl: nextVideoUrl, videoSource: nextSource } : {}),
+      variants: item.variants.map((variant) =>
+        variant.id === exerciseId
+          ? { ...variant, videoUrl: nextVideoUrl, videoSource: nextSource }
+          : variant,
+      ),
+    });
+
+    setExercises((prev) => prev.map(applyUpdate));
+    setModalExercise((prev) => (prev ? applyUpdate(prev) : null));
   };
 
   const shownExercise =
@@ -182,7 +199,7 @@ export const TrainingPage: React.FC = () => {
         const response = await listExercises({
           throwOnError: true,
           query: {
-            page: 1,
+            page: page,
             pageSize: PAGE_SIZE,
             search: searchTerm.trim() || undefined,
             muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
@@ -199,18 +216,19 @@ export const TrainingPage: React.FC = () => {
         const mapped = rawList.map(mapExerciseToItem);
 
         setExercises(mapped);
-        setPage(1);
-        setHasMore(rawList.length >= PAGE_SIZE);
         if (response.data && 'totalCount' in response.data) {
           setTotalCount(response.data.totalCount);
-          setHasMore(response.data.page < response.data.totalPages);
+          setTotalPages(Math.max(response.data.totalPages ?? 1, 1));
+        } else {
+          setTotalPages(rawList.length < PAGE_SIZE ? page : page + 1);
         }
       } catch (err) {
         if (!isMounted) return;
         console.error('Error al cargar ejercicios del backend:', err);
         setError('No se pudo cargar la biblioteca');
         setExercises([]);
-        setHasMore(false);
+        setTotalCount(0);
+        setTotalPages(1);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -220,51 +238,12 @@ export const TrainingPage: React.FC = () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [searchTerm, selectedCategory, selectedMuscle, selectedType, retryCount]);
+  }, [searchTerm, selectedCategory, selectedMuscle, selectedType, page, retryCount]);
 
-  // Función para pedir la siguiente página manteniendo los filtros
-  const handleLoadMore = async () => {
-    if (isLoadingMore || !hasMore) return;
-    setIsLoadingMore(true);
-    const nextPage = page + 1;
-
-    try {
-      const response = await listExercises({
-        throwOnError: true,
-        query: {
-          page: nextPage,
-          pageSize: PAGE_SIZE,
-          search: searchTerm.trim() || undefined,
-          muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
-          muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
-          exerciseType:
-            selectedType === 'Todos' ? undefined : (selectedType as Exercise['exerciseType']),
-          groupVariants: true,
-        },
-      });
-
-      const rawList = extractExerciseList(response.data);
-      if (rawList.length > 0) {
-        const mapped = rawList.map(mapExerciseToItem);
-        setExercises((prev) => {
-          const existingIds = new Set(prev.map((e) => e.id));
-          const newItems = mapped.filter((e) => !existingIds.has(e.id));
-          return [...prev, ...newItems];
-        });
-        setPage(nextPage);
-        setHasMore(rawList.length >= PAGE_SIZE);
-        if (response.data && 'totalPages' in response.data) {
-          setHasMore(nextPage < response.data.totalPages);
-        }
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error('Error al cargar más ejercicios:', err);
-      setHasMore(false);
-    } finally {
-      setIsLoadingMore(false);
-    }
+  // Función para pedir otra página manteniendo los filtros
+  const goToPage = (nextPage: number) => {
+    if (isLoading || nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    setPage(nextPage);
   };
 
   const selectedTypeObj = EXERCISE_TYPES.find((t) => t.value === selectedType);
@@ -291,7 +270,10 @@ export const TrainingPage: React.FC = () => {
                 type="text"
                 placeholder="Buscar por ejercicio o grupo muscular..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
                 className="training-search-input"
                 aria-label="Buscar por ejercicio o grupo muscular"
               />
@@ -299,7 +281,10 @@ export const TrainingPage: React.FC = () => {
                 <button
                   type="button"
                   className="training-clear-search-btn"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => {
+                    setSearchTerm('');
+                    setPage(1);
+                  }}
                   title="Borrar búsqueda"
                   aria-label="Borrar búsqueda"
                 >
@@ -347,6 +332,7 @@ export const TrainingPage: React.FC = () => {
                       className={`training-type-option ${isSelected ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedType(t.value);
+                        setPage(1);
                         setIsTypeDropdownOpen(false);
                       }}
                     >
@@ -385,6 +371,7 @@ export const TrainingPage: React.FC = () => {
                     onClick={() => {
                       setSelectedCategory(cat);
                       setSelectedMuscle(null);
+                      setPage(1);
                     }}
                   >
                     {cat}
@@ -414,9 +401,10 @@ export const TrainingPage: React.FC = () => {
                       role="button"
                       aria-pressed={isSelected}
                       className={`training-submuscle-chip ${isSelected ? 'active' : ''}`}
-                      onClick={() =>
-                        setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
-                      }
+                      onClick={() => {
+                        setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle));
+                        setPage(1);
+                      }}
                     >
                       {subMuscle}
                     </button>
@@ -508,25 +496,47 @@ export const TrainingPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          /* Lista de tarjetas y botón Cargar más */
+          /* Lista de tarjetas y barra superior de resultados + paginación */
           <>
-            {/* Contador de ejercicios encontrados */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0 0.25rem',
-                marginBottom: '-0.25rem',
-                fontSize: '0.85rem',
-                color: 'var(--text-muted)',
-                fontWeight: 600,
-              }}
-            >
-              <span>
-                Mostrando {exercises.length} de {totalCount} ejercicios
-              </span>
-            </div>
+            {/* Contador de ejercicios y paginación con flechas arriba de la grilla */}
+            {exercises.length > 0 && (
+              <div className="training-results-bar">
+                <span className="training-results-count">
+                  Mostrando {(page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + exercises.length}{' '}
+                  de {totalCount} ejercicios
+                </span>
+
+                {totalPages > 1 && (
+                  <div className="training-pagination">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => goToPage(page - 1)}
+                      disabled={isLoading || page <= 1}
+                      aria-label="Página anterior"
+                    >
+                      <ChevronLeft size={16} aria-hidden="true" />
+                      <span>Anterior</span>
+                    </button>
+
+                    <span className="training-pagination-info">
+                      Página {page} de {totalPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => goToPage(page + 1)}
+                      disabled={isLoading || page >= totalPages}
+                      aria-label="Página siguiente"
+                    >
+                      <span>Siguiente</span>
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="training-exercises-grid">
               {exercises.map((ex) => (
                 <div key={ex.id} className="card training-exercise-card">
@@ -608,33 +618,6 @@ export const TrainingPage: React.FC = () => {
                 </div>
               ))}
             </div>
-
-            {/* Botón Cargar Más Ejercicios */}
-            {hasMore && exercises.length > 0 && (
-              <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  style={{
-                    minHeight: '44px',
-                    padding: '0.65rem 2rem',
-                    fontWeight: 600,
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  {isLoadingMore ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Loader2 size={16} className="spin" />
-                      Cargando más ejercicios...
-                    </span>
-                  ) : (
-                    <span>Cargar más ejercicios</span>
-                  )}
-                </button>
-              </div>
-            )}
           </>
         )}
 
@@ -645,6 +628,8 @@ export const TrainingPage: React.FC = () => {
           exercise={currentExerciseForModal}
           activeVariantId={activeVariantId}
           onSelectVariant={(variantId) => setActiveVariantId(variantId)}
+          allowVideoEdit
+          onVideoChange={handleExerciseVideoChange}
         />
       </div>
     </div>

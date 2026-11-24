@@ -481,11 +481,11 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                     title="Programar Partido en este día"
                   >
                     <Plus size={13} />
-                    <span>+ Partido</span>
+                    <span>Partido</span>
                   </button>
 
                   {activities.length === 0 ? (
-                    <div className="season-calendar-week-empty-day">Sin actividades</div>
+                    <div className="season-calendar-week-empty-day">Sin actividad</div>
                   ) : (
                     activities.map((act, idx) => {
                       if (act.kind === 'match') {

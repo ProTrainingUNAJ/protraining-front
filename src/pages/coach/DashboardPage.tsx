@@ -25,6 +25,10 @@ import { NextTrainingWidget } from '../../components/dashboard/NextTrainingWidge
 import { HabitsPendingWidget } from '../../components/dashboard/HabitsPendingWidget';
 import { NextMatchWidget } from '../../components/dashboard/NextMatchWidget';
 import { InjuriesReturnWidget } from '../../components/dashboard/InjuriesReturnWidget';
+import { AthleteCheckInTodayWidget } from '../../components/dashboard/AthleteCheckInTodayWidget';
+import { AthleteWeekTrafficWidget } from '../../components/dashboard/AthleteWeekTrafficWidget';
+import { AthleteNextTrainingWidget } from '../../components/dashboard/AthleteNextTrainingWidget';
+import { AthleteMetricsStripWidget } from '../../components/dashboard/AthleteMetricsStripWidget';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
 import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
@@ -34,7 +38,10 @@ import { fetchCoachTodayOverview } from '../../api/coachToday';
 import { recommendationsService } from '../../api/recommendations';
 import { structureService } from '../../api/structureService';
 import { AthleteRecommendationsSection } from '../../components/athlete/AthleteRecommendationsSection';
-import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
+import {
+  ATHLETE_DASHBOARD_STORAGE_KEY,
+  DEFAULT_ATHLETE_ROWS,
+} from '../../utils/athleteDashboardLayout';
 import { todayInArgentina } from '../../utils/argentinaDate';
 import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
 import { useAthleteEvolution } from '../../hooks/useAthleteEvolution';
@@ -57,7 +64,11 @@ export type DashboardCardType =
   | 'attention-today'
   | 'habits-pending'
   | 'next-match'
-  | 'injuries-return';
+  | 'injuries-return'
+  | 'athlete-checkin-today'
+  | 'athlete-week-traffic'
+  | 'athlete-next-training'
+  | 'athlete-metrics-strip';
 
 export interface WireframeCardItem {
   id: string;
@@ -65,17 +76,6 @@ export interface WireframeCardItem {
   colSpan: number;
   type: DashboardCardType;
   chartMetric?: string;
-}
-
-// Tipo del widget "Predio y Horario", retirado del Inicio (KAN-583) y reemplazado en el PF
-// por "Próximo entrenamiento". Puede seguir en layouts guardados.
-const RETIRED_SESSION_WIDGET_TYPE = 'training-session';
-
-interface RetirableCard {
-  id: string;
-  name: string;
-  colSpan: number;
-  type: string;
 }
 
 export interface DashboardRow {
@@ -126,7 +126,14 @@ const DEFAULT_COACH_ROWS: DashboardRow[] = [
 
 // Tarjetas que el PF puede poner en un espacio libre con el "+" (KAN-594). El menú muestra solo
 // las que no están ya en el Inicio: si quita una de las de siempre, la puede volver a poner.
-const COACH_WIDGET_CATALOG: { type: DashboardCardType; name: string; description: string }[] = [
+interface CatalogItem {
+  type: DashboardCardType;
+  name: string;
+  description: string;
+  chartMetric?: string;
+}
+
+const COACH_WIDGET_CATALOG: CatalogItem[] = [
   {
     type: 'habits-pending',
     name: 'Recomendaciones por aprobar',
@@ -155,6 +162,60 @@ const COACH_WIDGET_CATALOG: { type: DashboardCardType; name: string; description
   },
 ];
 
+// Lo mismo para el atleta (KAN-594): agrega o saca lo que quiera. Los gráficos grandes de cada
+// marca siguen disponibles además de la tira de "Mis marcas".
+const ATHLETE_WIDGET_CATALOG: CatalogItem[] = [
+  {
+    type: 'athlete-checkin-today',
+    name: 'Mi check-in de hoy',
+    description: 'Si lo hiciste y cómo llegás',
+  },
+  {
+    type: 'athlete-week-traffic',
+    name: 'Mis últimos 7 días',
+    description: 'Tu semáforo día por día',
+  },
+  {
+    type: 'athlete-next-training',
+    name: 'Mi próximo entrenamiento',
+    description: 'Qué entrenás y cuándo',
+  },
+  {
+    type: 'athlete-metrics-strip',
+    name: 'Mis marcas',
+    description: 'Salto, fuerza, sprint y resistencia',
+  },
+  { type: 'daily-load', name: 'Carga del día', description: 'Cargá minutos y esfuerzo' },
+  { type: 'suite', name: 'Accesos rápidos', description: 'Tu rutina y tus marcas' },
+  {
+    type: 'progress-chart',
+    chartMetric: 'cmj',
+    name: 'Gráfico: Salto CMJ',
+    description: 'Tu evolución en grande',
+  },
+  {
+    type: 'progress-chart',
+    chartMetric: 'squat',
+    name: 'Gráfico: 1RM Sentadilla',
+    description: 'Tu evolución en grande',
+  },
+  {
+    type: 'progress-chart',
+    chartMetric: 'sprint',
+    name: 'Gráfico: Sprint',
+    description: 'Tu evolución en grande',
+  },
+  {
+    type: 'progress-chart',
+    chartMetric: 'yoyo',
+    name: 'Gráfico: Resistencia',
+    description: 'Tu evolución en grande',
+  },
+];
+
+const catalogKey = (item: { type: string; chartMetric?: string }) =>
+  item.type === 'progress-chart' ? `${item.type}:${item.chartMetric ?? 'cmj'}` : item.type;
+
 // Layout del PF guardado en el navegador. Con el orden nuevo (KAN-594) cambia la versión: los
 // layouts guardados con la anterior pasan al orden nuevo una sola vez.
 const COACH_LAYOUT_STORAGE_KEY = 'protraining_bento_rows_coach_v9';
@@ -180,6 +241,13 @@ const WEEKDAY_FORMATTER = new Intl.DateTimeFormat('es-AR', {
   month: 'long',
   timeZone: 'America/Argentina/Buenos_Aires',
 });
+
+// "Hoy, lunes 23 de noviembre. Así venís y esto es lo que te toca." (KAN-594)
+function describeAthleteDay(): string {
+  const [year, month, day] = todayInArgentina().split('-').map(Number);
+  const label = WEEKDAY_FORMATTER.format(new Date(Date.UTC(year, month - 1, day, 12)));
+  return `Hoy, ${label}. Así venís y esto es lo que te toca.`;
+}
 
 function describeCoachDay(attentionCount: number | null, nobodyReported = false): string {
   const [year, month, day] = todayInArgentina().split('-').map(Number);
@@ -223,7 +291,7 @@ export const DashboardPage: React.FC = () => {
   // se retiraron los widgets ficticios de clima (Open-Meteo), reloj y carga
   // semanal de prueba; los layouts guardados con esos tipos degradan al slot
   // "Módulo Disponible" (case default del switch de render), sin migración.
-  const storageKey = isAthlete ? 'protraining_bento_rows_athlete_v8' : COACH_LAYOUT_STORAGE_KEY;
+  const storageKey = isAthlete ? ATHLETE_DASHBOARD_STORAGE_KEY : COACH_LAYOUT_STORAGE_KEY;
 
   const defaultRows = isAthlete ? (DEFAULT_ATHLETE_ROWS as DashboardRow[]) : DEFAULT_COACH_ROWS;
 
@@ -237,51 +305,9 @@ export const DashboardPage: React.FC = () => {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 4) {
-          // "Predio y Horario" mostraba un predio y un horario de ejemplo, sin datos reales
-          // (KAN-583). En los layouts guardados del atleta pasa a ser un módulo libre.
-          const replacement = { name: 'Módulo Disponible', type: 'empty' };
-          for (const row of parsed as { cards: RetirableCard[] }[]) {
-            row.cards = row.cards.map((card) =>
-              card.type === RETIRED_SESSION_WIDGET_TYPE
-                ? { id: card.id, colSpan: card.colSpan, ...replacement }
-                : card,
-            );
-          }
-          // Semáforo diario en la fila 1, al lado del entrenamiento (KAN-547)
-          const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
-          const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');
-
-          // Si quedó en la fila 2, se saca de ahí
-          if (row2 && Array.isArray(row2.cards)) {
-            const tlIdxInRow2 = row2.cards.findIndex(
-              (c: WireframeCardItem) => c.type === 'daily-traffic-light',
-            );
-            if (tlIdxInRow2 !== -1) {
-              row2.cards[tlIdxInRow2] = {
-                id: 'a-r2-2',
-                name: 'Módulo 2-B',
-                colSpan: 1,
-                type: 'empty',
-              };
-            }
-          }
-
-          if (row1 && Array.isArray(row1.cards)) {
-            const tlIdxInRow1 = row1.cards.findIndex(
-              (c: WireframeCardItem) => c.type === 'daily-traffic-light',
-            );
-            if (tlIdxInRow1 === -1) {
-              const targetIdx = row1.cards.length > 1 ? 1 : 0;
-              row1.cards[targetIdx] = {
-                id: 'a-daily-traffic-light',
-                name: 'Semáforo Diario',
-                colSpan: 1,
-                type: 'daily-traffic-light',
-              };
-            }
-          }
-          return parsed;
+        // v9 (KAN-594): el layout se guarda con el orden nuevo; el de la v8 ya no se lee
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed as DashboardRow[];
         }
       }
     } catch {
@@ -514,17 +540,24 @@ export const DashboardPage: React.FC = () => {
   // Poner una tarjeta del catálogo en un espacio libre, o volver una tarjeta a espacio libre.
   // Conserva el id del lugar: el orden y el guardado en el navegador siguen igual.
   const [pickerCardId, setPickerCardId] = useState<string | null>(null);
-  const replaceCard = (cardId: string, next: { type: DashboardCardType; name: string }) => {
+  const replaceCard = (
+    cardId: string,
+    next: { type: DashboardCardType; name: string; chartMetric?: string },
+  ) => {
     setRows((prevRows) =>
       prevRows.map((row) => ({
         ...row,
-        cards: row.cards.map((card) => (card.id === cardId ? { ...card, ...next } : card)),
+        cards: row.cards.map((card) =>
+          card.id === cardId ? { ...card, chartMetric: undefined, ...next } : card,
+        ),
       })),
     );
     setPickerCardId(null);
   };
-  const usedTypes = new Set(rows.flatMap((row) => row.cards.map((card) => card.type)));
-  const addableWidgets = COACH_WIDGET_CATALOG.filter((item) => !usedTypes.has(item.type));
+  const usedKeys = new Set(rows.flatMap((row) => row.cards.map(catalogKey)));
+  const addableWidgets = (isAthlete ? ATHLETE_WIDGET_CATALOG : COACH_WIDGET_CATALOG).filter(
+    (item) => !usedKeys.has(catalogKey(item)),
+  );
 
   // Reset to default layout
   const resetLayout = () => {
@@ -579,6 +612,14 @@ export const DashboardPage: React.FC = () => {
     switch (card.type) {
       case 'top-ua-athletes':
         return <TopUaAthletesWidget />;
+      case 'athlete-checkin-today':
+        return <AthleteCheckInTodayWidget />;
+      case 'athlete-week-traffic':
+        return <AthleteWeekTrafficWidget />;
+      case 'athlete-next-training':
+        return <AthleteNextTrainingWidget />;
+      case 'athlete-metrics-strip':
+        return <AthleteMetricsStripWidget />;
       case 'habits-pending':
         return <HabitsPendingWidget />;
       case 'next-match':
@@ -701,17 +742,6 @@ export const DashboardPage: React.FC = () => {
         );
       case 'empty':
       default:
-        // El atleta no elige tarjetas: su espacio libre queda como está
-        if (isAthlete) {
-          return (
-            <div className="dashboard-empty-card">
-              <div className="dashboard-empty-icon">
-                <Plus size={16} />
-              </div>
-              <span className="dashboard-empty-label">Espacio disponible</span>
-            </div>
-          );
-        }
         if (pickerCardId === card.id) {
           return (
             <div className="dashboard-picker" role="group" aria-label="Elegí qué tarjeta poner acá">
@@ -731,11 +761,17 @@ export const DashboardPage: React.FC = () => {
               ) : (
                 <ul className="dashboard-picker__list">
                   {addableWidgets.map((item) => (
-                    <li key={item.type}>
+                    <li key={catalogKey(item)}>
                       <button
                         type="button"
                         className="dashboard-picker__option"
-                        onClick={() => replaceCard(card.id, { type: item.type, name: item.name })}
+                        onClick={() =>
+                          replaceCard(card.id, {
+                            type: item.type,
+                            name: item.name,
+                            chartMetric: item.chartMetric,
+                          })
+                        }
                       >
                         <span className="dashboard-picker__option-name">{item.name}</span>
                         <span className="dashboard-picker__option-desc">{item.description}</span>
@@ -769,7 +805,7 @@ export const DashboardPage: React.FC = () => {
         title="Inicio"
         description={
           isAthlete
-            ? 'Panel principal y seguimiento de entrenamiento.'
+            ? describeAthleteDay()
             : describeCoachDay(
                 attentionCount,
                 trafficLightCounts.all > 0 && trafficLightCounts.gray === trafficLightCounts.all,
@@ -902,7 +938,7 @@ export const DashboardPage: React.FC = () => {
                       </button>
                     )}
 
-                    {!isAthlete && card.type !== 'empty' && (
+                    {card.type !== 'empty' && (
                       <button
                         type="button"
                         className="wireframe-control-btn"

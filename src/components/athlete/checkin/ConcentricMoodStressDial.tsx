@@ -63,7 +63,7 @@ export const ConcentricMoodStressDial: React.FC<ConcentricMoodStressDialProps> =
       if (!svgRef.current) return;
       const rect = svgRef.current.getBoundingClientRect();
       const svgX = ((clientX - rect.left) / rect.width) * SVG_WIDTH;
-      const svgY = ((clientY - rect.top) / rect.height) * SVG_HEIGHT;
+      const svgY = ((clientY - rect.top) / rect.height) * (SVG_HEIGHT + 36);
 
       const dx = svgX - CX;
       const dy = svgY - CY;
@@ -203,12 +203,13 @@ export const ConcentricMoodStressDial: React.FC<ConcentricMoodStressDialProps> =
 
         {/* ── Dos trazos curvos indicadores (︶ ︶) ── */}
         <div
+          className="pixel-bubble-waves"
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '3px',
-            marginBottom: '0.45rem',
+            gap: '2px',
+            marginBottom: '0.1rem',
             zIndex: 2,
           }}
           aria-hidden="true"
@@ -239,7 +240,7 @@ export const ConcentricMoodStressDial: React.FC<ConcentricMoodStressDialProps> =
         >
           <svg
             ref={svgRef}
-            viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+            viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT + 36}`}
             style={{
               width: '100%',
               height: '100%',

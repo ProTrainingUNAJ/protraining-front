@@ -493,7 +493,9 @@
   flex-direction: column;
   width: 100%;
   max-width: 920px;
+  height: 680px;
   max-height: 85vh;
+  min-height: 520px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -612,11 +614,81 @@
   color: var(--text-muted);
 }
 
-/* Grilla de 2 columnas para campos generales */
-.ft-modal-grid-2 {
+/* Toolbar de filtros en pantalla principal (KAN-656) */
+.ft-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.ft-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ft-filter-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ft-filter-select {
+  min-width: 220px;
+  max-width: 320px;
+  height: 42px;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ft-filter-select:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.ft-session-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ft-session-category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* Grilla de 3 columnas para campos generales en modal (Categoría, Nombre y Fecha) */
+.ft-modal-grid-3 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.2fr 0.9fr;
   gap: 1.25rem;
+}
+
+@media (max-width: 840px) {
+  .ft-modal-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 /* Barra de filtros y buscador */
@@ -709,7 +781,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 105px;
+  min-height: 110px;
+  height: 110px;
   padding: 0.85rem 1rem;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -850,6 +923,7 @@
   }
 
   .ft-modal-container {
+    height: 90vh;
     max-height: 92vh;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -868,7 +942,7 @@
     gap: 1.25rem;
   }
 
-  .ft-modal-grid-2 {
+  .ft-modal-grid-3 {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
