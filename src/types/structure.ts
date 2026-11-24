@@ -74,6 +74,23 @@ export interface Athlete {
   activeInjuriesCount?: number;
   hasPhoto?: boolean;
   photoUpdatedAt?: string | null;
+  weightKg?: number | null;
+  athleticGoal?: string | null;
+  physicalProfileUpdatedAt?: string | null;
+}
+
+export const ATHLETIC_GOAL_OPTIONS = [
+  'Objetivo no informado',
+  'Ganar masa muscular',
+  'Rendimiento deportivo',
+  'Mantener',
+] as const;
+
+export type AthleticGoalOption = (typeof ATHLETIC_GOAL_OPTIONS)[number];
+
+export interface UpdatePhysicalProfileRequest {
+  weightKg?: number | null;
+  athleticGoal?: string | null;
 }
 
 export interface CreateAthleteRequest {
@@ -96,6 +113,9 @@ export interface AthleteMe {
   categories: Category[];
   hasSignedConsent?: boolean;
   isMinor?: boolean;
+  weightKg?: number | null;
+  athleticGoal?: string | null;
+  physicalProfileUpdatedAt?: string | null;
 }
 
 export type CompetitiveEventVenue = 'Home' | 'Away' | 'Neutral';
