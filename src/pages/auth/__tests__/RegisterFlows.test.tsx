@@ -262,7 +262,7 @@ describe('Registro "¿Quién sos?", alta y perfil del PF (KAN-602)', () => {
   });
 
   describe('5. En el login con 403 por email sin confirmar (LoginForm)', () => {
-    it('muestra enlace "¿No tenés cuenta? Registrate" que navega a /registro', () => {
+    it('muestra enlace "Registrate" que navega a /registro', () => {
       render(
         <MemoryRouter>
           <LoginForm />
