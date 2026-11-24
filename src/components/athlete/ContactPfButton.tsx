@@ -68,22 +68,60 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
     setTelegramFeedback(copied ? 'copied' : 'manual');
   };
 
+  const renderFeedback = () => {
+    if (telegramFeedback === 'idle') return null;
+    return (
+      <div role="status" className="contact-pf-pill-feedback">
+        {telegramFeedback === 'copied' ? (
+          <span className="contact-pf-feedback-copied">
+            <Check size={14} aria-hidden="true" />
+            Mensaje copiado al portapapeles para pegar en Telegram.
+          </span>
+        ) : (
+          <div className="contact-pf-feedback-manual">
+            <div className="contact-pf-feedback-manual-header">
+              <Copy size={14} aria-hidden="true" />
+              Copiá este mensaje manualmente para Telegram:
+            </div>
+            <textarea
+              readOnly
+              aria-label="Mensaje para copiar manualmente"
+              value={message}
+              rows={2}
+              className="contact-pf-feedback-textarea"
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Solo WhatsApp
   if (whatsappLink && !telegramLink) {
     return (
-      <a
-        href={whatsappLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`btn btn-secondary ${className}`.trim()}
-        title="Contactar a mi preparador físico por WhatsApp"
-        aria-label="Contactar a mi PF"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+      <div
+        className={`contact-pf-pill ${className}`.trim()}
+        role="group"
+        aria-label="Contacto con el preparador físico"
       >
-        <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
-        <WhatsAppIcon size={18} aria-hidden="true" />
-        <span className="contact-pf-label">Contactar a mi PF</span>
-      </a>
+        <div className="contact-pf-pill-avatar" title="Preparador Físico">
+          <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={26} />
+        </div>
+
+        <span className="contact-pf-pill-divider" aria-hidden="true" />
+
+        <a
+          href={whatsappLink ?? undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="contact-pf-pill-btn contact-pf-pill-btn--whatsapp"
+          title="Contactar a mi preparador físico por WhatsApp"
+          aria-label="Contactar a mi PF"
+        >
+          <WhatsAppIcon size={19} aria-hidden="true" />
+          <span className="contact-pf-pill-label">Contactar a mi PF</span>
+        </a>
+      </div>
     );
   }
 
@@ -91,200 +129,75 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
   if (!whatsappLink && telegramLink) {
     return (
       <div
-        style={{
-          position: 'relative',
-          display: 'inline-flex',
-          flexDirection: 'column',
-          gap: '0.35rem',
-        }}
+        className={`contact-pf-pill ${className}`.trim()}
+        role="group"
+        aria-label="Contacto con el preparador físico"
       >
+        <div className="contact-pf-pill-avatar" title="Preparador Físico">
+          <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={26} />
+        </div>
+
+        <span className="contact-pf-pill-divider" aria-hidden="true" />
+
         <a
-          href={telegramLink}
+          href={telegramLink ?? undefined}
           target="_blank"
           rel="noopener noreferrer"
           onClick={handleTelegramClick}
-          className={`btn btn-secondary ${className}`.trim()}
+          className="contact-pf-pill-btn contact-pf-pill-btn--telegram"
           title="Contactar a mi preparador físico por Telegram (copia el mensaje para pegar)"
           aria-label="Contactar a mi preparador por Telegram"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
-          <TelegramIcon size={18} aria-hidden="true" />
-          <span className="contact-pf-label">Contactar por Telegram</span>
+          <TelegramIcon size={19} aria-hidden="true" />
+          <span className="contact-pf-pill-label">Contactar por Telegram</span>
         </a>
-        {telegramFeedback !== 'idle' && (
-          <div
-            role="status"
-            style={{
-              position: 'absolute',
-              top: '100%',
-              right: 0,
-              marginTop: '0.35rem',
-              zIndex: 40,
-              minWidth: '240px',
-              padding: '0.65rem 0.75rem',
-              borderRadius: '0.5rem',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--shadow-lg)',
-              fontSize: '0.8rem',
-              color: 'var(--text-main)',
-            }}
-          >
-            {telegramFeedback === 'copied' ? (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  color: 'var(--success-text)',
-                  fontWeight: 600,
-                }}
-              >
-                <Check size={14} aria-hidden="true" />
-                Mensaje copiado al portapapeles para pegar en Telegram.
-              </span>
-            ) : (
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    fontWeight: 600,
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  <Copy size={14} aria-hidden="true" />
-                  Copiá este mensaje manualmente para Telegram:
-                </div>
-                <textarea
-                  readOnly
-                  aria-label="Mensaje para copiar manualmente"
-                  value={message}
-                  rows={2}
-                  style={{
-                    width: '100%',
-                    fontSize: '0.78rem',
-                    padding: '0.3rem',
-                    borderRadius: '0.35rem',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-subtle)',
-                    color: 'var(--text-main)',
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        )}
+
+        {renderFeedback()}
       </div>
     );
   }
 
-  // Ambos canales disponibles: doble botón directo para WhatsApp y Telegram sin menú desplegable (KAN-660, Imágenes 4 y 5)
+  // Ambos canales disponibles: píldora unificada (Avatar | Logo WA | Logo TG Contactar a mi PF)
   return (
     <div
-      className={`athlete-contact-pf-group ${className}`.trim()}
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.45rem',
-      }}
+      className={`contact-pf-pill ${className}`.trim()}
+      role="group"
+      aria-label="Contacto con el preparador físico"
     >
+      <div className="contact-pf-pill-avatar" title="Preparador Físico">
+        <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={26} />
+      </div>
+
+      <span className="contact-pf-pill-divider" aria-hidden="true" />
+
       <a
         href={whatsappLink ?? undefined}
         target="_blank"
         rel="noopener noreferrer"
-        className="btn btn-secondary contact-pf-btn contact-pf-whatsapp"
+        className="contact-pf-pill-btn contact-pf-pill-btn--whatsapp"
         title="Contactar a mi preparador físico por WhatsApp"
         aria-label="Contactar a mi PF por WhatsApp"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
       >
-        <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
-        <WhatsAppIcon size={18} aria-hidden="true" />
-        <span className="contact-pf-label">WhatsApp</span>
+        <WhatsAppIcon size={19} aria-hidden="true" />
       </a>
+
+      <span className="contact-pf-pill-divider" aria-hidden="true" />
 
       <a
         href={telegramLink ?? undefined}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleTelegramClick}
-        className="btn btn-secondary contact-pf-btn contact-pf-telegram"
+        className="contact-pf-pill-btn contact-pf-pill-btn--telegram"
         title="Contactar a mi preparador físico por Telegram (copia el mensaje para pegar)"
         aria-label="Contactar a mi PF por Telegram"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
       >
-        <TelegramIcon size={18} aria-hidden="true" />
-        <span className="contact-pf-label">Telegram</span>
+        <TelegramIcon size={19} aria-hidden="true" />
       </a>
 
-      {telegramFeedback !== 'idle' && (
-        <div
-          role="status"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '0.35rem',
-            zIndex: 40,
-            minWidth: '240px',
-            padding: '0.65rem 0.75rem',
-            borderRadius: '0.5rem',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--shadow-lg)',
-            fontSize: '0.8rem',
-            color: 'var(--text-main)',
-          }}
-        >
-          {telegramFeedback === 'copied' ? (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                color: 'var(--success-text)',
-                fontWeight: 600,
-              }}
-            >
-              <Check size={14} aria-hidden="true" />
-              Mensaje copiado al portapapeles para pegar en Telegram.
-            </span>
-          ) : (
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  fontWeight: 600,
-                  marginBottom: '0.25rem',
-                }}
-              >
-                <Copy size={14} aria-hidden="true" />
-                Copiá este mensaje manualmente para Telegram:
-              </div>
-              <textarea
-                readOnly
-                aria-label="Mensaje para copiar manualmente"
-                value={message}
-                rows={2}
-                style={{
-                  width: '100%',
-                  fontSize: '0.78rem',
-                  padding: '0.3rem',
-                  borderRadius: '0.35rem',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-main)',
-                }}
-              />
-            </div>
-          )}
-        </div>
-      )}
+      <span className="contact-pf-pill-label">Contactar a mi PF</span>
+
+      {renderFeedback()}
     </div>
   );
 };

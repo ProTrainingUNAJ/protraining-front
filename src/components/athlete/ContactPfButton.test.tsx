@@ -84,10 +84,16 @@ describe('ContactPfButton', () => {
 
     render(<ContactPfButton />);
 
+    const pill = await screen.findByRole('group', {
+      name: /Contacto con el preparador físico/i,
+    });
+    expect(pill).toBeTruthy();
+
     const whatsappLink = await screen.findByRole('link', { name: /WhatsApp/i });
     const telegramLink = await screen.findByRole('link', { name: /Telegram/i });
 
     expect(whatsappLink.getAttribute('href')).toContain('https://wa.me/5491123456789');
     expect(telegramLink.getAttribute('href')).toBe('https://t.me/profe_juan');
+    expect(screen.getByText('Contactar a mi PF')).toBeTruthy();
   });
 });
