@@ -117,7 +117,15 @@ export const HabitsPendingWidget: React.FC<{ className?: string }> = ({ classNam
           <button
             type="button"
             className="btn btn-primary dash-w__cta habits-pending-widget__action"
-            onClick={() => navigate('/pf/recommendations')}
+            onClick={() =>
+              // La página abre en "Analizar plantel": si todo lo pendiente es de hábitos, se va
+              // directo a esa vista para no caer en una lista vacía (ensayo, KAN-481).
+              navigate(
+                state.items.some((item) => item.type !== 'Habits')
+                  ? '/pf/recommendations'
+                  : '/pf/recommendations?view=habits',
+              )
+            }
           >
             Revisar
             <ArrowRight size={14} aria-hidden="true" />

@@ -9,6 +9,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
@@ -52,7 +53,11 @@ export function RecommendationsPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<RecommendationsViewTab>('analysis');
+  // `?view=habits` abre directo en Hábitos (lo usa la card "Recomendaciones por aprobar" del Inicio)
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<RecommendationsViewTab>(
+    searchParams.get('view') === 'habits' ? 'habits' : 'analysis',
+  );
   const [statusTab, setStatusTab] = useState<RecommendationStatusFilter>('Pending');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');

@@ -147,6 +147,30 @@ describe('alertsService.applyNoticeAction', () => {
     });
   });
 
+  it('aplica el ajuste a la próxima sesión con nextSession y devuelve la fecha (KAN-481)', async () => {
+    mockedApplyAlertAdjustment.mockResolvedValue({
+      data: {
+        message: 'Ajuste preventivo aplicado a la próxima sesión (26/11).',
+        alertId: 'notice-load-1',
+        status: 'Applied',
+        sessionDate: '2026-11-26',
+      },
+    } as never);
+
+    const result = await alertsService.applyToNextSession('notice-load-1');
+
+    expect(mockedApplyAlertAdjustment).toHaveBeenCalledWith({
+      path: { alertId: 'notice-load-1' },
+      query: { nextSession: true },
+      throwOnError: true,
+    });
+    expect(result).toEqual({
+      success: true,
+      message: 'Ajuste preventivo aplicado a la próxima sesión (26/11).',
+      sessionDate: '2026-11-26',
+    });
+  });
+
   it('propaga el error si applyAlertAdjustment falla (KAN-478 / KAN-373)', async () => {
     mockedApplyAlertAdjustment.mockRejectedValue(
       axiosError(400, {

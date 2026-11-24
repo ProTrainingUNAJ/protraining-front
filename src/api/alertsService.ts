@@ -119,6 +119,28 @@ export const alertsService = {
    *   del check-in de hoy.
    * - Resto de avisos: lo marca como revisado en Asistente.
    */
+  /**
+   * Aplica la reducción de carga del aviso a la próxima sesión del atleta (los 7 días
+   * siguientes), para cuando el aviso llega un día que no entrena (KAN-481).
+   */
+  async applyToNextSession(noticeId: string): Promise<ApplyNoticeResult> {
+    try {
+      const { data } = await applyAlertAdjustment({
+        path: { alertId: noticeId },
+        query: { nextSession: true },
+        throwOnError: true,
+      });
+      markLocalAlertAsArchived(noticeId);
+      return {
+        success: true,
+        message: data?.message || 'Ajuste aplicado a la próxima sesión.',
+        sessionDate: data?.sessionDate ?? undefined,
+      };
+    } catch (error) {
+      throw toServiceError(error);
+    }
+  },
+
   async applyNoticeAction(notice: NoticeItem): Promise<ApplyNoticeResult> {
     // 1) Ajuste preventivo de carga en 1 solo clic (KAN-478)
     if (notice.actionType === 'load_reduction') {

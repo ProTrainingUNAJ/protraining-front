@@ -75,6 +75,18 @@ describe('HabitsPendingWidget (KAN-594)', () => {
     expect(navigateMock).toHaveBeenCalledWith('/pf/recommendations');
   });
 
+  it('si todas las pendientes son de hábitos, lleva directo a esa vista', async () => {
+    listMock.mockResolvedValue([
+      rec('r-1', 'a-1', 'Más proteína en la cena', 'Habits'),
+      rec('r-2', 'a-9', 'Dormir 8 horas', 'Habits'),
+    ]);
+
+    renderWidget();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Revisar/ }));
+    expect(navigateMock).toHaveBeenCalledWith('/pf/recommendations?view=habits');
+  });
+
   it('sin pendientes muestra el mensaje vacío', async () => {
     listMock.mockResolvedValue([]);
     renderWidget();
