@@ -139,6 +139,8 @@ export const NotificationsButton: React.FC = () => {
       setTimeout(() => {
         setAlerts((prev) => prev.filter((item) => item.id !== notice.id));
         setConfirmedInfo((curr) => (curr?.id === notice.id ? null : curr));
+        // El Inicio muestra la misma sugerencia: que se entere (después de la confirmación verde)
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
       }, 1500);
     } catch (err: unknown) {
       // Ante error del backend: NO confirmación verde, NO archivar, NO eliminar de la lista

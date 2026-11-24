@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { NotificationsButton } from '../NotificationsButton';
-import { alertsService } from '../../../api/alertsService';
+import { ALERTS_CHANGED_EVENT, alertsService } from '../../../api/alertsService';
 import { recommendationsService } from '../../../api/recommendations';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -31,6 +31,10 @@ describe('NotificationsButton (Centro de Avisos)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('no renderiza la campana ni consulta endpoints si el usuario no está autenticado', () => {
@@ -248,5 +252,124 @@ describe('NotificationsButton (Centro de Avisos)', () => {
         ),
       ).toBeTruthy();
     });
+  });
+
+  it('emite ALERTS_CHANGED_EVENT una sola vez y retira el aviso tras aprobarlo exitosamente (regresión KAN-594 / KAN-643)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mockedUseAuth.mockReturnValue({ user: { role: 'PreparadorFisico' } } as never);
+
+    const mateoAlert = {
+      id: 'alert-mateo-sync',
+      athleteId: 'ath-mateo',
+      athleteName: 'Mateo González',
+      generatedAt: '08:30',
+      severity: 'High' as const,
+      reason: 'Fatiga acumulada por volumen de partidos',
+      suggestion: 'Reducir carga un 20% en la sesión de hoy',
+      reviewed: false,
+      canApplyWithOneClick: true,
+      actionType: 'load_reduction' as const,
+      actionLabel: 'Aplicar ajuste (1 clic)',
+    };
+    mockedGetPendingAlerts.mockResolvedValue([mateoAlert]);
+    mockedApplyNoticeAction.mockResolvedValue({
+      success: true,
+      message: 'Ajuste preventivo aplicado exitosamente en Entrenamiento.',
+    });
+
+    const onAlertsChanged = vi.fn();
+    window.addEventListener(ALERTS_CHANGED_EVENT, onAlertsChanged);
+
+    try {
+      render(<NotificationsButton />);
+      fireEvent.click(screen.getByTitle('Centro de Avisos'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Mateo González')).toBeTruthy();
+      });
+
+      // Una vez cargado el aviso inicial, si se dispara ALERTS_CHANGED_EVENT la campana recarga;
+      // devolvemos lista vacía en la siguiente consulta tras la aprobación
+      mockedGetPendingAlerts.mockResolvedValue([]);
+
+      const applyBtn = screen.getByRole('button', {
+        name: /aplicar ajuste \(1 clic\): Mateo González/i,
+      });
+      fireEvent.click(applyBtn);
+
+      await waitFor(() => {
+        expect(mockedApplyNoticeAction).toHaveBeenCalledWith(mateoAlert);
+        expect(
+          screen.getByText('Ajuste preventivo aplicado exitosamente en Entrenamiento.'),
+        ).toBeTruthy();
+      });
+
+      // Antes de cumplirse los 1500ms del temporizador, aún no se emitió el evento
+      expect(onAlertsChanged).not.toHaveBeenCalled();
+
+      await act(async () => {
+        vi.advanceTimersByTime(1500);
+      });
+
+      expect(onAlertsChanged).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Mateo González')).toBeNull();
+    } finally {
+      window.removeEventListener(ALERTS_CHANGED_EVENT, onAlertsChanged);
+    }
+  });
+
+  it('no emite ALERTS_CHANGED_EVENT ni retira el aviso cuando la aprobación falla (regresión KAN-594 / KAN-643)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mockedUseAuth.mockReturnValue({ user: { role: 'PreparadorFisico' } } as never);
+
+    const mateoAlert = {
+      id: 'alert-mateo-fail-sync',
+      athleteId: 'ath-mateo',
+      athleteName: 'Mateo González',
+      generatedAt: '08:30',
+      severity: 'High' as const,
+      reason: 'Fatiga acumulada',
+      suggestion: 'Reducir carga un 20%',
+      reviewed: false,
+      canApplyWithOneClick: true,
+      actionType: 'load_reduction' as const,
+      actionLabel: 'Aplicar ajuste (1 clic)',
+    };
+    mockedGetPendingAlerts.mockResolvedValue([mateoAlert]);
+    mockedApplyNoticeAction.mockRejectedValue(
+      new Error('No se pudo aplicar el ajuste. Verificá la conexión y reintentá.'),
+    );
+
+    const onAlertsChanged = vi.fn();
+    window.addEventListener(ALERTS_CHANGED_EVENT, onAlertsChanged);
+
+    try {
+      render(<NotificationsButton />);
+      fireEvent.click(screen.getByTitle('Centro de Avisos'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Mateo González')).toBeTruthy();
+      });
+
+      const applyBtn = screen.getByRole('button', {
+        name: /aplicar ajuste \(1 clic\): Mateo González/i,
+      });
+      fireEvent.click(applyBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('No se pudo aplicar el ajuste. Verificá la conexión y reintentá.'),
+        ).toBeTruthy();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+
+      expect(onAlertsChanged).not.toHaveBeenCalled();
+      expect(screen.getByText('Mateo González')).toBeTruthy();
+    } finally {
+      window.removeEventListener(ALERTS_CHANGED_EVENT, onAlertsChanged);
+    }
   });
 });
