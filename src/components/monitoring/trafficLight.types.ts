@@ -35,6 +35,8 @@ export interface AthleteTrafficLightItem {
   hasActiveInjury?: boolean;
   /** Indica si la rutina de hoy del atleta carga una zona donde marcó dolor (KAN-451 / KAN-452). */
   hasDayConflict?: boolean;
+  /** El PF ya ajustó la sesión de hoy del atleta (KAN-660): no se vuelve a ofrecer el ajuste. */
+  adjustedToday?: boolean;
   /** Actividades registradas en el día (minutos, RPE y dónde se hizo) */
   activities?: AthleteActivityDetail[];
   totalMinutes?: number;

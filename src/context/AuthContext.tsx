@@ -9,6 +9,8 @@ import React, {
 import { AuthSession, LoginRequest, RoleType, UserDto } from '../types/auth';
 import { authService } from '../api/authService';
 import { onAuthExpired, saveStoredSession } from '../api/axiosClient';
+import { clearAllCheckInData } from '../components/athlete/checkin/checkInHelper';
+import { clearAllOfflineCheckIns } from '../services/checkInOfflineService';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -125,13 +127,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  // Limpia el indicador local y los check-ins pendientes con datos de salud.
+  const clearCheckInStorage = useCallback(() => {
+    clearAllCheckInData();
+    void clearAllOfflineCheckIns().catch(() => {
+      // IndexedDB puede no estar disponible en entornos restringidos.
+    });
+  }, []);
+
   // Listen to Axios interceptor token expiration events
   useEffect(() => {
     const unsubscribe = onAuthExpired(() => {
+      clearCheckInStorage();
       setSession(null);
     });
     return unsubscribe;
-  }, []);
+  }, [clearCheckInStorage]);
 
   const login = useCallback(async (credentials: LoginRequest): Promise<AuthSession> => {
     const newSession = await authService.login(credentials);
@@ -165,8 +176,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = useCallback(() => {
     authService.logout();
+    clearCheckInStorage();
     setSession(null);
-  }, []);
+  }, [clearCheckInStorage]);
 
   const applySession = useCallback((newSession: AuthSession) => {
     setSession(newSession);

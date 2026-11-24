@@ -772,7 +772,7 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
               </span>
             </div>
 
-            {/* Barra de progreso de carga diaria con degradado continuo (Imagen 2 - KAN-646) */}
+            {/* Barra de progreso de carga diaria con color neutro y escala dinámica (KAN-646, KAN-512) */}
             <div
               className="attendance-daily-load-bar"
               style={{
@@ -786,17 +786,19 @@ export const AttendanceLoadModal: React.FC<AttendanceLoadModalProps> = ({
               role="progressbar"
               aria-valuenow={totals.ua}
               aria-valuemin={0}
-              aria-valuemax={1000}
+              aria-valuemax={Math.max(1200, Math.ceil((totals.ua * 1.25) / 200) * 200)}
               aria-label="Carga acumulada en el día"
             >
               <div
                 style={{
                   height: '100%',
-                  width: `${Math.min(100, Math.max(totals.ua > 0 ? 5 : 0, (totals.ua / 1000) * 100))}%`,
+                  width: `${Math.min(100, Math.max(totals.ua > 0 ? 5 : 0, (totals.ua / Math.max(1200, Math.ceil((totals.ua * 1.25) / 200) * 200)) * 100))}%`,
                   borderRadius: '9999px',
-                  background:
-                    'linear-gradient(90deg, #10b981 0%, #047857 25%, #0e7490 50%, #d97706 78%, #ea580c 100%)',
-                  boxShadow: totals.ua > 0 ? '0 0 8px rgba(16, 185, 129, 0.35)' : 'none',
+                  background: 'var(--load-bar-fill, var(--primary))',
+                  boxShadow:
+                    totals.ua > 0
+                      ? '0 0 8px color-mix(in srgb, var(--load-bar-fill, var(--primary)) 35%, transparent)'
+                      : 'none',
                   transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />

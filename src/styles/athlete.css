@@ -140,7 +140,7 @@
 }
 
 .ath-tab.active {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .ath-header-desktop {
@@ -334,6 +334,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  align-self: start;
 }
 
 .routine-exercise-card.completed {
@@ -562,7 +563,7 @@
   font-size: 0.78rem;
   font-weight: 700;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
   border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -692,6 +693,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  align-self: start;
   padding: 0.5rem 0.85rem;
   border-radius: 12px;
   background: var(--bg-card);
@@ -2472,7 +2474,7 @@
 .finish-routine-step-btn:hover {
   background: var(--bg-subtle);
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
   transform: translateY(-1px);
 }
 
@@ -2590,7 +2592,26 @@
 
 /* Espectro cromático continuo en la base de la barra */
 .rpe-slider-spectrum {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--celebration-blue) 0%,
+    var(--success) 35%,
+    var(--warning) 65%,
+    var(--celebration-coral) 85%,
+    var(--danger) 100%
+  );
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+[data-theme='dark'] .rpe-slider-spectrum {
+  opacity: 0.35;
 }
 
 /* Indicador / Thumb deslizante continuo con el valor de RPE actual adentro */
@@ -2692,7 +2713,7 @@
 }
 
 .rpe-slider-btn--selected {
-  color: var(--text-main);
+  color: var(--primary-text);
   font-weight: 900;
   font-size: 0.92rem;
 }
@@ -2939,7 +2960,7 @@
 .finish-routine-social-btn--export:hover:not(:disabled) {
   background: var(--bg-subtle);
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .finish-routine-return-btn {

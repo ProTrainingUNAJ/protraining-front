@@ -222,4 +222,124 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
 
     expect(screen.queryByTitle('Subir o cambiar foto de perfil')).toBeNull();
   });
+
+  it('el buscador tiene nombre accesible y filtra por nombre (KAN-594)', async () => {
+    render(
+      <MemoryRouter>
+        <AthletesPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Joaquín Díaz')).toBeTruthy();
+    });
+
+    const search = screen.getByRole('searchbox', { name: 'Buscar atleta' });
+    fireEvent.change(search, { target: { value: 'Lucas' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.queryByText('Joaquín Díaz')).toBeNull();
+    });
+  });
+
+  it('aplica jerarquía visual diferenciada para Salud/Lesiones, Métricas/Evolución y acciones neutras (KAN-596)', async () => {
+    const athletesWithInjury = [
+      { ...mockAthletes[0], activeInjuriesCount: 2 },
+      { ...mockAthletes[1], activeInjuriesCount: 0 },
+    ];
+    vi.mocked(structureService.withCategories).mockResolvedValueOnce(
+      athletesWithInjury as unknown as Athlete[],
+    );
+
+    render(
+      <MemoryRouter>
+        <AthletesPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('health-btn-ath-1')).toBeDefined();
+    });
+
+    const healthWithInjury = screen.getByTestId('health-btn-ath-1');
+    const healthWithoutInjury = screen.getByTestId('health-btn-ath-2');
+    const metricsBtn = screen.getByTestId('metrics-btn-ath-1');
+    const settingsBtn = screen.getByTestId('settings-btn-ath-1');
+    const categoriesBtns = screen.getAllByRole('button', { name: /Categorías/i });
+
+    expect(healthWithInjury.className).toContain('athlete-action--injuries');
+    expect(healthWithInjury.className).toContain('athlete-action--active-injury');
+    expect(healthWithInjury.textContent).toContain('Activa');
+    expect(healthWithInjury.getAttribute('aria-label')).toContain('lesión activa (2)');
+
+    expect(healthWithoutInjury.className).toContain('athlete-action--injuries');
+    expect(healthWithoutInjury.className).not.toContain('athlete-action--active-injury');
+    expect(healthWithoutInjury.textContent).not.toContain('Activa');
+
+    expect(metricsBtn.className).toContain('athlete-action--evolution');
+    expect(settingsBtn.className).toContain('btn-secondary');
+    expect(settingsBtn.className).toContain('athlete-action--secondary');
+    expect(categoriesBtns[0].className).toContain('btn-secondary');
+    expect(categoriesBtns[0].className).toContain('athlete-action--secondary');
+  });
+
+  describe('atletas inactivos (KAN-660)', () => {
+    const withInactive = [
+      ...mockAthletes,
+      {
+        ...mockAthletes[1],
+        id: 'ath-3',
+        firstName: 'Ramiro',
+        lastName: 'Paz',
+        fullName: 'Ramiro Paz',
+        email: 'ramiro@protraining.com',
+        active: false,
+      },
+    ];
+
+    beforeEach(() => {
+      vi.mocked(structureService.getAthletes).mockResolvedValue(
+        withInactive as unknown as Athlete[],
+      );
+      vi.mocked(structureService.withCategories).mockResolvedValue(
+        withInactive as unknown as Athlete[],
+      );
+    });
+
+    it('marca al inactivo con badge "Inactivo" y la tarjeta atenuada', async () => {
+      render(
+        <MemoryRouter>
+          <AthletesPage />
+        </MemoryRouter>,
+      );
+
+      const card = await screen.findByTestId('athlete-card-ath-3');
+      expect(card.className).toContain('athletes-card--inactive');
+      expect(card.textContent).toContain('Inactivo');
+      expect(card.textContent).not.toContain('Activo ');
+      expect(screen.getByTestId('athlete-card-ath-1').className).not.toContain(
+        'athletes-card--inactive',
+      );
+    });
+
+    it('"Solo activos" oculta a los inactivos y actualiza el conteo', async () => {
+      render(
+        <MemoryRouter>
+          <AthletesPage />
+        </MemoryRouter>,
+      );
+
+      expect(await screen.findByText('Ramiro Paz')).toBeDefined();
+      expect(screen.getByTestId('athletes-count').textContent).toBe('3 atletas');
+
+      fireEvent.click(screen.getByRole('checkbox', { name: 'Solo activos' }));
+
+      await waitFor(() => {
+        expect(screen.queryByText('Ramiro Paz')).toBeNull();
+      });
+      expect(screen.getByText('Joaquín Díaz')).toBeDefined();
+      expect(screen.getByTestId('athletes-count').textContent).toBe('2 de 3 atletas');
+    });
+  });
 });

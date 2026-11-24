@@ -41,14 +41,7 @@ describe('lesión clínica activa en el panel del Preparador Físico', () => {
   });
 
   it('muestra «Lesión activa reportada» y pinta la zona clínica en el mapa anatómico', () => {
-    render(
-      <AthleteQuickSheet
-        athlete={itemDelPf()}
-        mode="semaforo"
-        onClose={vi.fn()}
-        onAssignDifferentiated={vi.fn()}
-      />,
-    );
+    render(<AthleteQuickSheet athlete={itemDelPf()} mode="semaforo" onClose={vi.fn()} />);
 
     expect(screen.getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getByText('Lesión activa reportada')).toBeDefined();
@@ -57,6 +50,9 @@ describe('lesión clínica activa en el panel del Preparador Físico', () => {
 
     // La lesión clínica llegó como texto libre ("isquiotibiales"), no como id del SVG.
     // El mapa debe resolverla a la región oficial y pintarla con nivel 6.
-    expect(screen.getByLabelText(/Isquiotibial derecho\. Nivel de dolor 6\./i)).toBeDefined();
+    // El mapa es de solo lectura: se anuncia como imagen con el resumen (KAN-594).
+    expect(
+      screen.getByRole('img', { name: /dolor en .*Isquiotibial derecho \(lesión\)/i }),
+    ).toBeDefined();
   });
 });

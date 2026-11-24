@@ -1,0 +1,50 @@
+/* Próximo partido (menú "+" del Inicio del PF, KAN-594) */
+.next-match-widget__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.next-match-widget__opponent {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+}
+
+.next-match-widget__when {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-transform: capitalize;
+}
+
+.next-match-widget__venue {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: none;
+}
+
+.next-match-widget__meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.next-match-widget__action {
+  align-self: flex-end;
+  margin-top: auto;
+}

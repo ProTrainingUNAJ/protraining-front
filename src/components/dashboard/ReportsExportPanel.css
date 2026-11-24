@@ -1,0 +1,75 @@
+/* Informes (Estadísticas → Informes): al imprimir o guardar como PDF sale solo la hoja del
+   informe, sin barra lateral, encabezado, pestañas, filtros ni botones (KAN-660). */
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: var(--white);
+  }
+
+  /* El shell de la app ocupa la pantalla con alto fijo y scroll interno: se libera para que el
+     informe fluya en páginas */
+  .app-shell-viewport,
+  .app-shell-container,
+  .app-main-panel,
+  .app-content-body,
+  .app-page-container,
+  .app-page-body {
+    display: block;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    background: var(--white);
+  }
+
+  .app-sidebar-desktop,
+  .app-header,
+  .app-mobile-backdrop,
+  .app-page-header {
+    display: none;
+  }
+
+  /* La barra trae display en línea (style={{ display: 'flex' }}): hace falta ganarle */
+  .reports-export__toolbar {
+    display: none !important;
+  }
+
+  /* Filtros y pestañas de la página, a cualquier profundidad: todo lo que no es el informe, no
+     está adentro ni lo contiene. Varios traen display en línea, por eso el !important. */
+  .app-page-body *:not(:has(.reports-export), .reports-export, .reports-export *) {
+    display: none !important;
+  }
+
+  /* Blanco y negro legible, también si la app está en modo oscuro */
+  .reports-export__sheet {
+    --bg-card: var(--white);
+    --bg-subtle: var(--white);
+    --text-main: var(--black);
+    --text-muted: var(--black);
+    --border: var(--black);
+
+    /* El borde y el padding de la tarjeta vienen en línea; en papel sobran */
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none;
+    background: var(--white) !important;
+    color: var(--black);
+  }
+
+  .reports-export__sheet > div,
+  .reports-export__table,
+  .reports-export__table tr {
+    break-inside: avoid;
+  }
+
+  .reports-export__table {
+    overflow: visible;
+  }
+}

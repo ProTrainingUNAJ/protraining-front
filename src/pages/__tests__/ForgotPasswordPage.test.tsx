@@ -114,4 +114,25 @@ describe('ForgotPasswordPage (#KAN-540)', () => {
       );
     });
   });
+
+  it('5. Muestra mensaje claro cuando el backend responde 429 (rate limit) y mantiene el formulario utilizable', async () => {
+    const rateLimitMsg =
+      'Realizaste demasiadas solicitudes. Esperá unos minutos antes de volver a intentarlo.';
+    vi.mocked(authService.forgotPassword).mockRejectedValueOnce(new Error(rateLimitMsg));
+
+    render(
+      <MemoryRouter>
+        <ForgotPasswordPage />
+      </MemoryRouter>,
+    );
+
+    const input = screen.getByTestId('recovery-email-input');
+    fireEvent.change(input, { target: { value: 'atleta@protraining.app' } });
+    fireEvent.click(screen.getByTestId('btn-send-recovery'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(rateLimitMsg);
+    });
+    expect(screen.getByTestId('btn-send-recovery')).toBeDefined();
+  });
 });

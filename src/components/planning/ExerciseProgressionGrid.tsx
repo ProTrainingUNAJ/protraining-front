@@ -37,10 +37,20 @@ export function ExerciseProgressionGrid({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const label = exercise.exerciseName || 'Ejercicio sin nombre';
+  const isTime = exercise.exerciseType === 'Time';
+  const isDistance = exercise.exerciseType === 'Distance';
+  const targetColumnLabel = isTime ? 'Segundos' : isDistance ? 'Metros' : 'Reps / Rango';
 
   // Resumen compacto de progresión (KAN-623)
   const w1 = exercise.weeklyProgression[1] || exercise.weeklyProgression[weekNumbers[0]];
-  const setsReps = w1 ? `${w1.sets ?? 3}x${w1.repsRange || w1.reps || 10}` : '3x10';
+  const w1Target = w1
+    ? isTime
+      ? `${w1.targetTimeSeconds ?? w1.reps ?? 30} s`
+      : isDistance
+        ? `${w1.targetDistanceMeters ?? w1.reps ?? 100} m`
+        : `${w1.repsRange || w1.reps || 10}`
+    : '10';
+  const setsReps = w1 ? `${w1.sets ?? 3}x${w1Target}` : '3x10';
   const pct = w1?.targetPercentage ? `${w1.targetPercentage}% RM` : null;
   const intensity =
     exercise.intensityType === 'RPE' && w1?.targetRpe != null
@@ -55,7 +65,17 @@ export function ExerciseProgressionGrid({
   // Acción rápida: Copiar Sem 1 a todas las semanas (KAN-623)
   const handleCopyWeek1ToAll = () => {
     if (!w1) return;
-    const { sets, reps, repsRange, targetPercentage, targetRpe, targetRir, notes } = w1;
+    const {
+      sets,
+      reps,
+      repsRange,
+      targetPercentage,
+      targetRpe,
+      targetRir,
+      targetDistanceMeters,
+      targetTimeSeconds,
+      notes,
+    } = w1;
     weekNumbers.forEach((wNum) => {
       if (wNum === 1) return;
       onUpdateProgression(wNum, {
@@ -65,6 +85,8 @@ export function ExerciseProgressionGrid({
         targetPercentage,
         targetRpe,
         targetRir,
+        targetDistanceMeters,
+        targetTimeSeconds,
         notes,
       });
     });
@@ -205,7 +227,7 @@ export function ExerciseProgressionGrid({
                     Series
                   </th>
                   <th scope="col" className="col-reps">
-                    Reps / Rango
+                    {targetColumnLabel}
                   </th>
                   <th scope="col" className="col-pct">
                     %RM
@@ -222,13 +244,15 @@ export function ExerciseProgressionGrid({
                 {weekNumbers.map((weekNum) => {
                   const prog: WeeklyExerciseProgression = exercise.weeklyProgression[weekNum] || {
                     weekNumber: weekNum,
-                    sets: 3,
-                    reps: 10,
-                    repsRange: '10',
+                    sets: isDistance ? 6 : isTime ? 4 : 3,
+                    reps: isDistance ? 100 : isTime ? 30 : 10,
+                    repsRange: isDistance ? '100' : isTime ? '30' : '10',
                     targetPercentage: null,
                     intensityType: exercise.intensityType,
                     targetRpe: exercise.intensityType === 'RPE' ? 8 : null,
                     targetRir: exercise.intensityType === 'RIR' ? 2 : null,
+                    targetDistanceMeters: isDistance ? 100 : null,
+                    targetTimeSeconds: isTime ? 30 : null,
                     notes: null,
                   };
 
@@ -258,23 +282,79 @@ export function ExerciseProgressionGrid({
                         />
                       </td>
                       <td className="cell-input">
-                        <input
-                          type="text"
-                          maxLength={15}
-                          value={repsDisplay}
-                          onChange={(e) => {
-                            const str = e.target.value;
-                            const parsed = parseRepsNumber(str, prog.reps);
-                            onUpdateProgression(weekNum, {
-                              repsRange: str,
-                              reps: parsed,
-                            });
-                          }}
-                          disabled={disabled}
-                          placeholder="ej. 8 o 6-8"
-                          aria-label={`Repeticiones de ${label} semana ${weekNum}`}
-                          className="plan-table-input"
-                        />
+                        {isTime ? (
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={prog.targetTimeSeconds ?? ''}
+                            onChange={(e) => {
+                              if (e.target.value === '') {
+                                onUpdateProgression(weekNum, {
+                                  targetTimeSeconds: null,
+                                  reps: 0,
+                                  repsRange: '',
+                                });
+                                return;
+                              }
+                              const val = Math.max(1, Math.trunc(Number(e.target.value)) || 1);
+                              onUpdateProgression(weekNum, {
+                                targetTimeSeconds: val,
+                                reps: val,
+                                repsRange: String(val),
+                              });
+                            }}
+                            disabled={disabled}
+                            placeholder="ej. 300"
+                            aria-label={`Segundos de ${label} semana ${weekNum}`}
+                            className="plan-table-input"
+                          />
+                        ) : isDistance ? (
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={prog.targetDistanceMeters ?? ''}
+                            onChange={(e) => {
+                              if (e.target.value === '') {
+                                onUpdateProgression(weekNum, {
+                                  targetDistanceMeters: null,
+                                  reps: 0,
+                                  repsRange: '',
+                                });
+                                return;
+                              }
+                              const val = Math.max(1, Math.trunc(Number(e.target.value)) || 1);
+                              onUpdateProgression(weekNum, {
+                                targetDistanceMeters: val,
+                                reps: val,
+                                repsRange: String(val),
+                              });
+                            }}
+                            disabled={disabled}
+                            placeholder="ej. 400"
+                            aria-label={`Metros de ${label} semana ${weekNum}`}
+                            className="plan-table-input"
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            maxLength={15}
+                            value={repsDisplay}
+                            onChange={(e) => {
+                              const str = e.target.value;
+                              const parsed = parseRepsNumber(str, prog.reps);
+                              onUpdateProgression(weekNum, {
+                                repsRange: str,
+                                reps: parsed,
+                              });
+                            }}
+                            disabled={disabled}
+                            placeholder="ej. 8 o 6-8"
+                            aria-label={`Repeticiones de ${label} semana ${weekNum}`}
+                            className="plan-table-input"
+                          />
+                        )}
                       </td>
                       <td className="cell-input">
                         <input

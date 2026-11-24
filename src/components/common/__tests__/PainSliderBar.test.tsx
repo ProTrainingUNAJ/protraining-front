@@ -44,8 +44,8 @@ describe('PainSliderBar', () => {
   });
 
   it('displays the correct label and color helper functions', () => {
-    expect(getPainColor(0)).toBe('#0088cc');
-    expect(getPainColor(10)).toBe('#ef4444');
+    expect(getPainColor(0)).toBe('var(--pain-scale-0)');
+    expect(getPainColor(10)).toBe('var(--pain-scale-9-10)');
     expect(getPainLabel(0)).toContain('Sin molestia');
     expect(getPainLabel(10)).toContain('Dolor máximo');
   });

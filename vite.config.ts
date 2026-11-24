@@ -2,13 +2,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import {
+  pwaGlobIgnores,
+  pwaGlobPatterns,
+  pwaIncludedAssets,
+  pwaManifestIcons,
+} from './src/config/pwaPrecache';
 
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['assets/favicon.ico', 'assets/apple-touch-icon-180x180.png'],
+      includeAssets: [...pwaIncludedAssets],
       manifest: {
         name: 'ProTraining',
         short_name: 'ProTraining',
@@ -19,45 +25,15 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         lang: 'es',
-        icons: [
-          { src: 'assets/pwa-64x64.png', sizes: '64x64', type: 'image/png' },
-          {
-            src: 'assets/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'assets/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: 'assets/maskable-icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-        ],
+        icons: [...pwaManifestIcons],
       },
       workbox: {
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
-        // KAN-514: se excluyen del precache todas las páginas salvo el check-in y la rutina
-        // de hoy, que sí deben cargar con la PWA recién instalada y sin conexión.
-        globIgnores: [
-          'assets/isotype-gradient.png',
-          'assets/!(CheckInPage|RoutinePage)-*.js',
-          'assets/EvolutionRangeSelector-*.js',
-          'assets/*anatomy*.webp',
-          'assets/*silhouette*.webp',
-          'assets/*runner*.webp',
-          'assets/protraining-logo*.webp',
-          'assets/protraining-official-isotype*.webp',
-          'assets/protraining-3d*.webp',
-          'assets/montserrat-cyrillic*.woff2',
-          'assets/montserrat-vietnamese*.woff2',
-        ],
+        globPatterns: [...pwaGlobPatterns],
+        // Las rutas con dependencias estáticas compartidas necesitan todos los chunks JS
+        // en el precache para cargar en una instalación nueva sin conexión.
+        globIgnores: [...pwaGlobIgnores],
         runtimeCaching: [
           {
             urlPattern: /\.(?:js|css)$/i,

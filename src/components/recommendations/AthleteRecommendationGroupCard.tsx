@@ -3,10 +3,12 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { AthleteRecommendation, RecommendationStatusFilter } from '../../api/recommendations';
 import { capitalizeFirst } from '../../utils/recommendationFormat';
 import { RecommendationCard } from './RecommendationCard';
+import { ProfileAvatar } from '../common/ProfileAvatar';
 
 export interface AthleteRecommendationGroupCardProps {
   athleteId: string;
   athleteName: string;
+  athletePhotoUrl?: string | null;
   recommendations: AthleteRecommendation[];
   statusTab: RecommendationStatusFilter;
   onUpdate: (id: string, title: string, recommendationText: string) => Promise<void>;
@@ -25,16 +27,10 @@ function getCountLabel(count: number, statusTab: RecommendationStatusFilter): st
   }
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'AT';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
 export function AthleteRecommendationGroupCard({
   athleteId,
   athleteName,
+  athletePhotoUrl,
   recommendations,
   statusTab,
   onUpdate,
@@ -56,7 +52,6 @@ export function AthleteRecommendationGroupCard({
   );
 
   const countLabel = getCountLabel(recommendations.length, statusTab);
-  const initials = getInitials(athleteName);
 
   return (
     <section
@@ -71,9 +66,13 @@ export function AthleteRecommendationGroupCard({
       >
         <div className="recommendation-athlete-group-main">
           <div className="recommendation-athlete-avatar-row">
-            <span className="recommendation-athlete-avatar-initials" aria-hidden="true">
-              {initials}
-            </span>
+            <ProfileAvatar
+              key={`rec-athlete-avatar-${athleteId}`}
+              src={athletePhotoUrl}
+              name={athleteName}
+              size={40}
+              className="recommendation-athlete-avatar-img"
+            />
 
             <div className="recommendation-athlete-group-text-col">
               <div className="recommendation-athlete-group-top">

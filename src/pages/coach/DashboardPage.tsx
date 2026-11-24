@@ -7,33 +7,42 @@ import {
   ArrowRight,
   RotateCcw,
   Plus,
-  Flame,
   Sparkles,
+  X,
 } from 'lucide-react';
 import runnerImg from '../../assets/protraining-3d-runner.webp';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EvolutionChartWidget } from '../../components/athlete/EvolutionChartWidget';
-import { TrainingSessionWidget } from '../../components/dashboard/TrainingSessionWidget';
 import { DailyLoadWidget } from '../../components/dashboard/DailyLoadWidget';
 import { DailyTrafficLightWidget } from '../../components/dashboard/DailyTrafficLightWidget';
 import { TrafficLightSummaryWidget } from '../../components/dashboard/TrafficLightSummaryWidget';
 import { CheckInProgressWidget } from '../../components/dashboard/CheckInProgressWidget';
 import { PainAlertsWidget } from '../../components/dashboard/PainAlertsWidget';
 import { EpleyProposalsWidget } from '../../components/dashboard/EpleyProposalsWidget';
-import { RecordProposalCard } from '../../components/dashboard/RecordProposalCard';
+import { AttentionTodayWidget } from '../../components/dashboard/AttentionTodayWidget';
 import { TopUaAthletesWidget } from '../../components/dashboard/TopUaAthletesWidget';
+import { NextTrainingWidget } from '../../components/dashboard/NextTrainingWidget';
+import { HabitsPendingWidget } from '../../components/dashboard/HabitsPendingWidget';
+import { NextMatchWidget } from '../../components/dashboard/NextMatchWidget';
+import { InjuriesReturnWidget } from '../../components/dashboard/InjuriesReturnWidget';
+import { AthleteCheckInTodayWidget } from '../../components/dashboard/AthleteCheckInTodayWidget';
+import { AthleteWeekTrafficWidget } from '../../components/dashboard/AthleteWeekTrafficWidget';
+import { AthleteNextTrainingWidget } from '../../components/dashboard/AthleteNextTrainingWidget';
+import { AthleteMetricsStripWidget } from '../../components/dashboard/AthleteMetricsStripWidget';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
+import { AthleteQuickSheet } from '../../components/monitoring/AthleteQuickSheet';
+import { DayAdjustmentModal } from '../../components/monitoring/DayAdjustmentModal';
 import { AthleteTrafficLightItem } from '../../components/monitoring/trafficLight.types';
-import {
-  fetchAllCategoriesTrafficLight,
-  summarizeTrafficLightCounts,
-} from '../../api/seguimientoService';
-import { recordProposalsService } from '../../api/recordProposals';
+import { summarizeTrafficLightCounts } from '../../api/seguimientoService';
+import { fetchCoachTodayOverview } from '../../api/coachToday';
 import { recommendationsService } from '../../api/recommendations';
 import { structureService } from '../../api/structureService';
 import { AthleteRecommendationsSection } from '../../components/athlete/AthleteRecommendationsSection';
-import { RecordProposalItem } from '../../types/recordProposals';
-import { DEFAULT_ATHLETE_ROWS } from '../../utils/athleteDashboardLayout';
+import {
+  ATHLETE_DASHBOARD_STORAGE_KEY,
+  DEFAULT_ATHLETE_ROWS,
+} from '../../utils/athleteDashboardLayout';
+import { todayInArgentina } from '../../utils/argentinaDate';
 import { buildEvolutionMetrics, MetricKey } from '../../utils/evolutionMetrics';
 import { useAthleteEvolution } from '../../hooks/useAthleteEvolution';
 import { getStoredSession } from '../../api/axiosClient';
@@ -43,7 +52,7 @@ import './DashboardPage.css';
 export type DashboardCardType =
   | 'empty'
   | 'suite'
-  | 'training-session'
+  | 'next-training'
   | 'traffic-light-summary'
   | 'checkin-progress'
   | 'pain-alerts'
@@ -51,7 +60,15 @@ export type DashboardCardType =
   | 'epley-proposals'
   | 'daily-load'
   | 'daily-traffic-light'
-  | 'top-ua-athletes';
+  | 'top-ua-athletes'
+  | 'attention-today'
+  | 'habits-pending'
+  | 'next-match'
+  | 'injuries-return'
+  | 'athlete-checkin-today'
+  | 'athlete-week-traffic'
+  | 'athlete-next-training'
+  | 'athlete-metrics-strip';
 
 export interface WireframeCardItem {
   id: string;
@@ -68,47 +85,183 @@ export interface DashboardRow {
   cards: WireframeCardItem[];
 }
 
+/**
+ * Orden del Inicio del PF (KAN-594): primero lo que hay que resolver antes de entrenar
+ * (quién necesita atención, el semáforo y el dolor), después el día (próximo entrenamiento,
+ * check-in y carga) y abajo lo que puede esperar (récords Epley). Salen del layout por defecto
+ * "ProTraining Suite" (repetía el botón del semáforo) y las tarjetas vacías de más; el PF las
+ * puede volver a tener arrastrando o con "Restablecer orden".
+ */
 const DEFAULT_COACH_ROWS: DashboardRow[] = [
   {
     id: 'row-1',
-    name: 'Fila 1 · Indicadores en Vivo',
+    name: 'Fila 1 · Antes de entrenar',
     className: 'wireframe-row-1',
     cards: [
-      { id: 'w-session', name: 'Predio y Horario', colSpan: 1, type: 'training-session' },
-      { id: 'w-r1-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-      { id: 'w-top-ua', name: 'Mayor Carga (UA)', colSpan: 1, type: 'top-ua-athletes' },
+      { id: 'w-attention', name: 'Requieren atención hoy', colSpan: 1, type: 'attention-today' },
+      { id: 'w-traffic', name: 'Semáforo del día', colSpan: 1, type: 'traffic-light-summary' },
+      { id: 'w-pain', name: 'Alertas de dolor', colSpan: 1, type: 'pain-alerts' },
     ],
   },
   {
     id: 'row-2',
-    name: 'Fila 2 · Semáforo y Estado',
+    name: 'Fila 2 · El día',
     className: 'wireframe-row-2',
     cards: [
-      { id: 'w-traffic', name: 'Semáforo del Día', colSpan: 1, type: 'traffic-light-summary' },
-      { id: 'w-checkin', name: 'Progreso de Check-in', colSpan: 1, type: 'checkin-progress' },
-      { id: 'w-suite', name: 'ProTraining Suite', colSpan: 1, type: 'suite' },
+      { id: 'w-next-training', name: 'Próximo entrenamiento', colSpan: 1, type: 'next-training' },
+      { id: 'w-checkin', name: 'Check-in', colSpan: 1, type: 'checkin-progress' },
+      { id: 'w-top-ua', name: 'Mayor carga (UA)', colSpan: 1, type: 'top-ua-athletes' },
     ],
   },
   {
     id: 'row-3',
-    name: 'Fila 3 · Alertas y Carga',
+    name: 'Fila 3 · Para revisar',
     className: 'wireframe-row-3',
     cards: [
-      { id: 'w-pain', name: 'Alertas de Dolor', colSpan: 1, type: 'pain-alerts' },
-      { id: 'w-epley', name: 'Propuestas de Récord Epley', colSpan: 1, type: 'epley-proposals' },
-    ],
-  },
-  {
-    id: 'row-4',
-    name: 'Fila 4 · Módulos Disponibles',
-    className: 'wireframe-row-4',
-    cards: [
-      { id: 'w-r4-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-      { id: 'w-r4-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-      { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
+      { id: 'w-epley', name: 'Propuestas de récord Epley', colSpan: 1, type: 'epley-proposals' },
+      { id: 'w-r3-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
     ],
   },
 ];
+
+// Tarjetas que el PF puede poner en un espacio libre con el "+" (KAN-594). El menú muestra solo
+// las que no están ya en el Inicio: si quita una de las de siempre, la puede volver a poner.
+interface CatalogItem {
+  type: DashboardCardType;
+  name: string;
+  description: string;
+  chartMetric?: string;
+}
+
+const COACH_WIDGET_CATALOG: CatalogItem[] = [
+  {
+    type: 'habits-pending',
+    name: 'Recomendaciones por aprobar',
+    description: 'Hábitos y entrenamiento que la IA propuso y esperan tu OK',
+  },
+  {
+    type: 'next-match',
+    name: 'Próximo partido',
+    description: 'Rival, día y cuántos días faltan',
+  },
+  {
+    type: 'injuries-return',
+    name: 'Lesiones y retornos',
+    description: 'Quién está lesionado y cuándo vuelve',
+  },
+  { type: 'attention-today', name: 'Requieren atención hoy', description: 'Quién y qué hacer' },
+  { type: 'traffic-light-summary', name: 'Semáforo del día', description: 'Cómo llega el plantel' },
+  { type: 'pain-alerts', name: 'Alertas de dolor', description: 'Dónde duele el plantel' },
+  { type: 'next-training', name: 'Próximo entrenamiento', description: 'La sesión que viene' },
+  { type: 'checkin-progress', name: 'Check-in', description: 'Quiénes faltan' },
+  { type: 'top-ua-athletes', name: 'Mayor carga (UA)', description: 'Podio de carga del día' },
+  {
+    type: 'epley-proposals',
+    name: 'Propuestas de récord Epley',
+    description: 'Récords nuevos para aprobar',
+  },
+];
+
+// Lo mismo para el atleta (KAN-594): agrega o saca lo que quiera. Los gráficos grandes de cada
+// marca siguen disponibles además de la tira de "Mis marcas".
+const ATHLETE_WIDGET_CATALOG: CatalogItem[] = [
+  {
+    type: 'athlete-checkin-today',
+    name: 'Mi check-in de hoy',
+    description: 'Si lo hiciste y cómo llegás',
+  },
+  {
+    type: 'athlete-week-traffic',
+    name: 'Mis últimos 7 días',
+    description: 'Tu semáforo día por día',
+  },
+  {
+    type: 'athlete-next-training',
+    name: 'Mi próximo entrenamiento',
+    description: 'Qué entrenás y cuándo',
+  },
+  {
+    type: 'athlete-metrics-strip',
+    name: 'Mis marcas',
+    description: 'Salto, fuerza, sprint y resistencia',
+  },
+  { type: 'daily-load', name: 'Carga del día', description: 'Cargá minutos y esfuerzo' },
+  { type: 'suite', name: 'Accesos rápidos', description: 'Tu rutina y tus marcas' },
+  {
+    type: 'progress-chart',
+    chartMetric: 'cmj',
+    name: 'Gráfico: Salto CMJ',
+    description: 'Tu evolución en grande',
+  },
+  {
+    type: 'progress-chart',
+    chartMetric: 'squat',
+    name: 'Gráfico: 1RM Sentadilla',
+    description: 'Tu evolución en grande',
+  },
+  {
+    type: 'progress-chart',
+    chartMetric: 'sprint',
+    name: 'Gráfico: Sprint',
+    description: 'Tu evolución en grande',
+  },
+  {
+    type: 'progress-chart',
+    chartMetric: 'yoyo',
+    name: 'Gráfico: Resistencia',
+    description: 'Tu evolución en grande',
+  },
+];
+
+const catalogKey = (item: { type: string; chartMetric?: string }) =>
+  item.type === 'progress-chart' ? `${item.type}:${item.chartMetric ?? 'cmj'}` : item.type;
+
+// Layout del PF guardado en el navegador. Con el orden nuevo (KAN-594) cambia la versión: los
+// layouts guardados con la anterior pasan al orden nuevo una sola vez.
+const COACH_LAYOUT_STORAGE_KEY = 'protraining_bento_rows_coach_v9';
+const LEGACY_COACH_LAYOUT_STORAGE_KEY = 'protraining_bento_rows_coach_v8';
+
+function loadCoachRows(): DashboardRow[] {
+  try {
+    const saved = localStorage.getItem(COACH_LAYOUT_STORAGE_KEY);
+    if (saved) {
+      const parsed: unknown = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as DashboardRow[];
+    }
+    localStorage.removeItem(LEGACY_COACH_LAYOUT_STORAGE_KEY);
+  } catch {
+    // Sin acceso al almacenamiento: se usa el orden por defecto
+  }
+  return DEFAULT_COACH_ROWS;
+}
+
+const WEEKDAY_FORMATTER = new Intl.DateTimeFormat('es-AR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'America/Argentina/Buenos_Aires',
+});
+
+// "Hoy, lunes 23 de noviembre. Así venís y esto es lo que te toca." (KAN-594)
+function describeAthleteDay(): string {
+  const [year, month, day] = todayInArgentina().split('-').map(Number);
+  const label = WEEKDAY_FORMATTER.format(new Date(Date.UTC(year, month - 1, day, 12)));
+  return `Hoy, ${label}. Así venís y esto es lo que te toca.`;
+}
+
+function describeCoachDay(attentionCount: number | null, nobodyReported = false): string {
+  const [year, month, day] = todayInArgentina().split('-').map(Number);
+  // Mediodía UTC: el día no cambia al formatear en la zona de Argentina
+  const today = WEEKDAY_FORMATTER.format(new Date(Date.UTC(year, month - 1, day, 12)));
+  const prefix = `Hoy, ${today}.`;
+  if (attentionCount === null) return prefix;
+  // Sin ningún check-in no se sabe cómo llegan: no se puede decir que nadie necesita atención
+  if (nobodyReported) return `${prefix} Todavía nadie hizo el check-in.`;
+  if (attentionCount === 0) return `${prefix} Nadie necesita atención antes de entrenar.`;
+  return attentionCount === 1
+    ? `${prefix} 1 atleta necesita que lo mires antes de entrenar.`
+    : `${prefix} ${attentionCount} atletas necesitan que los mires antes de entrenar.`;
+}
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -138,9 +291,7 @@ export const DashboardPage: React.FC = () => {
   // se retiraron los widgets ficticios de clima (Open-Meteo), reloj y carga
   // semanal de prueba; los layouts guardados con esos tipos degradan al slot
   // "Módulo Disponible" (case default del switch de render), sin migración.
-  const storageKey = isAthlete
-    ? 'protraining_bento_rows_athlete_v8'
-    : 'protraining_bento_rows_coach_v8';
+  const storageKey = isAthlete ? ATHLETE_DASHBOARD_STORAGE_KEY : COACH_LAYOUT_STORAGE_KEY;
 
   const defaultRows = isAthlete ? (DEFAULT_ATHLETE_ROWS as DashboardRow[]) : DEFAULT_COACH_ROWS;
 
@@ -149,85 +300,14 @@ export const DashboardPage: React.FC = () => {
   const evolutionMetrics = React.useMemo(() => buildEvolutionMetrics(evolution), [evolution]);
 
   const [rows, setRows] = useState<DashboardRow[]>(() => {
+    if (!isAthlete) return loadCoachRows();
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 4) {
-          if (!isAthlete) {
-            const row4 = parsed.find((r: DashboardRow) => r.id === 'row-4');
-            if (row4 && row4.cards.some((c: WireframeCardItem) => c.type === 'progress-chart')) {
-              row4.cards = [
-                { id: 'w-r4-1', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-                { id: 'w-r4-2', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-                { id: 'w-r4-3', name: 'Módulo Disponible', colSpan: 1, type: 'empty' },
-              ];
-            }
-            const hasEpley = parsed.some((r: DashboardRow) =>
-              r.cards.some((c: WireframeCardItem) => c.type === 'epley-proposals'),
-            );
-            if (!hasEpley) {
-              const row3 = parsed.find((r: DashboardRow) => r.id === 'row-3');
-              if (row3 && row3.cards.length >= 2 && row3.cards[1].type === 'empty') {
-                row3.cards[1] = {
-                  id: 'w-epley',
-                  name: 'Propuestas de Récord Epley',
-                  colSpan: 1,
-                  type: 'epley-proposals',
-                };
-              }
-            }
-            const hasTopUa = parsed.some((r: DashboardRow) =>
-              r.cards.some((c: WireframeCardItem) => c.type === 'top-ua-athletes'),
-            );
-            if (!hasTopUa) {
-              const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
-              if (row1 && row1.cards.length >= 3 && row1.cards[2].type === 'empty') {
-                row1.cards[2] = {
-                  id: 'w-top-ua',
-                  name: 'Mayor Carga (UA)',
-                  colSpan: 1,
-                  type: 'top-ua-athletes',
-                };
-              }
-            }
-          } else {
-            // Athlete: ensure the daily traffic light widget is in row 1 next to training session (KAN-547)
-            const row1 = parsed.find((r: DashboardRow) => r.id === 'row-1');
-            const row2 = parsed.find((r: DashboardRow) => r.id === 'row-2');
-
-            // If it was temporarily in row-2, remove it from row-2
-            if (row2 && Array.isArray(row2.cards)) {
-              const tlIdxInRow2 = row2.cards.findIndex(
-                (c: WireframeCardItem) => c.type === 'daily-traffic-light',
-              );
-              if (tlIdxInRow2 !== -1) {
-                row2.cards[tlIdxInRow2] = {
-                  id: 'a-r2-2',
-                  name: 'Módulo 2-B',
-                  colSpan: 1,
-                  type: 'empty',
-                };
-              }
-            }
-
-            // Place next to "Predio y Horario" in row 1
-            if (row1 && Array.isArray(row1.cards)) {
-              const tlIdxInRow1 = row1.cards.findIndex(
-                (c: WireframeCardItem) => c.type === 'daily-traffic-light',
-              );
-              if (tlIdxInRow1 === -1) {
-                const targetIdx = row1.cards.length > 1 ? 1 : 0;
-                row1.cards[targetIdx] = {
-                  id: 'a-daily-traffic-light',
-                  name: 'Semáforo Diario',
-                  colSpan: 1,
-                  type: 'daily-traffic-light',
-                };
-              }
-            }
-          }
-          return parsed;
+        // v9 (KAN-594): el layout se guarda con el orden nuevo; el de la v8 ya no se lee
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed as DashboardRow[];
         }
       }
     } catch {
@@ -236,11 +316,62 @@ export const DashboardPage: React.FC = () => {
     return defaultRows;
   });
 
-  // Semáforo real de todas las categorías del PF (KAN-365/KAN-366): alimenta
-  // las donas, las alertas de dolor y el progreso de check-in del dashboard.
-  // Error o vacío → conteos en cero (modo degradado, nunca rompe la grilla).
-  const [trafficLightItems, setTrafficLightItems] = useState<AthleteTrafficLightItem[]>([]);
+  // Semáforo de hoy de todas las categorías del PF (KAN-365/366, KAN-594): alimenta "Requieren
+  // atención hoy", las donas, las alertas de dolor y el check-in. Un error se muestra como error
+  // con "Reintentar", nunca como ceros que parecen datos reales.
+  const [fetchedItems, setFetchedItems] = useState<AthleteTrafficLightItem[]>([]);
+  const [athleteIdsByCategory, setAthleteIdsByCategory] = useState<Record<string, string[]>>({});
   const [trafficLightLoading, setTrafficLightLoading] = useState(!isAthlete);
+  const [trafficLightError, setTrafficLightError] = useState<string | null>(null);
+  const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
+  // Ajustes del día aprobados desde el Inicio: el atleta deja de tener conflicto con su rutina
+  const [resolvedConflicts, setResolvedConflicts] = useState<Set<string>>(() => new Set());
+
+  const trafficLightItems = React.useMemo(
+    () =>
+      fetchedItems.map((item) =>
+        resolvedConflicts.has(item.id) ? { ...item, hasDayConflict: false } : item,
+      ),
+    [fetchedItems, resolvedConflicts],
+  );
+
+  const retryOverview = React.useCallback(() => {
+    setTrafficLightLoading(true);
+    setTrafficLightError(null);
+    setOverviewRefreshKey((k) => k + 1);
+  }, []);
+
+  const [quickSheetAthlete, setQuickSheetAthlete] = useState<AthleteTrafficLightItem | null>(null);
+  const [adjustmentAthlete, setAdjustmentAthlete] = useState<AthleteTrafficLightItem | null>(null);
+
+  useEffect(() => {
+    if (isAthlete) return;
+    let active = true;
+
+    fetchCoachTodayOverview()
+      .then((overview) => {
+        if (!active) return;
+        setFetchedItems(overview.athletes);
+        setAthleteIdsByCategory(overview.athleteIdsByCategory ?? {});
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        setFetchedItems([]);
+        setAthleteIdsByCategory({});
+        setTrafficLightError(
+          err instanceof Error && err.message
+            ? `${err.message} Probá de nuevo en unos segundos.`
+            : 'No se pudo consultar el semáforo del día.',
+        );
+      })
+      .finally(() => {
+        if (active) setTrafficLightLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isAthlete, overviewRefreshKey]);
 
   useEffect(() => {
     // El semáforo de todo el plantel es solo del PF: el atleta no tiene permiso para listar organizaciones
@@ -264,21 +395,10 @@ export const DashboardPage: React.FC = () => {
         }
       });
 
-    fetchAllCategoriesTrafficLight()
-      .then((items) => {
-        if (active) setTrafficLightItems(items);
-      })
-      .catch(() => {
-        if (active) setTrafficLightItems([]);
-      })
-      .finally(() => {
-        if (active) setTrafficLightLoading(false);
-      });
-
     return () => {
       active = false;
     };
-  }, [isAthlete, navigate]);
+  }, [isAthlete]);
 
   const trafficLightCounts = React.useMemo(
     () => summarizeTrafficLightCounts(trafficLightItems),
@@ -291,12 +411,20 @@ export const DashboardPage: React.FC = () => {
   const checkInProgress = React.useMemo(() => {
     const total = trafficLightCounts.all;
     const completed = total - trafficLightCounts.gray;
-    return { completed, total };
-  }, [trafficLightCounts]);
+    const missingNames = trafficLightItems.filter((a) => a.status === 'gray').map((a) => a.name);
+    return { completed, total, missingNames };
+  }, [trafficLightCounts, trafficLightItems]);
 
-  // Propuestas de récord Epley para el PF (KAN-394 / #099)
-  const [pendingProposals, setPendingProposals] = useState<RecordProposalItem[]>([]);
+  const attentionCount =
+    trafficLightLoading || trafficLightError
+      ? null
+      : trafficLightCounts.red + trafficLightCounts.yellow;
+
+  // Las propuestas de récord Epley se ven solo en su widget: el banner de arriba de todo, que
+  // repetía las mismas tarjetas, salió del Inicio (KAN-594).
   const [pendingRecommendationsCount, setPendingRecommendationsCount] = useState(0);
+  // Si todas las pendientes son de hábitos, el banner lleva directo a esa vista (KAN-481)
+  const [pendingAreAllHabits, setPendingAreAllHabits] = useState(false);
   const [recordsAthlete, setRecordsAthlete] = useState<{ id: string; name: string } | null>(null);
   const [proposalsRefreshKey, setProposalsRefreshKey] = useState(0);
 
@@ -308,19 +436,12 @@ export const DashboardPage: React.FC = () => {
     if (isAthlete) return;
     let active = true;
 
-    recordProposalsService
-      .listPending()
-      .then((data) => {
-        if (active) setPendingProposals(data);
-      })
-      .catch(() => {
-        if (active) setPendingProposals([]);
-      });
-
     recommendationsService
       .listRecommendations({ status: 'Pending' })
       .then((data) => {
-        if (active) setPendingRecommendationsCount(data.length);
+        if (!active) return;
+        setPendingRecommendationsCount(data.length);
+        setPendingAreAllHabits(data.length > 0 && data.every((rec) => rec.type === 'Habits'));
       })
       .catch(() => {
         if (active) setPendingRecommendationsCount(0);
@@ -330,16 +451,6 @@ export const DashboardPage: React.FC = () => {
       active = false;
     };
   }, [isAthlete, proposalsRefreshKey]);
-
-  const handleApproveProposal = async (id: string) => {
-    await recordProposalsService.approve(id);
-    setPendingProposals((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const handleDiscardProposal = async (id: string) => {
-    await recordProposalsService.discard(id);
-    setPendingProposals((prev) => prev.filter((p) => p.id !== id));
-  };
 
   // Persist rows and widgets layout to localStorage
   useEffect(() => {
@@ -430,6 +541,28 @@ export const DashboardPage: React.FC = () => {
     swapCards(rowId, currentIndex, rowId, targetIndex);
   };
 
+  // Poner una tarjeta del catálogo en un espacio libre, o volver una tarjeta a espacio libre.
+  // Conserva el id del lugar: el orden y el guardado en el navegador siguen igual.
+  const [pickerCardId, setPickerCardId] = useState<string | null>(null);
+  const replaceCard = (
+    cardId: string,
+    next: { type: DashboardCardType; name: string; chartMetric?: string },
+  ) => {
+    setRows((prevRows) =>
+      prevRows.map((row) => ({
+        ...row,
+        cards: row.cards.map((card) =>
+          card.id === cardId ? { ...card, chartMetric: undefined, ...next } : card,
+        ),
+      })),
+    );
+    setPickerCardId(null);
+  };
+  const usedKeys = new Set(rows.flatMap((row) => row.cards.map(catalogKey)));
+  const addableWidgets = (isAthlete ? ATHLETE_WIDGET_CATALOG : COACH_WIDGET_CATALOG).filter(
+    (item) => !usedKeys.has(catalogKey(item)),
+  );
+
   // Reset to default layout
   const resetLayout = () => {
     setRows(defaultRows);
@@ -483,35 +616,79 @@ export const DashboardPage: React.FC = () => {
     switch (card.type) {
       case 'top-ua-athletes':
         return <TopUaAthletesWidget />;
+      case 'athlete-checkin-today':
+        return <AthleteCheckInTodayWidget />;
+      case 'athlete-week-traffic':
+        return <AthleteWeekTrafficWidget />;
+      case 'athlete-next-training':
+        return <AthleteNextTrainingWidget />;
+      case 'athlete-metrics-strip':
+        return <AthleteMetricsStripWidget />;
+      case 'habits-pending':
+        return <HabitsPendingWidget />;
+      case 'next-match':
+        return <NextMatchWidget />;
+      case 'injuries-return':
+        return <InjuriesReturnWidget />;
+      case 'next-training':
+        return (
+          <NextTrainingWidget
+            athletes={trafficLightItems}
+            athleteIdsByCategory={athleteIdsByCategory}
+          />
+        );
       case 'daily-load':
         return <DailyLoadWidget />;
       case 'daily-traffic-light':
         return <DailyTrafficLightWidget />;
-      case 'training-session':
-        return <TrainingSessionWidget />;
+      case 'attention-today':
+        return (
+          <AttentionTodayWidget
+            athletes={trafficLightItems}
+            loading={trafficLightLoading}
+            error={trafficLightError}
+            onRetry={retryOverview}
+            onViewProfile={setQuickSheetAthlete}
+            onAdjustRoutine={setAdjustmentAthlete}
+          />
+        );
       case 'traffic-light-summary':
         return (
-          <TrafficLightSummaryWidget counts={trafficLightCounts} loading={trafficLightLoading} />
+          <TrafficLightSummaryWidget
+            counts={trafficLightCounts}
+            athletes={trafficLightItems}
+            loading={trafficLightLoading}
+            error={trafficLightError}
+            onRetry={retryOverview}
+          />
         );
       case 'checkin-progress':
         return (
           <CheckInProgressWidget
             completed={checkInProgress.completed}
             total={checkInProgress.total}
+            missingNames={checkInProgress.missingNames}
             loading={trafficLightLoading}
+            error={trafficLightError}
+            onRetry={retryOverview}
           />
         );
       case 'pain-alerts':
-        return <PainAlertsWidget athletes={trafficLightItems} />;
+        return (
+          <PainAlertsWidget
+            athletes={trafficLightItems}
+            loading={trafficLightLoading}
+            error={trafficLightError}
+            onRetry={retryOverview}
+            onAdjustRoutine={setAdjustmentAthlete}
+          />
+        );
       case 'epley-proposals':
         return (
           <EpleyProposalsWidget
             onOpenRecords={(athleteId, athleteName) =>
               setRecordsAthlete({ id: athleteId, name: athleteName })
             }
-            onCountChange={() => {
-              refreshProposals();
-            }}
           />
         );
       case 'progress-chart':
@@ -569,13 +746,58 @@ export const DashboardPage: React.FC = () => {
         );
       case 'empty':
       default:
-        return (
-          <div className="dashboard-empty-card">
-            <div className="dashboard-empty-icon">
-              <Plus size={16} />
+        if (pickerCardId === card.id) {
+          return (
+            <div className="dashboard-picker" role="group" aria-label="Elegí qué tarjeta poner acá">
+              <div className="dashboard-picker__header">
+                <span className="dashboard-picker__title">Agregar una tarjeta</span>
+                <button
+                  type="button"
+                  className="dashboard-picker__close"
+                  onClick={() => setPickerCardId(null)}
+                  aria-label="Cerrar"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              {addableWidgets.length === 0 ? (
+                <p className="dashboard-picker__empty">Ya están todas las tarjetas en tu Inicio.</p>
+              ) : (
+                <ul className="dashboard-picker__list">
+                  {addableWidgets.map((item) => (
+                    <li key={catalogKey(item)}>
+                      <button
+                        type="button"
+                        className="dashboard-picker__option"
+                        onClick={() =>
+                          replaceCard(card.id, {
+                            type: item.type,
+                            name: item.name,
+                            chartMetric: item.chartMetric,
+                          })
+                        }
+                      >
+                        <span className="dashboard-picker__option-name">{item.name}</span>
+                        <span className="dashboard-picker__option-desc">{item.description}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <span className="dashboard-empty-label">Espacio disponible</span>
-          </div>
+          );
+        }
+        return (
+          <button
+            type="button"
+            className="dashboard-empty-card dashboard-empty-card--action"
+            onClick={() => setPickerCardId(card.id)}
+          >
+            <span className="dashboard-empty-icon" aria-hidden="true">
+              <Plus size={16} />
+            </span>
+            <span className="dashboard-empty-label">Agregar una tarjeta</span>
+          </button>
         );
     }
   };
@@ -587,8 +809,11 @@ export const DashboardPage: React.FC = () => {
         title="Inicio"
         description={
           isAthlete
-            ? 'Panel principal y seguimiento de entrenamiento.'
-            : 'Panel general de control y gestión deportiva.'
+            ? describeAthleteDay()
+            : describeCoachDay(
+                attentionCount,
+                trafficLightCounts.all > 0 && trafficLightCounts.gray === trafficLightCounts.all,
+              )
         }
         actions={
           <button
@@ -603,7 +828,11 @@ export const DashboardPage: React.FC = () => {
         }
       />
 
-      <div className="app-page-body wireframe-dashboard-container">
+      <div
+        className={`app-page-body wireframe-dashboard-container ${
+          isAthlete ? '' : 'wireframe-dashboard-container--coach'
+        }`}
+      >
         {!isAthlete && hasNoOrganizations && (
           <section className="dashboard-welcome-banner" aria-label="Bienvenida a ProTraining">
             <div className="dashboard-welcome-banner-info">
@@ -626,8 +855,6 @@ export const DashboardPage: React.FC = () => {
             </button>
           </section>
         )}
-
-        {isAthlete && <AthleteRecommendationsSection />}
 
         {!isAthlete && pendingRecommendationsCount > 0 && (
           <section
@@ -652,44 +879,15 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => navigate('/pf/recommendations')}
+              onClick={() =>
+                navigate(
+                  pendingAreAllHabits ? '/pf/recommendations?view=habits' : '/pf/recommendations',
+                )
+              }
             >
               <span>Revisar recomendaciones</span>
               <ArrowRight size={15} aria-hidden="true" />
             </button>
-          </section>
-        )}
-
-        {!isAthlete && pendingProposals.length > 0 && (
-          <section
-            className="epley-dashboard-banner"
-            aria-label="Propuestas pendientes de récord Epley"
-          >
-            <div className="epley-dashboard-banner-header">
-              <div className="epley-dashboard-banner-title">
-                <Flame size={20} className="dashboard-epley-flame" aria-hidden="true" />
-                <div>
-                  <h3>Propuestas de nuevo récord Epley pendientes ({pendingProposals.length})</h3>
-                  <p className="epley-dashboard-banner-desc">
-                    Atletas que registraron series con 1RM estimado superior al vigente. Aprobá en 1
-                    clic para consolidar la nueva marca con origen Estimado por Epley.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="epley-dashboard-banner-grid">
-              {pendingProposals.map((proposal) => (
-                <RecordProposalCard
-                  key={proposal.id}
-                  proposal={proposal}
-                  onApprove={handleApproveProposal}
-                  onDiscard={handleDiscardProposal}
-                  onViewRecords={(athleteId, athleteName) =>
-                    setRecordsAthlete({ id: athleteId, name: athleteName })
-                  }
-                />
-              ))}
-            </div>
           </section>
         )}
 
@@ -746,6 +944,21 @@ export const DashboardPage: React.FC = () => {
                       </button>
                     )}
 
+                    {card.type !== 'empty' && (
+                      <button
+                        type="button"
+                        className="wireframe-control-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          replaceCard(card.id, { type: 'empty', name: 'Espacio disponible' });
+                        }}
+                        title={`Quitar "${card.name}" del Inicio`}
+                        aria-label={`Quitar ${card.name} del Inicio`}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+
                     <span
                       className="wireframe-drag-handle"
                       title="Arrastrar a cualquier fila o posición"
@@ -761,6 +974,10 @@ export const DashboardPage: React.FC = () => {
             })}
           </div>
         ))}
+
+        {/* Debajo de las cards del día: primero cómo llega y qué le toca, después las
+            recomendaciones, que son de lectura más larga (ensayo, KAN-481) */}
+        {isAthlete && <AthleteRecommendationsSection />}
       </div>
       {!isAthlete && (
         <PfWelcomeModal
@@ -776,6 +993,30 @@ export const DashboardPage: React.FC = () => {
           onClose={() => {
             setRecordsAthlete(null);
             refreshProposals();
+          }}
+        />
+      )}
+      {!isAthlete && (
+        <AthleteQuickSheet
+          athlete={quickSheetAthlete}
+          onClose={() => setQuickSheetAthlete(null)}
+          onOpenAdjustment={(athlete) => {
+            setQuickSheetAthlete(null);
+            setAdjustmentAthlete(athlete);
+          }}
+        />
+      )}
+      {adjustmentAthlete && (
+        <DayAdjustmentModal
+          athleteId={adjustmentAthlete.id}
+          athleteName={adjustmentAthlete.name}
+          isOpen
+          onClose={() => setAdjustmentAthlete(null)}
+          onAdjustmentApplied={(adjustment) => {
+            // Con el ajuste aprobado la rutina de hoy ya no carga la zona: el botón desaparece
+            if (adjustment.status === 'Approved') {
+              setResolvedConflicts((prev) => new Set(prev).add(adjustment.athleteId));
+            }
           }}
         />
       )}

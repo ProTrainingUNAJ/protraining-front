@@ -294,17 +294,7 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
 
       {/* Error banner if match fetch fails */}
       {loadError && (
-        <div
-          className="form-error-banner"
-          role="alert"
-          style={{
-            margin: '1rem 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.85rem 1rem',
-          }}
-        >
+        <div className="form-error-banner season-calendar-load-error-banner" role="alert">
           <AlertCircle size={20} />
           <span>{loadError}</span>
         </div>
@@ -491,20 +481,11 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                     title="Programar Partido en este día"
                   >
                     <Plus size={13} />
-                    <span>+ Partido</span>
+                    <span>Partido</span>
                   </button>
 
                   {activities.length === 0 ? (
-                    <div
-                      style={{
-                        textAlign: 'center',
-                        padding: '1.5rem 0.5rem',
-                        color: 'var(--text-muted)',
-                        fontSize: '0.8rem',
-                      }}
-                    >
-                      Sin actividades
-                    </div>
+                    <div className="season-calendar-week-empty-day">Sin actividad</div>
                   ) : (
                     activities.map((act, idx) => {
                       if (act.kind === 'match') {
@@ -516,25 +497,17 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                             className={`season-event-block is-match ${
                               m.homeOrAway === 'Away' ? 'away' : ''
                             }`}
-                            style={{ padding: '0.5rem 0.6rem', fontSize: '0.8rem' }}
                             onClick={() => handleOpenDayDrawer(day.isoDate)}
                             role="button"
                             tabIndex={0}
                           >
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '2px',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div className="season-calendar-event-content-column">
+                              <span className="season-calendar-event-title-row">
                                 <Trophy size={12} aria-hidden="true" />
                                 <strong>VS {m.opponent}</strong>
                               </span>
                               {(m.organizationName || m.categoryName) && (
-                                <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>
+                                <span className="season-calendar-event-sub-meta">
                                   {m.organizationName
                                     ? `${m.organizationName} · ${m.categoryName || ''}`
                                     : m.categoryName}
@@ -551,24 +524,16 @@ export const SeasonCalendarView: React.FC<SeasonCalendarViewProps> = ({
                         <div
                           key={`${act.id}-${idx}`}
                           className="season-event-block is-training"
-                          style={{ padding: '0.5rem 0.6rem', fontSize: '0.8rem' }}
                           onClick={() => handleOpenDayDrawer(day.isoDate)}
                           role="button"
                           tabIndex={0}
                         >
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '2px',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div className="season-calendar-event-content-column">
+                            <span className="season-calendar-event-title-row">
                               <Dumbbell size={12} aria-hidden="true" />
                               <strong>{s.planName}</strong>
                             </span>
-                            <span style={{ fontSize: '0.72rem', opacity: 0.9 }}>
+                            <span className="season-calendar-event-session-meta">
                               {s.sessionName}
                             </span>
                           </div>

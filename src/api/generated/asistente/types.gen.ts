@@ -349,6 +349,10 @@ export type DayConflictsResponse = {
 export type CategoryAthleteDayConflict = {
     athleteId: string;
     hasConflicts: boolean;
+    /**
+     * El PF ya ajustó la sesión de hoy del atleta; no se vuelve a ofrecer el ajuste.
+     */
+    adjustedToday?: boolean;
 };
 
 export type CategoryDayConflictsResponse = {
@@ -514,6 +518,10 @@ export type MyRecommendation = {
     recommendationText: string;
     reviewedAtUtc?: string | null;
     createdAt: string;
+    /**
+     * Aviso del nutricionista, aparte del texto para que el front lo destaque (KAN-634). Solo en las de tipo Habits, y siempre con el texto oficial aunque el PF haya editado la recomendación. En las de entrenamiento es null.
+     */
+    legalDisclaimer?: string | null;
 };
 
 export type ListAlertsData = {
@@ -672,7 +680,13 @@ export type ApplyAlertAdjustmentData = {
     path: {
         alertId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Si es true, el ajuste se aplica a la próxima sesión del atleta (dentro de los 7 días siguientes) en lugar de la de hoy. Sirve cuando el aviso llega un día que no entrena.
+         *
+         */
+        nextSession?: boolean;
+    };
     url: '/api/v1/alerts/{alertId}/apply';
 };
 
@@ -697,6 +711,10 @@ export type ApplyAlertAdjustmentResponses = {
         message?: string;
         alertId?: string;
         status?: string;
+        /**
+         * Fecha de la sesión a la que se aplicó el ajuste.
+         */
+        sessionDate?: string | null;
     };
 };
 

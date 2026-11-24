@@ -35,7 +35,7 @@ function errorMessage(error: unknown, fallback: string): string {
  * Integra en una sola vista con navegación armónica por pestañas:
  * 1. Estadísticas del Plantel (Métricas de presentismo, lesiones y carga de categoría)
  * 2. Confiabilidad de Récords (Auditoría de 1RM de atletas)
- * 3. Informes & Exportación (Reportes ejecutivos en PDF, CSV y WhatsApp)
+ * 3. Informes & Exportación (Reportes ejecutivos en PDF, CSV y texto para copiar)
  */
 export const StatisticsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();

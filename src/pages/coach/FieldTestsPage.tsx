@@ -1,44 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  CalendarClock,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  ClipboardList,
-  Play,
-  Plus,
-  Search,
-  X,
-} from 'lucide-react';
+import { CalendarClock, CheckCircle2, ClipboardList, Play, Plus, Search } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { formatIsoDate } from '../../utils/argentinaDate';
 import { structureService } from '../../api/structureService';
 import {
-  createFieldTestSession,
   listFieldTestSessions,
   listFitnessTests,
   updateFieldTestSessionStatus,
 } from '../../api/fieldTestSessions';
-import type {
-  FieldTestSessionSummary,
-  FitnessTest,
-  MotorCapacity,
-} from '../../api/generated/seguimiento';
+import type { FieldTestSessionSummary, FitnessTest } from '../../api/generated/seguimiento';
 import type { Category, Organization } from '../../types/structure';
-
-// Etiquetas de las capacidades motoras en el orden del enum del backend (KAN-458):
-// se usan como chips de filtro del catálogo y solo se muestran las presentes en él.
-const CAPACITY_LABEL: Record<MotorCapacity, string> = {
-  Strength: 'Fuerza',
-  Velocity: 'Velocidad',
-  Endurance: 'Resistencia',
-  Power: 'Potencia',
-  Flexibility: 'Flexibilidad',
-  Agility: 'Agilidad',
-  Coordination: 'Coordinación',
-};
+import { CreateFieldTestSessionModal } from '../../components/fieldTests/CreateFieldTestSessionModal';
 
 // Estados de la sesión, en el mismo orden que el backend.
 const STATUS_LABEL: Record<FieldTestSessionSummary['status'], string> = {
@@ -57,12 +31,6 @@ const STATUS_FILTERS: Array<{ value: SessionStatusFilter; label: string }> = [
   { value: 'InProgress', label: 'En curso' },
   { value: 'Closed', label: 'Cerrada' },
 ];
-
-const todayIso = (): string => {
-  const now = new Date();
-  const offset = now.getTimezoneOffset();
-  return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
-};
 
 // Pantalla de entrada al test de campo: filtrar por organización y categoría,
 // ver (o crear) la sesión y lanzar la captura de marcas.
@@ -87,52 +55,25 @@ export const FieldTestsPage: React.FC = () => {
   const [sessionSearch, setSessionSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<SessionStatusFilter>('all');
 
-  // Formulario de alta de sesión.
+  // Alta de sesión: modal centrado (KAN-656) con el panel de seleccionados (AC14).
   const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState('');
-  const [date, setDate] = useState(todayIso);
-  // Tests elegidos para la sesión nueva, en el orden en que se evalúan (AC14).
-  const [selectedTestIds, setSelectedTestIds] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const [catalogTests, setCatalogTests] = useState<FitnessTest[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
-  // Búsqueda por nombre + filtro por capacidad del catálogo (AC12).
-  const [testSearch, setTestSearch] = useState('');
-  const [capacityFilter, setCapacityFilter] = useState<MotorCapacity | ''>('');
-
   // --------------------------- Derivados ---------------------------
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
 
-  // Solo se ofrecen los filtros de capacidades que existen en el catálogo.
-  const availableCapacities = useMemo(
-    () =>
-      (Object.keys(CAPACITY_LABEL) as MotorCapacity[]).filter((capacity) =>
-        catalogTests.some((test) => test.motorCapacity === capacity),
-      ),
-    [catalogTests],
-  );
-
-  // Catálogo filtrado: búsqueda por nombre AND capacidad motora (AC12).
-  const visibleCatalogTests = useMemo(() => {
-    const query = testSearch.trim().toLowerCase();
-    return catalogTests.filter(
-      (test) =>
-        (query === '' || test.name.toLowerCase().includes(query)) &&
-        (capacityFilter === '' || test.motorCapacity === capacityFilter),
-    );
-  }, [catalogTests, testSearch, capacityFilter]);
-
-  // Categorías de la organización elegida; sin organización no se ofrece ninguna (AC04).
+  // Categorías según el filtro: sin organización elegida se siguen ofreciendo
+  // todas (para poder filtrar el listado), aunque el selector queda deshabilitado
+  // hasta elegir organización (AC03-AC04).
   const visibleCategories = useMemo(
     () =>
       selectedOrganizationId
         ? categories.filter((category) => category.organizationId === selectedOrganizationId)
-        : [],
+        : categories,
     [categories, selectedOrganizationId],
   );
 
@@ -144,11 +85,6 @@ export const FieldTestsPage: React.FC = () => {
     }
     return '';
   }, [selectedCategoryId, selectedOrganizationId, visibleCategories]);
-
-  const selectedCategoryName = useMemo(
-    () => categories.find((category) => category.id === effectiveCategoryId)?.name ?? '',
-    [categories, effectiveCategoryId],
-  );
 
   // Categorías a pedir al backend: la elegida o todas las visibles (vista "Todas").
   const sessionCategoryIds = useMemo(() => {
@@ -181,8 +117,14 @@ export const FieldTestsPage: React.FC = () => {
           ),
         );
         if (!active) return;
+        // Se pide una categoría por organización: se deduplica por si el backend
+        // devuelve la misma en dos pedidos (evita claves repetidas en el listado).
+        const all = categoriesByOrganization.flat();
+        const unique = all.filter(
+          (category, index) => all.findIndex((other) => other.id === category.id) === index,
+        );
         setOrganizations(loadedOrganizations);
-        setCategories(categoriesByOrganization.flat());
+        setCategories(unique);
       } catch (err) {
         if (!active) return;
         setCategoriesError(
@@ -198,7 +140,7 @@ export const FieldTestsPage: React.FC = () => {
     };
   }, []);
 
-  // Catálogo de tests: se pide una sola vez, para el formulario de alta.
+  // Catálogo de tests: se pide una sola vez, para el modal de alta.
   useEffect(() => {
     if (catalogLoaded) return;
     let active = true;
@@ -282,104 +224,11 @@ export const FieldTestsPage: React.FC = () => {
     }
   };
 
-  const toggleTest = (testId: string): void => {
-    setSelectedTestIds((current) =>
-      current.includes(testId) ? current.filter((id) => id !== testId) : [...current, testId],
-    );
-  };
+  const openForm = (): void => setShowForm(true);
 
-  // Reordenamiento del panel de seleccionados (AC14).
-  const moverArriba = (testId: string): void => {
-    setSelectedTestIds((current) => {
-      const index = current.indexOf(testId);
-      if (index <= 0) return current;
-      const next = [...current];
-      [next[index], next[index - 1]] = [next[index - 1], next[index]];
-      return next;
-    });
-  };
-
-  const moverAbajo = (testId: string): void => {
-    setSelectedTestIds((current) => {
-      const index = current.indexOf(testId);
-      if (index < 0 || index >= current.length - 1) return current;
-      const next = [...current];
-      [next[index], next[index + 1]] = [next[index + 1], next[index]];
-      return next;
-    });
-  };
-
-  const quitarTest = (testId: string): void => {
-    setSelectedTestIds((current) => current.filter((id) => id !== testId));
-  };
-
-  const openForm = (): void => {
-    setFormError(null);
-    setShowForm(true);
-  };
-
-  const closeForm = (): void => {
-    setFormError(null);
-    setShowForm(false);
-  };
-
-  // Al cambiar de organización se cierra y limpia el formulario abierto (AC05):
-  // el borrador no debe arrastrarse a otra organización ni a otra categoría.
-  const resetForm = (): void => {
-    setShowForm(false);
-    setFormError(null);
-    setName('');
-    setDate(todayIso());
-    setSelectedTestIds([]);
-    setTestSearch('');
-    setCapacityFilter('');
-  };
-
-  const submitNewSession = async (event: React.FormEvent): Promise<void> => {
-    event.preventDefault();
-    setFormError(null);
-
-    if (!effectiveCategoryId) {
-      setFormError('Elegí una organización y una categoría para crear la sesión.');
-      return;
-    }
-    if (!name.trim()) {
-      setFormError('Poné un nombre para la sesión.');
-      return;
-    }
-    if (selectedTestIds.length === 0) {
-      setFormError('Elegí al menos un test del catálogo.');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await createFieldTestSession({
-        categoryId: effectiveCategoryId,
-        date,
-        name: name.trim(),
-        tests: selectedTestIds.map((catalogTestId, index) => ({
-          catalogTestId,
-          order: index + 1,
-        })),
-      });
-      setShowForm(false);
-      setName('');
-      setSelectedTestIds([]);
-      setTestSearch('');
-      setCapacityFilter('');
-      await loadSessions(sessionCategoryIds);
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'No se pudo crear la sesión.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const requiresCategory = categoriesLoading || !effectiveCategoryId;
-  const requiresCategoryHint = 'Elegí una organización y una categoría para crear una sesión.';
-
-  // --------------------------- Vista ---------------------------
+  // Al cambiar de organización se cierra el modal de alta (AC05): como se monta
+  // condicionalmente, se desmonta y el borrador queda limpio.
+  const closeForm = (): void => setShowForm(false);
 
   return (
     <div className="app-page-container">
@@ -391,8 +240,7 @@ export const FieldTestsPage: React.FC = () => {
             type="button"
             className="btn btn-primary"
             onClick={openForm}
-            disabled={requiresCategory}
-            title={requiresCategory ? requiresCategoryHint : undefined}
+            disabled={categoriesLoading || categories.length === 0}
           >
             <Plus size={16} aria-hidden="true" />
             <span>Nueva sesión</span>
@@ -437,8 +285,8 @@ export const FieldTestsPage: React.FC = () => {
                   onChange={(event) => {
                     const organizationId = event.target.value;
                     if (organizationId === selectedOrganizationId) return;
-                    // AC05: cambiar de organización cierra y limpia el formulario abierto.
-                    resetForm();
+                    // AC05: cambiar de organización cierra y limpia el modal abierto.
+                    closeForm();
                     setSelectedOrganizationId(organizationId);
                     // AC05: si la categoría elegida no pertenece a la organización nueva,
                     // se resetea por la primera categoría de esa organización.
@@ -453,7 +301,7 @@ export const FieldTestsPage: React.FC = () => {
                       return organizationCategories[0]?.id ?? '';
                     });
                   }}
-                  disabled={categoriesLoading || saving}
+                  disabled={categoriesLoading}
                 >
                   <option value="">Todas las organizaciones</option>
                   {organizations.map((organization) => (
@@ -474,7 +322,7 @@ export const FieldTestsPage: React.FC = () => {
                   className="ft-filter-select"
                   value={effectiveCategoryId}
                   onChange={(event) => setSelectedCategoryId(event.target.value)}
-                  disabled={!selectedOrganizationId || saving}
+                  disabled={!selectedOrganizationId}
                 >
                   <option value="">Todas las categorías</option>
                   {visibleCategories.map((category) => (
@@ -527,190 +375,24 @@ export const FieldTestsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Formulario de alta: catálogo con buscador + panel de seleccionados (AC12-AC14) */}
+            {/* Modal amplio y centrado de creación de sesión (KAN-656), con el
+                panel de tests seleccionados y su orden ↑/↓ (AC14). */}
             {showForm && (
-              <form className="card ft-form" onSubmit={submitNewSession}>
-                <h3>Nueva sesión de test</h3>
-
-                <div className="ft-form-row">
-                  <label className="ft-field">
-                    <span>Nombre</span>
-                    <input
-                      type="text"
-                      maxLength={150}
-                      value={name}
-                      placeholder="Evaluación de pretemporada"
-                      onChange={(event) => setName(event.target.value)}
-                    />
-                  </label>
-
-                  <label className="ft-field">
-                    <span>Fecha</span>
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(event) => setDate(event.target.value)}
-                    />
-                  </label>
-
-                  <div className="ft-field">
-                    <span>Categoría</span>
-                    <p className="ft-field-value">{selectedCategoryName}</p>
-                  </div>
-                </div>
-
-                <div className="ft-form-grid">
-                  <fieldset className="ft-field ft-catalog">
-                    <legend>Tests (en el orden en que se evalúan)</legend>
-                    {catalogError && <div className="alert-banner danger">{catalogError}</div>}
-
-                    <div className="ft-search-input">
-                      <Search size={15} aria-hidden="true" />
-                      <input
-                        type="search"
-                        className="ft-search-input__field"
-                        placeholder="Buscar test por nombre"
-                        aria-label="Buscar test por nombre"
-                        value={testSearch}
-                        onChange={(event) => setTestSearch(event.target.value)}
-                      />
-                    </div>
-
-                    {catalogTests.length > 0 && (
-                      <div
-                        className="ft-test-filters"
-                        role="group"
-                        aria-label="Filtrar por capacidad motora"
-                      >
-                        <button
-                          type="button"
-                          className={`ft-test-filter${capacityFilter === '' ? ' ft-test-filter--active' : ''}`}
-                          aria-pressed={capacityFilter === ''}
-                          onClick={() => setCapacityFilter('')}
-                        >
-                          Todos
-                        </button>
-                        {availableCapacities.map((capacity) => (
-                          <button
-                            key={capacity}
-                            type="button"
-                            className={`ft-test-filter${capacityFilter === capacity ? ' ft-test-filter--active' : ''}`}
-                            aria-pressed={capacityFilter === capacity}
-                            onClick={() => setCapacityFilter(capacity)}
-                          >
-                            {CAPACITY_LABEL[capacity]}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="ft-test-options">
-                      {visibleCatalogTests.map((test) => {
-                        const order = selectedTestIds.indexOf(test.id);
-                        return (
-                          <button
-                            key={test.id}
-                            type="button"
-                            className={`ft-test-option${order >= 0 ? ' ft-test-option--selected' : ''}`}
-                            onClick={() => toggleTest(test.id)}
-                            aria-pressed={order >= 0}
-                          >
-                            <span className="ft-test-option__order">
-                              {order >= 0 ? order + 1 : '·'}
-                            </span>
-                            <span className="ft-test-option__name">{test.name}</span>
-                            <span className="ft-test-option__unit">{test.measurementUnit}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {visibleCatalogTests.length === 0 && (
-                      <p className="ft-muted">No hay tests que coincidan con la búsqueda.</p>
-                    )}
-                  </fieldset>
-
-                  {/* Panel de tests seleccionados, separado del catálogo (AC14) */}
-                  <div className="ft-selected-tests-panel">
-                    <span className="ft-selected-tests-title">
-                      Tests seleccionados ({selectedTestIds.length})
-                    </span>
-
-                    {selectedTestIds.length === 0 && (
-                      <p className="ft-muted">Tocá un test del catálogo para agregarlo acá.</p>
-                    )}
-
-                    <ul
-                      className="ft-selected-tests-list"
-                      aria-label="Tests seleccionados en orden"
-                    >
-                      {selectedTestIds.map((testId, index) => {
-                        const test = catalogTests.find((item) => item.id === testId);
-                        const testName = test?.name || testId;
-                        return (
-                          <li key={testId} className="ft-selected-test-item">
-                            <span className="ft-selected-test-order" aria-hidden="true">
-                              {index + 1}
-                            </span>
-                            <span className="ft-selected-test-name">
-                              {testName}
-                              {test?.measurementUnit && (
-                                <span className="ft-selected-test-unit">
-                                  {test.measurementUnit}
-                                </span>
-                              )}
-                            </span>
-                            <span className="ft-selected-test-actions">
-                              <button
-                                type="button"
-                                className="ft-icon-btn"
-                                aria-label={`Mover ${testName} arriba`}
-                                disabled={index === 0}
-                                onClick={() => moverArriba(testId)}
-                              >
-                                <ChevronUp size={16} aria-hidden="true" />
-                              </button>
-                              <button
-                                type="button"
-                                className="ft-icon-btn"
-                                aria-label={`Mover ${testName} abajo`}
-                                disabled={index === selectedTestIds.length - 1}
-                                onClick={() => moverAbajo(testId)}
-                              >
-                                <ChevronDown size={16} aria-hidden="true" />
-                              </button>
-                              <button
-                                type="button"
-                                className="ft-icon-btn ft-icon-btn--danger"
-                                aria-label={`Quitar ${testName}`}
-                                onClick={() => quitarTest(testId)}
-                              >
-                                <X size={16} aria-hidden="true" />
-                              </button>
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-
-                {formError && <div className="alert-banner danger">{formError}</div>}
-
-                <div className="ft-form-actions">
-                  <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? 'Creando…' : 'Crear sesión'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={closeForm}
-                    disabled={saving}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
+              <CreateFieldTestSessionModal
+                isOpen={showForm}
+                onClose={closeForm}
+                categories={categories}
+                initialCategoryId={effectiveCategoryId || categories[0]?.id || ''}
+                catalogTests={catalogTests}
+                catalogError={catalogError}
+                onSessionCreated={async (createdCategoryId) => {
+                  if (effectiveCategoryId && effectiveCategoryId !== createdCategoryId) {
+                    setSelectedCategoryId(createdCategoryId);
+                  } else {
+                    await loadSessions(sessionCategoryIds);
+                  }
+                }}
+              />
             )}
 
             {actionError && <div className="alert-banner danger">{actionError}</div>}
@@ -728,13 +410,7 @@ export const FieldTestsPage: React.FC = () => {
                       ? 'Todavía no hay sesiones en esta categoría.'
                       : 'Todavía no hay sesiones de tests de campo registradas.'}
                   </p>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={openForm}
-                    disabled={requiresCategory}
-                    title={requiresCategory ? requiresCategoryHint : undefined}
-                  >
+                  <button type="button" className="btn btn-secondary" onClick={openForm}>
                     Crear la primera sesión
                   </button>
                 </div>

@@ -98,6 +98,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     setTelegramUsername(user?.telegramUsername ?? '');
   }
 
+  const [athleteId, setAthleteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (role === 'athlete') {
+      structureService
+        .getMe()
+        .then((me) => {
+          if (me?.athleteId) {
+            setAthleteId(me.athleteId);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [role]);
+
   const [habitsEnabled, setHabitsEnabled] = useState(true);
   const [habitsLoading, setHabitsLoading] = useState(role === 'pf');
   const [habitsError, setHabitsError] = useState<string | null>(null);
@@ -128,7 +143,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     };
   }, []);
 
-  const isPushActive = pushSubscribed || pushPermission === 'granted';
+  const isPushActive = pushSubscribed;
 
   const handleTogglePush = async () => {
     setPushLoading(true);
@@ -460,7 +475,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           }}
                         >
                           <PhotoUploadControl
-                            currentPhotoUrl={user?.id ? usersService.getMyPhotoUrl(user.id) : null}
+                            currentPhotoUrl={
+                              role === 'athlete' && athleteId
+                                ? structureService.getAthletePhotoUrl(athleteId)
+                                : user?.id
+                                  ? usersService.getMyPhotoUrl(user.id)
+                                  : null
+                            }
                             name={fullName || 'Usuario'}
                             size={84}
                             onUpload={async (file) => {

@@ -171,7 +171,13 @@ export const PhotoUploadControl: React.FC<PhotoUploadControlProps> = ({
         aria-busy={isBusy}
         aria-label={`${uploadButtonLabel} para ${name}`}
       >
-        <ProfileAvatar src={displayPhotoUrl} name={name} size={dimension} shape={shape} />
+        <ProfileAvatar
+          key={displayPhotoUrl || name}
+          src={displayPhotoUrl}
+          name={name}
+          size={dimension}
+          shape={shape}
+        />
 
         {/* Overlay con spinner mientras se sube o se procesa */}
         {isBusy && (

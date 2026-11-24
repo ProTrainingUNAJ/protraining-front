@@ -8,6 +8,13 @@ import {
 import { structureService } from '../../api/structureService';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 
+// "Lucas Gómez" → "Lucas G.": entra debajo de la foto sin romper el podio.
+function shortName(fullName: string): string {
+  const [first, ...rest] = fullName.trim().split(/\s+/);
+  const lastInitial = rest.length > 0 ? ` ${rest[rest.length - 1].charAt(0)}.` : '';
+  return `${first ?? fullName}${lastInitial}`;
+}
+
 export interface TopUaAthletesWidgetProps {
   className?: string;
 }
@@ -71,7 +78,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
       avatarSize: 44,
       bg: athlete1 ? 'var(--info-bg)' : 'var(--bg-secondary)',
       border: athlete1 ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-      numberColor: athlete1 ? 'var(--primary)' : 'var(--text-muted)',
+      numberColor: athlete1 ? 'var(--primary-text)' : 'var(--text-muted)',
       isWinner: Boolean(athlete1),
       testId: 'podium-step-1',
     },
@@ -134,7 +141,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
           <span
             style={{
               background: 'var(--info-bg)',
-              color: 'var(--primary)',
+              color: 'var(--primary-text)',
               border: '1px solid var(--primary)',
               fontSize: '0.68rem',
               fontWeight: 800,
@@ -200,6 +207,21 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
             />
             <span>Cargando podio...</span>
           </div>
+        ) : athletesWithLoad.length === 0 ? (
+          // Sin cargas no se dibuja el podio: escalones con guiones parecen datos (KAN-594)
+          <p
+            data-testid="top-ua-empty"
+            style={{
+              margin: 0,
+              alignSelf: 'center',
+              textAlign: 'center',
+              color: 'var(--text-muted)',
+              fontSize: '0.85rem',
+              padding: '1.25rem 0',
+            }}
+          >
+            Sin cargas registradas hoy
+          </p>
         ) : (
           <div
             style={{
@@ -286,6 +308,25 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                     ) : null}
                   </div>
 
+                  {/* Nombre corto visible; el completo va como texto para lectores de pantalla */}
+                  {step.athlete && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        maxWidth: '100%',
+                        marginBottom: '0.3rem',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: 'var(--text-main)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {shortName(step.athlete.athleteName || 'Atleta')}
+                    </span>
+                  )}
+
                   {/* Escalón del Podio con el Número y las UA */}
                   <div
                     style={{
@@ -320,7 +361,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
                       style={{
                         fontSize: step.isWinner ? '0.74rem' : '0.68rem',
                         fontWeight: 800,
-                        color: step.isWinner ? 'var(--primary)' : 'var(--text-secondary)',
+                        color: step.isWinner ? 'var(--primary-text)' : 'var(--text-secondary)',
                         lineHeight: 1,
                         whiteSpace: 'nowrap',
                       }}
@@ -356,7 +397,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
         <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
           {athletesWithLoad.length > 0
             ? `${athletesWithLoad.length} atleta${athletesWithLoad.length > 1 ? 's' : ''} con registro`
-            : 'Sin cargas registradas hoy'}
+            : ''}
         </span>
         <button
           type="button"
@@ -364,18 +405,7 @@ export const TopUaAthletesWidget: React.FC<TopUaAthletesWidgetProps> = ({ classN
             e.stopPropagation();
             handleOpenAttendance();
           }}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            color: 'var(--brand-blue, #0284c7)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-          }}
+          className="btn btn-primary dash-w__cta"
           title="Ver planilla completa de asistencia y RPE"
         >
           <span>Ver detalle</span>

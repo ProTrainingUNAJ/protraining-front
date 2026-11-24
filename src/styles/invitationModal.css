@@ -195,7 +195,7 @@
 }
 
 .invitation-regenerate-btn:hover {
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--shell-search-bg);
 }
 

@@ -356,6 +356,7 @@ export function AssignPlanModal({ planId, planName, onClose, onAssigned }: Assig
                     >
                       <div className="plan-select-selected-row">
                         <ProfileAvatar
+                          key={`athlete-trigger-${selectedAthlete?.id || 'none'}`}
                           src={selectedAthlete?.photoUrl}
                           name={selectedAthlete?.fullName || 'Atleta'}
                           size={30}
@@ -464,6 +465,7 @@ export function AssignPlanModal({ planId, planName, onClose, onAssigned }: Assig
                   >
                     <div className="plan-select-selected-row">
                       <ProfileAvatar
+                        key={`cat-trigger-${selectedCategory?.id || 'none'}`}
                         src={selectedCategory?.photoUrl}
                         name={selectedCategory?.organizationName || 'Categoría'}
                         size={30}
@@ -586,6 +588,7 @@ export function AssignPlanModal({ planId, planName, onClose, onAssigned }: Assig
               >
                 <div className="plan-preview-avatar-wrap">
                   <ProfileAvatar
+                    key={`athlete-preview-${selectedAthlete.id}`}
                     src={selectedAthlete.photoUrl}
                     name={selectedAthlete.fullName}
                     size={52}
@@ -618,6 +621,7 @@ export function AssignPlanModal({ planId, planName, onClose, onAssigned }: Assig
               >
                 <div className="plan-preview-avatar-wrap">
                   <ProfileAvatar
+                    key={`cat-preview-${selectedCategory.id}`}
                     src={selectedCategory.photoUrl}
                     name={selectedCategory.organizationName}
                     size={52}

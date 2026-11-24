@@ -45,59 +45,54 @@ export const PlanAssigneesStack: React.FC<PlanAssigneesStackProps> = ({
   const tooltipText = `${assignees.map((a) => a.name).join(', ')} · Clic para administrar asignados`;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       className="plan-assignees-stack-trigger"
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       title={tooltipText}
       aria-label={`Ver y administrar ${assignees.length} asignados a ${planName}`}
     >
-      <div className="plan-assignees-stack-avatars">
+      <span className="plan-assignees-stack-avatars">
         {visibleAssignees.map((assignee, idx) => (
-          <div
+          <span
             key={assignee.assignmentId || `${assignee.targetId}-${idx}`}
             className="plan-assignee-avatar-wrapper"
             style={{
               zIndex: 10 - idx,
-              marginLeft: idx === 0 ? 0 : '-10px',
+              marginLeft: idx === 0 ? 0 : '-8px',
             }}
           >
             <ProfileAvatar
               src={assignee.photoUrl}
               name={assignee.name}
-              size={32}
+              size={24}
               shape="circle"
               className="plan-assignee-avatar-circle"
               alt={assignee.name}
             />
-          </div>
+          </span>
         ))}
 
         {remainingCount > 0 && (
-          <div
+          <span
             className="plan-assignee-more-circle"
             style={{
               zIndex: 10 - visibleAssignees.length,
-              marginLeft: '-10px',
+              marginLeft: '-8px',
             }}
             aria-label={`${remainingCount} personas más asignadas`}
           >
             <span>+{remainingCount}</span>
-          </div>
+          </span>
         )}
-      </div>
+      </span>
+
+      <span className="plan-assignees-trigger-label">Gestionar</span>
 
       <span className="plan-assignees-count-label">
         <Users size={13} aria-hidden="true" />
         <span>{assignees.length}</span>
       </span>
-    </div>
+    </button>
   );
 };

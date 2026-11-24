@@ -1,0 +1,15 @@
+/*
+ * Estilos del mapa muscular de la sesión (KAN-582).
+ * Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+ * tokens de tokens.css. Solo queda inline el height dinámico (prop `height`).
+ * Nota: el wrapper no necesita clase nueva: .routine-hero-muscle-minimap
+ * (athlete.css) ya declara exactamente display/gap/align-items del inline.
+ */
+
+/* Compuesto con .routine-hero-muscle-silhouette (athlete.css) para mantener
+   el ancho fijo de 48px por encima del media query de ≤768px que lo baja a
+   36px: el style inline lo ganaba siempre, y quitándolo sin esto cambiaría
+   el diseño en pantalla angosta. */
+.routine-hero-muscle-silhouette.routine-session-muscle-silhouette {
+  width: 48px;
+}

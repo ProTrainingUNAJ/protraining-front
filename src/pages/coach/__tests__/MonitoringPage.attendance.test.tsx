@@ -260,6 +260,16 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(screen.getByText('Lucas Gómez')).toBeDefined();
       expect(screen.getByText('Joaquín Díaz')).toBeDefined();
     });
+
+    // 4. Búsqueda por texto con el buscador accesible (KAN-594)
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar atleta' }), {
+      target: { value: 'Lucas' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(screen.queryByText('Joaquín Díaz')).toBeNull();
+    });
   });
 
   it('muestra la barra de resumen de readiness y bienestar diario con el conteo de check-ins y botón actualizar (KAN-621)', async () => {
@@ -295,10 +305,32 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
       expect(screen.getByTestId('refresh-traffic-light-btn')).toBeDefined();
     });
 
+    const callsBefore = vi.mocked(getCategoryTrafficLightToday).mock.calls.length;
+    // La recarga queda colgada para ver el estado intermedio del botón
+    let release: (
+      value: Awaited<ReturnType<typeof getCategoryTrafficLightToday>>,
+    ) => void = () => {};
+    vi.mocked(getCategoryTrafficLightToday).mockImplementationOnce(
+      () => new Promise((resolve) => (release = resolve)),
+    );
+
     fireEvent.click(screen.getByTestId('refresh-traffic-light-btn'));
 
+    // KAN-660: mientras recarga, el botón avisa y no se puede volver a tocar; la lista sigue visible
     await waitFor(() => {
-      expect(getCategoryTrafficLightToday).toHaveBeenCalled();
+      const btn = screen.getByTestId('refresh-traffic-light-btn') as HTMLButtonElement;
+      expect(btn.disabled).toBe(true);
+      expect(btn.textContent).toContain('Actualizando');
+    });
+    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(vi.mocked(getCategoryTrafficLightToday).mock.calls.length).toBe(callsBefore + 1);
+
+    release([]);
+
+    await waitFor(() => {
+      const btn = screen.getByTestId('refresh-traffic-light-btn') as HTMLButtonElement;
+      expect(btn.disabled).toBe(false);
+      expect(btn.textContent).toContain('Actualizar');
     });
   });
 

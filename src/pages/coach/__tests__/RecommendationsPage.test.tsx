@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { RecommendationsPage } from '../RecommendationsPage';
 import type { AthleteRecommendation } from '../../../api/recommendations';
+import type { Athlete } from '../../../types/structure';
+
+// El nombre también aparece en el selector de hábitos (KAN-634): se busca solo dentro de la lista.
+const inList = () => within(screen.getByLabelText('Recomendaciones agrupadas por atleta'));
 
 const {
   listRecommendationsMock,
@@ -12,6 +16,7 @@ const {
   discardRecommendationMock,
   getCategoriesMock,
   getAthletesMock,
+  withCategoriesMock,
 } = vi.hoisted(() => ({
   listRecommendationsMock: vi.fn(),
   generateForCategoryMock: vi.fn(),
@@ -20,6 +25,7 @@ const {
   discardRecommendationMock: vi.fn(),
   getCategoriesMock: vi.fn(),
   getAthletesMock: vi.fn(),
+  withCategoriesMock: vi.fn((athletes: Athlete[]) => Promise.resolve(athletes)),
 }));
 
 vi.mock('../../../api/recommendations', () => ({
@@ -36,6 +42,11 @@ vi.mock('../../../api/structureService', () => ({
   structureService: {
     getCategories: getCategoriesMock,
     getAthletes: getAthletesMock,
+    withCategories: withCategoriesMock,
+    getAthletePhotoUrl: vi.fn(
+      (id: string, v?: string | null) =>
+        `/estructura/api/v1/athletes/${id}/photo${v ? `?v=${encodeURIComponent(v)}` : ''}`,
+    ),
   },
 }));
 
@@ -69,9 +80,9 @@ const pendingRec: AthleteRecommendation = {
   reviewedAtUtc: null,
 };
 
-function renderPage() {
+function renderPage(initialPath = '/pf/recommendations') {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialPath]}>
       <RecommendationsPage />
     </MemoryRouter>,
   );
@@ -101,7 +112,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // Incluso con 1 recomendación arranca comprimida con contador y chip capitalizado
@@ -130,6 +141,31 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(screen.getByText('Tendencia estable')).toBeDefined();
   });
 
+  it('muestra el avatar con foto del atleta cuando tiene foto cargada', async () => {
+    getAthletesMock.mockResolvedValue([
+      {
+        id: 'ath-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        active: true,
+        hasPhoto: true,
+        photoUpdatedAt: '2026-11-24T02:59:13Z',
+        categories: [],
+      },
+    ]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    const avatarImg = inList().getByRole('img', { name: /Foto de perfil de Lucas Gómez/i });
+    expect(avatarImg).toBeDefined();
+    expect(avatarImg.getAttribute('src')).toContain('/estructura/api/v1/athletes/ath-1/photo');
+  });
+
   it('permite editar título y texto manteniendo el motivo inmutable', async () => {
     updateRecommendationMock.mockResolvedValue({
       ...pendingRec,
@@ -140,7 +176,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -177,7 +213,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -194,7 +230,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     });
 
     fireEvent.click(screen.getByRole('tab', { name: /Aprobadas/i }));
-    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(inList().getByText('Lucas Gómez')).toBeDefined();
     expect(screen.getByText('1 aprobada')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
     expect(screen.getByText('Ajuste de potencia de salto')).toBeDefined();
@@ -212,7 +248,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -242,7 +278,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
@@ -254,10 +290,10 @@ describe('RecommendationsPage (KAN-492)', () => {
     });
 
     fireEvent.click(screen.getByRole('tab', { name: /Descartadas/i }));
-    expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    expect(inList().getByText('Lucas Gómez')).toBeDefined();
   });
 
-  it('ejecuta el motor para la categoría seleccionada y muestra el resumen', async () => {
+  it('deshabilita el botón sin categoría seleccionada y ejecuta el motor al elegir una (KAN-512)', async () => {
     generateForCategoryMock.mockResolvedValue({
       categoryId: 'cat-1',
       categoryName: 'Primera División',
@@ -270,10 +306,21 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Analizar categoría/i }));
+    // Sin categoría seleccionada ("Todas las categorías"), el botón está deshabilitado
+    const defaultBtn = screen.getByRole('button', { name: /Analizar plantel/i });
+    expect((defaultBtn as HTMLButtonElement).disabled).toBe(true);
+
+    // Seleccionamos Primera División
+    fireEvent.change(screen.getByLabelText(/Filtrar por categoría/i), {
+      target: { value: 'cat-1' },
+    });
+
+    const analyzeBtn = screen.getByRole('button', { name: /Analizar: Primera División/i });
+    expect((analyzeBtn as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(analyzeBtn);
 
     await waitFor(() => {
       expect(generateForCategoryMock).toHaveBeenCalledWith('cat-1', 4);
@@ -299,11 +346,11 @@ describe('RecommendationsPage (KAN-492)', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
     });
 
     // El nombre del atleta aparece una sola vez aunque tenga 2 recomendaciones
-    expect(screen.getAllByText('Lucas Gómez')).toHaveLength(1);
+    expect(inList().getAllByText('Lucas Gómez')).toHaveLength(1);
     expect(screen.getByText('2 pendientes')).toBeDefined();
     expect(screen.getByText('Salto por debajo del promedio')).toBeDefined();
     expect(screen.getByText('Velocidad por debajo del promedio')).toBeDefined();
@@ -316,5 +363,137 @@ describe('RecommendationsPage (KAN-492)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendaciones \(2\)/i }));
     expect(screen.getByText('Ajuste de potencia de salto')).toBeDefined();
     expect(screen.getByText('Ajuste de velocidad')).toBeDefined();
+  });
+
+  it('permite alternar entre "Analizar plantel" y "Hábitos y alimentación" separando las secciones (KAN-654)', async () => {
+    const habitsRec: AthleteRecommendation = {
+      ...pendingRec,
+      id: 'rec-habits-1',
+      type: 'Habits',
+      title: 'Ajuste de hidratación y proteína',
+      reason: 'objetivo de masa muscular',
+      recommendationText: 'Ingesta de 1.8g/kg de proteína y 2.5L de agua diarios.',
+    };
+    listRecommendationsMock.mockResolvedValue([pendingRec, habitsRec]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    // Pestaña inicial: "Analizar plantel"
+    const analysisTab = screen.getByRole('tab', { name: /Analizar plantel/i });
+    const habitsTab = screen.getByRole('tab', { name: /Hábitos y alimentación/i });
+    expect(analysisTab).toBeDefined();
+    expect(habitsTab).toBeDefined();
+    expect(analysisTab.getAttribute('aria-selected')).toBe('true');
+    expect(habitsTab.getAttribute('aria-selected')).toBe('false');
+
+    // Cada vista muestra cuántas pendientes tiene, para que las de hábitos no pasen desapercibidas
+    expect(screen.getByTestId('pending-count-analysis').textContent).toBe('1');
+    expect(screen.getByTestId('pending-count-habits').textContent).toBe('1');
+
+    // En "Analizar plantel": visible el motor y la recomendación física, oculto Hábitos
+    expect(screen.getByText('Analizar plantel y generar propuestas')).toBeDefined();
+    expect(screen.queryByLabelText('Generar recomendación de hábitos y alimentación')).toBeNull();
+
+    // Cambiamos a "Hábitos y alimentación"
+    fireEvent.click(habitsTab);
+    expect(habitsTab.getAttribute('aria-selected')).toBe('true');
+    expect(analysisTab.getAttribute('aria-selected')).toBe('false');
+
+    // En "Hábitos y alimentación": visible el bloque de hábitos, oculto el motor físico
+    expect(screen.getByLabelText('Generar recomendación de hábitos y alimentación')).toBeDefined();
+    expect(screen.queryByText('Analizar plantel y generar propuestas')).toBeNull();
+  });
+
+  it('con ?view=habits abre directo en "Hábitos y alimentación"', async () => {
+    renderPage('/pf/recommendations?view=habits');
+
+    const habitsTab = await screen.findByRole('tab', { name: /Hábitos y alimentación/i });
+    expect(habitsTab.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('permite marcar en qué categoría analizar directamente en la barra de análisis (KAN-663)', async () => {
+    getCategoriesMock.mockResolvedValue([
+      { id: 'cat-1', organizationId: 'org-1', name: 'Primera División', athletesCount: 10 },
+      { id: 'cat-3', organizationId: 'org-2', name: 'Alumnos particulares', athletesCount: 5 },
+    ]);
+    generateForCategoryMock.mockResolvedValue({
+      categoryId: 'cat-3',
+      categoryName: 'Alumnos particulares',
+      evaluatedAthletes: 5,
+      generatedCount: 1,
+      existingPendingCount: 0,
+      recommendations: [pendingRec],
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(inList().getByText('Lucas Gómez')).toBeDefined();
+    });
+
+    const analysisCategorySelect = screen.getByLabelText(/Categoría para analizar/i);
+    expect(analysisCategorySelect).toBeDefined();
+
+    // Marcamos la categoría "Alumnos particulares" en el selector de la barra de análisis
+    fireEvent.change(analysisCategorySelect, { target: { value: 'cat-3' } });
+
+    // El botón debe reflejar dinámicamente "Analizar: Alumnos particulares"
+    const analyzeBtn = screen.getByRole('button', { name: /Analizar: Alumnos particulares/i });
+    expect(analyzeBtn).toBeDefined();
+    expect((analyzeBtn as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(analyzeBtn);
+
+    await waitFor(() => {
+      expect(generateForCategoryMock).toHaveBeenCalledWith('cat-3', 4);
+    });
+  });
+
+  it('muestra la categoría del atleta en el selector de hábitos en lugar de "Sin categoría" (KAN-663)', async () => {
+    withCategoriesMock.mockResolvedValue([
+      {
+        id: 'ath-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'lucas@example.com',
+        phone: '123456789',
+        active: true,
+        categoryNames: ['Primera División'],
+        categories: [{ id: 'cat-1', name: 'Primera División' }],
+      },
+      {
+        id: 'ath-2',
+        firstName: 'Agustina',
+        lastName: 'Morales',
+        fullName: 'Agustina Morales',
+        email: 'agustina@example.com',
+        phone: '987654321',
+        active: true,
+        categoryNames: ['Alumnos particulares'],
+        categories: [{ id: 'cat-3', name: 'Alumnos particulares' }],
+      },
+    ]);
+
+    renderPage('/pf/recommendations?view=habits');
+
+    await waitFor(() => {
+      expect(screen.getByText('Elegí un atleta…')).toBeDefined();
+    });
+
+    // Abrimos el dropdown interactivo de hábitos
+    fireEvent.click(
+      screen.getByRole('button', { name: /Desplegar lista de atletas para hábitos/i }),
+    );
+
+    const dropdownList = within(screen.getByRole('listbox'));
+    // Verificamos que aparezca la categoría del atleta y no "Sin categoría"
+    expect(dropdownList.getByText('Primera División')).toBeDefined();
+    expect(dropdownList.getByText('Alumnos particulares')).toBeDefined();
+    expect(dropdownList.queryByText('Sin categoría')).toBeNull();
   });
 });

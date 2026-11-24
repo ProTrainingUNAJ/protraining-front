@@ -1,5 +1,20 @@
 /* Vista de recomendaciones para el PF y bloque en el Inicio del atleta (KAN-492 · KAN-647) */
 
+/* Pendientes de cada vista: mismo amarillo que el filtro "Pendientes" */
+.recommendations-view-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  background: var(--traffic-yellow-bg);
+  color: var(--traffic-yellow-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .recommendations-page-body {
   display: flex;
   flex-direction: column;
@@ -20,6 +35,13 @@
 }
 
 .recommendations-plantel-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.recommendations-select-wrapper {
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -102,7 +124,7 @@
 }
 
 .recommendations-engine-sparkle {
-  color: var(--primary);
+  color: var(--primary-text);
   flex-shrink: 0;
 }
 
@@ -158,6 +180,262 @@
   outline: none;
   border-color: var(--brand-blue);
   box-shadow: var(--focus-ring);
+}
+
+.recommendations-analysis-category-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  max-width: 320px;
+  flex: 1 1 220px;
+}
+
+.recommendations-analysis-select {
+  width: 100%;
+  min-width: 180px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.recommendations-analysis-select:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+}
+
+.recommendations-analysis-select:focus {
+  outline: none;
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+/* Selector interactivo de atleta con foto y búsqueda para Hábitos y alimentación (KAN-654) */
+.habits-select-container {
+  position: relative;
+  min-width: 240px;
+  max-width: 340px;
+  flex: 1 1 260px;
+}
+
+.habits-select-trigger {
+  width: 100%;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: inherit;
+}
+
+.habits-select-trigger:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+}
+
+.habits-select-trigger.open,
+.habits-select-trigger:focus-visible {
+  outline: none;
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+.habits-select-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.habits-select-selected-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.habits-select-avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.habits-select-selected-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.habits-select-selected-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-select-selected-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-select-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.habits-select-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.habits-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  min-width: 280px;
+  max-width: 360px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: habitsDropdownIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes habitsDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.habits-dropdown-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+.habits-dropdown-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.habits-dropdown-search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.habits-dropdown-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.habits-dropdown-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.habits-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.12s ease;
+  box-sizing: border-box;
+}
+
+.habits-dropdown-item:hover {
+  background: var(--bg-subtle);
+}
+
+.habits-dropdown-item.selected {
+  background: var(--bg-subtle);
+  font-weight: 600;
+}
+
+.habits-dropdown-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.habits-dropdown-item-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-dropdown-item-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habits-dropdown-empty {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
 }
 
 .recommendations-toolbar {
@@ -307,6 +585,11 @@
   flex-shrink: 0;
 }
 
+.recommendation-athlete-avatar-img {
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
 .recommendation-athlete-group-text-col {
   display: flex;
   flex-direction: column;
@@ -348,7 +631,7 @@
   border-radius: 8px;
   background: var(--info-bg);
   border: 1px solid var(--info-border);
-  color: var(--brand-blue);
+  color: var(--primary-text);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -359,7 +642,7 @@
   gap: 0.35rem;
   font-size: 0.84rem;
   font-weight: 700;
-  color: var(--brand-blue);
+  color: var(--primary-text);
   white-space: nowrap;
   align-self: center;
 }
@@ -459,7 +742,7 @@
 
 .recommendation-badge.type {
   background: var(--info-bg);
-  color: var(--brand-navy);
+  color: var(--primary-text);
 }
 
 .recommendation-badge.category {
@@ -500,7 +783,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--brand-blue);
+  color: var(--primary-text);
   background: color-mix(in srgb, var(--brand-blue) 12%, transparent);
   padding: 0.18rem 0.5rem;
   border-radius: 6px;
@@ -549,7 +832,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--brand-blue);
+  color: var(--primary-text);
   font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
@@ -811,69 +1094,92 @@
 .athlete-recommendations-section {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
   padding: 1.25rem 1.35rem;
   border-radius: 18px;
   background: var(--bg-card);
-  border: 1px solid var(--info-border);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
 
 .athlete-recommendations-header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: 0.75rem;
 }
 
-.athlete-recommendations-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.athlete-recommendations-title-wrap h3 {
+.athlete-recommendations-header h3 {
   margin: 0 0 0.15rem;
   font-size: 1.05rem;
   font-weight: 800;
   color: var(--text-main);
 }
 
-.athlete-recommendations-title-wrap p {
+.athlete-recommendations-header p {
   margin: 0;
   font-size: 0.84rem;
   color: var(--text-muted);
 }
 
+/* auto-fit: con una sola recomendación la tarjeta ocupa todo el ancho, no una columna angosta */
 .athlete-recommendations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 1rem;
 }
 
 .athlete-recommendation-card {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  padding: 1rem 1.1rem;
-  border-radius: 12px;
+  min-width: 0;
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+}
+
+.athlete-recommendation-card--habits {
+  border-left-color: var(--success);
 }
 
 .athlete-recommendation-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
+  gap: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.athlete-recommendation-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--info-bg);
+  color: var(--info-text);
+  font-weight: 800;
+}
+
+.athlete-recommendation-category {
+  font-weight: 700;
+}
+
+.athlete-recommendation-date {
+  margin-left: auto;
 }
 
 .athlete-recommendation-title {
   margin: 0;
-  font-size: 0.96rem;
+  font-size: 1rem;
   font-weight: 800;
+  line-height: 1.3;
   color: var(--text-main);
 }
 
@@ -881,27 +1187,146 @@
   margin: 0;
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--brand-blue);
+  color: var(--primary-text);
 }
 
-.athlete-recommendation-text {
-  margin: 0;
-  font-size: 0.88rem;
+/* Texto en párrafos cortos y con largo de línea legible aunque la tarjeta sea ancha */
+.athlete-recommendation-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 75ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
   color: var(--text-main);
-  line-height: 1.5;
-  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
-@media (width <= 640px) {
+.athlete-recommendation-body p,
+.athlete-recommendation-body ul {
+  margin: 0;
+}
+
+.athlete-recommendation-body ul {
+  padding-left: 1.2rem;
+}
+
+.athlete-recommendation-body li + li {
+  margin-top: 0.25rem;
+}
+
+.athlete-recommendation-more,
+.athlete-recommendations-toggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.3rem;
+  min-height: 44px;
+  padding: 0 0.25rem;
+  border: none;
+  background: none;
+  color: var(--primary-text);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.athlete-recommendation-more:hover,
+.athlete-recommendations-toggle:hover {
+  text-decoration: underline;
+}
+
+.athlete-recommendation-more:focus-visible,
+.athlete-recommendations-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.athlete-recommendation-more svg {
+  transition: transform 0.15s ease;
+}
+
+.athlete-recommendation-chevron--up {
+  transform: rotate(180deg);
+}
+
+.athlete-recommendations-toggle {
+  align-self: center;
+}
+
+.athlete-recommendations-empty {
+  margin: 0;
+  padding: 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.athlete-recommendations-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.athlete-recommendations-error .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  margin-left: auto;
+}
+
+/* Aviso del nutricionista (KAN-634): destacado, pero informativo, no de alarma */
+.athlete-recommendation-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.athlete-recommendation-disclaimer svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--primary-text);
+}
+
+@media (width <=640px) {
   .recommendations-list,
   .athlete-recommendations-grid {
     grid-template-columns: 1fr;
   }
 
   .recommendations-select,
-  .recommendations-search-input {
+  .recommendations-search-input,
+  .habits-select-container {
     width: 100%;
     min-width: 0;
+    max-width: none;
+  }
+
+  .habits-dropdown-panel {
+    width: 100%;
+    max-width: none;
   }
 
   .recommendation-actions-container {

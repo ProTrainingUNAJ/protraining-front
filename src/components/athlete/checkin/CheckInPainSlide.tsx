@@ -155,6 +155,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
 
   return (
     <div
+      className="checkin-slide-root"
       style={{
         width: '100%',
         display: 'flex',
@@ -174,12 +175,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       >
         {/* ── Cabecera Superior con Botones Circulares de Navegación a la altura del Título ── */}
         <div
+          className="pixel-mood-nav-wrap"
           style={{
             width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '0.35rem',
+            marginBottom: '0.15rem',
             position: 'relative',
           }}
         >
@@ -259,96 +261,100 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
           </button>
         </div>
 
-        {/* Alerta si intenta avanzar con lesión sin marcar */}
-        {!canProceed && showInjuryNotice && (
-          <div className="pixel-injury-alert" role="alert">
-            <AlertTriangle size={15} />
-            <span>{nextBlockedReason}</span>
-          </div>
-        )}
-
-        {/* Barra de estado rápido ultra-compacta (1 sola línea, sin caja pesada) */}
-        {!isBlocked && (
-          <div className="checkin-health-bar">
-            {/* Chip de Síntomas / Salud */}
-            <button
-              type="button"
-              onClick={() => setCartelStep('enfermo')}
-              className={`checkin-health-chip ${isSick ? 'danger' : 'healthy'}`}
-              title="Modificar estado de salud"
-            >
-              {isSick ? <AlertTriangle size={12} /> : <ShieldCheck size={12} />}
-              <span>{isSick ? 'Con síntomas' : 'Salud normal'}</span>
-              <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
-            </button>
-
-            {/* Chip de Lesión (incluye la lesión clínica activa aunque el flag local esté en false) */}
-            {lesionChip}
-
-            {/* Chip de Lesiones Activas (si hay lesiones registradas en la ficha clínica) */}
-            {activeInjuries && activeInjuries.length > 0 && (
-              <button
-                type="button"
-                onClick={openInjuriesModal}
-                className="checkin-health-chip warning"
-                title="Modificar puntuación de lesiones activas"
-              >
-                <Activity size={12} />
-                <span>
-                  Lesión: {getMuscleSpanishName(activeInjuries[0].zone) || activeInjuries[0].zone}
-                  {injuryScores[activeInjuries[0].id] !== null &&
-                  injuryScores[activeInjuries[0].id] !== undefined
-                    ? ` (${injuryScores[activeInjuries[0].id]}/10)`
-                    : ''}
-                </span>
-                <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
-              </button>
-            )}
-
-            {/* Chip de Zonas Marcadas (si hay) */}
-            {reportedPainsCount > 0 && (
-              <span className="checkin-health-chip warning">
-                <span>
-                  {reportedPainsCount} {reportedPainsCount === 1 ? 'zona' : 'zonas'}
-                </span>
-              </span>
-            )}
-
-            {/* Botón Limpiar (si hay zonas marcadas) */}
-            {reportedPainsCount > 0 && (
-              <button
-                type="button"
-                onClick={onClearAll}
-                className="checkin-health-chip clear-btn"
-                title="Limpiar todas las molestias marcadas"
-              >
-                <RotateCcw size={11} />
-                <span>Limpiar</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ── MAPA ANATÓMICO MUSCULAR Y ARTICULAR (VISTA FRONTAL Y POSTERIOR) CON ESCÁNER BIOMÉTRICO ── */}
-        <div
-          className={`biometric-scanner-container ${isScanning ? 'biometric-scanning-target' : ''}`}
-          style={{ width: '100%', overflow: 'visible', paddingBottom: '0.65rem' }}
-        >
-          {isScanning && (
-            <div className="biometric-scan-overlay" aria-hidden="true">
-              <div className="biometric-scanner-beam" />
-              <div className="biometric-scanner-line" />
+        {/* Zona scrolleable: el scroll queda acá para que los botones de la
+            cabecera siempre queden visibles (KAN-595) */}
+        <div className="checkin-card-scroll">
+          {/* Alerta si intenta avanzar con lesión sin marcar */}
+          {!canProceed && showInjuryNotice && (
+            <div className="pixel-injury-alert" role="alert">
+              <AlertTriangle size={15} />
+              <span>{nextBlockedReason}</span>
             </div>
           )}
 
-          <InteractiveMuscleMap
-            musclePains={musclePains}
-            onPainChange={onPainChange}
-            onClearAll={onClearAll}
-            hasActiveInjury={lesionActive}
-            hideControls={true}
-            initialView="front"
-          />
+          {/* Barra de estado rápido ultra-compacta (1 sola línea, sin caja pesada) */}
+          {!isBlocked && (
+            <div className="checkin-health-bar">
+              {/* Chip de Síntomas / Salud */}
+              <button
+                type="button"
+                onClick={() => setCartelStep('enfermo')}
+                className={`checkin-health-chip ${isSick ? 'danger' : 'healthy'}`}
+                title="Modificar estado de salud"
+              >
+                {isSick ? <AlertTriangle size={12} /> : <ShieldCheck size={12} />}
+                <span>{isSick ? 'Con síntomas' : 'Salud normal'}</span>
+                <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+              </button>
+
+              {/* Chip de Lesión (incluye la lesión clínica activa aunque el flag local esté en false) */}
+              {lesionChip}
+
+              {/* Chip de Lesiones Activas (si hay lesiones registradas en la ficha clínica) */}
+              {activeInjuries && activeInjuries.length > 0 && (
+                <button
+                  type="button"
+                  onClick={openInjuriesModal}
+                  className="checkin-health-chip warning"
+                  title="Modificar puntuación de lesiones activas"
+                >
+                  <Activity size={12} />
+                  <span>
+                    Lesión: {getMuscleSpanishName(activeInjuries[0].zone) || activeInjuries[0].zone}
+                    {injuryScores[activeInjuries[0].id] !== null &&
+                    injuryScores[activeInjuries[0].id] !== undefined
+                      ? ` (${injuryScores[activeInjuries[0].id]}/10)`
+                      : ''}
+                  </span>
+                  <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+                </button>
+              )}
+
+              {/* Chip de Zonas Marcadas (si hay) */}
+              {reportedPainsCount > 0 && (
+                <span className="checkin-health-chip warning">
+                  <span>
+                    {reportedPainsCount} {reportedPainsCount === 1 ? 'zona' : 'zonas'}
+                  </span>
+                </span>
+              )}
+
+              {/* Botón Limpiar (si hay zonas marcadas) */}
+              {reportedPainsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={onClearAll}
+                  className="checkin-health-chip clear-btn"
+                  title="Limpiar todas las molestias marcadas"
+                >
+                  <RotateCcw size={11} />
+                  <span>Limpiar</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── MAPA ANATÓMICO MUSCULAR Y ARTICULAR (VISTA FRONTAL Y POSTERIOR) CON ESCÁNER BIOMÉTRICO ── */}
+          <div
+            className={`biometric-scanner-container ${isScanning ? 'biometric-scanning-target' : ''}`}
+            style={{ width: '100%', overflow: 'visible', paddingBottom: '0.15rem' }}
+          >
+            {isScanning && (
+              <div className="biometric-scan-overlay" aria-hidden="true">
+                <div className="biometric-scanner-beam" />
+                <div className="biometric-scanner-line" />
+              </div>
+            )}
+
+            <InteractiveMuscleMap
+              musclePains={musclePains}
+              onPainChange={onPainChange}
+              onClearAll={onClearAll}
+              hasActiveInjury={lesionActive}
+              hideControls={true}
+              initialView="front"
+            />
+          </div>
         </div>
       </div>
 

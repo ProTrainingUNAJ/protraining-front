@@ -78,12 +78,12 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
         rel="noopener noreferrer"
         className={`btn btn-secondary ${className}`.trim()}
         title="Contactar a mi preparador físico por WhatsApp"
-        aria-label="Contactar a mi preparador"
+        aria-label="Contactar a mi PF"
         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
       >
         <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
         <WhatsAppIcon size={18} aria-hidden="true" />
-        <span className="contact-pf-label">Contactar a mi preparador</span>
+        <span className="contact-pf-label">Contactar a mi PF</span>
       </a>
     );
   }
@@ -190,13 +190,13 @@ export const ContactPfButton: React.FC<ContactPfButtonProps> = ({
         className={`btn btn-secondary ${className}`.trim()}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
-        aria-label="Contactar a mi preparador"
+        aria-label="Contactar a mi PF"
         onClick={() => setMenuOpen((prev) => !prev)}
         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
       >
         <ProfileAvatar src={pfPhotoUrl} name="Preparador Físico" size={24} />
         <WhatsAppIcon size={18} aria-hidden="true" />
-        <span className="contact-pf-label">Contactar a mi preparador</span>
+        <span className="contact-pf-label">Contactar a mi PF</span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
 

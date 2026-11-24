@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getDailyLoad, DailyLoadSubmitResponse } from '../../api/seguimientoService';
 import { structureService } from '../../api/structureService';
 import './DailyLoadWidget.css';
+import './dashboardWidgets.css';
 
 const getCachedAthleteId = (userId?: string): string | null => {
   if (!userId) return null;
@@ -213,7 +214,7 @@ export const DailyLoadWidget: React.FC = () => {
         {hasRecordedLoad ? (
           <button
             type="button"
-            className="dl-widget__btn-action dl-widget__btn-action--detail"
+            className="btn btn-primary dash-w__cta"
             onClick={() => navigate('/athlete/daily-load')}
           >
             <span>Ver detalle o actualizar</span>
@@ -222,7 +223,7 @@ export const DailyLoadWidget: React.FC = () => {
         ) : (
           <button
             type="button"
-            className="dl-widget__btn-action dl-widget__btn-action--primary"
+            className="btn btn-primary dash-w__cta"
             onClick={() => navigate('/athlete/daily-load')}
           >
             <Plus size={14} />

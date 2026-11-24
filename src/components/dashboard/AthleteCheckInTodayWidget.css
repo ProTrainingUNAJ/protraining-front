@@ -1,0 +1,117 @@
+/* "Mi check-in de hoy" del Inicio del atleta (KAN-594) */
+.athlete-checkin-today__pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: var(--bg-subtle);
+}
+
+.athlete-checkin-today__pending-dot {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 0.2rem;
+  border: 2px dashed var(--traffic-gray);
+  border-radius: 50%;
+}
+
+.athlete-checkin-today__pending-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.athlete-checkin-today__pending-text {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.athlete-checkin-today__result {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--tone-border);
+  border-radius: 14px;
+  background: var(--tone-bg);
+}
+
+.athlete-checkin-today__result--green {
+  --tone: var(--traffic-green);
+  --tone-bg: var(--traffic-green-bg);
+  --tone-border: var(--traffic-green-border);
+  --tone-text: var(--traffic-green-text);
+}
+
+.athlete-checkin-today__result--yellow {
+  --tone: var(--traffic-yellow);
+  --tone-bg: var(--traffic-yellow-bg);
+  --tone-border: var(--traffic-yellow-border);
+  --tone-text: var(--traffic-yellow-text);
+}
+
+.athlete-checkin-today__result--red {
+  --tone: var(--traffic-red);
+  --tone-bg: var(--traffic-red-bg);
+  --tone-border: var(--traffic-red-border);
+  --tone-text: var(--traffic-red-text);
+}
+
+.athlete-checkin-today__light {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 0 5px var(--tone-bg);
+}
+
+.athlete-checkin-today__result-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.athlete-checkin-today__label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tone-text);
+}
+
+.athlete-checkin-today__headline {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.athlete-checkin-today__reason {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.athlete-checkin-today__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.athlete-checkin-today__facts li {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+}

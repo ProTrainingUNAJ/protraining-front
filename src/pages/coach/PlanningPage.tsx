@@ -302,6 +302,17 @@ export function PlanningPage() {
     }
   };
 
+  const handleDownloadPdf = async (plan: PlanListItem) => {
+    setPlanError(null);
+    try {
+      await trainingPlansService.downloadPdf(plan.id, plan.name);
+    } catch (err: unknown) {
+      setPlanError(
+        err instanceof Error ? err.message : 'No se pudo descargar el PDF de la planificación.',
+      );
+    }
+  };
+
   const filteredTemplates = templates.filter((tpl) => {
     const query = templateSearch.trim().toLowerCase();
     if (!query) return true;
@@ -642,6 +653,7 @@ export function PlanningPage() {
                     key={plan.id}
                     plan={plan}
                     onAssign={(p) => setSelectedPlanForAssign(p)}
+                    onDownloadPdf={handleDownloadPdf}
                     onDelete={(p) => {
                       setSelectedPlanForDelete(p);
                       setDeletePlanError(null);

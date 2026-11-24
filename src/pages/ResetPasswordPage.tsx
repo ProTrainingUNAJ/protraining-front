@@ -5,6 +5,7 @@ import { authService } from '../api/authService';
 import { extractErrorMessage } from '../api/axiosClient';
 import { ThemeToggle } from '../components/auth/ThemeToggle';
 import { ProTrainingLogo } from '../components/brand/ProTrainingLogo';
+import '../styles/passwordRecovery.css';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -30,20 +31,8 @@ export const ResetPasswordPage: React.FC = () => {
   // Si los parámetros obligatorios de la URL faltan
   if (!emailParam || !tokenParam) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1.5rem',
-          backgroundColor: 'var(--bg-main)',
-        }}
-      >
-        <div
-          className="auth-card"
-          style={{ maxWidth: '440px', width: '100%', textAlign: 'center' }}
-        >
+      <div className="password-recovery-page">
+        <div className="auth-card password-recovery-card password-recovery-card--centered">
           <div className="auth-brand-top">
             <div className="auth-brand-logo-wrap">
               <ProTrainingLogo height={48} />
@@ -51,32 +40,16 @@ export const ResetPasswordPage: React.FC = () => {
             <ThemeToggle />
           </div>
 
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--danger-bg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '1.5rem auto 1rem',
-              color: 'var(--danger-text)',
-            }}
-          >
+          <div className="password-recovery-status-icon password-recovery-status-icon--danger">
             <AlertCircle size={28} aria-hidden="true" />
           </div>
 
           <h1 className="auth-title">Enlace no válido</h1>
-          <p className="auth-subtitle" style={{ marginBottom: '1.5rem' }}>
+          <p className="auth-subtitle password-recovery-subtitle-spaced">
             El enlace de recuperación es incompleto o no contiene los parámetros necesarios.
           </p>
 
-          <Link
-            to="/forgot-password"
-            className="btn-pill-primary"
-            style={{ display: 'inline-block', textDecoration: 'none', width: '100%' }}
-          >
+          <Link to="/forgot-password" className="btn-pill-primary password-recovery-full-link-btn">
             Solicitar un nuevo enlace
           </Link>
         </div>
@@ -116,17 +89,8 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1.5rem',
-        backgroundColor: 'var(--bg-main)',
-      }}
-    >
-      <div className="auth-card" style={{ maxWidth: '440px', width: '100%' }}>
+    <div className="password-recovery-page">
+      <div className="auth-card password-recovery-card">
         <div className="auth-brand-top">
           <div className="auth-brand-logo-wrap">
             <ProTrainingLogo height={48} />
@@ -149,42 +113,19 @@ export const ResetPasswordPage: React.FC = () => {
         )}
 
         {success ? (
-          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--success-bg)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 1rem',
-                color: 'var(--success-text)',
-              }}
-            >
+          <div className="password-recovery-status-panel">
+            <div className="password-recovery-status-icon password-recovery-status-icon--success">
               <CheckCircle2 size={28} aria-hidden="true" />
             </div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-              ¡Contraseña restablecida!
-            </h2>
-            <p
-              style={{
-                fontSize: '0.9rem',
-                lineHeight: 1.5,
-                color: 'var(--text-muted)',
-                marginBottom: '1.5rem',
-              }}
-              role="status"
-            >
+            <h2 className="password-recovery-status-title">¡Contraseña restablecida!</h2>
+            <p className="password-recovery-status-copy" role="status">
               Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tu nueva
               clave.
             </p>
             <button
               type="button"
-              className="btn-pill-primary"
+              className="btn-pill-primary password-recovery-full-btn"
               onClick={() => navigate('/login')}
-              style={{ width: '100%' }}
             >
               Iniciar sesión
             </button>
@@ -192,7 +133,7 @@ export const ResetPasswordPage: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} noValidate>
             {/* Campo Nueva Contraseña */}
-            <div className="form-group-pill" style={{ marginBottom: '1rem' }}>
+            <div className="form-group-pill password-recovery-field">
               <label htmlFor="new-password" className="form-label-visible">
                 Nueva contraseña
               </label>
@@ -224,7 +165,7 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
 
             {/* Campo Confirmar Nueva Contraseña */}
-            <div className="form-group-pill" style={{ marginBottom: '1rem' }}>
+            <div className="form-group-pill password-recovery-field">
               <label htmlFor="confirm-password" className="form-label-visible">
                 Repetir nueva contraseña
               </label>
@@ -256,46 +197,19 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
 
             {/* Checklist de requisitos de seguridad (#KAN-539 / #KAN-540) */}
-            <div
-              style={{
-                marginTop: '0.5rem',
-                marginBottom: '1.25rem',
-                padding: '0.6rem 0.8rem',
-                borderRadius: '6px',
-                background: 'var(--bg-subtle)',
-                fontSize: '0.78rem',
-                color: 'var(--text-muted)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-              }}
-            >
+            <div className="password-recovery-checklist">
               <span
-                style={{
-                  color: hasMinLength && hasDigit ? 'var(--success-text)' : 'var(--text-muted)',
-                  fontWeight: hasMinLength && hasDigit ? 600 : 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
+                className={`password-recovery-checklist-item ${
+                  hasMinLength && hasDigit ? 'is-valid' : ''
+                }`}
               >
-                <Check
-                  size={12}
-                  style={{ opacity: hasMinLength && hasDigit ? 1 : 0.3 }}
-                  aria-hidden="true"
-                />
+                <Check size={12} className="password-recovery-checklist-icon" aria-hidden="true" />
                 Mínimo 8 caracteres y al menos un número
               </span>
               <span
-                style={{
-                  color: passwordsMatch ? 'var(--success-text)' : 'var(--text-muted)',
-                  fontWeight: passwordsMatch ? 600 : 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
+                className={`password-recovery-checklist-item ${passwordsMatch ? 'is-valid' : ''}`}
               >
-                <Check size={12} style={{ opacity: passwordsMatch ? 1 : 0.3 }} aria-hidden="true" />
+                <Check size={12} className="password-recovery-checklist-icon" aria-hidden="true" />
                 Las contraseñas coinciden
               </span>
             </div>
@@ -303,9 +217,8 @@ export const ResetPasswordPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || !newPassword || !confirmPassword}
-              className="btn-pill-primary"
+              className="btn-pill-primary password-recovery-submit-btn"
               data-testid="btn-reset-password-submit"
-              style={{ width: '100%', marginBottom: '1rem' }}
             >
               {loading ? (
                 <>
@@ -317,17 +230,10 @@ export const ResetPasswordPage: React.FC = () => {
               )}
             </button>
 
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <div className="password-recovery-footer">
               <Link
                 to="/forgot-password"
-                className="auth-secondary-btn"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                }}
+                className="auth-secondary-btn password-recovery-back-link"
               >
                 <ArrowLeft size={14} aria-hidden="true" />
                 <span>Solicitar otro enlace</span>

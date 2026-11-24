@@ -6,6 +6,7 @@ import {
   Bookmark,
   Calendar,
   Check,
+  FileDown,
   Layers,
   Loader2,
   Plus,
@@ -77,6 +78,7 @@ export function PlanEditorPage() {
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
   const [showAssign, setShowAssign] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -591,6 +593,21 @@ export function PlanEditorPage() {
 
   const closeAssign = () => setShowAssign(false);
 
+  const handleDownloadPdf = async () => {
+    if (!draft || downloadingPdf) return;
+    setDownloadingPdf(true);
+    setError(null);
+    try {
+      await trainingPlansService.downloadPdf(planId, draft.name);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'No se pudo descargar el PDF de la planificación.',
+      );
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
   const backLink = (
     <Link to="/pf/planning" className="btn btn-secondary">
       <ArrowLeft size={16} aria-hidden="true" />
@@ -670,6 +687,16 @@ export function PlanEditorPage() {
           </div>
 
           <div className="plan-builder-actions">
+            <button
+              type="button"
+              className="btn btn-secondary plan-builder-action-btn"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf || saving}
+              title="Descargar PDF de la planificación"
+            >
+              <FileDown size={15} aria-hidden="true" />
+              <span>{downloadingPdf ? 'Generando…' : 'Descargar PDF'}</span>
+            </button>
             <button
               type="button"
               className="btn btn-secondary plan-builder-action-btn"

@@ -1,71 +1,116 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
-import { alertsService } from '../../api/alertsService';
+import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2, Info } from 'lucide-react';
+import { ALERTS_CHANGED_EVENT, alertsService } from '../../api/alertsService';
+import { recommendationsService, type MyRecommendation } from '../../api/recommendations';
 import { NoticeItem } from '../../types/alerts';
 import { useAuth } from '../../context/AuthContext';
+import { formatAlertReason } from '../../utils/painZoneReasonFormatter';
+import { capitalizeFirst } from '../../utils/recommendationFormat';
+import { DayAdjustmentModal } from '../monitoring/DayAdjustmentModal';
 
 export const NotificationsButton: React.FC = () => {
   const { user } = useAuth();
+  const isPF = user?.role === 'PreparadorFisico';
+  const isAthlete = user?.role === 'Atleta';
+
   const [open, setOpen] = useState(false);
   const [alerts, setAlerts] = useState<NoticeItem[]>([]);
+  const [athleteRecommendations, setAthleteRecommendations] = useState<MyRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [confirmedInfo, setConfirmedInfo] = useState<{ id: string; message: string } | null>(null);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
   const [loadError, setLoadError] = useState(false);
+  // Aviso de ajuste de rutina abierto en la propuesta del día (KAN-594)
+  const [adjustmentNotice, setAdjustmentNotice] = useState<NoticeItem | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Cargar avisos iniciales desde alertsService solo si el rol es PreparadorFisico
+  // Cargar avisos del PF o recomendaciones aprobadas del atleta según el rol autenticado
   useEffect(() => {
-    if (user?.role !== 'PreparadorFisico') {
+    if (!isPF && !isAthlete) {
       return;
     }
 
     let isMounted = true;
-    alertsService
-      .getPendingAlerts()
-      .then((data) => {
-        if (isMounted) {
-          setAlerts(data);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
+    const load = () => {
+      const request = isPF
+        ? alertsService.getPendingAlerts().then((data) => {
+            if (isMounted) {
+              setAlerts(data);
+              setLoadError(false);
+              setLoading(false);
+            }
+          })
+        : recommendationsService.listMyRecommendations().then((data) => {
+            if (isMounted) {
+              setAthleteRecommendations(data);
+              setLoadError(false);
+              setLoading(false);
+            }
+          });
+
+      request.catch(() => {
         if (isMounted) {
           setLoadError(true);
           setLoading(false);
         }
       });
+    };
+
+    load();
+    // Si un aviso se aplica desde el Inicio, la campana se actualiza (KAN-594)
+    if (isPF) {
+      window.addEventListener(ALERTS_CHANGED_EVENT, load);
+    }
 
     return () => {
       isMounted = false;
+      if (isPF) {
+        window.removeEventListener(ALERTS_CHANGED_EVENT, load);
+      }
     };
-  }, [user?.role]);
+  }, [isPF, isAthlete]);
 
-  // Cerrar al hacer clic fuera del componente
+  // Cerrar al hacer clic fuera del componente o presionar Escape
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
     if (open) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open]);
 
-  // Si no está autenticado como PF, no renderiza nada (aislamiento total en UI)
-  if (user?.role !== 'PreparadorFisico') {
+  // Si no está autenticado como PF o Atleta, no renderiza nada (aislamiento total en UI)
+  if (!isPF && !isAthlete) {
     return null;
   }
 
   // Manejo de la acción «Aplicar con 1 Clic» con háptica, confirmación visual verde y archivado persistente
   const handleApplyOneClick = async (notice: NoticeItem) => {
     if (processingId || confirmedInfo) return;
+
+    // El ajuste de rutina no se aplica a ciegas: se abre la propuesta del día para revisarla
+    // y aprobarla (mismo modal que en Seguimiento y en el Inicio, KAN-452 / KAN-594).
+    if (notice.actionType === 'routine_adjustment') {
+      setAdjustmentNotice(notice);
+      return;
+    }
 
     setProcessingId(notice.id);
     setErrorMap((prev) => {
@@ -94,6 +139,8 @@ export const NotificationsButton: React.FC = () => {
       setTimeout(() => {
         setAlerts((prev) => prev.filter((item) => item.id !== notice.id));
         setConfirmedInfo((curr) => (curr?.id === notice.id ? null : curr));
+        // El Inicio muestra la misma sugerencia: que se entere (después de la confirmación verde)
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
       }, 1500);
     } catch (err: unknown) {
       // Ante error del backend: NO confirmación verde, NO archivar, NO eliminar de la lista
@@ -106,18 +153,25 @@ export const NotificationsButton: React.FC = () => {
     }
   };
 
-  const pendingCount = alerts.length;
+  const pendingCount = isPF ? alerts.length : athleteRecommendations.length;
+  const panelTitle = isPF ? 'Centro de Avisos' : 'Notificaciones';
+  const buttonAriaLabel = isPF
+    ? pendingCount > 0
+      ? `Centro de Avisos (${pendingCount} pendientes)`
+      : 'Centro de Avisos'
+    : pendingCount > 0
+      ? `Notificaciones (${pendingCount} disponibles)`
+      : 'Notificaciones';
 
   return (
     <div className="shell-notifications-wrap" ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="shell-icon-btn"
         onClick={() => setOpen(!open)}
-        aria-label={
-          pendingCount > 0 ? `Centro de Avisos (${pendingCount} pendientes)` : 'Centro de Avisos'
-        }
-        title="Centro de Avisos"
+        aria-label={buttonAriaLabel}
+        title={panelTitle}
         aria-expanded={open}
       >
         <Bell size={20} aria-hidden="true" />
@@ -129,14 +183,10 @@ export const NotificationsButton: React.FC = () => {
       </button>
 
       {open && (
-        <div
-          className="shell-popover notice-center-popover"
-          role="region"
-          aria-label="Centro de Avisos"
-        >
+        <div className="shell-popover notice-center-popover" role="region" aria-label={panelTitle}>
           <div className="notice-center-header">
             <div className="notice-center-title-wrap">
-              <h3 className="notice-center-title">Centro de Avisos</h3>
+              <h3 className="notice-center-title">{panelTitle}</h3>
               {pendingCount > 0 && <span className="notice-center-count-pill">{pendingCount}</span>}
             </div>
           </div>
@@ -145,15 +195,23 @@ export const NotificationsButton: React.FC = () => {
             {loading ? (
               <div className="notice-center-empty">
                 <Loader2 size={24} className="notice-spin" aria-hidden="true" />
-                <p className="notice-empty-desc">Cargando avisos...</p>
+                <p className="notice-empty-desc">
+                  {isPF ? 'Cargando avisos...' : 'Cargando notificaciones...'}
+                </p>
               </div>
             ) : loadError ? (
               // Fallo del back: estado vacío amigable (sin datos de ejemplo)
               <div className="notice-center-empty">
                 <CheckCircle2 size={32} className="notice-center-empty-icon" aria-hidden="true" />
-                <p className="notice-center-empty-title">Sin avisos pendientes por el momento</p>
+                <p className="notice-center-empty-title">
+                  {isPF
+                    ? 'Sin avisos pendientes por el momento'
+                    : 'Sin notificaciones por el momento'}
+                </p>
                 <p className="notice-empty-desc">
-                  Cuando haya alertas preventivas para revisar, las vas a ver acá.
+                  {isPF
+                    ? 'Cuando haya alertas preventivas para revisar, las vas a ver acá.'
+                    : 'Cuando tu preparador físico apruebe recomendaciones para vos, las vas a ver acá.'}
                 </p>
               </div>
             ) : pendingCount === 0 ? (
@@ -161,9 +219,49 @@ export const NotificationsButton: React.FC = () => {
                 <CheckCircle2 size={32} className="notice-center-empty-icon" aria-hidden="true" />
                 <p className="notice-center-empty-title">Todo al día</p>
                 <p className="notice-empty-desc">
-                  No hay alertas de sobrecarga o dolor pendientes de revisión.
+                  {isPF
+                    ? 'No hay alertas de sobrecarga o dolor pendientes de revisión.'
+                    : 'No tenés recomendaciones o avisos pendientes de tu preparador físico.'}
                 </p>
               </div>
+            ) : isAthlete ? (
+              athleteRecommendations.map((rec) => (
+                <article
+                  key={rec.id}
+                  className="notice-card"
+                  aria-label={`Notificación: ${rec.title}`}
+                >
+                  <header className="notice-card-header">
+                    <div className="notice-card-athlete-wrap">
+                      <span className="notice-card-athlete-name">{rec.title}</span>
+                      {rec.categoryName && (
+                        <span className="notice-card-time">{rec.categoryName}</span>
+                      )}
+                    </div>
+                    <span className="notice-severity-badge notice-severity-low">
+                      {rec.type === 'Habits' ? 'Hábitos' : 'Entrenamiento'}
+                    </span>
+                  </header>
+
+                  <div className="notice-card-body">
+                    {rec.reason && (
+                      <div>
+                        <span className="notice-card-label">Motivo</span>
+                        <span>{capitalizeFirst(rec.reason)}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="notice-card-label">Recomendación de tu PF</span>
+                      <span>{rec.recommendationText}</span>
+                    </div>
+                    {rec.legalDisclaimer && (
+                      <div role="note">
+                        <Info size={13} aria-hidden="true" /> <span>{rec.legalDisclaimer}</span>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))
             ) : (
               alerts.map((notice) => {
                 const isProcessing = processingId === notice.id;
@@ -198,7 +296,7 @@ export const NotificationsButton: React.FC = () => {
                     <div className="notice-card-body">
                       <div>
                         <span className="notice-card-label">Motivo reportado</span>
-                        <span>{notice.reason}</span>
+                        <span>{formatAlertReason(notice.reason)}</span>
                       </div>
                       <div>
                         <span className="notice-card-label">Sugerencia recomendada</span>
@@ -266,6 +364,21 @@ export const NotificationsButton: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+      {adjustmentNotice && (
+        <DayAdjustmentModal
+          athleteId={adjustmentNotice.athleteId}
+          athleteName={adjustmentNotice.athleteName}
+          isOpen
+          onClose={() => setAdjustmentNotice(null)}
+          onAdjustmentApplied={(adjustment) => {
+            if (adjustment.status !== 'Approved') return;
+            const noticeId = adjustmentNotice.id;
+            setAlerts((prev) => prev.filter((item) => item.id !== noticeId));
+            // Si el archivado falla, el aviso vuelve a aparecer en la próxima carga
+            alertsService.archiveAlert(noticeId).catch(() => undefined);
+          }}
+        />
       )}
     </div>
   );

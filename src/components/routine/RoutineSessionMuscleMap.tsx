@@ -3,6 +3,7 @@ import { MuscleMapFront } from '../athlete/MuscleMapFront';
 import { MuscleMapBack } from '../athlete/MuscleMapBack';
 import { extractSessionMuscles } from '../../utils/sessionMuscles';
 import type { TodayRoutineExercise } from '../../api/generated/entrenamiento';
+import './RoutineSessionMuscleMap.css';
 
 export interface RoutineSessionMuscleMapProps {
   exercises: TodayRoutineExercise[];
@@ -30,11 +31,10 @@ export const RoutineSessionMuscleMap: React.FC<RoutineSessionMuscleMapProps> = (
       title={tooltip}
       aria-label={tooltip}
       role="img"
-      style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
     >
       <div
-        className="routine-hero-muscle-silhouette"
-        style={{ width: '48px', height: `${height}px`, display: 'flex', alignItems: 'center' }}
+        className="routine-hero-muscle-silhouette routine-session-muscle-silhouette"
+        style={{ height: `${height}px` }}
       >
         <MuscleMapFront
           readOnly={true}
@@ -44,8 +44,8 @@ export const RoutineSessionMuscleMap: React.FC<RoutineSessionMuscleMapProps> = (
         />
       </div>
       <div
-        className="routine-hero-muscle-silhouette"
-        style={{ width: '48px', height: `${height}px`, display: 'flex', alignItems: 'center' }}
+        className="routine-hero-muscle-silhouette routine-session-muscle-silhouette"
+        style={{ height: `${height}px` }}
       >
         <MuscleMapBack
           readOnly={true}

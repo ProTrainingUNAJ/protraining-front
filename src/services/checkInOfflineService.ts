@@ -163,3 +163,16 @@ export async function countPendingCheckIns(athleteId?: string): Promise<number> 
   const items = await getPendingCheckIns(athleteId);
   return items.length;
 }
+
+/** Elimina todos los check-ins pendientes, sin importar el atleta ni la fecha. */
+export async function clearAllOfflineCheckIns(): Promise<void> {
+  const db = await getDb();
+
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const request = tx.objectStore(STORE_NAME).clear();
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
