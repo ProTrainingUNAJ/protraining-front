@@ -256,6 +256,12 @@
   opacity: 0.85;
 }
 
+@media (max-width: 640px) {
+  .btn.btn-secondary.dashboard-header-reset-btn {
+    flex: 0 0 auto;
+  }
+}
+
 /* ── Banner de bienvenida (PF sin organizaciones) ── */
 .dashboard-welcome-banner {
   padding: 1.5rem 1.75rem;

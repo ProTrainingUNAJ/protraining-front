@@ -1,3 +1,46 @@
+/* ── Acciones de exportación en pantalla (KAN-660) ── */
+.reports-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reports-export-btn {
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .reports-export-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 0.25rem;
+  }
+
+  .reports-export-actions > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.45rem 0.25rem;
+    font-size: 0.71rem;
+    letter-spacing: -0.01em;
+    gap: 0.2rem;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .reports-export-actions > .btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+}
+
 /* Informes (Estadísticas → Informes): al imprimir o guardar como PDF sale solo la hoja del
    informe, sin barra lateral, encabezado, pestañas, filtros ni botones (KAN-660). */
 

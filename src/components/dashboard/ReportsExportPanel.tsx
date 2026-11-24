@@ -177,21 +177,13 @@ export const ReportsExportPanel: React.FC<ReportsExportPanelProps> = ({
           </select>
         </div>
 
-        {/* Acciones de exportación */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        {/* Acciones de exportación (KAN-660) */}
+        <div className="reports-export-actions">
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-secondary reports-export-btn"
             onClick={handleDownloadCsv}
             title="Descargar archivo estructurado CSV compatible con Excel"
-            style={{
-              borderRadius: '10px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-            }}
           >
             <FileSpreadsheet size={16} />
             <span>Descargar CSV</span>
@@ -199,17 +191,9 @@ export const ReportsExportPanel: React.FC<ReportsExportPanelProps> = ({
 
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-secondary reports-export-btn"
             onClick={handlePrint}
             title="Imprimir o guardar como documento PDF oficial"
-            style={{
-              borderRadius: '10px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-            }}
           >
             <Printer size={16} />
             <span>Imprimir / PDF</span>
@@ -217,17 +201,9 @@ export const ReportsExportPanel: React.FC<ReportsExportPanelProps> = ({
 
           <button
             type="button"
-            className={`btn ${copied ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn reports-export-btn ${copied ? 'btn-primary' : 'btn-secondary'}`}
             onClick={handleCopyReport}
             title="Copiar el resumen del informe como texto"
-            style={{
-              borderRadius: '10px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-            }}
           >
             {copied ? (
               <Check size={16} aria-hidden="true" />
