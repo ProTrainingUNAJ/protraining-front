@@ -705,4 +705,35 @@ describe('MonitoringPage · Pestaña Asistencia con Carga del Día y Avatar (KAN
     expect(within(orgSelect).getByText('Todas las organizaciones')).toBeTruthy();
     expect(within(catSelect).getByText('Todas las categorías')).toBeTruthy();
   });
+
+  it('muestra la organización y categoría real del atleta en la tarjeta aunque se filtre por todas (KAN-660)', async () => {
+    vi.mocked(structureService.getAthletes).mockResolvedValue([
+      {
+        id: 'ath-1',
+        accountId: 'acc-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'lucas@correo.com',
+        phone: '1150000001',
+        categories: [
+          {
+            id: 'cat-1',
+            name: 'Primera División',
+            organizationId: 'org-1',
+            organizationName: 'Club Atlético',
+          },
+        ],
+      },
+    ] as unknown as import('../../../types/structure').Athlete[]);
+
+    render(
+      <MemoryRouter initialEntries={['/seguimiento?tab=attendance']}>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    const card = await screen.findByLabelText(/Ver detalle de asistencia y carga de Lucas Gómez/i);
+    expect(within(card).getByText('Club Atlético · Primera División')).toBeTruthy();
+  });
 });

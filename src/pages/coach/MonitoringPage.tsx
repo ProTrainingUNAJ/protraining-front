@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import {
   Activity,
@@ -213,6 +213,37 @@ export const MonitoringPage: React.FC = () => {
     );
   }, [categories, selectedCategoryId]);
 
+  // Nombre de organización y categoría real del atleta (KAN-660)
+  const getAthleteDisplayCategory = useCallback(
+    (athlete?: Athlete | null): string => {
+      if (!athlete) return selectedCategoryId ? selectedCategoryName : 'Sin categoría';
+      if (athlete.categories && athlete.categories.length > 0) {
+        const primary = athlete.categories[0];
+        const catName = primary.name?.trim();
+        const orgName = primary.organizationName?.trim();
+        if (orgName && catName) {
+          return `${orgName} · ${catName}`;
+        }
+        if (catName) return catName;
+      }
+      if (athlete.categoryNames && athlete.categoryNames.length > 0) {
+        const catName = athlete.categoryNames[0];
+        const matchedCategory = categories.find(
+          (c) => c.name.toLowerCase() === catName.toLowerCase(),
+        );
+        const org = matchedCategory
+          ? organizations.find((o) => o.id === matchedCategory.organizationId)
+          : undefined;
+        if (org?.name && catName) {
+          return `${org.name} · ${catName}`;
+        }
+        return catName;
+      }
+      return selectedCategoryId ? selectedCategoryName : 'Sin categoría';
+    },
+    [categories, organizations, selectedCategoryId, selectedCategoryName],
+  );
+
   // 2. Cargar el semáforo del día de las categorías seleccionadas
   const [athletesResult, setAthletesResult] = useState<{
     filterKey: string;
@@ -266,6 +297,14 @@ export const MonitoringPage: React.FC = () => {
       typeof structureService?.getAthletes === 'function'
         ? structureService
             .getAthletes(selectedCategoryId ? { categoriaId: selectedCategoryId } : undefined)
+            .then(async (fetched) => {
+              if (typeof structureService?.withCategories === 'function') {
+                return await structureService
+                  .withCategories(fetched, categories, organizations)
+                  .catch(() => fetched);
+              }
+              return fetched;
+            })
             .catch(() => [] as Athlete[])
         : Promise.resolve([] as Athlete[]);
 
@@ -298,7 +337,7 @@ export const MonitoringPage: React.FC = () => {
           const photoUrl =
             detail && detail.hasPhoto ? getPhotoUrl(detail.id, detail.photoUpdatedAt) : undefined;
 
-          const catName = detail?.categoryNames?.[0] || selectedCategoryName;
+          const catName = getAthleteDisplayCategory(detail);
 
           const item = mapTrafficLightSummaryToItem(summary, catName);
           return {
@@ -376,7 +415,9 @@ export const MonitoringPage: React.FC = () => {
     selectedCategoryId,
     targetCategoryIds,
     categories,
+    organizations,
     selectedCategoryName,
+    getAthleteDisplayCategory,
     refreshTrafficLightKey,
   ]);
 
@@ -389,6 +430,14 @@ export const MonitoringPage: React.FC = () => {
       typeof structureService?.getAthletes === 'function'
         ? structureService
             .getAthletes(selectedCategoryId ? { categoriaId: selectedCategoryId } : undefined)
+            .then(async (fetched) => {
+              if (typeof structureService?.withCategories === 'function') {
+                return await structureService
+                  .withCategories(fetched, categories, organizations)
+                  .catch(() => fetched);
+              }
+              return fetched;
+            })
             .catch(() => [] as Athlete[])
         : Promise.resolve([] as Athlete[]);
 
@@ -454,7 +503,10 @@ export const MonitoringPage: React.FC = () => {
     selectedOrganizationId,
     selectedCategoryId,
     targetCategoryIds,
+    categories,
+    organizations,
     selectedCategoryName,
+    getAthleteDisplayCategory,
     refreshAttendanceKey,
   ]);
 
@@ -935,14 +987,13 @@ export const MonitoringPage: React.FC = () => {
                     const athleteStatus: TrafficLightStatus =
                       athleteTraffic?.status ?? (isPresent ? 'green' : 'gray');
 
-                    const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
                     const contactFields = resolveAthleteContactFields(detail);
 
                     const baseAttendanceItem: AthleteTrafficLightItem = athleteTraffic ?? {
                       id: athlete.athleteId,
                       name: athlete.athleteName?.trim() || ATHLETE_NAME_FALLBACK,
                       position: '',
-                      category: selectedCategory?.name ?? 'Plantel',
+                      category: getAthleteDisplayCategory(detail),
                       status: isPresent ? 'green' : 'gray',
                       statusLabel: isPresent ? 'Presente' : 'Sin Check-in',
                       recommendation: isPresent
@@ -1036,9 +1087,9 @@ export const MonitoringPage: React.FC = () => {
                               </span>
                               <span
                                 className="monitoring-att-category"
-                                title={selectedCategoryName || 'Primera División'}
+                                title={getAthleteDisplayCategory(detail)}
                               >
-                                {selectedCategoryName || 'Primera División'}
+                                {getAthleteDisplayCategory(detail)}
                               </span>
                             </div>
                           </div>

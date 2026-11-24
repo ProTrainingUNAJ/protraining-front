@@ -17,6 +17,7 @@ import {
   HabitsRecommendationBar,
   type HabitsAthleteOption,
 } from '../../components/recommendations/HabitsRecommendationBar';
+import { AnalysisCategoryDropdown } from '../../components/recommendations/AnalysisCategoryDropdown';
 import {
   SegmentedFilterTabs,
   type SegmentedFilterOption,
@@ -534,30 +535,14 @@ export function RecommendationsPage() {
                 Analizar plantel y generar propuestas
               </strong>
 
-              {/* Selector para marcar en qué categoría analizar (KAN-663) */}
-              <div className="recommendations-analysis-category-wrap">
-                <label htmlFor="recommendations-analysis-category-select" className="sr-only">
-                  Categoría para analizar
-                </label>
-                <select
-                  id="recommendations-analysis-category-select"
-                  aria-label="Categoría para analizar"
-                  className="recommendations-select recommendations-analysis-select"
-                  value={targetCategoryForAnalysis}
-                  onChange={(e) => {
-                    const catId = e.target.value;
-                    setAnalysisCategoryId(catId);
-                  }}
-                  disabled={analyzing}
-                >
-                  <option value="">Elegí una categoría…</option>
-                  {visibleCategories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Selector interactivo con logo de organización para marcar categoría (KAN-663 / KAN-660) */}
+              <AnalysisCategoryDropdown
+                categories={visibleCategories}
+                organizations={organizations}
+                selectedCategoryId={targetCategoryForAnalysis}
+                onSelectCategory={setAnalysisCategoryId}
+                disabled={analyzing}
+              />
 
               <button
                 type="button"

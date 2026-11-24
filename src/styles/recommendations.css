@@ -438,6 +438,193 @@
   font-size: 0.82rem;
 }
 
+/* Selector enriquecido para análisis de plantel por categoría y organización (KAN-660) */
+.recommendations-analysis-category-wrap {
+  position: relative;
+  min-width: 220px;
+  max-width: 320px;
+  flex: 1 1 240px;
+}
+
+.recommendations-analysis-trigger {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.35rem 0.85rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: inherit;
+}
+
+.recommendations-analysis-trigger:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+}
+
+.recommendations-analysis-trigger.open,
+.recommendations-analysis-trigger:focus-visible {
+  outline: none;
+  background: var(--bg-card);
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+
+.recommendations-analysis-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recommendations-analysis-trigger-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.recommendations-analysis-avatar-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.recommendations-analysis-trigger-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.2;
+}
+
+.recommendations-analysis-trigger-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommendations-analysis-trigger-org {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommendations-analysis-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.recommendations-analysis-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.recommendations-analysis-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.recommendations-analysis-empty {
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.recommendations-analysis-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.recommendations-analysis-item:hover {
+  background: var(--bg-subtle);
+}
+
+.recommendations-analysis-item.selected {
+  background: var(--bg-subtle);
+  font-weight: 600;
+}
+
+.recommendations-analysis-item-avatar {
+  flex-shrink: 0;
+}
+
+.recommendations-analysis-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.recommendations-analysis-item-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommendations-analysis-item-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommendations-analysis-item-check {
+  color: var(--brand-blue);
+  flex-shrink: 0;
+  margin-left: 0.35rem;
+}
+
 .recommendations-toolbar {
   display: flex;
   width: 100%;
@@ -1318,13 +1505,15 @@
 
   .recommendations-select,
   .recommendations-search-input,
-  .habits-select-container {
+  .habits-select-container,
+  .recommendations-analysis-category-wrap {
     width: 100%;
     min-width: 0;
     max-width: none;
   }
 
-  .habits-dropdown-panel {
+  .habits-dropdown-panel,
+  .recommendations-analysis-dropdown-panel {
     width: 100%;
     max-width: none;
   }
