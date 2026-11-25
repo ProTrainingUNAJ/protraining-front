@@ -8,6 +8,7 @@ import {
   hasRequiredInjuryMark,
   clearInjuryPains,
   mapClinicalInjuriesToMusclePains,
+  toDrawableMusclePains,
   getSleepQualityLabel,
   getFatigueLabel,
   getSorenessLabel,
@@ -140,9 +141,11 @@ describe('checkInHelper', () => {
       expect(
         hasRequiredInjuryMark(true, {
           cuadriceps_derecho: 2,
-          tendon_aquiles_izquierdo: 6,
+          gemelo_izquierdo: 6,
         }),
       ).toBe(true);
+      // KAN-666: un 6 sobre algo que el mapa no dibuja no cuenta como marca
+      expect(hasRequiredInjuryMark(true, { tendon_aquiles_izquierdo: 6 })).toBe(false);
     });
   });
 
@@ -438,8 +441,10 @@ describe('checkInHelper · ficha clínica y silueta', () => {
     });
 
     it('sigue exigiendo la marca manual si no hay lesión clínica pero se indicó lesión activa', () => {
-      expect(hasRequiredInjuryMark(true, { cuadriceps: 2 })).toBe(false);
-      expect(hasRequiredInjuryMark(true, { cuadriceps: 6 })).toBe(true);
+      expect(hasRequiredInjuryMark(true, { cuadriceps_derecho: 2 })).toBe(false);
+      expect(hasRequiredInjuryMark(true, { cuadriceps_derecho: 6 })).toBe(true);
+      // KAN-666: el nombre del grupo ("cuadriceps") no se dibuja, así que no alcanza
+      expect(hasRequiredInjuryMark(true, { cuadriceps: 6 })).toBe(false);
     });
   });
 
@@ -513,5 +518,32 @@ describe('checkInHelper · ficha clínica y silueta', () => {
       expect(parsePainZones(null)).toEqual({});
       expect(parsePainZones(undefined)).toEqual({});
     });
+  });
+});
+
+describe('toDrawableMusclePains (KAN-666)', () => {
+  it('pasa el grupo guardado a los músculos del dibujo y conserva el nivel', () => {
+    expect(toDrawableMusclePains({ isquiotibiales: 6 })).toEqual({
+      isquiotibial_derecho: 6,
+      isquiotibial_izquierdo: 6,
+    });
+    expect(toDrawableMusclePains({ hombros: 6, cuadriceps_derecho: 3 })).toEqual({
+      hombro_derecho: 6,
+      hombro_izquierdo: 6,
+      cuadriceps_derecho: 3,
+    });
+  });
+
+  it('si dos zonas caen en el mismo músculo queda el nivel más alto, y no pierde zonas desconocidas', () => {
+    expect(toDrawableMusclePains({ isquiotibial_derecho: 2, isquiotibiales: 6 })).toEqual({
+      isquiotibial_derecho: 6,
+      isquiotibial_izquierdo: 6,
+    });
+    expect(toDrawableMusclePains({ zona_rara: 3 })).toEqual({ zona_rara: 3 });
+  });
+
+  it('el pre-marcado de una lesión clínica cuenta 2 zonas dibujables, no 3', () => {
+    const pains = mapClinicalInjuriesToMusclePains([{ zone: 'Isquiotibiales' }]);
+    expect(Object.keys(pains).sort()).toEqual(['isquiotibial_derecho', 'isquiotibial_izquierdo']);
   });
 });
