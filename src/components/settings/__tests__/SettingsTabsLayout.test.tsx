@@ -110,4 +110,18 @@ describe('Estabilidad de Layout y Pestañas en Configuración (KAN-598)', () => 
     const panel = screen.getByRole('tabpanel');
     expect(panel.getAttribute('aria-labelledby')).toBe('tab-marks');
   });
+
+  it('cuenta con la clase settings-page-container para reordenar en mobile el boton Guardar Cambios debajo de las pestañas (KAN-660)', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <SettingsView role="athlete" />
+      </MemoryRouter>,
+    );
+
+    const pageContainer = container.querySelector('.settings-page-container');
+    expect(pageContainer).not.toBeNull();
+    expect(container.querySelector('.app-page-header')).not.toBeNull();
+    expect(container.querySelector('.settings-tab-list')).not.toBeNull();
+    expect(screen.getByRole('button', { name: /Guardar Cambios/i })).toBeDefined();
+  });
 });

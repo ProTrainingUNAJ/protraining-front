@@ -381,7 +381,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   };
 
   return (
-    <div className="app-page-container">
+    <div className="app-page-container settings-page-container">
       {/* Encabezado Estandarizado */}
       <PageHeader
         title="Configuración"
