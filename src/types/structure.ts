@@ -75,6 +75,7 @@ export interface Athlete {
   hasPhoto?: boolean;
   photoUpdatedAt?: string | null;
   weightKg?: number | null;
+  heightCm?: number | null;
   athleticGoal?: string | null;
   birthDate?: string | null;
   gender?: string | null;
@@ -95,6 +96,7 @@ export type AthleticGoalOption = (typeof ATHLETIC_GOAL_OPTIONS)[number];
 
 export interface UpdatePhysicalProfileRequest {
   weightKg?: number | null;
+  heightCm?: number | null;
   athleticGoal?: string | null;
   birthDate?: string | null;
   gender?: string | null;
@@ -121,6 +123,7 @@ export interface AthleteMe {
   hasSignedConsent?: boolean;
   isMinor?: boolean;
   weightKg?: number | null;
+  heightCm?: number | null;
   athleticGoal?: string | null;
   birthDate?: string | null;
   gender?: string | null;

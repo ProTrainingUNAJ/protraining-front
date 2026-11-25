@@ -108,7 +108,52 @@ describe('Autogestión de Perfil Físico del atleta en SettingsView (KAN-479 / K
     await waitFor(() => {
       expect(updateSpy).toHaveBeenCalledWith({
         weightKg: 79,
+        heightCm: null,
         athleticGoal: 'Ganar masa muscular',
+      });
+    });
+
+    expect(screen.getByText('Perfil físico actualizado correctamente.')).toBeDefined();
+  });
+
+  it('permite cargar y actualizar la estatura en centímetros (KAN-664)', async () => {
+    vi.spyOn(structureService, 'getMe').mockResolvedValue({
+      athleteId: 'ath-1',
+      firstName: 'Lucas',
+      lastName: 'Gómez',
+      fullName: 'Lucas Gómez',
+      active: true,
+      categories: [],
+      weightKg: 78,
+      heightCm: 178,
+      athleticGoal: 'Rendimiento deportivo',
+    });
+
+    const updateSpy = vi.spyOn(structureService, 'updateMyPhysicalProfile').mockResolvedValue({
+      weightKg: 78,
+      heightCm: 180,
+      athleticGoal: 'Rendimiento deportivo',
+      physicalProfileUpdatedAt: '2026-11-24T12:00:00Z',
+    });
+
+    render(
+      <MemoryRouter>
+        <SettingsView role="athlete" />
+      </MemoryRouter>,
+    );
+
+    const heightInput = (await screen.findByTestId('athlete-height-input')) as HTMLInputElement;
+    expect(heightInput.value).toBe('178');
+
+    fireEvent.change(heightInput, { target: { value: '180' } });
+    const saveBtn = screen.getByTestId('save-athlete-physical-btn');
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith({
+        weightKg: 78,
+        heightCm: 180,
+        athleticGoal: 'Rendimiento deportivo',
       });
     });
 
@@ -159,6 +204,7 @@ describe('Autogestión de Perfil Físico del atleta en SettingsView (KAN-479 / K
     await waitFor(() => {
       expect(updateSpy).toHaveBeenCalledWith({
         weightKg: 78,
+        heightCm: null,
         athleticGoal: 'Rendimiento deportivo',
         birthDate: '2000-05-15',
         gender: 'Femenino',

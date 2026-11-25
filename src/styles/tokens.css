@@ -528,6 +528,29 @@
 
   /* Load bar fill (KAN-512, KAN-646) - neutral color */
   --load-bar-fill: var(--primary);
+
+  /* Tokens para IMC de atletas (KAN-664) */
+  --bmi-underweight-from: #38bdf8;
+  --bmi-underweight-to: #0284c7;
+  --bmi-normal-from: #34d399;
+  --bmi-normal-to: #059669;
+  --bmi-overweight-from: #fbbf24;
+  --bmi-overweight-to: #d97706;
+  --bmi-obese-from: #f87171;
+  --bmi-obese-to: #dc2626;
+  --bmi-pin-color: #10b981;
+  --bmi-empty-icon: #0284c7;
+  --bmi-empty-bg: rgb(2 132 199 / 0.05);
+  --bmi-empty-border: rgb(2 132 199 / 0.25);
+  --bmi-chip-value-bg: rgb(14 165 233 / 0.08);
+  --bmi-chip-value-border: rgb(14 165 233 / 0.25);
+  --bmi-chip-value-text: #0284c7;
+  --bmi-icon-bg: rgb(14 165 233 / 0.12);
+  --bmi-icon-color: #0284c7;
+  --bmi-shadow-sm: 0 2px 8px rgb(0 0 0 / 0.04);
+  --bmi-shadow-pin: 0 2px 6px rgb(0 0 0 / 0.15);
+  --bmi-shadow-inset: inset 0 1px 3px rgb(0 0 0 / 0.1);
+  --bmi-text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
 }
 
 [data-theme='dark'] {
@@ -862,4 +885,27 @@
 
   /* Load bar fill (KAN-512, KAN-646) - neutral color */
   --load-bar-fill: var(--primary);
+
+  /* Tokens para IMC de atletas (KAN-664) */
+  --bmi-underweight-from: #38bdf8;
+  --bmi-underweight-to: #0284c7;
+  --bmi-normal-from: #34d399;
+  --bmi-normal-to: #059669;
+  --bmi-overweight-from: #fbbf24;
+  --bmi-overweight-to: #d97706;
+  --bmi-obese-from: #f87171;
+  --bmi-obese-to: #dc2626;
+  --bmi-pin-color: #10b981;
+  --bmi-empty-icon: #38bdf8;
+  --bmi-empty-bg: rgb(2 132 199 / 0.12);
+  --bmi-empty-border: rgb(2 132 199 / 0.35);
+  --bmi-chip-value-bg: rgb(14 165 233 / 0.15);
+  --bmi-chip-value-border: rgb(14 165 233 / 0.35);
+  --bmi-chip-value-text: #38bdf8;
+  --bmi-icon-bg: rgb(14 165 233 / 0.18);
+  --bmi-icon-color: #38bdf8;
+  --bmi-shadow-sm: 0 2px 8px rgb(0 0 0 / 0.25);
+  --bmi-shadow-pin: 0 2px 6px rgb(0 0 0 / 0.35);
+  --bmi-shadow-inset: inset 0 1px 3px rgb(0 0 0 / 0.35);
+  --bmi-text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
 }

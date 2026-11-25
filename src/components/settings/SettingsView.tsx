@@ -109,6 +109,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
 
   // Perfil físico y datos personales del atleta (KAN-479 / KAN-664 / KAN-660)
   const [athleteWeight, setAthleteWeight] = useState<string>('');
+  const [athleteHeightCm, setAthleteHeightCm] = useState<string>('');
   const [athleteGoal, setAthleteGoal] = useState<string>('Objetivo no informado');
   const [athleteBirthDate, setAthleteBirthDate] = useState<string>('');
   const [athleteGender, setAthleteGender] = useState<string>('');
@@ -126,6 +127,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
           }
           if (me?.weightKg !== undefined && me?.weightKg !== null) {
             setAthleteWeight(String(me.weightKg));
+          }
+          if (me?.heightCm !== undefined && me?.heightCm !== null) {
+            setAthleteHeightCm(String(me.heightCm));
           }
           if (me?.athleticGoal) {
             setAthleteGoal(me.athleticGoal);
@@ -254,6 +258,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
       return;
     }
 
+    const cleanHeight = athleteHeightCm.trim() ? parseFloat(athleteHeightCm.trim()) : null;
+    if (cleanHeight !== null && (isNaN(cleanHeight) || cleanHeight < 50 || cleanHeight > 260)) {
+      setPhysicalError('Ingresá una estatura válida en centímetros (entre 50 y 260 cm).');
+      return;
+    }
+
     setPhysicalSaving(true);
     setPhysicalError(null);
     setPhysicalSuccess(false);
@@ -261,6 +271,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     try {
       const payload: UpdatePhysicalProfileRequest = {
         weightKg: cleanWeight,
+        heightCm: cleanHeight,
         athleticGoal: athleteGoal.trim() || null,
         ...(athleteBirthDate.trim() ? { birthDate: athleteBirthDate.trim() } : {}),
         ...(athleteGender.trim() ? { gender: athleteGender.trim() } : {}),
@@ -923,6 +934,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                                   if (physicalError) setPhysicalError(null);
                                 }}
                                 data-testid="athlete-weight-input"
+                              />
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor="athlete-height"
+                                style={{
+                                  display: 'block',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  marginBottom: '0.35rem',
+                                }}
+                              >
+                                Estatura / Altura (cm)
+                              </label>
+                              <input
+                                id="athlete-height"
+                                type="number"
+                                step="0.5"
+                                min="50"
+                                max="260"
+                                placeholder="Ej: 178"
+                                value={athleteHeightCm}
+                                onChange={(e) => {
+                                  setAthleteHeightCm(e.target.value);
+                                  if (physicalError) setPhysicalError(null);
+                                }}
+                                data-testid="athlete-height-input"
                               />
                             </div>
 
