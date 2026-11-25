@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Search, Check, ListChecks } from 'lucide-react';
+import { X, Search, Check, ListChecks, ChevronUp, ChevronDown } from 'lucide-react';
 import { createFieldTestSession } from '../../api/fieldTestSessions';
 import type { FitnessTest, MotorCapacity } from '../../api/generated/seguimiento';
 import type { Category } from '../../types/structure';
@@ -66,6 +66,31 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
     setSelectedTestIds((current) =>
       current.includes(testId) ? current.filter((id) => id !== testId) : [...current, testId],
     );
+  };
+
+  // Reordenamiento y quita de los tests elegidos (AC14).
+  const moverArriba = (testId: string): void => {
+    setSelectedTestIds((current) => {
+      const index = current.indexOf(testId);
+      if (index <= 0) return current;
+      const next = [...current];
+      [next[index], next[index - 1]] = [next[index - 1], next[index]];
+      return next;
+    });
+  };
+
+  const moverAbajo = (testId: string): void => {
+    setSelectedTestIds((current) => {
+      const index = current.indexOf(testId);
+      if (index < 0 || index >= current.length - 1) return current;
+      const next = [...current];
+      [next[index], next[index + 1]] = [next[index + 1], next[index]];
+      return next;
+    });
+  };
+
+  const quitarTest = (testId: string): void => {
+    setSelectedTestIds((current) => current.filter((id) => id !== testId));
   };
 
   // Solo se ofrecen los filtros de capacidades que existen en el catálogo
@@ -345,6 +370,65 @@ export const CreateFieldTestSessionModal: React.FC<CreateFieldTestSessionModalPr
                   })}
                 </div>
               )}
+
+              {/* Panel de tests seleccionados, separado del catálogo (AC14) */}
+              <div className="ft-selected-tests-panel">
+                <span className="ft-selected-tests-title">
+                  Tests seleccionados ({selectedTestIds.length})
+                </span>
+
+                {selectedTestIds.length === 0 && (
+                  <p className="ft-muted">Tocá un test del catálogo para agregarlo acá.</p>
+                )}
+
+                <ul className="ft-selected-tests-list" aria-label="Tests seleccionados en orden">
+                  {selectedTestIds.map((testId, index) => {
+                    const test = catalogTests.find((item) => item.id === testId);
+                    const testName = test?.name || testId;
+                    return (
+                      <li key={testId} className="ft-selected-test-item">
+                        <span className="ft-selected-test-order" aria-hidden="true">
+                          {index + 1}
+                        </span>
+                        <span className="ft-selected-test-name">
+                          {testName}
+                          {test?.measurementUnit && (
+                            <span className="ft-selected-test-unit">{test.measurementUnit}</span>
+                          )}
+                        </span>
+                        <span className="ft-selected-test-actions">
+                          <button
+                            type="button"
+                            className="ft-icon-btn"
+                            aria-label={`Mover ${testName} arriba`}
+                            disabled={index === 0}
+                            onClick={() => moverArriba(testId)}
+                          >
+                            <ChevronUp size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="ft-icon-btn"
+                            aria-label={`Mover ${testName} abajo`}
+                            disabled={index === selectedTestIds.length - 1}
+                            onClick={() => moverAbajo(testId)}
+                          >
+                            <ChevronDown size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="ft-icon-btn ft-icon-btn--danger"
+                            aria-label={`Quitar ${testName}`}
+                            onClick={() => quitarTest(testId)}
+                          >
+                            <X size={16} aria-hidden="true" />
+                          </button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </div>
           </div>
 
