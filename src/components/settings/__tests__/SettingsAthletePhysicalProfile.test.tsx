@@ -213,4 +213,44 @@ describe('Autogestión de Perfil Físico del atleta en SettingsView (KAN-479 / K
 
     expect(screen.getByText('Perfil físico actualizado correctamente.')).toBeDefined();
   });
+
+  it('no muestra éxito falso en "Guardar Cambios" si el backend no confirma la estatura', async () => {
+    vi.spyOn(structureService, 'getMe').mockResolvedValue({
+      athleteId: 'ath-1',
+      firstName: 'Lucas',
+      lastName: 'Gómez',
+      fullName: 'Lucas Gómez',
+      active: true,
+      categories: [],
+      weightKg: 76,
+      athleticGoal: 'Rendimiento deportivo',
+    });
+
+    const { usersService } = await import('../../../api/users');
+    vi.mocked(usersService.updateMyTelegram).mockResolvedValue({ telegramUsername: null } as never);
+    // Simula un backend desactualizado que devuelve 200 sin campo heightCm
+    vi.spyOn(structureService, 'updateMyPhysicalProfile').mockResolvedValue({
+      weightKg: 76,
+      athleticGoal: 'Rendimiento deportivo',
+    });
+
+    render(
+      <MemoryRouter>
+        <SettingsView role="athlete" />
+      </MemoryRouter>,
+    );
+
+    const heightInput = await screen.findByTestId('athlete-height-input');
+    fireEvent.change(heightInput, { target: { value: '179' } });
+
+    const headerSaveBtn = screen.getByRole('button', { name: /Guardar Cambios/i });
+    fireEvent.click(headerSaveBtn);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(/El servidor no confirmó la actualización de la estatura/i).length,
+      ).toBeGreaterThan(0);
+    });
+    expect(screen.queryByText(/Cambios guardados/i)).toBeNull();
+  });
 });

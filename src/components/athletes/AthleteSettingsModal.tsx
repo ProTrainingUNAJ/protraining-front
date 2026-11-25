@@ -18,7 +18,7 @@ import {
   UserX,
   X,
 } from 'lucide-react';
-import { Athlete, ATHLETIC_GOAL_OPTIONS } from '../../types/structure';
+import { Athlete, ATHLETIC_GOAL_OPTIONS, ATHLETE_GENDER_OPTIONS } from '../../types/structure';
 import { structureService } from '../../api/structureService';
 import { authService } from '../../api/authService';
 import { PhotoUploadControl } from '../common/PhotoUploadControl';
@@ -55,7 +55,7 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
   const [telegramSuccess, setTelegramSuccess] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
 
-  // --- Perfil Físico (Peso, Estatura y Objetivo) (KAN-479 / KAN-664) ---
+  // --- Perfil Físico (Peso, Estatura, Objetivo, Fecha Nac. y Género) (KAN-479 / KAN-664 / KAN-660) ---
   const [weightKg, setWeightKg] = useState<string>(
     athlete.weightKg !== undefined && athlete.weightKg !== null ? String(athlete.weightKg) : '',
   );
@@ -65,6 +65,10 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
   const [athleticGoal, setAthleticGoal] = useState<string>(
     athlete.athleticGoal || 'Objetivo no informado',
   );
+  const [birthDate, setBirthDate] = useState<string>(
+    athlete.birthDate ? athlete.birthDate.split('T')[0] : '',
+  );
+  const [gender, setGender] = useState<string>(athlete.gender ?? '');
   const [physicalSaving, setPhysicalSaving] = useState(false);
   const [physicalSuccess, setPhysicalSuccess] = useState(false);
   const [physicalError, setPhysicalError] = useState<string | null>(null);
@@ -188,7 +192,7 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
     }
   };
 
-  // Guardar Perfil Físico (KAN-479 / KAN-664)
+  // Guardar Perfil Físico (KAN-479 / KAN-664 / KAN-660)
   const handleSavePhysicalProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanWeight = weightKg.trim() ? parseFloat(weightKg.trim()) : null;
@@ -208,16 +212,35 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
     setPhysicalSuccess(false);
 
     try {
+      const cleanBirthDate = birthDate.trim();
+      const cleanGender = gender.trim();
+      const hadPersonalInfo = Boolean(athlete.birthDate || athlete.gender);
+
       const updated = await structureService.updateAthletePhysicalProfile(athlete.id, {
         weightKg: cleanWeight,
         heightCm: cleanHeight,
         athleticGoal: athleticGoal.trim() || null,
+        ...(cleanBirthDate
+          ? { birthDate: cleanBirthDate }
+          : hadPersonalInfo
+            ? { birthDate: null }
+            : {}),
+        ...(cleanGender ? { gender: cleanGender } : hadPersonalInfo ? { gender: '' } : {}),
       });
+
+      if (cleanHeight !== null && (updated.heightCm === undefined || updated.heightCm === null)) {
+        throw new Error(
+          'El servidor no confirmó la actualización de la estatura. Intentá nuevamente.',
+        );
+      }
+
       const merged: Athlete = {
         ...athlete,
-        weightKg: updated.weightKg ?? cleanWeight,
-        heightCm: updated.heightCm ?? cleanHeight,
+        weightKg: updated.weightKg !== undefined ? updated.weightKg : cleanWeight,
+        heightCm: updated.heightCm !== undefined ? updated.heightCm : null,
         athleticGoal: updated.athleticGoal ?? athleticGoal,
+        birthDate: updated.birthDate !== undefined ? updated.birthDate : athlete.birthDate,
+        gender: updated.gender !== undefined ? updated.gender : athlete.gender,
         physicalProfileUpdatedAt: updated.physicalProfileUpdatedAt,
       };
       onAthleteUpdated(merged);
@@ -709,7 +732,7 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                   <input
                     id="athlete-height"
                     type="number"
-                    step="0.5"
+                    step="0.1"
                     min="50"
                     max="260"
                     placeholder="Ej: 178"
@@ -746,6 +769,60 @@ export const AthleteSettingsModal: React.FC<AthleteSettingsModalProps> = ({
                     {ATHLETIC_GOAL_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>
                         {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="athlete-birth-date"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Fecha de nacimiento
+                  </label>
+                  <input
+                    id="athlete-birth-date"
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => {
+                      setBirthDate(e.target.value);
+                      if (physicalError) setPhysicalError(null);
+                    }}
+                    data-testid="athlete-birthdate-input"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="athlete-gender"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    Género
+                  </label>
+                  <select
+                    id="athlete-gender"
+                    value={gender}
+                    onChange={(e) => {
+                      setGender(e.target.value);
+                      if (physicalError) setPhysicalError(null);
+                    }}
+                    data-testid="athlete-gender-select"
+                  >
+                    <option value="">Seleccionar género...</option>
+                    {ATHLETE_GENDER_OPTIONS.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
                       </option>
                     ))}
                   </select>

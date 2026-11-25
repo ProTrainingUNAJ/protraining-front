@@ -113,6 +113,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
   const [athleteGoal, setAthleteGoal] = useState<string>('Objetivo no informado');
   const [athleteBirthDate, setAthleteBirthDate] = useState<string>('');
   const [athleteGender, setAthleteGender] = useState<string>('');
+  const [initialHadPersonalInfo, setInitialHadPersonalInfo] = useState(false);
   const [physicalSaving, setPhysicalSaving] = useState(false);
   const [physicalSuccess, setPhysicalSuccess] = useState(false);
   const [physicalError, setPhysicalError] = useState<string | null>(null);
@@ -139,6 +140,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
           }
           if (me?.gender) {
             setAthleteGender(me.gender);
+          }
+          if (me?.birthDate || me?.gender) {
+            setInitialHadPersonalInfo(true);
           }
         })
         .catch(() => {});
@@ -250,18 +254,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     }
   };
 
-  const handleSavePhysicalProfile = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const savePhysicalProfileData = async (): Promise<void> => {
     const cleanWeight = athleteWeight.trim() ? parseFloat(athleteWeight.trim()) : null;
     if (cleanWeight !== null && (isNaN(cleanWeight) || cleanWeight <= 0 || cleanWeight > 300)) {
-      setPhysicalError('Ingresá un peso válido en kilogramos (entre 30 y 300 kg).');
-      return;
+      const msg = 'Ingresá un peso válido en kilogramos (entre 30 y 300 kg).';
+      setPhysicalError(msg);
+      throw new Error(msg);
     }
 
     const cleanHeight = athleteHeightCm.trim() ? parseFloat(athleteHeightCm.trim()) : null;
     if (cleanHeight !== null && (isNaN(cleanHeight) || cleanHeight < 50 || cleanHeight > 260)) {
-      setPhysicalError('Ingresá una estatura válida en centímetros (entre 50 y 260 cm).');
-      return;
+      const msg = 'Ingresá una estatura válida en centímetros (entre 50 y 260 cm).';
+      setPhysicalError(msg);
+      throw new Error(msg);
     }
 
     setPhysicalSaving(true);
@@ -269,23 +274,57 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
     setPhysicalSuccess(false);
 
     try {
+      const cleanBirthDate = athleteBirthDate.trim();
+      const cleanGender = athleteGender.trim();
       const payload: UpdatePhysicalProfileRequest = {
         weightKg: cleanWeight,
         heightCm: cleanHeight,
         athleticGoal: athleteGoal.trim() || null,
-        ...(athleteBirthDate.trim() ? { birthDate: athleteBirthDate.trim() } : {}),
-        ...(athleteGender.trim() ? { gender: athleteGender.trim() } : {}),
+        ...(cleanBirthDate
+          ? { birthDate: cleanBirthDate }
+          : initialHadPersonalInfo
+            ? { birthDate: null }
+            : {}),
+        ...(cleanGender ? { gender: cleanGender } : initialHadPersonalInfo ? { gender: '' } : {}),
       };
-      await structureService.updateMyPhysicalProfile(payload);
+      const updated = await structureService.updateMyPhysicalProfile(payload);
+      if (cleanHeight !== null && (updated.heightCm === undefined || updated.heightCm === null)) {
+        throw new Error(
+          'El servidor no confirmó la actualización de la estatura. Intentá nuevamente.',
+        );
+      }
+
+      if (updated.weightKg !== undefined) {
+        setAthleteWeight(updated.weightKg !== null ? String(updated.weightKg) : '');
+      }
+      if (updated.heightCm !== undefined) {
+        setAthleteHeightCm(updated.heightCm !== null ? String(updated.heightCm) : '');
+      }
+      if (updated.athleticGoal) {
+        setAthleteGoal(updated.athleticGoal);
+      }
+      if (updated.birthDate !== undefined) {
+        setAthleteBirthDate(updated.birthDate ? updated.birthDate.split('T')[0] : '');
+      }
+      if (updated.gender !== undefined) {
+        setAthleteGender(updated.gender ?? '');
+      }
+      setInitialHadPersonalInfo(Boolean(cleanBirthDate || cleanGender));
+
       setPhysicalSuccess(true);
       setTimeout(() => setPhysicalSuccess(false), 3000);
     } catch (err: unknown) {
-      setPhysicalError(
-        err instanceof Error ? err.message : 'No se pudo actualizar el perfil físico.',
-      );
+      const msg = err instanceof Error ? err.message : 'No se pudo actualizar el perfil físico.';
+      setPhysicalError(msg);
+      throw err instanceof Error ? err : new Error(msg);
     } finally {
       setPhysicalSaving(false);
     }
+  };
+
+  const handleSavePhysicalProfile = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await savePhysicalProfileData().catch(() => {});
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -350,14 +389,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
             telegramUsername: result.telegramUsername ?? null,
           });
         }
-        await handleSavePhysicalProfile();
+        await savePhysicalProfileData();
         setSavedSuccess(true);
         setTimeout(() => {
           setSavedSuccess(false);
         }, 3000);
       } catch (err) {
         const errorMsg =
-          err instanceof Error ? err.message : 'Error al guardar el usuario de Telegram';
+          err instanceof Error ? err.message : 'Error al guardar los cambios del perfil';
         setProfileError(errorMsg);
       } finally {
         setProfileSaving(false);
@@ -952,7 +991,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               <input
                                 id="athlete-height"
                                 type="number"
-                                step="0.5"
+                                step="0.1"
                                 min="50"
                                 max="260"
                                 placeholder="Ej: 178"

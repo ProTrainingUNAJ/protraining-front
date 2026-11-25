@@ -136,4 +136,49 @@ describe('AthleteSettingsModal - Perfil Físico (KAN-479 / KAN-664)', () => {
     });
     expect(updateSpy).not.toHaveBeenCalled();
   });
+
+  it('permite editar fecha de nacimiento y género desde el modal del PF y rechaza respuesta sin heightCm', async () => {
+    const onUpdated = vi.fn();
+    const updateSpy = vi
+      .spyOn(structureService, 'updateAthletePhysicalProfile')
+      .mockResolvedValueOnce({
+        ...mockAthlete,
+        weightKg: 78,
+        heightCm: 180,
+        athleticGoal: 'Rendimiento deportivo',
+        birthDate: '2001-04-12',
+        gender: 'Masculino',
+      });
+
+    render(
+      <AthleteSettingsModal athlete={mockAthlete} onAthleteUpdated={onUpdated} onClose={vi.fn()} />,
+    );
+
+    fireEvent.change(screen.getByTestId('athlete-height-input'), { target: { value: '180' } });
+    fireEvent.change(screen.getByTestId('athlete-birthdate-input'), {
+      target: { value: '2001-04-12' },
+    });
+    fireEvent.change(screen.getByTestId('athlete-gender-select'), {
+      target: { value: 'Masculino' },
+    });
+    fireEvent.click(screen.getByTestId('save-physical-profile-btn'));
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith('ath-1', {
+        weightKg: 75.5,
+        heightCm: 180,
+        athleticGoal: 'Rendimiento deportivo',
+        birthDate: '2001-04-12',
+        gender: 'Masculino',
+      });
+    });
+
+    expect(onUpdated).toHaveBeenCalledWith(
+      expect.objectContaining({
+        heightCm: 180,
+        birthDate: '2001-04-12',
+        gender: 'Masculino',
+      }),
+    );
+  });
 });
