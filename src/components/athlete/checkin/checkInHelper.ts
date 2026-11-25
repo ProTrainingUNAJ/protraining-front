@@ -4,6 +4,7 @@
 
 import { todayInArgentina } from '../../../utils/argentinaDate';
 import { MUSCLE_NAME_TO_SVG_IDS, normalizeMuscleString } from '../../../utils/exerciseMuscleMapper';
+import { OFFICIAL_JOINTS, OFFICIAL_MUSCLE_GROUPS } from '../muscleMap.config';
 
 export const STEP_TITLES: Record<number, string> = {
   1: 'Ánimo',
@@ -203,6 +204,50 @@ export const canAutoAdvanceStep5 = (answeredSick: boolean, answeredInjury: boole
  * a los identificadores anatómicos del mapa SVG con nivel 6 (color negro).
  * (KAN-660: autoselección automática en cuerpo humano para lesiones reportadas)
  */
+/** IDs que el mapa del cuerpo dibuja (músculos y articulaciones, frente y dorso). */
+const DRAWABLE_ZONE_IDS = new Set<string>(
+  [...OFFICIAL_MUSCLE_GROUPS, ...OFFICIAL_JOINTS].map((zone) => zone.id),
+);
+
+export const isDrawableZone = (zoneId: string): boolean => DRAWABLE_ZONE_IDS.has(zoneId);
+
+/**
+ * IDs dibujables para una zona (KAN-666). El check-in guardado puede traer el nombre del grupo
+ * ("isquiotibiales") en vez de cada músculo del dibujo ("isquiotibial_derecho", "…_izquierdo"):
+ * se traduce con el diccionario y se descartan los que el mapa no dibuja. Si no hay forma de
+ * dibujarla, devuelve la zona tal cual para no perder el dato.
+ */
+const toDrawableIds = (zone: string): string[] => {
+  if (isDrawableZone(zone)) return [zone];
+  const raw = zone.trim().toLowerCase();
+  const normalized = normalizeMuscleString(raw);
+  const fromDictionary = (
+    MUSCLE_NAME_TO_SVG_IDS[normalized] ??
+    MUSCLE_NAME_TO_SVG_IDS[raw] ??
+    []
+  ).filter(isDrawableZone);
+  if (fromDictionary.length > 0) return fromDictionary;
+  const underscored = normalized.replace(/\s+/g, '_');
+  return isDrawableZone(underscored) ? [underscored] : [zone];
+};
+
+/**
+ * Pasa las zonas de un check-in guardado a los IDs del mapa, conservando el nivel (KAN-666).
+ * Así, al editar el check-in, la lesión guardada como "isquiotibiales:6" se pinta de negro en
+ * los dos isquiotibiales. Si dos zonas caen en el mismo músculo, queda el nivel más alto.
+ */
+export const toDrawableMusclePains = (
+  pains: Readonly<Record<string, number>>,
+): Record<string, number> => {
+  const result: Record<string, number> = {};
+  Object.entries(pains).forEach(([zone, level]) => {
+    toDrawableIds(zone).forEach((id) => {
+      result[id] = Math.max(result[id] ?? 0, level);
+    });
+  });
+  return result;
+};
+
 export const mapClinicalInjuriesToMusclePains = (
   activeInjuries: ReadonlyArray<{ zone: string }>,
 ): Record<string, number> => {
@@ -214,9 +259,14 @@ export const mapClinicalInjuriesToMusclePains = (
     const rawZone = injury.zone.trim().toLowerCase();
     const normalized = normalizeMuscleString(rawZone);
 
-    // 1. Coincidencia con diccionario SVG IDs
-    const svgIds = MUSCLE_NAME_TO_SVG_IDS[normalized] || MUSCLE_NAME_TO_SVG_IDS[rawZone];
-    if (svgIds && svgIds.length > 0) {
+    // 1. Coincidencia con diccionario SVG IDs, solo los que el mapa dibuja: el grupo
+    //    ("isquiotibiales") se contaba como una zona más sin pintarse (KAN-666)
+    const svgIds = (
+      MUSCLE_NAME_TO_SVG_IDS[normalized] ||
+      MUSCLE_NAME_TO_SVG_IDS[rawZone] ||
+      []
+    ).filter(isDrawableZone);
+    if (svgIds.length > 0) {
       svgIds.forEach((id) => {
         pains[id] = 6;
       });
@@ -242,7 +292,11 @@ export const hasRequiredInjuryMark = (
   musclePains: Record<string, number> = {},
 ): boolean => {
   if (!hasActiveInjury) return true;
-  return Object.values(musclePains).some((level) => Number(level) === 6);
+  // Solo cuenta una marca que se ve en el dibujo: un nivel 6 en "isquiotibiales" (grupo, sin
+  // pintar) dejaba avanzar sin nada en negro (KAN-666)
+  return Object.entries(musclePains).some(
+    ([zoneId, level]) => Number(level) === 6 && isDrawableZone(zoneId),
+  );
 };
 
 /**

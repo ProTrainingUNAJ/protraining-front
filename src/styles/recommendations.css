@@ -1589,12 +1589,11 @@
   color: var(--primary-text);
 }
 
-/* Texto en párrafos cortos y con largo de línea legible aunque la tarjeta sea ancha */
+/* Texto en párrafos cortos que ocupa todo el ancho de la tarjeta (KAN-660) */
 .athlete-recommendation-body {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  max-width: 75ch;
   font-size: 0.9rem;
   line-height: 1.55;
   color: var(--text-main);

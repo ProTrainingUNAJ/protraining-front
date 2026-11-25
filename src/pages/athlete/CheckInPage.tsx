@@ -46,6 +46,7 @@ import {
   clearInjuryPains,
   parsePainZones,
   mapClinicalInjuriesToMusclePains,
+  toDrawableMusclePains,
 } from '../../components/athlete/checkin/checkInHelper';
 
 const getCachedAthleteId = (userId?: string): string | null => {
@@ -99,7 +100,8 @@ const getStateFromSubmittedCheckIn = (checkIn?: CheckIn): SubmittedCheckInState 
     isSick: Boolean(checkIn?.isSick),
     hasActiveInjury: Boolean(checkIn?.hasActiveInjury),
     healthQuestionsAnswered: Boolean(checkIn),
-    musclePains: parsePainZones(checkIn?.painZones),
+    // En los IDs del mapa: el guardado puede traer el grupo ("isquiotibiales:6"), KAN-666
+    musclePains: toDrawableMusclePains(parsePainZones(checkIn?.painZones)),
     injuryScores,
   };
 };
@@ -159,7 +161,8 @@ export const CheckInPage: React.FC = () => {
   );
   const [musclePains, setMusclePains] = useState<Record<string, number>>(() => {
     if (!initialDraft) return {};
-    const raw = initialDraft.musclePains || {};
+    // Borradores viejos pueden traer el grupo ("isquiotibiales"): se pasan a los IDs del mapa
+    const raw = toDrawableMusclePains(initialDraft.musclePains || {});
     return initialDraft.hasActiveInjury ? raw : clearInjuryPains(raw);
   });
   const [notes, setNotes] = useState<string>(() => initialDraft?.notes || '');
@@ -272,7 +275,7 @@ export const CheckInPage: React.FC = () => {
         setIsSick(draft.isSick);
         setHasActiveInjury(draft.hasActiveInjury);
         setHealthQuestionsAnswered(draft.healthQuestionsAnswered);
-        const dPains = draft.musclePains || {};
+        const dPains = toDrawableMusclePains(draft.musclePains || {});
         setMusclePains(draft.hasActiveInjury ? dPains : clearInjuryPains(dPains));
         setInjuryScores(draft.injuryScores || {});
         setNotes(draft.notes || '');
@@ -458,8 +461,8 @@ export const CheckInPage: React.FC = () => {
           // KAN-660: Si tiene lesión activa reportada, activar flag y precargar automáticamente con negro (nivel 6)
           setHasActiveInjury(true);
           setMusclePains((prev) => {
-            const hasLvl6 = Object.values(prev).some((lvl) => Number(lvl) === 6);
-            if (hasLvl6) return prev;
+            // Solo cuenta un negro que se ve en el dibujo (KAN-666)
+            if (hasRequiredInjuryMark(true, prev)) return prev;
             const autoPains = mapClinicalInjuriesToMusclePains(injuries);
             return { ...prev, ...autoPains };
           });

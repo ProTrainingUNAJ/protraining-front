@@ -96,7 +96,8 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   // se marcan automáticamente en el cuerpo humano con negro (nivel 6).
   useEffect(() => {
     if (!activeInjuries || activeInjuries.length === 0) return;
-    const hasInjuryLevel6 = Object.values(musclePains).some((lvl) => Number(lvl) === 6);
+    // Solo cuenta un negro que se ve en el dibujo (KAN-666)
+    const hasInjuryLevel6 = hasRequiredInjuryMark(true, musclePains);
     if (!hasInjuryLevel6 && lesionActive) {
       const autoPains = mapClinicalInjuriesToMusclePains(activeInjuries);
       Object.entries(autoPains).forEach(([mId, lvl]) => {
