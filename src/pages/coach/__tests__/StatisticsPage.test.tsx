@@ -226,4 +226,85 @@ describe('StatisticsPage (KAN-650, KAN-651)', () => {
     const catSelect = screen.getByLabelText(/filtrar por categoría/i) as HTMLSelectElement;
     expect(catSelect.disabled).toBe(true);
   });
+
+  it('no deja el spinner activo si la categoría ya era la efectiva al elegir su organización', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/statistics?catId=cat-1']}>
+        <StatisticsPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(getByCategoryMock).toHaveBeenCalledWith('cat-1', expect.anything(), {
+        silentNotFound: true,
+      });
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('category-dashboard-loading')).toBeNull();
+    });
+
+    const orgSelect = screen.getByLabelText(/filtrar por organización/i);
+    fireEvent.change(orgSelect, { target: { value: 'org-1' } });
+
+    await waitFor(() => {
+      expect((orgSelect as HTMLSelectElement).value).toBe('org-1');
+    });
+    // La categoría efectiva no cambió: no debe quedar un spinner que nadie va a apagar.
+    expect(screen.queryByTestId('category-dashboard-loading')).toBeNull();
+    expect(getByCategoryMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('muestra el estado vacío y no el spinner cuando la organización no tiene categorías', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/statistics']}>
+        <StatisticsPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Club Atlético Varela' })).toBeDefined();
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('category-dashboard-loading')).toBeNull();
+    });
+
+    fireEvent.change(screen.getByLabelText(/filtrar por organización/i), {
+      target: { value: 'org-2' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('category-dashboard-empty')).toBeDefined();
+    });
+    expect(screen.queryByTestId('category-dashboard-loading')).toBeNull();
+  });
+
+  it('vuelve a cargar y termina el spinner al cambiar de categoría', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/statistics?catId=cat-1']}>
+        <StatisticsPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(getByCategoryMock).toHaveBeenCalledWith('cat-1', expect.anything(), {
+        silentNotFound: true,
+      });
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('category-dashboard-loading')).toBeNull();
+    });
+
+    fireEvent.change(screen.getByLabelText(/filtrar por categoría/i), {
+      target: { value: 'cat-2' },
+    });
+
+    await waitFor(() => {
+      expect(getByCategoryMock).toHaveBeenCalledWith('cat-2', expect.anything(), {
+        silentNotFound: true,
+      });
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('category-dashboard-loading')).toBeNull();
+    });
+  });
 });
