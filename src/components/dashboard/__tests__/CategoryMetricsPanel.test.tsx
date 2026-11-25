@@ -86,4 +86,14 @@ describe('CategoryMetricsPanel (KAN-504)', () => {
     expect(screen.getByTestId('category-dashboard-empty')).toBeDefined();
     expect(screen.queryByTestId('category-dashboard-chart')).toBeNull();
   });
+
+  it('no tapa la barra con el cursor gris de Recharts al pasar el mouse', () => {
+    render(<CategoryMetricsPanel summary={summary} />);
+
+    const surface = document.querySelector('.recharts-surface');
+    expect(surface).not.toBeNull();
+    fireEvent.mouseMove(surface as Element, { clientX: 120, clientY: 120 });
+
+    expect(document.querySelector('.recharts-tooltip-cursor')).toBeNull();
+  });
 });
