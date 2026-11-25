@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { AthleteRecommendationsSection } from '../AthleteRecommendationsSection';
-import { splitRecommendationText } from '../../../utils/recommendationFormat';
+import { splitHabitsSections, splitRecommendationText } from '../../../utils/recommendationFormat';
 
 const { listMyRecommendationsMock, getMeMock } = vi.hoisted(() => ({
   listMyRecommendationsMock: vi.fn(),
@@ -274,5 +274,95 @@ describe('AthleteRecommendationsSection (KAN-492)', () => {
     expect(screen.getByTestId('macro-pill-carbs')).toBeDefined();
     expect(screen.getByTestId('macro-pill-fat')).toBeDefined();
     expect(screen.getByText('Plan de hidratación y proteínas')).toBeDefined();
+  });
+
+  const ADULT = {
+    athleteId: 'ath-1',
+    firstName: 'Lucas',
+    lastName: 'Gómez',
+    fullName: 'Lucas Gómez',
+    weightKg: 78,
+    heightCm: 178,
+    birthDate: '2000-05-15',
+    gender: 'Masculino',
+    athleticGoal: 'Rendimiento deportivo',
+  };
+  const habitsRec = {
+    id: 'rec-h',
+    type: 'Habits',
+    title: 'Guía de hábitos',
+    reason: 'Objetivo: Rendimiento deportivo.',
+    recommendationText: 'Texto de hábitos.',
+    reviewedAtUtc: '2026-11-20T17:15:00Z',
+    createdAt: '2026-11-20T16:00:00Z',
+  };
+  const trainingRec = { ...habitsRec, id: 'rec-t', type: 'Training', title: 'Salto' };
+
+  it('no muestra calorías ni macros a un menor de 18 (KAN-664)', async () => {
+    getMeMock.mockResolvedValue({ ...ADULT, isMinor: true, birthDate: '2010-03-01' });
+    listMyRecommendationsMock.mockResolvedValue([habitsRec]);
+
+    render(<AthleteRecommendationsSection />);
+
+    expect(await screen.findByText('Guía de hábitos')).toBeDefined();
+    expect(screen.queryByText('Plan Nutricional Recomendado')).toBeNull();
+    expect(screen.queryByTestId('macro-pill-protein')).toBeNull();
+  });
+
+  it('sin hábitos aprobados no muestra la tarjeta de calorías (KAN-664)', async () => {
+    getMeMock.mockResolvedValue(ADULT);
+    listMyRecommendationsMock.mockResolvedValue([trainingRec]);
+
+    render(<AthleteRecommendationsSection />);
+
+    expect(await screen.findByText('Salto')).toBeDefined();
+    expect(screen.queryByText('Plan Nutricional Recomendado')).toBeNull();
+  });
+
+  it('muestra los hábitos por secciones con título y sin repetir el aviso legal (KAN-660)', async () => {
+    const disclaimer = 'Esto no reemplaza a un nutricionista.';
+    listMyRecommendationsMock.mockResolvedValue([
+      {
+        ...habitsRec,
+        recommendationText: [
+          'Plato con verduras, proteína y carbohidratos.',
+          'Tomá agua durante el día y dormí 8 horas.',
+          'Proteína diaria orientativa: entre 100 y 130 g, según tu peso y tu objetivo.',
+          disclaimer,
+        ].join('\n'),
+        legalDisclaimer: disclaimer,
+      },
+    ]);
+
+    render(<AthleteRecommendationsSection />);
+
+    expect(await screen.findByText('Comidas')).toBeDefined();
+    expect(screen.queryByText('Hidratación y descanso')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Leer completa' }));
+    expect(screen.getByText('Hidratación y descanso')).toBeDefined();
+    expect(screen.getByText('Proteína')).toBeDefined();
+    // El aviso aparece una sola vez, como nota
+    expect(screen.getAllByText(disclaimer)).toHaveLength(1);
+    expect(screen.getByRole('note').textContent).toContain(disclaimer);
+  });
+
+  it('splitHabitsSections no inventa secciones si el texto viene en un solo bloque', () => {
+    expect(splitHabitsSections('Un solo párrafo largo de hábitos.', null)).toBeNull();
+    const sections = splitHabitsSections(
+      'Comida.\nAgua y sueño.\nAntes de hacer cambios en tu alimentación, consultá con un profesional.',
+      null,
+    );
+    expect(sections?.map((section) => section.title)).toEqual([
+      'Comidas',
+      'Hidratación y descanso',
+      'Consultá a un profesional',
+    ]);
+  });
+
+  it('splitRecommendationText saca los asteriscos de énfasis que escribe la IA', () => {
+    expect(splitRecommendationText('Es *imprescindible* consultar y **muy** importante.')).toEqual([
+      { kind: 'paragraph', text: 'Es imprescindible consultar y muy importante.' },
+    ]);
   });
 });

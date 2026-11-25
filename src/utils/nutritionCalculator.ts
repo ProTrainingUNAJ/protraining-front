@@ -252,3 +252,14 @@ export function calculateAthleteNutrition(
     bmiResult,
   };
 }
+
+/**
+ * true si el atleta es menor de 18 (KAN-664): a los menores no se les muestran calorías ni gramos,
+ * igual que el Asistente, que les da una guía cualitativa. Se usa el dato del back (isMinor) y, si
+ * no viene, la fecha de nacimiento; una edad estimada (sin fecha válida) no cuenta como menor.
+ */
+export function isMinorAthlete(isMinor?: boolean | null, birthDate?: string | null): boolean {
+  if (isMinor) return true;
+  const { age, isEstimated } = calculateAge(birthDate);
+  return !isEstimated && age < 18;
+}
