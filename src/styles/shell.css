@@ -21,7 +21,7 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  max-width: 1720px;
+  max-width: none;
   height: calc(100vh - 2.5rem);
   height: calc(100dvh - 2.5rem);
   max-height: calc(100vh - 2.5rem);
@@ -65,6 +65,29 @@
   max-height: 100%;
   box-sizing: border-box;
   overflow: visible;
+  /* El panel principal tiene flex: 1, así que se achica o se agranda junto con el menú */
+  transition:
+    width 0.22s ease,
+    min-width 0.22s ease,
+    max-width 0.22s ease,
+    flex-basis 0.22s ease,
+    padding 0.22s ease;
+}
+
+/* Menú desplegado en escritorio: ícono + nombre. Reusa los estilos del drawer de celular */
+.app-sidebar-desktop.is-expanded {
+  width: var(--shell-sidebar-expanded-width, 272px);
+  min-width: var(--shell-sidebar-expanded-width, 272px);
+  max-width: var(--shell-sidebar-expanded-width, 272px);
+  flex: 0 0 var(--shell-sidebar-expanded-width, 272px);
+  padding: 1.5rem 0.75rem 1.25rem;
+  align-items: stretch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar-desktop {
+    transition: none;
+  }
 }
 
 .app-sidebar-top {
@@ -155,9 +178,24 @@
   border: 1px solid var(--on-primary-border);
 }
 
-.app-sidebar-link:hover .app-sidebar-tooltip {
+.app-sidebar-link:hover .app-sidebar-tooltip,
+.app-sidebar-link:focus-visible .app-sidebar-tooltip {
   opacity: 1;
   transform: translateX(0);
+}
+
+.app-sidebar-link:focus-visible {
+  outline: 2px solid var(--on-primary);
+  outline-offset: 2px;
+}
+
+/* Botón para plegar / desplegar el menú en escritorio: se ve como un ítem más */
+.app-sidebar-toggle {
+  border: none;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* Zona inferior de la barra lateral */
@@ -255,6 +293,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -361,8 +400,9 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  /* 44px: mínimo táctil recomendado */
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background-color: var(--bg-card);
@@ -400,6 +440,126 @@
 .shell-pill-btn:hover {
   background-color: var(--shell-pill-hover);
   transform: translateY(-1px);
+}
+
+/* ── Píldora de Contacto con el PF (Header de Atleta - KAN-660) ── */
+.contact-pf-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 0.85rem 0 0.35rem;
+  background-color: var(--bg-card);
+  border: 1.5px solid var(--shell-pill-border);
+  border-radius: 9999px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill:hover {
+  background-color: var(--shell-pill-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.contact-pf-pill-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid var(--shell-pill-border);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.contact-pf-pill-divider {
+  width: 1px;
+  height: 18px;
+  background-color: var(--border);
+  margin: 0 0.45rem;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.35rem;
+  border-radius: 8px;
+  color: var(--shell-pill-border);
+  background: transparent;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.contact-pf-pill-btn:hover {
+  background-color: var(--bg-subtle);
+  transform: scale(1.1);
+}
+
+.contact-pf-pill-btn--whatsapp:hover {
+  color: var(--social-whatsapp);
+}
+
+.contact-pf-pill-btn--telegram:hover {
+  color: var(--social-telegram);
+}
+
+.contact-pf-pill-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--shell-pill-border);
+  margin-left: 0.35rem;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.contact-pf-pill-feedback {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 100;
+  min-width: 250px;
+  max-width: calc(100vw - 2rem);
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.8rem;
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.contact-pf-feedback-copied {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--success-text);
+  font-weight: 600;
+}
+
+.contact-pf-feedback-manual-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.contact-pf-feedback-textarea {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 0.3rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--border);
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  box-sizing: border-box;
 }
 
 /* Botón Calendario */
@@ -469,7 +629,7 @@
 
 .shell-calendar-nav-btn:hover {
   background-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .shell-calendar-weekdays {
@@ -549,7 +709,7 @@
 
 .shell-calendar-cell.is-clickable:hover {
   background-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 /* Hoy siempre se ve relleno, aunque el día sea tocable (si no, el número blanco queda sobre fondo blanco) */
@@ -668,7 +828,7 @@
   border-radius: 6px;
   border: none;
   background-color: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
@@ -685,7 +845,9 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
-  width: 100%;
+  width: calc(100% - 0.35rem);
+  margin-right: 0.35rem;
+  margin-bottom: 0.75rem;
   padding: 1.75rem 2rem 2.5rem;
   overflow-y: auto;
   overflow-x: hidden;
@@ -802,6 +964,7 @@
   grid-template-columns: repeat(3, 1fr);
   min-height: 140px;
 }
+
 .wireframe-row-1 .wireframe-card {
   grid-column: span 1;
   min-height: 140px;
@@ -811,6 +974,7 @@
   grid-template-columns: repeat(3, 1fr);
   min-height: 250px;
 }
+
 .wireframe-row-2 .wireframe-card {
   grid-column: span 1;
   min-height: 250px;
@@ -820,6 +984,7 @@
   grid-template-columns: repeat(2, 1fr);
   min-height: 220px;
 }
+
 .wireframe-row-3 .wireframe-card {
   grid-column: span 1;
   min-height: 220px;
@@ -829,6 +994,7 @@
   grid-template-columns: repeat(3, 1fr);
   min-height: 200px;
 }
+
 .wireframe-row-4 .wireframe-card {
   grid-column: span 1;
   min-height: 200px;
@@ -846,7 +1012,7 @@
     transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.2s ease,
     border-color 0.2s ease;
-  cursor: grab;
+  cursor: default;
   user-select: none;
   box-sizing: border-box;
 }
@@ -898,7 +1064,8 @@
   overflow: visible;
 }
 
-.app-mobile-drawer .app-sidebar-top {
+.app-mobile-drawer .app-sidebar-top,
+.app-sidebar-desktop.is-expanded .app-sidebar-top {
   align-items: stretch;
 }
 
@@ -910,7 +1077,8 @@
   display: block;
 }
 
-.app-mobile-drawer .app-sidebar-logo-link {
+.app-mobile-drawer .app-sidebar-logo-link,
+.app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
   width: auto;
   height: auto;
   margin-bottom: 1.5rem;
@@ -918,12 +1086,14 @@
   align-self: flex-start;
 }
 
-.app-mobile-drawer .app-sidebar-nav {
+.app-mobile-drawer .app-sidebar-nav,
+.app-sidebar-desktop.is-expanded .app-sidebar-nav {
   align-items: stretch;
   gap: 0.45rem;
 }
 
-.app-mobile-drawer .app-sidebar-link {
+.app-mobile-drawer .app-sidebar-link,
+.app-sidebar-desktop.is-expanded .app-sidebar-link {
   width: 100%;
   height: auto;
   min-height: 44px;
@@ -933,8 +1103,12 @@
   border-radius: 12px;
 }
 
-.app-mobile-drawer .app-sidebar-tooltip {
+.app-mobile-drawer .app-sidebar-tooltip,
+.app-sidebar-desktop.is-expanded .app-sidebar-tooltip {
   position: static;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   opacity: 1;
   pointer-events: auto;
   transform: none;
@@ -948,17 +1122,20 @@
   white-space: nowrap;
 }
 
-.app-mobile-drawer .app-sidebar-bottom {
+.app-mobile-drawer .app-sidebar-bottom,
+.app-sidebar-desktop.is-expanded .app-sidebar-bottom {
   align-items: stretch;
   padding-top: 1.5rem;
 }
 
-.app-mobile-drawer .shell-sidebar-user-wrap {
+.app-mobile-drawer .shell-sidebar-user-wrap,
+.app-sidebar-desktop.is-expanded .shell-sidebar-user-wrap {
   width: 100%;
   justify-content: flex-start;
 }
 
-.app-mobile-drawer .shell-sidebar-avatar-btn {
+.app-mobile-drawer .shell-sidebar-avatar-btn,
+.app-sidebar-desktop.is-expanded .shell-sidebar-avatar-btn {
   width: 100%;
   display: flex;
   align-items: center;
@@ -968,8 +1145,11 @@
   gap: 0.85rem;
 }
 
-.app-mobile-drawer .shell-sidebar-avatar-label {
+.app-mobile-drawer .shell-sidebar-avatar-label,
+.app-sidebar-desktop.is-expanded .shell-sidebar-avatar-label {
   display: inline-flex;
+  min-width: 0;
+  overflow: hidden;
   align-items: center;
   font-size: 0.95rem;
   font-weight: 700;
@@ -977,12 +1157,14 @@
   white-space: nowrap;
 }
 
-.app-mobile-drawer .shell-sidebar-avatar-btn:hover {
+.app-mobile-drawer .shell-sidebar-avatar-btn:hover,
+.app-sidebar-desktop.is-expanded .shell-sidebar-avatar-btn:hover {
   transform: none;
   background-color: var(--on-primary-hover);
 }
 
-.app-mobile-drawer .shell-sidebar-user-dropdown {
+.app-mobile-drawer .shell-sidebar-user-dropdown,
+.app-sidebar-desktop.is-expanded .shell-sidebar-user-dropdown {
   left: 0;
   right: 0;
   bottom: calc(100% + 8px);
@@ -1031,24 +1213,9 @@
 }
 
 @media (max-width: 991px) {
-  .app-shell-viewport {
-    padding: 0;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-    overflow: hidden;
-  }
-
   .app-shell-container {
-    border-radius: 0;
-    border: none;
     min-height: 100vh;
     min-height: 100dvh;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
   }
 
   .app-sidebar-desktop {
@@ -1089,6 +1256,17 @@
     min-width: 0;
   }
 
+  .app-page-header {
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+
+  .app-page-header-info {
+    width: 100%;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
   .app-page-title {
     font-size: 1.25rem;
     line-height: 1.15;
@@ -1102,17 +1280,43 @@
   }
 
   .app-page-header-actions {
-    flex-wrap: wrap;
-    gap: 0.35rem;
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
     max-width: 100%;
     min-width: 0;
+    gap: 0.25rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .app-page-header-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-page-header-actions > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.45rem 0.25rem;
+    font-size: 0.72rem;
+    letter-spacing: -0.01em;
+    gap: 0.2rem;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .app-page-header-actions > .btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
 
   /* Un selector con opciones largas no puede estirar el encabezado más allá de la pantalla */
-  .app-page-header-actions > *,
+  .app-page-header-actions > *:not(.btn),
   .app-page-header-actions select {
     max-width: 100%;
     min-width: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .app-page-body {
@@ -1138,19 +1342,22 @@
   }
 
   .app-header {
-    height: 60px;
+    height: 56px;
     padding: 0 0.75rem;
-    gap: 0.5rem;
+    gap: 0.45rem;
   }
 
   .app-header-left {
-    flex: 1;
+    flex: 0 0 auto;
+    max-width: none;
     min-width: 0;
   }
 
   .app-header-actions {
+    flex: 1 1 auto;
+    justify-content: flex-end;
     gap: 0.35rem;
-    flex-shrink: 0;
+    min-width: 0;
   }
 
   .shell-pill-btn {
@@ -1161,6 +1368,25 @@
 
   /* En pantallas móviles el botón de calendario se compacta con su icono */
   .shell-calendar-btn span {
+    display: none;
+  }
+
+  /* Píldora de contacto con el PF compacta en mobile [Avatar | WA | TG] */
+  .contact-pf-pill {
+    height: 36px;
+    padding: 0 0.45rem 0 0.25rem;
+  }
+
+  .contact-pf-pill-divider {
+    height: 14px;
+    margin: 0 0.25rem;
+  }
+
+  .contact-pf-pill-btn {
+    padding: 0.2rem;
+  }
+
+  .contact-pf-pill-label {
     display: none;
   }
 
@@ -1177,10 +1403,43 @@
   min-height: 60vh;
 }
 
-/* En celulares chicos el botón de contacto queda solo con el ícono, para que entren todos los del encabezado */
+/* En celulares chicos optimizar paddings y dimensiones para que el header nunca desborde */
 @media (max-width: 420px) {
-  .app-header-actions .contact-pf-label {
-    display: none;
+  .app-header {
+    padding: 0 0.45rem;
+    gap: 0.3rem;
+  }
+
+  .app-mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-header-actions {
+    gap: 0.2rem;
+  }
+
+  .shell-pill-btn {
+    height: 34px;
+    padding: 0 0.4rem;
+  }
+
+  .contact-pf-pill {
+    height: 34px;
+    padding: 0 0.35rem 0 0.2rem;
+  }
+
+  .contact-pf-pill-divider {
+    margin: 0 0.15rem;
+  }
+
+  .contact-pf-pill-btn {
+    padding: 0.15rem;
+  }
+
+  .contact-pf-pill-btn svg {
+    width: 17px;
+    height: 17px;
   }
 }
 
@@ -1191,28 +1450,47 @@
   .app-shell-viewport {
     padding: 0.75rem;
   }
+
   .app-shell-container {
     height: calc(100vh - 1.5rem);
     height: calc(100dvh - 1.5rem);
     max-height: calc(100vh - 1.5rem);
     max-height: calc(100dvh - 1.5rem);
   }
+
   .app-sidebar-desktop {
     padding: 1rem 0.5rem 0.85rem;
   }
+
   .app-sidebar-desktop .app-sidebar-logo-link {
     margin-bottom: 1rem;
   }
+
   .app-sidebar-desktop .app-sidebar-nav {
     gap: 0.35rem;
   }
+
   .app-sidebar-desktop .app-sidebar-link {
     width: 42px;
     height: 42px;
   }
+
   .app-sidebar-desktop .app-sidebar-bottom {
     gap: 0.75rem;
     padding-top: 0.75rem;
+  }
+
+  .app-sidebar-desktop.is-expanded {
+    padding: 1rem 0.75rem 0.85rem;
+  }
+
+  .app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
+    margin-bottom: 1rem;
+  }
+
+  .app-sidebar-desktop.is-expanded .app-sidebar-link {
+    min-height: 40px;
+    padding-block: 0.45rem;
   }
 }
 
@@ -1220,21 +1498,38 @@
   .app-sidebar-desktop {
     padding: 0.75rem 0.5rem;
   }
+
   .app-sidebar-desktop .app-sidebar-logo-link {
     width: 40px;
     height: 40px;
     margin-bottom: 0.5rem;
   }
+
   .app-sidebar-desktop .app-sidebar-nav {
     gap: 0.2rem;
   }
+
   .app-sidebar-desktop .app-sidebar-link {
     width: 38px;
     height: 38px;
   }
+
   .app-sidebar-desktop .shell-sidebar-avatar {
     width: 36px;
     height: 36px;
+  }
+
+  .app-sidebar-desktop.is-expanded {
+    padding: 0.75rem;
+  }
+
+  .app-sidebar-desktop.is-expanded .app-sidebar-logo-link {
+    margin-bottom: 0.5rem;
+  }
+
+  .app-sidebar-desktop.is-expanded .app-sidebar-link {
+    min-height: 36px;
+    padding-block: 0.3rem;
   }
 }
 
@@ -1245,5 +1540,25 @@
     min-height: 0;
     overflow-y: auto;
     scrollbar-width: none;
+  }
+}
+
+/* Pantallas de hasta 1440px (notebooks): pantalla completa sin marco flotante (KAN-599).
+   Va después de la media query de pantallas bajas para que no reintroduzca el padding exterior,
+   manteniendo intacta la compactación del sidebar. En monitores > 1440px sigue el panel flotante. */
+@media (max-width: 1440px) {
+  .app-shell-viewport {
+    padding: 0;
+  }
+
+  .app-shell-container {
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
   }
 }

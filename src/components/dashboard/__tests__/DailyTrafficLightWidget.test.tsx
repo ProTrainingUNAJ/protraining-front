@@ -82,18 +82,12 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
     const btnComplete = screen.getByRole('button', { name: /Completar Check-in de hoy/i });
     expect(btnComplete).toBeDefined();
     fireEvent.click(btnComplete);
-    expect(mockNavigate).toHaveBeenCalledWith('/athlete/checkin');
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete/check-in');
   });
 
   it('renders Green light state when check-in is optimal', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
-      result: {
-        trafficLight: 'Green',
-        trafficLightReason: 'Sin dolor reportado y buen descanso',
-      },
-      draft: {
-        sleepHours: 8,
-      } as never,
+      trafficLight: 'Green',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -104,8 +98,9 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
     });
 
     expect(screen.getByText('Apto para entrenar')).toBeDefined();
-    expect(screen.getByText('Sin dolor reportado y buen descanso')).toBeDefined();
-    expect(screen.getByText(/8h descanso/i)).toBeDefined();
+    expect(
+      screen.getByText('Estado físico y descanso óptimos para la jornada de entrenamiento.'),
+    ).toBeDefined();
 
     const redBulb = screen.getByTestId('traffic-bulb-red');
     const yellowBulb = screen.getByTestId('traffic-bulb-yellow');
@@ -117,18 +112,12 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
     const btnView = screen.getByRole('button', { name: /Ver o actualizar mi Check-in/i });
     fireEvent.click(btnView);
-    expect(mockNavigate).toHaveBeenCalledWith('/athlete/checkin');
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete/check-in');
   });
 
   it('renders Yellow light state when check-in reports attention/fatigue', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
-      result: {
-        trafficLight: 'Yellow',
-        trafficLightReason: 'Fatiga moderada y molestia muscular',
-      },
-      draft: {
-        sleepHours: 6,
-      } as never,
+      trafficLight: 'Yellow',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -139,7 +128,9 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
     });
 
     expect(screen.getByText('Atención')).toBeDefined();
-    expect(screen.getByText('Fatiga moderada y molestia muscular')).toBeDefined();
+    expect(
+      screen.getByText('Molestia o fatiga moderada detectada. Moderá la exigencia y avisá al PF.'),
+    ).toBeDefined();
 
     const redBulb = screen.getByTestId('traffic-bulb-red');
     const yellowBulb = screen.getByTestId('traffic-bulb-yellow');
@@ -152,13 +143,7 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
 
   it('renders Red light state when check-in reports active injury or acute pain', async () => {
     vi.spyOn(checkInHelper, 'getCheckInCompleted').mockReturnValue({
-      result: {
-        trafficLight: 'Red',
-        trafficLightReason: 'Lesión activa reportada',
-      },
-      draft: {
-        sleepHours: 5,
-      } as never,
+      trafficLight: 'Red',
       completedAt: '2026-11-09T08:00:00Z',
     });
 
@@ -169,7 +154,11 @@ describe('DailyTrafficLightWidget (KAN-547)', () => {
     });
 
     expect(screen.getByText('Precaución')).toBeDefined();
-    expect(screen.getByText('Lesión activa reportada')).toBeDefined();
+    expect(
+      screen.getByText(
+        'Alerta de dolor o molestia intensa reportada. Consultá con tu cuerpo técnico.',
+      ),
+    ).toBeDefined();
 
     const redBulb = screen.getByTestId('traffic-bulb-red');
     const yellowBulb = screen.getByTestId('traffic-bulb-yellow');

@@ -11,7 +11,13 @@ import {
   Check,
 } from 'lucide-react';
 import { PROTRAINING_MUSCLES, PAIN_LEVELS, getPainColor } from '../bodyMuscleData';
-import { getFatigueLabel, getSorenessLabel, getSleepHoursLabel } from './checkInHelper';
+import {
+  getFatigueLabel,
+  getReportedZones,
+  getSorenessLabel,
+  getSleepHoursLabel,
+} from './checkInHelper';
+import { ActiveInjuryItem } from './ActiveInjuriesModal';
 
 export interface CheckInSummarySlideProps {
   sleepHours: number | null;
@@ -23,6 +29,8 @@ export interface CheckInSummarySlideProps {
   isSick: boolean;
   hasActiveInjury: boolean;
   musclePains: Record<string, number>;
+  activeInjuries?: ReadonlyArray<ActiveInjuryItem>;
+  injuryScores?: Record<string, number | null>;
   notes: string;
   onNotesChange: (val: string) => void;
   onEditStep: (step: number) => void;
@@ -266,6 +274,8 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   isSick,
   hasActiveInjury,
   musclePains,
+  activeInjuries = [],
+  injuryScores = {},
   notes,
   onNotesChange,
   onEditStep,
@@ -273,15 +283,17 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   onSubmit,
   isSubmitting,
 }) => {
-  const reportedPains = Object.entries(musclePains).filter(([, lvl]) => lvl > 0);
-  const reportedCount = reportedPains.length;
+  // la ficha clínica manda; una lesión activa no puede ocultarse respondiendo "No".
+  const effectiveHasActiveInjury = hasActiveInjury || activeInjuries.length > 0;
+  const reportedZones = getReportedZones(musclePains, activeInjuries, injuryScores);
+  const reportedCount = reportedZones.length;
 
   const activeMood = MOOD_CONFIGS[moodRate] || MOOD_CONFIGS[3];
 
   const getHealthInjurySummary = () => {
-    if (!isSick && !hasActiveInjury) return 'Salud normal · Sin lesión';
-    if (isSick && !hasActiveInjury) return 'Con síntomas de enfermedad';
-    if (!isSick && hasActiveInjury) return 'Lesión activa reportada';
+    if (!isSick && !effectiveHasActiveInjury) return 'Salud normal · Sin lesión';
+    if (isSick && !effectiveHasActiveInjury) return 'Con síntomas de enfermedad';
+    if (!isSick && effectiveHasActiveInjury) return 'Lesión activa reportada';
     return 'Con síntomas y lesión activa';
   };
 
@@ -292,23 +304,28 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
   const painZonesColor =
     reportedCount > 0 ? 'var(--checkin-scale-orange)' : 'var(--checkin-scale-green)';
   const healthInjuryColor =
-    isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
+    isSick || effectiveHasActiveInjury ? 'var(--traffic-red)' : 'var(--checkin-scale-green)';
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div
+      className="checkin-slide-root"
+      style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
       <form
         onSubmit={onSubmit}
+        className="checkin-slide-form"
         style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
       >
-        <div className="pixel-slide-card">
+        <div className="pixel-slide-card checkin-summary-card">
           {/* ── Cabecera Superior con Botón Circular Atrás a la altura del Título ── */}
           <div
+            className="pixel-mood-nav-wrap"
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '0.35rem',
+              marginBottom: '0.1rem',
               position: 'relative',
             }}
           >
@@ -364,445 +381,454 @@ export const CheckInSummarySlide: React.FC<CheckInSummarySlideProps> = ({
             </button>
           </div>
 
-          {/* Subtítulo en Montserrat */}
-          <p className="pixel-slide-subtitle">
-            Revisá tus respuestas antes de enviar tu informe al cuerpo técnico.
-          </p>
+          {/* Zona scrolleable: el scroll queda acá para que el botón de envío
+              de la cabecera siempre quede visible (KAN-595) */}
+          <div className="checkin-card-scroll">
+            {/* Subtítulo en Montserrat */}
+            <p className="pixel-slide-subtitle checkin-summary-subtitle">
+              Revisá tus respuestas antes de enviar tu informe al cuerpo técnico.
+            </p>
 
-          {/* Burbuja Central Flotante (120px) */}
-          <div
-            className="pixel-bubble-hero"
-            style={{
-              background: 'var(--checkin-next-btn-bg)',
-              boxShadow: '0 8px 24px rgba(0, 119, 200, 0.35)',
-              color: 'var(--white)',
-            }}
-            aria-hidden="true"
-          >
-            <Check size={48} color="var(--white)" strokeWidth={3} />
-          </div>
-
-          {/* Trazos curvos decorativos (︵ ︵) */}
-          <div className="pixel-bubble-waves" aria-hidden="true">
-            <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
-              <path
-                d="M 3 4 Q 11 9 19 4"
-                stroke="var(--checkin-waves-stroke)"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 3 9 Q 11 14 19 9"
-                stroke="var(--checkin-waves-stroke)"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-
-          {/* ── Panel Unificado de Métricas de Resumen en 2 Columnas Compactas ── */}
-          <div className="checkin-summary-unified-grid">
-            {/* 1. ÁNIMO — Paso 1 */}
+            {/* Burbuja Central Flotante Compacta */}
             <div
-              className="checkin-summary-item"
-              onClick={() => onEditStep(1)}
-              role="button"
-              tabIndex={0}
-              title="Editar estado de ánimo"
+              className="pixel-bubble-hero checkin-summary-hero"
+              style={{
+                background: 'var(--checkin-next-btn-bg)',
+                boxShadow: '0 6px 18px rgba(0, 119, 200, 0.3)',
+                color: 'var(--white)',
+              }}
+              aria-hidden="true"
             >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStep(1);
-                }}
-                className="checkin-summary-edit-btn"
+              <Check size={32} color="var(--white)" strokeWidth={3} />
+            </div>
+
+            {/* Trazos curvos decorativos (︵ ︵) */}
+            <div className="pixel-bubble-waves checkin-summary-waves" aria-hidden="true">
+              <svg width="22" height="13" viewBox="0 0 22 13" fill="none">
+                <path
+                  d="M 3 4 Q 11 9 19 4"
+                  stroke="var(--checkin-waves-stroke)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 3 9 Q 11 14 19 9"
+                  stroke="var(--checkin-waves-stroke)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+
+            {/* ── Panel Unificado de Métricas de Resumen en 2 Columnas Compactas ── */}
+            <div className="checkin-summary-unified-grid">
+              {/* 1. ÁNIMO — Paso 1 */}
+              <div
+                className="checkin-summary-item"
+                onClick={() => onEditStep(1)}
+                role="button"
+                tabIndex={0}
                 title="Editar estado de ánimo"
-                aria-label="Editar estado de ánimo"
               >
-                <Edit2 size={14} />
-              </button>
-
-              <div className="checkin-summary-item-content">
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: activeMood.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 10px ${activeMood.color}40`,
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditStep(1);
                   }}
+                  className="checkin-summary-edit-btn"
+                  title="Editar estado de ánimo"
+                  aria-label="Editar estado de ánimo"
                 >
-                  {renderMoodFace(activeMood.eyeType, 26)}
-                </div>
+                  <Edit2 size={14} />
+                </button>
 
-                <div className="checkin-summary-item-texts">
-                  <span className="checkin-summary-item-label">Ánimo</span>
-                  <strong className="checkin-summary-item-val">{activeMood.label}</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. DOLOR MUSCULAR — Paso 2 */}
-            <div
-              className="checkin-summary-item"
-              onClick={() => onEditStep(2)}
-              role="button"
-              tabIndex={0}
-              title="Editar dolor muscular"
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStep(2);
-                }}
-                className="checkin-summary-edit-btn"
-                title="Editar dolor muscular"
-                aria-label="Editar dolor muscular"
-              >
-                <Edit2 size={14} />
-              </button>
-
-              <div className="checkin-summary-item-content">
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: sorenessColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 10px ${sorenessColor}40`,
-                  }}
-                >
-                  {renderBicepsMuscle(22, 'var(--white)')}
-                </div>
-
-                <div className="checkin-summary-item-texts">
-                  <span className="checkin-summary-item-label">Dolor muscular</span>
-                  <strong className="checkin-summary-item-val">
-                    {muscleSoreness !== null ? getSorenessLabel(muscleSoreness) : 'No registrado'}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. SUEÑO — Paso 2 */}
-            <div
-              className="checkin-summary-item"
-              onClick={() => onEditStep(2)}
-              role="button"
-              tabIndex={0}
-              title="Editar sueño"
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStep(2);
-                }}
-                className="checkin-summary-edit-btn"
-                title="Editar sueño"
-                aria-label="Editar sueño"
-              >
-                <Edit2 size={14} />
-              </button>
-
-              <div className="checkin-summary-item-content">
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: sleepColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 10px ${sleepColor}40`,
-                  }}
-                >
-                  <Moon size={22} color="var(--white)" fill="var(--white)" />
-                </div>
-
-                <div className="checkin-summary-item-texts">
-                  <span className="checkin-summary-item-label">Sueño</span>
-                  <strong className="checkin-summary-item-val">
-                    {getSleepHoursLabel(sleepHours)}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. ZONAS CON DOLOR — Paso 3 */}
-            <div
-              className="checkin-summary-item"
-              onClick={() => onEditStep(3)}
-              role="button"
-              tabIndex={0}
-              title="Editar zonas con dolor"
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStep(3);
-                }}
-                className="checkin-summary-edit-btn"
-                title="Editar zonas con dolor"
-                aria-label="Editar zonas con dolor"
-              >
-                <Edit2 size={14} />
-              </button>
-
-              <div className="checkin-summary-item-content">
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: painZonesColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 10px ${painZonesColor}40`,
-                  }}
-                >
-                  <Activity size={22} color="var(--white)" strokeWidth={2.6} />
-                </div>
-
-                <div className="checkin-summary-item-texts">
-                  <span className="checkin-summary-item-label">Zonas con dolor</span>
-                  <strong className="checkin-summary-item-val">
-                    {reportedCount === 0
-                      ? 'Sin zonas señaladas'
-                      : `${reportedCount} zona(s) marcada(s)`}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* 5. FATIGA FÍSICA — Paso 2 */}
-            <div
-              className="checkin-summary-item"
-              onClick={() => onEditStep(2)}
-              role="button"
-              tabIndex={0}
-              title="Editar fatiga física"
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStep(2);
-                }}
-                className="checkin-summary-edit-btn"
-                title="Editar fatiga física"
-                aria-label="Editar fatiga física"
-              >
-                <Edit2 size={14} />
-              </button>
-
-              <div className="checkin-summary-item-content">
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: fatigueColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 10px ${fatigueColor}40`,
-                  }}
-                >
-                  <Zap size={22} color="var(--white)" fill="var(--white)" />
-                </div>
-
-                <div className="checkin-summary-item-texts">
-                  <span className="checkin-summary-item-label">Fatiga física</span>
-                  <strong className="checkin-summary-item-val">
-                    {fatigueLevel !== null ? getFatigueLabel(fatigueLevel) : 'No registrado'}
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* 6. SALUD Y LESIÓN — Paso 3 */}
-            <div
-              className="checkin-summary-item"
-              onClick={() => onEditStep(3)}
-              role="button"
-              tabIndex={0}
-              title="Editar salud y lesión"
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditStep(3);
-                }}
-                className="checkin-summary-edit-btn"
-                title="Editar salud y lesión"
-                aria-label="Editar salud y lesión"
-              >
-                <Edit2 size={14} />
-              </button>
-
-              <div className="checkin-summary-item-content">
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: healthInjuryColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 10px ${healthInjuryColor}40`,
-                  }}
-                >
-                  <HeartPulse size={22} color="var(--white)" strokeWidth={2.6} />
-                </div>
-
-                <div className="checkin-summary-item-texts">
-                  <span className="checkin-summary-item-label">Salud y Lesión</span>
-                  <strong
-                    className="checkin-summary-item-val"
+                <div className="checkin-summary-item-content">
+                  <div
                     style={{
-                      color:
-                        isSick || hasActiveInjury ? 'var(--traffic-red)' : 'var(--traffic-green)',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: activeMood.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: `0 4px 10px ${activeMood.color}40`,
                     }}
                   >
-                    {getHealthInjurySummary()}
-                  </strong>
+                    {renderMoodFace(activeMood.eyeType, 26)}
+                  </div>
+
+                  <div className="checkin-summary-item-texts">
+                    <span className="checkin-summary-item-label">Ánimo</span>
+                    <strong className="checkin-summary-item-val">{activeMood.label}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. DOLOR MUSCULAR — Paso 2 */}
+              <div
+                className="checkin-summary-item"
+                onClick={() => onEditStep(2)}
+                role="button"
+                tabIndex={0}
+                title="Editar dolor muscular"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditStep(2);
+                  }}
+                  className="checkin-summary-edit-btn"
+                  title="Editar dolor muscular"
+                  aria-label="Editar dolor muscular"
+                >
+                  <Edit2 size={14} />
+                </button>
+
+                <div className="checkin-summary-item-content">
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: sorenessColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: `0 4px 10px ${sorenessColor}40`,
+                    }}
+                  >
+                    {renderBicepsMuscle(22, 'var(--white)')}
+                  </div>
+
+                  <div className="checkin-summary-item-texts">
+                    <span className="checkin-summary-item-label">Dolor muscular</span>
+                    <strong className="checkin-summary-item-val">
+                      {muscleSoreness !== null ? getSorenessLabel(muscleSoreness) : 'No registrado'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. SUEÑO — Paso 2 */}
+              <div
+                className="checkin-summary-item"
+                onClick={() => onEditStep(2)}
+                role="button"
+                tabIndex={0}
+                title="Editar sueño"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditStep(2);
+                  }}
+                  className="checkin-summary-edit-btn"
+                  title="Editar sueño"
+                  aria-label="Editar sueño"
+                >
+                  <Edit2 size={14} />
+                </button>
+
+                <div className="checkin-summary-item-content">
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: sleepColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: `0 4px 10px ${sleepColor}40`,
+                    }}
+                  >
+                    <Moon size={22} color="var(--white)" fill="var(--white)" />
+                  </div>
+
+                  <div className="checkin-summary-item-texts">
+                    <span className="checkin-summary-item-label">Sueño</span>
+                    <strong className="checkin-summary-item-val">
+                      {getSleepHoursLabel(sleepHours)}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. ZONAS CON DOLOR — Paso 3 */}
+              <div
+                className="checkin-summary-item"
+                onClick={() => onEditStep(3)}
+                role="button"
+                tabIndex={0}
+                title="Editar zonas con dolor"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditStep(3);
+                  }}
+                  className="checkin-summary-edit-btn"
+                  title="Editar zonas con dolor"
+                  aria-label="Editar zonas con dolor"
+                >
+                  <Edit2 size={14} />
+                </button>
+
+                <div className="checkin-summary-item-content">
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: painZonesColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: `0 4px 10px ${painZonesColor}40`,
+                    }}
+                  >
+                    <Activity size={22} color="var(--white)" strokeWidth={2.6} />
+                  </div>
+
+                  <div className="checkin-summary-item-texts">
+                    <span className="checkin-summary-item-label">Zonas con dolor</span>
+                    <strong className="checkin-summary-item-val">
+                      {reportedCount === 0
+                        ? 'Sin zonas señaladas'
+                        : `${reportedCount} zona(s) marcada(s)`}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. FATIGA FÍSICA — Paso 2 */}
+              <div
+                className="checkin-summary-item"
+                onClick={() => onEditStep(2)}
+                role="button"
+                tabIndex={0}
+                title="Editar fatiga física"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditStep(2);
+                  }}
+                  className="checkin-summary-edit-btn"
+                  title="Editar fatiga física"
+                  aria-label="Editar fatiga física"
+                >
+                  <Edit2 size={14} />
+                </button>
+
+                <div className="checkin-summary-item-content">
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: fatigueColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: `0 4px 10px ${fatigueColor}40`,
+                    }}
+                  >
+                    <Zap size={22} color="var(--white)" fill="var(--white)" />
+                  </div>
+
+                  <div className="checkin-summary-item-texts">
+                    <span className="checkin-summary-item-label">Fatiga física</span>
+                    <strong className="checkin-summary-item-val">
+                      {fatigueLevel !== null ? getFatigueLabel(fatigueLevel) : 'No registrado'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. SALUD Y LESIÓN — Paso 3 */}
+              <div
+                className="checkin-summary-item"
+                onClick={() => onEditStep(3)}
+                role="button"
+                tabIndex={0}
+                title="Editar salud y lesión"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditStep(3);
+                  }}
+                  className="checkin-summary-edit-btn"
+                  title="Editar salud y lesión"
+                  aria-label="Editar salud y lesión"
+                >
+                  <Edit2 size={14} />
+                </button>
+
+                <div className="checkin-summary-item-content">
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: healthInjuryColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: `0 4px 10px ${healthInjuryColor}40`,
+                    }}
+                  >
+                    <HeartPulse size={22} color="var(--white)" strokeWidth={2.6} />
+                  </div>
+
+                  <div className="checkin-summary-item-texts">
+                    <span className="checkin-summary-item-label">Salud y Lesión</span>
+                    <strong
+                      className="checkin-summary-item-val"
+                      style={{
+                        color:
+                          isSick || effectiveHasActiveInjury
+                            ? 'var(--traffic-red)'
+                            : 'var(--traffic-green)',
+                      }}
+                    >
+                      {getHealthInjurySummary()}
+                    </strong>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Detalle de Zonas de Dolor Reportadas (si hay) */}
-          {reportedCount > 0 && (
+            {/* Detalle de Zonas de Dolor Reportadas (si hay) */}
+            {reportedCount > 0 && (
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '680px',
+                  marginBottom: '0.5rem',
+                  textAlign: 'left',
+                  boxSizing: 'border-box',
+                  fontFamily: 'var(--font-base)',
+                }}
+              >
+                <div style={{ marginBottom: '0.2rem' }}>
+                  <span
+                    style={{
+                      fontSize: '0.84rem',
+                      fontWeight: 800,
+                      color: 'var(--checkin-title-color)',
+                    }}
+                  >
+                    Detalle de zonas con dolor ({reportedCount}):
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.84rem',
+                    lineHeight: '1.5',
+                    color: 'var(--checkin-title-color)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.35rem 0.55rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  {reportedZones.map((reported, idx) => {
+                    const m = PROTRAINING_MUSCLES.find((x) => x.id === reported.zone);
+                    const isInjury = reported.level === 6;
+                    const painInfo = PAIN_LEVELS.find((p) => p.level === reported.level);
+                    const painLabel =
+                      painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${reported.level}`);
+                    const color = isInjury ? 'var(--traffic-red)' : getPainColor(reported.level);
+                    return (
+                      <span
+                        key={reported.zone}
+                        style={{ display: 'inline-flex', alignItems: 'center' }}
+                      >
+                        <span
+                          style={{
+                            width: '7px',
+                            height: '7px',
+                            borderRadius: '50%',
+                            background: color,
+                            marginRight: '0.35rem',
+                            flexShrink: 0,
+                          }}
+                        />
+                        <strong>{m?.name || reported.zone}:</strong>&nbsp;
+                        <span style={{ color, fontWeight: 700 }}>
+                          {painLabel}
+                          {reported.score !== null ? ` · ${reported.score}/10` : ''}
+                        </span>
+                        {idx < reportedZones.length - 1 && <span>,</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Observaciones adicionales (Opcional) */}
             <div
               style={{
                 width: '100%',
                 maxWidth: '680px',
-                marginBottom: '1.25rem',
-                textAlign: 'left',
-                boxSizing: 'border-box',
-                fontFamily: 'var(--font-base)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.3rem',
               }}
             >
-              <div style={{ marginBottom: '0.45rem' }}>
-                <span
-                  style={{
-                    fontSize: '0.84rem',
-                    fontWeight: 800,
-                    color: 'var(--checkin-title-color)',
-                  }}
-                >
-                  Detalle de molestias musculares ({reportedCount}):
-                </span>
-              </div>
-              <div
+              <label
+                htmlFor="checkin-notes-input"
                 style={{
-                  fontSize: '0.84rem',
-                  lineHeight: '1.5',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
                   color: 'var(--checkin-title-color)',
                   display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.35rem 0.55rem',
                   alignItems: 'center',
+                  gap: '0.35rem',
+                  fontFamily: 'var(--font-base)',
                 }}
               >
-                {reportedPains.map(([mId, lvl], idx) => {
-                  const m = PROTRAINING_MUSCLES.find((x) => x.id === mId);
-                  const painInfo = PAIN_LEVELS.find((p) => p.level === lvl);
-                  const isInjury = lvl === 6;
-                  const painLabel = painInfo?.name || (isInjury ? 'Lesión' : `Nivel ${lvl}`);
-                  const color = isInjury ? 'var(--traffic-red)' : getPainColor(lvl);
-                  return (
-                    <span key={mId} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                      <span
-                        style={{
-                          width: '7px',
-                          height: '7px',
-                          borderRadius: '50%',
-                          background: color,
-                          marginRight: '0.35rem',
-                          flexShrink: 0,
-                        }}
-                      />
-                      <strong>{m?.name || mId}:</strong>&nbsp;
-                      <span
-                        style={{ color: isInjury ? 'var(--traffic-red)' : color, fontWeight: 700 }}
-                      >
-                        {painLabel}
-                      </span>
-                      {idx < reportedPains.length - 1 && <span>,</span>}
-                    </span>
-                  );
-                })}
-              </div>
+                <MessageSquare size={15} style={{ color: 'var(--checkin-title-color)' }} />
+                <span>Observaciones adicionales para tu preparador físico (opcional):</span>
+              </label>
+              <textarea
+                id="checkin-notes-input"
+                value={notes}
+                onChange={(e) => onNotesChange(e.target.value)}
+                placeholder="Ej: Me siento con un poco de molestia en la rodilla al subir escaleras..."
+                rows={2}
+                style={{
+                  width: '100%',
+                  padding: '0.55rem 0.85rem',
+                  borderRadius: '14px',
+                  border: '1.5px solid var(--checkin-input-border)',
+                  background: 'var(--checkin-input-bg)',
+                  fontSize: '0.84rem',
+                  fontFamily: 'var(--font-base)',
+                  color: 'var(--checkin-input-color)',
+                  boxSizing: 'border-box',
+                  resize: 'none',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease',
+                }}
+              />
             </div>
-          )}
-
-          {/* Observaciones adicionales (Opcional) */}
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '680px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.45rem',
-            }}
-          >
-            <label
-              htmlFor="checkin-notes-input"
-              style={{
-                fontSize: '0.86rem',
-                fontWeight: 700,
-                color: 'var(--checkin-title-color)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontFamily: 'var(--font-base)',
-              }}
-            >
-              <MessageSquare size={16} style={{ color: 'var(--checkin-title-color)' }} />
-              <span>Observaciones adicionales para tu preparador físico (opcional):</span>
-            </label>
-            <textarea
-              id="checkin-notes-input"
-              value={notes}
-              onChange={(e) => onNotesChange(e.target.value)}
-              placeholder="Ej: Me siento con un poco de molestia en la rodilla al subir escaleras..."
-              rows={2}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '16px',
-                border: '1.5px solid var(--checkin-input-border)',
-                background: 'var(--checkin-input-bg)',
-                fontSize: '0.88rem',
-                fontFamily: 'var(--font-base)',
-                color: 'var(--checkin-input-color)',
-                boxSizing: 'border-box',
-                resize: 'none',
-                outline: 'none',
-                transition: 'border-color 0.2s ease',
-              }}
-            />
           </div>
         </div>
       </form>

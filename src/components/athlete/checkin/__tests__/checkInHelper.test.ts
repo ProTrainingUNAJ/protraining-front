@@ -7,10 +7,16 @@ import {
   canAutoAdvanceStep5,
   hasRequiredInjuryMark,
   clearInjuryPains,
+  mapClinicalInjuriesToMusclePains,
+  toDrawableMusclePains,
   getSleepQualityLabel,
   getFatigueLabel,
   getSorenessLabel,
   getSleepHoursLabel,
+  hasUnscoredActiveInjuries,
+  getInjuryScoreColor,
+  getReportedZones,
+  parsePainZones,
 } from '../checkInHelper';
 
 describe('checkInHelper', () => {
@@ -135,9 +141,11 @@ describe('checkInHelper', () => {
       expect(
         hasRequiredInjuryMark(true, {
           cuadriceps_derecho: 2,
-          tendon_aquiles_izquierdo: 6,
+          gemelo_izquierdo: 6,
         }),
       ).toBe(true);
+      // KAN-666: un 6 sobre algo que el mapa no dibuja no cuenta como marca
+      expect(hasRequiredInjuryMark(true, { tendon_aquiles_izquierdo: 6 })).toBe(false);
     });
   });
 
@@ -283,33 +291,259 @@ describe('checkInHelper', () => {
       expect(getCheckInDraft(athleteId)).toBeNull();
     });
 
-    it('saves and retrieves completed check-in', async () => {
-      const { saveCheckInCompleted, getCheckInCompleted } = await import('../checkInHelper');
+    it('saves and retrieves completed check-in without medical data', async () => {
+      const { saveCheckInCompleted, getCheckInCompleted, getTodayKey } =
+        await import('../checkInHelper');
 
       const mockCompleted = {
-        result: { id: 'checkin-999', trafficLight: 'Green' },
-        draft: {
-          hasStarted: true,
-          currentStep: 4,
-          maxReachedStep: 4,
-          sleepHours: 8,
-          sleepQuality: 5,
-          fatigueLevel: 1,
-          muscleSoreness: 1,
-          moodRate: 5,
-          stressLevel: 1,
-          isSick: false,
-          hasActiveInjury: false,
-          healthQuestionsAnswered: true,
-          musclePains: {},
-          notes: '',
-        },
+        trafficLight: 'Green' as const,
         completedAt: new Date().toISOString(),
       };
 
       saveCheckInCompleted(athleteId, mockCompleted);
       const retrieved = getCheckInCompleted(athleteId);
       expect(retrieved).toEqual(mockCompleted);
+
+      const stored =
+        localStorage.getItem(`protraining_checkin_completed_${athleteId}_${getTodayKey()}`) ?? '';
+      expect(stored).not.toContain('draft');
+      expect(stored).not.toContain('injuryScores');
     });
+
+    it('no persiste el motivo del semáforo aunque venga en los datos', async () => {
+      const { saveCheckInCompleted, getTodayKey } = await import('../checkInHelper');
+      const key = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
+
+      saveCheckInCompleted(athleteId, {
+        completedAt: new Date().toISOString(),
+        trafficLight: 'Red',
+        ...{ trafficLightReason: 'Lesión activa reportada' },
+      });
+
+      expect(localStorage.getItem(key)).not.toContain('trafficLightReason');
+      expect(localStorage.getItem(key)).not.toContain('Lesión activa reportada');
+    });
+
+    it('descarta el motivo del semáforo guardado por versiones anteriores', async () => {
+      const { getCheckInCompleted, getTodayKey } = await import('../checkInHelper');
+      const key = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          completedAt: new Date().toISOString(),
+          trafficLight: 'Yellow',
+          trafficLightReason: 'Fatiga moderada detectada',
+        }),
+      );
+
+      const completed = getCheckInCompleted(athleteId);
+
+      expect(completed?.trafficLight).toBe('Yellow');
+      expect(localStorage.getItem(key)).not.toContain('trafficLightReason');
+      expect(localStorage.getItem(key)).not.toContain('Fatiga moderada detectada');
+    });
+
+    it('purges legacy completed records that stored the medical draft', async () => {
+      const { purgeLegacyCheckInCompletedData, getTodayKey } = await import('../checkInHelper');
+      const legacyKey = `protraining_checkin_completed_${athleteId}_2026-11-01`;
+      const currentKey = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
+
+      localStorage.setItem(
+        legacyKey,
+        JSON.stringify({
+          result: { trafficLight: 'Green' },
+          draft: { injuryScores: { rodilla: 8 }, notes: 'Dolor' },
+          completedAt: '2026-11-01T08:00:00Z',
+        }),
+      );
+      localStorage.setItem(
+        currentKey,
+        JSON.stringify({
+          trafficLight: 'Red',
+          completedAt: new Date().toISOString(),
+        }),
+      );
+
+      purgeLegacyCheckInCompletedData(athleteId);
+
+      expect(localStorage.getItem(legacyKey)).toBeNull();
+      expect(localStorage.getItem(currentKey)).not.toBeNull();
+    });
+
+    it('purges drafts and completions from previous days and keeps today ones', async () => {
+      const { purgeStaleCheckInData, getTodayKey } = await import('../checkInHelper');
+      const yesterdayDraft = `protraining_checkin_draft_${athleteId}_2026-11-21`;
+      const yesterdayCompleted = `protraining_checkin_completed_otro-atleta_2026-11-21`;
+      const todayDraft = `protraining_checkin_draft_${athleteId}_${getTodayKey()}`;
+
+      localStorage.setItem(yesterdayDraft, JSON.stringify({ isSick: true, notes: 'Dolor' }));
+      localStorage.setItem(yesterdayCompleted, JSON.stringify({ completedAt: '2026-11-21' }));
+      localStorage.setItem(todayDraft, JSON.stringify({ hasStarted: true }));
+
+      purgeStaleCheckInData();
+
+      expect(localStorage.getItem(yesterdayDraft)).toBeNull();
+      expect(localStorage.getItem(yesterdayCompleted)).toBeNull();
+      expect(localStorage.getItem(todayDraft)).not.toBeNull();
+    });
+  });
+});
+
+// KAN-487: una molestia activa sin puntaje bloquea el avance y el envío del check-in.
+describe('checkInHelper · KAN-487', () => {
+  describe('hasUnscoredActiveInjuries', () => {
+    it('bloquea cuando una molestia activa no tiene puntaje', () => {
+      const injuries = [{ id: 'rodilla' }, { id: 'hombro' }];
+      const scores = { rodilla: 4, hombro: null };
+
+      expect(hasUnscoredActiveInjuries(injuries, scores)).toBe(true);
+    });
+
+    it('bloquea cuando la molestia activa no está en el payload', () => {
+      expect(hasUnscoredActiveInjuries([{ id: 'rodilla' }], {})).toBe(true);
+    });
+
+    it('acepta 0 como puntaje válido', () => {
+      expect(hasUnscoredActiveInjuries([{ id: 'rodilla' }], { rodilla: 0 })).toBe(false);
+    });
+
+    it('no bloquea si no hay molestias activas', () => {
+      expect(hasUnscoredActiveInjuries([], {})).toBe(false);
+    });
+  });
+
+  describe('getInjuryScoreColor', () => {
+    it('usa un token CSS para el botón seleccionado', () => {
+      expect(getInjuryScoreColor(true)).toBe('var(--on-primary)');
+    });
+
+    it('deja el color por defecto para el botón no seleccionado', () => {
+      expect(getInjuryScoreColor(false)).toBe('inherit');
+    });
+  });
+});
+
+// la ficha clínica y la silueta describen las mismas zonas; se consolidan en una sola.
+describe('checkInHelper · ficha clínica y silueta', () => {
+  describe('hasRequiredInjuryMark con lesión clínica (KAN-660)', () => {
+    it('exige pintar de negro (nivel 6) la lesión en el cuerpo humano para poder avanzar', () => {
+      // Si el atleta tiene lesión activa pero el mapa aún no tiene nivel 6, no debe permitir avanzar
+      expect(hasRequiredInjuryMark(true, {})).toBe(false);
+      expect(hasRequiredInjuryMark(true, { isquiotibiales: 3 })).toBe(false);
+
+      // Una vez marcada con nivel 6 (o mapeada automáticamente), permite avanzar
+      expect(hasRequiredInjuryMark(true, { isquiotibial_derecho: 6 })).toBe(true);
+    });
+
+    it('permite avanzar si el atleta indica que no hay lesión (hasActiveInjury === false)', () => {
+      expect(hasRequiredInjuryMark(false, {})).toBe(true);
+      expect(hasRequiredInjuryMark(false, { cuadriceps: 2 })).toBe(true);
+    });
+
+    it('sigue exigiendo la marca manual si no hay lesión clínica pero se indicó lesión activa', () => {
+      expect(hasRequiredInjuryMark(true, { cuadriceps_derecho: 2 })).toBe(false);
+      expect(hasRequiredInjuryMark(true, { cuadriceps_derecho: 6 })).toBe(true);
+      // KAN-666: el nombre del grupo ("cuadriceps") no se dibuja, así que no alcanza
+      expect(hasRequiredInjuryMark(true, { cuadriceps: 6 })).toBe(false);
+    });
+  });
+
+  describe('mapClinicalInjuriesToMusclePains (KAN-660)', () => {
+    it('mapea lesiones reportadas a identificadores anatómicos del cuerpo humano con nivel 6', () => {
+      const pains = mapClinicalInjuriesToMusclePains([
+        { zone: 'Isquiotibiales' },
+        { zone: 'Rodilla izquierda' },
+      ]);
+      expect(pains.isquiotibial_derecho).toBe(6);
+      expect(pains.isquiotibial_izquierdo).toBe(6);
+      expect(pains.rodilla_izquierda).toBe(6);
+    });
+
+    it('devuelve objeto vacío si no hay lesiones reportadas', () => {
+      expect(mapClinicalInjuriesToMusclePains([])).toEqual({});
+    });
+  });
+
+  describe('getReportedZones', () => {
+    it('consolida zonas manuales y clínicas sin duplicarlas y prevalece el marcador clínico', () => {
+      const zones = getReportedZones(
+        { cuadriceps: 2, isquiotibiales: 3 },
+        [{ id: 'inj-1', zone: 'Isquiotibiales', description: 'Distensión' }],
+        { 'inj-1': 7 },
+      );
+
+      expect(zones).toHaveLength(2);
+      expect(zones.find((z) => z.zone === 'cuadriceps')).toMatchObject({
+        level: 2,
+        source: 'manual',
+        score: null,
+      });
+      expect(zones.find((z) => z.zone.toLowerCase() === 'isquiotibiales')).toMatchObject({
+        level: 6,
+        source: 'both',
+        score: 7,
+        description: 'Distensión',
+      });
+    });
+
+    it('conserva el 0 como puntaje válido y no lo transforma en "sin puntuar"', () => {
+      const zones = getReportedZones(
+        {},
+        [{ id: 'inj-1', zone: 'gemelos', description: 'Contractura' }],
+        { 'inj-1': 0 },
+      );
+
+      expect(zones).toEqual([
+        {
+          zone: 'gemelos',
+          level: 6,
+          source: 'clinical',
+          score: 0,
+          description: 'Contractura',
+        },
+      ]);
+    });
+  });
+
+  describe('parsePainZones', () => {
+    it('lee el formato canónico del backend', () => {
+      expect(parsePainZones('cuadriceps:2,isquiotibiales:6')).toEqual({
+        cuadriceps: 2,
+        isquiotibiales: 6,
+      });
+    });
+
+    it('ignora listas vacías y entradas sin nivel', () => {
+      expect(parsePainZones('[],cuadriceps:2,sin-nivel,{}')).toEqual({ cuadriceps: 2 });
+      expect(parsePainZones(null)).toEqual({});
+      expect(parsePainZones(undefined)).toEqual({});
+    });
+  });
+});
+
+describe('toDrawableMusclePains (KAN-666)', () => {
+  it('pasa el grupo guardado a los músculos del dibujo y conserva el nivel', () => {
+    expect(toDrawableMusclePains({ isquiotibiales: 6 })).toEqual({
+      isquiotibial_derecho: 6,
+      isquiotibial_izquierdo: 6,
+    });
+    expect(toDrawableMusclePains({ hombros: 6, cuadriceps_derecho: 3 })).toEqual({
+      hombro_derecho: 6,
+      hombro_izquierdo: 6,
+      cuadriceps_derecho: 3,
+    });
+  });
+
+  it('si dos zonas caen en el mismo músculo queda el nivel más alto, y no pierde zonas desconocidas', () => {
+    expect(toDrawableMusclePains({ isquiotibial_derecho: 2, isquiotibiales: 6 })).toEqual({
+      isquiotibial_derecho: 6,
+      isquiotibial_izquierdo: 6,
+    });
+    expect(toDrawableMusclePains({ zona_rara: 3 })).toEqual({ zona_rara: 3 });
+  });
+
+  it('el pre-marcado de una lesión clínica cuenta 2 zonas dibujables, no 3', () => {
+    const pains = mapClinicalInjuriesToMusclePains([{ zone: 'Isquiotibiales' }]);
+    expect(Object.keys(pains).sort()).toEqual(['isquiotibial_derecho', 'isquiotibial_izquierdo']);
   });
 });

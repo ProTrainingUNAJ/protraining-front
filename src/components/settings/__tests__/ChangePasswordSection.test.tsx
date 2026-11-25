@@ -36,6 +36,11 @@ vi.mock('../../../api/authService', () => ({
 vi.mock('../../../api/users', () => ({
   usersService: {
     updateWhatsAppPhone: vi.fn().mockResolvedValue({ phoneNumber: '5491123456789' }),
+    getMyPhotoUrl: vi.fn().mockReturnValue(null),
+    uploadMyPhoto: vi.fn().mockResolvedValue(undefined),
+    deleteMyPhoto: vi.fn().mockResolvedValue(undefined),
+    getPfHabitsRecommendations: vi.fn().mockResolvedValue({ enabled: true }),
+    updatePfHabitsRecommendations: vi.fn().mockResolvedValue({ enabled: true }),
   },
 }));
 
@@ -65,6 +70,9 @@ describe('ChangePasswordSection (KAN-538)', () => {
       </MemoryRouter>,
     );
 
+    const securityTab = screen.getByRole('tab', { name: /Seguridad/i });
+    fireEvent.click(securityTab);
+
     expect(screen.getByTestId('change-password-section')).toBeDefined();
     expect(screen.getByText('Cambiar Contraseña')).toBeDefined();
     expect(screen.getByTestId('current-password-input')).toBeDefined();
@@ -78,6 +86,9 @@ describe('ChangePasswordSection (KAN-538)', () => {
         <SettingsView role="athlete" />
       </MemoryRouter>,
     );
+
+    const securityTab = screen.getByRole('tab', { name: /Seguridad/i });
+    fireEvent.click(securityTab);
 
     expect(screen.getByTestId('change-password-section')).toBeDefined();
     expect(screen.getByText('Cambiar Contraseña')).toBeDefined();

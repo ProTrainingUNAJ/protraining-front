@@ -1,53 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Info, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../api/authService';
 import { extractErrorMessage } from '../../api/axiosClient';
+import {
+  getGoogleClientId,
+  isGoogleAuthConfigured,
+  loadGoogleIdentityApi,
+} from '../../utils/googleIdentity';
 import { ThemeToggle } from './ThemeToggle';
 import { ProTrainingLogo } from '../brand/ProTrainingLogo';
 
-const GoogleIcon: React.FC = () => (
-  <svg className="google-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      fill="var(--color-google-blue)"
-      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-    />
-    <path
-      fill="var(--color-google-green)"
-      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-    />
-    <path
-      fill="var(--color-google-yellow)"
-      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-    />
-    <path
-      fill="var(--color-google-red)"
-      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-    />
-  </svg>
-);
-
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, loginWithGoogle } = useAuth();
-  // Bandera para Google Login (KAN-551). Apagada por defecto; se activa con VITE_GOOGLE_LOGIN_ENABLED=true
-  const isGoogleLoginEnabled = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === 'true';
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  // Bandera para Google Login (KAN-551 / KAN-541): solo visible si está habilitado y tiene Client ID
+  const isGoogleLoginEnabled = isGoogleAuthConfigured();
+  const googleClientId = getGoogleClientId();
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const loginWithGoogleRef = useRef(loginWithGoogle);
+  useEffect(() => {
+    loginWithGoogleRef.current = loginWithGoogle;
+  }, [loginWithGoogle]);
 
-  const [email, setEmail] = useState('');
+  const searchParams = new URLSearchParams(location.search);
+  const passedEmail =
+    (location.state as { email?: string } | null)?.email || searchParams.get('email') || '';
+
+  const [email, setEmail] = useState(passedEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
-
-  // Modal informativo para funcionalidades sin soporte de backend
-  const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; content: string }>({
-    isOpen: false,
-    title: '',
-    content: '',
-  });
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState<string | null>(null);
+  const redirectSuccessMessage =
+    (location.state as { successMessage?: string } | null)?.successMessage ?? null;
 
   // Validaciones del lado del cliente
   const validate = (): boolean => {
@@ -70,9 +62,25 @@ export const LoginForm: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleResendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+    setResendLoading(true);
+    setResendSuccess(null);
+    try {
+      await authService.resendConfirmation(unconfirmedEmail);
+      setResendSuccess(`Te enviamos un nuevo mail a ${unconfirmedEmail}. Confirmalo para entrar.`);
+    } catch (err: unknown) {
+      setErrorMessage(extractErrorMessage(err));
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setUnconfirmedEmail(null);
+    setResendSuccess(null);
 
     if (!validate()) {
       return;
@@ -82,95 +90,113 @@ export const LoginForm: React.FC = () => {
 
     try {
       const session = await login({ email: email.trim(), password });
+      if (session.user.mustChangePassword) {
+        navigate('/force-change-password', { replace: true });
+        return;
+      }
       navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
     } catch (err: unknown) {
       const msg = extractErrorMessage(err);
-      setErrorMessage(msg);
+      const is403 =
+        (typeof err === 'object' &&
+          err !== null &&
+          'status' in err &&
+          (err as { status?: number }).status === 403) ||
+        (typeof err === 'object' &&
+          err !== null &&
+          'response' in err &&
+          (err as { response?: { status?: number } }).response?.status === 403) ||
+        msg.toLowerCase().includes('confirmá tu email') ||
+        msg.toLowerCase().includes('confirma tu email');
+
+      if (is403) {
+        setUnconfirmedEmail(email.trim());
+        setErrorMessage('Confirmá tu email para entrar');
+      } else {
+        setUnconfirmedEmail(null);
+        setErrorMessage(msg);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!isGoogleLoginEnabled || !googleClientId) return;
+    if (!isGoogleLoginEnabled || !googleClientId || !googleButtonRef.current) return;
 
-    if (!document.getElementById('google-gsi-client')) {
-      const script = document.createElement('script');
-      script.id = 'google-gsi-client';
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, [isGoogleLoginEnabled, googleClientId]);
+    let cancelled = false;
+    const container = googleButtonRef.current;
 
-  const handleGoogleClick = async () => {
-    setErrorMessage('');
-    if (!isGoogleLoginEnabled) return;
+    loadGoogleIdentityApi()
+      .then((googleId) => {
+        if (cancelled || !container) return;
+        container.innerHTML = '';
 
-    if (!googleClientId) {
-      setErrorMessage('La integración con Google no cuenta con Client ID configurado.');
-      return;
-    }
+        googleId.initialize({
+          client_id: googleClientId,
+          callback: async (response: { credential?: string }) => {
+            if (!response?.credential) {
+              setLoading(false);
+              setErrorMessage('No se recibió la credencial de autenticación de Google.');
+              return;
+            }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const google = (window as unknown as { google?: any }).google;
-    if (!google?.accounts?.id) {
-      setErrorMessage(
-        'El servicio de autenticación de Google no está disponible en este momento. Intentá nuevamente.',
-      );
-      return;
-    }
+            setErrorMessage('');
+            setUnconfirmedEmail(null);
+            setResendSuccess(null);
+            setLoading(true);
 
-    setLoading(true);
+            try {
+              const handler = loginWithGoogleRef.current;
+              const session = await (handler
+                ? handler(response.credential)
+                : authService.loginWithGoogle(response.credential));
+              if (session.user.mustChangePassword) {
+                navigate('/force-change-password', { replace: true });
+                return;
+              }
+              navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
+            } catch (err: unknown) {
+              const msg = extractErrorMessage(err);
+              setErrorMessage(msg);
+            } finally {
+              setLoading(false);
+            }
+          },
+        });
 
-    try {
-      google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: async (response: { credential?: string }) => {
-          if (!response?.credential) {
-            setLoading(false);
-            setErrorMessage('No se recibió la credencial de autenticación de Google.');
-            return;
-          }
+        const buttonWidth = container.clientWidth > 0 ? Math.min(400, container.clientWidth) : 378;
 
-          try {
-            const session = await (loginWithGoogle
-              ? loginWithGoogle(response.credential)
-              : authService.loginWithGoogle(response.credential));
-            navigate(session.user.role === 'PreparadorFisico' ? '/pf' : '/athlete');
-          } catch (err: unknown) {
-            const msg = extractErrorMessage(err);
-            setErrorMessage(msg);
-          } finally {
-            setLoading(false);
-          }
-        },
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      google.accounts.id.prompt((notification: any) => {
-        if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
-          setLoading(false);
+        googleId.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'pill',
+          width: buttonWidth,
+          locale: 'es',
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setErrorMessage(
+            'El servicio de autenticación de Google no está disponible en este momento. Intentá nuevamente.',
+          );
         }
       });
-    } catch (err: unknown) {
-      setLoading(false);
-      const msg = extractErrorMessage(err);
-      setErrorMessage(msg);
-    }
-  };
+
+    return () => {
+      cancelled = true;
+      if (container) {
+        container.innerHTML = '';
+      }
+    };
+  }, [isGoogleLoginEnabled, googleClientId, navigate]);
   const handleForgotPasswordClick = () => {
     navigate('/forgot-password');
   };
 
   const handleRegisterClick = () => {
-    setInfoModal({
-      isOpen: true,
-      title: 'Registro de Cuentas',
-      content:
-        'El registro público directo no está disponible. Las cuentas de Preparadores Físicos y Alumnos son gestionadas y dadas de alta institucionalmente por la dirección deportiva de tu club o entidad.',
-    });
+    navigate('/registro');
   };
 
   return (
@@ -198,7 +224,39 @@ export const LoginForm: React.FC = () => {
       {errorMessage && (
         <div className="alert-box alert-danger" role="alert" aria-live="assertive">
           <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>{errorMessage}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%' }}>
+            <div>{errorMessage}</div>
+            {unconfirmedEmail && (
+              <div style={{ marginTop: '0.2rem' }}>
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading}
+                  className="auth-resend-inline-btn"
+                  id="btn-resend-login-alert"
+                >
+                  <RefreshCw size={13} className={resendLoading ? 'animate-spin' : ''} />
+                  <span>{resendLoading ? 'Enviando...' : 'Reenviar mail'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Alerta de Éxito al reenviar confirmación */}
+      {resendSuccess && (
+        <div className="alert-box alert-success" role="status">
+          <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>{resendSuccess}</div>
+        </div>
+      )}
+
+      {/* Alerta de Éxito redirigido (ej: contraseña cambiada) */}
+      {redirectSuccessMessage && !errorMessage && !resendSuccess && (
+        <div className="alert-box alert-success" role="status">
+          <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>{redirectSuccessMessage}</div>
         </div>
       )}
 
@@ -295,21 +353,17 @@ export const LoginForm: React.FC = () => {
           )}
         </button>
 
-        {/* Opción de Iniciar Sesión con Google (oculta por defecto mediante bandera KAN-551) */}
+        {/* Opción oficial de Iniciar Sesión con Google (oculta si falta bandera o Client ID - KAN-551 / KAN-541) */}
         {isGoogleLoginEnabled && (
-          <button
-            type="button"
-            onClick={handleGoogleClick}
-            disabled={loading}
-            className="btn-pill-google"
-            id="btn-login-google"
-          >
-            <GoogleIcon />
-            <span>Iniciar sesión con Google</span>
-          </button>
+          <div
+            ref={googleButtonRef}
+            data-testid="google-signin-button-container"
+            aria-label="Continuar con Google"
+            className="auth-google-btn-container"
+          />
         )}
 
-        {/* Accesos Secundarios: Recuperación de contraseña habilitada (#KAN-540) */}
+        {/* Accesos Secundarios: Recuperación de contraseña y Registro (KAN-660) */}
         <div className="auth-secondary-actions">
           <button
             type="button"
@@ -320,60 +374,16 @@ export const LoginForm: React.FC = () => {
             Olvidé mi contraseña
           </button>
 
-          <span className="auth-secondary-divider" aria-hidden="true">
-            •
-          </span>
-
           <button
             type="button"
             onClick={handleRegisterClick}
-            disabled
             className="auth-secondary-btn"
-            title="Próximamente disponible"
+            id="btn-register-link"
           >
-            Registrarse (Próximamente)
+            Registrate
           </button>
         </div>
       </form>
-
-      {/* Modal Informativo para Funcionalidades Administrativas / Sin Endpoint */}
-      {infoModal.isOpen && (
-        <div
-          className="auth-info-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-info-title"
-        >
-          <div className="auth-info-modal-card">
-            <div className="auth-info-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Info size={20} color="var(--color-primary)" />
-                <h2 id="modal-info-title" className="font-extrabold auth-info-modal-title">
-                  {infoModal.title}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })}
-                className="auth-info-modal-close"
-                aria-label="Cerrar ventana informativa"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <p className="font-medium auth-info-modal-body">{infoModal.content}</p>
-            <div className="auth-info-modal-footer">
-              <button
-                type="button"
-                onClick={() => setInfoModal({ isOpen: false, title: '', content: '' })}
-                className="btn-pill-primary auth-info-modal-btn"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

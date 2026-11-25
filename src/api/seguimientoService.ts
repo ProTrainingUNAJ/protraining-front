@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { httpClient, extractErrorMessage } from './axiosClient';
 import {
+  getActiveInjuriesSummary as getActiveInjuriesSummarySdk,
+  type AthleteActiveInjurySummary,
+} from './generated/seguimiento';
+import {
   saveOfflineCheckIn,
   getPendingCheckIns,
   deletePendingCheckIn,
@@ -14,6 +18,8 @@ import {
   TrafficLightStatus,
 } from '../components/monitoring/trafficLight.types';
 import { PROTRAINING_MUSCLES } from '../components/athlete/bodyMuscleData';
+import { OFFICIAL_JOINTS, OFFICIAL_MUSCLE_GROUPS } from '../components/athlete/muscleMap.config';
+import { resolveMuscleId } from '../utils/painMuscleResolver';
 import { Category } from '../types/structure';
 import type { AthleteWeek } from '../types/seguimiento';
 import { getAthleteWeek as getAthleteWeekRequest } from './generated/seguimiento';
@@ -24,6 +30,7 @@ import {
   getCategoryTrafficLightToday as getCategoryTrafficLightTodayRequest,
   setAttendance as setAttendanceRequest,
   type AthleteTrafficLightSummary,
+  type AthleteAttendanceSummary,
   type DailyLoadActivity,
   type DailyLoadRequest,
   type DailyLoadResponse,
@@ -42,31 +49,14 @@ export interface CheckInSubmitRequest {
   isSick: boolean;
   painZones?: string | null;
   hasActiveInjury: boolean;
-}
-
-export interface CheckInEntityDto {
-  id: string;
-  athleteId: string;
-  date: string;
-  trafficLight: 'Green' | 'Yellow' | 'Red';
-  trafficLightReason?: string | null;
-  sleepHours: number;
-  sleepQuality?: number;
-  muscleSoreness: number;
-  fatigueLevel: number;
-  moodRate: number;
-  stressLevel: number;
-  effortRate?: number;
-  isSick: boolean;
-  painZones?: string | null;
-  hasActiveInjury: boolean;
+  injuries?: { injuryId: string; level: number }[];
 }
 
 export interface CheckInSubmitResponse {
   message: string;
   trafficLight: 'Green' | 'Yellow' | 'Red';
   trafficLightReason?: string | null;
-  checkIn?: CheckInEntityDto;
+  checkIn?: CheckIn;
   isOffline?: boolean;
 }
 
@@ -219,17 +209,46 @@ function resolveStatus(summary: AthleteTrafficLightSummary): TrafficLightStatus 
   return 'green';
 }
 
-// painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3").
-function parsePainZones(raw?: string | null): PainZoneReport[] {
+const OFFICIAL_MUSCLE_IDS = new Set<string>([
+  ...OFFICIAL_MUSCLE_GROUPS.map((region) => region.id),
+  ...OFFICIAL_JOINTS.map((joint) => joint.id),
+]);
+
+// painZones viene como "muscleId:nivel,muscleId:nivel" (ej: "cuadriceps_derecho:3", nivel 6 = lesión activa).
+export function parsePainZones(raw?: string | null): PainZoneReport[] {
   if (!raw?.trim()) return [];
 
   return raw.split(',').flatMap((entry): PainZoneReport[] => {
     const [muscleId, levelRaw] = entry.split(':').map((part) => part.trim());
-    const level = Number(levelRaw);
-    if (!muscleId || !Number.isFinite(level) || level <= 0) return [];
+    if (!muscleId) return [];
 
-    const muscle = PROTRAINING_MUSCLES.find((item) => item.id === muscleId);
-    return [{ zone: muscle?.name ?? muscleId, muscleId, level: Math.min(5, level) }];
+    const isInjury =
+      levelRaw?.toLowerCase().includes('activa') ||
+      levelRaw?.toLowerCase().includes('lesion') ||
+      levelRaw?.toLowerCase().includes('injury') ||
+      levelRaw === '6';
+
+    const numLevel = Number(levelRaw);
+    const level = isInjury
+      ? 6
+      : Number.isFinite(numLevel) && numLevel > 0
+        ? Math.min(5, numLevel)
+        : 0;
+    if (level <= 0) return [];
+
+    const muscle = PROTRAINING_MUSCLES.find(
+      (item) => item.id.toLowerCase() === muscleId.toLowerCase(),
+    );
+
+    // el backend agrega las lesiones clínicas con el id heredado de la ficha
+    // ("isquiotibiales"), que no es una región del SVG ("isquiotibial_derecho"). Si el id
+    // no es oficial, lo resolvemos por nombre para que el mapa del PF pinte la lesión.
+    const canonicalId = muscle?.id ?? muscleId;
+    const resolvedMuscleId = OFFICIAL_MUSCLE_IDS.has(canonicalId)
+      ? canonicalId
+      : resolveMuscleId(muscle?.name ?? muscleId);
+
+    return [{ zone: muscle?.name ?? muscleId, muscleId: resolvedMuscleId || undefined, level }];
   });
 }
 
@@ -294,6 +313,10 @@ export function mapTrafficLightSummaryToItem(
     affectedMuscle: worstPain?.zone,
     isSick: indicators?.isSick,
     hasActiveInjury: indicators?.hasActiveInjury,
+    avatarUrl:
+      typeof structureService?.getAthletePhotoUrl === 'function'
+        ? structureService.getAthletePhotoUrl(summary.athleteId)
+        : `/api/estructura/api/v1/athletes/${summary.athleteId}/photo`,
   };
 }
 
@@ -321,46 +344,6 @@ export async function getCategoryTrafficLightToday(
     }
     throw new Error(extractErrorMessage(err), { cause: err });
   }
-}
-
-/**
- * Agrega el semáforo de TODAS las categorías visibles para el preparador físico
- * (dashboard: donas, alertas de dolor y progreso de check-in). Alimenta también
- * la deduplicación de atletas que pertenecen a más de una categoría.
- * Modo degradado: si la estructura de organizaciones/categorías cae o
- * una categoría responde error, esa categoría se omite silenciosamente y el
- * resto del plantel se sigue mostrando; nunca rompe el dashboard completo.
- */
-export async function fetchAllCategoriesTrafficLight(): Promise<AthleteTrafficLightItem[]> {
-  const organizations = await structureService.getOrganizations().catch(() => []);
-  const categoriesByOrg = await Promise.all(
-    organizations.map((organization) =>
-      structureService.getCategories(organization.id).catch(() => [] as Category[]),
-    ),
-  );
-  const categories = categoriesByOrg.flat();
-  if (categories.length === 0) return [];
-
-  const results = await Promise.all(
-    categories.map(async (category) => {
-      try {
-        const summaries = await getCategoryTrafficLightToday(category.id);
-        return summaries.map((summary) => mapTrafficLightSummaryToItem(summary, category.name));
-      } catch {
-        return [] as AthleteTrafficLightItem[];
-      }
-    }),
-  );
-
-  // Un atleta puede pertenecer a más de una categoría: se deduplica por id.
-  const seen = new Set<string>();
-  const unique: AthleteTrafficLightItem[] = [];
-  for (const item of results.flat()) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    unique.push(item);
-  }
-  return unique;
 }
 
 /**
@@ -399,6 +382,7 @@ export interface AthleteInjury {
   status: InjuryStatus;
   clearedAt?: string | null;
   createdAt: string;
+  peakPain?: number | null;
 }
 
 export interface CreateInjuryPayload {
@@ -432,6 +416,62 @@ export async function listAthleteInjuries(athleteId: string): Promise<AthleteInj
   }
 }
 
+/**
+ * Resumen batch de lesiones activas (estado Active) por lote de atletas (GET `getActiveInjuriesSummary`).
+ * Evita consultas N+1 cuando se muestra una categoría completa en planificaciones (KAN-464).
+ */
+export async function getActiveInjuriesSummary(
+  athleteIds: string[],
+): Promise<AthleteActiveInjurySummary[]> {
+  const distinctIds = Array.from(new Set(athleteIds.filter(Boolean)));
+  if (distinctIds.length === 0) return [];
+
+  try {
+    const { data } = await getActiveInjuriesSummarySdk({
+      query: { athleteIds: distinctIds },
+      throwOnError: true,
+    });
+    return data ?? [];
+  } catch (err: unknown) {
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Molestias activas del atleta (GET listCheckInInjuries): las que aun no fueron dadas de alta,
+ * para exigir el puntaje de dolor (0 a 10) de cada una en el check-in diario.
+ */
+export async function listCheckInInjuries(athleteId: string): Promise<AthleteInjury[]> {
+  try {
+    const response = await httpClient.get<AthleteInjury[]>(
+      '/seguimiento/api/v1/athletes/' + athleteId + '/check-in/injuries',
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
+    }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
+
+/**
+ * Molestias resueltas del atleta (GET listResolvedInjuries): las que ya fueron dadas
+ * de alta, con su pico de dolor (máximo nivel registrado durante su evolución).
+ */
+export async function listResolvedInjuries(athleteId: string): Promise<AthleteInjury[]> {
+  try {
+    const response = await httpClient.get<AthleteInjury[]>(
+      '/seguimiento/api/v1/athletes/' + athleteId + '/check-in/injuries/resolved',
+    );
+    return response.data ?? [];
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      throw new Error('El atleta solicitado no existe o fue eliminado.', { cause: err });
+    }
+    throw new Error(extractErrorMessage(err), { cause: err });
+  }
+}
 /**
  * Registra una lesión (POST `createInjury`): nace en `Active` y el backend
  * exige fecha de retorno estimada posterior a la de la lesión (400 si no).
@@ -476,6 +516,7 @@ export async function updateInjuryStatus(
 // ---------------------------------------------------------------------------
 
 // Aliases de tipos para compatibilidad con consumidores existentes.
+export type { DailyLoadActivity, DailyLoadRequest, DailyLoadResponse };
 export type DailyLoadActivityPayload = DailyLoadActivity;
 export type DailyLoadSubmitRequest = DailyLoadRequest;
 export type DailyLoadSubmitResponse = DailyLoadResponse;
@@ -546,7 +587,11 @@ export async function getAthleteWeek(athleteId: string, date?: string): Promise<
 // ---------------------------------------------------------------------------
 
 // AthleteAttendanceSummary y CategoryAttendanceSummary provienen del SDK generado.
-export type { AthleteAttendanceSummary, CategoryAttendanceSummary } from './generated/seguimiento';
+export type {
+  AthleteAttendanceSummary,
+  CategoryAttendanceSummary,
+  AttendanceActivityDetail,
+} from './generated/seguimiento';
 
 export async function getCategoryAttendanceToday(
   categoryId: string,
@@ -574,6 +619,49 @@ export async function setAttendance(athleteId: string, present: boolean): Promis
   }
 }
 
+/**
+ * Recupera la asistencia y carga acumulada (UA Foster) de hoy para todas las categorías del PF.
+ * Deduplica atletas por athleteId conservando el registro con mayor carga.
+ */
+export async function fetchAllCategoriesAttendanceToday(): Promise<AthleteAttendanceSummary[]> {
+  try {
+    const organizations = await structureService.getOrganizations().catch(() => []);
+    if (!organizations || organizations.length === 0) return [];
+
+    const categoriesByOrg = await Promise.all(
+      organizations.map((org) =>
+        structureService.getCategories(org.id).catch(() => [] as Category[]),
+      ),
+    );
+    const categories = categoriesByOrg.flat();
+    if (categories.length === 0) return [];
+
+    const summaries = await Promise.all(
+      categories.map(async (category) => {
+        try {
+          const attendance = await getCategoryAttendanceToday(category.id);
+          return attendance.athletes ?? [];
+        } catch {
+          return [] as AthleteAttendanceSummary[];
+        }
+      }),
+    );
+
+    const athleteMap = new Map<string, AthleteAttendanceSummary>();
+    for (const athlete of summaries.flat()) {
+      if (!athlete || !athlete.athleteId) continue;
+      const existing = athleteMap.get(athlete.athleteId);
+      if (!existing || (athlete.totalLoad ?? 0) > (existing.totalLoad ?? 0)) {
+        athleteMap.set(athlete.athleteId, athlete);
+      }
+    }
+
+    return Array.from(athleteMap.values());
+  } catch {
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Athlete daily check-in inquiry
 // ---------------------------------------------------------------------------
@@ -581,31 +669,44 @@ export async function setAttendance(athleteId: string, present: boolean): Promis
 export type { CheckIn };
 
 /**
- * Retrieves today's check-in for the athlete (if any).
- * Returns null if no check-in was registered for today.
+ * Check-ins del atleta entre dos fechas (AAAA-MM-DD, incluidas), para "Mis últimos 7 días" del Inicio
+ * del atleta (KAN-594). Los errores se propagan: no es lo mismo "no hizo check-in" que "no se pudo leer".
+ */
+export async function listAthleteCheckIns(
+  athleteId: string,
+  from: string,
+  to: string,
+): Promise<CheckIn[]> {
+  const response = await httpClient.get<CheckIn[]>(
+    `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
+    { params: { from, to } },
+  );
+  return Array.isArray(response.data) ? response.data : [];
+}
+
+/**
+ * Devuelve el check-in de hoy del atleta, o null solo si no hay uno registrado.
+ * Los errores de red o de la API se propagan para que el llamador pueda distinguir
+ * "sin check-in" de "no se pudo recuperar" (por ejemplo, al editar respuestas).
  */
 export async function getAthleteTodayCheckIn(
   athleteId: string,
   targetDate?: string,
 ): Promise<CheckIn | null> {
   const date = targetDate || todayInArgentina();
-  try {
-    const response = await httpClient.get<CheckIn[]>(
-      `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
-      {
-        params: {
-          from: date,
-          to: date,
-          limit: 1,
-        },
+  const response = await httpClient.get<CheckIn[]>(
+    `/seguimiento/api/v1/athletes/${athleteId}/check-ins`,
+    {
+      params: {
+        from: date,
+        to: date,
+        limit: 1,
       },
-    );
-    const list = response.data;
-    if (Array.isArray(list) && list.length > 0) {
-      return list[0];
-    }
-    return null;
-  } catch {
-    return null;
+    },
+  );
+  const list = response.data;
+  if (Array.isArray(list) && list.length > 0) {
+    return list[0];
   }
+  return null;
 }

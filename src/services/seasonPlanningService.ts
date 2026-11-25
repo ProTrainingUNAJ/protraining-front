@@ -20,6 +20,7 @@ export const seasonPlanningService = {
     selectedCategoryId?: string,
     categories?: Array<{ id: string; name: string }>,
   ): Promise<PlannedSessionWithTime[]> {
+    void categories;
     let remoteSessions: ScheduledSession[] = [];
     try {
       remoteSessions = await trainingPlansService.schedule(isoDate);
@@ -43,76 +44,9 @@ export const seasonPlanningService = {
 
         return {
           ...s,
-          sessionTime: rawTime,
+          sessionTime: rawTime ? rawTime.slice(0, 5) : null,
         };
       });
-    }
-
-    // Default scheduled training plan reflection:
-    // Primera División has strength training on Wednesdays (day 3), Thursdays (day 4), Fridays (day 5)
-    const [year, month, day] = isoDate.split('-').map(Number);
-    const dateObj = new Date(year, month - 1, day);
-    const dayOfWeek = dateObj.getDay(); // 0 is Sun, 1 is Mon, 2 is Tue, 3 is Wed, 4 is Thu, 5 is Fri, 6 is Sat
-
-    const primeraCat =
-      categories?.find((c) => c.name.toLowerCase().includes('primera')) || categories?.[0];
-
-    const primeraId = primeraCat?.id || 'cat-primera';
-
-    // If user filtered by a specific category that is NOT Primera, don't show Primera's plan
-    if (selectedCategoryId && selectedCategoryId !== primeraId) {
-      return [];
-    }
-
-    if (dayOfWeek === 3) {
-      // Wednesday: entrenamiento matutino
-      return [
-        {
-          assignmentId: `plan-wed-${isoDate}`,
-          trainingPlanId: 'plan-fuerza-base',
-          planName: 'Fuerza base',
-          sessionId: 'session-wed',
-          sessionName: 'Día 1: Fuerza y Potencia',
-          weekNumber: 1,
-          exerciseCount: 5,
-          categoryId: primeraId,
-          sessionTime: '09:30',
-        },
-      ];
-    }
-
-    if (dayOfWeek === 4) {
-      // Thursday: entrenamiento táctico / tren superior
-      return [
-        {
-          assignmentId: `plan-thu-${isoDate}`,
-          trainingPlanId: 'plan-fuerza-base',
-          planName: 'Fuerza base',
-          sessionId: 'session-thu',
-          sessionName: 'Día 2: Tren Superior',
-          weekNumber: 1,
-          exerciseCount: 4,
-          categoryId: primeraId,
-          sessionTime: '10:00',
-        },
-      ];
-    }
-
-    if (dayOfWeek === 5) {
-      // Friday: activación previa a competencia
-      return [
-        {
-          assignmentId: `plan-fri-${isoDate}`,
-          trainingPlanId: 'plan-fuerza-base',
-          planName: 'Fuerza base',
-          sessionId: 'session-fri',
-          sessionName: 'Día 3: Activación y Zona Media',
-          weekNumber: 1,
-          exerciseCount: 4,
-          categoryId: primeraId,
-          sessionTime: '09:00',
-        },
-      ];
     }
 
     return [];

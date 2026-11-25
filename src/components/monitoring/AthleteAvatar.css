@@ -1,0 +1,38 @@
+/*
+ * Estilos del avatar del atleta (KAN-582).
+ * Lo fijo que vivía en style={{...}} pasa a clases acá. Quedan inline con
+ * tokens solo los valores dinámicos: tamaño según la prop `size`, el
+ * resplandor del semáforo (boxShadow según estado y hover) y el estado
+ * hover (transform/filter), que dependen de `interactiveHover` y por eso
+ * no pueden vivir en el :hover global de coach.css.
+ */
+
+/* Contenedor: cursor y transition ya los define coach.css en
+   .athlete-avatar-container (mismos valores); se replican por fidelidad
+   al inline original. */
+.athlete-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+/* Anillo SVG del semáforo: cubre todo el contenedor. */
+.athlete-avatar-ring {
+  position: absolute;
+  inset: 0;
+}
+
+/* Círculo interior con la foto: position e inset dependen de showRing
+   y quedan inline. */
+.athlete-avatar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+}

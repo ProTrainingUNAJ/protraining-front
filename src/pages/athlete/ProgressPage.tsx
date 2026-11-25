@@ -28,10 +28,14 @@ import {
   pinProgressChart,
 } from '../../utils/athleteDashboardLayout';
 import { AthleteGroupBenchmarkSection } from '../../components/athlete/AthleteGroupBenchmarkSection';
+import { ResolvedInjuriesHistory } from '../../components/athlete/ResolvedInjuriesHistory';
 import { OneRepMaxProgressionChart } from '../../components/athletes/OneRepMaxProgressionChart';
 import { JumpVsLoadProgressionChart } from '../../components/athletes/JumpVsLoadProgressionChart';
 import { EvolutionRangeSelector } from '../../components/athletes/EvolutionRangeSelector';
 import { EvolutionRange } from '../../utils/evolutionRange';
+import { AthleteWeeklyTrendsChart } from '../../components/athlete/AthleteWeeklyTrendsChart';
+import { useAthleteTrends } from '../../hooks/useAthleteTrends';
+import './ProgressPage.css';
 
 export const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,6 +53,12 @@ export const ProgressPage: React.FC = () => {
     loading: evolutionLoading,
     error: evolutionError,
   } = useAthleteEvolution(evolutionRange);
+  const {
+    trends: weeklyTrends,
+    loading: trendsLoading,
+    error: trendsError,
+    reload: reloadTrends,
+  } = useAthleteTrends(4);
 
   // Métricas de Progreso armadas con la evolución real; solo aparecen las que tienen mediciones
   const metrics = React.useMemo(() => buildEvolutionMetrics(evolution), [evolution]);
@@ -145,25 +155,10 @@ export const ProgressPage: React.FC = () => {
         </nav>
 
         {activeTab === 'evolution' ? (
-          <div className="card" style={{ margin: 0, padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h2
-                style={{
-                  fontSize: '1.2rem',
-                  fontWeight: 800,
-                  margin: 0,
-                  color: 'var(--text-main)',
-                }}
-              >
-                Progresión de 1RM
-              </h2>
-              <p
-                style={{
-                  margin: '0.2rem 0 0',
-                  fontSize: '0.84rem',
-                  color: 'var(--text-muted)',
-                }}
-              >
+          <div className="card progress-evolution-card">
+            <div className="progress-evolution-header">
+              <h2 className="progress-evolution-title">Progresión de 1RM</h2>
+              <p className="progress-evolution-subtitle">
                 Evolución histórica de tus récords máximos por ejercicio.
               </p>
             </div>
@@ -224,35 +219,15 @@ export const ProgressPage: React.FC = () => {
           <>
             {/* Toast Notificador Flotante */}
             {toastMessage && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  background: 'var(--brand-navy)',
-                  color: 'var(--on-primary)',
-                  padding: '0.75rem 1.25rem',
-                  borderRadius: '12px',
-                  boxShadow: 'var(--shadow-lg)',
-                  border: '1px solid var(--secondary)',
-                  animation: 'fadeInModal 0.2s ease-out',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <Sparkles size={18} style={{ color: 'var(--stat-cyan)' }} />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>{toastMessage}</span>
+              <div className="progress-toast-banner">
+                <div className="progress-toast-content">
+                  <Sparkles size={18} className="progress-toast-icon" />
+                  <span className="progress-toast-text">{toastMessage}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="progress-toast-actions">
                   <button
                     type="button"
-                    className="btn btn-primary"
-                    style={{
-                      background: 'var(--brand-blue)',
-                      padding: '0.35rem 0.8rem',
-                      fontSize: '0.78rem',
-                      gap: '0.35rem',
-                    }}
+                    className="btn btn-primary progress-toast-btn"
                     onClick={() => navigate('/athlete')}
                   >
                     <span>Ver en Inicio</span>
@@ -261,19 +236,21 @@ export const ProgressPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setToastMessage(null)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--on-primary-subtle)',
-                      cursor: 'pointer',
-                      padding: '2px',
-                    }}
+                    className="progress-toast-close-btn"
                   >
                     <X size={16} />
                   </button>
                 </div>
               </div>
             )}
+
+            {/* Tendencia semanal de bienestar y carga (KAN-490) */}
+            <AthleteWeeklyTrendsChart
+              trends={weeklyTrends}
+              loading={trendsLoading}
+              error={trendsError}
+              onRetry={reloadTrends}
+            />
 
             <EvolutionRangeSelector
               value={evolutionRange}
@@ -368,6 +345,18 @@ export const ProgressPage: React.FC = () => {
 
             {/* Mis Números vs. Promedio del Grupo (KAN-449) */}
             {resolvedAthleteId && <AthleteGroupBenchmarkSection athleteId={resolvedAthleteId} />}
+            {/* Historial de molestias resueltas */}
+            {resolvedAthleteId && (
+              <div className="card progress-resolved-injuries-card">
+                <h2 className="progress-resolved-injuries-title">
+                  Historial de molestias resueltas
+                </h2>
+                <p className="progress-resolved-injuries-desc">
+                  Molestias dadas de alta con su pico de dolor registrado.
+                </p>
+                <ResolvedInjuriesHistory athleteId={resolvedAthleteId} />
+              </div>
+            )}
           </>
         )}
       </div>
@@ -376,31 +365,19 @@ export const ProgressPage: React.FC = () => {
       {exportModalOpen && (
         <div className="routine-modal-backdrop" onClick={() => setExportModalOpen(false)}>
           <div
-            className="routine-modal-card"
-            style={{ maxWidth: '580px' }}
+            className="routine-modal-card progress-export-modal-card"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
             <div className="routine-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    background: 'var(--stat-cyan-bg)',
-                    color: 'var(--stat-cyan)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Pin size={18} style={{ transform: 'rotate(45deg)' }} />
+              <div className="progress-export-header-content">
+                <div className="progress-export-pin-icon-wrap">
+                  <Pin size={18} className="progress-export-pin-icon" />
                 </div>
                 <div>
                   <h3 className="routine-modal-title">Exportar a Inicio</h3>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  <span className="progress-export-modal-subtitle">
                     Fijar gráfico de{' '}
                     {activeMetric ? METRIC_PRESENTATION[activeMetric].shortName : ''}
                   </span>
@@ -417,15 +394,8 @@ export const ProgressPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="routine-modal-body" style={{ gap: '1.15rem' }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '0.86rem',
-                  color: 'var(--text-muted)',
-                  lineHeight: 1.5,
-                }}
-              >
+            <div className="routine-modal-body progress-export-body">
+              <p className="progress-export-desc">
                 El gráfico se adaptará automáticamente a la burbuja que elijas en el Bento Grid de
                 tu pantalla principal (Fila 1, 2 o 3).
               </p>
@@ -433,86 +403,40 @@ export const ProgressPage: React.FC = () => {
               {/* Botón de asignación rápida */}
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary progress-export-quick-btn"
                 onClick={() => handleExportToDashboard()}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.9rem',
-                }}
               >
                 <Sparkles size={16} />
                 <span>Fijar en la primera burbuja libre disponible</span>
               </button>
 
-              <div style={{ position: 'relative', textAlign: 'center', margin: '0.25rem 0' }}>
-                <span
-                  style={{
-                    background: 'var(--bg-card)',
-                    padding: '0 0.75rem',
-                    fontSize: '0.75rem',
-                    color: 'var(--text-muted)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                  }}
-                >
+              <div className="progress-export-divider">
+                <span className="progress-export-divider-text">
                   o elegí una burbuja específica:
                 </span>
               </div>
 
               {/* Lista de burbujas vacías */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                  maxHeight: '220px',
-                  overflowY: 'auto',
-                }}
-              >
+              <div className="progress-export-slots-list">
                 {availableSlots.length > 0 ? (
                   availableSlots.map((slot) => (
                     <button
                       key={slot.id}
                       type="button"
                       onClick={() => handleExportToDashboard(slot.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.65rem 0.95rem',
-                        borderRadius: '10px',
-                        background: 'var(--bg-subtle)',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-main)',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className="progress-export-slot-btn"
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <LayoutGrid size={15} style={{ color: 'var(--secondary)' }} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>{slot.name}</span>
+                      <div className="progress-export-slot-left">
+                        <LayoutGrid size={15} className="progress-export-slot-icon" />
+                        <span className="progress-export-slot-name">{slot.name}</span>
                       </div>
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          color: 'var(--text-muted)',
-                        }}
-                      >
+                      <span className="progress-export-slot-meta">
                         {slot.colSpan === 2 ? '2 columnas' : '1 columna'} · Disponible
                       </span>
                     </button>
                   ))
                 ) : (
-                  <p
-                    style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}
-                  >
+                  <p className="progress-export-empty-slots">
                     Todas las burbujas están ocupadas actualmente.
                   </p>
                 )}

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { InvitationLandingPage } from '../InvitationLandingPage';
 import { categoryInvitationsService } from '../../../api/categoryInvitations';
+import { structureService } from '../../../api/structureService';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -21,13 +22,23 @@ vi.mock('../../../api/authService', () => ({
 }));
 
 const mockApplySession = vi.fn();
+let mockAuthState = {
+  isAuthenticated: false,
+  user: null as unknown,
+};
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: () => ({
     applySession: mockApplySession,
     registerByInvitation: mockRegisterByInvitation,
-    isAuthenticated: false,
-    user: null,
+    isAuthenticated: mockAuthState.isAuthenticated,
+    user: mockAuthState.user,
   }),
+}));
+
+vi.mock('../../../api/structureService', () => ({
+  structureService: {
+    getMyConsent: vi.fn().mockResolvedValue({ hasSignedConsent: true }),
+  },
 }));
 
 vi.mock('../../../api/categoryInvitations', async () => {
@@ -44,6 +55,11 @@ vi.mock('../../../api/categoryInvitations', async () => {
 describe('InvitationLandingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAuthState = {
+      isAuthenticated: false,
+      user: null,
+    };
+    vi.mocked(structureService.getMyConsent).mockResolvedValue({ hasSignedConsent: true } as never);
   });
 
   const renderPage = (initialToken = 'token-valido-123') => {
@@ -251,7 +267,6 @@ describe('InvitationLandingPage', () => {
     expect(categoryInvitationsService.accept).toHaveBeenCalledWith('tok-123', {
       firstName: 'Lucas',
       lastName: 'Pratto',
-      email: 'lucas@ejemplo.com',
       phone: '+5491199887766',
       birthDate: '1995-04-10',
     });
@@ -336,7 +351,6 @@ describe('InvitationLandingPage', () => {
     expect(categoryInvitationsService.accept).toHaveBeenCalledWith('tok-menor-123', {
       firstName: 'Tomás',
       lastName: 'González',
-      email: 'tomas@ejemplo.com',
       phone: '+5491133334444',
       birthDate: '2010-06-15',
       guardianName: 'Mariana González',
@@ -344,9 +358,86 @@ describe('InvitationLandingPage', () => {
       guardianPhone: '+5491155556666',
       allowsPhysicalTraining: true,
       allowsHabitsRecommendations: true,
+      allowsProfilePhoto: false,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
+  });
+
+  it('permite al tutor autorizar la publicacion de foto de perfil del menor (allowsProfilePhoto true)', async () => {
+    vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
+      token: 'tok-menor-foto',
+      expiresAt: '2026-11-20T12:00:00Z',
+      categoryId: 'cat-juvenil',
+      categoryName: 'Juveniles Sub-17',
+      invitationUrl: 'http://localhost/invite/tok-menor-foto',
+    });
+
+    mockRegisterByInvitation.mockResolvedValueOnce({
+      accessToken: 'jwt-menor-foto',
+      user: { id: 'u-menor-2', role: 'Atleta' },
+    });
+
+    vi.mocked(categoryInvitationsService.accept).mockResolvedValueOnce({
+      id: 'ath-menor-2',
+      firstName: 'Tomás',
+      lastName: 'González',
+      email: 'tomas2@ejemplo.com',
+    } as never);
+
+    renderPage('tok-menor-foto');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Nombre/i)).toBeDefined();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'Tomás' } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: 'González' } });
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'tomas2@ejemplo.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Contraseña/i), { target: { value: 'Pass1234' } });
+    fireEvent.change(screen.getByLabelText(/Teléfono celular/i), {
+      target: { value: '+5491133334444' },
+    });
+    fireEvent.change(screen.getByLabelText(/Fecha de nacimiento/i), {
+      target: { value: '2010-06-15' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Nombre completo del tutor/i), {
+      target: { value: 'Mariana González' },
+    });
+    fireEvent.change(screen.getByLabelText(/Correo del tutor/i), {
+      target: { value: 'mariana@ejemplo.com' },
+    });
+
+    // Autorización obligatoria de PF
+    fireEvent.click(
+      screen.getByLabelText(
+        /Autorizo la realización de entrenamientos físicos y actividades deportivas/i,
+      ),
+    );
+    // Autorización opcional de foto de perfil
+    fireEvent.click(
+      screen.getByLabelText(/Autorizo la publicación de la foto de perfil del menor/i),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    await waitFor(() => {
+      expect(categoryInvitationsService.accept).toHaveBeenCalledWith('tok-menor-foto', {
+        firstName: 'Tomás',
+        lastName: 'González',
+        phone: '+5491133334444',
+        birthDate: '2010-06-15',
+        guardianName: 'Mariana González',
+        guardianEmail: 'mariana@ejemplo.com',
+        guardianPhone: undefined,
+        allowsPhysicalTraining: true,
+        allowsHabitsRecommendations: false,
+        allowsProfilePhoto: true,
+      });
+    });
   });
 
   it('muestra mensaje específico si el email corresponde a un PF (403)', async () => {
@@ -539,6 +630,76 @@ describe('InvitationLandingPage', () => {
     // En el segundo intento exitoso, recién se activa la sesión y se navega
     expect(mockRegisterByInvitation).toHaveBeenCalledTimes(1);
     expect(mockApplySession).toHaveBeenCalledWith(mockSession);
+    expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
+  });
+
+  it('DADO un atleta con cuenta pero sin perfil (el accept falló), CUANDO vuelve a abrir /invite/{token} en otra visita, ENTONCES ve solo el paso de aceptar la invitación y no es redirigido a /athlete (KAN-573)', async () => {
+    mockAuthState = {
+      isAuthenticated: true,
+      user: {
+        id: 'u-123',
+        email: 'atleta.otra.visita@protraining.com',
+        fullName: 'Martín Palermo',
+        role: 'Atleta',
+      },
+    };
+
+    // Al consultar si tiene perfil en Estructura, devuelve 404 (cuenta sin perfil)
+    const err404 = new Error('Atleta no encontrado');
+    (err404 as unknown as { status: number }).status = 404;
+    vi.mocked(structureService.getMyConsent).mockRejectedValueOnce(err404);
+
+    vi.mocked(categoryInvitationsService.validate).mockResolvedValueOnce({
+      token: 'tok-otra-visita',
+      expiresAt: '2026-11-20T12:00:00Z',
+      categoryId: 'cat-1',
+      categoryName: 'Primera División',
+      invitationUrl: 'http://localhost/invite/tok-otra-visita',
+    });
+
+    vi.mocked(categoryInvitationsService.accept).mockResolvedValueOnce({ id: 'ath-1' } as never);
+
+    renderPage('tok-otra-visita');
+
+    // Esperar a que la página cargue el formulario
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Teléfono celular/i)).toBeDefined();
+    });
+
+    // NO debe redirigir a /athlete
+    expect(mockNavigate).not.toHaveBeenCalledWith('/athlete', { replace: true });
+
+    // NO debe mostrar campo de contraseña
+    expect(screen.queryByLabelText(/^Contraseña/i)).toBeNull();
+
+    // El email debe estar deshabilitado y prellenado con el del usuario
+    const emailInput = screen.getByLabelText(/Correo electrónico/i) as HTMLInputElement;
+    expect(emailInput.value).toBe('atleta.otra.visita@protraining.com');
+    expect(emailInput.disabled).toBe(true);
+
+    // Completar los datos restantes y aceptar
+    fireEvent.change(screen.getByLabelText(/Teléfono celular/i), {
+      target: { value: '+5491144445555' },
+    });
+    fireEvent.change(screen.getByLabelText(/Fecha de nacimiento/i), {
+      target: { value: '1998-07-20' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar registro/i }));
+
+    await waitFor(() => {
+      expect(categoryInvitationsService.accept).toHaveBeenCalledWith('tok-otra-visita', {
+        firstName: 'Martín',
+        lastName: 'Palermo',
+        phone: '+5491144445555',
+        birthDate: '1998-07-20',
+      });
+    });
+
+    // NO debió llamar a registerByInvitation porque la cuenta ya existía
+    expect(mockRegisterByInvitation).not.toHaveBeenCalled();
+
+    // Tras el accept exitoso, recién navega a /athlete
     expect(mockNavigate).toHaveBeenCalledWith('/athlete', { replace: true });
   });
 });

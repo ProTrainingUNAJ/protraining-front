@@ -168,12 +168,29 @@ export function GeneratePlanDraftPage() {
   };
 
   const toggleTrainingDay = (dayValue: string) => {
-    setTrainingDays((prev) => {
-      const exists = prev.includes(dayValue);
-      const next = exists ? prev.filter((d) => d !== dayValue) : [...prev, dayValue];
-      return TRAINING_DAY_CHIPS.map((chip) => chip.value).filter((val) => next.includes(val));
-    });
-    setErrors((prev) => ({ ...prev, trainingDays: undefined }));
+    const exists = trainingDays.includes(dayValue);
+    if (!exists && trainingDays.length >= DAYS_MAX) {
+      setErrors((prev) => ({
+        ...prev,
+        trainingDays: `Podés elegir como máximo ${DAYS_MAX} días por semana.`,
+      }));
+      return;
+    }
+
+    const rawNext = exists
+      ? trainingDays.filter((d) => d !== dayValue)
+      : [...trainingDays, dayValue];
+    const nextDays = TRAINING_DAY_CHIPS.map((chip) => chip.value).filter((val) =>
+      rawNext.includes(val),
+    );
+
+    setTrainingDays(nextDays);
+    if (nextDays.length >= DAYS_MIN && nextDays.length <= DAYS_MAX) {
+      setDaysPerWeek(nextDays.length);
+      setErrors((prev) => ({ ...prev, daysPerWeek: undefined, trainingDays: undefined }));
+    } else {
+      setErrors((prev) => ({ ...prev, trainingDays: undefined }));
+    }
   };
 
   const validateForm = (): boolean => {
@@ -316,8 +333,8 @@ export function GeneratePlanDraftPage() {
             <Loader2 size={36} className="plan-spin" aria-hidden="true" />
             <h2 className="plan-generating-title">Generando la planificación con IA…</h2>
             <p className="plan-generating-text">
-              El asistente está armando las semanas y validando los ejercicios del catálogo. Con
-              Ollama puede tardar entre 30 y 60 segundos.
+              El asistente está armando las semanas y validando los ejercicios del catálogo con IA.
+              Esto puede tardar unos segundos.
             </p>
             <button type="button" className="btn btn-secondary" onClick={handleCancelGeneration}>
               <X size={16} aria-hidden="true" />

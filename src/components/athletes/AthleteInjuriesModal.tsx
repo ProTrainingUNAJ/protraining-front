@@ -275,6 +275,7 @@ export function AthleteInjuriesModal({
                     <span>Fecha de la lesión: {formatDate(injury.injuryDate)}</span>
                     <span>Retorno estimado: {formatDate(injury.estimatedReturnDate)}</span>
                     {injury.clearedAt && <span>Alta: {formatDate(injury.clearedAt)}</span>}
+                    {injury.peakPain != null && <span>Pico de dolor: {injury.peakPain}/10</span>}
                   </div>
 
                   <ol

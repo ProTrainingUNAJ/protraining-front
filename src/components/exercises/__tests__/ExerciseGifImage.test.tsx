@@ -122,4 +122,17 @@ describe('ExerciseGifImage (KAN-549)', () => {
 
     expect(currentSrc()).toBe('https://repdb/bench-start.webp');
   });
+
+  it('permite ocultar el crédito en tarjetas de grillas con showCredit=false', () => {
+    render(
+      <ExerciseGifImage
+        images={PHOTOS}
+        media={MEDIA}
+        name="Sentadilla con barra"
+        showCredit={false}
+      />,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Exercise data by RepDB (repdb.co)' })).toBeNull();
+  });
 });

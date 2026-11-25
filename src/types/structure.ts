@@ -3,10 +3,18 @@ export interface Organization {
   name: string;
   description?: string | null;
   categoriesCount: number;
+  athletesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
 }
 
 export interface CreateOrganizationRequest {
   name: string;
+  description?: string | null;
+}
+
+export interface UpdateOrganizationRequest {
+  name?: string;
   description?: string | null;
 }
 
@@ -16,6 +24,7 @@ export interface Category {
   name: string;
   description?: string | null;
   athletesCount: number;
+  organizationName?: string;
 }
 
 export interface CreateCategoryRequest {
@@ -24,19 +33,73 @@ export interface CreateCategoryRequest {
   description?: string | null;
 }
 
+export interface UpdateCategoryRequest {
+  name?: string;
+  description?: string | null;
+}
+
+export interface AthleteCategoryMembership {
+  id: string;
+  name: string;
+  organizationId?: string;
+  organizationName?: string;
+}
+
+export interface AthleteGuardianConsent {
+  isSigned: boolean;
+  consentDate: string;
+  isMinor: boolean;
+  guardianName?: string | null;
+  guardianEmail?: string | null;
+  guardianPhone?: string | null;
+  allowsPhysicalTraining: boolean;
+  allowsHabitsRecommendations: boolean;
+}
+
 export interface Athlete {
   id: string;
+  accountId?: string | null;
   firstName: string;
   lastName: string;
   fullName?: string;
   email: string;
   phone: string;
+  telegramUsername?: string | null;
   isMinor?: boolean;
+  guardianConsent?: AthleteGuardianConsent | null;
   active?: boolean;
   categoryNames?: string[];
-  categories?: Array<{ id: string; name: string }>;
+  categories?: AthleteCategoryMembership[];
   emergencyContact?: string | null;
   activeInjuriesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  athleticGoal?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
+  physicalProfileUpdatedAt?: string | null;
+}
+
+export const ATHLETE_GENDER_OPTIONS = ['Masculino', 'Femenino'] as const;
+export type AthleteGenderOption = (typeof ATHLETE_GENDER_OPTIONS)[number];
+
+export const ATHLETIC_GOAL_OPTIONS = [
+  'Objetivo no informado',
+  'Ganar masa muscular',
+  'Rendimiento deportivo',
+  'Mantener',
+] as const;
+
+export type AthleticGoalOption = (typeof ATHLETIC_GOAL_OPTIONS)[number];
+
+export interface UpdatePhysicalProfileRequest {
+  weightKg?: number | null;
+  heightCm?: number | null;
+  athleticGoal?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
 }
 
 export interface CreateAthleteRequest {
@@ -44,6 +107,7 @@ export interface CreateAthleteRequest {
   lastName: string;
   email: string;
   phone: string;
+  telegramUsername?: string | null;
   birthDate?: string;
   categoryIds?: string[];
   emergencyContact?: string | null;
@@ -58,6 +122,12 @@ export interface AthleteMe {
   categories: Category[];
   hasSignedConsent?: boolean;
   isMinor?: boolean;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  athleticGoal?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
+  physicalProfileUpdatedAt?: string | null;
 }
 
 export type CompetitiveEventVenue = 'Home' | 'Away' | 'Neutral';
@@ -107,6 +177,8 @@ export interface Match {
   type?: CompetitiveEventType;
   notes?: string | null;
   categoryName?: string;
+  organizationName?: string;
+  organizationId?: string;
 }
 
 export interface CreateMatchRequest {

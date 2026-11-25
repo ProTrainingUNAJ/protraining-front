@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan } from 'lucide-react';
+import { RotateCcw, AlertTriangle, ShieldCheck, Edit3, Scan, Activity } from 'lucide-react';
 import { InteractiveMuscleMap } from '../InteractiveMuscleMap';
-import { hasRequiredInjuryMark } from './checkInHelper';
+import {
+  hasRequiredInjuryMark,
+  hasUnscoredActiveInjuries,
+  mapClinicalInjuriesToMusclePains,
+} from './checkInHelper';
+import { ActiveInjuriesModal, ActiveInjuryItem } from './ActiveInjuriesModal';
+import { getMuscleSpanishName } from '../../../utils/exerciseMuscleMapper';
 
 export interface CheckInPainSlideProps {
   musclePains: Record<string, number>;
@@ -13,6 +19,9 @@ export interface CheckInPainSlideProps {
   onInjuryChange?: (hasInjury: boolean) => void;
   healthQuestionsAnswered?: boolean;
   onHealthQuestionsAnswered?: (answered: boolean) => void;
+  activeInjuries?: ReadonlyArray<ActiveInjuryItem>;
+  injuryScores?: Record<string, number | null>;
+  onInjuryScoreChange?: (injuryId: string, score: number) => void;
   onPrev: () => void;
   onNext: () => void;
 }
@@ -29,6 +38,9 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   onInjuryChange,
   healthQuestionsAnswered = false,
   onHealthQuestionsAnswered,
+  activeInjuries,
+  injuryScores = {},
+  onInjuryScoreChange,
   onPrev,
   onNext,
 }) => {
@@ -38,6 +50,10 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
   });
   const [showInjuryNotice, setShowInjuryNotice] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  // Modal de lesiones activas (Burbuja estilo Imagen 2). La apertura automática se deriva
+  // en render; estos estados solo registran la apertura manual y si el usuario la cerró.
+  const [showInjuriesModal, setShowInjuriesModal] = useState<boolean>(false);
+  const [injuriesModalDismissed, setInjuriesModalDismissed] = useState<boolean>(false);
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -71,7 +87,70 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
 
   const isBlocked = cartelStep !== 'desbloqueado';
   const reportedPainsCount = Object.values(musclePains).filter((lvl) => lvl > 0).length;
-  const canProceed = hasRequiredInjuryMark(hasActiveInjury, musclePains);
+  // el estado clínico se reconstruye desde la ficha, sin esperar al modal.
+  const clinicalLesion = (activeInjuries?.length ?? 0) > 0;
+  const lesionActive = hasActiveInjury ?? clinicalLesion;
+  const missingScores = hasUnscoredActiveInjuries(activeInjuries ?? [], injuryScores);
+
+  // KAN-660: Si hay lesiones reportadas y no están marcadas con nivel 6 en el mapa anatómico,
+  // se marcan automáticamente en el cuerpo humano con negro (nivel 6).
+  useEffect(() => {
+    if (!activeInjuries || activeInjuries.length === 0) return;
+    // Solo cuenta un negro que se ve en el dibujo (KAN-666)
+    const hasInjuryLevel6 = hasRequiredInjuryMark(true, musclePains);
+    if (!hasInjuryLevel6 && lesionActive) {
+      const autoPains = mapClinicalInjuriesToMusclePains(activeInjuries);
+      Object.entries(autoPains).forEach(([mId, lvl]) => {
+        onPainChange(mId, lvl);
+      });
+    }
+  }, [activeInjuries, lesionActive, musclePains, onPainChange]);
+
+  // La ficha clínica puede llegar después del mount. Derivamos la apertura en render para
+  // cubrir ese caso sin setState en un effect, y respetamos el cierre explícito del atleta.
+  const openInjuriesModal = () => {
+    setInjuriesModalDismissed(false);
+    setShowInjuriesModal(true);
+  };
+  const closeInjuriesModal = () => {
+    setShowInjuriesModal(false);
+    setInjuriesModalDismissed(true);
+  };
+  const injuriesModalOpen =
+    !isBlocked && !injuriesModalDismissed && (showInjuriesModal || clinicalLesion);
+
+  const hasInjuryMark = hasRequiredInjuryMark(lesionActive, musclePains);
+  const canProceed = hasInjuryMark && !missingScores;
+  const nextBlockedReason = !hasInjuryMark
+    ? 'Debés marcar la lesión en el cuerpo humano con color negro para poder avanzar.'
+    : missingScores
+      ? 'Debés puntuar el dolor (0 a 10) de cada lesión activa para continuar.'
+      : 'Debés marcar la lesión para continuar.';
+
+  const lesionChip = (
+    <button
+      type="button"
+      onClick={() => setCartelStep('lesion')}
+      className={`checkin-health-chip ${lesionActive ? 'danger' : 'healthy'}`}
+      title="Modificar estado de lesión"
+    >
+      {lesionActive ? <AlertTriangle size={12} /> : null}
+      <span>{lesionActive ? 'Lesión activa' : 'Sin lesión'}</span>
+      <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+    </button>
+  );
+
+  // mientras los carteles preliminares bloquean la tarjeta, la lesión de la ficha
+  // clínica ya debe ser visible. Se muestra como datos (no como botón) para no saltear preguntas.
+  const clinicalLesionChip = (
+    <span
+      className="checkin-health-chip danger"
+      title="Lesión activa registrada en tu ficha clínica"
+    >
+      <AlertTriangle size={12} />
+      <span>Lesión activa</span>
+    </span>
+  );
 
   // Efecto "Escáner Biométrico": barre de arriba hacia abajo sobre las siluetas
   // dejando un resplandor en los contornos por 1 segundo antes de avanzar
@@ -92,6 +171,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
 
   return (
     <div
+      className="checkin-slide-root"
       style={{
         width: '100%',
         display: 'flex',
@@ -111,12 +191,13 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
       >
         {/* ── Cabecera Superior con Botones Circulares de Navegación a la altura del Título ── */}
         <div
+          className="pixel-mood-nav-wrap"
           style={{
             width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '0.35rem',
+            marginBottom: '0.15rem',
             position: 'relative',
           }}
         >
@@ -170,7 +251,7 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             disabled={!canProceed || isScanning}
             aria-disabled={!canProceed || isScanning}
             aria-label="Ir al siguiente paso"
-            title={!canProceed ? 'Debes marcar la lesion para continuar.' : 'Siguiente paso'}
+            title={!canProceed ? nextBlockedReason : 'Siguiente paso'}
             className="checkin-circular-nav-btn next"
             style={{
               opacity: !canProceed || isScanning ? 0.45 : 1,
@@ -196,106 +277,109 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
           </button>
         </div>
 
-        {/* Alerta si intenta avanzar con lesión sin marcar */}
-        {!canProceed && showInjuryNotice && (
-          <div
-            className="pixel-injury-alert"
-            role="alert"
-            style={{
-              padding: '0.45rem 1.15rem',
-              borderRadius: '9999px',
-              background: 'var(--danger-bg-strong)',
-              color: 'var(--danger-text)',
-              border: '1.5px solid var(--danger)',
-              fontSize: '0.84rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontFamily: 'var(--font-base)',
-              animation: 'shakeNotice 0.35s ease',
-              boxShadow: 'var(--shadow-sm)',
-              marginBottom: '0.65rem',
-            }}
-          >
-            <AlertTriangle size={15} style={{ flexShrink: 0 }} />
-            <span>Debes marcar la lesion para continuar.</span>
-          </div>
-        )}
-
-        {/* Barra de estado rápido ultra-compacta (1 sola línea, sin caja pesada) */}
-        {!isBlocked && (
-          <div className="checkin-health-bar">
-            {/* Chip de Síntomas / Salud */}
-            <button
-              type="button"
-              onClick={() => setCartelStep('enfermo')}
-              className={`checkin-health-chip ${isSick ? 'danger' : 'healthy'}`}
-              title="Modificar estado de salud"
-            >
-              {isSick ? <AlertTriangle size={12} /> : <ShieldCheck size={12} />}
-              <span>{isSick ? 'Con síntomas' : 'Salud normal'}</span>
-              <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
-            </button>
-
-            {/* Chip de Lesión */}
-            <button
-              type="button"
-              onClick={() => setCartelStep('lesion')}
-              className={`checkin-health-chip ${hasActiveInjury ? 'danger' : 'healthy'}`}
-              title="Modificar estado de lesión"
-            >
-              {hasActiveInjury ? <AlertTriangle size={12} /> : null}
-              <span>{hasActiveInjury ? 'Lesión activa' : 'Sin lesión'}</span>
-              <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
-            </button>
-
-            {/* Chip de Zonas Marcadas (si hay) */}
-            {reportedPainsCount > 0 && (
-              <span className="checkin-health-chip warning">
-                <span>
-                  {reportedPainsCount} {reportedPainsCount === 1 ? 'zona' : 'zonas'}
-                </span>
-              </span>
-            )}
-
-            {/* Botón Limpiar (si hay zonas marcadas) */}
-            {reportedPainsCount > 0 && (
-              <button
-                type="button"
-                onClick={onClearAll}
-                className="checkin-health-chip clear-btn"
-                title="Limpiar todas las molestias marcadas"
-              >
-                <RotateCcw size={11} />
-                <span>Limpiar</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ── MAPA ANATÓMICO MUSCULAR Y ARTICULAR (VISTA FRONTAL Y POSTERIOR) CON ESCÁNER BIOMÉTRICO ── */}
-        <div
-          className={`biometric-scanner-container ${isScanning ? 'biometric-scanning-target' : ''}`}
-          style={{ width: '100%', overflow: 'visible', paddingBottom: '0.65rem' }}
-        >
-          {isScanning && (
-            <div className="biometric-scan-overlay" aria-hidden="true">
-              <div className="biometric-scanner-beam" />
-              <div className="biometric-scanner-line" />
+        {/* Zona scrolleable: el scroll queda acá para que los botones de la
+            cabecera siempre queden visibles (KAN-595) */}
+        <div className="checkin-card-scroll">
+          {/* Alerta si intenta avanzar con lesión sin marcar */}
+          {!canProceed && showInjuryNotice && (
+            <div className="pixel-injury-alert" role="alert">
+              <AlertTriangle size={15} />
+              <span>{nextBlockedReason}</span>
             </div>
           )}
 
-          <InteractiveMuscleMap
-            musclePains={musclePains}
-            onPainChange={onPainChange}
-            onClearAll={onClearAll}
-            hasActiveInjury={hasActiveInjury}
-            hideControls={true}
-            initialView="front"
-          />
+          {/* Barra de estado rápido ultra-compacta (1 sola línea, sin caja pesada) */}
+          {!isBlocked && (
+            <div className="checkin-health-bar">
+              {/* Chip de Síntomas / Salud */}
+              <button
+                type="button"
+                onClick={() => setCartelStep('enfermo')}
+                className={`checkin-health-chip ${isSick ? 'danger' : 'healthy'}`}
+                title="Modificar estado de salud"
+              >
+                {isSick ? <AlertTriangle size={12} /> : <ShieldCheck size={12} />}
+                <span>{isSick ? 'Con síntomas' : 'Salud normal'}</span>
+                <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+              </button>
+
+              {/* Chip de Lesión (incluye la lesión clínica activa aunque el flag local esté en false) */}
+              {lesionChip}
+
+              {/* Chip de Lesiones Activas (si hay lesiones registradas en la ficha clínica) */}
+              {activeInjuries && activeInjuries.length > 0 && (
+                <button
+                  type="button"
+                  onClick={openInjuriesModal}
+                  className="checkin-health-chip warning"
+                  title="Modificar puntuación de lesiones activas"
+                >
+                  <Activity size={12} />
+                  <span>
+                    Lesión: {getMuscleSpanishName(activeInjuries[0].zone) || activeInjuries[0].zone}
+                    {injuryScores[activeInjuries[0].id] !== null &&
+                    injuryScores[activeInjuries[0].id] !== undefined
+                      ? ` (${injuryScores[activeInjuries[0].id]}/10)`
+                      : ''}
+                  </span>
+                  <Edit3 size={10} style={{ opacity: 0.65, marginLeft: 2 }} />
+                </button>
+              )}
+
+              {/* Chip de Zonas Marcadas (si hay) */}
+              {reportedPainsCount > 0 && (
+                <span className="checkin-health-chip warning">
+                  <span>
+                    {reportedPainsCount} {reportedPainsCount === 1 ? 'zona' : 'zonas'}
+                  </span>
+                </span>
+              )}
+
+              {/* Botón Limpiar (si hay zonas marcadas) */}
+              {reportedPainsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={onClearAll}
+                  className="checkin-health-chip clear-btn"
+                  title="Limpiar todas las molestias marcadas"
+                >
+                  <RotateCcw size={11} />
+                  <span>Limpiar</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── MAPA ANATÓMICO MUSCULAR Y ARTICULAR (VISTA FRONTAL Y POSTERIOR) CON ESCÁNER BIOMÉTRICO ── */}
+          <div
+            className={`biometric-scanner-container ${isScanning ? 'biometric-scanning-target' : ''}`}
+            style={{ width: '100%', overflow: 'visible', paddingBottom: '0.15rem' }}
+          >
+            {isScanning && (
+              <div className="biometric-scan-overlay" aria-hidden="true">
+                <div className="biometric-scanner-beam" />
+                <div className="biometric-scanner-line" />
+              </div>
+            )}
+
+            <InteractiveMuscleMap
+              musclePains={musclePains}
+              onPainChange={onPainChange}
+              onClearAll={onClearAll}
+              hasActiveInjury={lesionActive}
+              hideControls={true}
+              initialView="front"
+            />
+          </div>
         </div>
       </div>
+
+      {/* la lesión clínica se muestra aunque el atleta todavía no responda los carteles. */}
+      {isBlocked && clinicalLesion && (
+        <div className="checkin-health-bar" style={{ marginBottom: '0.75rem' }}>
+          {clinicalLesionChip}
+        </div>
+      )}
 
       {/* ── OVERLAY DE BLOQUEO CON CARTELES MODALES EN ORDEN ── */}
       {isBlocked && (
@@ -642,6 +726,17 @@ export const CheckInPainSlide: React.FC<CheckInPainSlideProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* ── BURBUJA MODAL DE MOLESTIAS ACTIVAS (ESTILO IMAGEN 2) CON SLIDER (IMAGEN 3) ── */}
+      {activeInjuries && activeInjuries.length > 0 && (
+        <ActiveInjuriesModal
+          isOpen={injuriesModalOpen}
+          onClose={closeInjuriesModal}
+          activeInjuries={activeInjuries}
+          injuryScores={injuryScores}
+          onScoreChange={onInjuryScoreChange ?? (() => {})}
+        />
       )}
 
       {/* Estilos para animación de modales */}

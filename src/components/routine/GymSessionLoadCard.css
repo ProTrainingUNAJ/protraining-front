@@ -1,0 +1,21 @@
+/*
+ * Estilos de la tarjeta "Finalizar sesión · Carga del entrenamiento" (KAN-582).
+ * Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+ * tokens de tokens.css. El botón "Finalizar entrenamiento" no requiere clase
+ * nueva: .btn (components.css) + .routine-finish-session-btn (athlete.css)
+ * ya declaran exactamente los mismos valores que traía el inline.
+ */
+
+.routine-session-load-registered {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+/* Compuesto con .badge para pisar su font-size global sin depender del orden
+   de carga del CSS. */
+.badge.routine-session-load-registered-badge {
+  gap: 0.35rem;
+  font-size: 0.78rem;
+}

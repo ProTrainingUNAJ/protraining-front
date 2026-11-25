@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Dumbbell, Tag, Activity, Loader2, X, AlertCircle, Layers } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Search,
+  Dumbbell,
+  Tag,
+  Activity,
+  Loader2,
+  AlertCircle,
+  Layers,
+  X,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { ExerciseGifImage } from '../../components/exercises/ExerciseGifImage';
-import { ExerciseMuscleMap } from '../../components/exercises/ExerciseMuscleMap';
-import { ExerciseVideoPlayer } from '../../components/exercises/ExerciseVideoPlayer';
+import { ExerciseDetailModal } from '../../components/exercises/ExerciseDetailModal';
 import { ExerciseTypeBadge } from '../../components/exercises/ExerciseTypeBadge';
-import { exercisesService } from '../../api/exercises';
-import { getMuscleSpanishName } from '../../utils/exerciseMuscleMapper';
 import { listExercises, Exercise, type ExerciseMediaDto } from '../../api/generated/entrenamiento';
-import { extractYouTubeId } from '../../utils/youtube';
 import { CHIP_CATEGORIES, GROUP_SUB_MUSCLES } from '../../constants/muscleFilters';
 
 interface ExerciseItem {
@@ -38,7 +47,7 @@ const EXERCISE_TYPES = [
   { label: 'Con carga', value: 'Weight' },
 ] as const;
 
-const PAGE_SIZE = 20; // Cantidad de ejercicios por página
+const PAGE_SIZE = 24; // Cantidad de ejercicios por página (múltiplo de 2, 3 y 4)
 
 interface ExerciseApiResponse extends Omit<Partial<Exercise>, 'id' | 'variants' | 'exerciseType'> {
   id?: string | number;
@@ -103,96 +112,77 @@ export const TrainingPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('Todos');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setIsTypeDropdownOpen(false);
+      }
+    }
+    if (isTypeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isTypeDropdownOpen]);
+
+  // Cerrar dropdown con Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isTypeDropdownOpen) {
+        setIsTypeDropdownOpen(false);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTypeDropdownOpen]);
   const [exercises, setExercises] = useState<ExerciseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
   const [modalExercise, setModalExercise] = useState<ExerciseItem | null>(null);
   // Variante elegida dentro del detalle; null muestra el ejercicio base.
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
-  const [videoInput, setVideoInput] = useState('');
-  const [isSavingVideo, setIsSavingVideo] = useState(false);
-  const [videoFeedback, setVideoFeedback] = useState<{ text: string; error?: boolean } | null>(
-    null,
-  );
-
-  const handleSaveVideo = async () => {
-    if (!shownExercise) return;
-
-    const trimmed = videoInput.trim();
-
-    // Validación preventiva en el cliente antes de llamar a la API
-    if (trimmed && !extractYouTubeId(trimmed)) {
-      setVideoFeedback({ text: 'El link tiene que ser un video de YouTube.', error: true });
-      return;
-    }
-
-    setIsSavingVideo(true);
-    setVideoFeedback(null);
-    try {
-      await exercisesService.updateVideoUrl(shownExercise.id, trimmed || null);
-      setModalExercise((prev) => {
-        if (!prev) return null;
-        if (activeVariantId) {
-          return {
-            ...prev,
-            variants: prev.variants.map((v) =>
-              v.id === activeVariantId
-                ? { ...v, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null }
-                : v,
-            ),
-          };
-        }
-        return { ...prev, videoUrl: trimmed || null, videoSource: trimmed ? 'Pf' : null };
-      });
-      setVideoFeedback({ text: '¡Video de YouTube actualizado con éxito!' });
-    } catch {
-      setVideoFeedback({ text: 'Error al guardar el video.', error: true });
-    } finally {
-      setIsSavingVideo(false);
-    }
-  };
-
-  const handleRemoveVideo = async () => {
-    if (!shownExercise) return;
-    setIsSavingVideo(true);
-    setVideoFeedback(null);
-    try {
-      await exercisesService.updateVideoUrl(shownExercise.id, null);
-      setModalExercise((prev) => {
-        if (!prev) return null;
-        if (activeVariantId) {
-          return {
-            ...prev,
-            variants: prev.variants.map((v) =>
-              v.id === activeVariantId ? { ...v, videoUrl: null, videoSource: null } : v,
-            ),
-          };
-        }
-        return { ...prev, videoUrl: null, videoSource: null };
-      });
-      setVideoInput('');
-      setVideoFeedback({ text: 'Se quitó tu video y se volvió al sugerido.' });
-    } catch {
-      setVideoFeedback({ text: 'Error al quitar el video.', error: true });
-    } finally {
-      setIsSavingVideo(false);
-    }
-  };
 
   const openDetail = (exercise: ExerciseItem) => {
     setActiveVariantId(null);
     setModalExercise(exercise);
-    setVideoFeedback(null);
-    setVideoInput(exercise.videoUrl ?? '');
+  };
+
+  const handleExerciseVideoChange = (exerciseId: string, nextVideoUrl: string | null) => {
+    const nextSource: 'Pf' | null = nextVideoUrl ? 'Pf' : null;
+    const applyUpdate = (item: ExerciseItem): ExerciseItem => ({
+      ...item,
+      ...(item.id === exerciseId ? { videoUrl: nextVideoUrl, videoSource: nextSource } : {}),
+      variants: item.variants.map((variant) =>
+        variant.id === exerciseId
+          ? { ...variant, videoUrl: nextVideoUrl, videoSource: nextSource }
+          : variant,
+      ),
+    });
+
+    setExercises((prev) => prev.map(applyUpdate));
+    setModalExercise((prev) => (prev ? applyUpdate(prev) : null));
   };
 
   const shownExercise =
-    modalExercise?.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise;
+    activeVariantId && modalExercise
+      ? (modalExercise.variants.find((variant) => variant.id === activeVariantId) ?? modalExercise)
+      : modalExercise;
+
+  const currentExerciseForModal = shownExercise
+    ? {
+        ...shownExercise,
+        variants: modalExercise?.variants,
+      }
+    : null;
 
   // Carga inicial y filtros por Chip o Buscador directamente al Backend
   useEffect(() => {
@@ -209,7 +199,7 @@ export const TrainingPage: React.FC = () => {
         const response = await listExercises({
           throwOnError: true,
           query: {
-            page: 1,
+            page: page,
             pageSize: PAGE_SIZE,
             search: searchTerm.trim() || undefined,
             muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
@@ -226,18 +216,19 @@ export const TrainingPage: React.FC = () => {
         const mapped = rawList.map(mapExerciseToItem);
 
         setExercises(mapped);
-        setPage(1);
-        setHasMore(rawList.length >= PAGE_SIZE);
         if (response.data && 'totalCount' in response.data) {
           setTotalCount(response.data.totalCount);
-          setHasMore(response.data.page < response.data.totalPages);
+          setTotalPages(Math.max(response.data.totalPages ?? 1, 1));
+        } else {
+          setTotalPages(rawList.length < PAGE_SIZE ? page : page + 1);
         }
       } catch (err) {
         if (!isMounted) return;
         console.error('Error al cargar ejercicios del backend:', err);
         setError('No se pudo cargar la biblioteca');
         setExercises([]);
-        setHasMore(false);
+        setTotalCount(0);
+        setTotalPages(1);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -247,52 +238,17 @@ export const TrainingPage: React.FC = () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [searchTerm, selectedCategory, selectedMuscle, selectedType, retryCount]);
+  }, [searchTerm, selectedCategory, selectedMuscle, selectedType, page, retryCount]);
 
-  // Función para pedir la siguiente página manteniendo los filtros
-  const handleLoadMore = async () => {
-    if (isLoadingMore || !hasMore) return;
-    setIsLoadingMore(true);
-    const nextPage = page + 1;
-
-    try {
-      const response = await listExercises({
-        throwOnError: true,
-        query: {
-          page: nextPage,
-          pageSize: PAGE_SIZE,
-          search: searchTerm.trim() || undefined,
-          muscleGroup: selectedCategory === 'Todos' ? undefined : selectedCategory,
-          muscle: selectedMuscle ? selectedMuscle.toLowerCase() : undefined,
-          exerciseType:
-            selectedType === 'Todos' ? undefined : (selectedType as Exercise['exerciseType']),
-          groupVariants: true,
-        },
-      });
-
-      const rawList = extractExerciseList(response.data);
-      if (rawList.length > 0) {
-        const mapped = rawList.map(mapExerciseToItem);
-        setExercises((prev) => {
-          const existingIds = new Set(prev.map((e) => e.id));
-          const newItems = mapped.filter((e) => !existingIds.has(e.id));
-          return [...prev, ...newItems];
-        });
-        setPage(nextPage);
-        setHasMore(rawList.length >= PAGE_SIZE);
-        if (response.data && 'totalPages' in response.data) {
-          setHasMore(nextPage < response.data.totalPages);
-        }
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error('Error al cargar más ejercicios:', err);
-      setHasMore(false);
-    } finally {
-      setIsLoadingMore(false);
-    }
+  // Función para pedir otra página manteniendo los filtros
+  const goToPage = (nextPage: number) => {
+    if (isLoading || nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    setPage(nextPage);
   };
+
+  const selectedTypeObj = EXERCISE_TYPES.find((t) => t.value === selectedType);
+  const selectedTypeLabel = selectedTypeObj ? selectedTypeObj.label : 'Todos los tipos';
+  const isTypeActive = selectedType !== 'Todos';
 
   return (
     <div className="app-page-container">
@@ -303,105 +259,158 @@ export const TrainingPage: React.FC = () => {
       />
 
       <div className="app-page-body">
-        {/* Filtros y Buscador */}
-        <div
-          className="card"
-          style={{
-            margin: 0,
-            padding: '1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-          }}
-        >
-          {/* Buscador */}
-          <div style={{ position: 'relative', width: '100%' }}>
-            <Search
-              size={18}
-              style={{
-                position: 'absolute',
-                left: '0.85rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              placeholder="Buscar por ejercicio o grupo muscular..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                paddingLeft: '2.5rem',
-                margin: 0,
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          {/* Chips Táctiles PWA - Tipo de ejercicio / Modalidad (KAN-453) */}
-          <div
-            className="exercise-chips-scroll"
-            role="group"
-            aria-label="Filtro por modalidad de ejercicio"
-          >
-            {EXERCISE_TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                aria-pressed={selectedType === t.value}
-                className={`touch-chip ${selectedType === t.value ? 'active' : ''}`}
-                onClick={() => setSelectedType(t.value)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Chips Táctiles PWA - Grupos principales */}
-          <div
-            className="exercise-chips-scroll"
-            role="group"
-            aria-label="Filtro por grupo muscular"
-          >
-            {CHIP_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                aria-pressed={selectedCategory === cat}
-                className={`touch-chip ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setSelectedMuscle(null);
+        {/* Rediseño UX/UI de Filtros: Compacto, Moderno y Equilibrado (KAN-640) */}
+        <div className="card training-filters-card">
+          {/* Fila 1: Búsqueda y Filtros Generales */}
+          <div className="training-filters-row training-filters-row-primary">
+            {/* Buscador Prominente */}
+            <div className="training-search-wrap">
+              <Search size={16} className="training-search-icon" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="Buscar por ejercicio o grupo muscular..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
                 }}
+                className="training-search-input"
+                aria-label="Buscar por ejercicio o grupo muscular"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="training-clear-search-btn"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setPage(1);
+                  }}
+                  title="Borrar búsqueda"
+                  aria-label="Borrar búsqueda"
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+
+            {/* Selector de Modalidad Compacto */}
+            <div className="training-type-select-wrap" ref={typeDropdownRef}>
+              <button
+                type="button"
+                className={`training-type-trigger-btn ${isTypeActive ? 'active' : ''}`}
+                onClick={() => setIsTypeDropdownOpen((prev) => !prev)}
+                aria-haspopup="listbox"
+                aria-expanded={isTypeDropdownOpen}
+                title="Filtrar por modalidad de ejercicio"
+                data-testid="training-type-trigger"
               >
-                {cat}
+                <Layers size={14} aria-hidden="true" />
+                <span className="training-type-trigger-text">
+                  {isTypeActive ? selectedTypeLabel : 'Modalidad'}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`training-type-chevron ${isTypeDropdownOpen ? 'open' : ''}`}
+                  aria-hidden="true"
+                />
               </button>
-            ))}
+
+              {/* Dropdown accesible de modalidades */}
+              <div
+                className={`training-type-dropdown ${isTypeDropdownOpen ? 'open' : ''}`}
+                role="group"
+                aria-label="Filtro por modalidad de ejercicio"
+              >
+                {EXERCISE_TYPES.map((t) => {
+                  const isSelected = selectedType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      role="button"
+                      aria-pressed={isSelected}
+                      className={`training-type-option ${isSelected ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedType(t.value);
+                        setPage(1);
+                        setIsTypeDropdownOpen(false);
+                      }}
+                    >
+                      <span className="training-type-option-dot" />
+                      <span className="training-type-option-label">{t.label}</span>
+                      {isSelected && (
+                        <Check
+                          size={14}
+                          className="training-type-option-check"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          {/* Chips Táctiles PWA - Músculos puntuales según grupo seleccionado */}
-          {selectedCategory !== 'Todos' && GROUP_SUB_MUSCLES[selectedCategory] && (
+          {/* Fila 2: Grupo Muscular (Chips compactos en azul institucional ProTraining) */}
+          <div className="training-filters-row training-groups-row">
             <div
-              className="exercise-subchips-scroll"
+              className="training-chips-scroll"
               role="group"
-              aria-label="Filtro por músculo puntual"
+              aria-label="Filtro por grupo muscular"
             >
-              {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => (
-                <button
-                  key={subMuscle}
-                  type="button"
-                  aria-pressed={selectedMuscle === subMuscle}
-                  className={`touch-subchip ${selectedMuscle === subMuscle ? 'active' : ''}`}
-                  onClick={() =>
-                    setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle))
-                  }
-                >
-                  {subMuscle}
-                </button>
-              ))}
+              {CHIP_CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="button"
+                    aria-pressed={isSelected}
+                    className={`training-group-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      setSelectedMuscle(null);
+                      setPage(1);
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Fila 3: Músculos Específicos (Depende exclusivamente de la categoría seleccionada, excluyendo vacíos KAN-633) */}
+          {selectedCategory !== 'Todos' && Boolean(GROUP_SUB_MUSCLES[selectedCategory]?.length) && (
+            <div className="training-filters-row training-submuscles-row">
+              <div className="training-submuscles-indicator">
+                <span className="training-submuscles-prefix">Músculos:</span>
+              </div>
+              <div
+                className="training-subchips-scroll"
+                role="group"
+                aria-label="Filtro por músculo puntual"
+              >
+                {GROUP_SUB_MUSCLES[selectedCategory].map((subMuscle) => {
+                  const isSelected = selectedMuscle === subMuscle;
+                  return (
+                    <button
+                      key={subMuscle}
+                      type="button"
+                      role="button"
+                      aria-pressed={isSelected}
+                      className={`training-submuscle-chip ${isSelected ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedMuscle((prev) => (prev === subMuscle ? null : subMuscle));
+                        setPage(1);
+                      }}
+                    >
+                      {subMuscle}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -487,47 +496,72 @@ export const TrainingPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          /* Lista de tarjetas y botón Cargar más */
+          /* Lista de tarjetas y barra superior de resultados + paginación */
           <>
-            {/* Contador de ejercicios encontrados */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0 0.25rem',
-                marginBottom: '-0.25rem',
-                fontSize: '0.85rem',
-                color: 'var(--text-muted)',
-                fontWeight: 600,
-              }}
-            >
-              <span>
-                Mostrando {exercises.length} de {totalCount} ejercicios
-              </span>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '1.25rem',
-              }}
-            >
+            {/* Contador de ejercicios y paginación con flechas arriba de la grilla */}
+            {exercises.length > 0 && (
+              <div className="training-results-bar">
+                <span className="training-results-count">
+                  Mostrando {(page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + exercises.length}{' '}
+                  de {totalCount} ejercicios
+                </span>
+
+                {totalPages > 1 && (
+                  <div className="training-pagination">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => goToPage(page - 1)}
+                      disabled={isLoading || page <= 1}
+                      aria-label="Página anterior"
+                    >
+                      <ChevronLeft size={16} aria-hidden="true" />
+                      <span>Anterior</span>
+                    </button>
+
+                    <span className="training-pagination-info">
+                      Página {page} de {totalPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => goToPage(page + 1)}
+                      disabled={isLoading || page >= totalPages}
+                      aria-label="Página siguiente"
+                    >
+                      <span>Siguiente</span>
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="training-exercises-grid">
               {exercises.map((ex) => (
-                <div
-                  key={ex.id}
-                  className="card"
-                  style={{
-                    margin: 0,
-                    padding: '1.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: '1rem',
-                  }}
-                >
+                <div key={ex.id} className="card training-exercise-card">
                   <div>
-                    <ExerciseGifImage images={ex.images} media={ex.media} name={ex.name} />
+                    {/* Clic en la foto abre el modal ampliado de detalle (KAN-625) */}
+                    <div
+                      className="exercise-card-media-clickable"
+                      onClick={() => openDetail(ex)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openDetail(ex);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Ver técnica y anatomía de ${ex.name}`}
+                    >
+                      <ExerciseGifImage
+                        images={ex.images}
+                        media={ex.media}
+                        name={ex.name}
+                        showCredit={false}
+                      />
+                    </div>
 
                     <div className="exercise-card-header-meta">
                       <div className="exercise-badges-group">
@@ -547,48 +581,35 @@ export const TrainingPage: React.FC = () => {
                       )}
                     </div>
 
+                    {/* Clic en el nombre abre el modal ampliado de detalle (KAN-625) */}
                     <h3
-                      style={{
-                        fontSize: '1.05rem',
-                        fontWeight: 700,
-                        margin: '0 0 0.4rem',
-                        color: 'var(--text-main)',
-                        lineHeight: 1.3,
+                      className="exercise-card-title-clickable"
+                      onClick={() => openDetail(ex)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openDetail(ex);
+                        }
                       }}
+                      tabIndex={0}
+                      role="button"
+                      title={`Ver técnica y anatomía de ${ex.name}`}
                     >
                       {ex.name}
                     </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                      Grupo: {ex.muscleGroup}
-                    </p>
+                    <p className="exercise-card-muscle-group">Grupo: {ex.muscleGroup}</p>
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '0.4rem',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-muted)',
-                      paddingTop: '0.75rem',
-                      borderTop: '1px solid var(--border)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div className="exercise-card-footer">
+                    <div className="exercise-card-equipment-wrap">
                       <Activity size={14} />
-                      <span>{ex.equipment}</span>
+                      <span className="exercise-card-equipment">{ex.equipment}</span>
                     </div>
+                    {/* Clic en anatomía abre el modal ampliado de detalle (KAN-625) */}
                     <button
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => openDetail(ex)}
-                      style={{
-                        padding: '0.2rem 0.6rem',
-                        fontSize: '0.75rem',
-                        minHeight: '28px',
-                        borderRadius: 'var(--radius)',
-                      }}
                       title="Ver mapa anatómico y detalles"
                     >
                       Anatomía
@@ -597,354 +618,19 @@ export const TrainingPage: React.FC = () => {
                 </div>
               ))}
             </div>
-
-            {/* Botón Cargar Más Ejercicios */}
-            {hasMore && exercises.length > 0 && (
-              <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  style={{
-                    minHeight: '44px',
-                    padding: '0.65rem 2rem',
-                    fontWeight: 600,
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  {isLoadingMore ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Loader2 size={16} className="spin" />
-                      Cargando más ejercicios...
-                    </span>
-                  ) : (
-                    <span>Cargar más ejercicios</span>
-                  )}
-                </button>
-              </div>
-            )}
           </>
         )}
 
-        {/* Modal de Detalle Anatómico del Ejercicio (KAN-320) */}
-        {modalExercise && shownExercise && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'var(--routine-modal-overlay)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
-              padding: '1rem',
-            }}
-            onClick={() => setModalExercise(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Detalle anatómico de ${modalExercise.name}`}
-          >
-            <div
-              className="card"
-              style={{
-                margin: 0,
-                padding: '1.5rem',
-                maxWidth: '650px',
-                width: '100%',
-                maxHeight: '90vh',
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.25rem',
-                background: 'var(--bg-card)',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-lg)',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  gap: '1rem',
-                }}
-              >
-                <div>
-                  <div className="exercise-modal-badges">
-                    <span className="badge badge-info">{modalExercise.category}</span>
-                    <ExerciseTypeBadge
-                      type={shownExercise.exerciseType ?? modalExercise.exerciseType}
-                    />
-                  </div>
-                  <h2
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      margin: 0,
-                      color: 'var(--text-main)',
-                    }}
-                  >
-                    {modalExercise.name}
-                  </h2>
-                  {shownExercise.variantLabel && (
-                    <p
-                      style={{
-                        margin: '0.25rem 0 0',
-                        fontSize: '0.85rem',
-                        color: 'var(--text-muted)',
-                      }}
-                    >
-                      Variante: {shownExercise.variantLabel}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalExercise(null)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    padding: '0.25rem',
-                  }}
-                  aria-label="Cerrar ventana"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Variantes del ejercicio (KAN-554): cada una conserva su id, sus fotos y sus músculos */}
-              {modalExercise.variants.length > 0 && (
-                <div>
-                  <strong
-                    style={{
-                      display: 'block',
-                      fontSize: '0.85rem',
-                      color: 'var(--text-main)',
-                      marginBottom: '0.5rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Variantes:
-                  </strong>
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className={`touch-chip ${activeVariantId === null ? 'active' : ''}`}
-                      onClick={() => setActiveVariantId(null)}
-                      aria-pressed={activeVariantId === null}
-                    >
-                      Principal
-                    </button>
-                    {modalExercise.variants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        type="button"
-                        className={`touch-chip ${activeVariantId === variant.id ? 'active' : ''}`}
-                        onClick={() => setActiveVariantId(variant.id)}
-                        aria-pressed={activeVariantId === variant.id}
-                        title={variant.name}
-                      >
-                        {variant.variantLabel ?? variant.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Animación GIF si está disponible */}
-              {((shownExercise.images?.length ?? 0) > 0 ||
-                (shownExercise.media?.length ?? 0) > 0) && (
-                <div
-                  style={{
-                    borderRadius: 'var(--radius)',
-                    overflow: 'hidden',
-                    maxHeight: '220px',
-                  }}
-                >
-                  <ExerciseGifImage
-                    images={shownExercise.images}
-                    media={shownExercise.media}
-                    name={shownExercise.name}
-                  />
-                </div>
-              )}
-
-              {/* Información de músculos y mapa anatómico KAN-320 */}
-              <div>
-                <strong
-                  style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    color: 'var(--text-main)',
-                    marginBottom: '0.5rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  Músculos Involucrados:
-                </strong>
-
-                {/* Descriptive chips for primary and secondary muscles */}
-                {((shownExercise.primaryMuscles && shownExercise.primaryMuscles.length > 0) ||
-                  (shownExercise.secondaryMuscles &&
-                    shownExercise.secondaryMuscles.length > 0)) && (
-                  <div className="exercise-muscle-chips">
-                    {shownExercise.primaryMuscles?.map((m, idx) => (
-                      <span key={`pri-${idx}`} className="badge badge-primary exercise-muscle-chip">
-                        {getMuscleSpanishName(m)} (Principal)
-                      </span>
-                    ))}
-                    {shownExercise.secondaryMuscles?.map((m, idx) => (
-                      <span key={`sec-${idx}`} className="badge badge-info exercise-muscle-chip">
-                        {getMuscleSpanishName(m)} (Secundario)
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Empty state message when no muscles are defined (Criterion 2) */}
-                {(!shownExercise.primaryMuscles || shownExercise.primaryMuscles.length === 0) &&
-                  (!shownExercise.secondaryMuscles ||
-                    shownExercise.secondaryMuscles.length === 0) && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0',
-                        fontSize: '0.85rem',
-                        color: 'var(--text-muted)',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      Este ejercicio no tiene grupos musculares específicos cargados (movilidad o
-                      ejercicio general).
-                    </p>
-                  )}
-
-                {/* Mapa muscular anatómico con dos intensidades y Smart View */}
-                <ExerciseMuscleMap
-                  primaryMuscles={shownExercise.primaryMuscles}
-                  secondaryMuscles={shownExercise.secondaryMuscles}
-                  showLegend={true}
-                  showViewToggle={true}
-                />
-              </div>
-
-              {/* Campo para que el PF pegue el link de YouTube (KAN-380) */}
-              <div
-                style={{
-                  marginTop: '1rem',
-                  paddingTop: '1rem',
-                  borderTop: '1px solid var(--border)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.4rem',
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      color: 'var(--text-main)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Video de Referencia (YouTube):
-                  </label>
-                  {shownExercise.videoSource && (
-                    <span
-                      className={`badge ${shownExercise.videoSource === 'Pf' ? 'badge-primary' : 'badge-info'}`}
-                    >
-                      {shownExercise.videoSource === 'Pf' ? 'Video propio' : 'Video sugerido'}
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="url"
-                    className="form-input"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    value={videoInput}
-                    onChange={(e) => setVideoInput(e.target.value)}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid var(--border)',
-                      background: 'var(--bg-main)',
-                      color: 'var(--text-main)',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSaveVideo}
-                    disabled={isSavingVideo}
-                  >
-                    {isSavingVideo ? 'Guardando...' : 'Guardar'}
-                  </button>
-                  {shownExercise.videoSource === 'Pf' && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleRemoveVideo}
-                      disabled={isSavingVideo}
-                      title="Quitar video propio y volver al sugerido del catálogo"
-                    >
-                      Quitar mi video
-                    </button>
-                  )}
-                </div>
-                {videoFeedback && (
-                  <p
-                    style={{
-                      marginTop: '0.4rem',
-                      fontSize: '0.8rem',
-                      color: videoFeedback.error ? 'var(--danger)' : 'var(--success)',
-                    }}
-                  >
-                    {videoFeedback.text}
-                  </p>
-                )}
-                {shownExercise.videoUrl && (
-                  <ExerciseVideoPlayer
-                    videoUrl={shownExercise.videoUrl}
-                    exerciseName={shownExercise.name}
-                  />
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  paddingTop: '0.75rem',
-                  borderTop: '1px solid var(--border)',
-                }}
-              >
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setModalExercise(null)}
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Modal ampliado de detalle del ejercicio con técnica animada, silueta anatómica y pautas (KAN-625) */}
+        <ExerciseDetailModal
+          isOpen={Boolean(modalExercise)}
+          onClose={() => setModalExercise(null)}
+          exercise={currentExerciseForModal}
+          activeVariantId={activeVariantId}
+          onSelectVariant={(variantId) => setActiveVariantId(variantId)}
+          allowVideoEdit
+          onVideoChange={handleExerciseVideoChange}
+        />
       </div>
     </div>
   );

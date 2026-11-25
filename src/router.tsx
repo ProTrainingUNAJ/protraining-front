@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type ComponentType } from 'react';
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { CoachLayout } from './layouts/CoachLayout';
@@ -6,6 +7,10 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
 import { RequireAuth } from './components/auth/RequireAuth';
+import { ATHLETE_CHECK_IN_PATH } from './routerPaths';
+
+// KAN-593: se expone desde el router para que ninguna pantalla navegue a mano.
+export { ATHLETE_CHECK_IN_PATH };
 
 // Cada pantalla se descarga recién cuando se abre: la primera carga baja solo el login y el armado de la app
 function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
@@ -52,10 +57,8 @@ const TrainingPage = lazyPage(() =>
 const MonitoringPage = lazyPage(() =>
   import('./pages/coach/MonitoringPage').then((m) => ({ default: m.MonitoringPage })),
 );
-const RecordsReliabilityPage = lazyPage(() =>
-  import('./pages/coach/RecordsReliabilityPage').then((m) => ({
-    default: m.RecordsReliabilityPage,
-  })),
+const StatisticsPage = lazyPage(() =>
+  import('./pages/coach/StatisticsPage').then((m) => ({ default: m.StatisticsPage })),
 );
 const FieldTestsPage = lazyPage(() =>
   import('./pages/coach/FieldTestsPage').then((m) => ({ default: m.FieldTestsPage })),
@@ -63,8 +66,8 @@ const FieldTestsPage = lazyPage(() =>
 const FieldTestCapturePage = lazyPage(() =>
   import('./pages/coach/FieldTestCapturePage').then((m) => ({ default: m.FieldTestCapturePage })),
 );
-const ReportsPage = lazyPage(() =>
-  import('./pages/coach/ReportsPage').then((m) => ({ default: m.ReportsPage })),
+const RecommendationsPage = lazyPage(() =>
+  import('./pages/coach/RecommendationsPage').then((m) => ({ default: m.RecommendationsPage })),
 );
 const SettingsPage = lazyPage(() =>
   import('./pages/coach/SettingsPage').then((m) => ({ default: m.SettingsPage })),
@@ -101,8 +104,21 @@ const ForgotPasswordPage = lazyPage(() =>
 const ResetPasswordPage = lazyPage(() =>
   import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })),
 );
+const RegisterChoicePage = lazyPage(() =>
+  import('./pages/auth/RegisterChoicePage').then((m) => ({ default: m.RegisterChoicePage })),
+);
+const RegisterPfPage = lazyPage(() =>
+  import('./pages/auth/RegisterPfPage').then((m) => ({ default: m.RegisterPfPage })),
+);
+const RegisterAthleteInfoPage = lazyPage(() =>
+  import('./pages/auth/RegisterAthleteInfoPage').then((m) => ({
+    default: m.RegisterAthleteInfoPage,
+  })),
+);
+const ConfirmEmailPage = lazyPage(() =>
+  import('./pages/auth/ConfirmEmailPage').then((m) => ({ default: m.ConfirmEmailPage })),
+);
 
-// eslint-disable-next-line react-refresh/only-export-components
 function RootRedirect() {
   const { isAuthenticated, user, isHydrating } = useAuth();
 
@@ -138,6 +154,10 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'login/atleta', element: <LoginPage /> },
       { path: 'login/pf', element: <LoginPage /> },
+      { path: 'registro', element: <RegisterChoicePage /> },
+      { path: 'registro/pf', element: <RegisterPfPage /> },
+      { path: 'registro/atleta', element: <RegisterAthleteInfoPage /> },
+      { path: 'confirmar-email', element: <ConfirmEmailPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: 'invite/:token', element: <InvitationLandingPage /> },
@@ -162,8 +182,20 @@ export const router = createBrowserRouter([
               { path: 'monitoring', element: <MonitoringPage /> },
               { path: 'field-tests', element: <FieldTestsPage /> },
               { path: 'field-tests/:sessionId', element: <FieldTestCapturePage /> },
-              { path: 'records-reliability', element: <RecordsReliabilityPage /> },
-              { path: 'reports', element: <ReportsPage /> },
+              { path: 'statistics', element: <StatisticsPage /> },
+              {
+                path: 'records-reliability',
+                element: <Navigate to="/pf/statistics?tab=reliability" replace />,
+              },
+              {
+                path: 'category-statistics',
+                element: <Navigate to="/pf/statistics?tab=category" replace />,
+              },
+              { path: 'recommendations', element: <RecommendationsPage /> },
+              {
+                path: 'reports',
+                element: <Navigate to="/pf/statistics?tab=reports" replace />,
+              },
               { path: 'settings', element: <SettingsPage /> },
             ],
           },
@@ -178,7 +210,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <HomePage /> },
               { path: 'routine', element: <RoutinePage /> },
-              { path: 'check-in', element: <CheckInPage /> },
+              { path: ATHLETE_CHECK_IN_PATH, element: <CheckInPage /> },
               { path: 'daily-load', element: <DailyLoadPage /> },
               { path: 'progress', element: <ProgressPage /> },
               { path: 'settings', element: <AthleteSettingsPage /> },

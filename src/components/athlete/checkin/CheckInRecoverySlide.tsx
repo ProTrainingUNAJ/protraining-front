@@ -336,44 +336,49 @@ export const CheckInRecoverySlide: React.FC<CheckInRecoverySlideProps> = ({
           </button>
         </div>
 
-        {/* ── Subtitle in Medium Blue ── */}
-        <p
-          className="pixel-slide-subtitle"
-          style={{
-            fontWeight: 500,
-            color: 'var(--checkin-subtitle-color)',
-            textAlign: 'center',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          {METRIC_CONFIGS[activeMetric].name}
-        </p>
+        {/* Zona scrolleable: el scroll queda acá para que los botones de la
+            cabecera siempre queden visibles (KAN-595) */}
+        <div className="checkin-card-scroll">
+          {/* ── Subtitle in Medium Blue ── */}
+          <p
+            className="pixel-slide-subtitle"
+            style={{
+              fontWeight: 500,
+              color: 'var(--checkin-subtitle-color)',
+              textAlign: 'center',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {METRIC_CONFIGS[activeMetric].name}
+          </p>
 
-        {/* ── Control Visual Central con Botones + y − ── */}
-        <RecoveryHeroControl
-          activeMetric={activeMetric}
-          currentVal={currentVal}
-          activeHeroColor={activeHeroColor}
-          isStarColor={isStarColor}
-          starPalette={starPalette}
-          burstKey={burstKey}
-          isMin={isMin}
-          isMax={isMax}
-          onDecrement={handleDecrement}
-          onIncrement={handleIncrement}
-        />
+          {/* ── Resumen Visual Compacto del Indicador Seleccionado ── */}
+          <RecoveryHeroControl
+            activeMetric={activeMetric}
+            currentVal={currentVal}
+            activeHeroColor={activeHeroColor}
+            isStarColor={isStarColor}
+            starPalette={starPalette}
+            burstKey={burstKey}
+          />
 
-        {/* ── Medidor Radial de 4 Arcos Interactivos y Lista de Insignias ── */}
-        <RecoveryRadialMeter
-          activeMetric={activeMetric}
-          sleepHours={sleepHours}
-          sleepQuality={sleepQuality}
-          fatigueLevel={fatigueLevel}
-          muscleSoreness={muscleSoreness}
-          onSelectMetric={handleSelectMetric}
-          onValueChange={handleValueChange}
-          getArcEndAngle={getArcEndAngle}
-        />
+          {/* ── 4 Barras Horizontales con Controles − y + en sus Extremos ── */}
+          <RecoveryRadialMeter
+            activeMetric={activeMetric}
+            sleepHours={sleepHours}
+            sleepQuality={sleepQuality}
+            fatigueLevel={fatigueLevel}
+            muscleSoreness={muscleSoreness}
+            onSelectMetric={handleSelectMetric}
+            onValueChange={handleValueChange}
+            getArcEndAngle={getArcEndAngle}
+            getProgressPct={getProgressPct}
+            isMin={isMin}
+            isMax={isMax}
+            onDecrement={handleDecrement}
+            onIncrement={handleIncrement}
+          />
+        </div>
       </div>
 
       {/* ── Modales de Validación y Confirmación ── */}

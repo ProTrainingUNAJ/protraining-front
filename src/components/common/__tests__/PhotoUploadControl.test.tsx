@@ -1,0 +1,59 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { PhotoUploadControl } from '../PhotoUploadControl';
+
+describe('PhotoUploadControl Component', () => {
+  it('renders avatar and upload label', () => {
+    const handleUpload = vi.fn().mockResolvedValue(undefined);
+    render(
+      <PhotoUploadControl
+        name="Julián Pérez"
+        onUpload={handleUpload}
+        uploadButtonLabel="Cambiar foto"
+      />,
+    );
+
+    expect(screen.getByText('JP')).toBeDefined();
+    expect(screen.getByText('Cambiar foto')).toBeDefined();
+  });
+
+  it('renders delete button when currentPhotoUrl and onDelete are provided', async () => {
+    const handleUpload = vi.fn().mockResolvedValue(undefined);
+    const handleDelete = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(
+      <PhotoUploadControl
+        name="Julián Pérez"
+        currentPhotoUrl="http://localhost:8080/identidad/api/v1/users/me/photo"
+        onUpload={handleUpload}
+        onDelete={handleDelete}
+      />,
+    );
+
+    const deleteBtn = screen.getByText('Eliminar');
+    expect(deleteBtn).toBeDefined();
+
+    fireEvent.click(deleteBtn);
+    await waitFor(() => {
+      expect(handleDelete).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('rejects files larger than 5 MB before calling upload', async () => {
+    const handleUpload = vi.fn().mockResolvedValue(undefined);
+    render(<PhotoUploadControl name="Julián Pérez" onUpload={handleUpload} />);
+
+    const hugeFile = new File(['a'.repeat(100)], 'huge.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(hugeFile, 'size', { value: 6 * 1024 * 1024 });
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [hugeFile] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('El archivo no puede superar los 5 MB.')).toBeDefined();
+    });
+    expect(handleUpload).not.toHaveBeenCalled();
+  });
+});

@@ -89,13 +89,40 @@ export const httpClient: AxiosInstance = axios.create({
 });
 
 /**
+ * Endpoints públicos de autenticación y registro que nunca deben enviar
+ * tokens residuales ni disparar refresco automático de sesión ante 401.
+ */
+const PUBLIC_AUTH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/google',
+  '/auth/refresh',
+  '/auth/register-pf',
+  '/auth/register-by-invitation',
+  '/auth/confirm-email',
+  '/auth/resend-confirmation',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
+
+export function isPublicAuthEndpoint(url?: string): boolean {
+  if (!url) return false;
+  const cleanPath = url.split('?')[0].replace(/\/+$/, '').toLowerCase();
+  return PUBLIC_AUTH_ENDPOINTS.some((ep) => cleanPath.endsWith(ep));
+}
+
+/**
  * Request Interceptor:
- * Attaches Bearer accessToken to all outgoing requests if session exists.
+ * Attaches Bearer accessToken to all outgoing requests if session exists,
+ * excepto en endpoints públicos de autenticación y registro.
  */
 httpClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const session = getStoredSession();
-    if (session?.accessToken && !config.headers['Authorization']) {
+    if (
+      session?.accessToken &&
+      !config.headers['Authorization'] &&
+      !isPublicAuthEndpoint(config.url)
+    ) {
       config.headers['Authorization'] = `Bearer ${session.accessToken}`;
     }
     return config;
@@ -120,12 +147,8 @@ httpClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const isAuthEndpoint =
-      originalRequest.url?.includes('/auth/login') ||
-      originalRequest.url?.includes('/auth/refresh');
-
-    // 401 on login or refresh endpoint is an authentication error: DO NOT attempt refresh!
-    if (error.response.status === 401 && isAuthEndpoint) {
+    // 401 en endpoints de autenticación/registro públicos no debe intentar refresco
+    if (error.response.status === 401 && isPublicAuthEndpoint(originalRequest.url)) {
       return Promise.reject(error);
     }
 
@@ -237,10 +260,26 @@ export function extractErrorMessage(error: unknown): string {
         if (errorList.length > 0) return errorList.join(' ');
       }
       if (data.detail) return data.detail;
-      if (data.title) return data.title;
+      if (data.title) {
+        if (
+          error.response?.status === 409 &&
+          (error.config?.url?.includes('/auth/register') ||
+            data.title.toLowerCase().includes('email') ||
+            data.title.toLowerCase().includes('cuenta'))
+        ) {
+          return 'El correo ya se encuentra registrado.';
+        }
+        return data.title;
+      }
     }
     if (error.response?.status === 401) {
-      return 'El correo o la contraseña no son correctos.';
+      if (error.config?.url?.includes('/auth/login')) {
+        return 'El correo o la contraseña no son correctos.';
+      }
+      return 'No tenés autorización para realizar esta acción o la sesión caducó.';
+    }
+    if (error.response?.status === 409) {
+      return 'El correo ya se encuentra registrado.';
     }
     if (error.response?.status === 403) {
       return 'No tenés permiso para entrar a esta sección.';

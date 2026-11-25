@@ -86,9 +86,26 @@ describe('IntervalTimerModal (Tabata / Intervalos)', () => {
     });
 
     // Debe haberse llamado a onSetCompleted con la serie 1
-    expect(handleSetCompleted).toHaveBeenCalledWith(1);
+    expect(handleSetCompleted).toHaveBeenCalledWith(1, 5);
     expect(screen.getByText('DESCANSO')).toBeTruthy();
 
     vi.useRealTimers();
+  });
+
+  it('con la meta del PF muestra la duración fija, sin campo para cambiarla (KAN-481)', () => {
+    render(
+      <IntervalTimerModal
+        isOpen={true}
+        onClose={vi.fn()}
+        exerciseName="Jumping jacks"
+        defaultWorkSeconds={60}
+        totalSets={2}
+        lockWorkSeconds
+      />,
+    );
+
+    expect(screen.getByTestId('timer-fixed-work').textContent).toBe('1 min');
+    expect(screen.getByText('Duración por serie que indicó tu preparador')).toBeTruthy();
+    expect(screen.queryByRole('spinbutton')).toBeNull();
   });
 });

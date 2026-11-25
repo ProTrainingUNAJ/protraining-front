@@ -36,13 +36,13 @@ export const CheckInWelcomeSlide: React.FC<CheckInWelcomeSlideProps> = ({ onStar
         </h1>
 
         <span
+          className="pixel-welcome-subtitle"
           style={{
             fontFamily: 'var(--font-base)',
             fontSize: '2.4rem',
             fontWeight: 300,
             color: 'var(--checkin-title-color)',
             lineHeight: 1.15,
-            margin: '0.35rem 0 2.25rem',
             letterSpacing: '-0.02em',
           }}
         >

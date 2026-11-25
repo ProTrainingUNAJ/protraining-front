@@ -1,0 +1,302 @@
+/*
+ * Estilos del modal "Finalizar entrenamiento" (KAN-582).
+ * Los estilos fijos que vivían en style={{...}} pasan a clases acá, usando
+ * tokens de tokens.css. Solo queda inline el valor dinámico: el ancho de la
+ * barra de UA (width: `${uaPercent}%`); el color del relleno, con tokens, lo
+ * aporta la clase. Donde la clase choca con una regla global igual de
+ * específica (.finish-routine-ua-progress-track/.fill en athlete.css), se usa
+ * selector compuesto (.clase.modificador) para que el resultado sea el mismo
+ * que daba el inline.
+ */
+
+/* ── Botón de cierre ── */
+.routine-finish-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Paso 1: formulario ── */
+.finish-routine-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.finish-routine-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.finish-routine-head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--info-bg);
+  color: var(--secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.finish-routine-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.finish-routine-subtitle {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+/* ── Sección 1: músculos que trabajaron ── */
+.finish-routine-muscles-box {
+  background: var(--bg-subtle);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.finish-routine-muscles-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.finish-routine-muscles-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.finish-routine-muscles-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.finish-routine-muscles-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.finish-routine-silhouette-sm {
+  width: 64px;
+  height: 110px;
+}
+
+.finish-routine-muscle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  justify-content: center;
+}
+
+.finish-routine-muscle-chip {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: var(--info-bg);
+  color: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+/* ── Secciones 2 y 3 (tiempo y RPE): bloque apilado con su fila de encabezado ── */
+.finish-routine-section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.finish-routine-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.finish-routine-section-label {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.finish-routine-rpe-level {
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  color: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+/* Íconos lucide con el color de acento que les daba el inline */
+.finish-routine-icon-accent {
+  color: var(--secondary);
+}
+
+.finish-routine-icon-warning {
+  color: var(--warning);
+}
+
+.finish-routine-icon-no-shrink {
+  flex-shrink: 0;
+}
+
+/* ── Sección 4: cálculo de UA ── */
+.finish-routine-ua-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.15rem;
+  border-radius: 14px;
+  background: var(--info-bg);
+  border: 1px solid var(--border);
+}
+
+.finish-routine-ua-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: block;
+}
+
+.finish-routine-ua-value {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.finish-routine-ua-unit {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--secondary);
+}
+
+/* Compuestos con .finish-routine-ua-progress-track/.fill (athlete.css): el
+   inline les imponía ancho/alto y transition distintos de los del global. */
+.finish-routine-ua-progress-track.finish-routine-ua-track--compact {
+  width: 90px;
+  height: 8px;
+}
+
+.finish-routine-ua-progress-track.finish-routine-ua-track--card {
+  width: 100%;
+  height: 14px;
+}
+
+.finish-routine-ua-progress-fill.finish-routine-ua-fill--form {
+  transition: width 0.3s ease;
+}
+
+.finish-routine-ua-progress-fill.finish-routine-ua-fill--celebration {
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Mensaje de error ── */
+.finish-routine-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  font-size: 0.85rem;
+}
+
+/* ── Paso 2: celebración ── */
+.finish-routine-silhouette-lg {
+  width: 80px;
+  height: 144px;
+}
+
+.finish-routine-ua-card {
+  width: 100%;
+  background: var(--bg-subtle);
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.finish-routine-ua-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.finish-routine-ua-card-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.finish-routine-ua-card-value {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--secondary);
+  letter-spacing: -0.03em;
+}
+
+.finish-routine-ua-card-unit {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.finish-routine-ua-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: -0.2rem;
+}
+
+.finish-routine-summary {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.finish-routine-summary-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.finish-routine-summary-value {
+  color: var(--text-main);
+}

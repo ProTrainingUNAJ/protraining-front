@@ -36,6 +36,14 @@ OPENAPI_CONTRACTS_PATH=/ruta/al/protraining-back/contracts npm run generate:api
 
 En PowerShell (Windows), la variable se setea así: `$env:OPENAPI_CONTRACTS_PATH="C:\ruta\al\protraining-back\contracts"; npm run generate:api`
 
+## Check-in offline y datos médicos (KAN-593)
+
+La regla general del proyecto es **no guardar datos médicos en localStorage**. Hay una única excepción, decidida por el PM: para que el check-in funcione sin conexión, el borrador con el dolor por lesión se guarda en el celular (`protraining_checkin_draft_*` en `src/components/athlete/checkin/checkInHelper.ts`).
+
+Condición obligatoria: ese borrador **se borra apenas se envía el check-in** (`clearCheckInDraft`), tanto en el envío online como cuando se sincroniza un check-in pendiente. El registro local de check-in completado (`protraining_checkin_completed_*`) guarda únicamente el resultado de la confirmación y la fecha: ni dolor por lesión, zonas, enfermedad, notas ni ninguna otra respuesta del borrador. Los registros viejos que guardaban ese detalle médico se eliminan al abrir la pantalla (`purgeLegacyCheckInCompletedData`). Las horas de sueño que muestra el semáforo se leen del backend, no de este registro.
+
+Las pantallas del flujo offline (check-in y rutina de hoy) tienen que seguir en el precache de la PWA: `vite.config.ts` excluye las demás páginas con `assets/!(CheckInPage|RoutinePage)-*.js`, de modo que el precache quede por debajo del límite de 1,5 MB (KAN-514).
+
 ## Estructura
 
 ```
@@ -115,4 +123,7 @@ Excepciones: `pf` (preparador físico), en la ruta `/pf` y en `PF`.
 - Commits: `tipo(área): descripción (KAN-XXX)`, por ejemplo `feat(athletes): listado de atletas (KAN-313)`.
 - El PR va a **`develop`**, nunca a `main`.
 
-Para revisar una rama antes del PR, con Claude Code: `/convenciones`.
+Antes del PR, con el asistente de IA que uses (en Antigravity son _workflows_ de `.agents/workflows/`; en otro asistente, pedile "seguí las instrucciones de `.agents/skills/<comando>/SKILL.md`"):
+
+- **`/revisar-tarea`**: revisa tu tarea como la va a revisar el PM. Mira si cumple el ticket de Jira y cada criterio de aceptación, las reglas del proyecto, las convenciones, la calidad, los tests y la integración. Corre lint, Prettier, tests y build, y te da un veredicto, qué corregir y las preguntas que te pueden hacer. Lo guarda en `notas/revision-<rama>.md`, que no se sube a GitHub.
+- **`/convenciones`**: solo las convenciones de este README, con cómo corregir cada una.

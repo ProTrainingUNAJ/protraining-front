@@ -24,13 +24,9 @@ const setCachedAthleteId = (userId: string, id: string) => {
   }
 };
 
-export type TrafficLightColor = 'Green' | 'Yellow' | 'Red';
+const ATHLETE_CHECK_IN_PATH = '/athlete/check-in';
 
-interface CheckInLocalResult {
-  trafficLight?: TrafficLightColor;
-  trafficLightReason?: string | null;
-  isOffline?: boolean;
-}
+export type TrafficLightColor = 'Green' | 'Yellow' | 'Red';
 
 export const DailyTrafficLightWidget: React.FC = () => {
   const navigate = useNavigate();
@@ -74,12 +70,12 @@ export const DailyTrafficLightWidget: React.FC = () => {
     // 1. Try local completed state first for instantaneous display
     const localCompleted = getCheckInCompleted(id);
     if (localCompleted) {
-      const result = localCompleted.result as CheckInLocalResult | undefined;
-      const color = result?.trafficLight;
+      const color = localCompleted.trafficLight;
       if (color === 'Green' || color === 'Yellow' || color === 'Red') {
         setTrafficColor(color);
-        setReason(result?.trafficLightReason || null);
-        setSleepHours(localCompleted.draft?.sleepHours ?? null);
+        // El motivo del semáforo no se persiste: se usa el texto por defecto del color.
+        setReason(null);
+        setSleepHours(null);
         setIsLoading(false);
         return;
       }
@@ -316,7 +312,7 @@ export const DailyTrafficLightWidget: React.FC = () => {
           <button
             type="button"
             className="dtl-widget__btn-action dtl-widget__btn-action--primary"
-            onClick={() => navigate('/athlete/checkin')}
+            onClick={() => navigate(ATHLETE_CHECK_IN_PATH)}
             aria-label="Completar Check-in de hoy"
           >
             <Sparkles size={14} />
@@ -327,7 +323,7 @@ export const DailyTrafficLightWidget: React.FC = () => {
           <button
             type="button"
             className="dtl-widget__btn-action dtl-widget__btn-action--secondary"
-            onClick={() => navigate('/athlete/checkin')}
+            onClick={() => navigate(ATHLETE_CHECK_IN_PATH)}
             aria-label="Ver o actualizar mi Check-in de hoy"
           >
             Ver o actualizar mi Check-in

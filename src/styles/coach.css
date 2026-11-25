@@ -166,7 +166,7 @@
 }
 
 .coach-tab.active {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .coach-drawer-backdrop {
@@ -199,6 +199,7 @@
 }
 
 .shell-icon-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -218,8 +219,14 @@
   background: var(--bg-subtle);
 }
 
-.shell-notifications-wrap,
+.shell-notifications-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .shell-user-avatar-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -603,7 +610,7 @@
 /* ── Wireframe Bento Layout (Inicio PF) ── */
 .wireframe-dashboard-container {
   width: 100%;
-  max-width: 1600px;
+  max-width: none;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -742,7 +749,7 @@
     border-color 0.2s ease,
     background-color 0.2s ease,
     opacity 0.2s ease;
-  cursor: grab;
+  cursor: default;
   user-select: none;
 }
 
@@ -813,21 +820,37 @@
   }
 }
 
-/* Controles de tarjeta (Hover y Drag Handle) */
+/* Controles de tarjeta (Hover y Drag Handle).
+   KAN-594: la barra flota sobre el borde superior de la tarjeta, fuera del área de contenido,
+   para no tapar el estado ni la flecha del encabezado de ningún widget. El hueco entre filas
+   (1.25rem) alcanza para la mitad de la píldora que queda por encima del borde. */
 .wireframe-card-toolbar {
   position: absolute;
-  top: 1rem;
-  right: 1.2rem;
+  top: 0;
+  right: 1.5rem;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.15s ease;
   z-index: 10;
 }
 
-.wireframe-card:hover .wireframe-card-toolbar {
+.wireframe-card:hover .wireframe-card-toolbar,
+.wireframe-card:focus-within .wireframe-card-toolbar {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.wireframe-card-toolbar .wireframe-control-btn {
+  border-radius: 999px;
 }
 
 .wireframe-control-btn {
@@ -886,6 +909,18 @@
   justify-content: flex-end;
 }
 
+/* La tarjeta Suite recorta su contenido (overflow: hidden) y no tiene encabezado con estado:
+   la barra queda adentro, como antes, sin la píldora. */
+.wireframe-suite-card .wireframe-card-toolbar {
+  top: 1rem;
+  right: 1.2rem;
+  transform: none;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
 .wireframe-suite-card .wireframe-drag-handle {
   color: var(--on-primary-subtle);
 }
@@ -906,13 +941,13 @@
   border-color: var(--on-primary);
 }
 
-/* Barra de chips con desplazamiento táctil horizontal fluido */
+/* Barra de chips con desplazamiento táctil horizontal fluido y compacto */
 .exercise-chips-scroll {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   overflow-x: auto;
-  padding: 0.85rem 0.35rem;
+  padding: 0.2rem 0.2rem;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   scrollbar-width: none;
@@ -930,9 +965,9 @@
 .exercise-subchips-scroll {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   overflow-x: auto;
-  padding: 0.65rem 0.35rem;
+  padding: 0.2rem 0.2rem;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   scrollbar-width: none;
@@ -951,11 +986,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
+  height: 28px;
   line-height: 1;
-  padding: 0 0.85rem;
+  padding: 0 0.65rem;
   border-radius: 9999px;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 500;
   white-space: nowrap;
   border: 1px solid var(--border);
@@ -986,16 +1021,16 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Chip táctil accesible (mínimo 44px de área de toque para dedos) */
+/* Chip táctil optimizado y compacto */
 .touch-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 42px;
+  height: 32px;
   line-height: 1;
-  padding: 0 1.2rem;
+  padding: 0 0.85rem;
   border-radius: 9999px;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
   border: 1px solid var(--border);
@@ -1006,7 +1041,7 @@
   flex-shrink: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.18s ease;
+  transition: all 0.15s ease;
 }
 
 /* Feedback háptico/visual al tocar el chip */
@@ -1020,6 +1055,682 @@
   color: var(--on-primary);
   border-color: var(--brand-navy);
   box-shadow: var(--shadow);
+}
+
+/* ==========================================================================
+   Catálogo de Ejercicios (/pf/training) - Filtros compactos y Grilla (KAN-640)
+   ========================================================================== */
+
+.training-filters-card {
+  margin: 0;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.training-filters-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Fila 1: Búsqueda y Filtros Generales */
+.training-filters-row-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.training-search-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 220px;
+}
+
+.training-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.training-search-input {
+  width: 100%;
+  height: 38px;
+  padding-left: 2.35rem;
+  padding-right: 2rem;
+  margin: 0;
+  font-size: 0.88rem;
+  font-family: inherit;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text-main);
+  box-sizing: border-box;
+  transition:
+    border-color var(--transition-fast, 0.15s ease),
+    box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.training-search-input:focus {
+  border-color: var(--brand-navy);
+  box-shadow: 0 0 0 2px var(--bg-subtle);
+  outline: none;
+}
+
+.training-clear-search-btn {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition:
+    color var(--transition-fast, 0.15s ease),
+    background var(--transition-fast, 0.15s ease);
+}
+
+.training-clear-search-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-subtle);
+}
+
+/* Selector Compacto de Tipo / Modalidad */
+.training-type-select-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.training-type-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 38px;
+  padding: 0 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast, 0.15s ease),
+    color var(--transition-fast, 0.15s ease),
+    border-color var(--transition-fast, 0.15s ease),
+    box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.training-type-trigger-btn:hover {
+  background: var(--bg-subtle);
+  border-color: var(--secondary);
+}
+
+.training-type-trigger-btn.active {
+  background: var(--brand-navy);
+  color: var(--on-primary);
+  border-color: var(--brand-navy);
+  box-shadow: var(--shadow-sm);
+}
+
+.training-type-trigger-btn.active svg {
+  color: var(--on-primary);
+}
+
+.training-type-trigger-text {
+  white-space: nowrap;
+}
+
+.training-type-chevron {
+  transition: transform var(--transition-fast, 0.15s ease);
+}
+
+.training-type-chevron.open {
+  transform: rotate(180deg);
+}
+
+.training-type-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 195px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--transition-fast, 0.15s ease),
+    transform var(--transition-fast, 0.15s ease);
+}
+
+.training-type-dropdown.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.training-type-dropdown-header {
+  padding: 0.35rem 0.6rem 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.2rem;
+}
+
+.training-type-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast, 0.12s ease);
+}
+
+.training-type-option:hover {
+  background: var(--bg-subtle);
+  color: var(--primary-text);
+}
+
+.training-type-option.active {
+  background: var(--bg-subtle);
+  font-weight: 700;
+  color: var(--primary-text);
+}
+
+.training-type-option-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background var(--transition-fast, 0.15s ease);
+  flex-shrink: 0;
+}
+
+.training-type-option.active .training-type-option-dot {
+  background: var(--brand-navy);
+}
+
+.training-type-option-label {
+  flex: 1 1 auto;
+}
+
+.training-type-option-check {
+  color: var(--primary-text);
+  flex-shrink: 0;
+}
+
+/* Fila 2: Grupo Muscular (Categorías Principales) */
+.training-groups-row {
+  padding-top: 0.1rem;
+}
+
+.training-chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.1rem 0;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.training-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.training-group-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 0.95rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.training-group-chip:hover {
+  background: var(--bg-subtle);
+  border-color: var(--secondary);
+  color: var(--text-main);
+}
+
+.training-group-chip.active {
+  background: var(--brand-navy);
+  color: var(--on-primary);
+  border-color: var(--brand-navy);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Fila 3: Músculos Específicos */
+.training-submuscles-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed var(--border);
+  width: 100%;
+  min-width: 0;
+}
+
+.training-submuscles-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.training-subchips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.1rem 0;
+}
+
+.training-subchips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.training-submuscle-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 0.75rem;
+  border-radius: 14px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast, 0.12s ease);
+}
+
+.training-submuscle-chip:hover {
+  border-color: var(--secondary);
+  color: var(--text-main);
+  background: var(--bg-card);
+}
+
+.training-submuscle-chip.active {
+  background: var(--brand-navy);
+  color: var(--on-primary);
+  border-color: var(--brand-navy);
+  font-weight: 600;
+}
+
+/* Grilla de Ejercicios (máximo 4 columnas para cerrar filas con PAGE_SIZE = 24) */
+.training-exercises-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(280px, calc((100% - 3.75rem - 1px) / 4)), 1fr)
+  );
+  gap: 1.25rem;
+}
+
+.training-exercise-card {
+  margin: 0;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Ocultar enlace de atribución en tarjetas para igualar altura de la grilla (KAN-549) */
+.training-exercise-card .exercise-gif-credit {
+  display: none;
+}
+
+.exercise-card-title-clickable {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  color: var(--text-main);
+  line-height: 1.3;
+  cursor: pointer;
+  transition: color var(--transition-fast, 0.15s ease);
+}
+
+.exercise-card-title-clickable:hover {
+  color: var(--primary-text);
+}
+
+.exercise-card-muscle-group {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.exercise-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.exercise-card-equipment-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.exercise-card-equipment {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.training-results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0 0.25rem;
+  margin-bottom: -0.25rem;
+}
+
+.training-results-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.training-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.training-pagination .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.training-pagination-info {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* En Mobile: Adaptación de filtros y grilla de 2 columnas */
+@media (max-width: 768px) {
+  .training-filters-card {
+    padding: 0.65rem 0.75rem;
+    gap: 0.45rem;
+  }
+
+  .training-filters-row-primary {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+  }
+
+  .training-search-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .training-search-input {
+    height: 36px;
+    font-size: 0.8rem;
+    padding-left: 2.1rem;
+    padding-right: 1.8rem;
+  }
+
+  .training-search-icon {
+    left: 0.65rem;
+    width: 14px;
+    height: 14px;
+  }
+
+  .training-type-select-wrap {
+    flex: 0 0 auto;
+    position: relative;
+  }
+
+  .training-type-trigger-btn {
+    width: auto;
+    height: 36px;
+    padding: 0 0.65rem;
+    font-size: 0.78rem;
+    gap: 0.35rem;
+    border-radius: var(--radius, 8px);
+    white-space: nowrap;
+  }
+
+  .training-type-trigger-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .training-type-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    left: auto;
+    min-width: 175px;
+    max-width: 220px;
+    border-radius: 10px;
+    padding: 0.3rem;
+    gap: 0.15rem;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .training-type-option {
+    padding: 0.42rem 0.6rem;
+    font-size: 0.78rem;
+    gap: 0.45rem;
+  }
+
+  /* Los chips hacen wrap en mobile para verse siempre completos sin cortarse */
+  .training-chips-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    overflow-x: visible;
+    width: 100%;
+  }
+
+  .training-group-chip {
+    height: 28px;
+    padding: 0 0.7rem;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .training-submuscles-row {
+    padding-top: 0.35rem;
+    gap: 0.4rem;
+  }
+
+  .training-submuscles-indicator {
+    display: none;
+  }
+
+  .training-subchips-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    overflow-x: visible;
+    width: 100%;
+  }
+
+  .training-submuscle-chip {
+    height: 24px;
+    padding: 0 0.65rem;
+    font-size: 0.74rem;
+    flex-shrink: 0;
+  }
+
+  .touch-chip {
+    height: 30px;
+    padding: 0 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .touch-subchip {
+    height: 26px;
+    padding: 0 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  /* 2 columnas exactas para que entren dos ejercicios */
+  .training-exercises-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem;
+  }
+
+  .training-exercise-card {
+    padding: 0.6rem;
+    gap: 0.4rem;
+    border-radius: 10px;
+  }
+
+  .training-exercise-card .exercise-gif-wrapper {
+    margin-bottom: 0.35rem;
+  }
+
+  .training-exercise-card .exercise-gif-container {
+    aspect-ratio: 4 / 3;
+    margin-bottom: 0.25rem;
+    border-radius: 8px;
+  }
+
+  .training-exercise-card .exercise-gif-badge {
+    top: 4px;
+    right: 4px;
+    font-size: 0.6rem;
+    padding: 0.15rem 0.35rem;
+  }
+
+  .training-exercise-card .exercise-card-header-meta {
+    margin-bottom: 0.35rem;
+    gap: 0.2rem;
+  }
+
+  .training-exercise-card .exercise-card-header-meta .badge {
+    font-size: 0.65rem;
+    padding: 0.12rem 0.35rem;
+  }
+
+  .training-exercise-card .exercise-card-title-clickable {
+    font-size: 0.82rem !important;
+    line-height: 1.25 !important;
+    margin: 0 0 0.2rem !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.1rem;
+  }
+
+  .training-exercise-card .exercise-card-muscle-group {
+    font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .training-exercise-card .exercise-card-footer {
+    padding-top: 0.4rem;
+    gap: 0.25rem;
+  }
+
+  .training-exercise-card .exercise-card-equipment-wrap {
+    gap: 0.2rem;
+  }
+
+  .training-exercise-card .exercise-card-equipment {
+    font-size: 0.7rem;
+    max-width: 55px;
+  }
+
+  .training-exercise-card .exercise-card-footer .btn {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.7rem;
+    min-height: 24px;
+    border-radius: 6px;
+  }
 }
 
 /* Contenedor del GIF */
@@ -1096,10 +1807,55 @@
 }
 
 /* ── KAN-366: Daily Traffic Light & Quick Sheet ── */
-.athlete-traffic-light-card:hover {
+.athlete-traffic-light-card,
+.athlete-attendance-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.athlete-traffic-light-card:hover,
+.athlete-attendance-card:hover {
   transform: translateY(-2px);
   border-color: var(--secondary);
   box-shadow: var(--shadow-lg);
+}
+
+/* Efecto reactivo al apoyar el mouse sobre la burbuja/avatar del atleta */
+.athlete-avatar-container {
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.athlete-avatar-container:hover {
+  transform: scale(1.12);
+  filter: brightness(1.08);
+}
+
+/* ── KAN-621: Widget Top 3 UA Podio ── */
+.top-ua-widget {
+  cursor: pointer;
+  user-select: none;
+}
+
+.top-ua-widget [data-testid^='podium-step-']:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+/* ── KAN-621: Widget Top 3 UA Podio ── */
+.top-ua-widget {
+  cursor: pointer;
+  user-select: none;
+}
+
+.top-ua-widget [data-testid^='podium-step-']:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
 }
 
 /* ── KAN-365: Semáforo del Día — anillo de color con transición de estado ── */
@@ -1112,6 +1868,50 @@
 /* ── KAN-365: indicadores de la card (lesión/enfermedad/métricas) sin corte abrupto ── */
 .athlete-traffic-light-card .badge {
   flex-shrink: 0;
+}
+
+/* ── KAN-621: Silueta anatómica en la tarjeta del Semáforo ── */
+.athlete-traffic-light-card .athlete-card-muscle-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 115px;
+  flex-shrink: 0;
+  pointer-events: none;
+  overflow: hidden;
+  margin: 0.2rem 0;
+}
+
+.athlete-traffic-light-card .athlete-card-muscle-silhouette {
+  width: 58px;
+  height: 115px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.athlete-traffic-light-card .athlete-card-muscle-silhouette .muscle-map-view-column,
+.athlete-traffic-light-card .athlete-card-muscle-silhouette .muscle-map-view-row,
+.athlete-traffic-light-card .athlete-card-muscle-silhouette .muscle-map-svg-wrapper {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.athlete-traffic-light-card .athlete-card-muscle-silhouette svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 115px !important;
+  object-fit: contain;
+  display: block;
 }
 
 @keyframes slideUp {
@@ -1362,6 +2162,28 @@
   border: 1px solid var(--info-border);
 }
 
+/* Link de la campanita del atleta al texto completo en su Inicio (KAN-660) */
+.notice-card-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.3rem;
+  min-height: 32px;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notice-card-link:hover,
+.notice-card-link:focus-visible {
+  background: var(--primary-light);
+}
+
 .notice-card-body {
   display: flex;
   flex-direction: column;
@@ -1369,6 +2191,7 @@
   font-size: 0.8rem;
   line-height: 1.4;
   color: var(--text-main);
+  overflow-wrap: anywhere;
 }
 
 .notice-card-label {
@@ -1464,5 +2287,66 @@
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Inicio del PF (KAN-594, prototipo F): la primera tarjeta de la fila 1 ("Requieren atención
+   hoy" por defecto) es la principal y lleva más ancho, pero solo si sobra lugar: se mide el ancho
+   del Inicio (container query) y no el de la ventana, porque depende de si el menú está
+   desplegado. Con menos de 1200 px las otras dos se apretarían (el Semáforo no entra en una
+   línea). Va por posición y no por widget para que siga funcionando si el PF reordena. El Inicio
+   del atleta usa las mismas filas y no cambia. */
+.wireframe-dashboard-container--coach {
+  container-type: inline-size;
+}
+
+/* Las 3 tarjetas de la fila 2 siempre del mismo ancho: con 1fr, un título largo ("Próximo
+   entrenamiento" + "Mañana") ensanchaba su columna y apretaba a "Mayor carga". */
+@media (min-width: 1101px) {
+  .wireframe-dashboard-container--coach .wireframe-row-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 1200px) {
+  .wireframe-dashboard-container--coach .wireframe-row-1 {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* Con 2 columnas, 3 tarjetas dejan un hueco: la primera de cada fila ocupa el ancho entero y las
+   otras dos quedan lado a lado. */
+@media (max-width: 1100px) and (min-width: 769px) {
+  .wireframe-dashboard-container--coach .wireframe-row-1 > .wireframe-card:first-child,
+  .wireframe-dashboard-container--coach .wireframe-row-2 > .wireframe-card:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Fila de una sola tarjeta a todo el ancho (la tira "Mis marcas" del atleta, KAN-594) */
+.wireframe-row.wireframe-row-strip {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Centro de avisos en mobile (KAN-660): fijo debajo del header y sin salirse por los costados */
+@media (max-width: 680px) {
+  .shell-popover.notice-center-popover {
+    position: fixed;
+    top: calc(56px + 0.5rem);
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: calc(100vw - 1.5rem);
+    max-height: min(540px, calc(100dvh - 56px - 1.5rem));
+    margin: 0 auto;
+    z-index: 1100;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell-popover.notice-center-popover {
+    left: 0.5rem;
+    right: 0.5rem;
+    max-width: calc(100vw - 1rem);
   }
 }

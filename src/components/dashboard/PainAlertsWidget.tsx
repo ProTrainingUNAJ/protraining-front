@@ -1,281 +1,252 @@
 import React, { useMemo } from 'react';
-import { AlertTriangle, NotebookPen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
+import { AlertTriangle, ArrowRight, Wrench } from 'lucide-react';
+import type { AthleteTrafficLightItem } from '../monitoring/trafficLight.types';
+import { MuscleMapFront } from '../athlete/MuscleMapFront';
+import { MuscleMapBack } from '../athlete/MuscleMapBack';
+import { resolveMuscleId } from '../../utils/painMuscleResolver';
+import { useDelayedLoading } from '../../hooks/useDelayedLoading';
+import { WidgetErrorState } from './WidgetErrorState';
+import './dashboardWidgets.css';
+import './PainBodyMapWidget.css';
 
 /**
- * Alertas de dolor del dashboard (KAN-365/KAN-366): sin datos ficticios;
- * recibe los atletas reales del semáforo del día y filtra rojos/amarillos.
- * Colores de los stickies y textos vía tokens de `tokens.css`
- * (--traffic-red/yellow, --pain-sticky-*, --sticky-btn-text, --border, --white),
- * con soporte claro/oscuro; cero literales rgba/hex (KAN-366).
+ * Alertas de dolor del Inicio del PF como mapa del cuerpo del plantel (KAN-594).
+ *
+ * "Requieren atención hoy" ya dice quién necesita algo y qué hacer; esta tarjeta dice DÓNDE
+ * duele el plantel: las zonas pintadas en el cuerpo (rojo si hay molestia crítica, ámbar si es
+ * precaución) y, debajo, una línea por zona con quiénes la marcaron. Así no se repite la
+ * misma lista de atletas en dos tarjetas.
  */
-
-const MedicalCrossIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 22,
-  color = 'var(--white)',
-}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{ color }}>
-    <path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3z" />
-  </svg>
-);
-
 interface PainAlertsWidgetProps {
-  /** Atletas del semáforo del día (todas las categorías); se filtran rojos y amarillos. */
   athletes?: AthleteTrafficLightItem[];
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+  /** Abre el ajuste del día del atleta (solo si su rutina de hoy carga la zona con dolor). */
+  onAdjustRoutine?: (athlete: AthleteTrafficLightItem) => void;
   className?: string;
+}
+
+// Mismo criterio que antes: nivel 4 o más, o lesión activa (6), es molestia crítica.
+const CRITICAL_LEVEL = 4;
+const INJURY_LEVEL = 6;
+const NO_ZONE = 'Sin zona marcada';
+
+interface ZoneAthlete {
+  athlete: AthleteTrafficLightItem;
+  level: number;
+}
+
+interface PainZoneGroup {
+  zone: string;
+  regionIds: string[];
+  maxLevel: number;
+  athletes: ZoneAthlete[];
+}
+
+// Una zona sin lado ("Cuádriceps", "Hombros") se pinta en los dos lados del cuerpo.
+const SIDE_IN_NAME = /(derech|izquierd)/i;
+const SIDED_REGION = /_(derech|izquierd)[oa]$/;
+
+function regionsForZone(zone: string, muscleId?: string): string[] {
+  const id = resolveMuscleId(zone, muscleId);
+  if (!id) return [];
+  if (SIDE_IN_NAME.test(zone) || !SIDED_REGION.test(id)) return [id];
+  const other = id.replace(SIDED_REGION, (_match, side: string) =>
+    side === 'derech' ? `_izquierd${id.slice(-1)}` : `_derech${id.slice(-1)}`,
+  );
+  return [id, other];
+}
+
+function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/)[0] ?? fullName;
+}
+
+function levelLabel(level: number): string {
+  return level >= INJURY_LEVEL ? 'lesión activa' : `nivel ${level}`;
+}
+
+/** "Diego, Valentina (nivel 3)" o "Lucas (lesión activa); Mateo (nivel 2)". */
+function describeZoneAthletes(athletes: ZoneAthlete[]): string {
+  const byLevel = new Map<number, string[]>();
+  for (const { athlete, level } of athletes) {
+    byLevel.set(level, [...(byLevel.get(level) ?? []), firstName(athlete.name)]);
+  }
+  return [...byLevel.entries()]
+    .sort(([a], [b]) => b - a)
+    .map(([level, names]) => `${names.join(', ')} (${levelLabel(level)})`)
+    .join('; ');
+}
+
+function groupPainByZone(athletes: AthleteTrafficLightItem[]): PainZoneGroup[] {
+  const groups = new Map<string, PainZoneGroup>();
+  const add = (
+    zone: string,
+    regionIds: string[],
+    athlete: AthleteTrafficLightItem,
+    level: number,
+  ) => {
+    const key = zone.trim().toLocaleLowerCase('es');
+    const group = groups.get(key) ?? {
+      zone: zone.trim(),
+      regionIds: [],
+      maxLevel: 0,
+      athletes: [],
+    };
+    group.regionIds = [...new Set([...group.regionIds, ...regionIds])];
+    group.maxLevel = Math.max(group.maxLevel, level);
+    const existing = group.athletes.find((entry) => entry.athlete.id === athlete.id);
+    if (existing) existing.level = Math.max(existing.level, level);
+    else group.athletes.push({ athlete, level });
+    groups.set(key, group);
+  };
+
+  for (const athlete of athletes) {
+    const pains = athlete.pains ?? [];
+    for (const pain of pains)
+      add(pain.zone, regionsForZone(pain.zone, pain.muscleId), athlete, pain.level);
+    // Lesión activa sin zona en el check-in: igual cuenta, aunque no se pueda pintar
+    if (pains.length === 0 && athlete.hasActiveInjury) add(NO_ZONE, [], athlete, INJURY_LEVEL);
+  }
+
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      athletes: [...group.athletes].sort(
+        (a, b) => b.level - a.level || a.athlete.name.localeCompare(b.athlete.name, 'es'),
+      ),
+    }))
+    .sort(
+      (a, b) =>
+        b.maxLevel - a.maxLevel ||
+        b.athletes.length - a.athletes.length ||
+        a.zone.localeCompare(b.zone, 'es'),
+    );
 }
 
 export const PainAlertsWidget: React.FC<PainAlertsWidgetProps> = ({
   athletes = [],
+  loading = false,
+  error = null,
+  onRetry,
+  onAdjustRoutine,
   className = '',
 }) => {
   const navigate = useNavigate();
+  const showSkeleton = useDelayedLoading(loading);
 
-  const redAthletes = useMemo(
-    () => athletes.filter((athlete) => athlete.status === 'red'),
+  const zones = useMemo(() => groupPainByZone(athletes), [athletes]);
+  const affectedCount = useMemo(
+    () => athletes.filter((a) => (a.pains?.length ?? 0) > 0 || a.hasActiveInjury).length,
     [athletes],
   );
-  const yellowAthletes = useMemo(
-    () => athletes.filter((athlete) => athlete.status === 'yellow'),
-    [athletes],
-  );
-  const totalCount = redAthletes.length + yellowAthletes.length;
 
-  const handleOpenMonitoring = (filter: 'red' | 'yellow') => {
-    navigate(`/pf/monitoring?filter=${filter}`, { state: { filter } });
-  };
+  // Color de cada región: la zona más grave manda si dos zonas comparten región
+  const muscleColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    const levels: Record<string, number> = {};
+    for (const zone of zones) {
+      for (const id of zone.regionIds) {
+        if ((levels[id] ?? 0) >= zone.maxLevel) continue;
+        levels[id] = zone.maxLevel;
+        colors[id] =
+          zone.maxLevel >= CRITICAL_LEVEL ? 'var(--traffic-red)' : 'var(--traffic-yellow)';
+      }
+    }
+    return colors;
+  }, [zones]);
 
-  const handleModifyRoutine = (e: React.MouseEvent, filter: 'red' | 'yellow') => {
-    e.stopPropagation();
-    navigate(`/pf/monitoring?filter=${filter}`, { state: { filter } });
-  };
+  const mapSummary = `Mapa del cuerpo del plantel: ${zones
+    .map((zone) => `${zone.zone}, ${describeZoneAthletes(zone.athletes)}`)
+    .join('; ')}`;
 
   return (
-    <div
-      className={`pain-alerts-widget ${className}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        height: '100%',
-        padding: '1.15rem',
-      }}
-    >
-      {/* Encabezado del Widget */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.65rem',
-          paddingRight: '4rem',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-          }}
-        >
-          <AlertTriangle size={14} style={{ color: 'var(--pain-level-5)' }} />
-          Alertas de Dolor
-        </span>
-        <span
-          className="badge"
-          style={{
-            background: 'var(--pain-level-5-bg)',
-            color: 'var(--danger-text)',
-            fontSize: '0.68rem',
-            fontWeight: 700,
-            padding: '0.15rem 0.5rem',
-            borderRadius: '9999px',
-            border: '1px solid var(--border)',
-          }}
-        >
-          {totalCount} Atletas
-        </span>
-      </div>
+    <section className={`dash-w pain-map ${className}`} aria-labelledby="pain-widget-title">
+      <header className="dash-w__header">
+        <h3 id="pain-widget-title" className="dash-w__eyebrow">
+          <AlertTriangle size={14} aria-hidden="true" className="dash-w__eyebrow-icon" />
+          Alertas de dolor
+        </h3>
+        {!loading && !error && affectedCount > 0 && (
+          <span className="dash-w__count">{affectedCount}</span>
+        )}
+      </header>
 
-      {/* Contenedor de los 2 Stickies (Rojo y Amarillo con movimiento independiente) */}
-      <div
-        className="pain-alerts-stickies-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '0.85rem',
-          flex: 1,
-          alignItems: 'stretch',
-        }}
-      >
-        {/* 1. Sticky ROJO · Molestia Crítica (Movimiento Propio) */}
-        <div
-          onClick={() => handleOpenMonitoring('red')}
-          title="Ver atletas con Molestia Crítica en el semáforo"
-          className="pain-sticky-item pain-sticky-red"
-          style={{
-            background: 'var(--traffic-red)',
-            borderRadius: '14px',
-            padding: '0.85rem 0.95rem 0.65rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: 'var(--pain-sticky-red-shadow)',
-            minHeight: '185px',
-          }}
-        >
-          <div>
-            {/* Cruz médica blanca superior */}
-            <div style={{ marginBottom: '0.45rem' }}>
-              <MedicalCrossIcon size={24} />
+      {error ? (
+        <WidgetErrorState message={error} onRetry={onRetry} />
+      ) : loading ? (
+        showSkeleton ? (
+          <div role="status" aria-label="Cargando alertas de dolor">
+            <span className="dash-w__skeleton-row" />
+            <span className="dash-w__skeleton-row" />
+          </div>
+        ) : null
+      ) : zones.length === 0 ? (
+        <p className="dash-w__empty">Sin dolores reportados hoy.</p>
+      ) : (
+        <>
+          {/* Una sola imagen con su resumen: los mapas de adentro no se anuncian por separado */}
+          <div className="pain-map__bodies" role="img" aria-label={mapSummary}>
+            <div className="pain-map__body">
+              <MuscleMapFront muscleColors={muscleColors} readOnly hideHeader />
+              <span className="pain-map__view" aria-hidden="true">
+                Frente
+              </span>
             </div>
-
-            {/* Título en negrita oscura */}
-            <h4
-              style={{
-                fontSize: '1.05rem',
-                fontWeight: 900,
-                color: 'var(--sticky-btn-text)',
-                margin: '0 0 0.55rem',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Molestia Crítica
-            </h4>
-
-            {/* Lista de nombres reales del semáforo rojo */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-                fontSize: '0.98rem',
-                fontWeight: 800,
-                color: 'var(--sticky-btn-text)',
-                lineHeight: 1.25,
-              }}
-            >
-              {redAthletes.length > 0 ? (
-                redAthletes.map((athlete) => <span key={athlete.id}>{athlete.name}</span>)
-              ) : (
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.75 }}>
-                  Sin alertas críticas hoy
-                </span>
-              )}
+            <div className="pain-map__body">
+              <MuscleMapBack muscleColors={muscleColors} readOnly hideHeader />
+              <span className="pain-map__view" aria-hidden="true">
+                Espalda
+              </span>
             </div>
           </div>
 
-          {/* Línea divisoria y logo de apunte para modificar la rutina */}
-          <div
-            style={{
-              borderTop: '1px solid var(--border)',
-              marginTop: '0.65rem',
-              paddingTop: '0.45rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+          <ul className="pain-map__zones">
+            {zones.map((zone) => {
+              const tone = zone.maxLevel >= CRITICAL_LEVEL ? 'red' : 'yellow';
+              const conflicted = zone.athletes.filter(
+                ({ athlete }) => athlete.hasDayConflict && onAdjustRoutine,
+              );
+              return (
+                <li key={zone.zone} className={`pain-map__zone pain-map__zone--${tone}`}>
+                  <span className="pain-map__dot" aria-hidden="true" />
+                  <div className="pain-map__zone-main">
+                    <p className="pain-map__zone-text">
+                      <strong>{zone.zone}</strong> · {describeZoneAthletes(zone.athletes)}
+                    </p>
+                    {conflicted.length > 0 && (
+                      <div className="pain-map__actions">
+                        {conflicted.map(({ athlete }) => (
+                          <button
+                            key={athlete.id}
+                            type="button"
+                            className="dash-w__btn dash-w__btn--primary"
+                            onClick={() => onAdjustRoutine?.(athlete)}
+                            aria-label={`Ajustar rutina de hoy de ${athlete.name}`}
+                          >
+                            <Wrench size={14} aria-hidden="true" />
+                            Ajustar rutina · {firstName(athlete.name)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          <button
+            type="button"
+            className="btn btn-primary dash-w__cta pain-map__more"
+            onClick={() => navigate('/pf/monitoring')}
           >
-            <button
-              type="button"
-              onClick={(e) => handleModifyRoutine(e, 'red')}
-              className="sticky-routine-btn"
-              title="Modificar rutina de atletas con Atención Crítica"
-              aria-label="Modificar rutina con Atención Crítica"
-            >
-              <NotebookPen size={15} />
-              <span>Modificar rutina</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 2. Sticky AMARILLO · Precaución (Movimiento Propio) */}
-        <div
-          onClick={() => handleOpenMonitoring('yellow')}
-          title="Ver atletas con Precaución en el semáforo"
-          className="pain-sticky-item pain-sticky-yellow"
-          style={{
-            background: 'var(--traffic-yellow)',
-            borderRadius: '14px',
-            padding: '0.85rem 0.95rem 0.65rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: 'var(--pain-sticky-yellow-shadow)',
-            minHeight: '185px',
-          }}
-        >
-          <div>
-            {/* Triángulo de advertencia blanco superior */}
-            <div style={{ marginBottom: '0.45rem' }}>
-              <AlertTriangle size={24} style={{ color: 'var(--white)', fill: 'var(--white)' }} />
-            </div>
-
-            {/* Título en negrita oscura */}
-            <h4
-              style={{
-                fontSize: '1.05rem',
-                fontWeight: 900,
-                color: 'var(--sticky-btn-text)',
-                margin: '0 0 0.5rem',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Precaución
-            </h4>
-
-            {/* Lista de nombres reales del semáforo amarillo */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.2rem',
-                fontSize: '0.9rem',
-                fontWeight: 800,
-                color: 'var(--sticky-btn-text)',
-                lineHeight: 1.25,
-              }}
-            >
-              {yellowAthletes.length > 0 ? (
-                yellowAthletes.map((athlete) => <span key={athlete.id}>{athlete.name}</span>)
-              ) : (
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.75 }}>
-                  Sin precauciones hoy
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Línea divisoria y logo de apunte para modificar la rutina */}
-          <div
-            style={{
-              borderTop: '1px solid var(--border)',
-              marginTop: '0.65rem',
-              paddingTop: '0.45rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <button
-              type="button"
-              onClick={(e) => handleModifyRoutine(e, 'yellow')}
-              className="sticky-routine-btn"
-              title="Modificar rutina de atletas con Precaución"
-              aria-label="Modificar rutina con Precaución"
-            >
-              <NotebookPen size={15} />
-              <span>Modificar rutina</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+            Ver en Seguimiento
+            <ArrowRight size={13} aria-hidden="true" />
+          </button>
+        </>
+      )}
+    </section>
   );
 };

@@ -9,11 +9,15 @@ import {
 import {
   Organization,
   CreateOrganizationRequest,
+  UpdateOrganizationRequest,
   Category,
   CreateCategoryRequest,
+  UpdateCategoryRequest,
   Athlete,
+  AthleteGuardianConsent,
   CreateAthleteRequest,
   AthleteMe,
+  UpdatePhysicalProfileRequest,
   Match,
   CreateMatchRequest,
   CompetitiveEvent,
@@ -29,6 +33,10 @@ interface RawOrganization {
   description?: string | null;
   categoriasCount?: number;
   categoriesCount?: number;
+  atletasCount?: number;
+  athletesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
 }
 
 interface RawCategory {
@@ -51,6 +59,7 @@ interface RawAthleteCategory {
 
 interface RawAthlete {
   id: string;
+  accountId?: string | null;
   nombre?: string;
   firstName?: string;
   apellido?: string;
@@ -60,8 +69,10 @@ interface RawAthlete {
   email?: string;
   telefono?: string;
   phone?: string;
+  telegramUsername?: string | null;
   esMenorDeEdad?: boolean;
   isMinor?: boolean;
+  guardianConsent?: AthleteGuardianConsent | null;
   activo?: boolean;
   active?: boolean;
   categorias?: Array<RawAthleteCategory | string>;
@@ -70,6 +81,20 @@ interface RawAthlete {
   contactoEmergencia?: string | null;
   emergencyContact?: string | null;
   activeInjuriesCount?: number;
+  hasPhoto?: boolean;
+  photoUpdatedAt?: string | null;
+  weightKg?: number | null;
+  pesoKg?: number | null;
+  heightCm?: number | null;
+  alturaCm?: number | null;
+  estaturaCm?: number | null;
+  athleticGoal?: string | null;
+  objetivoAtletico?: string | null;
+  birthDate?: string | null;
+  fechaNacimiento?: string | null;
+  gender?: string | null;
+  genero?: string | null;
+  physicalProfileUpdatedAt?: string | null;
 }
 
 function mapOrganization(raw: RawOrganization): Organization {
@@ -78,6 +103,9 @@ function mapOrganization(raw: RawOrganization): Organization {
     name: raw.nombre ?? raw.name ?? '',
     description: raw.descripcion ?? raw.description ?? null,
     categoriesCount: raw.categoriasCount ?? raw.categoriesCount ?? 0,
+    athletesCount: raw.atletasCount ?? raw.athletesCount ?? 0,
+    hasPhoto: raw.hasPhoto ?? false,
+    photoUpdatedAt: raw.photoUpdatedAt ?? null,
   };
 }
 
@@ -88,6 +116,38 @@ function mapCategory(raw: RawCategory): Category {
     name: raw.nombre ?? raw.name ?? '',
     description: raw.descripcion ?? raw.description ?? null,
     athletesCount: raw.atletasCount ?? raw.athletesCount ?? 0,
+  };
+}
+
+interface RawPhysicalFields {
+  weightKg?: number | null;
+  pesoKg?: number | null;
+  heightCm?: number | null;
+  alturaCm?: number | null;
+  estaturaCm?: number | null;
+  athleticGoal?: string | null;
+  objetivoAtletico?: string | null;
+  birthDate?: string | null;
+  fechaNacimiento?: string | null;
+  gender?: string | null;
+  genero?: string | null;
+  physicalProfileUpdatedAt?: string | null;
+}
+
+function parseOptionalNumber(val?: number | null): number | null {
+  if (val === undefined || val === null) return null;
+  const parsed = Number(val);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizePhysicalProfileFields(raw: RawPhysicalFields) {
+  return {
+    weightKg: parseOptionalNumber(raw.weightKg ?? raw.pesoKg),
+    heightCm: parseOptionalNumber(raw.heightCm ?? raw.estaturaCm ?? raw.alturaCm),
+    athleticGoal: raw.athleticGoal ?? raw.objetivoAtletico ?? null,
+    birthDate: raw.birthDate ?? raw.fechaNacimiento ?? null,
+    gender: raw.gender ?? raw.genero ?? null,
+    physicalProfileUpdatedAt: raw.physicalProfileUpdatedAt ?? null,
   };
 }
 
@@ -108,20 +168,27 @@ function mapAthlete(raw: RawAthlete): Athlete {
   });
 
   const categoryNames = raw.categoryNames ?? categories.map((c) => c.name).filter(Boolean);
+  const physical = normalizePhysicalProfileFields(raw);
 
   return {
     id: raw.id,
+    accountId: raw.accountId ?? null,
     firstName,
     lastName,
     fullName: fullName || 'Sin nombre',
     email: raw.email ?? '',
     phone: raw.telefono ?? raw.phone ?? '',
+    telegramUsername: raw.telegramUsername ?? null,
     isMinor: raw.esMenorDeEdad ?? raw.isMinor ?? false,
+    guardianConsent: raw.guardianConsent ?? null,
     active: raw.activo ?? raw.active ?? true,
     categories,
     categoryNames,
     emergencyContact: raw.contactoEmergencia ?? raw.emergencyContact ?? null,
     activeInjuriesCount: raw.activeInjuriesCount ?? 0,
+    hasPhoto: raw.hasPhoto ?? false,
+    photoUpdatedAt: raw.photoUpdatedAt ?? null,
+    ...physical,
   };
 }
 
@@ -147,10 +214,33 @@ export const structureService = {
     }
   },
 
-  async getCategories(organizationId: string): Promise<Category[]> {
+  async updateOrganization(id: string, req: UpdateOrganizationRequest): Promise<Organization> {
+    try {
+      const response = await httpClient.put<RawOrganization>(
+        `/estructura/api/v1/organizations/${id}`,
+        {
+          name: req.name !== undefined ? req.name.trim() : undefined,
+          description: req.description !== undefined ? req.description?.trim() || null : undefined,
+        },
+      );
+      return mapOrganization(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async deleteOrganization(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/organizations/${id}`);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async getCategories(organizationId?: string): Promise<Category[]> {
     try {
       const response = await httpClient.get<RawCategory[]>('/estructura/api/v1/categories', {
-        params: { organizationId },
+        params: organizationId ? { organizationId } : undefined,
       });
       return (response.data || []).map(mapCategory);
     } catch (err: unknown) {
@@ -171,6 +261,26 @@ export const structureService = {
     }
   },
 
+  async updateCategory(id: string, req: UpdateCategoryRequest): Promise<Category> {
+    try {
+      const response = await httpClient.put<RawCategory>(`/estructura/api/v1/categories/${id}`, {
+        name: req.name !== undefined ? req.name.trim() : undefined,
+        description: req.description !== undefined ? req.description?.trim() || null : undefined,
+      });
+      return mapCategory(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async deleteCategory(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/categories/${id}`);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   async getAthletes(params?: { categoriaId?: string; soloActivos?: boolean }): Promise<Athlete[]> {
     try {
       const response = await httpClient.get<RawAthlete[]>('/estructura/api/v1/athletes', {
@@ -185,6 +295,15 @@ export const structureService = {
     }
   },
 
+  async getAthleteById(athleteId: string): Promise<Athlete> {
+    try {
+      const response = await httpClient.get<RawAthlete>(`/estructura/api/v1/athletes/${athleteId}`);
+      return mapAthlete(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   async createAthlete(req: CreateAthleteRequest): Promise<Athlete> {
     try {
       const response = await httpClient.post<RawAthlete>('/estructura/api/v1/athletes', {
@@ -192,6 +311,7 @@ export const structureService = {
         lastName: req.lastName.trim(),
         email: req.email.trim(),
         phone: req.phone.trim(),
+        telegramUsername: req.telegramUsername?.trim() || null,
         emergencyContact: req.emergencyContact?.trim() || null,
       });
       return mapAthlete(response.data);
@@ -212,6 +332,18 @@ export const structureService = {
     }
   },
 
+  // Atletas completos pertenecientes a una categoría (GET /categories/{id}/athletes).
+  async getCategoryAthletes(categoryId: string): Promise<Athlete[]> {
+    try {
+      const response = await httpClient.get<RawAthlete[]>(
+        `/estructura/api/v1/categories/${categoryId}/athletes`,
+      );
+      return (response.data || []).map(mapAthlete);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   // El back no manda las cantidades en los listados: se cuentan a partir de las relaciones.
   async withCategoryCounts(organizations: Organization[]): Promise<Organization[]> {
     return Promise.all(
@@ -219,6 +351,41 @@ export const structureService = {
         ...organization,
         categoriesCount: (await this.getCategories(organization.id).catch(() => [])).length,
       })),
+    );
+  },
+
+  // Obtiene organizaciones con conteo de categorías y atletas calculados
+  async withStructureCounts(organizations: Organization[]): Promise<Organization[]> {
+    return Promise.all(
+      organizations.map(async (organization) => {
+        if (
+          typeof organization.categoriesCount === 'number' &&
+          organization.categoriesCount > 0 &&
+          typeof organization.athletesCount === 'number' &&
+          organization.athletesCount >= 0
+        ) {
+          return organization;
+        }
+        try {
+          const cats = await this.getCategories(organization.id).catch(() => [] as Category[]);
+          const catsWithAthletes = await this.withAthleteCounts(cats).catch(() => [] as Category[]);
+          const athletesTotal = catsWithAthletes.reduce(
+            (acc, curr) => acc + (curr.athletesCount || 0),
+            0,
+          );
+          return {
+            ...organization,
+            categoriesCount: cats.length,
+            athletesCount: athletesTotal,
+          };
+        } catch {
+          return {
+            ...organization,
+            categoriesCount: organization.categoriesCount || 0,
+            athletesCount: organization.athletesCount || 0,
+          };
+        }
+      }),
     );
   },
 
@@ -232,7 +399,12 @@ export const structureService = {
   },
 
   // El listado de atletas no trae sus categorías: se arman con los atletas de cada categoría.
-  async withCategories(athletes: Athlete[], categories: Category[]): Promise<Athlete[]> {
+  async withCategories(
+    athletes: Athlete[],
+    categories: Category[],
+    organizations?: Organization[],
+  ): Promise<Athlete[]> {
+    const orgMap = new Map((organizations || []).map((o) => [o.id, o.name]));
     const memberships = await Promise.all(
       categories.map(async (category) => ({
         category,
@@ -243,13 +415,122 @@ export const structureService = {
     return athletes.map((athlete) => {
       const athleteCategories = memberships
         .filter(({ athleteIds }) => athleteIds.includes(athlete.id))
-        .map(({ category }) => ({ id: category.id, name: category.name }));
+        .map(({ category }) => ({
+          id: category.id,
+          name: category.name,
+          organizationId: category.organizationId,
+          organizationName: orgMap.get(category.organizationId) || undefined,
+        }));
       return {
         ...athlete,
         categories: athleteCategories,
         categoryNames: athleteCategories.map((category) => category.name),
       };
     });
+  },
+
+  async updateAthleteStatus(
+    athleteId: string,
+    active: boolean,
+    accountId?: string | null,
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<Athlete>(
+        `/estructura/api/v1/athletes/${athleteId}/status`,
+        { active },
+      );
+      if (accountId) {
+        try {
+          await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/status`, {
+            isActive: active,
+          });
+        } catch (identidadErr) {
+          console.error('Error al sincronizar estado del atleta con identidad:', identidadErr);
+          throw new Error(
+            `No se pudo sincronizar el acceso del usuario en Identidad: ${extractErrorMessage(identidadErr)}`,
+            { cause: identidadErr },
+          );
+        }
+      }
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async updateAthleteEmail(
+    athleteId: string,
+    email: string,
+    accountId?: string | null,
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<Athlete>(
+        `/estructura/api/v1/athletes/${athleteId}/email`,
+        { email },
+      );
+      if (accountId) {
+        try {
+          await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/email`, { email });
+        } catch {
+          // Silencioso si falla la sincronización con identidad
+        }
+      }
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async updateAthlete(
+    athleteId: string,
+    payload: {
+      phone?: string;
+      emergencyContact?: string | null;
+      telegramUsername?: string | null;
+    },
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.put<RawAthlete>(
+        `/estructura/api/v1/athletes/${athleteId}`,
+        {
+          ...(payload.phone !== undefined ? { phone: payload.phone.trim() } : {}),
+          ...(payload.emergencyContact !== undefined
+            ? { emergencyContact: payload.emergencyContact?.trim() || null }
+            : {}),
+          ...(payload.telegramUsername !== undefined
+            ? { telegramUsername: payload.telegramUsername?.trim() || '' }
+            : {}),
+        },
+      );
+      return mapAthlete(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  async updateAthletePhone(
+    athleteId: string,
+    phone: string,
+    accountId?: string | null,
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<Athlete>(
+        `/estructura/api/v1/athletes/${athleteId}/phone`,
+        { phone },
+      );
+      if (accountId) {
+        try {
+          await httpClient.patch(`/identidad/api/v1/users/athletes/${accountId}/phone`, {
+            phoneNumber: phone,
+          });
+        } catch {
+          // Silencioso si falla la sincronización con identidad
+        }
+      }
+      return response.data;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
   },
 
   async assignAthleteCategory(athleteId: string, categoryId: string): Promise<void> {
@@ -274,7 +555,89 @@ export const structureService = {
    */
   async getMe(): Promise<AthleteMe> {
     try {
-      const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
+      const response = await httpClient.get<AthleteMe & RawPhysicalFields>('/estructura/api/v1/me');
+      const data = response.data;
+      if (!data) return data;
+      const heightValue = data.heightCm ?? data.estaturaCm ?? data.alturaCm;
+      const weightValue = data.weightKg ?? data.pesoKg;
+      return {
+        ...data,
+        ...(weightValue !== undefined ? { weightKg: parseOptionalNumber(weightValue) } : {}),
+        ...(heightValue !== undefined ? { heightCm: parseOptionalNumber(heightValue) } : {}),
+        ...(data.athleticGoal === undefined && data.objetivoAtletico !== undefined
+          ? { athleticGoal: data.objetivoAtletico }
+          : {}),
+        ...(data.birthDate === undefined && data.fechaNacimiento !== undefined
+          ? { birthDate: data.fechaNacimiento }
+          : {}),
+        ...(data.gender === undefined && data.genero !== undefined ? { gender: data.genero } : {}),
+      };
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Actualiza el perfil físico (peso, objetivo deportivo, fecha de nacimiento y género) de un atleta por el PF (KAN-479 / KAN-664 / KAN-660).
+   */
+  async updateAthletePhysicalProfile(
+    athleteId: string,
+    req: UpdatePhysicalProfileRequest,
+  ): Promise<Athlete> {
+    try {
+      const response = await httpClient.patch<RawAthlete>(
+        `/estructura/api/v1/athletes/${athleteId}/physical-profile`,
+        {
+          weightKg:
+            req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
+          heightCm:
+            req.heightCm !== undefined && req.heightCm !== null ? Number(req.heightCm) : null,
+          athleticGoal: req.athleticGoal?.trim() || null,
+          birthDate:
+            req.birthDate !== undefined ? (req.birthDate ? req.birthDate.trim() : null) : undefined,
+          gender: req.gender !== undefined ? (req.gender ? req.gender.trim() : null) : undefined,
+        },
+      );
+      return mapAthlete(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Autoservicio del atleta: actualiza su propio peso, objetivo, fecha de nacimiento y género (KAN-479 / KAN-664 / KAN-660).
+   */
+  async updateMyPhysicalProfile(req: UpdatePhysicalProfileRequest): Promise<{
+    weightKg?: number | null;
+    heightCm?: number | null;
+    athleticGoal?: string | null;
+    birthDate?: string | null;
+    gender?: string | null;
+    physicalProfileUpdatedAt?: string | null;
+  }> {
+    try {
+      const payload: Record<string, unknown> = {
+        weightKg: req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
+        athleticGoal: req.athleticGoal?.trim() || null,
+      };
+      if (req.heightCm !== undefined) {
+        payload.heightCm = req.heightCm !== null ? Number(req.heightCm) : null;
+      }
+      if (req.birthDate !== undefined) {
+        payload.birthDate = req.birthDate ? req.birthDate.trim() : null;
+      }
+      if (req.gender !== undefined) {
+        payload.gender = req.gender ? req.gender.trim() : null;
+      }
+
+      const response = await httpClient.patch<{
+        weightKg?: number | null;
+        heightCm?: number | null;
+        athleticGoal?: string;
+        birthDate?: string | null;
+        gender?: string | null;
+        physicalProfileUpdatedAt?: string | null;
+      }>('/estructura/api/v1/me/physical-profile', payload);
       return response.data;
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
@@ -344,6 +707,91 @@ export const structureService = {
         throwOnError: true,
       });
       return responseData;
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Devuelve la URL del endpoint de foto del atleta (WebP) con soporte de cache-busting opcional (KAN-512).
+   */
+  getAthletePhotoUrl(athleteId: string, photoUpdatedAt?: string | null): string {
+    const base = `/estructura/api/v1/athletes/${athleteId}/photo`;
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Obtiene la foto del atleta con token Bearer como Blob URL (KAN-512).
+   */
+  async getAthletePhotoBlob(athleteId: string, photoUpdatedAt?: string | null): Promise<string> {
+    const url = this.getAthletePhotoUrl(athleteId, photoUpdatedAt);
+    const { data } = await httpClient.get(url, { responseType: 'blob' });
+    return URL.createObjectURL(data);
+  },
+
+  /**
+   * Sube una foto de perfil en formato WebP para el atleta (KAN-512).
+   */
+  async uploadAthletePhoto(athleteId: string, file: File): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      await httpClient.put(`/estructura/api/v1/athletes/${athleteId}/photo`, formData);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Elimina la foto de perfil del atleta (KAN-512).
+   */
+  async deleteAthletePhoto(athleteId: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/athletes/${athleteId}/photo`);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Devuelve la URL del logo de la organización con soporte de cache-busting opcional (KAN-512).
+   */
+  getOrganizationPhotoUrl(organizationId: string, photoUpdatedAt?: string | null): string {
+    const base = `/estructura/api/v1/organizations/${organizationId}/photo`;
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Obtiene el logo de la organización con token Bearer como Blob URL (KAN-512).
+   */
+  async getOrganizationPhotoBlob(
+    organizationId: string,
+    photoUpdatedAt?: string | null,
+  ): Promise<string> {
+    const url = this.getOrganizationPhotoUrl(organizationId, photoUpdatedAt);
+    const { data } = await httpClient.get(url, { responseType: 'blob' });
+    return URL.createObjectURL(data);
+  },
+
+  /**
+   * Sube el logo en formato WebP para la organización (KAN-512).
+   */
+  async uploadOrganizationPhoto(organizationId: string, file: File): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      await httpClient.put(`/estructura/api/v1/organizations/${organizationId}/photo`, formData);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
+  /**
+   * Elimina el logo de la organización (KAN-512).
+   */
+  async deleteOrganizationPhoto(organizationId: string): Promise<void> {
+    try {
+      await httpClient.delete(`/estructura/api/v1/organizations/${organizationId}/photo`);
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

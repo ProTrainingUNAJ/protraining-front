@@ -22,6 +22,7 @@ interface ExerciseGifImageProps {
   media?: ExerciseMediaDto[];
   name: string;
   intervalMs?: number; // Tiempo entre fotos (por defecto 480 ms)
+  showCredit?: boolean; // Permite ocultar el crédito de terceros en grillas para nivelar alturas
 }
 
 const BADGE_BY_KIND: Record<LayerKind, string> = {
@@ -30,7 +31,13 @@ const BADGE_BY_KIND: Record<LayerKind, string> = {
   photos: 'GIF • 2 fotos',
 };
 
-export function ExerciseGifImage({ images, media, name, intervalMs = 480 }: ExerciseGifImageProps) {
+export function ExerciseGifImage({
+  images,
+  media,
+  name,
+  intervalMs = 480,
+  showCredit = true,
+}: ExerciseGifImageProps) {
   // Capas en orden: primero las ilustraciones (RepDB → ExerciseDB → Everkinetic), al final las fotos.
   const layers = useMemo<Layer[]>(() => {
     const mediaLayers: Layer[] = (media ?? [])
@@ -106,7 +113,7 @@ export function ExerciseGifImage({ images, media, name, intervalMs = 480 }: Exer
         />
         {showBadge && <span className="exercise-gif-badge">{BADGE_BY_KIND[layer.kind]}</span>}
       </div>
-      {layer.credit && (
+      {showCredit && layer.credit && (
         <a
           className="exercise-gif-credit"
           href={layer.credit.url}

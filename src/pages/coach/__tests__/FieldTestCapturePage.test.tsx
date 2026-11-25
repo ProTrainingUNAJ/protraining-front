@@ -159,6 +159,42 @@ describe('FieldTestCapturePage · Toma táctil de marcas (KAN-427)', () => {
     });
   });
 
+  // KAN-580: al tocar un atleta que ya tiene marca, el campo se precarga con su valor
+  // actual (con coma, como lo arma el numpad) para que el PF vea lo que va a corregir.
+  it('precarga la marca existente al tocar un atleta en la lista', async () => {
+    vi.mocked(getFieldTestSession).mockResolvedValue(
+      makeSession({
+        results: [
+          {
+            id: 'r-9',
+            catalogTestId: 't-1',
+            athleteId: 'a-2',
+            value: 38.5,
+            attempt: 1,
+            recordedAt: '2026-11-09T15:00:00',
+          },
+        ],
+      }),
+    );
+
+    renderPage();
+    await screen.findAllByText('Ana Pérez');
+
+    // El primer atleta no tiene marca: el campo arranca vacío.
+    expect(screen.getByLabelText('Marca del atleta')).toHaveProperty('value', '');
+
+    fireEvent.click(screen.getByRole('button', { name: /Luis Gómez/ }));
+
+    await waitFor(() => {
+      expect(screen.getByText('2 de 2')).toBeDefined();
+    });
+    expect(screen.getByLabelText('Marca del atleta')).toHaveProperty('value', '38,5');
+
+    // Tocar al atleta sin marca lo vuelve a dejar vacío.
+    fireEvent.click(screen.getByRole('button', { name: /Ana Pérez/ }));
+    expect(screen.getByLabelText('Marca del atleta')).toHaveProperty('value', '');
+  });
+
   // Sesión Planned: solo se puede iniciar la toma desde la pantalla.
   it('en estado Planned ofrece "Iniciar toma" y cambia el estado', async () => {
     vi.mocked(getFieldTestSession).mockResolvedValue(makeSession({ status: 'Planned' }));

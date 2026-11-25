@@ -19,10 +19,24 @@ interface IntervalTimerModalProps {
   exerciseName: string;
   defaultWorkSeconds: number;
   totalSets: number;
-  onSetCompleted?: (setNumber: number) => void;
+  /** Avisa la serie terminada y cuántos segundos se trabajaron, para cargarlos en la serie. */
+  onSetCompleted?: (setNumber: number, workSeconds: number) => void;
+  /**
+   * La duración la fijó el PF (meta de tiempo de la sesión): se muestra pero el atleta no la cambia.
+   * Si el ejercicio no trae meta, el atleta elige la duración como antes.
+   */
+  lockWorkSeconds?: boolean;
 }
 
 const REST_OPTIONS = [15, 30, 45, 60, 90];
+
+/** 60 → "1 min", 90 → "1 min 30 s", 45 → "45 s". */
+const formatWorkDuration = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (minutes === 0) return `${rest} s`;
+  return rest === 0 ? `${minutes} min` : `${minutes} min ${rest} s`;
+};
 
 export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
   isOpen,
@@ -31,6 +45,7 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
   defaultWorkSeconds,
   totalSets,
   onSetCompleted,
+  lockWorkSeconds = false,
 }) => {
   const [workSeconds, setWorkSeconds] = useState(defaultWorkSeconds > 0 ? defaultWorkSeconds : 30);
   const [restSeconds, setRestSeconds] = useState(30);
@@ -89,7 +104,7 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
       playTransitionBeep(isMuted);
     } else if (phase === 'work') {
       // Notificar que se completó la serie actual
-      onSetCompleted?.(currentRound);
+      onSetCompleted?.(currentRound, workSeconds);
 
       if (currentRound >= totalSets) {
         setPhase('finished');
@@ -223,7 +238,9 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <p style={{ margin: '0 0 0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  Duración de trabajo por serie
+                  {lockWorkSeconds
+                    ? 'Duración por serie que indicó tu preparador'
+                    : 'Duración de trabajo por serie'}
                 </p>
                 <div
                   style={{
@@ -233,27 +250,40 @@ export const IntervalTimerModal: React.FC<IntervalTimerModalProps> = ({
                     gap: '0.5rem',
                   }}
                 >
-                  <input
-                    type="number"
-                    min="5"
-                    max="600"
-                    value={workSeconds}
-                    onChange={(e) => setWorkSeconds(Math.max(5, parseInt(e.target.value) || 0))}
-                    style={{
-                      width: '100px',
-                      fontSize: '1.75rem',
-                      fontWeight: 900,
-                      textAlign: 'center',
-                      background: 'var(--bg-subtle)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '12px',
-                      color: 'var(--text-main)',
-                      padding: '0.4rem',
-                    }}
-                  />
-                  <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-muted)' }}>
-                    segundos
-                  </span>
+                  {lockWorkSeconds ? (
+                    <span
+                      style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)' }}
+                      data-testid="timer-fixed-work"
+                    >
+                      {formatWorkDuration(workSeconds)}
+                    </span>
+                  ) : (
+                    <>
+                      <input
+                        type="number"
+                        min="5"
+                        max="600"
+                        value={workSeconds}
+                        onChange={(e) => setWorkSeconds(Math.max(5, parseInt(e.target.value) || 0))}
+                        style={{
+                          width: '100px',
+                          fontSize: '1.75rem',
+                          fontWeight: 900,
+                          textAlign: 'center',
+                          background: 'var(--bg-subtle)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '12px',
+                          color: 'var(--text-main)',
+                          padding: '0.4rem',
+                        }}
+                      />
+                      <span
+                        style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-muted)' }}
+                      >
+                        segundos
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 

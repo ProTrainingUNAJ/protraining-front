@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import {
   Users,
   Plus,
@@ -9,17 +9,17 @@ import {
   Tag,
   X,
   Search,
-  Dumbbell,
   HeartPulse,
   Upload,
   QrCode,
-  FileText,
   TrendingUp,
-  KeyRound,
+  Settings,
+  UserX,
 } from 'lucide-react';
 import { structureService } from '../../api/structureService';
 import { Athlete, Category, Organization } from '../../types/structure';
 import { PageHeader } from '../../components/shell/PageHeader';
+import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import { AthleteRecordsModal } from '../../components/athletes/AthleteRecordsModal';
 import { AthleteInjuriesModal } from '../../components/athletes/AthleteInjuriesModal';
 import { RecordsImportModal } from '../../components/athletes/RecordsImportModal';
@@ -28,23 +28,46 @@ import { CategoryInvitationModal } from '../../components/categories/CategoryInv
 import { MedicalRecordJustificationModal } from '../../components/athletes/MedicalRecordJustificationModal';
 import { MedicalRecordDetailModal } from '../../components/athletes/MedicalRecordDetailModal';
 import { ResetAthletePasswordModal } from '../../components/athletes/ResetAthletePasswordModal';
+import { AthleteMetricsModal } from '../../components/athletes/AthleteMetricsModal';
+import { AthleteHealthModal } from '../../components/athletes/AthleteHealthModal';
+import { AthleteSettingsModal } from '../../components/athletes/AthleteSettingsModal';
 import { MedicalRecord } from '../../types/medicalRecord';
+import './AthletesPage.css';
 
 export const AthletesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const stateCatId = (location.state as { catId?: string } | null)?.catId;
 
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Error del correo en el alta (409: ya existe un atleta con ese correo), junto al campo (KAN-660)
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Filtros
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    searchParams.get('catId') || '',
+    stateCatId || searchParams.get('catId') || '',
   );
+  const [prevLocationCatId, setPrevLocationCatId] = useState<string | undefined>(stateCatId);
   const [searchTerm, setSearchTerm] = useState('');
+  // Por defecto se ven todos (como hasta ahora); el PF puede ocultar los dados de baja (KAN-660)
+  const [onlyActive, setOnlyActive] = useState(false);
+
+  if (stateCatId && stateCatId !== prevLocationCatId) {
+    setPrevLocationCatId(stateCatId);
+    setSelectedCategoryId(stateCatId);
+  }
+
+  useEffect(() => {
+    if (searchParams.has('catId')) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [searchParams]);
 
   // Formulario de nuevo atleta
   const [showForm, setShowForm] = useState(false);
@@ -56,6 +79,10 @@ export const AthletesPage: React.FC = () => {
   const [selectedNewAthleteCategories, setSelectedNewAthleteCategories] = useState<string[]>([]);
 
   const [managingAthlete, setManagingAthlete] = useState<Athlete | null>(null);
+  const [metricsAthlete, setMetricsAthlete] = useState<Athlete | null>(null);
+  const [healthAthlete, setHealthAthlete] = useState<Athlete | null>(null);
+  const [settingsAthlete, setSettingsAthlete] = useState<Athlete | null>(null);
+
   const [recordsAthlete, setRecordsAthlete] = useState<Athlete | null>(null);
   const [recordsInitialTab, setRecordsInitialTab] = useState<'records' | 'evolution'>('records');
   const [injuriesAthlete, setInjuriesAthlete] = useState<Athlete | null>(null);
@@ -90,8 +117,10 @@ export const AthletesPage: React.FC = () => {
         const athletesWithCategories = await structureService.withCategories(
           athletesData,
           allCategories,
+          orgsData,
         );
         if (!mounted) return;
+        setOrganizations(orgsData);
         setCategories(allCategories);
         setAthletes(athletesWithCategories);
         setLoading(false);
@@ -120,8 +149,9 @@ export const AthletesPage: React.FC = () => {
         orgsData.map((o) => structureService.getCategories(o.id).catch(() => [] as Category[])),
       );
       const allCategories = categoriesNested.flat();
+      setOrganizations(orgsData);
       setCategories(allCategories);
-      setAthletes(await structureService.withCategories(athletesData, allCategories));
+      setAthletes(await structureService.withCategories(athletesData, allCategories, orgsData));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al consultar el plantel de atletas.');
     } finally {
@@ -147,6 +177,7 @@ export const AthletesPage: React.FC = () => {
 
     setSaving(true);
     setError(null);
+    setEmailError(null);
     setSuccessMessage(null);
 
     try {
@@ -169,7 +200,11 @@ export const AthletesPage: React.FC = () => {
       setShowForm(false);
       setAthletes((prev) => [created, ...prev]);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al dar de alta el atleta.');
+      const message = err instanceof Error ? err.message : 'Error al dar de alta el atleta.';
+      const status = (err as { cause?: { response?: { status?: number } } })?.cause?.response
+        ?.status;
+      if (status === 409) setEmailError(message);
+      else setError(message);
     } finally {
       setSaving(false);
     }
@@ -226,6 +261,8 @@ export const AthletesPage: React.FC = () => {
   // 4. Filtrado en memoria
   const filteredAthletes = useMemo(() => {
     return athletes.filter((athlete) => {
+      if (onlyActive && !athlete.active) return false;
+
       // Filtro por categoría
       if (selectedCategoryId) {
         const inCategory =
@@ -248,14 +285,36 @@ export const AthletesPage: React.FC = () => {
 
       return true;
     });
-  }, [athletes, selectedCategoryId, searchTerm, categories]);
+  }, [athletes, selectedCategoryId, searchTerm, categories, onlyActive]);
+
+  const getAthleteOrganizations = (athlete: Athlete): Organization[] => {
+    if (!athlete.categories || athlete.categories.length === 0) return [];
+    const orgMap = new Map<string, Organization>();
+    athlete.categories.forEach((cat) => {
+      const orgId = cat.organizationId || cat.organizationName;
+      if (orgId && !orgMap.has(orgId)) {
+        const found = organizations.find((o) => o.id === cat.organizationId);
+        if (found) {
+          orgMap.set(orgId, found);
+        } else if (cat.organizationName) {
+          orgMap.set(orgId, {
+            id: cat.organizationId || cat.organizationName,
+            name: cat.organizationName,
+            categoriesCount: 0,
+            hasPhoto: false,
+          });
+        }
+      }
+    });
+    return Array.from(orgMap.values());
+  };
 
   return (
     <div className="app-page-container">
       {/* Encabezado Estandarizado */}
       <PageHeader
         title="Atletas"
-        description="Plantel deportivo, fichas médicas y asignación de divisiones."
+        description="Plantel deportivo, métricas, salud y otras configuraciones."
         actions={
           <>
             {selectedCategoryId && (
@@ -296,13 +355,14 @@ export const AthletesPage: React.FC = () => {
               type="button"
               className="btn btn-primary"
               onClick={() => {
-                setShowForm(!showForm);
+                setShowForm(true);
                 setError(null);
+                setEmailError(null);
               }}
               disabled={saving}
             >
               <Plus size={16} aria-hidden="true" />
-              <span>{showForm ? 'Cancelar' : 'Nuevo Atleta'}</span>
+              <span>Nuevo Atleta</span>
             </button>
           </>
         }
@@ -311,20 +371,14 @@ export const AthletesPage: React.FC = () => {
       <div className="app-page-body">
         {/* Alertas */}
         {successMessage && (
-          <div className="alert-banner success" role="alert" style={{ marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="alert-banner success athletes-error-banner" role="alert">
+            <div className="athletes-error-content">
               <Check size={18} aria-hidden="true" />
               <span>{successMessage}</span>
             </div>
             <button
               type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: 'inherit',
-              }}
+              className="athletes-error-close-btn"
               onClick={() => setSuccessMessage(null)}
               aria-label="Cerrar aviso"
             >
@@ -334,20 +388,14 @@ export const AthletesPage: React.FC = () => {
         )}
 
         {error && (
-          <div className="alert-banner danger" role="alert" style={{ marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="alert-banner danger athletes-error-banner" role="alert">
+            <div className="athletes-error-content">
               <AlertCircle size={18} aria-hidden="true" />
               <span>{error}</span>
             </div>
             <button
               type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: 'inherit',
-              }}
+              className="athletes-error-close-btn"
               onClick={() => setError(null)}
               aria-label="Cerrar error"
             >
@@ -356,270 +404,195 @@ export const AthletesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Formulario de Alta de Atleta */}
+        {/* Modal Emergente de Alta de Atleta (KAN-660) */}
         {showForm && (
           <div
-            className="card"
-            style={{
-              marginBottom: '1.5rem',
-              border: '1.5px solid var(--secondary)',
-              background: 'var(--bg-card)',
-            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-create-athlete-title"
+            className="athletes-modal-backdrop"
+            onClick={() => !saving && setShowForm(false)}
           >
-            <h2
-              style={{
-                fontSize: '1.15rem',
-                fontWeight: 700,
-                marginBottom: '0.25rem',
-                color: 'var(--primary)',
-              }}
+            <div
+              className="card athletes-modal-content athletes-create-modal"
+              onClick={(e) => e.stopPropagation()}
             >
-              Alta de Atleta en el Plantel
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              Ingresá los datos personales y asigná las divisiones iniciales del deportista.
-            </p>
-
-            <form onSubmit={handleCreateAthlete}>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                }}
-              >
-                <div>
-                  <label
-                    htmlFor="ath-first"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
-                    Nombre *
-                  </label>
-                  <input
-                    id="ath-first"
-                    type="text"
-                    required
-                    maxLength={60}
-                    placeholder="Ej. Lucas"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="ath-last"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
-                    Apellido *
-                  </label>
-                  <input
-                    id="ath-last"
-                    type="text"
-                    required
-                    maxLength={60}
-                    placeholder="Ej. Fernández"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="ath-email"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
-                    Correo Electrónico *
-                  </label>
-                  <input
-                    id="ath-email"
-                    type="email"
-                    required
-                    placeholder="atleta@correo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="ath-phone"
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.35rem',
-                    }}
-                  >
-                    Teléfono
-                  </label>
-                  <input
-                    id="ath-phone"
-                    type="tel"
-                    placeholder="+54 11 1234-5678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label
-                  htmlFor="ath-emergency"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    display: 'block',
-                    marginBottom: '0.35rem',
-                  }}
-                >
-                  Contacto de Emergencia
-                </label>
-                <input
-                  id="ath-emergency"
-                  type="text"
-                  placeholder="Ej. Madre: 11-9876-5432"
-                  value={emergencyContact}
-                  onChange={(e) => setEmergencyContact(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              {categories.length > 0 && (
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Asignar a Categorías Iniciales
-                  </span>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {categories.map((cat) => {
-                      const isSelected = selectedNewAthleteCategories.includes(cat.id);
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          style={{
-                            padding: '0.35rem 0.75rem',
-                            borderRadius: '20px',
-                            border: isSelected
-                              ? '1.5px solid var(--secondary)'
-                              : '1px solid var(--border)',
-                            background: isSelected ? 'var(--primary-light)' : 'var(--bg-card)',
-                            color: isSelected ? 'var(--secondary)' : 'var(--text-main)',
-                            fontWeight: 600,
-                            fontSize: '0.8rem',
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => {
-                            setSelectedNewAthleteCategories((prev) =>
-                              isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
-                            );
-                          }}
-                        >
-                          {isSelected ? (
-                            <Check size={13} aria-hidden="true" />
-                          ) : (
-                            <Plus size={13} aria-hidden="true" />
-                          )}
-                          {cat.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <div className="athletes-modal-header">
+                <h2 id="modal-create-athlete-title" className="athletes-modal-title">
+                  Alta de Atleta en el Plantel
+                </h2>
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowForm(false)}
+                  className="coach-icon-btn"
+                  onClick={() => !saving && setShowForm(false)}
+                  aria-label="Cerrar modal"
                   disabled={saving}
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
-                >
-                  {saving ? 'Guardando…' : 'Registrar Atleta'}
+                  <X size={20} aria-hidden="true" />
                 </button>
               </div>
-            </form>
+
+              <p className="athletes-modal-desc">
+                Ingresá los datos personales y asigná las divisiones iniciales del deportista.
+              </p>
+
+              <form onSubmit={handleCreateAthlete}>
+                <div className="athletes-form-grid">
+                  <div>
+                    <label htmlFor="ath-first" className="athletes-form-label">
+                      Nombre *
+                    </label>
+                    <input
+                      id="ath-first"
+                      type="text"
+                      required
+                      maxLength={60}
+                      placeholder="Ej. Lucas"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="ath-last" className="athletes-form-label">
+                      Apellido *
+                    </label>
+                    <input
+                      id="ath-last"
+                      type="text"
+                      required
+                      maxLength={60}
+                      placeholder="Ej. Fernández"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="ath-email" className="athletes-form-label">
+                      Correo Electrónico *
+                    </label>
+                    <input
+                      id="ath-email"
+                      type="email"
+                      required
+                      placeholder="atleta@correo.com"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setEmailError(null);
+                      }}
+                      disabled={saving}
+                      aria-invalid={emailError ? true : undefined}
+                      aria-describedby={emailError ? 'ath-email-error' : undefined}
+                    />
+                    {emailError && (
+                      <p id="ath-email-error" className="athletes-field-error" role="alert">
+                        {emailError}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="ath-phone" className="athletes-form-label">
+                      Teléfono
+                    </label>
+                    <input
+                      id="ath-phone"
+                      type="tel"
+                      placeholder="+54 11 1234-5678"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+
+                <div className="athletes-form-group">
+                  <label htmlFor="ath-emergency" className="athletes-form-label">
+                    Contacto de Emergencia
+                  </label>
+                  <input
+                    id="ath-emergency"
+                    type="text"
+                    placeholder="Ej. Madre: 11-9876-5432"
+                    value={emergencyContact}
+                    onChange={(e) => setEmergencyContact(e.target.value)}
+                    disabled={saving}
+                  />
+                </div>
+
+                {categories.length > 0 && (
+                  <div className="athletes-form-group">
+                    <span className="athletes-form-label">Asignar a Categorías Iniciales</span>
+                    <div className="athletes-chips-row">
+                      {categories.map((cat) => {
+                        const isSelected = selectedNewAthleteCategories.includes(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            className={`athletes-category-chip${isSelected ? ' is-selected' : ''}`}
+                            onClick={() => {
+                              setSelectedNewAthleteCategories((prev) =>
+                                isSelected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id],
+                              );
+                            }}
+                          >
+                            {isSelected ? (
+                              <Check size={13} aria-hidden="true" />
+                            ) : (
+                              <Plus size={13} aria-hidden="true" />
+                            )}
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="athletes-form-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowForm(false)}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
+                  >
+                    {saving ? 'Guardando…' : 'Registrar Atleta'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
         {/* Barra de Filtros y Búsqueda */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'center',
-            marginBottom: '1.25rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
-            <Search
-              size={16}
-              style={{
-                position: 'absolute',
-                left: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--text-muted)',
-              }}
-              aria-hidden="true"
-            />
+        <div className="athletes-filter-bar">
+          <div className="athletes-search-wrapper">
+            <Search size={16} className="athletes-search-icon" aria-hidden="true" />
             <input
               type="search"
               placeholder="Buscar por nombre, email o teléfono…"
+              aria-label="Buscar atleta"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: '100%', margin: 0, paddingLeft: '2.25rem' }}
+              className="athletes-search-input"
             />
           </div>
 
           {categories.length > 0 && (
             <select
-              style={{
-                width: 'auto',
-                minWidth: '200px',
-                margin: 0,
-                padding: '0.5rem 0.75rem',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-card)',
-                color: 'var(--text-main)',
-                fontWeight: 500,
-              }}
+              className="athletes-category-select select-field"
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
               aria-label="Filtrar por categoría"
@@ -632,47 +605,44 @@ export const AthletesPage: React.FC = () => {
               ))}
             </select>
           )}
+
+          <label className="athletes-only-active">
+            <input
+              type="checkbox"
+              checked={onlyActive}
+              onChange={(e) => setOnlyActive(e.target.checked)}
+            />
+            <span>Solo activos</span>
+          </label>
+
+          {!loading && athletes.length > 0 && (
+            <p className="athletes-count" aria-live="polite" data-testid="athletes-count">
+              {filteredAthletes.length === athletes.length
+                ? `${athletes.length} ${athletes.length === 1 ? 'atleta' : 'atletas'}`
+                : `${filteredAthletes.length} de ${athletes.length} atletas`}
+            </p>
+          )}
         </div>
 
         {/* Estados de Carga y Vacío */}
         {loading ? (
-          <div
-            className="card"
-            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
-          >
-            <p style={{ margin: 0, fontWeight: 500 }}>Cargando atletas del plantel…</p>
+          <div className="card athletes-empty-card">
+            <p className="athletes-loading-text">Cargando atletas del plantel…</p>
           </div>
         ) : filteredAthletes.length === 0 ? (
-          <div
-            className="card"
-            style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-muted)' }}
-          >
-            <Users size={44} style={{ margin: '0 auto 1rem', opacity: 0.35 }} aria-hidden="true" />
-            <h2
-              style={{
-                fontWeight: 700,
-                fontSize: '1.2rem',
-                marginBottom: '0.5rem',
-                color: 'var(--text-main)',
-              }}
-            >
-              {searchTerm || selectedCategoryId
+          <div className="card athletes-empty-card">
+            <Users size={44} className="athletes-empty-icon" aria-hidden="true" />
+            <h2 className="athletes-empty-title">
+              {searchTerm || selectedCategoryId || onlyActive
                 ? 'No se encontraron atletas con los filtros aplicados'
                 : 'No hay atletas registrados en el plantel'}
             </h2>
-            <p
-              style={{
-                fontSize: '0.9rem',
-                marginBottom: '1.5rem',
-                maxWidth: '420px',
-                marginInline: 'auto',
-              }}
-            >
-              {searchTerm || selectedCategoryId
+            <p className="athletes-empty-desc">
+              {searchTerm || selectedCategoryId || onlyActive
                 ? 'Prueba modificando el término de búsqueda o seleccionando otra división.'
                 : 'Empezá dando de alta a los deportistas para realizar el seguimiento físico y rutinas.'}
             </p>
-            {!searchTerm && !selectedCategoryId && (
+            {!searchTerm && !selectedCategoryId && !onlyActive && (
               <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>
                 <Plus size={16} aria-hidden="true" />
                 <span>Registrar Primer Atleta</span>
@@ -680,182 +650,173 @@ export const AthletesPage: React.FC = () => {
             )}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="athletes-list">
             {filteredAthletes.map((athlete) => (
               <div
                 key={athlete.id}
-                className="card"
-                style={{
-                  margin: 0,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '1rem',
-                }}
+                className={`card athletes-card${athlete.active ? '' : ' athletes-card--inactive'}`}
+                data-testid={`athlete-card-${athlete.id}`}
               >
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.6rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        color: 'var(--text-main)',
-                        margin: 0,
-                      }}
-                    >
-                      {athlete.fullName}
-                    </h2>
-                    {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
-                    {athlete.active && <span className="badge badge-success">Activo</span>}
-                  </div>
+                <div className="athletes-card-info-wrap">
+                  <ProfileAvatar
+                    src={
+                      athlete.hasPhoto
+                        ? structureService.getAthletePhotoUrl(athlete.id, athlete.photoUpdatedAt)
+                        : null
+                    }
+                    name={athlete.fullName || `${athlete.firstName} ${athlete.lastName}`}
+                    size={44}
+                  />
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '1rem',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                      marginTop: '0.35rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span>{athlete.email}</span>
-                    {athlete.phone && <span>Tel: {athlete.phone}</span>}
-                    {athlete.emergencyContact && (
-                      <span>Emergencia: {athlete.emergencyContact}</span>
-                    )}
-                  </div>
+                  <div>
+                    <div className="athletes-card-header-row">
+                      <h2 className="athletes-card-name">{athlete.fullName}</h2>
+                      {athlete.isMinor && <span className="badge badge-warning">Menor</span>}
+                      {athlete.active ? (
+                        <span className="badge badge-success">Activo</span>
+                      ) : (
+                        <span className="badge athletes-badge-inactive">
+                          <UserX size={12} aria-hidden="true" />
+                          Inactivo
+                        </span>
+                      )}
+                      {getAthleteOrganizations(athlete).map((org) => (
+                        <div key={org.id} title={org.name} className="athletes-card-org-icon">
+                          <ProfileAvatar
+                            src={
+                              org.hasPhoto
+                                ? structureService.getOrganizationPhotoUrl(
+                                    org.id,
+                                    org.photoUpdatedAt,
+                                  )
+                                : null
+                            }
+                            name={org.name}
+                            size={22}
+                            shape="rounded"
+                            alt={`Logo de ${org.name}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
 
-                  {/* Categorías asignadas */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.4rem',
-                      marginTop: '0.5rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {athlete.categories && athlete.categories.length > 0 ? (
-                      athlete.categories.map((c) => (
-                        <span key={c.id} className="badge badge-info">
-                          {c.name}
+                    <div className="athletes-card-meta-row">
+                      <span>{athlete.email}</span>
+                      {athlete.phone && <span>Tel: {athlete.phone}</span>}
+                      {athlete.emergencyContact && (
+                        <span>Emergencia: {athlete.emergencyContact}</span>
+                      )}
+                    </div>
+
+                    {/* Categorías asignadas */}
+                    <div className="athletes-card-categories-row">
+                      {athlete.categories && athlete.categories.length > 0 ? (
+                        athlete.categories.map((c) => (
+                          <span key={c.id} className="badge badge-info athletes-category-badge">
+                            <span>{c.name}</span>
+                          </span>
+                        ))
+                      ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
+                        athlete.categoryNames.map((name, i) => (
+                          <span key={i} className="badge badge-info">
+                            {name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="athletes-no-categories-text">
+                          Sin categorías asignadas
                         </span>
-                      ))
-                    ) : athlete.categoryNames && athlete.categoryNames.length > 0 ? (
-                      athlete.categoryNames.map((name, i) => (
-                        <span key={i} className="badge badge-info">
-                          {name}
-                        </span>
-                      ))
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--text-muted)',
-                          fontStyle: 'italic',
-                        }}
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4 Acciones con Jerarquía Visual (KAN-596) */}
+                {(() => {
+                  const hasActiveInjury = (athlete.activeInjuriesCount ?? 0) > 0;
+                  return (
+                    <div className="athletes-card-actions">
+                      <button
+                        type="button"
+                        className="btn btn-secondary athletes-action-btn athlete-action--secondary"
+                        onClick={() => setManagingAthlete(athlete)}
+                        title="Gestionar categorías asignadas (N:N)"
                       >
-                        Sin categorías asignadas
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setManagingAthlete(athlete)}
-                    title="Gestionar categorías asignadas (N:N)"
-                  >
-                    <Tag size={15} aria-hidden="true" />
-                    <span>Categorías</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => {
-                      setRecordsInitialTab('records');
-                      setRecordsAthlete(athlete);
-                    }}
-                    title="Ver y cargar sus récords (1RM)"
-                  >
-                    <Dumbbell size={15} aria-hidden="true" />
-                    <span>Récords</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => {
-                      setRecordsInitialTab('evolution');
-                      setRecordsAthlete(athlete);
-                    }}
-                    title="Ver la evolución y progresión de 1RM del atleta"
-                    data-testid={`evolution-btn-${athlete.id}`}
-                  >
-                    <TrendingUp size={15} aria-hidden="true" />
-                    <span>Evolución</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setBenchmarkAthlete(athlete)}
-                    title="Comparar rendimiento individual frente al promedio del grupo"
-                    data-testid={`benchmark-btn-${athlete.id}`}
-                  >
-                    <TrendingUp size={15} aria-hidden="true" />
-                    <span>Benchmark</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setInjuriesAthlete(athlete)}
-                    title="Ver historial de lesiones del atleta"
-                  >
-                    <HeartPulse size={15} aria-hidden="true" />
-                    <span>Lesiones</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setJustifyingAthlete(athlete)}
-                    title="Ver Ficha Médica del atleta con justificación obligatoria"
-                  >
-                    <FileText size={15} aria-hidden="true" />
-                    <span>Ver Ficha Médica</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
-                    onClick={() => setResetAthlete(athlete)}
-                    title="Restablecer contraseña del atleta"
-                    data-testid={`reset-pwd-btn-${athlete.id}`}
-                  >
-                    <KeyRound size={15} aria-hidden="true" />
-                    <span>Resetear contraseña</span>
-                  </button>
-                </div>
+                        <Tag size={15} aria-hidden="true" />
+                        <span>Categorías</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn athletes-action-btn athlete-action--evolution"
+                        onClick={() => setMetricsAthlete(athlete)}
+                        title="Consultar Récords, Evolución y Benchmark del atleta"
+                        data-testid={`metrics-btn-${athlete.id}`}
+                      >
+                        <TrendingUp size={15} aria-hidden="true" />
+                        <span>Métricas</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn athletes-action-btn athlete-action--injuries${
+                          hasActiveInjury ? ' athlete-action--active-injury' : ''
+                        }`}
+                        onClick={() => setHealthAthlete(athlete)}
+                        title="Consultar Historial de Lesiones y Ficha Médica"
+                        aria-label={
+                          hasActiveInjury
+                            ? `Salud: lesión activa (${athlete.activeInjuriesCount})`
+                            : undefined
+                        }
+                        data-testid={`health-btn-${athlete.id}`}
+                      >
+                        <HeartPulse size={15} aria-hidden="true" />
+                        <span>Salud</span>
+                        {hasActiveInjury && <span className="athlete-action-badge">Activa</span>}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary athletes-action-btn athlete-action--secondary"
+                        onClick={() => setSettingsAthlete(athlete)}
+                        title="Foto de perfil, cambiar clave, cambiar mail y deshabilitar usuario"
+                        aria-label="Configuración"
+                        data-testid={`settings-btn-${athlete.id}`}
+                      >
+                        <Settings size={15} aria-hidden="true" />
+                        <span className="athlete-action-label-full">Configuración</span>
+                        <span className="athlete-action-label-short">Config</span>
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Modales Unificados (KAN-609) */}
+      {metricsAthlete && (
+        <AthleteMetricsModal
+          athlete={metricsAthlete}
+          categories={categories}
+          onClose={() => setMetricsAthlete(null)}
+        />
+      )}
+
+      {healthAthlete && (
+        <AthleteHealthModal athlete={healthAthlete} onClose={() => setHealthAthlete(null)} />
+      )}
+
+      {settingsAthlete && (
+        <AthleteSettingsModal
+          athlete={settingsAthlete}
+          onAthleteUpdated={(updated) => {
+            setAthletes((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+            setSettingsAthlete(updated);
+          }}
+          onClose={() => setSettingsAthlete(null)}
+        />
+      )}
 
       {recordsAthlete && (
         <AthleteRecordsModal
@@ -910,47 +871,12 @@ export const AthletesPage: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-categories-title"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'var(--overlay)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-          }}
+          className="athletes-modal-backdrop"
           onClick={() => setManagingAthlete(null)}
         >
-          <div
-            className="card"
-            style={{
-              width: '100%',
-              maxWidth: '480px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              margin: 0,
-              padding: '1.5rem',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.75rem',
-              }}
-            >
-              <h2
-                id="modal-categories-title"
-                style={{
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                  margin: 0,
-                  color: 'var(--text-main)',
-                }}
-              >
+          <div className="card athletes-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="athletes-modal-header">
+              <h2 id="modal-categories-title" className="athletes-modal-title">
                 Categorías de {managingAthlete.fullName}
               </h2>
               <button
@@ -963,17 +889,17 @@ export const AthletesPage: React.FC = () => {
               </button>
             </div>
 
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+            <p className="athletes-modal-desc">
               Un atleta puede competir en múltiples divisiones simultáneamente. Tocá para asociar o
               desvincular.
             </p>
 
             {categories.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
+              <div className="athletes-modal-empty">
                 No hay categorías disponibles registradas en el sistema.
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div className="athletes-modal-categories-list">
                 {categories.map((cat) => {
                   const isAssigned = managingAthlete.categories?.some((c) => c.id === cat.id);
                   return (
@@ -981,27 +907,12 @@ export const AthletesPage: React.FC = () => {
                       key={cat.id}
                       type="button"
                       disabled={updatingCategory}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '8px',
-                        border: isAssigned
-                          ? '1.5px solid var(--secondary)'
-                          : '1px solid var(--border)',
-                        background: isAssigned ? 'var(--primary-light)' : 'var(--bg-card)',
-                        color: 'var(--text-main)',
-                        cursor: updatingCategory ? 'wait' : 'pointer',
-                        textAlign: 'left',
-                        width: '100%',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className={`athletes-modal-category-btn${isAssigned ? ' is-assigned' : ''}`}
                       onClick={() => toggleCategoryAssignment(cat)}
                     >
-                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{cat.name}</span>
+                      <span className="athletes-modal-category-name">{cat.name}</span>
                       {isAssigned ? (
-                        <span className="badge badge-success" style={{ gap: '0.25rem' }}>
+                        <span className="badge badge-success athletes-modal-category-badge">
                           <Check size={12} aria-hidden="true" /> Asignada
                         </span>
                       ) : (
@@ -1013,7 +924,7 @@ export const AthletesPage: React.FC = () => {
               </div>
             )}
 
-            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+            <div className="athletes-modal-footer">
               <button
                 type="button"
                 className="btn btn-primary"
@@ -1063,6 +974,9 @@ export const AthletesPage: React.FC = () => {
           record={viewingMedicalRecord.record}
           justificationUsed={viewingMedicalRecord.justification}
           onClose={() => setViewingMedicalRecord(null)}
+          onRecordUpdated={(updated) => {
+            setViewingMedicalRecord((prev) => (prev ? { ...prev, record: updated } : null));
+          }}
         />
       )}
     </div>

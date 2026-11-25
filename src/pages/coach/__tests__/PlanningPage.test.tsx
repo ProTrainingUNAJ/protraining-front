@@ -1,36 +1,113 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PlanningPage } from '../PlanningPage';
 import { trainingPlansService } from '../../../api/trainingPlans';
 import { structureService } from '../../../api/structureService';
 
-describe('PlanningPage - Catálogo de Plantillas (KAN-440)', () => {
+describe('PlanningPage (KAN-440 / KAN-622)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
 
-    vi.spyOn(trainingPlansService, 'list').mockResolvedValue([]);
+    vi.spyOn(trainingPlansService, 'list').mockResolvedValue([
+      { id: 'plan-1', name: 'Potencia Tren Superior', objective: 'Fuerza explosiva' },
+      { id: 'plan-2', name: 'Hipertrofia Piernas', objective: 'Volumen muscular' },
+      { id: 'plan-3', name: 'Plan IA Resistencia', objective: 'Generado con IA' },
+    ]);
     vi.spyOn(trainingPlansService, 'listTemplates').mockResolvedValue([
       { id: 'tpl-1', name: 'Pretemporada Fuerza 2026', objective: 'Fuerza precompetitiva' },
       { id: 'tpl-2', name: 'Hipertrofia Base', objective: 'Aumento de masa muscular' },
     ]);
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([]);
     vi.spyOn(structureService, 'getOrganizations').mockResolvedValue([]);
     vi.spyOn(structureService, 'getCategories').mockResolvedValue([]);
     vi.spyOn(structureService, 'getAthletes').mockResolvedValue([]);
   });
 
-  it('cambia a la pestaña de plantillas, lista el catálogo y filtra por buscador', async () => {
+  it('lista las planificaciones en Grid y muestra contadores en las pestañas (KAN-622)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+    expect(screen.getByText('Plan IA Resistencia')).toBeDefined();
+
+    // Contador en pestaña
+    expect(screen.getByText('3')).toBeDefined();
+  });
+
+  it('filtra las tarjetas con el buscador reactivo por nombre y objetivo deportivo (KAN-622)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const searchInput = screen.getByRole('searchbox', { name: /buscar planificación/i });
+    fireEvent.change(searchInput, { target: { value: 'Piernas' } });
+
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+    expect(screen.queryByText('Potencia Tren Superior')).toBeNull();
+
+    // Limpia la búsqueda
+    const clearBtn = screen.getByRole('button', { name: /borrar texto de búsqueda/i });
+    fireEvent.click(clearBtn);
+
+    expect(screen.getByText('Potencia Tren Superior')).toBeDefined();
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+  });
+
+  it('muestra estado amigable y botón de limpieza si no hay resultados en la búsqueda (KAN-622)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const searchInput = screen.getByRole('searchbox', { name: /buscar planificación/i });
+    fireEvent.change(searchInput, { target: { value: 'Inexistente 123' } });
+
+    expect(screen.getByText(/no se encontraron planificaciones que coincidan con/i)).toBeDefined();
+
+    const resetBtn = screen.getByRole('button', { name: /limpiar búsqueda/i });
+    fireEvent.click(resetBtn);
+
+    expect(screen.getByText('Potencia Tren Superior')).toBeDefined();
+  });
+
+  it('abre el modal de asignación rápida al hacer clic en Asignar en una tarjeta (KAN-622)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const assignBtn = screen.getByRole('button', { name: /asignar potencia tren superior/i });
+    fireEvent.click(assignBtn);
+
+    // Debe abrir el modal de asignación
+    expect(screen.getByRole('dialog', { name: /asignar planificación/i })).toBeDefined();
+  });
+
+  it('cambia a la pestaña de plantillas, lista el catálogo y filtra por buscador (KAN-440)', async () => {
     render(
       <MemoryRouter initialEntries={['/pf/planning?tab=templates']}>
         <PlanningPage />
       </MemoryRouter>,
     );
 
-    // Espera a que se carguen las plantillas
     expect(await screen.findByText('Pretemporada Fuerza 2026')).toBeDefined();
     expect(screen.getByText('Hipertrofia Base')).toBeDefined();
 
-    // Filtra con el buscador
     const searchInput = screen.getByRole('searchbox', { name: /buscar plantilla/i });
     fireEvent.change(searchInput, { target: { value: 'Pretemporada' } });
 
@@ -38,7 +115,7 @@ describe('PlanningPage - Catálogo de Plantillas (KAN-440)', () => {
     expect(screen.queryByText('Hipertrofia Base')).toBeNull();
   });
 
-  it('abre el modal de aplicación al tocar "Aplicar a categoría"', async () => {
+  it('abre el modal de aplicación al tocar "Aplicar a categoría" (KAN-440)', async () => {
     render(
       <MemoryRouter initialEntries={['/pf/planning?tab=templates']}>
         <PlanningPage />
@@ -50,7 +127,241 @@ describe('PlanningPage - Catálogo de Plantillas (KAN-440)', () => {
     });
     fireEvent.click(applyButton);
 
-    // Debe abrir el modal
     expect(screen.getByRole('dialog', { name: /aplicar plantilla/i })).toBeDefined();
+  });
+
+  it('cambia a la pestaña de asignaciones y renderiza las tarjetas en grid similar a Mis Planificaciones (KAN-623)', async () => {
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([
+      {
+        assignmentId: 'assign-1',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+      {
+        assignmentId: 'assign-2',
+        trainingPlanId: 'plan-2',
+        planName: 'Hipertrofia Piernas',
+        startDate: '2026-10-01',
+        endDate: '2026-10-31',
+        status: 'Finished',
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning?tab=assignments']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+    expect(screen.getByText('Activa')).toBeDefined();
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+    expect(screen.getByText('Terminada')).toBeDefined();
+
+    // Verificamos que tenga el buscador de asignaciones
+    const searchInput = screen.getByRole('searchbox', { name: /buscar asignación/i });
+    fireEvent.change(searchInput, { target: { value: 'Piernas' } });
+
+    expect(screen.getByText('Hipertrofia Piernas')).toBeDefined();
+    expect(screen.queryByText('Potencia Tren Superior')).toBeNull();
+  });
+
+  it('abre el modal de gestión de asignaciones al hacer clic en el stack de fotos y permite desasignar (KAN-622)', async () => {
+    const deleteAssignmentSpy = vi
+      .spyOn(trainingPlansService, 'deleteAssignment')
+      .mockResolvedValue();
+
+    vi.spyOn(structureService, 'getAthletes').mockResolvedValue([
+      {
+        id: 'ath-1',
+        accountId: 'acc-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        email: 'lucas@test.com',
+        phone: '123456',
+        isMinor: false,
+        active: true,
+        categories: [],
+        categoryNames: ['Primera División'],
+        emergencyContact: null,
+        activeInjuriesCount: 0,
+        hasPhoto: true,
+        photoUpdatedAt: '2026-11-01T00:00:00Z',
+      },
+    ]);
+
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([
+      {
+        assignmentId: 'assign-lucas',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        athleteId: 'ath-1',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning?tab=assignments']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    // Hacemos clic en el trigger del stack de asignados
+    const stackTrigger = await screen.findByRole('button', {
+      name: /ver y administrar 1 asignados a potencia tren superior/i,
+    });
+    fireEvent.click(stackTrigger);
+
+    // Debe abrir el modal de gestión de asignaciones
+    expect(
+      await screen.findByRole('heading', { name: /asignaciones de la planificación/i }),
+    ).toBeDefined();
+
+    // Iniciamos la desasignación
+    const deleteBtn = await screen.findByRole('button', {
+      name: /quitar a lucas gómez/i,
+    });
+    fireEvent.click(deleteBtn);
+
+    // Confirmamos la desasignación
+    const confirmBtn = await screen.findByRole('button', { name: /sí, quitar/i });
+    fireEvent.click(confirmBtn);
+
+    expect(deleteAssignmentSpy).toHaveBeenCalledWith('assign-lucas');
+  });
+
+  it('abre el modal de confirmación al hacer clic en el cesto de basura y elimina la planificación si se confirma (KAN-622)', async () => {
+    const deleteSpy = vi.spyOn(trainingPlansService, 'delete').mockResolvedValue();
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const deleteBtn = screen.getByTestId('btn-delete-plan-plan-1');
+    fireEvent.click(deleteBtn);
+
+    // Debe abrir el modal de confirmación
+    expect(await screen.findByRole('heading', { name: /eliminar planificación/i })).toBeDefined();
+    expect(
+      screen.getByText(/¿estás seguro de que deseas eliminar la planificación/i),
+    ).toBeDefined();
+
+    // Confirmar eliminación
+    const confirmBtn = screen.getByTestId('btn-confirm-delete-plan');
+    fireEvent.click(confirmBtn);
+
+    expect(deleteSpy).toHaveBeenCalledWith('plan-1');
+  });
+
+  it('muestra advertencia explícita en el modal de confirmación si la planificación tiene atletas u organizaciones asignadas (KAN-622)', async () => {
+    vi.spyOn(trainingPlansService, 'listAssignments').mockResolvedValue([
+      {
+        assignmentId: 'assign-1',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        categoryId: 'cat-1',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+      {
+        assignmentId: 'assign-2',
+        trainingPlanId: 'plan-1',
+        planName: 'Potencia Tren Superior',
+        athleteId: 'ath-1',
+        startDate: '2026-11-16',
+        endDate: '2026-12-13',
+        status: 'Active',
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const deleteBtn = screen.getByTestId('btn-delete-plan-plan-1');
+    fireEvent.click(deleteBtn);
+
+    // El modal debe mostrar la advertencia de asignaciones en curso
+    const warning = await screen.findByTestId('delete-plan-assignments-warning');
+    expect(warning).toBeDefined();
+    expect(screen.getByText(/esta planificación tiene asignaciones en curso/i)).toBeDefined();
+    expect(screen.getByText(/organización \/ categoría/i)).toBeDefined();
+    expect(screen.getByText(/atleta individual/i)).toBeDefined();
+  });
+
+  it('descarga el PDF desde la tarjeta mostrando "Generando…" y rehabilita el botón al terminar (KAN-658)', async () => {
+    let resolveDownload!: () => void;
+    const downloadSpy = vi.spyOn(trainingPlansService, 'downloadPdf').mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDownload = resolve;
+        }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const pdfBtn = screen.getByRole('button', {
+      name: /descargar pdf de potencia tren superior/i,
+    }) as HTMLButtonElement;
+    expect(pdfBtn.disabled).toBe(false);
+
+    fireEvent.click(pdfBtn);
+
+    expect(downloadSpy).toHaveBeenCalledWith('plan-1', 'Potencia Tren Superior');
+    expect(pdfBtn.disabled).toBe(true);
+    expect(pdfBtn.textContent).toContain('Generando…');
+
+    resolveDownload();
+
+    await waitFor(() => {
+      expect(pdfBtn.disabled).toBe(false);
+      expect(pdfBtn.textContent).toContain('Descargar PDF');
+    });
+  });
+
+  it('muestra mensaje de error en español y rehabilita el botón si falla la descarga del PDF desde la tarjeta (KAN-658)', async () => {
+    vi.spyOn(trainingPlansService, 'downloadPdf').mockRejectedValue(
+      new Error('Hubo un error en el servidor al generar el PDF.'),
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/pf/planning']}>
+        <PlanningPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Potencia Tren Superior')).toBeDefined();
+
+    const pdfBtn = screen.getByRole('button', {
+      name: /descargar pdf de potencia tren superior/i,
+    }) as HTMLButtonElement;
+    fireEvent.click(pdfBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('Hubo un error en el servidor al generar el PDF.');
+    expect(pdfBtn.disabled).toBe(false);
   });
 });

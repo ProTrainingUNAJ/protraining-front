@@ -6,6 +6,7 @@ import { usersService } from '../../../api/users';
 vi.mock('../../../api/users', () => ({
   usersService: {
     getPfContact: vi.fn(),
+    getPfPhotoUrl: vi.fn().mockReturnValue('/identidad/api/v1/users/me/pf-photo'),
   },
 }));
 
@@ -26,7 +27,7 @@ describe('ContactPfButton (KAN-562)', () => {
 
     // Criterio de aceptación: el botón no aparece en la pantalla
     expect(container.firstChild).toBeNull();
-    expect(screen.queryByRole('link', { name: /contactar a mi preparador/i })).toBeNull();
+    expect(screen.queryByRole('link', { name: /contactar a mi PF/i })).toBeNull();
   });
 
   it('no muestra el botón si la llamada a la API falla con error', async () => {
@@ -49,7 +50,7 @@ describe('ContactPfButton (KAN-562)', () => {
     render(<ContactPfButton initialText="Hola profe" />);
 
     const button = await screen.findByRole('link', {
-      name: /contactar a mi preparador/i,
+      name: /contactar a mi PF/i,
     });
 
     expect(button).toBeDefined();

@@ -358,19 +358,6 @@ export type CreateRoutineRequest = {
     items: Array<RoutineItemRequest>;
 };
 
-export type RoutineTemplate = {
-    id: string;
-    name: string;
-    goal: string;
-    exercisesCount: number;
-};
-
-export type CreateRoutineTemplateRequest = {
-    name: string;
-    goal: string;
-    items: Array<RoutineItemRequest>;
-};
-
 export type TodayRoutineExercise = {
     exerciseId?: string;
     name: string;
@@ -395,6 +382,10 @@ export type TodayRoutineExercise = {
     exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
     sets: number;
     reps: number;
+    /**
+     * Rango o descripción flexible de repeticiones prescritas (ej. "6-8", "10-12", "Fallo") introducido en KAN-585.
+     */
+    repsRange?: string | null;
     percentage?: number;
     /**
      * Peso prescrito resuelto en kg (redondeado a múltiplos de 2.5 kg). Es null en series de referencia sin récord previo.
@@ -417,6 +408,10 @@ export type TodayRoutineExercise = {
      */
     isReference: boolean;
     /**
+     * Meta de distancia prescripta por el preparador físico en metros.
+     */
+    targetDistanceMeters?: number | null;
+    /**
      * Meta de tiempo calculada en segundos (KAN-455). Null si no tiene test.
      */
     targetTimeSeconds?: number | null;
@@ -424,6 +419,49 @@ export type TodayRoutineExercise = {
      * Series o pasadas ya registradas hoy para este ejercicio (KAN-457).
      */
     performedSets?: Array<TodayRoutinePerformedSet>;
+    /**
+     * Indica si el ejercicio fue adaptado con una variante personalizada o ajuste (KAN-471).
+     */
+    isAdapted?: boolean;
+    /**
+     * Nombre del ejercicio original prescrito antes de aplicar la variante.
+     */
+    originalExerciseName?: string | null;
+    /**
+     * Motivo o nota de la adaptación aplicada al ejercicio.
+     */
+    adaptationReason?: string | null;
+    /**
+     * Métrica de intensidad activa del ejercicio.
+     */
+    intensityType?: 'RPE' | 'RIR';
+    /**
+     * RPE objetivo (1-10) cuando intensityType es RPE.
+     */
+    targetRpe?: number | null;
+    /**
+     * RIR objetivo (0-5) cuando intensityType es RIR.
+     */
+    targetRir?: number | null;
+    /**
+     * Notas técnicas del ejercicio para la semana.
+     */
+    notes?: string | null;
+    /**
+     * Número de semana resuelta para este ejercicio.
+     */
+    weekNumber?: number | null;
+    /**
+     * Identificador del bloque al que pertenece el ejercicio.
+     */
+    blockId?: string | null;
+};
+
+export type TodayRoutineBlock = {
+    id: string;
+    title: string;
+    order: number;
+    exercises: Array<TodayRoutineExercise>;
 };
 
 export type TodayRoutineResponse = {
@@ -444,6 +482,18 @@ export type TodayRoutineResponse = {
      */
     startTime?: string | null;
     exercises: Array<TodayRoutineExercise>;
+    /**
+     * Número de semana resuelta para la rutina.
+     */
+    weekNumber?: number | null;
+    /**
+     * Bloques de la sesión del día ordenados con los valores de la semana en curso.
+     */
+    blocks?: Array<TodayRoutineBlock> | null;
+    /**
+     * Nombre de la sesión del plan.
+     */
+    sessionName?: string | null;
     /**
      * Identificador de la sesión de entrenamiento programada para la fecha.
      */
@@ -579,7 +629,27 @@ export type ApplyAthleteSessionAdjustmentRequest = {
      */
     trainingPlanId?: string | null;
     note?: string | null;
-    items: Array<ApplyAthleteSessionAdjustmentItem>;
+    /**
+     * Porcentaje de reducción de carga sugerido por aviso preventivo (ej. 20%).
+     */
+    loadReductionPercentage?: number | null;
+    items?: Array<ApplyAthleteSessionAdjustmentItem> | null;
+};
+
+export type RejectAthleteSessionAdjustmentRequest = {
+    athleteId: string;
+    /**
+     * Identificador de la planificación vigente vinculada (opcional).
+     */
+    trainingPlanId?: string | null;
+    /**
+     * Fecha de la sesión (YYYY-MM-DD). Si se omite, toma hoy en hora Argentina.
+     */
+    date?: string | null;
+    /**
+     * Motivo opcional del rechazo indicado por el PF.
+     */
+    note?: string | null;
 };
 
 export type ApplyAthleteSessionAdjustmentResponse = {
@@ -592,7 +662,22 @@ export type ApplyAthleteSessionAdjustmentResponse = {
     sessionId: string;
     date: string;
     adjustedByCoach: boolean;
+    /**
+     * Estado de la decisión del PF sobre la adaptación (KAN-636).
+     */
+    status?: 'Approved' | 'Rejected';
+    loadReductionPercentage?: number | null;
+    /**
+     * Nota del ajuste aprobado (se preserva como historial aunque el ajuste luego se rechace).
+     */
     note?: string | null;
+    /**
+     * Motivo del rechazo registrado por el PF cuando status es Rejected (KAN-636).
+     */
+    rejectionReason?: string | null;
+    /**
+     * Sustituciones de ejercicios aprobadas (se preservan como historial si el ajuste luego se rechaza; no se aplican a la rutina cuando status es Rejected).
+     */
     items: Array<ApplyAthleteSessionAdjustmentItem>;
 };
 
@@ -608,8 +693,45 @@ export type PrescribedExerciseRequest = {
     exerciseId: string;
     order: number;
     sets: number;
-    reps: number;
+    /**
+     * Número o rango de repeticiones (ej. "10", "6-8", "8-10").
+     */
+    reps: string;
     targetPercentage?: number | null;
+    /**
+     * Métrica de esfuerzo subjetivo elegida por el PF para este ejercicio.
+     */
+    intensityType?: 'RPE' | 'RIR';
+    /**
+     * Escala de percepción del esfuerzo RPE (1 a 10).
+     */
+    targetRpe?: number | null;
+    /**
+     * Repeticiones en reserva RIR (0 a 5).
+     */
+    targetRir?: number | null;
+    /**
+     * Notas técnicas o indicaciones específicas para la semana.
+     */
+    notes?: string | null;
+    /**
+     * Distancia objetivo prescripta en metros.
+     */
+    targetDistanceMeters?: number | null;
+    /**
+     * Tiempo objetivo prescripto en segundos.
+     */
+    targetTimeSeconds?: number | null;
+};
+
+export type TrainingBlockRequest = {
+    /**
+     * Identificador del bloque existente (opcional). Si no se envía, se empareja por orden.
+     */
+    id?: string | null;
+    title: string;
+    order: number;
+    exercises?: Array<PrescribedExerciseRequest>;
 };
 
 export type TrainingSessionRequest = {
@@ -628,6 +750,7 @@ export type TrainingSessionRequest = {
      * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
      */
     startTime?: string | null;
+    blocks?: Array<TrainingBlockRequest>;
     exercises?: Array<PrescribedExerciseRequest>;
 };
 
@@ -643,6 +766,9 @@ export type TrainingWeekRequest = {
 export type SaveTrainingPlanRequest = {
     name: string;
     objective?: string | null;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    targetMuscles?: Array<string>;
     weeks?: Array<TrainingWeekRequest>;
 };
 
@@ -655,8 +781,62 @@ export type PrescribedExerciseDetail = {
     exerciseName: string;
     order: number;
     sets: number;
-    reps: number;
+    /**
+     * Número o rango de repeticiones (ej. "10", "6-8", "8-10").
+     */
+    reps: string;
     targetPercentage?: number | null;
+    /**
+     * Métrica de esfuerzo subjetivo elegida por el PF para este ejercicio.
+     */
+    intensityType?: 'RPE' | 'RIR';
+    /**
+     * Escala de percepción del esfuerzo RPE (1 a 10).
+     */
+    targetRpe?: number | null;
+    /**
+     * Repeticiones en reserva RIR (0 a 5).
+     */
+    targetRir?: number | null;
+    /**
+     * Notas técnicas o indicaciones específicas para la semana.
+     */
+    notes?: string | null;
+    /**
+     * Distancia objetivo prescripta en metros.
+     */
+    targetDistanceMeters?: number | null;
+    /**
+     * Tiempo objetivo prescripto en segundos.
+     */
+    targetTimeSeconds?: number | null;
+    /**
+     * Modalidad o tipo de ejercicio (con carga, tiempo, distancia, repeticiones).
+     */
+    exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+    /**
+     * Fotos del ejercicio (inicio y fin del movimiento).
+     */
+    images?: Array<string>;
+    /**
+     * Grupos musculares principales involucrados en la ejecución.
+     */
+    primaryMuscles?: Array<string>;
+    /**
+     * Músculos secundarios o estabilizadores involucrados.
+     */
+    secondaryMuscles?: Array<string>;
+    /**
+     * Grupo muscular principal del ejercicio.
+     */
+    muscleGroup?: string | null;
+};
+
+export type TrainingBlockDetail = {
+    id: string;
+    title: string;
+    order: number;
+    exercises: Array<PrescribedExerciseDetail>;
 };
 
 export type TrainingSessionDetail = {
@@ -669,6 +849,7 @@ export type TrainingSessionDetail = {
      * Hora de inicio de la sesión en hora Argentina (UTC-3). Sin hora, la sesión vale para todo el día.
      */
     startTime?: string | null;
+    blocks: Array<TrainingBlockDetail>;
     exercises: Array<PrescribedExerciseDetail>;
 };
 
@@ -682,6 +863,9 @@ export type TrainingPlanDetail = {
     id: string;
     name: string;
     objective?: string | null;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    targetMuscles?: Array<string>;
     weeks: Array<TrainingWeekDetail>;
 };
 
@@ -713,6 +897,9 @@ export type TrainingPlanSummary = {
     id: string;
     name: string;
     objective?: string | null;
+    primaryMuscles?: Array<string>;
+    secondaryMuscles?: Array<string>;
+    targetMuscles?: Array<string>;
 };
 
 export type ListExercisesData = {
@@ -1539,6 +1726,44 @@ export type UpdateTrainingPlanResponses = {
 
 export type UpdateTrainingPlanResponse = UpdateTrainingPlanResponses[keyof UpdateTrainingPlanResponses];
 
+export type GetTrainingPlanPdfData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la planificacion.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/training-plans/{id}/pdf';
+};
+
+export type GetTrainingPlanPdfErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetTrainingPlanPdfError = GetTrainingPlanPdfErrors[keyof GetTrainingPlanPdfErrors];
+
+export type GetTrainingPlanPdfResponses = {
+    /**
+     * Archivo PDF generado exitosamente.
+     */
+    200: Blob | File;
+};
+
+export type GetTrainingPlanPdfResponse = GetTrainingPlanPdfResponses[keyof GetTrainingPlanPdfResponses];
+
 export type GetTrainingPlanScheduleData = {
     body?: never;
     path?: never;
@@ -1905,6 +2130,10 @@ export type ApplyAthleteSessionAdjustmentErrors = {
      * Recurso o atleta no encontrado.
      */
     404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
 };
 
 export type ApplyAthleteSessionAdjustmentError = ApplyAthleteSessionAdjustmentErrors[keyof ApplyAthleteSessionAdjustmentErrors];
@@ -1917,6 +2146,52 @@ export type ApplyAthleteSessionAdjustmentResponses = {
 };
 
 export type ApplyAthleteSessionAdjustmentResponse2 = ApplyAthleteSessionAdjustmentResponses[keyof ApplyAthleteSessionAdjustmentResponses];
+
+export type RejectAthleteSessionAdjustmentData = {
+    body: RejectAthleteSessionAdjustmentRequest;
+    path: {
+        /**
+         * Identificador de la sesión de entrenamiento.
+         */
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/v1/training-sessions/{sessionId}/athlete-adjustments/reject';
+};
+
+export type RejectAthleteSessionAdjustmentErrors = {
+    /**
+     * Solicitud con datos inválidos o reglas de negocio incumplidas.
+     */
+    400: ProblemDetails;
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o atleta no encontrado.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type RejectAthleteSessionAdjustmentError = RejectAthleteSessionAdjustmentErrors[keyof RejectAthleteSessionAdjustmentErrors];
+
+export type RejectAthleteSessionAdjustmentResponses = {
+    /**
+     * Rechazo registrado exitosamente.
+     */
+    200: ApplyAthleteSessionAdjustmentResponse;
+};
+
+export type RejectAthleteSessionAdjustmentResponse = RejectAthleteSessionAdjustmentResponses[keyof RejectAthleteSessionAdjustmentResponses];
 
 export type GetScheduledAthletesData = {
     body?: never;
@@ -1955,6 +2230,43 @@ export type GetScheduledAthletesResponses = {
 };
 
 export type GetScheduledAthletesResponse = GetScheduledAthletesResponses[keyof GetScheduledAthletesResponses];
+
+export type PurgeAthleteInternalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del atleta a purgar.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/internal/athletes/{athleteId}/purge';
+};
+
+export type PurgeAthleteInternalErrors = {
+    /**
+     * Token de autenticación ausente o inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado (requiere rol PreparadorFisico).
+     */
+    403: ProblemDetails;
+};
+
+export type PurgeAthleteInternalError = PurgeAthleteInternalErrors[keyof PurgeAthleteInternalErrors];
+
+export type PurgeAthleteInternalResponses = {
+    /**
+     * Resumen de registros físicos eliminados.
+     */
+    200: {
+        athleteId?: string;
+        totalRecordsPurged?: number;
+    };
+};
+
+export type PurgeAthleteInternalResponse = PurgeAthleteInternalResponses[keyof PurgeAthleteInternalResponses];
 
 export type HealthCheckData = {
     body?: never;

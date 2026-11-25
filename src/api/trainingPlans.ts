@@ -3,16 +3,20 @@ import {
   assignTrainingPlan,
   createTrainingPlan,
   getTrainingPlan,
+  getTrainingPlanPdf,
   getTrainingPlanSchedule,
+  listPlanAssignments,
   listPlanTemplates,
   listTrainingPlans,
   savePlanAsTemplate,
   updateTrainingPlan,
+  AssignPlanResponse,
+  PlanAssignmentSummary,
   SaveTrainingPlanRequest,
   ScheduledSession,
   TrainingPlanDetail,
 } from './generated/entrenamiento';
-import { extractErrorMessage } from './axiosClient';
+import { extractErrorMessage, httpClient } from './axiosClient';
 import {
   PlanListItem,
   ApplyPlanTemplatePayload,
@@ -34,11 +38,23 @@ async function call<T>(request: () => Promise<{ data: T }>): Promise<T> {
 export const trainingPlansService = {
   async list(): Promise<PlanListItem[]> {
     const plans = await call(() => listTrainingPlans({ throwOnError: true }));
-    return plans.map((plan) => ({
-      id: plan.id,
-      name: plan.name,
-      objective: plan.objective ?? null,
-    }));
+    return plans.map((plan) => {
+      const raw = plan as unknown as {
+        targetMuscles?: string[];
+        primaryMuscles?: string[];
+        secondaryMuscles?: string[];
+      };
+      const primaryMuscles = raw.primaryMuscles ?? raw.targetMuscles ?? [];
+      const secondaryMuscles = raw.secondaryMuscles ?? [];
+      return {
+        id: plan.id,
+        name: plan.name,
+        objective: plan.objective ?? null,
+        primaryMuscles,
+        secondaryMuscles,
+        targetMuscles: raw.targetMuscles ?? primaryMuscles,
+      };
+    });
   },
 
   get(id: string): Promise<TrainingPlanDetail> {
@@ -55,14 +71,25 @@ export const trainingPlansService = {
     return call(() => updateTrainingPlan({ path: { id }, body, throwOnError: true }));
   },
 
+  async delete(id: string): Promise<void> {
+    await call(async () => {
+      const res = await httpClient.delete(`/entrenamiento/api/v1/training-plans/${id}`);
+      return { data: res.data };
+    });
+  },
+
   // Sesiones que tocan en una fecha (AAAA-MM-DD) en todas las asignaciones del PF: la agenda del calendario.
   schedule(date: string): Promise<ScheduledSession[]> {
     return call(() => getTrainingPlanSchedule({ query: { date }, throwOnError: true }));
   },
 
   // Se asigna a una categoría o a un atleta, nunca a los dos (el back lo rechaza).
-  async assign(planId: string, startDate: string, target: PlanAssignmentTarget): Promise<void> {
-    await call(() =>
+  async assign(
+    planId: string,
+    startDate: string,
+    target: PlanAssignmentTarget,
+  ): Promise<AssignPlanResponse> {
+    return call(() =>
       assignTrainingPlan({
         body: {
           trainingPlanId: planId,
@@ -75,14 +102,46 @@ export const trainingPlansService = {
     );
   },
 
+  // Asignaciones del PF con su inicio, fin y estado (Active / Finished) (KAN-558 / KAN-559)
+  listAssignments(status?: 'Active' | 'Finished'): Promise<PlanAssignmentSummary[]> {
+    return call(() =>
+      listPlanAssignments({
+        query: status ? { status } : undefined,
+        throwOnError: true,
+      }),
+    );
+  },
+
+  // Eliminar o desasignar una planificación de un atleta o categoría
+  async deleteAssignment(assignmentId: string): Promise<void> {
+    await call(async () => {
+      const res = await httpClient.delete(
+        `/entrenamiento/api/v1/training-plans/assignments/${assignmentId}`,
+      );
+      return { data: res.data };
+    });
+  },
+
   // Listado oficial del SDK adaptado a PlanTemplateItem
   async listTemplates(): Promise<PlanTemplateItem[]> {
     const templates = await call(() => listPlanTemplates({ throwOnError: true }));
-    return templates.map((t) => ({
-      id: t.id,
-      name: t.name,
-      objective: t.objective ?? null,
-    }));
+    return templates.map((t) => {
+      const raw = t as unknown as {
+        targetMuscles?: string[];
+        primaryMuscles?: string[];
+        secondaryMuscles?: string[];
+      };
+      const primaryMuscles = raw.primaryMuscles ?? raw.targetMuscles ?? [];
+      const secondaryMuscles = raw.secondaryMuscles ?? [];
+      return {
+        id: t.id,
+        name: t.name,
+        objective: t.objective ?? null,
+        primaryMuscles,
+        secondaryMuscles,
+        targetMuscles: raw.targetMuscles ?? primaryMuscles,
+      };
+    });
   },
 
   async applyTemplate(
@@ -111,4 +170,52 @@ export const trainingPlansService = {
       }),
     );
   },
+
+  async downloadPdf(planId: string, planName: string): Promise<void> {
+    let blob: Blob | File;
+    try {
+      const { data } = await getTrainingPlanPdf({ path: { id: planId }, throwOnError: true });
+      blob = data;
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof error.response === 'object' &&
+        error.response !== null &&
+        'data' in error.response &&
+        error.response.data instanceof Blob
+      ) {
+        try {
+          const text = await error.response.data.text();
+          const parsed = JSON.parse(text) as { detail?: string; title?: string };
+          const message = parsed.detail || parsed.title;
+          if (message) {
+            throw new Error(message, { cause: error });
+          }
+        } catch (parseErr) {
+          if (parseErr instanceof Error && parseErr.cause === error) {
+            throw parseErr;
+          }
+        }
+      }
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+
+    const safeName = planName.trim().replace(/[/\\?%*:|"<>]/g, '-') || 'planificacion';
+    const fileName = `${safeName}.pdf`;
+    const url = URL.createObjectURL(blob);
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  },
 };
+
+export type { PlanAssignmentSummary, AssignPlanResponse };

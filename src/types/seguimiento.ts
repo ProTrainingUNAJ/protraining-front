@@ -9,4 +9,7 @@ export type {
   WeeklyLoadEvolutionPoint,
   EvolutionDataPoint,
   WellnessEvolution,
+  AthleteWeeklyTrendsResponse,
+  WeeklyTrendPoint,
+  WellnessMetricsBreakdown,
 } from '../api/generated/seguimiento/types.gen';

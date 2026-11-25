@@ -3,6 +3,7 @@ import lineartUrl from '../../assets/front-anatomy-lineart.webp';
 import silhouetteUrl from '../../assets/front-body-silhouette.webp';
 import { FRONT_OFFICIAL_MUSCLES, FRONT_JOINTS, getColorByPainLevel } from './muscleMap.config';
 import { OfficialMuscleGroup, JointRegion } from './muscleMap.types';
+import { describeMuscleMap } from './muscleMapSummary';
 
 export interface MuscleMapFrontProps {
   selectedMuscles?: string[];
@@ -14,6 +15,7 @@ export interface MuscleMapFrontProps {
   className?: string;
   sideContent?: React.ReactNode;
   hideHeader?: boolean;
+  hideFooter?: boolean;
 }
 
 export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
@@ -26,6 +28,7 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
   className = '',
   sideContent,
   hideHeader = false,
+  hideFooter = false,
 }) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -49,6 +52,40 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
     }
   };
 
+  // En modo lectura el mapa es una imagen: un solo nombre accesible que resume
+  // las zonas marcadas, sin regiones enfocables ni anunciadas como botones.
+  const readOnlySummary = readOnly
+    ? describeMuscleMap({
+        regions: [
+          ...FRONT_OFFICIAL_MUSCLES.filter((m) => m.frontPath),
+          ...FRONT_JOINTS.filter((j) => j.frontPath),
+        ],
+        musclePains,
+        muscleColors,
+        selectedMuscles,
+        viewLabel: 'vista frontal',
+      })
+    : undefined;
+
+  const regionA11yProps = (
+    region: OfficialMuscleGroup | JointRegion,
+    label: string,
+  ): React.SVGProps<SVGPathElement> =>
+    readOnly
+      ? { 'aria-hidden': true }
+      : {
+          role: 'button',
+          tabIndex: 0,
+          'aria-label': label,
+          'aria-pressed': selectedMuscles.includes(region.id),
+          onClick: () => onMuscleClick?.(region.id),
+          onMouseEnter: () => handleMouseEnter(region),
+          onMouseLeave: handleMouseLeave,
+          onFocus: () => handleMouseEnter(region),
+          onBlur: handleMouseLeave,
+          onKeyDown: (e) => handleKeyDown(e, region.id),
+        };
+
   return (
     <div className="muscle-map-view-column">
       {/* Anatomical view and perspective header */}
@@ -65,14 +102,15 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
             className={`muscle-map-front-svg ${className}`}
             style={{
               width: '100%',
-              height: 'auto',
-              maxHeight: '480px',
+              height: hideHeader && hideFooter ? '100%' : 'auto',
+              maxHeight: hideHeader && hideFooter ? '100%' : '480px',
               display: 'block',
               userSelect: 'none',
-              overflow: 'visible',
+              overflow: hideHeader && hideFooter ? 'hidden' : 'visible',
               background: 'transparent',
             }}
-            aria-label="Mapa anatómico muscular y articular en vista frontal"
+            role={readOnly ? 'img' : undefined}
+            aria-label={readOnlySummary ?? 'Mapa anatómico muscular y articular en vista frontal'}
           >
             <defs>
               <filter id="muscle-glow-front" x="-20%" y="-20%" width="140%" height="140%">
@@ -136,24 +174,18 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
                     strokeWidth={strokeWidth}
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    role="button"
-                    tabIndex={readOnly ? -1 : 0}
-                    aria-label={`${muscle.name}. ${
-                      hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                    } Vista frontal.`}
-                    aria-pressed={isSelected}
+                    {...regionA11yProps(
+                      muscle,
+                      `${muscle.name}. ${
+                        hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
+                      } Vista frontal.`,
+                    )}
                     filter={isSelected ? 'url(#muscle-glow-front)' : undefined}
                     style={{
                       cursor: readOnly ? 'default' : 'pointer',
                       transition: 'fill 0.18s ease, stroke 0.18s ease',
                       outline: 'none',
                     }}
-                    onClick={() => !readOnly && onMuscleClick?.(muscle.id)}
-                    onMouseEnter={() => handleMouseEnter(muscle)}
-                    onMouseLeave={handleMouseLeave}
-                    onFocus={() => handleMouseEnter(muscle)}
-                    onBlur={handleMouseLeave}
-                    onKeyDown={(e) => handleKeyDown(e, muscle.id)}
                   />
                 );
               })}
@@ -195,24 +227,18 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
                     strokeWidth={strokeWidth}
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    role="button"
-                    tabIndex={readOnly ? -1 : 0}
-                    aria-label={`Articulación: ${joint.name}. ${
-                      hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
-                    } Vista frontal.`}
-                    aria-pressed={isSelected}
+                    {...regionA11yProps(
+                      joint,
+                      `Articulación: ${joint.name}. ${
+                        hasPain ? `Nivel de dolor ${painLevel}.` : 'Sin dolor registrado.'
+                      } Vista frontal.`,
+                    )}
                     filter={isSelected ? 'url(#muscle-glow-front)' : undefined}
                     style={{
                       cursor: readOnly ? 'default' : 'pointer',
                       transition: 'fill 0.18s ease, stroke 0.18s ease',
                       outline: 'none',
                     }}
-                    onClick={() => !readOnly && onMuscleClick?.(joint.id)}
-                    onMouseEnter={() => handleMouseEnter(joint)}
-                    onMouseLeave={handleMouseLeave}
-                    onFocus={() => handleMouseEnter(joint)}
-                    onBlur={handleMouseLeave}
-                    onKeyDown={(e) => handleKeyDown(e, joint.id)}
                   />
                 );
               })}
@@ -264,30 +290,32 @@ export const MuscleMapFront: React.FC<MuscleMapFrontProps> = ({
         {sideContent}
       </div>
 
-      <div
-        style={{ marginTop: '0.65rem', display: 'flex', justifyContent: 'center', width: '100%' }}
-      >
-        <span
-          className="muscle-map-view-sub"
-          style={{
-            textAlign: 'center',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            color: 'var(--checkin-title-color)',
-            backgroundColor: 'var(--checkin-subtle-box-bg, rgba(8, 37, 74, 0.05))',
-            border: '1px solid var(--checkin-subtle-box-border)',
-            padding: '0.24rem 0.8rem',
-            borderRadius: '9999px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            letterSpacing: '0.01em',
-          }}
+      {!hideHeader && !hideFooter && !readOnly && (
+        <div
+          style={{ marginTop: '0.65rem', display: 'flex', justifyContent: 'center', width: '100%' }}
         >
-          ← Lado Der. del atleta | Lado Izq. del atleta →
-        </span>
-      </div>
+          <span
+            className="muscle-map-view-sub"
+            style={{
+              textAlign: 'center',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: 'var(--checkin-title-color)',
+              backgroundColor: 'var(--checkin-subtle-box-bg, rgba(8, 37, 74, 0.05))',
+              border: '1px solid var(--checkin-subtle-box-border)',
+              padding: '0.24rem 0.8rem',
+              borderRadius: '9999px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+              letterSpacing: '0.01em',
+            }}
+          >
+            ← Lado Der. del atleta | Lado Izq. del atleta →
+          </span>
+        </div>
+      )}
     </div>
   );
 };

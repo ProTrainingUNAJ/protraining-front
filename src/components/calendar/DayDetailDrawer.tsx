@@ -13,7 +13,7 @@ import {
   ArrowRight,
   AlertCircle,
 } from 'lucide-react';
-import { Match } from '../../types/structure';
+import { Category, Match } from '../../types/structure';
 import { formatFullDate, formatTime, sortActivitiesByTime } from '../../utils/calendarUtils';
 import {
   seasonPlanningService,
@@ -26,6 +26,7 @@ interface DayDetailDrawerProps {
   onClose: () => void;
   isoDate: string; // YYYY-MM-DD
   matches: Match[];
+  categories?: Category[];
   onAddMatch: (isoDate: string) => void;
 }
 
@@ -34,6 +35,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
   onClose,
   isoDate,
   matches,
+  categories,
   onAddMatch,
 }) => {
   const navigate = useNavigate();
@@ -202,6 +204,9 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                   const badge = getBadgeStyle(m.homeOrAway);
                   const Icon = badge.icon;
                   const time = formatTime(m.matchDate);
+                  const catObj = categories?.find((c) => c.id === m.categoryId);
+                  const orgName = m.organizationName || catObj?.organizationName;
+                  const catName = m.categoryName || catObj?.name;
 
                   return (
                     <div key={m.id} className="day-detail-match-card">
@@ -248,10 +253,29 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                         VS {m.opponent}
                       </h5>
 
-                      {m.categoryName && (
-                        <span className="text-xs text-muted">
-                          Categoría: <strong>{m.categoryName}</strong>
-                        </span>
+                      {(orgName || catName) && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: '0.35rem 0.65rem',
+                            margin: '0.2rem 0',
+                          }}
+                        >
+                          {orgName && (
+                            <span className="text-xs text-muted">
+                              Organización:{' '}
+                              <strong style={{ color: 'var(--text-main)' }}>{orgName}</strong>
+                            </span>
+                          )}
+                          {catName && (
+                            <span className="text-xs text-muted">
+                              Categoría:{' '}
+                              <strong style={{ color: 'var(--text-main)' }}>{catName}</strong>
+                            </span>
+                          )}
+                        </div>
                       )}
 
                       {m.notes && (
@@ -321,59 +345,90 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                {sessions.map((s) => (
-                  <div key={s.assignmentId} className="day-detail-match-card">
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span
-                        className="season-event-block is-training"
+                {sessions.map((s) => {
+                  const sessionCat = categories?.find((c) => c.id === s.categoryId);
+                  const sessionOrg = sessionCat?.organizationName;
+                  const sessionCatName = sessionCat?.name;
+
+                  return (
+                    <div key={s.assignmentId} className="day-detail-match-card">
+                      <div
                         style={{
-                          width: 'auto',
-                          padding: '0.25rem 0.5rem',
-                          display: 'inline-flex',
+                          display: 'flex',
+                          justifyContent: 'space-between',
                           alignItems: 'center',
-                          gap: '0.3rem',
                         }}
                       >
-                        <Dumbbell size={12} aria-hidden="true" />
-                        {s.planName}
-                      </span>
-                      {s.sessionTime && (
                         <span
-                          className="text-xs text-muted"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                          className="season-event-block is-training"
+                          style={{
+                            width: 'auto',
+                            padding: '0.25rem 0.5rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                          }}
                         >
-                          <Clock size={12} />
-                          <span>{s.sessionTime} hs</span>
+                          <Dumbbell size={12} aria-hidden="true" />
+                          {s.planName}
                         </span>
-                      )}
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem' }}
-                        onClick={() => handleOpenPlanEditor(s.trainingPlanId)}
-                        title="Ver rutina en el editor de planificación"
+                        {s.sessionTime && (
+                          <span
+                            className="text-xs text-muted"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <Clock size={12} />
+                            <span>{s.sessionTime} hs</span>
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem' }}
+                          onClick={() => handleOpenPlanEditor(s.trainingPlanId)}
+                          title="Ver rutina en el editor de planificación"
+                        >
+                          <span>Ver rutina</span>
+                          <ArrowRight size={11} />
+                        </button>
+                      </div>
+
+                      <h5
+                        style={{ margin: '0.5rem 0 0.2rem', fontSize: '0.95rem', fontWeight: 700 }}
                       >
-                        <span>Ver rutina</span>
-                        <ArrowRight size={11} />
-                      </button>
+                        {s.sessionName}
+                      </h5>
+
+                      {(sessionOrg || sessionCatName) && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: '0.35rem 0.65rem',
+                            margin: '0.2rem 0',
+                          }}
+                        >
+                          {sessionOrg && (
+                            <span className="text-xs text-muted">
+                              Organización: <strong>{sessionOrg}</strong>
+                            </span>
+                          )}
+                          {sessionCatName && (
+                            <span className="text-xs text-muted">
+                              Categoría: <strong>{sessionCatName}</strong>
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <span className="text-xs text-muted">
+                        {s.exerciseCount}{' '}
+                        {s.exerciseCount === 1 ? 'ejercicio prescrito' : 'ejercicios prescritos'}
+                      </span>
                     </div>
-
-                    <h5 style={{ margin: '0.5rem 0 0.2rem', fontSize: '0.95rem', fontWeight: 700 }}>
-                      {s.sessionName}
-                    </h5>
-
-                    <span className="text-xs text-muted">
-                      {s.exerciseCount}{' '}
-                      {s.exerciseCount === 1 ? 'ejercicio prescrito' : 'ejercicios prescritos'}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

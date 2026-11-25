@@ -25,10 +25,10 @@ export const CheckInProgressBar: React.FC<CheckInProgressBarProps> = ({
       aria-label="Progreso del check-in diario"
       style={{
         background: 'var(--checkin-card-bg)',
-        borderRadius: '20px',
+        borderRadius: '16px',
         border: '1.5px solid var(--checkin-card-border)',
         boxShadow: 'var(--checkin-card-shadow)',
-        padding: '0.85rem 2rem',
+        padding: '0.45rem 1.35rem',
         maxWidth: '820px',
         width: '100%',
         margin: '0 auto',

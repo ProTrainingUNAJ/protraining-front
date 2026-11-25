@@ -24,6 +24,31 @@ export type GoogleLoginRequest = {
     deviceId?: string;
 };
 
+export type LinkGoogleAccountRequest = {
+    /**
+     * ID Token criptográfico emitido por Google Identity Services.
+     */
+    idToken: string;
+    /**
+     * Contraseña actual del usuario en ProTraining requerida como reautenticación.
+     */
+    currentPassword: string;
+};
+
+export type UnlinkGoogleAccountRequest = {
+    /**
+     * Contraseña actual del usuario en ProTraining requerida como reautenticación.
+     */
+    currentPassword: string;
+};
+
+export type GoogleLinkStatusResponse = {
+    /**
+     * Indica si la cuenta autenticada tiene Google vinculado.
+     */
+    googleLinked: boolean;
+};
+
 export type RegisterByInvitationRequest = {
     email: string;
     password: string;
@@ -57,6 +82,10 @@ export type User = {
      * Número de teléfono de WhatsApp normalizado (solo dígitos).
      */
     phoneNumber?: string | null;
+    /**
+     * Username de Telegram normalizado (sin @).
+     */
+    telegramUsername?: string | null;
     /**
      * Indica si el usuario debe cambiar obligatoriamente su contraseña antes de acceder a la aplicación.
      */
@@ -139,7 +168,11 @@ export type PfContact = {
     /**
      * Número de WhatsApp del preparador físico (solo dígitos, con código de país).
      */
-    phoneNumber: string;
+    phoneNumber?: string | null;
+    /**
+     * Username de Telegram del preparador físico (sin @, entre 5 y 32 caracteres).
+     */
+    telegramUsername?: string | null;
 };
 
 export type ForgotPasswordRequest = {
@@ -180,6 +213,68 @@ export type ProblemDetails = {
     errors?: {
         [key: string]: Array<string>;
     };
+};
+
+export type RegisterPfRequest = {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string | null;
+    deviceId?: string | null;
+};
+
+export type RegisterPfResponse = {
+    id: string;
+    email: string;
+    fullName: string;
+    message: string;
+};
+
+export type ConfirmEmailRequest = {
+    userId: string;
+    token: string;
+};
+
+export type ConfirmEmailResponse = {
+    message: string;
+};
+
+export type ResendConfirmationRequest = {
+    email: string;
+};
+
+export type ResendConfirmationResponse = {
+    message: string;
+};
+
+export type UpdateProfileRequest = {
+    fullName: string;
+    phone?: string | null;
+    telegramUsername?: string | null;
+};
+
+export type UpdateTelegramRequest = {
+    telegramUsername?: string | null;
+};
+
+export type ProfileResponse = {
+    id: string;
+    email: string;
+    fullName: string;
+    phoneNumber?: string | null;
+    telegramUsername?: string | null;
+};
+
+export type DeactivateAccountRequest = {
+    password: string;
+};
+
+export type HabitsRecommendationsStatus = {
+    enabled: boolean;
+};
+
+export type UpdateHabitsRecommendationsRequest = {
+    enabled: boolean;
 };
 
 export type LoginData = {
@@ -224,9 +319,13 @@ export type GoogleLoginErrors = {
      */
     400: ProblemDetails;
     /**
-     * Token de Google inválido, expirado o cuenta no autorizada.
+     * Token de Google inválido, expirado, cuenta no vinculada o no autorizada.
      */
     401: ProblemDetails;
+    /**
+     * Correo de Preparador Físico pendiente de confirmación.
+     */
+    403: ProblemDetails;
 };
 
 export type GoogleLoginError = GoogleLoginErrors[keyof GoogleLoginErrors];
@@ -239,6 +338,101 @@ export type GoogleLoginResponses = {
 };
 
 export type GoogleLoginResponse = GoogleLoginResponses[keyof GoogleLoginResponses];
+
+export type UnlinkGoogleAccountData = {
+    body: UnlinkGoogleAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google/link';
+};
+
+export type UnlinkGoogleAccountErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Correo de Preparador Físico pendiente de confirmación.
+     */
+    403: ProblemDetails;
+};
+
+export type UnlinkGoogleAccountError = UnlinkGoogleAccountErrors[keyof UnlinkGoogleAccountErrors];
+
+export type UnlinkGoogleAccountResponses = {
+    /**
+     * Cuenta de Google desvinculada correctamente.
+     */
+    200: GoogleLinkStatusResponse;
+};
+
+export type UnlinkGoogleAccountResponse = UnlinkGoogleAccountResponses[keyof UnlinkGoogleAccountResponses];
+
+export type GetGoogleLinkStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google/link';
+};
+
+export type GetGoogleLinkStatusErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+};
+
+export type GetGoogleLinkStatusError = GetGoogleLinkStatusErrors[keyof GetGoogleLinkStatusErrors];
+
+export type GetGoogleLinkStatusResponses = {
+    /**
+     * Estado de vinculación obtenido correctamente.
+     */
+    200: GoogleLinkStatusResponse;
+};
+
+export type GetGoogleLinkStatusResponse = GetGoogleLinkStatusResponses[keyof GetGoogleLinkStatusResponses];
+
+export type LinkGoogleAccountData = {
+    body: LinkGoogleAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/google/link';
+};
+
+export type LinkGoogleAccountErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Correo de Preparador Físico pendiente de confirmación.
+     */
+    403: ProblemDetails;
+    /**
+     * La cuenta de Google ya está vinculada a otro usuario o el usuario ya tiene otra cuenta de Google vinculada.
+     */
+    409: ProblemDetails;
+};
+
+export type LinkGoogleAccountError = LinkGoogleAccountErrors[keyof LinkGoogleAccountErrors];
+
+export type LinkGoogleAccountResponses = {
+    /**
+     * Cuenta de Google vinculada correctamente (idempotente si ya estaba vinculada al mismo Google Subject).
+     */
+    200: GoogleLinkStatusResponse;
+};
+
+export type LinkGoogleAccountResponse = LinkGoogleAccountResponses[keyof LinkGoogleAccountResponses];
 
 export type RefreshTokenData = {
     body: RefreshRequest;
@@ -306,6 +500,93 @@ export type RegisterByInvitationResponses = {
 
 export type RegisterByInvitationResponse = RegisterByInvitationResponses[keyof RegisterByInvitationResponses];
 
+export type RegisterPfData = {
+    body: RegisterPfRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/register-pf';
+};
+
+export type RegisterPfErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Ya existe una cuenta registrada con este correo electrónico.
+     */
+    409: ProblemDetails;
+    /**
+     * Demasiadas solicitudes. Límite de tasa excedido.
+     */
+    429: ProblemDetails;
+};
+
+export type RegisterPfError = RegisterPfErrors[keyof RegisterPfErrors];
+
+export type RegisterPfResponses = {
+    /**
+     * Preparador físico registrado exitosamente. Correo de confirmación enviado.
+     */
+    201: RegisterPfResponse;
+};
+
+export type RegisterPfResponse2 = RegisterPfResponses[keyof RegisterPfResponses];
+
+export type ConfirmEmailData = {
+    body: ConfirmEmailRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/confirm-email';
+};
+
+export type ConfirmEmailErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+};
+
+export type ConfirmEmailError = ConfirmEmailErrors[keyof ConfirmEmailErrors];
+
+export type ConfirmEmailResponses = {
+    /**
+     * Correo confirmado exitosamente.
+     */
+    200: ConfirmEmailResponse;
+};
+
+export type ConfirmEmailResponse2 = ConfirmEmailResponses[keyof ConfirmEmailResponses];
+
+export type ResendConfirmationData = {
+    body: ResendConfirmationRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/resend-confirmation';
+};
+
+export type ResendConfirmationErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * Demasiadas solicitudes. Límite de tasa excedido.
+     */
+    429: ProblemDetails;
+};
+
+export type ResendConfirmationError = ResendConfirmationErrors[keyof ResendConfirmationErrors];
+
+export type ResendConfirmationResponses = {
+    /**
+     * Solicitud recibida. Si la cuenta existe y está pendiente, se envía el correo.
+     */
+    202: ResendConfirmationResponse;
+};
+
+export type ResendConfirmationResponse2 = ResendConfirmationResponses[keyof ResendConfirmationResponses];
+
 export type ForgotPasswordData = {
     body: ForgotPasswordRequest;
     path?: never;
@@ -318,6 +599,10 @@ export type ForgotPasswordErrors = {
      * Solicitud con datos inválidos o formato erróneo.
      */
     400: ProblemDetails;
+    /**
+     * Límite de solicitudes excedido (máximo 3 cada 15 minutos por email y por IP).
+     */
+    429: ProblemDetails;
 };
 
 export type ForgotPasswordError = ForgotPasswordErrors[keyof ForgotPasswordErrors];
@@ -423,6 +708,216 @@ export type ResetAthletePasswordResponses = {
 
 export type ResetAthletePasswordResponse2 = ResetAthletePasswordResponses[keyof ResetAthletePasswordResponses];
 
+export type UpdateProfileData = {
+    body: UpdateProfileRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/profile';
+};
+
+export type UpdateProfileErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+};
+
+export type UpdateProfileError = UpdateProfileErrors[keyof UpdateProfileErrors];
+
+export type UpdateProfileResponses = {
+    /**
+     * Perfil actualizado exitosamente.
+     */
+    200: ProfileResponse;
+};
+
+export type UpdateProfileResponse = UpdateProfileResponses[keyof UpdateProfileResponses];
+
+export type GetMyHabitsRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/habits-recommendations';
+};
+
+export type GetMyHabitsRecommendationsErrors = {
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Usuario no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type GetMyHabitsRecommendationsError = GetMyHabitsRecommendationsErrors[keyof GetMyHabitsRecommendationsErrors];
+
+export type GetMyHabitsRecommendationsResponses = {
+    /**
+     * Preferencia actual del preparador físico autenticado.
+     */
+    200: HabitsRecommendationsStatus;
+};
+
+export type GetMyHabitsRecommendationsResponse = GetMyHabitsRecommendationsResponses[keyof GetMyHabitsRecommendationsResponses];
+
+export type UpdateMyHabitsRecommendationsData = {
+    body: UpdateHabitsRecommendationsRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/habits-recommendations';
+};
+
+export type UpdateMyHabitsRecommendationsErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+    /**
+     * Usuario no encontrado.
+     */
+    404: ProblemDetails;
+};
+
+export type UpdateMyHabitsRecommendationsError = UpdateMyHabitsRecommendationsErrors[keyof UpdateMyHabitsRecommendationsErrors];
+
+export type UpdateMyHabitsRecommendationsResponses = {
+    /**
+     * Preferencia actualizada correctamente.
+     */
+    200: HabitsRecommendationsStatus;
+};
+
+export type UpdateMyHabitsRecommendationsResponse = UpdateMyHabitsRecommendationsResponses[keyof UpdateMyHabitsRecommendationsResponses];
+
+export type GetAthletePfHabitsRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/pf-habits-recommendations';
+};
+
+export type GetAthletePfHabitsRecommendationsErrors = {
+    /**
+     * No autenticado, token inválido o token sin preparador físico asignado.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol Atleta.
+     */
+    403: ProblemDetails;
+    /**
+     * No se encontró el preparador físico del atleta.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAthletePfHabitsRecommendationsError = GetAthletePfHabitsRecommendationsErrors[keyof GetAthletePfHabitsRecommendationsErrors];
+
+export type GetAthletePfHabitsRecommendationsResponses = {
+    /**
+     * Preferencia del preparador físico del atleta autenticado.
+     */
+    200: HabitsRecommendationsStatus;
+};
+
+export type GetAthletePfHabitsRecommendationsResponse = GetAthletePfHabitsRecommendationsResponses[keyof GetAthletePfHabitsRecommendationsResponses];
+
+export type UpdateMyUserTelegramData = {
+    body: UpdateTelegramRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/telegram';
+};
+
+export type UpdateMyUserTelegramErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o token inválido.
+     */
+    401: ProblemDetails;
+    /**
+     * Rol no permitido.
+     */
+    403: ProblemDetails;
+    /**
+     * Atleta no encontrado en Estructura.
+     */
+    404: ProblemDetails;
+    /**
+     * No se pudo sincronizar el usuario de Telegram con Estructura.
+     */
+    503: ProblemDetails;
+};
+
+export type UpdateMyUserTelegramError = UpdateMyUserTelegramErrors[keyof UpdateMyUserTelegramErrors];
+
+export type UpdateMyUserTelegramResponses = {
+    /**
+     * Usuario de Telegram actualizado exitosamente.
+     */
+    200: ProfileResponse;
+};
+
+export type UpdateMyUserTelegramResponse = UpdateMyUserTelegramResponses[keyof UpdateMyUserTelegramResponses];
+
+export type DeactivateAccountData = {
+    body: DeactivateAccountRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/deactivate';
+};
+
+export type DeactivateAccountErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o contraseña incorrecta.
+     */
+    401: ProblemDetails;
+    /**
+     * Requiere rol PreparadorFisico.
+     */
+    403: ProblemDetails;
+};
+
+export type DeactivateAccountError = DeactivateAccountErrors[keyof DeactivateAccountErrors];
+
+export type DeactivateAccountResponses = {
+    /**
+     * Cuenta dada de baja exitosamente y sesiones revocadas.
+     */
+    204: void;
+};
+
+export type DeactivateAccountResponse = DeactivateAccountResponses[keyof DeactivateAccountResponses];
+
 export type UpdateWhatsAppPhoneData = {
     body: UpdatePhoneRequest;
     path?: never;
@@ -488,6 +983,181 @@ export type GetPfContactResponses = {
 };
 
 export type GetPfContactResponse = GetPfContactResponses[keyof GetPfContactResponses];
+
+export type DeleteMyPhotoData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/photo';
+};
+
+export type DeleteMyPhotoErrors = {
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+};
+
+export type DeleteMyPhotoResponses = {
+    /**
+     * Foto eliminada correctamente.
+     */
+    204: void;
+};
+
+export type DeleteMyPhotoResponse = DeleteMyPhotoResponses[keyof DeleteMyPhotoResponses];
+
+export type GetMyPhotoData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/photo';
+};
+
+export type GetMyPhotoErrors = {
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+    /**
+     * El usuario no tiene foto de perfil.
+     */
+    404: unknown;
+};
+
+export type GetMyPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetMyPhotoResponse = GetMyPhotoResponses[keyof GetMyPhotoResponses];
+
+export type UploadMyPhotoData = {
+    body: {
+        /**
+         * Archivo de imagen en formato WebP.
+         */
+        photo: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/photo';
+};
+
+export type UploadMyPhotoErrors = {
+    /**
+     * Solicitud con datos inválidos o formato erróneo.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+};
+
+export type UploadMyPhotoError = UploadMyPhotoErrors[keyof UploadMyPhotoErrors];
+
+export type UploadMyPhotoResponses = {
+    /**
+     * Foto actualizada correctamente.
+     */
+    204: void;
+};
+
+export type UploadMyPhotoResponse = UploadMyPhotoResponses[keyof UploadMyPhotoResponses];
+
+export type GetUserPhotoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/users/{id}/photo';
+};
+
+export type GetUserPhotoErrors = {
+    /**
+     * El usuario no tiene foto de perfil.
+     */
+    404: unknown;
+};
+
+export type GetUserPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetUserPhotoResponse = GetUserPhotoResponses[keyof GetUserPhotoResponses];
+
+export type GetMyPfPhotoData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/pf-photo';
+};
+
+export type GetMyPfPhotoErrors = {
+    /**
+     * No autenticado.
+     */
+    401: unknown;
+    /**
+     * El token no es de un atleta.
+     */
+    403: unknown;
+    /**
+     * El preparador físico no tiene foto de perfil.
+     */
+    404: unknown;
+};
+
+export type GetMyPfPhotoResponses = {
+    /**
+     * Imagen en formato WebP.
+     */
+    200: Blob | File;
+};
+
+export type GetMyPfPhotoResponse = GetMyPfPhotoResponses[keyof GetMyPfPhotoResponses];
+
+export type PurgeAthleteInternalData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador de la cuenta de usuario (AccountId) a purgar.
+         */
+        accountId: string;
+    };
+    query?: never;
+    url: '/api/v1/internal/athletes/{accountId}/purge';
+};
+
+export type PurgeAthleteInternalErrors = {
+    /**
+     * No autenticado o rol inválido.
+     */
+    401: unknown;
+    /**
+     * Requiere rol Servicio.
+     */
+    403: unknown;
+};
+
+export type PurgeAthleteInternalResponses = {
+    /**
+     * Resumen de registros físicos eliminados.
+     */
+    200: {
+        accountId?: string;
+        totalRecordsPurged?: number;
+    };
+};
+
+export type PurgeAthleteInternalResponse = PurgeAthleteInternalResponses[keyof PurgeAthleteInternalResponses];
 
 export type HealthCheckData = {
     body?: never;

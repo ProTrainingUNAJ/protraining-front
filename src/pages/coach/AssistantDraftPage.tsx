@@ -3,8 +3,10 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
+  Calendar,
   Check,
   CheckCircle2,
+  Layers,
   Loader2,
   Plus,
   Save,
@@ -14,19 +16,34 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { WeekSection } from '../../components/planning/WeekSection';
+import { DayBlocksEditor } from '../../components/planning/DayBlocksEditor';
 import { ExercisePickerModal } from '../../components/planning/ExercisePickerModal';
 import { planDraftsService } from '../../api/planDrafts';
 import { exercisesService } from '../../api/exercises';
 import { structureService } from '../../api/structureService';
 import { PlanDraftResponse } from '../../api/generated/asistente';
-import { CatalogExercise, DraftSession, DraftWeek, PlanDraft } from '../../types/trainingPlans';
+import {
+  CatalogExercise,
+  DayPlan,
+  DraftSession,
+  DraftWeek,
+  IntensityMetric,
+  PlanDraft,
+  WeeklyExerciseProgression,
+} from '../../types/trainingPlans';
 import {
   aiDraftToEditableDraft,
+  createBlockExercise,
+  createDayPlan,
   createExercise,
   createSession,
   createWeek,
+  daysToPlanDraft,
+  duplicateBlock,
   moveSession,
   type MoveDirection,
+  planDraftToDays,
+  reorderBlocks,
   swapExercise,
   toUpdateDraftRequest,
   validateDraft,
@@ -40,8 +57,10 @@ interface DraftLocationState {
 
 interface PickerTarget {
   mode: 'add' | 'swap';
-  weekKey: string;
-  sessionKey: string;
+  weekKey?: string;
+  sessionKey?: string;
+  dayOfWeek?: number;
+  blockKey?: string;
   exerciseKey?: string;
 }
 
@@ -50,10 +69,10 @@ function formatProviderLabel(provider: string): string {
   if (normalized === 'rules' || normalized === 'reglas') {
     return 'Reglas';
   }
-  if (normalized === 'ollama') {
-    return 'Ollama';
+  if (normalized === 'openai' || normalized === 'agente (openai)') {
+    return 'OpenAI';
   }
-  if (normalized === 'gemini') {
+  if (normalized === 'gemini' || normalized === 'agente (gemini)') {
     return 'Gemini';
   }
   return provider;
@@ -69,6 +88,9 @@ export function AssistantDraftPage() {
 
   const [draft, setDraft] = useState<PlanDraftResponse | null>(matchedStateDraft);
   const [editableDraft, setEditableDraft] = useState<PlanDraft | null>(null);
+  const [days, setDays] = useState<DayPlan[]>([]);
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<'blocks' | 'weeks'>('blocks');
   const [targetLabel, setTargetLabel] = useState<string>('Cargando destinatario…');
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
 
@@ -101,7 +123,9 @@ export function AssistantDraftPage() {
             new Set(
               (loadedDraft.weeks ?? []).flatMap((week) =>
                 (week.sessions ?? []).flatMap((session) =>
-                  (session.exercises ?? []).map((ex) => ex.exerciseId),
+                  (session.exercises ?? [])
+                    .map((ex) => ex.exerciseId)
+                    .filter((id): id is string => Boolean(id)),
                 ),
               ),
             ),
@@ -147,6 +171,11 @@ export function AssistantDraftPage() {
         // 3. Inicializar modelo editable
         const initialEditable = aiDraftToEditableDraft(loadedDraft, exerciseNamesMap);
         setEditableDraft(initialEditable);
+        const parsedDays = planDraftToDays(initialEditable);
+        setDays(parsedDays);
+        if (parsedDays.length > 0) {
+          setSelectedDayOfWeek(parsedDays[0].dayOfWeek);
+        }
         setExpandedWeeks(new Set(initialEditable.weeks.map((w) => w.key)));
       } catch (err: unknown) {
         if (active) {
@@ -175,7 +204,26 @@ export function AssistantDraftPage() {
   }, [dirty]);
 
   const editDraft = useCallback((update: (current: PlanDraft) => PlanDraft) => {
-    setEditableDraft((current) => (current ? update(current) : current));
+    setEditableDraft((current) => {
+      if (!current) return current;
+      const updated = update(current);
+      setDays(planDraftToDays(updated));
+      return updated;
+    });
+    setDirty(true);
+    setSavedMessage(null);
+    setError(null);
+  }, []);
+
+  const updateDaysState = useCallback((updater: (prevDays: DayPlan[]) => DayPlan[]) => {
+    setDays((currentDays) => {
+      const nextDays = updater(currentDays);
+      setEditableDraft((currentDraft) => {
+        if (!currentDraft) return currentDraft;
+        return daysToPlanDraft(nextDays, currentDraft);
+      });
+      return nextDays;
+    });
     setDirty(true);
     setSavedMessage(null);
     setError(null);
@@ -208,15 +256,22 @@ export function AssistantDraftPage() {
   const addWeek = () => {
     if (!editableDraft) return;
     const week = createWeek(editableDraft.weeks);
-    editDraft((current) => ({ ...current, weeks: [...editableDraft.weeks, week] }));
+    const updatedWeeks = [...editableDraft.weeks, week];
+    const nextDraft = { ...editableDraft, weeks: updatedWeeks };
+    setEditableDraft(nextDraft);
+    setDays(planDraftToDays(nextDraft));
     setExpandedWeeks((current) => new Set(current).add(week.key));
+    setDirty(true);
   };
 
-  const removeWeek = (weekKey: string) =>
-    editDraft((current) => ({
-      ...current,
-      weeks: current.weeks.filter((w) => w.key !== weekKey),
-    }));
+  const removeWeek = (weekKey: string) => {
+    if (!editableDraft) return;
+    const updatedWeeks = editableDraft.weeks.filter((w) => w.key !== weekKey);
+    const nextDraft = { ...editableDraft, weeks: updatedWeeks };
+    setEditableDraft(nextDraft);
+    setDays(planDraftToDays(nextDraft));
+    setDirty(true);
+  };
 
   const addSession = (weekKey: string) =>
     editWeek(weekKey, (week) => ({
@@ -234,6 +289,245 @@ export function AssistantDraftPage() {
   const handleMoveSession = (weekKey: string, sessionKey: string, direction: MoveDirection) =>
     editWeek(weekKey, (week) => moveSession(week, sessionKey, direction));
 
+  // --- Manejo de Bloques (KAN-587) ---
+  const handleAddDay = (dayOfWeek: number) => {
+    const newDay = createDayPlan(dayOfWeek);
+    updateDaysState((prev) => [...prev, newDay]);
+    setSelectedDayOfWeek(dayOfWeek);
+  };
+
+  const handleRemoveDay = (dayOfWeek: number) => {
+    updateDaysState((prev) => {
+      const filtered = prev.filter((d) => d.dayOfWeek !== dayOfWeek);
+      if (selectedDayOfWeek === dayOfWeek && filtered.length > 0) {
+        setSelectedDayOfWeek(filtered[0].dayOfWeek);
+      }
+      return filtered;
+    });
+  };
+
+  const handleAddBlock = (dayOfWeek: number) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        const nextOrder = d.blocks.length + 1;
+        return {
+          ...d,
+          blocks: [
+            ...d.blocks,
+            {
+              key: `block-custom-${Date.now()}-${nextOrder}`,
+              title: `Bloque ${nextOrder}`,
+              order: nextOrder,
+              exercises: [],
+            },
+          ],
+        };
+      }),
+    );
+  };
+
+  const handleReorderBlocks = (dayOfWeek: number, fromIndex: number, toIndex: number) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: reorderBlocks(d.blocks, fromIndex, toIndex),
+        };
+      }),
+    );
+  };
+
+  const handleRenameBlock = (dayOfWeek: number, blockKey: string, newTitle: string) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: d.blocks.map((b) => (b.key === blockKey ? { ...b, title: newTitle } : b)),
+        };
+      }),
+    );
+  };
+
+  const handleDuplicateBlock = (dayOfWeek: number, blockKey: string) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        const blockIdx = d.blocks.findIndex((b) => b.key === blockKey);
+        if (blockIdx === -1) return d;
+        const cloned = duplicateBlock(d.blocks[blockIdx]);
+        const updatedBlocks = [...d.blocks];
+        updatedBlocks.splice(blockIdx + 1, 0, cloned);
+        return {
+          ...d,
+          blocks: updatedBlocks.map((b, idx) => ({ ...b, order: idx + 1 })),
+        };
+      }),
+    );
+  };
+
+  const handleRemoveBlock = (dayOfWeek: number, blockKey: string) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: d.blocks
+            .filter((b) => b.key !== blockKey)
+            .map((b, idx) => ({ ...b, order: idx + 1 })),
+        };
+      }),
+    );
+  };
+
+  const handleUpdateExerciseProgression = (
+    dayOfWeek: number,
+    blockKey: string,
+    exerciseKey: string,
+    weekNumber: number,
+    changes: Partial<WeeklyExerciseProgression>,
+  ) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: d.blocks.map((b) => {
+            if (b.key !== blockKey) return b;
+            return {
+              ...b,
+              exercises: b.exercises.map((ex) => {
+                if (ex.key !== exerciseKey) return ex;
+                const existingProg = ex.weeklyProgression[weekNumber] || {
+                  weekNumber,
+                  sets: 3,
+                  reps: 10,
+                  repsRange: '10',
+                  targetPercentage: null,
+                  intensityType: ex.intensityType,
+                };
+                return {
+                  ...ex,
+                  weeklyProgression: {
+                    ...ex.weeklyProgression,
+                    [weekNumber]: {
+                      ...existingProg,
+                      ...changes,
+                    },
+                  },
+                };
+              }),
+            };
+          }),
+        };
+      }),
+    );
+  };
+
+  const handleUpdateExerciseIntensity = (
+    dayOfWeek: number,
+    blockKey: string,
+    exerciseKey: string,
+    type: IntensityMetric,
+  ) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: d.blocks.map((b) => {
+            if (b.key !== blockKey) return b;
+            return {
+              ...b,
+              exercises: b.exercises.map((ex) => {
+                if (ex.key !== exerciseKey) return ex;
+                const updatedWeekly: Record<number, WeeklyExerciseProgression> = {};
+                Object.entries(ex.weeklyProgression).forEach(([w, prog]) => {
+                  const numW = Number(w);
+                  updatedWeekly[numW] = {
+                    ...prog,
+                    intensityType: type,
+                    targetRpe: type === 'RPE' ? (prog.targetRpe ?? 8) : null,
+                    targetRir: type === 'RIR' ? (prog.targetRir ?? 2) : null,
+                  };
+                });
+                return {
+                  ...ex,
+                  intensityType: type,
+                  weeklyProgression: updatedWeekly,
+                };
+              }),
+            };
+          }),
+        };
+      }),
+    );
+  };
+
+  const handleRemoveBlockExercise = (dayOfWeek: number, blockKey: string, exerciseKey: string) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: d.blocks.map((b) => {
+            if (b.key !== blockKey) return b;
+            return {
+              ...b,
+              exercises: b.exercises
+                .filter((e) => e.key !== exerciseKey)
+                .map((e, idx) => ({ ...e, order: idx + 1 })),
+            };
+          }),
+        };
+      }),
+    );
+  };
+
+  const handleMoveBlockExercise = (
+    dayOfWeek: number,
+    blockKey: string,
+    fromIndex: number,
+    toIndex: number,
+  ) => {
+    updateDaysState((prev) =>
+      prev.map((d) => {
+        if (d.dayOfWeek !== dayOfWeek) return d;
+        return {
+          ...d,
+          blocks: d.blocks.map((b) => {
+            if (b.key !== blockKey) return b;
+            if (
+              fromIndex < 0 ||
+              fromIndex >= b.exercises.length ||
+              toIndex < 0 ||
+              toIndex >= b.exercises.length
+            ) {
+              return b;
+            }
+            const exList = [...b.exercises];
+            const [moved] = exList.splice(fromIndex, 1);
+            exList.splice(toIndex, 0, moved);
+            return {
+              ...b,
+              exercises: exList.map((e, idx) => ({ ...e, order: idx + 1 })),
+            };
+          }),
+        };
+      }),
+    );
+  };
+
+  const handleOpenBlockExercisePicker = (
+    dayOfWeek: number,
+    blockKey: string,
+    exerciseKey?: string,
+  ) => {
+    setPickerTarget({ mode: exerciseKey ? 'swap' : 'add', dayOfWeek, blockKey, exerciseKey });
+  };
+
   const openPickerForAdd = (weekKey: string, sessionKey: string) =>
     setPickerTarget({ mode: 'add', weekKey, sessionKey });
 
@@ -245,13 +539,63 @@ export function AssistantDraftPage() {
   const handleSelectExercise = (exercise: CatalogExercise) => {
     if (!pickerTarget) return;
 
-    if (pickerTarget.mode === 'add') {
+    // Modo Bloques (KAN-587)
+    if (pickerTarget.dayOfWeek != null && pickerTarget.blockKey != null) {
+      const { dayOfWeek, blockKey, exerciseKey } = pickerTarget;
+      const weekNums = editableDraft?.weeks.map((w) => w.weekNumber) || [1, 2, 3, 4];
+
+      updateDaysState((prev) =>
+        prev.map((d) => {
+          if (d.dayOfWeek !== dayOfWeek) return d;
+          return {
+            ...d,
+            blocks: d.blocks.map((b) => {
+              if (b.key !== blockKey) return b;
+
+              // Sustituir ejercicio
+              if (exerciseKey) {
+                return {
+                  ...b,
+                  exercises: b.exercises.map((e) =>
+                    e.key === exerciseKey
+                      ? {
+                          ...e,
+                          exerciseId: exercise.id,
+                          exerciseName: exercise.name,
+                          exerciseType: exercise.exerciseType ?? 'Weight',
+                        }
+                      : e,
+                  ),
+                };
+              }
+
+              // Agregar ejercicio nuevo
+              const newEx = createBlockExercise(exercise, b.exercises.length + 1, weekNums);
+              return {
+                ...b,
+                exercises: [...b.exercises, newEx],
+              };
+            }),
+          };
+        }),
+      );
+      setPickerTarget(null);
+      return;
+    }
+
+    // Modo Semanas tradicional
+    if (pickerTarget.mode === 'add' && pickerTarget.weekKey && pickerTarget.sessionKey) {
       editSession(pickerTarget.weekKey, pickerTarget.sessionKey, (session) => ({
         ...session,
         exercises: [...session.exercises, createExercise(session, exercise)],
         nextExerciseOrder: session.nextExerciseOrder + 1,
       }));
-    } else if (pickerTarget.mode === 'swap' && pickerTarget.exerciseKey) {
+    } else if (
+      pickerTarget.mode === 'swap' &&
+      pickerTarget.weekKey &&
+      pickerTarget.sessionKey &&
+      pickerTarget.exerciseKey
+    ) {
       editSession(pickerTarget.weekKey, pickerTarget.sessionKey, (session) =>
         swapExercise(session, pickerTarget.exerciseKey!, exercise),
       );
@@ -264,7 +608,12 @@ export function AssistantDraftPage() {
   const saveDraft = async (): Promise<boolean> => {
     if (!editableDraft || !draft) return false;
 
-    const problem = validateDraft(editableDraft);
+    const currentDraft =
+      viewMode === 'blocks' && days.length > 0
+        ? daysToPlanDraft(days, editableDraft)
+        : editableDraft;
+
+    const problem = validateDraft(currentDraft);
     if (problem) {
       setError(problem);
       return false;
@@ -273,7 +622,7 @@ export function AssistantDraftPage() {
     setSaving(true);
     setError(null);
     try {
-      const payload = toUpdateDraftRequest(editableDraft, draft.justificationSummary);
+      const payload = toUpdateDraftRequest(currentDraft, draft.justificationSummary);
       const updated = await planDraftsService.update(draftId, payload);
       setDraft(updated);
       setDirty(false);
@@ -342,6 +691,7 @@ export function AssistantDraftPage() {
 
   const isTerminalStatus = draft?.status === 'Approved' || draft?.status === 'Discarded';
   const lastWeekKey = editableDraft?.weeks[editableDraft.weeks.length - 1]?.key;
+  const weekNumbers = editableDraft?.weeks.map((w) => w.weekNumber) ?? [1, 2, 3, 4];
   const totalSessions =
     editableDraft?.weeks.reduce((acc, week) => acc + week.sessions.length, 0) ?? 0;
 
@@ -534,17 +884,44 @@ export function AssistantDraftPage() {
 
         {/* Edición de Nombre y Objetivo del borrador */}
         <section className="card card-static plan-details">
-          <label className="plan-field">
-            <span>Nombre de la planificación</span>
-            <input
-              type="text"
-              maxLength={200}
-              value={editableDraft.name}
-              onChange={(e) => editDraft((current) => ({ ...current, name: e.target.value }))}
-              disabled={isTerminalStatus || saving || approving}
-            />
-          </label>
-          <label className="plan-field">
+          <div className="plan-details-top">
+            <label className="plan-field plan-details-name-field">
+              <span>Nombre de la planificación</span>
+              <input
+                type="text"
+                maxLength={200}
+                value={editableDraft.name}
+                onChange={(e) => editDraft((current) => ({ ...current, name: e.target.value }))}
+                disabled={isTerminalStatus || saving || approving}
+              />
+            </label>
+
+            <div className="plan-view-selector-container">
+              <span className="plan-view-selector-label">Modo de edición</span>
+              <div className="plan-view-selector" role="group" aria-label="Modo de visualización">
+                <button
+                  type="button"
+                  className={`plan-view-btn ${viewMode === 'blocks' ? 'active' : ''}`}
+                  onClick={() => setViewMode('blocks')}
+                  aria-pressed={viewMode === 'blocks'}
+                >
+                  <Layers size={14} aria-hidden="true" />
+                  <span>Por Bloques (Semanal)</span>
+                </button>
+                <button
+                  type="button"
+                  className={`plan-view-btn ${viewMode === 'weeks' ? 'active' : ''}`}
+                  onClick={() => setViewMode('weeks')}
+                  aria-pressed={viewMode === 'weeks'}
+                >
+                  <Calendar size={14} aria-hidden="true" />
+                  <span>Por Semanas</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <label className="plan-field" style={{ marginTop: '0.75rem' }}>
             <span>Objetivo deportivo o fisiológico</span>
             <input
               type="text"
@@ -558,45 +935,70 @@ export function AssistantDraftPage() {
           {dirty && <span className="badge badge-warning">Cambios sin guardar</span>}
         </section>
 
-        {editableDraft.weeks.length === 0 && (
-          <p className="plan-empty">El borrador no tiene semanas cargadas.</p>
-        )}
-
-        {/* Listado de Semanas → Sesiones → Ejercicios */}
-        {editableDraft.weeks.map((week) => (
-          <WeekSection
-            key={week.key}
-            week={week}
-            expanded={expandedWeeks.has(week.key)}
+        {/* Vista por Bloques (KAN-587) */}
+        {viewMode === 'blocks' ? (
+          <DayBlocksEditor
+            days={days}
+            selectedDayOfWeek={selectedDayOfWeek}
+            weekNumbers={weekNumbers.length > 0 ? weekNumbers : [1, 2, 3, 4]}
             disabled={isTerminalStatus || saving || approving}
-            canRemove={week.key === lastWeekKey}
-            onToggle={() => toggleWeek(week.key)}
-            onRemove={() => removeWeek(week.key)}
-            onAddSession={() => addSession(week.key)}
-            onSessionChange={(sessionKey, update) => editSession(week.key, sessionKey, update)}
-            onRemoveSession={(sessionKey) => removeSession(week.key, sessionKey)}
-            onAddExercise={(sessionKey) => openPickerForAdd(week.key, sessionKey)}
-            onSwapExercise={(sessionKey, exerciseKey) =>
-              openPickerForSwap(week.key, sessionKey, exerciseKey)
-            }
-            onMoveSession={(sessionKey, direction) =>
-              handleMoveSession(week.key, sessionKey, direction)
-            }
+            onSelectDay={setSelectedDayOfWeek}
+            onAddDay={handleAddDay}
+            onRemoveDay={handleRemoveDay}
+            onAddBlock={handleAddBlock}
+            onReorderBlocks={handleReorderBlocks}
+            onRenameBlock={handleRenameBlock}
+            onDuplicateBlock={handleDuplicateBlock}
+            onRemoveBlock={handleRemoveBlock}
+            onOpenExercisePicker={handleOpenBlockExercisePicker}
+            onUpdateExerciseProgression={handleUpdateExerciseProgression}
+            onUpdateExerciseIntensity={handleUpdateExerciseIntensity}
+            onRemoveExercise={handleRemoveBlockExercise}
+            onMoveExercise={handleMoveBlockExercise}
           />
-        ))}
+        ) : (
+          /* Listado de Semanas → Sesiones → Ejercicios */
+          <>
+            {editableDraft.weeks.length === 0 && (
+              <p className="plan-empty">El borrador no tiene semanas cargadas.</p>
+            )}
 
-        {!isTerminalStatus && (
-          <div>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={addWeek}
-              disabled={saving || approving}
-            >
-              <Plus size={16} aria-hidden="true" />
-              <span>Agregar semana</span>
-            </button>
-          </div>
+            {editableDraft.weeks.map((week) => (
+              <WeekSection
+                key={week.key}
+                week={week}
+                expanded={expandedWeeks.has(week.key)}
+                disabled={isTerminalStatus || saving || approving}
+                canRemove={week.key === lastWeekKey}
+                onToggle={() => toggleWeek(week.key)}
+                onRemove={() => removeWeek(week.key)}
+                onAddSession={() => addSession(week.key)}
+                onSessionChange={(sessionKey, update) => editSession(week.key, sessionKey, update)}
+                onRemoveSession={(sessionKey) => removeSession(week.key, sessionKey)}
+                onAddExercise={(sessionKey) => openPickerForAdd(week.key, sessionKey)}
+                onSwapExercise={(sessionKey, exerciseKey) =>
+                  openPickerForSwap(week.key, sessionKey, exerciseKey)
+                }
+                onMoveSession={(sessionKey, direction) =>
+                  handleMoveSession(week.key, sessionKey, direction)
+                }
+              />
+            ))}
+
+            {!isTerminalStatus && (
+              <div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={addWeek}
+                  disabled={saving || approving}
+                >
+                  <Plus size={16} aria-hidden="true" />
+                  <span>Agregar semana</span>
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Paso 4 · Tarjeta de Aprobación final */}

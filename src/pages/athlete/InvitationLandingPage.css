@@ -60,7 +60,7 @@
   border-radius: 9999px;
   background-color: var(--bg-subtle);
   border: 1px solid var(--border);
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 0.875rem;
   font-weight: 700;
 }
@@ -293,7 +293,7 @@
 }
 
 .invitation-link {
-  color: var(--primary);
+  color: var(--primary-text);
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
@@ -326,7 +326,7 @@
 }
 
 .invitation-state-icon--loading {
-  color: var(--primary);
+  color: var(--primary-text);
   animation: invitation-spin 1s linear infinite;
 }
 

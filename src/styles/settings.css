@@ -1,0 +1,104 @@
+/* ── Configuración: layout y transiciones de pestañas (KAN-598) ── */
+
+.settings-tab-list {
+  margin: 0;
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.settings-tab-btn {
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.settings-tab-container {
+  width: 100%;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.settings-tab-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: settings-tab-fade-in 180ms ease-in-out;
+}
+
+@keyframes settings-tab-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  /* En mobile el botón Guardar Cambios se reordena por debajo de las pestañas (KAN-660) */
+  .settings-page-container .app-page-header {
+    display: contents;
+  }
+
+  .settings-page-container .app-page-header-info {
+    order: 1;
+    width: 100%;
+    margin-bottom: 0.15rem;
+  }
+
+  .settings-page-container .app-page-body {
+    display: contents;
+  }
+
+  .settings-page-container .settings-tab-list {
+    order: 2;
+    width: 100%;
+    margin-bottom: 0.15rem;
+  }
+
+  .settings-page-container .app-page-header-actions {
+    order: 3;
+    width: 100%;
+    display: flex;
+    margin: 0.15rem 0 0.35rem 0;
+  }
+
+  .settings-page-container .app-page-header-actions > .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .settings-page-container .settings-tab-container {
+    order: 4;
+    width: 100%;
+    min-height: 400px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-tab-panel {
+    animation: none;
+    transition: none;
+  }
+}

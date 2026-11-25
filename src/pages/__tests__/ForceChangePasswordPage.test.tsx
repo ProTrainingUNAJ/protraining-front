@@ -5,6 +5,7 @@ import { ForceChangePasswordPage } from '../ForceChangePasswordPage';
 import { authService } from '../../api/authService';
 
 const mockNavigate = vi.fn();
+const mockLogin = vi.fn();
 const mockLogout = vi.fn();
 const mockClearMustChangePassword = vi.fn();
 
@@ -35,6 +36,7 @@ vi.mock('../../context/AuthContext', () => ({
     user: mockAuthState.user,
     isAuthenticated: mockAuthState.isAuthenticated,
     isHydrating: mockAuthState.isHydrating,
+    login: mockLogin,
     logout: mockLogout,
     clearMustChangePassword: mockClearMustChangePassword,
   }),
@@ -161,8 +163,9 @@ describe('ForceChangePasswordPage (KAN-539 / F-07 a F-10)', () => {
     expect(authService.changePassword).not.toHaveBeenCalled();
   });
 
-  it('F-09: al completar el cambio exitosamente, limpia flag mustChangePassword y navega a la app', async () => {
+  it('F-09: al completar el cambio exitosamente, limpia flag mustChangePassword, auto-loguea y navega a la app', async () => {
     vi.mocked(authService.changePassword).mockResolvedValueOnce(undefined);
+    mockLogin.mockResolvedValueOnce({} as unknown);
 
     render(<ForceChangePasswordPage />);
 
@@ -183,11 +186,47 @@ describe('ForceChangePasswordPage (KAN-539 / F-07 a F-10)', () => {
         currentPassword: 'PasswordTemp123!',
         newPassword: 'PasswordNueva123!',
       });
+      expect(mockLogin).toHaveBeenCalledWith({
+        email: 'atleta@protraining.com',
+        password: 'PasswordNueva123!',
+      });
       expect(mockClearMustChangePassword).toHaveBeenCalled();
       expect(screen.getByRole('status')).toBeDefined();
       expect(
         screen.getByText('¡Contraseña actualizada exitosamente! Ingresando a tu cuenta...'),
       ).toBeDefined();
+    });
+  });
+
+  it('si el auto-login falla tras el cambio, cierra sesión y redirige al login con feedback', async () => {
+    vi.mocked(authService.changePassword).mockResolvedValueOnce(undefined);
+    mockLogin.mockRejectedValueOnce(new Error('Network error'));
+
+    render(<ForceChangePasswordPage />);
+
+    fireEvent.change(screen.getByLabelText(/Contraseña temporal provista/i), {
+      target: { value: 'PasswordTemp123!' },
+    });
+    fireEvent.change(screen.getByLabelText(/^Nueva contraseña/i), {
+      target: { value: 'PasswordNueva123!' },
+    });
+    fireEvent.change(screen.getByLabelText(/Repetir nueva contraseña/i), {
+      target: { value: 'PasswordNueva123!' },
+    });
+
+    fireEvent.click(screen.getByText('Establecer nueva contraseña'));
+
+    await waitFor(() => {
+      expect(authService.changePassword).toHaveBeenCalled();
+      expect(mockLogin).toHaveBeenCalled();
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/login', {
+        replace: true,
+        state: {
+          successMessage:
+            'Contraseña actualizada exitosamente. Por favor iniciá sesión con tu nueva contraseña.',
+        },
+      });
     });
   });
 

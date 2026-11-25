@@ -13,6 +13,22 @@ export type PreventiveAlert = {
     reason: string;
     suggestion: string;
     reviewed: boolean;
+    suggestedAdjustmentType?: 'LoadReduction' | 'RoutineAdjustment' | 'Rest';
+    suggestedAdjustmentPercentage?: number | null;
+    status?: 'Pending' | 'Reviewed' | 'Applied' | 'Dismissed';
+};
+
+export type CreatePreventiveAlertRequest = {
+    athleteId: string;
+    athleteName: string;
+    reason: string;
+    suggestion: string;
+    severity?: 'Low' | 'Medium' | 'High';
+    type?: 'AccumulatedFatigue' | 'AcuteOverload' | 'InjuryRisk' | 'WellnessAlert';
+    suggestedAdjustmentType?: 'LoadReduction' | 'RoutineAdjustment' | 'Rest';
+    suggestedAdjustmentPercentage?: number | null;
+    suggestedAdjustmentPayload?: string | null;
+    categoryId?: string | null;
 };
 
 export type TodayAdjustmentRequest = {
@@ -48,14 +64,19 @@ export type SuggestRoutineResponse = {
         suggestedPercentage: number;
     }>;
     /**
-     * Proveedor de IA o motor que originó la propuesta (Ollama, Gemini o Rules).
+     * Proveedor de IA o motor que originó la propuesta (por ejemplo `Agente (OpenAI)`, `Agente (Gemini)` o `Reglas`).
+     *
      */
-    aiProvider: 'Ollama' | 'Gemini' | 'Rules';
+    aiProvider: string;
 };
 
 export type GenerateAthleteAdaptationRequest = {
     goal: string;
     muscleGroupEmphasis?: Array<string>;
+    /**
+     * Ejercicios de la rutina base de la categoría o sesión a comparar y adaptar individualmente (KAN-464).
+     */
+    baseExercises?: Array<SuggestedRoutineExercise> | null;
 };
 
 export type SuggestedRoutineExercise = {
@@ -74,6 +95,10 @@ export type AdaptationChange = {
     finalExerciseName: string;
     zone: string;
     reason: string;
+    /**
+     * Lista ordenada de sustitutos autorizados del catálogo para ese ejercicio y zona (KAN-464).
+     */
+    availableSubstitutes?: Array<AuthorizedSubstituteContext> | null;
 };
 
 export type RoutineAdaptationResponse = {
@@ -86,6 +111,10 @@ export type RoutineAdaptationResponse = {
     wasAdapted?: boolean;
     adaptationWarnings?: Array<string>;
     adaptationChanges?: Array<AdaptationChange>;
+    /**
+     * Ejercicios originales de la rutina base de la categoría antes de aplicar la adaptación individual (KAN-464).
+     */
+    baseExercises?: Array<SuggestedRoutineExercise> | null;
 };
 
 export type ActiveInjuryContext = {
@@ -128,14 +157,21 @@ export type AthleteAdaptationContextResponse = {
     activeInjuries: Array<ActiveInjuryContext>;
     currentRecords: Array<AthleteRecordContext>;
     restrictions: Array<ExerciseRestrictionContext>;
+    /**
+     * Porcentaje conservador aplicado cuando el 1RM del atleta es estimado (por defecto 90 %).
+     */
+    conservativeEstimatedRecordPercent?: number | null;
 };
 
 export type PlanDraftExercise = {
-    exerciseId: string;
+    exerciseId?: string | null;
     order: number;
     sets: number;
     reps: number;
     targetPercentage?: number | null;
+    exerciseName?: string | null;
+    isReference?: boolean;
+    muscleGroup?: string | null;
 };
 
 export type PlanDraftSession = {
@@ -216,18 +252,72 @@ export type ApprovePlanDraftResponse = {
     warnings?: Array<string>;
 };
 
+/**
+ * Recomendación de hábitos/nutrición para validación del PF (KAN-494). Extiende el esquema base con campos opcionales de seguridad y contexto (rangos, modo, menor, derivación, momentos y datos faltantes). dailyProteinRequirementGrams puede ser null cuando no es seguro/posible indicar cantidades (menor, objetivo bajar de peso, datos faltantes o derivación).
+ *
+ */
 export type HabitsRecommendationResponse = {
     id: string;
     athleteId: string;
     athleticGoal: string;
     /**
-     * Calculado por regla determinística en g/kg de peso corporal.
+     * Referencia cuantitativa calculada por reglas cuando es segura (p.ej. rango objetivo definido). Null si no corresponde indicar cantidades. TODO(KAN-494): compatibilidad con clientes que esperen valor numérico.
+     *
      */
-    dailyProteinRequirementGrams: number;
+    dailyProteinRequirementGrams?: number | null;
     suggestedPlateComposition: string;
     hydrationAndSleepGuidelines: string;
     legalDisclaimer: string;
     approvedByPf: boolean;
+    /**
+     * Límite inferior del rango diario de proteína (g) fijado por reglas en el backend. La IA sólo redacta; nunca puede reemplazar este valor. Null en modos sin cantidades.
+     *
+     */
+    minProteinGrams?: number | null;
+    /**
+     * Límite superior del rango diario de proteína (g) fijado por reglas en el backend. Null en modos sin cantidades.
+     *
+     */
+    maxProteinGrams?: number | null;
+    /**
+     * Modo de recomendación: Quantitative, Qualitative o Referral.
+     */
+    recommendationMode?: string | null;
+    /**
+     * Indica si el atleta es menor de edad (sin cantidades de proteína).
+     */
+    isMinor?: boolean;
+    /**
+     * Indica si se recomienda derivación a profesional por seguridad. Verdadero ante riesgo médico registrado, ficha médica vacía/incompleta/no verificable, objetivo de pérdida de peso o datos críticos ausentes. En ese caso no se entregan cantidades ni estrategias de pérdida de peso.
+     *
+     */
+    requiresProfessionalReferral?: boolean;
+    /**
+     * Motivos de derivación o precaución.
+     */
+    referralReasons?: Array<string> | null;
+    /**
+     * Momentos detectados (día pesado, partido cercano, poco descanso) cuando hay datos.
+     */
+    detectedMoments?: Array<string> | null;
+    /**
+     * Datos faltantes o pendientes de definición/validación que impiden una pauta completa (por ejemplo, peso/objetivo sin fuente, día pesado sin criterio aprobado, partido/descanso no inferibles, check-ins con fecha futura o ficha médica no verificable). No implica que el dato sea cero.
+     *
+     */
+    missingData?: Array<string> | null;
+    /**
+     * Peso corporal informado por la fuente configurada y usado para el cálculo. Null significa "sin dato": el backend no lo estima ni lo reemplaza por valores de otros dominios (1RM, carga, objetivos de plan).
+     *
+     */
+    weightKg?: number | null;
+    /**
+     * Proveedor/redacción utilizada (IA o reglas).
+     */
+    provider?: string | null;
+    /**
+     * Estado de revisión de la recomendación (Pending, Approved, Discarded).
+     */
+    status?: string | null;
 };
 
 export type PfDecisionResponse = {
@@ -254,6 +344,20 @@ export type DayConflictsResponse = {
     message?: string | null;
     conflicts: Array<DayConflictItem>;
     sessionId?: string | null;
+};
+
+export type CategoryAthleteDayConflict = {
+    athleteId: string;
+    hasConflicts: boolean;
+    /**
+     * El PF ya ajustó la sesión de hoy del atleta; no se vuelve a ofrecer el ajuste.
+     */
+    adjustedToday?: boolean;
+};
+
+export type CategoryDayConflictsResponse = {
+    categoryId: string;
+    athletes: Array<CategoryAthleteDayConflict>;
 };
 
 export type DayAdjustmentItem = {
@@ -320,6 +424,106 @@ export type ProblemDetails = {
     };
 };
 
+export type GenerateAthleteRecommendationsRequest = {
+    /**
+     * Categoría opcional contra la cual comparar (por defecto la primera categoría del atleta).
+     */
+    categoryId?: string | null;
+    /**
+     * Cantidad de semanas de tendencias a analizar (1 a 12).
+     */
+    weeks?: number | null;
+};
+
+export type GenerateCategoryRecommendationsRequest = {
+    /**
+     * Cantidad de semanas de tendencias a analizar por atleta (1 a 12).
+     */
+    weeks?: number | null;
+};
+
+export type ProfileMetricComparison = {
+    dimension: string;
+    athleteValue: number;
+    groupAverage: number;
+    unit: string;
+    percentageDifference?: number | null;
+    trend?: string | null;
+};
+
+export type WeeklyTrendsSummary = {
+    weeksEvaluated: number;
+    latestWellness?: number | null;
+    previousWellness?: number | null;
+    wellnessDelta?: number | null;
+    latestTotalLoad?: number | null;
+    previousAverageLoad?: number | null;
+    loadChangePercent?: number | null;
+    trendLabel: string;
+};
+
+export type AthleteRecommendation = {
+    id: string;
+    athleteId: string;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    type: 'Training' | 'Habits';
+    status: 'Pending' | 'Approved' | 'Discarded';
+    title: string;
+    reason: string;
+    recommendationText: string;
+    provider: string;
+    metrics: Array<ProfileMetricComparison>;
+    trends?: WeeklyTrendsSummary | null;
+    createdAt: string;
+    updatedAt: string;
+    reviewedAtUtc?: string | null;
+};
+
+export type RunAthleteRecommendationEngineResponse = {
+    athleteId: string;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    generatedCount: number;
+    existingPendingCount: number;
+    recommendations: Array<AthleteRecommendation>;
+};
+
+export type RunCategoryRecommendationEngineResponse = {
+    categoryId: string;
+    categoryName: string;
+    evaluatedAthletes: number;
+    generatedCount: number;
+    existingPendingCount: number;
+    recommendations: Array<AthleteRecommendation>;
+};
+
+export type UpdateRecommendationRequest = {
+    title: string;
+    recommendationText: string;
+};
+
+export type ApproveRecommendationRequest = {
+    title?: string | null;
+    recommendationText?: string | null;
+};
+
+export type MyRecommendation = {
+    id: string;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    type: 'Training' | 'Habits';
+    title: string;
+    reason: string;
+    recommendationText: string;
+    reviewedAtUtc?: string | null;
+    createdAt: string;
+    /**
+     * Aviso del nutricionista, aparte del texto para que el front lo destaque (KAN-634). Solo en las de tipo Habits, y siempre con el texto oficial aunque el PF haya editado la recomendación. En las de entrenamiento es null.
+     */
+    legalDisclaimer?: string | null;
+};
+
 export type ListAlertsData = {
     body?: never;
     path?: never;
@@ -341,6 +545,10 @@ export type ListAlertsErrors = {
      * No autenticado o credenciales inválidas.
      */
     401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
 };
 
 export type ListAlertsError = ListAlertsErrors[keyof ListAlertsErrors];
@@ -353,6 +561,89 @@ export type ListAlertsResponses = {
 };
 
 export type ListAlertsResponse = ListAlertsResponses[keyof ListAlertsResponses];
+
+export type CreateAlertData = {
+    body: CreatePreventiveAlertRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/alerts';
+};
+
+export type CreateAlertErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type CreateAlertError = CreateAlertErrors[keyof CreateAlertErrors];
+
+export type CreateAlertResponses = {
+    /**
+     * Aviso preventivo creado exitosamente.
+     */
+    201: PreventiveAlert;
+};
+
+export type CreateAlertResponse = CreateAlertResponses[keyof CreateAlertResponses];
+
+export type GetAlertByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único del aviso preventivo.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/alerts/{id}';
+};
+
+export type GetAlertByIdErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetAlertByIdError = GetAlertByIdErrors[keyof GetAlertByIdErrors];
+
+export type GetAlertByIdResponses = {
+    /**
+     * Aviso preventivo recuperado.
+     */
+    200: PreventiveAlert;
+};
+
+export type GetAlertByIdResponse = GetAlertByIdResponses[keyof GetAlertByIdResponses];
 
 export type ReviewAlertData = {
     body?: never;
@@ -384,33 +675,50 @@ export type ReviewAlertResponses = {
 
 export type ReviewAlertResponse = ReviewAlertResponses[keyof ReviewAlertResponses];
 
-export type TriggerPreventiveScanData = {
+export type ApplyAlertAdjustmentData = {
     body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/alerts/scan';
+    path: {
+        alertId: string;
+    };
+    query?: {
+        /**
+         * Si es true, el ajuste se aplica a la próxima sesión del atleta (dentro de los 7 días siguientes) en lugar de la de hoy. Sirve cuando el aviso llega un día que no entrena.
+         *
+         */
+        nextSession?: boolean;
+    };
+    url: '/api/v1/alerts/{alertId}/apply';
 };
 
-export type TriggerPreventiveScanErrors = {
+export type ApplyAlertAdjustmentErrors = {
     /**
-     * No autenticado o credenciales inválidas.
+     * Parámetros inválidos.
      */
-    401: ProblemDetails;
+    400: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
 };
 
-export type TriggerPreventiveScanError = TriggerPreventiveScanErrors[keyof TriggerPreventiveScanErrors];
+export type ApplyAlertAdjustmentError = ApplyAlertAdjustmentErrors[keyof ApplyAlertAdjustmentErrors];
 
-export type TriggerPreventiveScanResponses = {
+export type ApplyAlertAdjustmentResponses = {
     /**
-     * Análisis preventivo iniciado en segundo plano.
+     * Ajuste aplicado exitosamente en Entrenamiento y aviso marcado como aplicado.
      */
-    202: {
+    200: {
         message?: string;
-        alertsGenerated?: number;
+        alertId?: string;
+        status?: string;
+        /**
+         * Fecha de la sesión a la que se aplicó el ajuste.
+         */
+        sessionDate?: string | null;
     };
 };
 
-export type TriggerPreventiveScanResponse = TriggerPreventiveScanResponses[keyof TriggerPreventiveScanResponses];
+export type ApplyAlertAdjustmentResponse = ApplyAlertAdjustmentResponses[keyof ApplyAlertAdjustmentResponses];
 
 export type SuggestTodayAdjustmentData = {
     body: TodayAdjustmentRequest;
@@ -688,6 +996,48 @@ export type GetAthleteDayConflictsResponses = {
 };
 
 export type GetAthleteDayConflictsResponse = GetAthleteDayConflictsResponses[keyof GetAthleteDayConflictsResponses];
+
+export type GetCategoryDayConflictsData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la categoría.
+         */
+        categoryId: string;
+    };
+    query?: never;
+    url: '/api/v1/assistant/categories/{categoryId}/day-conflicts';
+};
+
+export type GetCategoryDayConflictsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GetCategoryDayConflictsError = GetCategoryDayConflictsErrors[keyof GetCategoryDayConflictsErrors];
+
+export type GetCategoryDayConflictsResponses = {
+    /**
+     * Estado de conflictos del día por atleta de la categoría obtenido exitosamente.
+     */
+    200: CategoryDayConflictsResponse;
+};
+
+export type GetCategoryDayConflictsResponse = GetCategoryDayConflictsResponses[keyof GetCategoryDayConflictsResponses];
 
 export type CreateAthleteDayAdjustmentData = {
     body?: never;
@@ -968,6 +1318,10 @@ export type GetHabitsRecommendationErrors = {
      * Recurso o alerta no encontrada.
      */
     404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
 };
 
 export type GetHabitsRecommendationError = GetHabitsRecommendationErrors[keyof GetHabitsRecommendationErrors];
@@ -1009,6 +1363,357 @@ export type ApproveHabitsRecommendationResponses = {
 };
 
 export type ApproveHabitsRecommendationResponse = ApproveHabitsRecommendationResponses[keyof ApproveHabitsRecommendationResponses];
+
+export type GenerateAthleteRecommendationsData = {
+    body?: GenerateAthleteRecommendationsRequest;
+    path: {
+        /**
+         * Identificador único del atleta.
+         */
+        athleteId: string;
+    };
+    query?: never;
+    url: '/api/v1/athletes/{athleteId}/recommendations';
+};
+
+export type GenerateAthleteRecommendationsErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GenerateAthleteRecommendationsError = GenerateAthleteRecommendationsErrors[keyof GenerateAthleteRecommendationsErrors];
+
+export type GenerateAthleteRecommendationsResponses = {
+    /**
+     * Motor ejecutado sin nuevas recomendaciones generadas (sin brechas o ya pendientes).
+     */
+    200: RunAthleteRecommendationEngineResponse;
+    /**
+     * Motor ejecutado con nuevas recomendaciones pendientes generadas.
+     */
+    201: RunAthleteRecommendationEngineResponse;
+};
+
+export type GenerateAthleteRecommendationsResponse = GenerateAthleteRecommendationsResponses[keyof GenerateAthleteRecommendationsResponses];
+
+export type GenerateCategoryRecommendationsData = {
+    body?: GenerateCategoryRecommendationsRequest;
+    path: {
+        /**
+         * Identificador único de la categoría.
+         */
+        categoryId: string;
+    };
+    query?: never;
+    url: '/api/v1/categories/{categoryId}/recommendations';
+};
+
+export type GenerateCategoryRecommendationsErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type GenerateCategoryRecommendationsError = GenerateCategoryRecommendationsErrors[keyof GenerateCategoryRecommendationsErrors];
+
+export type GenerateCategoryRecommendationsResponses = {
+    /**
+     * Motor ejecutado sin nuevas recomendaciones generadas.
+     */
+    200: RunCategoryRecommendationEngineResponse;
+    /**
+     * Motor ejecutado con nuevas recomendaciones pendientes generadas.
+     */
+    201: RunCategoryRecommendationEngineResponse;
+};
+
+export type GenerateCategoryRecommendationsResponse = GenerateCategoryRecommendationsResponses[keyof GenerateCategoryRecommendationsResponses];
+
+export type ListRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filtro opcional por identificador de atleta.
+         */
+        athleteId?: string;
+        /**
+         * Filtro opcional por identificador de categoría.
+         */
+        categoryId?: string;
+        /**
+         * Filtro opcional por estado de revisión.
+         */
+        status?: 'Pending' | 'Approved' | 'Discarded';
+    };
+    url: '/api/v1/recommendations';
+};
+
+export type ListRecommendationsErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+};
+
+export type ListRecommendationsError = ListRecommendationsErrors[keyof ListRecommendationsErrors];
+
+export type ListRecommendationsResponses = {
+    /**
+     * Lista de recomendaciones recuperadas.
+     */
+    200: Array<AthleteRecommendation>;
+};
+
+export type ListRecommendationsResponse = ListRecommendationsResponses[keyof ListRecommendationsResponses];
+
+export type GetRecommendationByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la recomendación.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/recommendations/{id}';
+};
+
+export type GetRecommendationByIdErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+};
+
+export type GetRecommendationByIdError = GetRecommendationByIdErrors[keyof GetRecommendationByIdErrors];
+
+export type GetRecommendationByIdResponses = {
+    /**
+     * Recomendación encontrada.
+     */
+    200: AthleteRecommendation;
+};
+
+export type GetRecommendationByIdResponse = GetRecommendationByIdResponses[keyof GetRecommendationByIdResponses];
+
+export type UpdateRecommendationData = {
+    body: UpdateRecommendationRequest;
+    path: {
+        /**
+         * Identificador único de la recomendación.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/recommendations/{id}';
+};
+
+export type UpdateRecommendationErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type UpdateRecommendationError = UpdateRecommendationErrors[keyof UpdateRecommendationErrors];
+
+export type UpdateRecommendationResponses = {
+    /**
+     * Recomendación actualizada exitosamente.
+     */
+    200: AthleteRecommendation;
+};
+
+export type UpdateRecommendationResponse = UpdateRecommendationResponses[keyof UpdateRecommendationResponses];
+
+export type ApproveRecommendationData = {
+    body?: ApproveRecommendationRequest;
+    path: {
+        /**
+         * Identificador único de la recomendación.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/recommendations/{id}/approve';
+};
+
+export type ApproveRecommendationErrors = {
+    /**
+     * Parámetros inválidos.
+     */
+    400: ProblemDetails;
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type ApproveRecommendationError = ApproveRecommendationErrors[keyof ApproveRecommendationErrors];
+
+export type ApproveRecommendationResponses = {
+    /**
+     * Recomendación aprobada y visible para el atleta.
+     */
+    200: AthleteRecommendation;
+};
+
+export type ApproveRecommendationResponse = ApproveRecommendationResponses[keyof ApproveRecommendationResponses];
+
+export type DiscardRecommendationData = {
+    body?: never;
+    path: {
+        /**
+         * Identificador único de la recomendación.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/recommendations/{id}/discard';
+};
+
+export type DiscardRecommendationErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * Recurso o alerta no encontrada.
+     */
+    404: ProblemDetails;
+    /**
+     * Conflicto con el estado actual del recurso.
+     */
+    409: ProblemDetails;
+};
+
+export type DiscardRecommendationError = DiscardRecommendationErrors[keyof DiscardRecommendationErrors];
+
+export type DiscardRecommendationResponses = {
+    /**
+     * Recomendación descartada exitosamente.
+     */
+    200: AthleteRecommendation;
+};
+
+export type DiscardRecommendationResponse = DiscardRecommendationResponses[keyof DiscardRecommendationResponses];
+
+export type ListMyRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/me/recommendations';
+};
+
+export type ListMyRecommendationsErrors = {
+    /**
+     * No autenticado o credenciales inválidas.
+     */
+    401: ProblemDetails;
+    /**
+     * Acceso denegado para el rol actual.
+     */
+    403: ProblemDetails;
+    /**
+     * El microservicio dependiente no está disponible.
+     */
+    503: ProblemDetails;
+};
+
+export type ListMyRecommendationsError = ListMyRecommendationsErrors[keyof ListMyRecommendationsErrors];
+
+export type ListMyRecommendationsResponses = {
+    /**
+     * Lista de recomendaciones aprobadas del atleta ordenadas por fecha de aprobación descendente.
+     */
+    200: Array<MyRecommendation>;
+};
+
+export type ListMyRecommendationsResponse = ListMyRecommendationsResponses[keyof ListMyRecommendationsResponses];
 
 export type HealthCheckData = {
     body?: never;

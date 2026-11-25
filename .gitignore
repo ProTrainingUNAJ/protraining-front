@@ -10,3 +10,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Notas locales de los comandos de IA (/revisar-tarea)
+notas/

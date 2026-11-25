@@ -8,8 +8,12 @@ import {
   countPendingCheckIns,
   discardPendingCheckInsForDate,
   CheckInSubmitResponse,
+  type CheckIn,
+  listCheckInInjuries,
+  getAthleteTodayCheckIn,
 } from '../../api/seguimientoService';
-import { todayInArgentina } from '../../utils/argentinaDate';
+import { todayInArgentina, yesterdayInArgentina } from '../../utils/argentinaDate';
+import { DEFAULT_RECOVERY_VALUES } from '../../components/athlete/checkin/recovery/recovery.types';
 import { structureService } from '../../api/structureService';
 import {
   subscribeUserToPush,
@@ -32,8 +36,17 @@ import {
   getCheckInDraft,
   saveCheckInDraft,
   clearCheckInDraft,
+  purgeLegacyCheckInCompletedData,
+  purgeStaleCheckInData,
+  clearAllCheckInData,
+  getTodayKey,
   hasRequiredInjuryMark,
+  hasUnscoredActiveInjuries,
+  getReportedZones,
   clearInjuryPains,
+  parsePainZones,
+  mapClinicalInjuriesToMusclePains,
+  toDrawableMusclePains,
 } from '../../components/athlete/checkin/checkInHelper';
 
 const getCachedAthleteId = (userId?: string): string | null => {
@@ -53,78 +66,106 @@ const setCachedAthleteId = (userId: string, id: string) => {
   }
 };
 
+interface SubmittedCheckInState {
+  sleepHours: number | null;
+  sleepQuality: number | null;
+  fatigueLevel: number | null;
+  muscleSoreness: number | null;
+  moodRate: number;
+  stressLevel: number;
+  isSick: boolean;
+  hasActiveInjury: boolean;
+  healthQuestionsAnswered: boolean;
+  musclePains: Record<string, number>;
+  injuryScores: Record<string, number | null>;
+}
+
+// KAN-593: el borrador se borra al enviar. Al recargar o al editar un check-in
+// completado, la respuesta guardada es la única fuente de las respuestas.
+const getStateFromSubmittedCheckIn = (checkIn?: CheckIn): SubmittedCheckInState => {
+  const injuryScores: Record<string, number | null> = {};
+  (checkIn?.injuries ?? []).forEach((injury) => {
+    const id = injury.injuryId;
+    if (!id) return;
+    injuryScores[id] = injury.level ?? null;
+  });
+
+  return {
+    sleepHours: checkIn?.sleepHours ?? null,
+    sleepQuality: checkIn?.sleepQuality ?? null,
+    fatigueLevel: checkIn?.fatigueLevel ?? null,
+    muscleSoreness: checkIn?.muscleSoreness ?? null,
+    moodRate: checkIn?.moodRate ?? 3,
+    stressLevel: checkIn?.stressLevel ?? 2,
+    isSick: Boolean(checkIn?.isSick),
+    hasActiveInjury: Boolean(checkIn?.hasActiveInjury),
+    healthQuestionsAnswered: Boolean(checkIn),
+    // En los IDs del mapa: el guardado puede traer el grupo ("isquiotibiales:6"), KAN-666
+    musclePains: toDrawableMusclePains(parsePainZones(checkIn?.painZones)),
+    injuryScores,
+  };
+};
+
 export const CheckInPage: React.FC = () => {
   const { user } = useAuth();
-  const [athleteId, setAthleteId] = useState<string>(() => {
-    return (
-      (user?.id ? getCachedAthleteId(user.id) : null) || '99eedc58-65dd-4417-a087-e3cc03f01043'
-    );
-  });
+  const [athleteId, setAthleteId] = useState<string>(
+    () => (user?.id ? getCachedAthleteId(user.id) : null) || '',
+  );
   const [athleteResolutionError, setAthleteResolutionError] = useState<string | null>(null);
+  const [todayKey, setTodayKey] = useState(getTodayKey);
+  const previousDay = useRef(todayKey);
+  const isEditingSubmitted = useRef(false);
+  // Evita que la consulta al backend sobrescriba la navegación del atleta si éste
+  // interactúa antes de que llegue la respuesta.
+  const userNavigatedRef = useRef(false);
+  const recoveryTouchedRef = useRef(false);
 
-  // Initial check from local storage for today
+  // Solo se conserva el indicador local; las respuestas se recuperan del backend.
   const initialCompleted = getCheckInCompleted(athleteId);
   const initialDraft = initialCompleted ? null : getCheckInDraft(athleteId);
 
   // Check-in metrics state (conserved across all slides)
-  const [sleepHours, setSleepHours] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.sleepHours;
-    if (initialDraft) return initialDraft.sleepHours;
-    return null;
-  });
-  const [sleepQuality, setSleepQuality] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.sleepQuality;
-    if (initialDraft) return initialDraft.sleepQuality;
-    return null;
-  });
-  const [fatigueLevel, setFatigueLevel] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.fatigueLevel;
-    if (initialDraft) return initialDraft.fatigueLevel;
-    return null;
-  });
-  const [muscleSoreness, setMuscleSoreness] = useState<number | null>(() => {
-    if (initialCompleted) return initialCompleted.draft.muscleSoreness;
-    if (initialDraft) return initialDraft.muscleSoreness;
-    return null;
-  });
-  const [moodRate, setMoodRate] = useState<number>(() => {
-    if (initialCompleted) return initialCompleted.draft.moodRate;
-    if (initialDraft) return initialDraft.moodRate;
-    return 3;
-  });
-  const [stressLevel, setStressLevel] = useState<number>(() => {
-    if (initialCompleted) return initialCompleted.draft.stressLevel;
-    if (initialDraft) return initialDraft.stressLevel;
-    return 2;
-  });
-  const [isSick, setIsSick] = useState<boolean>(() => {
-    if (initialCompleted) return initialCompleted.draft.isSick;
-    if (initialDraft) return initialDraft.isSick;
-    return false;
-  });
-  const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(() => {
-    if (initialCompleted) return initialCompleted.draft.hasActiveInjury;
-    if (initialDraft) return initialDraft.hasActiveInjury;
-    return false;
-  });
-  const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(() => {
-    if (initialCompleted) return initialCompleted.draft.healthQuestionsAnswered;
-    if (initialDraft) return initialDraft.healthQuestionsAnswered;
-    return false;
-  });
+  // Si no hay borrador activo ni registro del día anterior aún cargado, inicia con
+  // los valores preajustados (8 horas de sueño y 5/5 en el resto).
+  const [sleepHours, setSleepHours] = useState<number | null>(
+    () => initialDraft?.sleepHours ?? DEFAULT_RECOVERY_VALUES.sleepHours,
+  );
+  const [sleepQuality, setSleepQuality] = useState<number | null>(
+    () => initialDraft?.sleepQuality ?? DEFAULT_RECOVERY_VALUES.sleepQuality,
+  );
+  const [fatigueLevel, setFatigueLevel] = useState<number | null>(
+    () => initialDraft?.fatigueLevel ?? DEFAULT_RECOVERY_VALUES.fatigueLevel,
+  );
+  const [muscleSoreness, setMuscleSoreness] = useState<number | null>(
+    () => initialDraft?.muscleSoreness ?? DEFAULT_RECOVERY_VALUES.muscleSoreness,
+  );
+  const [moodRate, setMoodRate] = useState<number>(() => initialDraft?.moodRate ?? 3);
+  const [stressLevel, setStressLevel] = useState<number>(() => initialDraft?.stressLevel ?? 2);
+  const [isSick, setIsSick] = useState<boolean>(() => initialDraft?.isSick ?? false);
+  const [hasActiveInjury, setHasActiveInjury] = useState<boolean>(
+    () => initialDraft?.hasActiveInjury ?? false,
+  );
+  const [activeInjuries, setActiveInjuries] = useState<
+    { id: string; zone: string; description: string }[]
+  >([]);
+  const [injuryScores, setInjuryScores] = useState<Record<string, number | null>>(
+    () => initialDraft?.injuryScores ?? {},
+  );
+  const [injuriesLoadWarning, setInjuriesLoadWarning] = useState<string | null>(null);
+
+  // la ficha clínica activa inicialmente la lesión, pero el atleta puede indicar que no hay lesión hoy
+  const effectiveHasActiveInjury = hasActiveInjury;
+
+  const [healthQuestionsAnswered, setHealthQuestionsAnswered] = useState<boolean>(
+    () => initialDraft?.healthQuestionsAnswered ?? false,
+  );
   const [musclePains, setMusclePains] = useState<Record<string, number>>(() => {
-    const raw =
-      (initialCompleted ? initialCompleted.draft.musclePains : initialDraft?.musclePains) || {};
-    const injuryActive = initialCompleted
-      ? initialCompleted.draft.hasActiveInjury
-      : initialDraft?.hasActiveInjury;
-    return injuryActive ? raw : clearInjuryPains(raw);
+    if (!initialDraft) return {};
+    // Borradores viejos pueden traer el grupo ("isquiotibiales"): se pasan a los IDs del mapa
+    const raw = toDrawableMusclePains(initialDraft.musclePains || {});
+    return initialDraft.hasActiveInjury ? raw : clearInjuryPains(raw);
   });
-  const [notes, setNotes] = useState<string>(() => {
-    if (initialCompleted) return initialCompleted.draft.notes || '';
-    if (initialDraft) return initialDraft.notes || '';
-    return '';
-  });
+  const [notes, setNotes] = useState<string>(() => initialDraft?.notes || '');
 
   // Welcome screen / Start state: if already completed or started today, hasStarted is true
   const [hasStarted, setHasStarted] = useState<boolean>(() => {
@@ -150,9 +191,9 @@ export const CheckInPage: React.FC = () => {
 
   // Submission & Offline State
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState<CheckInSubmitResponse | null>(() => {
-    return (initialCompleted?.result as CheckInSubmitResponse) || null;
-  });
+  const [submissionResult, setSubmissionResult] = useState<CheckInSubmitResponse | null>(null);
+  const [completedCheckIn, setCompletedCheckIn] = useState<CheckIn | null>(null);
+  const [isLoadingCompleted, setIsLoadingCompleted] = useState<boolean>(!!initialCompleted);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true,
@@ -162,55 +203,221 @@ export const CheckInPage: React.FC = () => {
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
-  const handleEditResponses = useCallback(() => {
+  const applySubmittedState = useCallback((checkIn?: CheckIn) => {
+    const next = getStateFromSubmittedCheckIn(checkIn);
+    setSleepHours(next.sleepHours);
+    setSleepQuality(next.sleepQuality);
+    setFatigueLevel(next.fatigueLevel);
+    setMuscleSoreness(next.muscleSoreness);
+    setMoodRate(next.moodRate);
+    setStressLevel(next.stressLevel);
+    setIsSick(next.isSick);
+    setHasActiveInjury(next.hasActiveInjury);
+    setHealthQuestionsAnswered(next.healthQuestionsAnswered);
+    setMusclePains(next.musclePains);
+    setInjuryScores(next.injuryScores);
+  }, []);
+
+  // Helper to rehydrate state if athleteId resolves asynchronously from /me
+  const applyAthleteData = useCallback(
+    async (id: string) => {
+      const completed = getCheckInCompleted(id);
+      if (completed) {
+        setHasStarted(true);
+        setCurrentStep(4);
+        setMaxReachedStep(4);
+        setIsLoadingCompleted(true);
+        try {
+          const remote = await getAthleteTodayCheckIn(id);
+          if (remote) {
+            setCompletedCheckIn(remote);
+            applySubmittedState(remote);
+            setSubmissionResult({
+              message: 'Check-in registrado',
+              trafficLight: remote.trafficLight,
+              trafficLightReason: remote.trafficLightReason ?? null,
+              checkIn: remote,
+              isOffline: false,
+            });
+          } else {
+            setCompletedCheckIn(null);
+            setSubmissionResult({
+              message: 'Check-in completado',
+              trafficLight: completed.trafficLight ?? 'Yellow',
+              isOffline: completed.isOffline,
+            });
+          }
+        } catch {
+          setCompletedCheckIn(null);
+          setSubmissionResult({
+            message: 'Check-in completado',
+            trafficLight: completed.trafficLight ?? 'Yellow',
+            isOffline: completed.isOffline,
+          });
+        } finally {
+          setIsLoadingCompleted(false);
+        }
+        return;
+      }
+
+      setIsLoadingCompleted(false);
+      const draft = getCheckInDraft(id);
+      if (draft && draft.hasStarted) {
+        setHasStarted(true);
+        setCurrentStep(Math.min(Math.max(draft.currentStep, 1), 4));
+        setMaxReachedStep(Math.min(Math.max(draft.maxReachedStep, draft.currentStep, 1), 4));
+        setSleepHours(draft.sleepHours);
+        setSleepQuality(draft.sleepQuality);
+        setFatigueLevel(draft.fatigueLevel);
+        setMuscleSoreness(draft.muscleSoreness);
+        setMoodRate(draft.moodRate);
+        setStressLevel(draft.stressLevel);
+        setIsSick(draft.isSick);
+        setHasActiveInjury(draft.hasActiveInjury);
+        setHealthQuestionsAnswered(draft.healthQuestionsAnswered);
+        const dPains = toDrawableMusclePains(draft.musclePains || {});
+        setMusclePains(draft.hasActiveInjury ? dPains : clearInjuryPains(dPains));
+        setInjuryScores(draft.injuryScores || {});
+        setNotes(draft.notes || '');
+      }
+
+      // El widget del semáforo consulta el backend: si hoy ya hay check-in, hay que
+      // mostrar la confirmación aunque no exista el indicador local (otro dispositivo,
+      // localStorage limpio, etc.). Si no, se intenta precargar la plantilla de descanso
+      // con el registro del día anterior (o se mantienen los valores preajustados 8h y 5/5).
+      try {
+        const remote = await getAthleteTodayCheckIn(id);
+        if (remote && !userNavigatedRef.current) {
+          setHasStarted(true);
+          setCurrentStep(4);
+          setMaxReachedStep(4);
+          setCompletedCheckIn(remote);
+          applySubmittedState(remote);
+          setSubmissionResult({
+            message: 'Check-in registrado',
+            trafficLight: remote.trafficLight,
+            trafficLightReason: remote.trafficLightReason ?? null,
+            checkIn: remote,
+            isOffline: false,
+          });
+          // Repara el indicador local sin persistir respuestas médicas.
+          saveCheckInCompleted(id, {
+            completedAt: new Date().toISOString(),
+            trafficLight: remote.trafficLight,
+            isOffline: false,
+          });
+          return;
+        }
+
+        if (!remote && !(draft && draft.hasStarted)) {
+          const yesterdayDate = yesterdayInArgentina(getTodayKey());
+          const yesterdayCheckIn = await getAthleteTodayCheckIn(id, yesterdayDate);
+          if (yesterdayCheckIn && !recoveryTouchedRef.current) {
+            setSleepHours(yesterdayCheckIn.sleepHours ?? DEFAULT_RECOVERY_VALUES.sleepHours);
+            setSleepQuality(yesterdayCheckIn.sleepQuality ?? DEFAULT_RECOVERY_VALUES.sleepQuality);
+            setFatigueLevel(yesterdayCheckIn.fatigueLevel ?? DEFAULT_RECOVERY_VALUES.fatigueLevel);
+            setMuscleSoreness(
+              yesterdayCheckIn.muscleSoreness ?? DEFAULT_RECOVERY_VALUES.muscleSoreness,
+            );
+          }
+        }
+      } catch {
+        // Sin conexión se conserva el indicador local, el borrador o los valores preajustados (8h y 5/5).
+      }
+    },
+    [applySubmittedState],
+  );
+
+  const handleEditResponses = useCallback(async () => {
+    userNavigatedRef.current = true;
+    if (!completedCheckIn) {
+      let remote: CheckIn | null;
+      try {
+        remote = await getAthleteTodayCheckIn(athleteId);
+      } catch {
+        setErrorMessage('No se pudieron recuperar tus respuestas. Intentá nuevamente.');
+        return;
+      }
+      // Sin respuesta del back no se abre el formulario: los valores por defecto
+      // (ánimo 3, estrés 2) pisarían el check-in real si el atleta reenvía.
+      if (!remote) {
+        setErrorMessage('No hay respuestas guardadas para editar.');
+        return;
+      }
+      setCompletedCheckIn(remote);
+      applySubmittedState(remote);
+      setSubmissionResult({
+        message: 'Check-in registrado',
+        trafficLight: remote.trafficLight,
+        trafficLightReason: remote.trafficLightReason ?? null,
+        checkIn: remote,
+        isOffline: false,
+      });
+    } else {
+      applySubmittedState(completedCheckIn);
+    }
+    isEditingSubmitted.current = true;
     setSubmissionResult(null);
     setHasStarted(true);
     setCurrentStep(4);
     setShowConfetti(false);
+  }, [athleteId, completedCheckIn, applySubmittedState]);
+
+  useEffect(() => {
+    const refreshDay = () => setTodayKey(getTodayKey());
+    const timer = window.setInterval(refreshDay, 60_000);
+    window.addEventListener('focus', refreshDay);
+    document.addEventListener('visibilitychange', refreshDay);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshDay);
+      document.removeEventListener('visibilitychange', refreshDay);
+    };
   }, []);
 
-  // Helper to rehydrate state if athleteId resolves asynchronously from /me
-  const applyAthleteData = useCallback((id: string) => {
-    const completed = getCheckInCompleted(id);
-    if (completed) {
-      setSubmissionResult(completed.result as CheckInSubmitResponse);
-      setHasStarted(true);
-      setCurrentStep(4);
-      setMaxReachedStep(4);
-      setSleepHours(completed.draft.sleepHours);
-      setSleepQuality(completed.draft.sleepQuality);
-      setFatigueLevel(completed.draft.fatigueLevel);
-      setMuscleSoreness(completed.draft.muscleSoreness);
-      setMoodRate(completed.draft.moodRate);
-      setStressLevel(completed.draft.stressLevel);
-      setIsSick(completed.draft.isSick);
-      setHasActiveInjury(completed.draft.hasActiveInjury);
-      setHealthQuestionsAnswered(completed.draft.healthQuestionsAnswered);
-      const cPains = completed.draft.musclePains || {};
-      setMusclePains(completed.draft.hasActiveInjury ? cPains : clearInjuryPains(cPains));
-      setNotes(completed.draft.notes || '');
-      return;
-    }
+  useEffect(() => {
+    if (previousDay.current === todayKey) return;
+    previousDay.current = todayKey;
+    clearAllCheckInData();
+    isEditingSubmitted.current = false;
+    userNavigatedRef.current = false;
+    recoveryTouchedRef.current = false;
+    setHasStarted(false);
+    setCurrentStep(1);
+    setMaxReachedStep(1);
+    setSubmissionResult(null);
+    setCompletedCheckIn(null);
+    setSleepHours(DEFAULT_RECOVERY_VALUES.sleepHours);
+    setSleepQuality(DEFAULT_RECOVERY_VALUES.sleepQuality);
+    setFatigueLevel(DEFAULT_RECOVERY_VALUES.fatigueLevel);
+    setMuscleSoreness(DEFAULT_RECOVERY_VALUES.muscleSoreness);
+    setMoodRate(3);
+    setStressLevel(2);
+    setIsSick(false);
+    setHasActiveInjury(false);
+    setHealthQuestionsAnswered(false);
+    setMusclePains({});
+    setInjuryScores({});
+    setNotes('');
+    setShowConfetti(false);
+    setErrorMessage(null);
+    setIsLoadingCompleted(false);
+  }, [todayKey]);
 
-    const draft = getCheckInDraft(id);
-    if (draft && draft.hasStarted) {
-      setHasStarted(true);
-      setCurrentStep(Math.min(Math.max(draft.currentStep, 1), 4));
-      setMaxReachedStep(Math.min(Math.max(draft.maxReachedStep, draft.currentStep, 1), 4));
-      setSleepHours(draft.sleepHours);
-      setSleepQuality(draft.sleepQuality);
-      setFatigueLevel(draft.fatigueLevel);
-      setMuscleSoreness(draft.muscleSoreness);
-      setMoodRate(draft.moodRate);
-      setStressLevel(draft.stressLevel);
-      setIsSick(draft.isSick);
-      setHasActiveInjury(draft.hasActiveInjury);
-      setHealthQuestionsAnswered(draft.healthQuestionsAnswered);
-      const dPains = draft.musclePains || {};
-      setMusclePains(draft.hasActiveInjury ? dPains : clearInjuryPains(dPains));
-      setNotes(draft.notes || '');
-    }
-  }, []);
+  // Al montar (y al cambiar de día) se descartan los datos con fecha de otro día:
+  // si la app se cerró a mitad del check-in, el borrador de ayer no debe quedar en el celular.
+  useEffect(() => {
+    purgeStaleCheckInData();
+    purgeLegacyCheckInCompletedData(athleteId);
+  }, [athleteId, todayKey]);
+
+  useEffect(() => {
+    if (!athleteId) return;
+    const timer = setTimeout(() => {
+      void applyAthleteData(athleteId);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [athleteId, applyAthleteData, todayKey]);
 
   // Synchronize athlete id from Structure microservice GET /api/v1/me (KAN-329)
   useEffect(() => {
@@ -226,7 +433,6 @@ export const CheckInPage: React.FC = () => {
             setAthleteId(me.athleteId);
             setCachedAthleteId(user.id, me.athleteId);
             setAthleteResolutionError(null);
-            applyAthleteData(me.athleteId);
           }
         })
         .catch((err: unknown) => {
@@ -241,9 +447,57 @@ export const CheckInPage: React.FC = () => {
     }
   }, [user?.id, applyAthleteData]);
 
+  // Carga las lesiones activas del atleta para exigir su puntaje (0-10) en el check-in.
+  useEffect(() => {
+    if (!athleteId) return;
+    let cancelled = false;
+    listCheckInInjuries(athleteId)
+      .then((injuries) => {
+        if (cancelled) return;
+        setActiveInjuries(
+          injuries.map((i) => ({ id: i.id, zone: i.zone, description: i.description })),
+        );
+        if (injuries.length > 0) {
+          // KAN-660: Si tiene lesión activa reportada, activar flag y precargar automáticamente con negro (nivel 6)
+          setHasActiveInjury(true);
+          setMusclePains((prev) => {
+            // Solo cuenta un negro que se ve en el dibujo (KAN-666)
+            if (hasRequiredInjuryMark(true, prev)) return prev;
+            const autoPains = mapClinicalInjuriesToMusclePains(injuries);
+            return { ...prev, ...autoPains };
+          });
+        }
+        setInjuryScores((prev) => {
+          const next: Record<string, number | null> = {};
+          for (const injury of injuries) {
+            next[injury.id] = prev[injury.id] ?? null;
+          }
+          return next;
+        });
+        setInjuriesLoadWarning(null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setActiveInjuries([]);
+          setInjuriesLoadWarning(
+            'No se pudieron cargar tus lesiones activas. Recargá la página para poder puntuarlas.',
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [athleteId]);
+
   // Persist draft to local storage on any state change if started and not yet submitted
   useEffect(() => {
-    if (!hasStarted || submissionResult !== null) return;
+    if (
+      isLoadingCompleted ||
+      !hasStarted ||
+      submissionResult !== null ||
+      isEditingSubmitted.current
+    )
+      return;
 
     saveCheckInDraft(athleteId, {
       hasStarted,
@@ -259,11 +513,13 @@ export const CheckInPage: React.FC = () => {
       hasActiveInjury,
       healthQuestionsAnswered,
       musclePains,
+      injuryScores,
       notes,
     });
   }, [
     athleteId,
     hasStarted,
+    isLoadingCompleted,
     submissionResult,
     currentStep,
     maxReachedStep,
@@ -277,10 +533,18 @@ export const CheckInPage: React.FC = () => {
     hasActiveInjury,
     healthQuestionsAnswered,
     musclePains,
+    injuryScores,
     notes,
   ]);
 
+  // Un check-in ya enviado no debe dejar un borrador aunque se recargue mientras se consulta el backend.
+  useEffect(() => {
+    if (!athleteId || isLoadingCompleted || submissionResult === null) return;
+    clearCheckInDraft(athleteId);
+  }, [athleteId, isLoadingCompleted, submissionResult]);
+
   const handleStartCheckIn = () => {
+    userNavigatedRef.current = true;
     setHasStarted(true);
     setCurrentStep(1);
     setMaxReachedStep(1);
@@ -298,6 +562,7 @@ export const CheckInPage: React.FC = () => {
       hasActiveInjury,
       healthQuestionsAnswered,
       musclePains,
+      injuryScores,
       notes,
     });
   };
@@ -437,11 +702,14 @@ export const CheckInPage: React.FC = () => {
 
   // Slide Navigation Handlers
   const goToStep = (stepNum: number) => {
+    userNavigatedRef.current = true;
     // Si intenta regresar a la pantalla 0 (Inicio / Bienvenida):
     if (stepNum <= 0) {
       setErrorMessage(null);
+      isEditingSubmitted.current = false;
       setHasStarted(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (submissionResult !== null) return;
       saveCheckInDraft(athleteId, {
         hasStarted: false,
         currentStep: 1,
@@ -456,6 +724,7 @@ export const CheckInPage: React.FC = () => {
         hasActiveInjury,
         healthQuestionsAnswered,
         musclePains,
+        injuryScores,
         notes,
       });
       return;
@@ -480,6 +749,12 @@ export const CheckInPage: React.FC = () => {
       setErrorMessage(
         'Debés marcar en la silueta la zona lesionada con color negro (Lesión) para poder avanzar.',
       );
+      return;
+    }
+
+    // No avanzar si falta puntuar alguna lesión activa (KAN-487).
+    if (stepNum > 3 && hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
+      setErrorMessage('Debés puntuar el dolor (0 a 10) de cada lesión activa para poder avanzar.');
       return;
     }
     setErrorMessage(null);
@@ -584,41 +859,51 @@ export const CheckInPage: React.FC = () => {
       return;
     }
 
-    // Format pain zones: "Quadriceps:2,Hamstrings:1"
-    const painZones = formatPainZones(musclePains);
+    // Format pain zones: "Quadriceps:2,Hamstrings:1". Las lesiones clínicas activas
+    // también son zonas con dolor: se incluyen con el marcador 6 y prevalecen sobre
+    // una marca manual de la misma zona. El back KAN-644 dedupe; con el back anterior
+    // esta es la única forma de que el PF vea la lesión en el mapa anatómico.
+    const reportedZones = getReportedZones(musclePains, activeInjuries, injuryScores);
+    const painZones = formatPainZones(
+      Object.fromEntries(reportedZones.map((zone) => [zone.zone, zone.level])),
+    );
+
+    const injuriesPayload = activeInjuries.map((injury) => ({
+      injuryId: injury.id,
+      level: injuryScores[injury.id] as number,
+    }));
+
+    // No se puede guardar sin puntuar cada lesión activa (KAN-487).
+    if (hasUnscoredActiveInjuries(activeInjuries, injuryScores)) {
+      setErrorMessage('Falta puntuar el dolor de cada lesión activa (de 0 a 10).');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await submitCheckIn(athleteId, {
-        sleepHours: sleepHours ?? 8,
-        sleepQuality: sleepQuality ?? 4,
-        muscleSoreness: muscleSoreness ?? 1,
-        fatigueLevel: fatigueLevel ?? 2,
+        sleepHours: sleepHours ?? DEFAULT_RECOVERY_VALUES.sleepHours,
+        sleepQuality: sleepQuality ?? DEFAULT_RECOVERY_VALUES.sleepQuality,
+        muscleSoreness: muscleSoreness ?? DEFAULT_RECOVERY_VALUES.muscleSoreness,
+        fatigueLevel: fatigueLevel ?? DEFAULT_RECOVERY_VALUES.fatigueLevel,
         moodRate,
         stressLevel,
         isSick,
         painZones,
-        hasActiveInjury,
+        hasActiveInjury: effectiveHasActiveInjury,
+        injuries: injuriesPayload,
       });
 
+      isEditingSubmitted.current = false;
       setSubmissionResult(response);
+      if (response.checkIn) {
+        setCompletedCheckIn(response.checkIn as CheckIn);
+        applySubmittedState(response.checkIn);
+      }
+      // Solo se guarda el indicador mínimo de check-in completado.
       saveCheckInCompleted(athleteId, {
-        result: response,
-        draft: {
-          hasStarted: true,
-          currentStep: 4,
-          maxReachedStep: 4,
-          sleepHours,
-          sleepQuality,
-          fatigueLevel,
-          muscleSoreness,
-          moodRate,
-          stressLevel,
-          isSick,
-          hasActiveInjury,
-          healthQuestionsAnswered,
-          musclePains,
-          notes,
-        },
+        trafficLight: response.trafficLight,
+        isOffline: response.isOffline,
         completedAt: new Date().toISOString(),
       });
       clearCheckInDraft(athleteId);
@@ -774,12 +1059,37 @@ export const CheckInPage: React.FC = () => {
           </div>
         )}
 
+        {/* Aviso si no se pudieron cargar las lesiones activas */}
+        {injuriesLoadWarning && (
+          <div
+            style={{
+              background: 'var(--warning-bg-strong)',
+              color: 'var(--warning-text)',
+              border: '1px solid var(--warning)',
+              borderRadius: '8px',
+              padding: '0.6rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+            }}
+          >
+            <AlertTriangle size={16} />
+            <span>{injuriesLoadWarning}</span>
+          </div>
+        )}
+
         {/* Confeti festivo de felicidad al completar */}
         {showConfetti && <ConfettiCelebration durationMs={4500} particleCount={140} />}
 
         {/* ── BURBUJA CONTENEDORA PRINCIPAL (MISMO ANCHO QUE SESIÓN DE MI RUTINA) ── */}
-        <div className="checkin-main-bubble">
-          {submissionResult ? (
+        <div
+          className={`checkin-main-bubble${submissionResult ? ' checkin-main-bubble--completed' : ''}`}
+        >
+          {isLoadingCompleted ? (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando...</div>
+          ) : submissionResult ? (
             /* ── PANTALLA DE CONFIRMACIÓN FINAL (ADAPTADA AL ESTILO DE LOS SLIDES ANTERIORES) ── */
             <div className="checkin-slide-container">
               {/* Barra de progreso completada con todos los pasos e icono de estrella */}
@@ -800,8 +1110,10 @@ export const CheckInPage: React.FC = () => {
                 moodRate={moodRate}
                 stressLevel={stressLevel}
                 isSick={isSick}
-                hasActiveInjury={hasActiveInjury}
+                hasActiveInjury={effectiveHasActiveInjury}
                 musclePains={musclePains}
+                activeInjuries={activeInjuries}
+                injuryScores={injuryScores}
                 notes={notes}
                 pushSupported={pushSupported}
                 pushSubscribed={pushSubscribed}
@@ -849,19 +1161,31 @@ export const CheckInPage: React.FC = () => {
               {currentStep === 2 && (
                 <CheckInRecoverySlide
                   sleepHours={sleepHours}
-                  onSleepHoursChange={setSleepHours}
+                  onSleepHoursChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setSleepHours(val);
+                  }}
                   sleepQuality={sleepQuality}
-                  onSleepQualityChange={setSleepQuality}
+                  onSleepQualityChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setSleepQuality(val);
+                  }}
                   fatigueLevel={fatigueLevel}
-                  onFatigueChange={setFatigueLevel}
+                  onFatigueChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setFatigueLevel(val);
+                  }}
                   muscleSoreness={muscleSoreness}
-                  onSorenessChange={setMuscleSoreness}
+                  onSorenessChange={(val) => {
+                    recoveryTouchedRef.current = true;
+                    setMuscleSoreness(val);
+                  }}
                   onPrev={handlePrev}
                   onNext={handleNext}
                 />
               )}
 
-              {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud y Lesiones agrupadas) */}
+              {/* Ventana 3: Dolor y Zonas en silueta anatómica (incluye Salud y Lesiones Activas en Modal) */}
               {currentStep === 3 && (
                 <CheckInPainSlide
                   musclePains={musclePains}
@@ -873,6 +1197,11 @@ export const CheckInPage: React.FC = () => {
                   onInjuryChange={handleInjuryChange}
                   healthQuestionsAnswered={healthQuestionsAnswered}
                   onHealthQuestionsAnswered={setHealthQuestionsAnswered}
+                  activeInjuries={activeInjuries}
+                  injuryScores={injuryScores}
+                  onInjuryScoreChange={(injuryId, score) =>
+                    setInjuryScores((prev) => ({ ...prev, [injuryId]: score }))
+                  }
                   onPrev={handlePrev}
                   onNext={handleNext}
                 />
@@ -888,8 +1217,10 @@ export const CheckInPage: React.FC = () => {
                   moodRate={moodRate}
                   stressLevel={stressLevel}
                   isSick={isSick}
-                  hasActiveInjury={hasActiveInjury}
+                  hasActiveInjury={effectiveHasActiveInjury}
                   musclePains={musclePains}
+                  activeInjuries={activeInjuries}
+                  injuryScores={injuryScores}
                   notes={notes}
                   onNotesChange={setNotes}
                   onEditStep={goToStep}

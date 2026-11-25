@@ -11,9 +11,18 @@ vi.mock('../../../api/todayRoutine', () => ({
   },
 }));
 
+vi.mock('../../../api/seguimientoService', () => ({
+  getDailyLoad: vi.fn().mockResolvedValue(null),
+  submitDailyLoad: vi.fn(),
+}));
+
 describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.mocked(todayRoutineService.recordSets).mockResolvedValue({
+      recordedSetsCount: 1,
+      proposalsGeneratedCount: 0,
+    });
   });
 
   it('CRITERIO 2: DADO un ejercicio sin link CUANDO el atleta lo ve ENTONCES no aparece el botón', async () => {
@@ -236,6 +245,107 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
       // Valida que la marque como "Cumplida"
       expect(screen.getByText('Cumplida')).toBeTruthy();
     });
+
+    it('no llama a recordSets en cada tecla y guarda una sola vez al salir del campo (KAN-579)', async () => {
+      vi.mocked(todayRoutineService.recordSets).mockClear();
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-20',
+        athleteId: 'ath-kan579-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100',
+            name: 'Pasadas',
+            muscleGroup: 'Piernas',
+            sets: 1,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: 15.6,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas')).toBeTruthy();
+      });
+
+      const input = screen.getByLabelText(/tiempo de pasada 1/i);
+
+      fireEvent.change(input, { target: { value: '1' } });
+      fireEvent.change(input, { target: { value: '15' } });
+      fireEvent.change(input, { target: { value: '15.2' } });
+
+      expect(todayRoutineService.recordSets).not.toHaveBeenCalled();
+
+      fireEvent.blur(input, { target: { value: '15.2' } });
+
+      await waitFor(() => {
+        expect(todayRoutineService.recordSets).toHaveBeenCalledTimes(1);
+      });
+      expect(todayRoutineService.recordSets).toHaveBeenCalledWith([
+        {
+          exerciseId: 'ex-pasadas-100',
+          setNumber: 1,
+          timeSeconds: 15.2,
+        },
+      ]);
+    });
+
+    it('DADO que el back no responde CUANDO el atleta carga un tiempo ENTONCES ve un aviso de que no se guardó', async () => {
+      vi.mocked(todayRoutineService.recordSets).mockRejectedValueOnce(new Error('Network error'));
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-20',
+        athleteId: 'ath-kan579-2',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-100',
+            name: 'Pasadas',
+            muscleGroup: 'Piernas',
+            sets: 1,
+            reps: 100,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetTimeSeconds: 15.6,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas')).toBeTruthy();
+      });
+
+      const input = screen.getByLabelText(/tiempo de pasada 1/i);
+      fireEvent.change(input, { target: { value: '15.2' } });
+      fireEvent.blur(input, { target: { value: '15.2' } });
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toMatch(/no se pudo guardar/i);
+      });
+    });
   });
 
   describe('RoutinePage · Ajuste del día por el PF (#157 · KAN-452)', () => {
@@ -414,6 +524,7 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
 
       const input = screen.getByLabelText('Tiempo de pasada 1');
       fireEvent.change(input, { target: { value: '15.2' } });
+      fireEvent.blur(input, { target: { value: '15.2' } });
 
       await waitFor(() => {
         expect(todayRoutineService.recordSets).toHaveBeenCalledWith([
@@ -424,6 +535,482 @@ describe('RoutinePage · Video de YouTube por ejercicio (KAN-380)', () => {
           },
         ]);
       });
+    });
+  });
+
+  describe('Hora de la sesión en Mi Rutina (KAN-559)', () => {
+    it('muestra "Hoy · 18:00" cuando la sesión tiene startTime definido', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        startTime: '18:00:00',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/Hoy · 18:00/i)).toBeTruthy();
+      });
+    });
+
+    it('muestra solo la fecha sin errores cuando la sesión no tiene hora', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        startTime: null,
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla')).toBeTruthy();
+      });
+
+      expect(screen.queryByText(/· 18:00/i)).toBeNull();
+    });
+  });
+
+  describe('Cronómetro, siluetas musculares y finalización de sesión (KAN-623)', () => {
+    it('muestra el botón de inicio del cronómetro y las siluetas anatómicas en la sesión del día', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: ['gluteos'],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      // 1. Botón de inicio del cronómetro (Imagen 1)
+      const playBtn = screen.getByRole('button', {
+        name: /iniciar cronómetro de entrenamiento/i,
+      });
+      expect(playBtn).toBeTruthy();
+
+      // 2. Siluetas anatómicas presentes con tooltip de músculos
+      const muscleMap = screen.getByRole('img', {
+        name: /Músculos trabajados hoy: Cuádriceps, Glúteos/i,
+      });
+      expect(muscleMap).toBeTruthy();
+
+      // 3. Tarjeta inferior con botón "Finalizar entrenamiento" (Imagen 2)
+      const finishBtn = screen.getByRole('button', {
+        name: /finalizar entrenamiento/i,
+      });
+      expect(finishBtn).toBeTruthy();
+    });
+
+    it('al tocar "Finalizar entrenamiento" se abre el modal de finalización', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-16',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 8,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      const finishBtn = screen.getByRole('button', {
+        name: /finalizar entrenamiento/i,
+      });
+      fireEvent.click(finishBtn);
+
+      // Abre el modal con el selector de RPE y músculos
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeTruthy();
+        expect(screen.getByText(/Esfuerzo percibido \(RPE 1-10\)/i)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Limpieza de metadata técnica en Indicación del Preparador Físico (KAN-587)', () => {
+    it('oculta la tarjeta de indicación cuando coachNotes contiene solo el bloque de metadata HTML', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-17',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        coachNotes:
+          '<!--PT_BLOCK_META:{"exercises":{"ex-1":{"exerciseName":"Sentadilla con barra","intensityType":"RPE","targetRpe":8,"repsRange":"10"}}}-->',
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 10,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      expect(screen.queryByText(/Indicación del Preparador Físico/i)).toBeNull();
+      expect(screen.queryByText(/PT_BLOCK_META/i)).toBeNull();
+    });
+
+    it('muestra únicamente el texto limpio cuando el PF redactó una indicación junto a la metadata técnica', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-17',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        coachNotes:
+          'Priorizar fase excéntrica lenta. <!--PT_BLOCK_META:{"exercises":{"ex-1":{"exerciseName":"Sentadilla con barra"}}}-->',
+        exercises: [
+          {
+            exerciseId: 'ex-1',
+            name: 'Sentadilla con barra',
+            muscleGroup: 'Piernas',
+            sets: 3,
+            reps: 10,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuadriceps'],
+            secondaryMuscles: [],
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla con barra')).toBeTruthy();
+      });
+
+      expect(screen.getByText(/Indicación del Preparador Físico/i)).toBeTruthy();
+      expect(screen.getByText(/"Priorizar fase excéntrica lenta\."/i)).toBeTruthy();
+      expect(screen.queryByText(/PT_BLOCK_META/i)).toBeNull();
+    });
+  });
+
+  describe('RoutinePage · Variante personalizada y desglose de motivos (KAN-471)', () => {
+    it('DADO Lucas abriendo su rutina en el gimnasio CUANDO visualiza Prensa de piernas ENTONCES ve el badge "Variante personalizada", el desglose de motivos y el peso resuelto de 120 kg', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-19',
+        athleteId: 'ath-lucas',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: true,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-prensa',
+            name: 'Prensa de piernas',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 8,
+            percentage: 80,
+            weightKg: 120,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: ['glúteos'],
+            isAdapted: true,
+            originalExerciseName: 'Sentadilla',
+            adaptationReason: 'Variante aprobada por molestia de rodilla',
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Prensa de piernas')).toBeTruthy();
+      });
+
+      expect(screen.getByTestId('personalized-variant-badge')).toBeTruthy();
+      expect(screen.getByText('Variante personalizada')).toBeTruthy();
+      expect(screen.getByTestId('personalized-variant-breakdown')).toBeTruthy();
+      expect(screen.getByText('Reemplaza a: Sentadilla')).toBeTruthy();
+      expect(screen.getByText('Variante aprobada por molestia de rodilla')).toBeTruthy();
+      expect(screen.getByText('Rutina con variante personalizada')).toBeTruthy();
+      expect(screen.getByText('120')).toBeTruthy();
+    });
+
+    it('DADO un ejercicio sin variante personalizada CUANDO se renderiza la rutina ENTONCES no muestra el badge ni el desglose', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-19',
+        athleteId: 'ath-mateo',
+        athleteName: 'Mateo Díaz',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-sentadilla',
+            name: 'Sentadilla',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 8,
+            percentage: 80,
+            weightKg: 80,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            isAdapted: false,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Sentadilla')).toBeTruthy();
+      });
+
+      expect(screen.queryByTestId('personalized-variant-badge')).toBeNull();
+      expect(screen.queryByTestId('personalized-variant-breakdown')).toBeNull();
+    });
+  });
+
+  describe('Contador de series en barra y persistencia del cronómetro (KAN-623)', () => {
+    it('agrega series a la barra de rutina y las suma cada vez que se marca una serie', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-19',
+        athleteId: 'ath-series',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        adjustedByCoach: false,
+        exercises: [
+          {
+            exerciseId: 'ex-bench-series',
+            name: 'Press de Banca',
+            muscleGroup: 'Pecho',
+            sets: 3,
+            reps: 8,
+            percentage: 80,
+            weightKg: 80,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['pecho'],
+            secondaryMuscles: [],
+            isAdapted: false,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Press de Banca')).toBeTruthy();
+      });
+
+      // Inicialmente 0 series completadas en la barra de rutina
+      expect(screen.getByLabelText('0 series completadas')).toBeTruthy();
+
+      // Marcar Serie 1
+      const serie1Btn = screen.getByRole('button', {
+        name: /Serie 1 de Press de Banca: pendiente/i,
+      });
+      fireEvent.click(serie1Btn);
+
+      // La barra se actualiza inmediatamente a 1
+      expect(screen.getByLabelText('1 series completadas')).toBeTruthy();
+
+      // Marcar Serie 2
+      const serie2Btn = screen.getByRole('button', {
+        name: /Serie 2 de Press de Banca: pendiente/i,
+      });
+      fireEvent.click(serie2Btn);
+
+      // La barra se actualiza inmediatamente a 2
+      expect(screen.getByLabelText('2 series completadas')).toBeTruthy();
+    });
+  });
+
+  describe('RoutinePage · Metas de tiempo y distancia del PF (KAN-655)', () => {
+    it('DADO "Trote" (Time) con targetTimeSeconds: 300 ENTONCES el atleta ve "5 min"', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-22',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-trote',
+            name: 'Trote',
+            muscleGroup: 'Cardio',
+            sets: 1,
+            reps: 300,
+            isReference: false,
+            images: [],
+            primaryMuscles: [],
+            secondaryMuscles: [],
+            exerciseType: 'Time',
+            targetTimeSeconds: 300,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Trote')).toBeTruthy();
+      });
+
+      expect(screen.getByText(/1 series × 5 min/)).toBeTruthy();
+      expect(screen.getByText('Meta de tiempo')).toBeTruthy();
+      expect(screen.getByText('min')).toBeTruthy();
+    });
+
+    it('DADO un ejercicio Distance con targetDistanceMeters: 400 ENTONCES muestra 400 m aunque reps difiera', async () => {
+      vi.mocked(todayRoutineService.getMyRoutine).mockResolvedValue({
+        date: '2026-11-22',
+        athleteId: 'ath-1',
+        athleteName: 'Lucas Gómez',
+        hasActiveInjuries: false,
+        routineAdapted: false,
+        exercises: [
+          {
+            exerciseId: 'ex-pasadas-400',
+            name: 'Pasadas 400',
+            muscleGroup: 'Piernas',
+            sets: 4,
+            reps: 10,
+            isReference: false,
+            images: [],
+            primaryMuscles: ['cuádriceps'],
+            secondaryMuscles: [],
+            exerciseType: 'Distance',
+            targetDistanceMeters: 400,
+            targetTimeSeconds: null,
+          },
+        ],
+      });
+
+      render(
+        <MemoryRouter>
+          <RoutinePage />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pasadas 400')).toBeTruthy();
+      });
+
+      expect(screen.getByText('4 series × 400 m')).toBeTruthy();
     });
   });
 });

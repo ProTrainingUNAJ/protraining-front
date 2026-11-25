@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
+import type { ConfirmFieldTestResultData, ConfirmFieldTestResultErrors, ConfirmFieldTestResultResponses, CreateFieldTestResultData, CreateFieldTestResultErrors, CreateFieldTestResultResponses, CreateFieldTestSessionData, CreateFieldTestSessionErrors, CreateFieldTestSessionResponses, CreateInjuryData, CreateInjuryErrors, CreateInjuryResponses, GetActiveInjuriesSummaryData, GetActiveInjuriesSummaryErrors, GetActiveInjuriesSummaryResponses, GetAthleteEvolutionData, GetAthleteEvolutionErrors, GetAthleteEvolutionResponses, GetAthleteWeekData, GetAthleteWeekErrors, GetAthleteWeeklyTrendsData, GetAthleteWeeklyTrendsErrors, GetAthleteWeeklyTrendsResponses, GetAthleteWeekResponses, GetCategoryAttendanceTodayData, GetCategoryAttendanceTodayErrors, GetCategoryAttendanceTodayResponses, GetCategoryAveragesData, GetCategoryAveragesErrors, GetCategoryAveragesResponses, GetCategoryDashboardSummaryData, GetCategoryDashboardSummaryErrors, GetCategoryDashboardSummaryResponses, GetCategoryTrafficLightTodayData, GetCategoryTrafficLightTodayErrors, GetCategoryTrafficLightTodayResponses, GetCategoryWeeklyTrendsData, GetCategoryWeeklyTrendsErrors, GetCategoryWeeklyTrendsResponses, GetCompletedCheckInsData, GetCompletedCheckInsErrors, GetCompletedCheckInsResponses, GetDailyLoadData, GetDailyLoadErrors, GetDailyLoadResponses, GetFieldTestSessionData, GetFieldTestSessionErrors, GetFieldTestSessionResponses, GetGroupBenchmarkData, GetGroupBenchmarkErrors, GetGroupBenchmarkResponses, GetTodayCheckInData, GetTodayCheckInErrors, GetTodayCheckInResponses, HealthCheckData, HealthCheckResponses, ListAthleteBestMarksData, ListAthleteBestMarksErrors, ListAthleteBestMarksResponses, ListAthleteCheckInsData, ListAthleteCheckInsErrors, ListAthleteCheckInsResponses, ListAthleteFitnessTestsData, ListAthleteFitnessTestsErrors, ListAthleteFitnessTestsResponses, ListAthleteInjuriesData, ListAthleteInjuriesErrors, ListAthleteInjuriesResponses, ListCheckInInjuriesData, ListCheckInInjuriesErrors, ListCheckInInjuriesResponses, ListFieldTestSessionsData, ListFieldTestSessionsErrors, ListFieldTestSessionsResponses, ListFitnessTestsData, ListFitnessTestsErrors, ListFitnessTestsResponses, ListResolvedInjuriesData, ListResolvedInjuriesErrors, ListResolvedInjuriesResponses, RegisterDailyLoadData, RegisterDailyLoadErrors, RegisterDailyLoadResponses, SetAttendanceData, SetAttendanceErrors, SetAttendanceResponses, SubmitCheckInData, SubmitCheckInErrors, SubmitCheckInResponses, UpdateFieldTestResultData, UpdateFieldTestResultErrors, UpdateFieldTestResultResponses, UpdateFieldTestSessionStatusData, UpdateFieldTestSessionStatusErrors, UpdateFieldTestSessionStatusResponses, UpdateInjuryStatusData, UpdateInjuryStatusErrors, UpdateInjuryStatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -33,6 +33,32 @@ export const submitCheckIn = <ThrowOnError extends boolean = false>(options: Opt
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Listar las molestias activas de un atleta para puntuar en el check-in
+ *
+ * Devuelve las molestias del atleta que aún no fueron dadas de alta (Active o InRecovery), para que el check-in diario exija puntuar el dolor (0 a 10) de cada una. Accesible por el preparador físico dueño o por el propio atleta.
+ *
+ */
+export const listCheckInInjuries = <ThrowOnError extends boolean = false>(options: Options<ListCheckInInjuriesData, ThrowOnError>): RequestResult<ListCheckInInjuriesResponses, ListCheckInInjuriesErrors, ThrowOnError> => (options.client ?? client).get<ListCheckInInjuriesResponses, ListCheckInInjuriesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/check-in/injuries',
+    ...options
+});
+
+/**
+ * Listar las molestias resueltas de un atleta con su pico de dolor
+ *
+ * Devuelve las molestias del atleta que ya fueron dadas de alta (MedicallyCleared), incluyendo el pico de dolor (máximo nivel registrado durante su evolución). Accesible por el preparador físico dueño o por el propio atleta.
+ *
+ */
+export const listResolvedInjuries = <ThrowOnError extends boolean = false>(options: Options<ListResolvedInjuriesData, ThrowOnError>): RequestResult<ListResolvedInjuriesResponses, ListResolvedInjuriesErrors, ThrowOnError> => (options.client ?? client).get<ListResolvedInjuriesResponses, ListResolvedInjuriesErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/check-in/injuries/resolved',
+    ...options
 });
 
 /**
@@ -171,6 +197,19 @@ export const getCategoryAverages = <ThrowOnError extends boolean = false>(option
 });
 
 /**
+ * Consultar resumen consolidado de una categoría en un período
+ *
+ * Devuelve presentismo, lesiones y carga de entrenamiento agregados de una categoría entre dos fechas (formato YYYY-MM-DD, hora Argentina). Garantía de privacidad: no expone identificadores, nombres ni datos clínicos individuales.
+ *
+ */
+export const getCategoryDashboardSummary = <ThrowOnError extends boolean = false>(options: Options<GetCategoryDashboardSummaryData, ThrowOnError>): RequestResult<GetCategoryDashboardSummaryResponses, GetCategoryDashboardSummaryErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryDashboardSummaryResponses, GetCategoryDashboardSummaryErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/summary',
+    ...options
+});
+
+/**
  * Consultar perfil del atleta frente al promedio de su grupo
  *
  * Retorna la evolución del atleta comparada exclusivamente contra el promedio anónimo de su categoría (garantía de seguridad: ningún atleta ve los datos individuales de sus compañeros).
@@ -214,7 +253,7 @@ export const createInjury = <ThrowOnError extends boolean = false>(options: Opti
 /**
  * Actualizar estado de una lesión (Máquina de estados)
  *
- * Realiza la transición de estado de una lesión. Regla de negocio estricta: Una lesión 'Active' no puede pasar directamente a 'Cleared' sin haber transitado por 'InRecovery'.
+ * Realiza la transición de estado de una lesión. Regla de negocio estricta: Una lesión 'Active' no puede pasar directamente a 'MedicallyCleared' sin haber transitado por 'InRecovery'.
  *
  */
 export const updateInjuryStatus = <ThrowOnError extends boolean = false>(options: Options<UpdateInjuryStatusData, ThrowOnError>): RequestResult<UpdateInjuryStatusResponses, UpdateInjuryStatusErrors, ThrowOnError> => (options.client ?? client).patch<UpdateInjuryStatusResponses, UpdateInjuryStatusErrors, ThrowOnError>({
@@ -226,6 +265,19 @@ export const updateInjuryStatus = <ThrowOnError extends boolean = false>(options
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Resumen batch de lesiones activas por atleta
+ *
+ * Devuelve en una sola consulta la cantidad de lesiones en estado Active para cada atleta indicado, evitando consultas N+1 desde la vista de planificaciones (KAN-464).
+ *
+ */
+export const getActiveInjuriesSummary = <ThrowOnError extends boolean = false>(options?: Options<GetActiveInjuriesSummaryData, ThrowOnError>): RequestResult<GetActiveInjuriesSummaryResponses, GetActiveInjuriesSummaryErrors, ThrowOnError> => (options?.client ?? client).get<GetActiveInjuriesSummaryResponses, GetActiveInjuriesSummaryErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/injuries/active-summary',
+    ...options
 });
 
 /**
@@ -255,6 +307,19 @@ export const listAthleteFitnessTests = <ThrowOnError extends boolean = false>(op
 });
 
 /**
+ * Mejores marcas de tests mapeados a ejercicios de un atleta
+ *
+ * Devuelve la mejor marca registrada por el atleta para cada test del catálogo vinculado a un ejercicio de Entrenamiento (menor valor para pruebas de tiempo, mayor valor para el resto). Accesible para el PF dueño del atleta o el propio atleta.
+ *
+ */
+export const listAthleteBestMarks = <ThrowOnError extends boolean = false>(options: Options<ListAthleteBestMarksData, ThrowOnError>): RequestResult<ListAthleteBestMarksResponses, ListAthleteBestMarksErrors, ThrowOnError> => (options.client ?? client).get<ListAthleteBestMarksResponses, ListAthleteBestMarksErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/fitness-tests/best-marks',
+    ...options
+});
+
+/**
  * Consultar evolución temporal unificada de un atleta
  *
  * Consolida en una vista temporal unificada día a día la progresión histórica de fuerza (1RM), capacidades atléticas (salto/velocidad) y fatiga/wellness a lo largo de las semanas (por defecto, los últimos 3 meses).
@@ -264,6 +329,32 @@ export const getAthleteEvolution = <ThrowOnError extends boolean = false>(option
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/athletes/{athleteId}/evolution',
+    ...options
+});
+
+/**
+ * Consultar tendencias semanales individuales de wellness y carga
+ *
+ * Devuelve las tendencias semanales (lunes a domingo en hora de Argentina) de wellness compuesto (1..5) y carga total UA Foster de un atleta. Por defecto retorna las últimas 4 semanas incluida la actual.
+ *
+ */
+export const getAthleteWeeklyTrends = <ThrowOnError extends boolean = false>(options: Options<GetAthleteWeeklyTrendsData, ThrowOnError>): RequestResult<GetAthleteWeeklyTrendsResponses, GetAthleteWeeklyTrendsErrors, ThrowOnError> => (options.client ?? client).get<GetAthleteWeeklyTrendsResponses, GetAthleteWeeklyTrendsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/trends',
+    ...options
+});
+
+/**
+ * Consultar tendencias semanales grupales de wellness y carga por categoría
+ *
+ * Devuelve las tendencias semanales agregadas de una categoría. El wellness grupal se calcula como el promedio de los promedios semanales individuales de los atletas que reportaron (igual peso por atleta) y la carga grupal como la suma semanal de cargas UA Foster de los atletas distintos de la categoría.
+ *
+ */
+export const getCategoryWeeklyTrends = <ThrowOnError extends boolean = false>(options: Options<GetCategoryWeeklyTrendsData, ThrowOnError>): RequestResult<GetCategoryWeeklyTrendsResponses, GetCategoryWeeklyTrendsErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryWeeklyTrendsResponses, GetCategoryWeeklyTrendsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/trends',
     ...options
 });
 
@@ -300,7 +391,7 @@ export const createFieldTestSession = <ThrowOnError extends boolean = false>(opt
 /**
  * Cambiar el estado de la sesión
  *
- * Avanza el estado de la sesión en orden estricto Planned -> InProgress -> Closed. Un salto (Planned -> Closed), una reapertura o repetir el estado actual responde 400 "Transición de estado no válida". La sesión no exista o sea de otro PF → 404.
+ * Avanza el estado de la sesión en orden estricto Planned -> InProgress -> Closed. Un salto (Planned -> Closed), una reapertura o repetir el estado actual responde 400 con el detalle de la transición no permitida (orden: Planificada -> En curso -> Cerrada). La sesión no exista o sea de otro PF → 404.
  *
  */
 export const updateFieldTestSessionStatus = <ThrowOnError extends boolean = false>(options: Options<UpdateFieldTestSessionStatusData, ThrowOnError>): RequestResult<UpdateFieldTestSessionStatusResponses, UpdateFieldTestSessionStatusErrors, ThrowOnError> => (options.client ?? client).patch<UpdateFieldTestSessionStatusResponses, UpdateFieldTestSessionStatusErrors, ThrowOnError>({
@@ -330,7 +421,7 @@ export const getFieldTestSession = <ThrowOnError extends boolean = false>(option
 /**
  * Carga rápida de un resultado de campo
  *
- * Registra el valor de un atleta para un test de la sesión. Responde 404 si la sesión no existe o es de otro PF, o si el atleta no existe o es de otro PF (en ese caso no se persiste nada). Responde 409 si el mismo (sesión, prueba, atleta e intento) ya fue cargado. Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." (KAN-427).
+ * Registra el valor de un atleta para un test de la sesión. Responde 404 si la sesión no existe o es de otro PF, o si el atleta no existe o es de otro PF (en ese caso no se persiste nada). Responde 409 si el mismo (sesión, prueba, atleta e intento) ya fue cargado. Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." (KAN-427). Si la prueba no forma parte de la sesión responde 400 (KAN-568).
  *
  */
 export const createFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<CreateFieldTestResultData, ThrowOnError>): RequestResult<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<CreateFieldTestResultResponses, CreateFieldTestResultErrors, ThrowOnError>({
@@ -364,7 +455,7 @@ export const updateFieldTestResult = <ThrowOnError extends boolean = false>(opti
 /**
  * Confirmar un resultado de fuerza y sincronizar el 1RM
  *
- * Confirma un resultado de fuerza (test en kg) y envía de forma síncrona el 1RM testeado al microservicio Entrenamiento con origen TestedInSession, resolviendo el ejercicio homónimo por nombre exacto la primera vez (el GUID resuelto queda cacheado en la prueba del catálogo). Responde 404 si la sesión, el resultado o la prueba no existen o son de otro PF; 400 si el test no genera récord 1RM o si Entrenamiento no tiene un ejercicio con ese nombre; y 503 si Entrenamiento no responde tras los reintentos de Polly (la confirmación no quedó registrada allí). Re-confirmar reenvía el mismo valor (idempotente del lado de Entrenamiento). Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." y no se envía ningún 1RM (KAN-427).
+ * Confirma un resultado de fuerza (test en kg) y envía de forma síncrona el 1RM testeado al microservicio Entrenamiento con origen TestedInSession, resolviendo el ejercicio homónimo por nombre exacto la primera vez (el GUID resuelto queda cacheado en la prueba del catálogo). Responde 404 si la sesión, el resultado o la prueba no existen o son de otro PF; 400 si el test no genera récord 1RM o si Entrenamiento no tiene un ejercicio con ese nombre; y 503 si Entrenamiento no responde tras los reintentos de Polly (la confirmación no quedó registrada allí). Re-confirmar una marca ya confirmada responde 200 sin volver a llamar a Entrenamiento (idempotente, KAN-568); si la marca se corrige con PUT, queda pendiente de reconfirmar. Si la sesión está en estado Closed responde 400 "La sesión ya está cerrada." y no se envía ningún 1RM (KAN-427).
  *
  */
 export const confirmFieldTestResult = <ThrowOnError extends boolean = false>(options: Options<ConfirmFieldTestResultData, ThrowOnError>): RequestResult<ConfirmFieldTestResultResponses, ConfirmFieldTestResultErrors, ThrowOnError> => (options.client ?? client).post<ConfirmFieldTestResultResponses, ConfirmFieldTestResultErrors, ThrowOnError>({

@@ -186,7 +186,7 @@ export function CategoryInvitationModal({
                   value={invitation.invitationUrl || ''}
                   size={240}
                   level="Q"
-                  fgColor="var(--primary, #023050)"
+                  fgColor="var(--primary)"
                   includeMargin={true}
                   aria-label={`Código QR para unirse a la categoría ${categoryName}`}
                   role="img"

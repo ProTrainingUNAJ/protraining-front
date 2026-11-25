@@ -2,6 +2,10 @@
  * Helper utilities for the Check-In slide navigation and data formatting.
  */
 
+import { todayInArgentina } from '../../../utils/argentinaDate';
+import { MUSCLE_NAME_TO_SVG_IDS, normalizeMuscleString } from '../../../utils/exerciseMuscleMapper';
+import { OFFICIAL_JOINTS, OFFICIAL_MUSCLE_GROUPS } from '../muscleMap.config';
+
 export const STEP_TITLES: Record<number, string> = {
   1: 'Ánimo',
   2: 'Descanso y Recuperación',
@@ -75,6 +79,80 @@ export const formatPainZones = (musclePains: Record<string, number>): string | n
   return reportedPains.map(([mId, lvl]) => `${mId}:${lvl}`).join(',');
 };
 
+// lee el formato canónico del backend ("zona:nivel,zona:nivel") para reconstruir
+// las zonas en la confirmación. Las listas vacías serializadas y las entradas sin nivel se ignoran.
+export const parsePainZones = (painZones?: string | null): Record<string, number> => {
+  if (!painZones) return {};
+  const result: Record<string, number> = {};
+  painZones
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0 && entry !== '[]' && entry !== '{}')
+    .forEach((entry) => {
+      const separator = entry.lastIndexOf(':');
+      if (separator < 1) return;
+      const zone = entry.slice(0, separator).trim();
+      const level = Number(entry.slice(separator + 1));
+      if (zone.length > 0 && Number.isFinite(level)) result[zone] = level;
+    });
+  return result;
+};
+
+// KAN-487: el front no deja avanzar ni enviar si alguna molestia activa no tiene puntaje.
+// El 0 es un puntaje válido: solo se considera "sin puntaje" null o undefined.
+export const hasUnscoredActiveInjuries = (
+  injuries: ReadonlyArray<{ id: string }>,
+  scores: Readonly<Record<string, number | null | undefined>>,
+): boolean =>
+  injuries.some((injury) => scores[injury.id] === null || scores[injury.id] === undefined);
+
+// KAN-487: el botón seleccionado usa tokens CSS, nunca un color fijo como 'white'.
+export const getInjuryScoreColor = (isSelected: boolean): string =>
+  isSelected ? 'var(--on-primary)' : 'inherit';
+
+// una sola lista de zonas para el resumen. Los ids de las 19 zonas del SVG coinciden
+// con los de la ficha clínica, así que se deduplican por id. El marcador de lesión (nivel 6)
+// prevalece sobre el nivel pintado en la silueta; el dolor 0-10 se conserva aparte en `score`.
+export interface ConsolidatedPainZone {
+  zone: string;
+  level: number;
+  source: 'manual' | 'clinical' | 'both';
+  score: number | null;
+  description?: string;
+}
+
+export const getReportedZones = (
+  musclePains: Record<string, number> = {},
+  activeInjuries: ReadonlyArray<{ id: string; zone: string; description?: string }> = [],
+  injuryScores: Readonly<Record<string, number | null>> = {},
+): ConsolidatedPainZone[] => {
+  const byZone = new Map<string, ConsolidatedPainZone>();
+
+  Object.entries(musclePains).forEach(([zone, level]) => {
+    if (level <= 0) return;
+    byZone.set(zone.trim().toLowerCase(), {
+      zone: zone.trim(),
+      level,
+      source: 'manual',
+      score: null,
+    });
+  });
+
+  activeInjuries.forEach((injury) => {
+    const key = injury.zone.trim().toLowerCase();
+    const existing = byZone.get(key);
+    byZone.set(key, {
+      zone: existing?.zone ?? injury.zone.trim(),
+      level: 6,
+      source: existing ? 'both' : 'clinical',
+      score: injuryScores[injury.id] ?? null,
+      description: injury.description,
+    });
+  });
+
+  return [...byZone.values()];
+};
+
 export interface TrafficLightBadgeData {
   label: string;
   bg: string;
@@ -122,15 +200,103 @@ export const canAutoAdvanceStep5 = (answeredSick: boolean, answeredInjury: boole
 };
 
 /**
+ * Mapea las zonas de lesiones reportadas (de la ficha clínica / backend)
+ * a los identificadores anatómicos del mapa SVG con nivel 6 (color negro).
+ * (KAN-660: autoselección automática en cuerpo humano para lesiones reportadas)
+ */
+/** IDs que el mapa del cuerpo dibuja (músculos y articulaciones, frente y dorso). */
+const DRAWABLE_ZONE_IDS = new Set<string>(
+  [...OFFICIAL_MUSCLE_GROUPS, ...OFFICIAL_JOINTS].map((zone) => zone.id),
+);
+
+export const isDrawableZone = (zoneId: string): boolean => DRAWABLE_ZONE_IDS.has(zoneId);
+
+/**
+ * IDs dibujables para una zona (KAN-666). El check-in guardado puede traer el nombre del grupo
+ * ("isquiotibiales") en vez de cada músculo del dibujo ("isquiotibial_derecho", "…_izquierdo"):
+ * se traduce con el diccionario y se descartan los que el mapa no dibuja. Si no hay forma de
+ * dibujarla, devuelve la zona tal cual para no perder el dato.
+ */
+const toDrawableIds = (zone: string): string[] => {
+  if (isDrawableZone(zone)) return [zone];
+  const raw = zone.trim().toLowerCase();
+  const normalized = normalizeMuscleString(raw);
+  const fromDictionary = (
+    MUSCLE_NAME_TO_SVG_IDS[normalized] ??
+    MUSCLE_NAME_TO_SVG_IDS[raw] ??
+    []
+  ).filter(isDrawableZone);
+  if (fromDictionary.length > 0) return fromDictionary;
+  const underscored = normalized.replace(/\s+/g, '_');
+  return isDrawableZone(underscored) ? [underscored] : [zone];
+};
+
+/**
+ * Pasa las zonas de un check-in guardado a los IDs del mapa, conservando el nivel (KAN-666).
+ * Así, al editar el check-in, la lesión guardada como "isquiotibiales:6" se pinta de negro en
+ * los dos isquiotibiales. Si dos zonas caen en el mismo músculo, queda el nivel más alto.
+ */
+export const toDrawableMusclePains = (
+  pains: Readonly<Record<string, number>>,
+): Record<string, number> => {
+  const result: Record<string, number> = {};
+  Object.entries(pains).forEach(([zone, level]) => {
+    toDrawableIds(zone).forEach((id) => {
+      result[id] = Math.max(result[id] ?? 0, level);
+    });
+  });
+  return result;
+};
+
+export const mapClinicalInjuriesToMusclePains = (
+  activeInjuries: ReadonlyArray<{ zone: string }>,
+): Record<string, number> => {
+  const pains: Record<string, number> = {};
+  if (!activeInjuries || activeInjuries.length === 0) return pains;
+
+  activeInjuries.forEach((injury) => {
+    if (!injury.zone) return;
+    const rawZone = injury.zone.trim().toLowerCase();
+    const normalized = normalizeMuscleString(rawZone);
+
+    // 1. Coincidencia con diccionario SVG IDs, solo los que el mapa dibuja: el grupo
+    //    ("isquiotibiales") se contaba como una zona más sin pintarse (KAN-666)
+    const svgIds = (
+      MUSCLE_NAME_TO_SVG_IDS[normalized] ||
+      MUSCLE_NAME_TO_SVG_IDS[rawZone] ||
+      []
+    ).filter(isDrawableZone);
+    if (svgIds.length > 0) {
+      svgIds.forEach((id) => {
+        pains[id] = 6;
+      });
+      return;
+    }
+
+    // 2. Coincidencia directa o formateada con guiones bajos
+    const directId = normalized.replace(/\s+/g, '_');
+    pains[directId] = 6;
+  });
+
+  return pains;
+};
+
+/**
  * Valida si el atleta cumple con marcar la lesión con color negro (level: 6)
- * cuando indica que tiene una lesión activa.
+ * cuando indica o tiene una lesión activa (KAN-660).
+ * La flecha no debe permitir avanzar hasta que se marque la lesión en el cuerpo
+ * humano (con nivel 6 / negro), o hasta que se ponga que no hay lesión (hasActiveInjury === false).
  */
 export const hasRequiredInjuryMark = (
   hasActiveInjury: boolean,
   musclePains: Record<string, number> = {},
 ): boolean => {
   if (!hasActiveInjury) return true;
-  return Object.values(musclePains).some((level) => level === 6);
+  // Solo cuenta una marca que se ve en el dibujo: un nivel 6 en "isquiotibiales" (grupo, sin
+  // pintar) dejaba avanzar sin nada en negro (KAN-666)
+  return Object.entries(musclePains).some(
+    ([zoneId, level]) => Number(level) === 6 && isDrawableZone(zoneId),
+  );
 };
 
 /**
@@ -165,22 +331,22 @@ export interface CheckInDraftData {
   hasActiveInjury: boolean;
   healthQuestionsAnswered: boolean;
   musclePains: Record<string, number>;
+  injuryScores?: Record<string, number | null>;
   notes: string;
 }
 
+/**
+ * KAN-593 / KAN-493: el registro local de check-in completado solo existe para mostrar
+ * la confirmación. No incluye el borrador ni el motivo del semáforo: son datos de salud
+ * que no deben quedar guardados en el dispositivo.
+ */
 export interface CheckInCompletedData {
-  result: unknown;
-  draft: CheckInDraftData;
   completedAt: string;
+  trafficLight?: 'Green' | 'Yellow' | 'Red';
+  isOffline?: boolean;
 }
 
-export const getTodayKey = (): string => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+export const getTodayKey = (): string => todayInArgentina();
 
 const getStorage = (): Storage | null => {
   try {
@@ -199,10 +365,50 @@ const getStorage = (): Storage | null => {
 export const getCheckInCompleted = (athleteId: string): CheckInCompletedData | null => {
   const storage = getStorage();
   if (!storage || !athleteId) return null;
+  const key = `protraining_checkin_completed_${athleteId}_${getTodayKey()}`;
   try {
-    const raw = storage.getItem(`protraining_checkin_completed_${athleteId}_${getTodayKey()}`);
+    const raw = storage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw) as CheckInCompletedData;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+
+    // Reescribe el registro solo con el indicador mínimo. Así se eliminan tanto el
+    // resultado médico completo de versiones viejas como el motivo del semáforo.
+    const rewriteMinimal = (data: CheckInCompletedData): void => {
+      try {
+        storage.setItem(key, JSON.stringify(data));
+      } catch {
+        // Ignored in storage-restricted environments
+      }
+    };
+
+    if ('result' in parsed && parsed.result && typeof parsed.result === 'object') {
+      const result = parsed.result as {
+        trafficLight?: 'Green' | 'Yellow' | 'Red';
+        isOffline?: boolean;
+      };
+      const migrated: CheckInCompletedData = {
+        completedAt:
+          typeof parsed.completedAt === 'string' ? parsed.completedAt : new Date().toISOString(),
+        trafficLight: result.trafficLight,
+        isOffline: result.isOffline,
+      };
+      rewriteMinimal(migrated);
+      return migrated;
+    }
+
+    if (typeof parsed.completedAt !== 'string') return null;
+    const completed: CheckInCompletedData = {
+      completedAt: parsed.completedAt,
+      trafficLight:
+        parsed.trafficLight === 'Green' ||
+        parsed.trafficLight === 'Yellow' ||
+        parsed.trafficLight === 'Red'
+          ? parsed.trafficLight
+          : undefined,
+      isOffline: typeof parsed.isOffline === 'boolean' ? parsed.isOffline : undefined,
+    };
+    if ('trafficLightReason' in parsed) rewriteMinimal(completed);
+    return completed;
   } catch {
     return null;
   }
@@ -212,10 +418,111 @@ export const saveCheckInCompleted = (athleteId: string, data: CheckInCompletedDa
   const storage = getStorage();
   if (!storage || !athleteId) return;
   try {
+    // Lista blanca: aunque venga información extra, solo se persiste el indicador mínimo.
+    const persisted: CheckInCompletedData = {
+      completedAt: data.completedAt,
+      trafficLight: data.trafficLight,
+      isOffline: data.isOffline,
+    };
     storage.setItem(
       `protraining_checkin_completed_${athleteId}_${getTodayKey()}`,
-      JSON.stringify(data),
+      JSON.stringify(persisted),
     );
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
+
+/**
+ * KAN-593: limpia los registros de check-in completado del formato viejo, que guardaban
+ * el borrador completo (dolor por lesión, zonas, enfermedad y notas) y se acumulaban
+ * uno por día en el dispositivo. Los registros nuevos solo tienen resultado y fecha.
+ */
+export const purgeLegacyCheckInCompletedData = (athleteId: string): void => {
+  const storage = getStorage();
+  if (!storage || !athleteId) return;
+  const prefix = `protraining_checkin_completed_${athleteId}_`;
+  const today = getTodayKey();
+  const keysToRemove: string[] = [];
+
+  try {
+    for (let index = 0; ; index += 1) {
+      const key = storage.key(index);
+      if (!key) break;
+      if (!key.startsWith(prefix)) continue;
+      const datePart = key.slice(prefix.length);
+      let stored: Record<string, unknown> | null = null;
+      try {
+        stored = JSON.parse(storage.getItem(key) ?? '{}') as Record<string, unknown>;
+      } catch {
+        stored = null;
+      }
+      const isExpired = datePart !== today;
+      const isLegacy = stored !== null && ('draft' in stored || 'result' in stored);
+      const isInvalid = stored === null || typeof stored.completedAt !== 'string';
+      if (isExpired || isLegacy || isInvalid) keysToRemove.push(key);
+    }
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+
+  try {
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
+
+const CHECKIN_DATED_KEY_PREFIXES = [
+  'protraining_checkin_draft_',
+  'protraining_checkin_completed_',
+] as const;
+
+/**
+ * Borra borradores y confirmaciones fechados en otro día. Si la app se cierra a mitad
+ * del check-in y se abre al día siguiente, el borrador con sueño, enfermedad, dolor y
+ * lesiones no debe seguir en el dispositivo.
+ */
+export const purgeStaleCheckInData = (): void => {
+  const storage = getStorage();
+  if (!storage) return;
+  const today = getTodayKey();
+  const keysToRemove: string[] = [];
+
+  try {
+    for (let index = 0; ; index += 1) {
+      const key = storage.key(index);
+      if (!key) break;
+      if (!CHECKIN_DATED_KEY_PREFIXES.some((prefix) => key.startsWith(prefix))) continue;
+      // El sufijo de estas claves siempre es la fecha del check-in (YYYY-MM-DD).
+      if (key.slice(key.lastIndexOf('_') + 1) !== today) keysToRemove.push(key);
+    }
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+
+  try {
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+};
+
+export const clearAllCheckInData = (): void => {
+  const storage = getStorage();
+  if (!storage) return;
+  const keysToRemove: string[] = [];
+  try {
+    for (let index = 0; ; index += 1) {
+      const key = storage.key(index);
+      if (!key) break;
+      if (key.startsWith('protraining_checkin_')) keysToRemove.push(key);
+    }
+  } catch {
+    // Ignored in storage-restricted environments
+  }
+  try {
+    keysToRemove.forEach((key) => storage.removeItem(key));
   } catch {
     // Ignored in storage-restricted environments
   }
@@ -233,6 +540,12 @@ export const getCheckInDraft = (athleteId: string): CheckInDraftData | null => {
   }
 };
 
+/**
+ * KAN-593 · Decisión del PM: para que el check-in funcione sin conexión se permite guardar
+ * en localStorage el borrador con el dolor por lesión (excepción documentada a la regla
+ * "nada médico en localStorage"). Condición: se borra apenas se envía el check-in mediante
+ * clearCheckInDraft(athleteId), tanto en el envío online como en la sincronización offline.
+ */
 export const saveCheckInDraft = (athleteId: string, draft: CheckInDraftData): void => {
   const storage = getStorage();
   if (!storage || !athleteId) return;

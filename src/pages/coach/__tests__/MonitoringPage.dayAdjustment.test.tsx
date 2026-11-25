@@ -28,6 +28,7 @@ vi.mock('../../../api/seguimientoService', async (importOriginal) => {
 vi.mock('../../../api/dayAdjustments', () => ({
   dayAdjustmentsService: {
     getAthleteDayConflicts: vi.fn(),
+    getCategoryDayConflicts: vi.fn(),
     createOrGetDayAdjustment: vi.fn(),
     approveDayAdjustment: vi.fn(),
     rejectDayAdjustment: vi.fn(),
@@ -75,19 +76,9 @@ describe('MonitoringPage · Botón Ver ajuste sugerido (#157 · KAN-452)', () =>
       },
     ]);
 
-    vi.mocked(dayAdjustmentsService.getAthleteDayConflicts).mockResolvedValue({
-      hasConflicts: true,
-      painZones: 'cuadriceps:2',
-      conflicts: [
-        {
-          exerciseId: 'ex-jump',
-          name: 'Salto al cajón',
-          zone: 'cuadriceps',
-          painLevel: 2,
-          reason: 'Impacto reactivo',
-          substitutes: [{ exerciseId: 'ex-press', name: 'Prensa de piernas' }],
-        },
-      ],
+    vi.mocked(dayAdjustmentsService.getCategoryDayConflicts).mockResolvedValue({
+      categoryId: 'cat-1',
+      athletes: [{ athleteId: 'ath-1', hasConflicts: true }],
     });
 
     vi.mocked(dayAdjustmentsService.createOrGetDayAdjustment).mockResolvedValue({
@@ -171,5 +162,154 @@ describe('MonitoringPage · Botón Ver ajuste sugerido (#157 · KAN-452)', () =>
 
     expect(screen.queryByTestId('btn-day-adjustment-ath-2')).toBeNull();
     expect(screen.queryByText('Ver ajuste sugerido')).toBeNull();
+    expect(dayAdjustmentsService.getCategoryDayConflicts).not.toHaveBeenCalled();
+    expect(dayAdjustmentsService.getAthleteDayConflicts).not.toHaveBeenCalled();
+  });
+
+  it('DADO una categoría con varios atletas con dolor CUANDO el PF abre el semáforo ENTONCES consulta conflictos en una sola llamada por categoría sin N+1 (KAN-574)', async () => {
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-10',
+        athleteName: 'Diego Torres',
+        trafficLight: 'Yellow',
+        trafficLightReason: 'Molestia en el cuádriceps reportada hoy.',
+        hasReportedToday: true,
+        reportedAt: '2026-11-21T10:00:00Z',
+        resultValue: 50,
+        indicators: {
+          painZones: 'cuadriceps:2',
+          sleepHours: 8,
+          sleepQuality: 4,
+          effortRate: 6,
+          isSick: false,
+          hasActiveInjury: false,
+        },
+      },
+      {
+        athleteId: 'ath-11',
+        athleteName: 'Valentina Cruz',
+        trafficLight: 'Yellow',
+        trafficLightReason: 'Molestia en el hombro reportada hoy.',
+        hasReportedToday: true,
+        reportedAt: '2026-11-21T10:05:00Z',
+        resultValue: 50,
+        indicators: {
+          painZones: 'hombro:2',
+          sleepHours: 7.5,
+          sleepQuality: 4,
+          effortRate: 5,
+          isSick: false,
+          hasActiveInjury: false,
+        },
+      },
+      {
+        athleteId: 'ath-12',
+        athleteName: 'Sofía Méndez',
+        trafficLight: 'Yellow',
+        trafficLightReason: 'Molestia en isquiotibiales reportada hoy.',
+        hasReportedToday: true,
+        reportedAt: '2026-11-21T10:10:00Z',
+        resultValue: 50,
+        indicators: {
+          painZones: 'isquiotibiales:3',
+          sleepHours: 8,
+          sleepQuality: 4,
+          effortRate: 6,
+          isSick: false,
+          hasActiveInjury: false,
+        },
+      },
+    ]);
+
+    vi.mocked(dayAdjustmentsService.getCategoryDayConflicts).mockResolvedValue({
+      categoryId: 'cat-1',
+      athletes: [
+        { athleteId: 'ath-10', hasConflicts: true },
+        { athleteId: 'ath-11', hasConflicts: false },
+        { athleteId: 'ath-12', hasConflicts: true },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('btn-day-adjustment-ath-10')).toBeTruthy();
+      expect(screen.getByTestId('btn-day-adjustment-ath-12')).toBeTruthy();
+    });
+
+    expect(screen.queryByTestId('btn-day-adjustment-ath-11')).toBeNull();
+    expect(dayAdjustmentsService.getCategoryDayConflicts).toHaveBeenCalledTimes(1);
+    expect(dayAdjustmentsService.getCategoryDayConflicts).toHaveBeenCalledWith('cat-1');
+    expect(dayAdjustmentsService.getAthleteDayConflicts).not.toHaveBeenCalled();
+  });
+
+  it('DADO Asistente caído (503) CUANDO carga el semáforo con atletas con dolor ENTONCES degrada sin error y muestra igualmente las tarjetas (KAN-574)', async () => {
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-20',
+        athleteName: 'Bruno Castro',
+        trafficLight: 'Yellow',
+        trafficLightReason: 'Molestia en el cuádriceps reportada hoy.',
+        hasReportedToday: true,
+        reportedAt: '2026-11-21T10:15:00Z',
+        resultValue: 50,
+        indicators: {
+          painZones: 'cuadriceps:2',
+          sleepHours: 7,
+          sleepQuality: 4,
+          effortRate: 6,
+          isSick: false,
+          hasActiveInjury: false,
+        },
+      },
+    ]);
+
+    vi.mocked(dayAdjustmentsService.getCategoryDayConflicts).mockRejectedValue(
+      new Error('El microservicio de Asistente no se encuentra disponible.'),
+    );
+
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Bruno Castro')).toBeTruthy();
+    });
+
+    expect(screen.queryByTestId('btn-day-adjustment-ath-20')).toBeNull();
+    expect(screen.queryByText('Ver ajuste sugerido')).toBeNull();
+    expect(dayAdjustmentsService.getCategoryDayConflicts).toHaveBeenCalledTimes(1);
+  });
+
+  it('muestra la pestaña de Asistencia & RPE y renderiza las tarjetas de atletas', async () => {
+    vi.mocked(getCategoryTrafficLightToday).mockResolvedValue([
+      {
+        athleteId: 'ath-3',
+        athleteName: 'Joaquín Díaz',
+        trafficLight: 'Green',
+        trafficLightReason: 'Óptimo',
+        hasReportedToday: true,
+        reportedAt: '2026-11-10T11:00:00Z',
+        resultValue: 90,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <MonitoringPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Joaquín Díaz')).toBeTruthy();
+    });
+
+    expect(screen.getByRole('button', { name: /Asistencia & RPE/i })).toBeDefined();
   });
 });

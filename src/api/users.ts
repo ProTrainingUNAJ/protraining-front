@@ -1,10 +1,14 @@
 import {
   updateWhatsAppPhone as updatePhoneSdk,
   getPfContact as getPfContactSdk,
+  updateProfile as updateProfileSdk,
+  updateMyUserTelegram as updateMyUserTelegramSdk,
+  deactivateAccount as deactivateAccountSdk,
   type PfContact,
   type UpdatePhoneResponse,
+  type ProfileResponse,
 } from './generated/identidad';
-import { extractErrorMessage } from './axiosClient';
+import { httpClient, extractErrorMessage } from './axiosClient';
 
 /**
  * Servicio de usuarios y contacto de WhatsApp (KAN-562 / KAN-379).
@@ -55,6 +59,143 @@ export const usersService = {
         return null;
       }
 
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Devuelve la URL del endpoint de foto del usuario autenticado (WebP).
+   */
+  getMyPhotoUrl(userId?: string, photoUpdatedAt?: string | null): string {
+    const base = userId
+      ? `/identidad/api/v1/users/${userId}/photo`
+      : '/identidad/api/v1/users/me/photo';
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Obtiene la foto del usuario con token Bearer como Blob URL (KAN-512).
+   */
+  async getUserPhotoBlob(userId?: string, photoUpdatedAt?: string | null): Promise<string> {
+    const url = this.getMyPhotoUrl(userId, photoUpdatedAt);
+    const { data } = await httpClient.get(url, { responseType: 'blob' });
+    return URL.createObjectURL(data);
+  },
+
+  /**
+   * Devuelve la URL de la foto del preparador físico para el atleta (WebP).
+   */
+  getPfPhotoUrl(pfId?: string, photoUpdatedAt?: string | null): string {
+    const base = pfId
+      ? `/identidad/api/v1/users/${pfId}/photo`
+      : '/identidad/api/v1/users/me/pf-photo';
+    return photoUpdatedAt ? `${base}?v=${encodeURIComponent(photoUpdatedAt)}` : base;
+  },
+
+  /**
+   * Sube la foto de perfil en formato WebP para el usuario autenticado (KAN-512).
+   */
+  async uploadMyPhoto(file: File): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      await httpClient.put('/identidad/api/v1/users/me/photo', formData);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Elimina la foto de perfil del usuario autenticado (KAN-512).
+   */
+  async deleteMyPhoto(): Promise<void> {
+    try {
+      await httpClient.delete('/identidad/api/v1/users/me/photo');
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Actualiza la preferencia del PF sobre el uso de recomendaciones de hábitos y alimentación.
+   */
+  async updatePfHabitsRecommendations(enabled: boolean): Promise<{ enabled: boolean }> {
+    try {
+      const { data } = await httpClient.put('/identidad/api/v1/users/me/habits-recommendations', {
+        enabled,
+      });
+      return data as { enabled: boolean };
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Obtiene la preferencia del PF autenticado sobre el uso de recomendaciones de hábitos y alimentación.
+   */
+  async getPfHabitsRecommendations(): Promise<{ enabled: boolean }> {
+    try {
+      const { data } = await httpClient.get('/identidad/api/v1/users/me/habits-recommendations');
+      return data as { enabled: boolean };
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Actualiza el perfil de nombre, teléfono y Telegram del preparador físico (KAN-601 / KAN-602 / KAN-503).
+   */
+  async updateProfile(payload: {
+    fullName: string;
+    phone?: string | null;
+    telegramUsername?: string | null;
+  }): Promise<ProfileResponse> {
+    try {
+      const { data } = await updateProfileSdk({
+        body: {
+          fullName: payload.fullName.trim(),
+          phone: payload.phone?.trim() || null,
+          ...(payload.telegramUsername !== undefined
+            ? { telegramUsername: payload.telegramUsername?.trim() || '' }
+            : {}),
+        },
+        throwOnError: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Actualiza exclusivamente el usuario de Telegram del usuario autenticado (PF o Atleta, KAN-503).
+   */
+  async updateMyTelegram(telegramUsername?: string | null): Promise<ProfileResponse> {
+    try {
+      const { data } = await updateMyUserTelegramSdk({
+        body: {
+          telegramUsername: telegramUsername?.trim() || null,
+        },
+        throwOnError: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Da de baja lógica la cuenta del preparador físico, validando la contraseña actual (KAN-601 / KAN-602).
+   */
+  async deactivateAccount(password: string): Promise<void> {
+    try {
+      await deactivateAccountSdk({
+        body: {
+          password,
+        },
+        throwOnError: true,
+      });
+    } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }
   },

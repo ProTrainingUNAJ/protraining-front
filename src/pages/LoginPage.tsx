@@ -12,6 +12,9 @@ export const LoginPage: React.FC = () => {
   }
 
   if (isAuthenticated && user) {
+    if (user.mustChangePassword) {
+      return <Navigate to="/force-change-password" replace />;
+    }
     return <Navigate to={user.role === 'PreparadorFisico' ? '/pf' : '/athlete'} replace />;
   }
 

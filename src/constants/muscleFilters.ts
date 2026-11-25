@@ -12,9 +12,9 @@ export type ChipCategory = (typeof CHIP_CATEGORIES)[number];
 
 export const GROUP_SUB_MUSCLES: Record<string, string[]> = {
   Piernas: ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos', 'Aductores', 'Abductores'],
-  Pecho: ['Pecho'],
+  Pecho: [],
   Espalda: ['Dorsales', 'Espalda media', 'Espalda baja', 'Trapecios'],
-  Hombros: ['Hombros', 'Cuello'],
+  Hombros: ['Cuello'],
   Brazos: ['Bíceps', 'Tríceps', 'Antebrazos'],
-  Core: ['Abdominales'],
+  Core: [],
 };

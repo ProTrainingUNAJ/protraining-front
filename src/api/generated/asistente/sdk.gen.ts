@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, TriggerPreventiveScanData, TriggerPreventiveScanErrors, TriggerPreventiveScanResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses } from './types.gen';
+import type { ApplyAlertAdjustmentData, ApplyAlertAdjustmentErrors, ApplyAlertAdjustmentResponses, ApproveDayAdjustmentData, ApproveDayAdjustmentErrors, ApproveDayAdjustmentResponses, ApproveHabitsRecommendationData, ApproveHabitsRecommendationErrors, ApproveHabitsRecommendationResponses, ApprovePlanDraftData, ApprovePlanDraftErrors, ApprovePlanDraftResponses, ApproveRecommendationData, ApproveRecommendationErrors, ApproveRecommendationResponses, CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateAthleteDayAdjustmentData, CreateAthleteDayAdjustmentErrors, CreateAthleteDayAdjustmentResponses, CreatePlanDraftWithAiData, CreatePlanDraftWithAiErrors, CreatePlanDraftWithAiResponses, DiscardPlanDraftData, DiscardPlanDraftErrors, DiscardPlanDraftResponses, DiscardRecommendationData, DiscardRecommendationErrors, DiscardRecommendationResponses, GenerateAthleteAdaptationData, GenerateAthleteAdaptationErrors, GenerateAthleteAdaptationResponses, GenerateAthleteRecommendationsData, GenerateAthleteRecommendationsErrors, GenerateAthleteRecommendationsResponses, GenerateCategoryRecommendationsData, GenerateCategoryRecommendationsErrors, GenerateCategoryRecommendationsResponses, GetAlertByIdData, GetAlertByIdErrors, GetAlertByIdResponses, GetAthleteAdaptationContextData, GetAthleteAdaptationContextErrors, GetAthleteAdaptationContextResponses, GetAthleteDayConflictsData, GetAthleteDayConflictsErrors, GetAthleteDayConflictsResponses, GetAthleteDecisionsData, GetAthleteDecisionsErrors, GetAthleteDecisionsResponses, GetCategoryDayConflictsData, GetCategoryDayConflictsErrors, GetCategoryDayConflictsResponses, GetHabitsRecommendationData, GetHabitsRecommendationErrors, GetHabitsRecommendationResponses, GetPlanDraftByIdData, GetPlanDraftByIdErrors, GetPlanDraftByIdResponses, GetRecommendationByIdData, GetRecommendationByIdErrors, GetRecommendationByIdResponses, HealthCheckData, HealthCheckResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListMyRecommendationsData, ListMyRecommendationsErrors, ListMyRecommendationsResponses, ListRecommendationsData, ListRecommendationsErrors, ListRecommendationsResponses, RejectDayAdjustmentData, RejectDayAdjustmentErrors, RejectDayAdjustmentResponses, ReviewAlertData, ReviewAlertErrors, ReviewAlertResponses, SuggestRoutineWithAiData, SuggestRoutineWithAiErrors, SuggestRoutineWithAiResponses, SuggestTodayAdjustmentData, SuggestTodayAdjustmentErrors, SuggestTodayAdjustmentResponses, UpdatePlanDraftData, UpdatePlanDraftErrors, UpdatePlanDraftResponses, UpdateRecommendationData, UpdateRecommendationErrors, UpdateRecommendationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -31,6 +31,36 @@ export const listAlerts = <ThrowOnError extends boolean = false>(options?: Optio
 });
 
 /**
+ * Crear un aviso preventivo
+ *
+ * Crea y persiste un aviso preventivo para un atleta perteneciente al preparador físico autenticado. El identificador pf_id se obtiene exclusivamente del token JWT autenticado y athleteId se valida contra Estructura antes de persistir. Requiere rol PreparadorFisico.
+ *
+ */
+export const createAlert = <ThrowOnError extends boolean = false>(options: Options<CreateAlertData, ThrowOnError>): RequestResult<CreateAlertResponses, CreateAlertErrors, ThrowOnError> => (options.client ?? client).post<CreateAlertResponses, CreateAlertErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/alerts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Obtener detalle de un aviso preventivo por ID
+ *
+ * Devuelve el detalle de un aviso preventivo perteneciente al preparador físico autenticado. Retorna 404 si el aviso no existe o pertenece a otro PF (aislamiento multi-tenant).
+ *
+ */
+export const getAlertById = <ThrowOnError extends boolean = false>(options: Options<GetAlertByIdData, ThrowOnError>): RequestResult<GetAlertByIdResponses, GetAlertByIdErrors, ThrowOnError> => (options.client ?? client).get<GetAlertByIdResponses, GetAlertByIdErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/alerts/{id}',
+    ...options
+});
+
+/**
  * Marcar alerta preventiva como revisada
  *
  * Registra la intervención del preparador físico sobre la recomendación generada.
@@ -43,15 +73,15 @@ export const reviewAlert = <ThrowOnError extends boolean = false>(options: Optio
 });
 
 /**
- * Disparar escaneo preventivo inmediato
+ * Aplicar ajuste de aviso preventivo en un clic
  *
- * Ejecuta el ciclo de análisis heurístico y de IA sobre las sesiones, check-ins, partidos próximos del fixture y lesiones, alertando sobre situaciones críticas.
+ * Aplica la modificación sugerida por el aviso preventivo directamente en Entrenamiento generando la variante de sesión para el atleta (#183 · KAN-478). Requiere rol PreparadorFisico.
  *
  */
-export const triggerPreventiveScan = <ThrowOnError extends boolean = false>(options?: Options<TriggerPreventiveScanData, ThrowOnError>): RequestResult<TriggerPreventiveScanResponses, TriggerPreventiveScanErrors, ThrowOnError> => (options?.client ?? client).post<TriggerPreventiveScanResponses, TriggerPreventiveScanErrors, ThrowOnError>({
+export const applyAlertAdjustment = <ThrowOnError extends boolean = false>(options: Options<ApplyAlertAdjustmentData, ThrowOnError>): RequestResult<ApplyAlertAdjustmentResponses, ApplyAlertAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<ApplyAlertAdjustmentResponses, ApplyAlertAdjustmentErrors, ThrowOnError>({
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/alerts/scan',
+    url: '/api/v1/alerts/{alertId}/apply',
     ...options
 });
 
@@ -92,7 +122,7 @@ export const suggestRoutineWithAi = <ThrowOnError extends boolean = false>(optio
 /**
  * Generar y persistir un nuevo borrador de planificación con IA
  *
- * Genera un borrador de planificación multisesión a través de la cadena resiliente de IA (Ollama -> Gemini -> Reglas), validando esquema e identificadores del catálogo oficial y persistiéndolo en la base de datos bajo aislamiento multi-tenant.
+ * Genera un borrador de planificación multisesión a través de la cadena resiliente de IA (OpenAI -> Gemini -> Reglas), validando esquema e identificadores del catálogo oficial y persistiéndolo en la base de datos bajo aislamiento multi-tenant.
  *
  */
 export const createPlanDraftWithAi = <ThrowOnError extends boolean = false>(options: Options<CreatePlanDraftWithAiData, ThrowOnError>): RequestResult<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError> => (options.client ?? client).post<CreatePlanDraftWithAiResponses, CreatePlanDraftWithAiErrors, ThrowOnError>({
@@ -174,9 +204,22 @@ export const getAthleteDayConflicts = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
+ * Detectar qué atletas de una categoría tienen conflictos entre el dolor de hoy y su rutina
+ *
+ * Evalúa en una sola llamada por categoría cuáles atletas reportaron dolor en su check-in de hoy en zonas que trabaja su rutina de hoy, evitando el patrón N+1 desde la pantalla del semáforo (KAN-574). Solo evalúa rutinas y restricciones para los atletas que registraron zonas de dolor hoy. Si la categoría no existe o pertenece a otro PF, responde 404. Si Seguimiento o Entrenamiento no están disponibles, responde 503 sin inventar conflictos.
+ *
+ */
+export const getCategoryDayConflicts = <ThrowOnError extends boolean = false>(options: Options<GetCategoryDayConflictsData, ThrowOnError>): RequestResult<GetCategoryDayConflictsResponses, GetCategoryDayConflictsErrors, ThrowOnError> => (options.client ?? client).get<GetCategoryDayConflictsResponses, GetCategoryDayConflictsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/assistant/categories/{categoryId}/day-conflicts',
+    ...options
+});
+
+/**
  * Generar propuesta de ajuste del día a partir de los conflictos de hoy
  *
- * Genera y persiste la propuesta de ajuste del día (`day_adjustments`) a partir de los conflictos de dolor de hoy (KAN-451). El ejercicio sustituto se elige por reglas (el primero de la lista de sustitutos habilitados de KAN-387) y la IA solo redacta la justificación (con respaldo por reglas si Ollama y Gemini fallan o están apagados). Si ya existe una propuesta `Pending` para hoy, devuelve esa sin duplicarla.
+ * Genera y persiste la propuesta de ajuste del día (`day_adjustments`) a partir de los conflictos de dolor de hoy (KAN-451). El ejercicio sustituto se elige por reglas (el primero de la lista de sustitutos habilitados de KAN-387) y la IA solo redacta la justificación (con respaldo por reglas si los proveedores de IA fallan o no tienen clave). Si ya existe una propuesta `Pending` para hoy, devuelve esa sin duplicarla.
  *
  */
 export const createAthleteDayAdjustment = <ThrowOnError extends boolean = false>(options: Options<CreateAthleteDayAdjustmentData, ThrowOnError>): RequestResult<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError> => (options.client ?? client).post<CreateAthleteDayAdjustmentResponses, CreateAthleteDayAdjustmentErrors, ThrowOnError>({
@@ -266,7 +309,7 @@ export const getAthleteDecisions = <ThrowOnError extends boolean = false>(option
 /**
  * Obtener recomendación de hábitos y nutrición según objetivo
  *
- * Genera consejos de descanso, hidratación y requerimiento proteico diario según el peso y objetivo del atleta (basado en reglas fijas; sin suplementos; si el atleta es menor requiere consentimiento del tutor).
+ * Genera consejos de descanso, hidratación y requerimiento proteico diario según el peso y objetivo del atleta (basado en reglas fijas; sin suplementos; si el atleta es menor requiere consentimiento del tutor). KAN-494: el rango cuantitativo de proteína sólo se calcula cuando la fuente de contexto informa peso y objetivo válidos y la ficha médica auditada de Estructura puede verificarse sin riesgos registrados. Si faltan peso/objetivo, la ficha está vacía, incompleta o no se puede consultar, la respuesta es cualitativa o con derivación profesional, con minProteinGrams/maxProteinGrams en null; nunca se inventan valores. Fuente de peso/objetivo: el perfil físico canónico de Estructura (PATCH /api/v1/athletes/{id}/physical-profile y PATCH /api/v1/me/physical-profile, vocabulario cerrado "Ganar masa muscular" / "Mantener" / "Rendimiento deportivo" / "Objetivo no informado"). Si el dato no existe o Estructura no responde, el proveedor devuelve "sin dato" y no se inventan valores. Sigue sin haber definición aprobada de "día pesado" (se reporta en missingData). Ambas dependencias tienen un proveedor desacoplado. Los umbrales de partido cercano (2 días) y poco descanso (menos de 6 h) están alineados con reglas ya implementadas (KAN-473/KAN-477) y no se modifican sin validación profesional. La ficha médica se clasifica en backend; si Estructura pasa a exponer alergias/condiciones estructuradas se consumen automáticamente, y un false nunca borra un riesgo detectado en el texto libre. La consulta requiere consentimiento y se audita en Estructura. Devuelve 409 cuando la preferencia del PF o la autorización del tutor no habilitan hábitos (KAN-493/496).
  *
  */
 export const getHabitsRecommendation = <ThrowOnError extends boolean = false>(options: Options<GetHabitsRecommendationData, ThrowOnError>): RequestResult<GetHabitsRecommendationResponses, GetHabitsRecommendationErrors, ThrowOnError> => (options.client ?? client).get<GetHabitsRecommendationResponses, GetHabitsRecommendationErrors, ThrowOnError>({
@@ -285,6 +328,124 @@ export const approveHabitsRecommendation = <ThrowOnError extends boolean = false
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/v1/habits-recommendations/{recommendationId}/approve',
+    ...options
+});
+
+/**
+ * Ejecutar el motor de recomendaciones para un atleta
+ *
+ * Recopila los tests físicos del atleta, los promedios de su categoría y sus tendencias semanales, calcula brechas y motivos por reglas determinísticas, redacta la recomendación con IA sin datos personales y la persiste en estado Pending para revisión del preparador físico (#196 · KAN-491).
+ *
+ */
+export const generateAthleteRecommendations = <ThrowOnError extends boolean = false>(options: Options<GenerateAthleteRecommendationsData, ThrowOnError>): RequestResult<GenerateAthleteRecommendationsResponses, GenerateAthleteRecommendationsErrors, ThrowOnError> => (options.client ?? client).post<GenerateAthleteRecommendationsResponses, GenerateAthleteRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/athletes/{athleteId}/recommendations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Ejecutar el motor de recomendaciones para una categoría
+ *
+ * Evalúa a todos los atletas activos de la categoría frente al promedio grupal y sus tendencias semanales, redactando y guardando recomendaciones pendientes de aprobación del PF (#196 · KAN-491).
+ *
+ */
+export const generateCategoryRecommendations = <ThrowOnError extends boolean = false>(options: Options<GenerateCategoryRecommendationsData, ThrowOnError>): RequestResult<GenerateCategoryRecommendationsResponses, GenerateCategoryRecommendationsErrors, ThrowOnError> => (options.client ?? client).post<GenerateCategoryRecommendationsResponses, GenerateCategoryRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/categories/{categoryId}/recommendations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Listar recomendaciones del preparador físico
+ *
+ * Devuelve las recomendaciones del PF actual filtradas opcionalmente por atleta, categoría o estado (#196 · KAN-491).
+ */
+export const listRecommendations = <ThrowOnError extends boolean = false>(options?: Options<ListRecommendationsData, ThrowOnError>): RequestResult<ListRecommendationsResponses, ListRecommendationsErrors, ThrowOnError> => (options?.client ?? client).get<ListRecommendationsResponses, ListRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations',
+    ...options
+});
+
+/**
+ * Obtener detalle de una recomendación
+ *
+ * Devuelve el detalle de una recomendación del PF actual por su identificador (#196 · KAN-491).
+ */
+export const getRecommendationById = <ThrowOnError extends boolean = false>(options: Options<GetRecommendationByIdData, ThrowOnError>): RequestResult<GetRecommendationByIdResponses, GetRecommendationByIdErrors, ThrowOnError> => (options.client ?? client).get<GetRecommendationByIdResponses, GetRecommendationByIdErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}',
+    ...options
+});
+
+/**
+ * Editar título y texto de una recomendación pendiente
+ *
+ * Permite al preparador físico editar el título y el texto de una recomendación mientras se encuentre en estado Pending (#197 · KAN-492). El motivo objetivo (reason) permanece inmutable.
+ *
+ */
+export const updateRecommendation = <ThrowOnError extends boolean = false>(options: Options<UpdateRecommendationData, ThrowOnError>): RequestResult<UpdateRecommendationResponses, UpdateRecommendationErrors, ThrowOnError> => (options.client ?? client).put<UpdateRecommendationResponses, UpdateRecommendationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Aprobar una recomendación pendiente y enviarla al atleta
+ *
+ * Aprueba una recomendación en estado Pending (opcionalmente aplicando cambios de título o texto en el mismo paso) para que quede visible en la app del atleta (#197 · KAN-492).
+ *
+ */
+export const approveRecommendation = <ThrowOnError extends boolean = false>(options: Options<ApproveRecommendationData, ThrowOnError>): RequestResult<ApproveRecommendationResponses, ApproveRecommendationErrors, ThrowOnError> => (options.client ?? client).post<ApproveRecommendationResponses, ApproveRecommendationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Descartar una recomendación pendiente
+ *
+ * Marca una recomendación en estado Pending como Discarded para archivarla sin mostrarla nunca al atleta (#197 · KAN-492).
+ *
+ */
+export const discardRecommendation = <ThrowOnError extends boolean = false>(options: Options<DiscardRecommendationData, ThrowOnError>): RequestResult<DiscardRecommendationResponses, DiscardRecommendationErrors, ThrowOnError> => (options.client ?? client).post<DiscardRecommendationResponses, DiscardRecommendationErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/recommendations/{id}/discard',
+    ...options
+});
+
+/**
+ * Listar recomendaciones aprobadas del atleta autenticado
+ *
+ * Devuelve únicamente las recomendaciones aprobadas por el preparador físico para el atleta autenticado (#197 · KAN-492). Resuelve la identidad del atleta desde Estructura GET /api/v1/me.
+ *
+ */
+export const listMyRecommendations = <ThrowOnError extends boolean = false>(options?: Options<ListMyRecommendationsData, ThrowOnError>): RequestResult<ListMyRecommendationsResponses, ListMyRecommendationsErrors, ThrowOnError> => (options?.client ?? client).get<ListMyRecommendationsResponses, ListMyRecommendationsErrors, ThrowOnError>({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/me/recommendations',
     ...options
 });
 

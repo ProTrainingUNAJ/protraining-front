@@ -5,6 +5,7 @@ import { authService } from '../api/authService';
 import { extractErrorMessage } from '../api/axiosClient';
 import { ThemeToggle } from '../components/auth/ThemeToggle';
 import { ProTrainingLogo } from '../components/brand/ProTrainingLogo';
+import '../styles/passwordRecovery.css';
 
 export const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -52,17 +53,8 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1.5rem',
-        backgroundColor: 'var(--bg-main)',
-      }}
-    >
-      <div className="auth-card" style={{ maxWidth: '440px', width: '100%' }}>
+    <div className="password-recovery-page">
+      <div className="auth-card password-recovery-card">
         {/* Cabecera con Logo y Selector de Tema */}
         <div className="auth-brand-top">
           <div className="auth-brand-logo-wrap">
@@ -87,45 +79,24 @@ export const ForgotPasswordPage: React.FC = () => {
         )}
 
         {submitted ? (
-          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--success-bg)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 1rem',
-                color: 'var(--success-text)',
-              }}
-            >
+          <div className="password-recovery-status-panel">
+            <div className="password-recovery-status-icon password-recovery-status-icon--success">
               <CheckCircle2 size={28} aria-hidden="true" />
             </div>
-            <div
-              style={{
-                fontSize: '0.95rem',
-                lineHeight: 1.5,
-                color: 'var(--text-main)',
-                marginBottom: '1.5rem',
-              }}
-              role="status"
-            >
+            <div className="password-recovery-feedback" role="status">
               {feedbackMessage}
             </div>
             <button
               type="button"
-              className="btn-pill-primary"
+              className="btn-pill-primary password-recovery-full-btn"
               onClick={() => navigate('/login')}
-              style={{ width: '100%' }}
             >
               Volver al inicio de sesión
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} noValidate>
-            <div className="form-group-pill" style={{ marginBottom: '1.25rem' }}>
+            <div className="form-group-pill password-recovery-field--spaced">
               <label htmlFor="recovery-email" className="form-label-visible">
                 Correo electrónico
               </label>
@@ -150,21 +121,15 @@ export const ForgotPasswordPage: React.FC = () => {
                 />
               </div>
               {fieldError && (
-                <span
-                  className="form-field-error"
-                  style={{ display: 'block', marginTop: '0.25rem' }}
-                >
-                  {fieldError}
-                </span>
+                <span className="form-field-error password-recovery-field-error">{fieldError}</span>
               )}
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="btn-pill-primary"
+              className="btn-pill-primary password-recovery-submit-btn"
               data-testid="btn-send-recovery"
-              style={{ width: '100%', marginBottom: '1rem' }}
             >
               {loading ? (
                 <>
@@ -176,18 +141,8 @@ export const ForgotPasswordPage: React.FC = () => {
               )}
             </button>
 
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-              <Link
-                to="/login"
-                className="auth-secondary-btn"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                }}
-              >
+            <div className="password-recovery-footer">
+              <Link to="/login" className="auth-secondary-btn password-recovery-back-link">
                 <ArrowLeft size={14} aria-hidden="true" />
                 <span>Volver a iniciar sesión</span>
               </Link>

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { structureService } from '../../api/structureService';
+import { ATHLETE_CHECK_IN_PATH } from '../../routerPaths';
 import { matchService } from '../../services/matchService';
 import {
   seasonPlanningService,
@@ -27,6 +28,7 @@ import { Match, AthleteMe } from '../../types/structure';
 import { TodayRoutineResponse } from '../../api/generated/entrenamiento';
 import { formatIsoDate } from '../../utils/argentinaDate';
 import { formatTime } from '../../utils/calendarUtils';
+import { unpackCoachNotes } from '../../utils/planDraft';
 
 type DaySchedule =
   | { status: 'loading' }
@@ -446,15 +448,7 @@ export const CalendarButton: React.FC = () => {
                   role={isPF ? 'button' : undefined}
                   tabIndex={isPF ? 0 : undefined}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      width: '100%',
-                      justifyContent: 'space-between',
-                    }}
-                  >
+                  <div className="shell-calendar-agenda-item-header">
                     <span className="shell-calendar-agenda-badge match">
                       {m.homeOrAway === 'Home' ? <Shield size={11} /> : <MapPin size={11} />}
                       {m.homeOrAway === 'Home'
@@ -499,15 +493,7 @@ export const CalendarButton: React.FC = () => {
                           }}
                           title="Abrir mi rutina de entrenamiento"
                         >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                              width: '100%',
-                              justifyContent: 'space-between',
-                            }}
-                          >
+                          <div className="shell-calendar-agenda-item-header">
                             <span className="shell-calendar-agenda-badge training">
                               <Dumbbell size={11} />
                               <span>Rutina de Pesas</span>
@@ -522,11 +508,15 @@ export const CalendarButton: React.FC = () => {
                           <span className="shell-calendar-agenda-plan">
                             <Dumbbell size={13} aria-hidden="true" /> Sesión de gimnasio
                           </span>
-                          {athleteSchedule.routine.coachNotes && (
-                            <span className="shell-calendar-agenda-meta">
-                              {athleteSchedule.routine.coachNotes}
-                            </span>
-                          )}
+                          {athleteSchedule.routine.coachNotes &&
+                            (() => {
+                              const clean = unpackCoachNotes(
+                                athleteSchedule.routine.coachNotes,
+                              ).cleanNotes.trim();
+                              return clean ? (
+                                <span className="shell-calendar-agenda-meta">{clean}</span>
+                              ) : null;
+                            })()}
                         </button>
                       ) : athleteSchedule.planningSessions.length > 0 ? (
                         athleteSchedule.planningSessions.map((item) => (
@@ -540,15 +530,7 @@ export const CalendarButton: React.FC = () => {
                             }}
                             title="Abrir la rutina de entrenamiento"
                           >
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                width: '100%',
-                                justifyContent: 'space-between',
-                              }}
-                            >
+                            <div className="shell-calendar-agenda-item-header">
                               <span className="shell-calendar-agenda-badge training">
                                 <Dumbbell size={11} />
                                 <span>
@@ -575,24 +557,13 @@ export const CalendarButton: React.FC = () => {
                           }}
                           title="Ir a la rutina general"
                         >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                              width: '100%',
-                              justifyContent: 'space-between',
-                            }}
-                          >
+                          <div className="shell-calendar-agenda-item-header">
                             <span className="shell-calendar-agenda-badge training">
                               <Dumbbell size={11} />
                               <span>Rutina</span>
                             </span>
                           </div>
-                          <span
-                            className="shell-calendar-agenda-plan"
-                            style={{ color: 'var(--text-muted)' }}
-                          >
+                          <span className="shell-calendar-agenda-plan shell-calendar-agenda-item-muted-title">
                             Sin ejercicios asignados hoy
                           </span>
                           <span className="shell-calendar-agenda-meta">
@@ -607,19 +578,11 @@ export const CalendarButton: React.FC = () => {
                         className="shell-calendar-agenda-item"
                         onClick={() => {
                           setOpen(false);
-                          navigate('/athlete/check-in');
+                          navigate(ATHLETE_CHECK_IN_PATH);
                         }}
                         title="Ir a check-in diario"
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            width: '100%',
-                            justifyContent: 'space-between',
-                          }}
-                        >
+                        <div className="shell-calendar-agenda-item-header">
                           <span
                             className={`shell-calendar-agenda-badge ${
                               athleteSchedule.isCheckInDone ? 'training' : 'match'
@@ -662,15 +625,7 @@ export const CalendarButton: React.FC = () => {
                         }}
                         title="Registrar carga del día"
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            width: '100%',
-                            justifyContent: 'space-between',
-                          }}
-                        >
+                        <div className="shell-calendar-agenda-item-header">
                           <span className="shell-calendar-agenda-badge training">
                             <Activity size={11} />
                             <span>Carga del Día</span>
@@ -739,7 +694,7 @@ export const CalendarButton: React.FC = () => {
               Hoy: {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
             </span>
             {isPF && (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="shell-calendar-footer-buttons">
                 <button
                   type="button"
                   onClick={handleGoToCalendar}
@@ -760,7 +715,7 @@ export const CalendarButton: React.FC = () => {
               </div>
             )}
             {isAthlete && (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="shell-calendar-footer-buttons">
                 <button
                   type="button"
                   onClick={() => {

@@ -7,6 +7,7 @@ import { athleteRecordsService } from '../../../api/athleteRecords';
 import { structureService } from '../../../api/structureService';
 import { athleteBenchmarkService } from '../../../api/athleteBenchmark';
 import { athleteEvolutionService } from '../../../api/athleteEvolution';
+import { athleteTrendsService } from '../../../api/athleteTrends';
 
 vi.mock('recharts', async (importOriginal) => {
   const original = await importOriginal<typeof import('recharts')>();
@@ -50,6 +51,22 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
       wellness: { fatiguePoints: [], dailyPoints: [] },
       weeklyLoads: [],
       strengthUnavailable: false,
+    });
+    vi.spyOn(athleteTrendsService, 'getAthleteTrends').mockResolvedValue({
+      athleteId: 'ath-123',
+      from: '2026-10-26',
+      to: '2026-11-22',
+      weeks: [
+        {
+          weekStartDate: '2026-10-26',
+          weekEndDate: '2026-11-01',
+          averageWellness: 4.2,
+          totalLoad: 1400,
+          totalMinutes: 180,
+          checkInCount: 5,
+          loadCount: 4,
+        },
+      ],
     });
   });
 
@@ -196,6 +213,19 @@ describe('ProgressPage - Pestaña Mi Evolución para el Atleta (KAN-436 / #141)'
     await waitFor(() => {
       expect(screen.getByTestId('evolution-error-banner')).toBeDefined();
       expect(screen.getByText('Atleta no encontrado')).toBeDefined();
+    });
+  });
+
+  it('CRITERIO KAN-490: renderiza el gráfico de tendencias de bienestar y carga en la pestaña Mi progreso', async () => {
+    render(
+      <MemoryRouter initialEntries={['/athlete/progress']}>
+        <ProgressPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Tendencia de Bienestar y Carga')).toBeDefined();
+      expect(screen.getByText('Últimas 4 semanas')).toBeDefined();
     });
   });
 });

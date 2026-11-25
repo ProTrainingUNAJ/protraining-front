@@ -27,8 +27,10 @@
   min-width: 0;
 }
 
-.ft-field span,
-.ft-field legend {
+/* Sólo hijos directos: un span anidado (chips del catálogo, ítems del panel)
+   no debe heredar el estilo de etiqueta y quedar chico y en color apagado. */
+.ft-field > span,
+.ft-field > legend {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-muted);
@@ -50,6 +52,173 @@
   outline: none;
   border-color: var(--secondary);
   box-shadow: var(--focus-ring);
+}
+
+/* ---------- Barra de filtros: organización → categoría, búsqueda y estado (AC02-AC08) ---------- */
+
+.ft-filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem 1rem;
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ft-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* La búsqueda y los chips crecen para ocupar el resto de la fila. */
+.ft-filter-group--grow {
+  flex: 1 1 240px;
+}
+
+.ft-filter-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ft-filter-select {
+  width: 100%;
+  min-width: 190px;
+  min-height: 46px;
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.ft-filter-select:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.ft-filter-select:disabled {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Input con ícono: el campo ocupa todo el ancho y el borde lo tiene el contenedor. */
+.ft-search-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text-muted);
+}
+
+.ft-search-input:focus-within {
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+/* El buscador del catálogo vive dentro de .ft-field: estos selectores (con más
+   especificidad que `.ft-field input`) evitan el doble borde y la altura extra. */
+.ft-field .ft-search-input input,
+.ft-search-input__field {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--input-text);
+  font-size: 0.95rem;
+}
+
+.ft-field .ft-search-input input:focus,
+.ft-search-input__field:focus {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Dentro del toolbar los grupos se alinean por la etiqueta: sin margen extra. */
+.ft-filter-toolbar .ft-status-chips {
+  margin-top: 0;
+}
+
+.ft-status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.ft-status-chip {
+  min-height: 44px;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ft-status-chip--active {
+  border-color: var(--secondary);
+  background: var(--primary-light);
+  color: var(--text-main);
+}
+
+/* Fila de datos de la sesión: nombre, fecha y categoría destino. */
+.ft-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.ft-field-value {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Catálogo a la izquierda, panel de seleccionados a la derecha (AC12-AC14). */
+.ft-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.ft-catalog {
+  min-width: 0;
+  min-inline-size: 0;
 }
 
 .ft-form {
@@ -106,6 +275,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
   min-height: 48px;
   padding: 0.5rem 0.9rem;
   border: 1px solid var(--border);
@@ -144,6 +314,13 @@
   background: var(--secondary);
 }
 
+/* El nombre del chip puede encogerse y cortar por palabras: un test largo
+   sin espacios no debe desbordar el chip ni el ancho de la columna. */
+.ft-test-option__name {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
 .ft-test-option__unit {
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -156,7 +333,147 @@
   flex-wrap: wrap;
 }
 
+/* ---------- Panel de tests seleccionados (AC14) ---------- */
+
+.ft-selected-tests-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+}
+
+.ft-selected-tests-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ft-selected-tests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Grid de 3 columnas: badge, nombre y botones en el mismo renglón, siempre.
+   El nombre puede cortar por palabras; los botones nunca bajan de línea. */
+.ft-selected-test-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 54px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.ft-selected-test-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* Bloque con min-width 0 para que el texto pueda cortar por palabras
+   (no en cualquier carácter) sin sacar a los botones de su columna. */
+.ft-selected-test-name {
+  display: block;
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow-wrap: break-word;
+}
+
+/* La unidad sigue al nombre en la misma línea (JSX no deja espacio entre
+   el texto y el span, por eso el margen). */
+.ft-selected-test-unit {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.ft-selected-test-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}
+
+/* Botones de orden y quitar: área táctil cómoda sin ocupar demasiado ancho. */
+.ft-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ft-icon-btn:hover:not(:disabled) {
+  border-color: var(--secondary);
+  background: var(--primary-light);
+}
+
+.ft-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ft-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ft-icon-btn--danger:hover:not(:disabled) {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
 /* ---------- Listado de sesiones ---------- */
+
+.ft-session-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ft-session-category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
 
 .ft-session-list {
   display: grid;
@@ -176,6 +493,7 @@
   margin: 0.5rem 0 0.35rem;
   font-size: 1.05rem;
   color: var(--text-main);
+  overflow-wrap: break-word;
 }
 
 .ft-session-actions {
@@ -458,5 +776,610 @@
 
   .ft-athlete-list {
     max-height: none;
+  }
+
+  /* En tablet y celular el catálogo y los seleccionados se apilan (AC19). */
+  .ft-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Celular: una columna, selects a todo el ancho y listas que no desbordan (AC19). */
+@media (max-width: 640px) {
+  .ft-filter-toolbar {
+    padding: 0.85rem;
+    gap: 0.65rem;
+  }
+
+  .ft-filter-group,
+  .ft-filter-group--grow {
+    flex: 1 1 100%;
+  }
+
+  .ft-filter-select {
+    min-width: 0;
+  }
+
+  .ft-form {
+    padding: 1rem;
+  }
+
+  .ft-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ft-session-list {
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  }
+
+  /* En celular los botones crecen a 44px para el dedo, sin cambiar de fila. */
+  .ft-selected-test-item {
+    gap: 0.4rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .ft-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Celular (hasta 480px): se libera ancho para el nombre sin bajar los botones
+   de la fila ni achicarlos por debajo de 40px (target táctil). El corte va en
+   480 y no en 380 para que 390px no quede más apretado que 360px. */
+@media (max-width: 480px) {
+  .ft-filter-toolbar {
+    padding: 0.75rem;
+    gap: 0.55rem;
+  }
+
+  .ft-form {
+    padding: 0.75rem;
+  }
+
+  .ft-selected-tests-panel {
+    padding: 0.7rem;
+  }
+
+  .ft-selected-test-item {
+    gap: 0.3rem;
+    padding: 0.4rem;
+  }
+
+  .ft-selected-test-order {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .ft-selected-test-actions {
+    gap: 0.2rem;
+  }
+
+  .ft-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ==========================================================================
+   Modal de creación de sesiones de Tests de campo (KAN-656)
+   ========================================================================== */
+
+.ft-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: ftFadeIn 0.18s ease-out;
+}
+
+@keyframes ftFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ft-modal-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 920px;
+  height: 680px;
+  max-height: 85vh;
+  min-height: 520px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: ftSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ftSlideUp {
+  from {
+    transform: translateY(12px) scale(0.985);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Encabezado */
+.ft-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.ft-modal-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ft-modal-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.ft-modal-subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.ft-modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ft-modal-close-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  border-color: var(--border);
+}
+
+/* Formulario y cuerpo scrolleable */
+.ft-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ft-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ft-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ft-modal-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ft-modal-section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.ft-modal-section-desc {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* Toolbar de filtros en pantalla principal (KAN-656) */
+.ft-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.ft-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ft-filter-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ft-filter-select {
+  min-width: 220px;
+  max-width: 320px;
+  height: 42px;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ft-filter-select:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.ft-session-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ft-session-category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* Grilla de 3 columnas para campos generales en modal (Categoría, Nombre y Fecha) */
+.ft-modal-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.9fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 840px) {
+  .ft-modal-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Barra de filtros y buscador */
+.ft-modal-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.ft-modal-filter-toolbar .ft-test-filters {
+  margin-bottom: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.ft-modal-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 240px;
+  flex-shrink: 0;
+}
+
+.ft-modal-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.ft-modal-search-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0.4rem 2rem 0.4rem 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.ft-modal-search-input:focus {
+  border-color: var(--secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.ft-modal-search-clear {
+  position: absolute;
+  right: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.ft-modal-search-clear:hover {
+  background: var(--brand-gray-light);
+  color: var(--text-main);
+}
+
+/* Grilla de tarjetas seleccionables */
+.ft-modal-test-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.85rem;
+}
+
+.ft-modal-empty-tests {
+  padding: 2rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.ft-test-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 110px;
+  height: 110px;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.ft-test-card:hover {
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.ft-test-card:active {
+  transform: scale(0.985);
+}
+
+.ft-test-card--selected {
+  border-color: var(--secondary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 1px var(--secondary);
+}
+
+.ft-test-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.ft-test-card__category {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--secondary);
+}
+
+.ft-test-card__order-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.ft-test-card__order-badge--selected {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--white);
+}
+
+.ft-test-card__check-icon {
+  stroke-width: 3;
+}
+
+.ft-test-card__body {
+  margin: 0.4rem 0;
+}
+
+.ft-test-card__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ft-test-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.ft-test-card__unit-label {
+  color: var(--text-muted);
+}
+
+/* Pie de acciones fijo */
+.ft-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.ft-modal-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.ft-modal-summary-icon {
+  color: var(--secondary);
+}
+
+.ft-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Adaptación responsive */
+@media (max-width: 768px) {
+  .ft-modal-overlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .ft-modal-container {
+    height: 90vh;
+    max-height: 92vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .ft-modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .ft-modal-title {
+    font-size: 1.15rem;
+  }
+
+  .ft-modal-body {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .ft-modal-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .ft-modal-filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ft-modal-search-box {
+    min-width: 100%;
+  }
+
+  .ft-modal-test-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ft-modal-footer {
+    padding: 1rem 1.25rem;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .ft-modal-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+
+  .ft-modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ft-modal-summary {
+    justify-content: center;
   }
 }

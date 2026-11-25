@@ -114,6 +114,42 @@ export const MUSCLE_NAME_TO_SVG_IDS: Record<string, string[]> = {
   // 17. Neck
   neck: ['cuello_trapecio_derecho', 'cuello_trapecio_izquierdo', 'trapecios'],
   cuello: ['cuello_trapecio_derecho', 'cuello_trapecio_izquierdo', 'trapecios'],
+
+  // 18. Knees / Articulaciones
+  knee: ['rodilla_derecha', 'rodilla_izquierda'],
+  knees: ['rodilla_derecha', 'rodilla_izquierda'],
+  rodilla: ['rodilla_derecha', 'rodilla_izquierda'],
+  rodillas: ['rodilla_derecha', 'rodilla_izquierda'],
+  'rodilla derecha': ['rodilla_derecha'],
+  'rodilla izquierda': ['rodilla_izquierda'],
+
+  // 19. Elbows
+  elbow: ['codo_derecho', 'codo_izquierdo'],
+  elbows: ['codo_derecho', 'codo_izquierdo'],
+  codo: ['codo_derecho', 'codo_izquierdo'],
+  codos: ['codo_derecho', 'codo_izquierdo'],
+  'codo derecho': ['codo_derecho'],
+  'codo izquierdo': ['codo_izquierdo'],
+
+  // 20. Wrists
+  wrist: ['muneca_derecha', 'muneca_izquierda'],
+  wrists: ['muneca_derecha', 'muneca_izquierda'],
+  muneca: ['muneca_derecha', 'muneca_izquierda'],
+  muñeca: ['muneca_derecha', 'muneca_izquierda'],
+  munecas: ['muneca_derecha', 'muneca_izquierda'],
+  muñecas: ['muneca_derecha', 'muneca_izquierda'],
+  'muneca derecha': ['muneca_derecha'],
+  'muñeca derecha': ['muneca_derecha'],
+  'muneca izquierda': ['muneca_izquierda'],
+  'muñeca izquierda': ['muneca_izquierda'],
+
+  // 21. Ankles
+  ankle: ['tobillo_derecho', 'tobillo_izquierdo'],
+  ankles: ['tobillo_derecho', 'tobillo_izquierdo'],
+  tobillo: ['tobillo_derecho', 'tobillo_izquierdo'],
+  tobillos: ['tobillo_derecho', 'tobillo_izquierdo'],
+  'tobillo derecho': ['tobillo_derecho'],
+  'tobillo izquierdo': ['tobillo_izquierdo'],
 };
 
 /**
@@ -322,6 +358,7 @@ export function resolveMuscleIds(muscles: string[]): string[] {
 export function getExerciseMuscleHighlight(
   primaryMuscles?: string[] | null,
   secondaryMuscles?: string[] | null,
+  customColors?: { primary?: string; secondary?: string },
 ): ExerciseMuscleHighlight {
   const primaryList = primaryMuscles && Array.isArray(primaryMuscles) ? primaryMuscles : [];
   const secondaryList = secondaryMuscles && Array.isArray(secondaryMuscles) ? secondaryMuscles : [];
@@ -331,13 +368,16 @@ export function getExerciseMuscleHighlight(
 
   const muscleColors: Record<string, string> = {};
 
+  const primaryColor = customColors?.primary || 'var(--muscle-exercise-primary)';
+  const secondaryColor = customColors?.secondary || 'var(--muscle-exercise-secondary)';
+
   // Secondary muscles first so primary takes visual precedence
   for (const id of secondaryIds) {
-    muscleColors[id] = 'var(--muscle-exercise-secondary)';
+    muscleColors[id] = secondaryColor;
   }
 
   for (const id of primaryIds) {
-    muscleColors[id] = 'var(--muscle-exercise-primary)';
+    muscleColors[id] = primaryColor;
   }
 
   const allActiveIds = Object.keys(muscleColors);

@@ -8,9 +8,21 @@ import {
 import {
   changePassword as changePasswordSdk,
   resetAthletePassword as resetAthletePasswordSdk,
+  forgotPassword as forgotPasswordSdk,
+  resetPassword as resetPasswordSdk,
   registerByInvitation as registerByInvitationSdk,
+  registerPf as registerPfSdk,
+  confirmEmail as confirmEmailSdk,
+  resendConfirmation as resendConfirmationSdk,
+  getGoogleLinkStatus as getGoogleLinkStatusSdk,
+  linkGoogleAccount as linkGoogleAccountSdk,
+  unlinkGoogleAccount as unlinkGoogleAccountSdk,
+  type RegisterPfResponse,
+  type ConfirmEmailResponse,
+  type ResendConfirmationResponse,
 } from './generated/identidad';
 import { getDeviceId } from '../utils/deviceId';
+import { PENDING_INVITATION_TOKEN_KEY } from './categoryInvitations';
 import {
   AuthSession,
   LoginRequest,
@@ -91,6 +103,48 @@ export const authService = {
   },
 
   /**
+   * Consulta si el usuario autenticado tiene una cuenta de Google vinculada (KAN-541).
+   */
+  async getGoogleLinkStatus(): Promise<boolean> {
+    try {
+      const { data } = await getGoogleLinkStatusSdk({ throwOnError: true });
+      return Boolean(data.googleLinked);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Vincula explícitamente una cuenta de Google al usuario autenticado tras reautenticar con contraseña (KAN-541).
+   */
+  async linkGoogleAccount(idToken: string, currentPassword: string): Promise<boolean> {
+    try {
+      const { data } = await linkGoogleAccountSdk({
+        body: { idToken, currentPassword },
+        throwOnError: true,
+      });
+      return Boolean(data.googleLinked);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Desvincula la cuenta de Google del usuario autenticado tras reautenticar con contraseña (KAN-541).
+   */
+  async unlinkGoogleAccount(currentPassword: string): Promise<boolean> {
+    try {
+      const { data } = await unlinkGoogleAccountSdk({
+        body: { currentPassword },
+        throwOnError: true,
+      });
+      return Boolean(data.googleLinked);
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
    * Registers a new athlete account using a category invitation token (KAN-398 / KAN-397).
    */
   async registerByInvitation(request: {
@@ -136,6 +190,13 @@ export const authService = {
       };
 
       saveStoredSession(session);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          window.localStorage.setItem(PENDING_INVITATION_TOKEN_KEY, request.token);
+        } catch {
+          // ignore storage errors
+        }
+      }
       return session;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
@@ -181,12 +242,12 @@ export const authService = {
    */
   async forgotPassword(email: string): Promise<string> {
     try {
-      const response = await httpClient.post<{ message: string }>(
-        '/identidad/api/v1/auth/forgot-password',
-        {
+      const response = await forgotPasswordSdk({
+        body: {
           email: email.trim(),
         },
-      );
+        throwOnError: true,
+      });
       return (
         response.data?.message ||
         'Si el correo está registrado, recibirás un enlace para recuperar tu contraseña.'
@@ -205,15 +266,93 @@ export const authService = {
     newPassword: string;
   }): Promise<string> {
     try {
-      const response = await httpClient.post<{ message: string }>(
-        '/identidad/api/v1/auth/reset-password',
-        {
+      const response = await resetPasswordSdk({
+        body: {
           email: payload.email.trim(),
           token: payload.token,
           newPassword: payload.newPassword,
         },
-      );
+        throwOnError: true,
+      });
       return response.data?.message || 'Contraseña actualizada exitosamente.';
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Registers a new physical trainer (Preparador Físico) account (KAN-601 / KAN-602).
+   */
+  async registerPf(request: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string | null;
+    deviceId?: string;
+  }): Promise<RegisterPfResponse> {
+    try {
+      const deviceId = request.deviceId ?? getDeviceId();
+      const response = await registerPfSdk({
+        body: {
+          fullName: request.fullName.trim(),
+          email: request.email.trim(),
+          password: request.password,
+          phone: request.phone?.trim() || null,
+          deviceId,
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida del servidor al registrar preparador físico.');
+      }
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Confirms email address using verification token (KAN-601 / KAN-602).
+   */
+  async confirmEmail(request: { userId: string; token: string }): Promise<ConfirmEmailResponse> {
+    try {
+      const response = await confirmEmailSdk({
+        body: {
+          userId: request.userId,
+          token: request.token,
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida al confirmar el correo.');
+      }
+      return data;
+    } catch (error) {
+      throw new Error(extractErrorMessage(error), { cause: error });
+    }
+  },
+
+  /**
+   * Resends email confirmation link with anti-enumeration protection (KAN-601 / KAN-602).
+   */
+  async resendConfirmation(email: string): Promise<ResendConfirmationResponse> {
+    try {
+      const response = await resendConfirmationSdk({
+        body: {
+          email: email.trim(),
+        },
+        throwOnError: true,
+      });
+
+      const data = response.data;
+      if (!data) {
+        throw new Error('Respuesta inválida al solicitar reenvío.');
+      }
+      return data;
     } catch (error) {
       throw new Error(extractErrorMessage(error), { cause: error });
     }

@@ -12,3 +12,8 @@
 @import './styles/checkin-slide.css';
 @import './styles/login.css';
 @import './styles/exercises.css';
+@import './styles/structure.css';
+@import './styles/settings.css';
+@import './styles/recommendations.css';
+@import './styles/categoryStatistics.css';
+@import './styles/dayAdjustment.css';

@@ -6,6 +6,9 @@ export interface PlanListItem {
   id: string;
   name: string;
   objective: string | null;
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  targetMuscles?: string[];
 }
 
 export interface PlanAssignmentTarget {
@@ -19,6 +22,8 @@ export interface CatalogExercise {
   muscleGroup: string;
   equipment: string | null;
   images: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   // Variantes (KAN-554): la etiqueta si es una variante ("Agarre cerrado"), y sus variantes si
   // es un ejercicio base (solo cuando se pide el catálogo agrupado).
@@ -37,16 +42,90 @@ export interface DraftExercise {
   // key es solo para React; id es el del back (no existe hasta guardar).
   key: string;
   id: string | null;
-  exerciseId: string;
+  exerciseId: string | null;
+  isReference?: boolean;
   exerciseName: string;
   order: number;
   exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
   sets: number;
-  reps: number;
+  reps: number | string;
   targetDistanceMeters?: number | null;
   targetTimeSeconds?: number | null;
   targetPercentage: number | null;
+  // Métricas avanzadas de intensidad y notas (KAN-587)
+  intensityType?: 'RPE' | 'RIR';
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  repsRange?: string | null;
+  notes?: string | null;
+  images?: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  muscleGroup?: string;
 }
+
+export type IntensityMetric = 'RPE' | 'RIR';
+
+export interface WeeklyExerciseProgression {
+  weekNumber: number;
+  sets: number;
+  reps: number | string;
+  repsRange?: string | null;
+  targetPercentage: number | null;
+  intensityType: IntensityMetric;
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  targetDistanceMeters?: number | null;
+  targetTimeSeconds?: number | null;
+  notes?: string | null;
+}
+
+export interface BlockExercise {
+  key: string;
+  id?: string | null;
+  exerciseId: string | null;
+  isReference?: boolean;
+  exerciseName: string;
+  exerciseType?: 'Weight' | 'Time' | 'Distance' | 'Reps';
+  order: number;
+  intensityType: IntensityMetric;
+  weeklyProgression: Record<number, WeeklyExerciseProgression>;
+  sets?: number;
+  reps?: number | string;
+  repsRange?: string | null;
+  targetPercentage?: number | null;
+  targetRpe?: number | null;
+  targetRir?: number | null;
+  targetDistanceMeters?: number | null;
+  targetTimeSeconds?: number | null;
+  notes?: string | null;
+  images?: string[];
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  muscleGroup?: string;
+}
+
+export interface DayBlock {
+  key: string;
+  id?: string | null;
+  title: string;
+  order: number;
+  exercises: BlockExercise[];
+}
+
+export interface DayPlan {
+  dayOfWeek: number;
+  name?: string;
+  startTime?: string | null;
+  blocks: DayBlock[];
+}
+
+export const DEFAULT_BLOCK_TITLES: string[] = [
+  'Entrada en calor / Movilidad',
+  'Fuerza A',
+  'Fuerza B',
+  'Accesorios',
+];
 
 export interface DraftSession {
   key: string;
@@ -56,6 +135,8 @@ export interface DraftSession {
   // 0 = domingo, 1 = lunes, ..., 6 = sábado (igual que el contrato).
   dayOfWeek: number;
   coachNotes: string;
+  startTime?: string | null;
+  blocks?: DayBlock[];
   exercises: DraftExercise[];
   // Próximo orden libre para un ejercicio nuevo. Nunca baja: así un ejercicio
   // nuevo no reusa el orden de uno que se quitó en el mismo guardado.
@@ -81,6 +162,9 @@ export interface PlanTemplateItem {
   id: string;
   name: string;
   objective: string | null;
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  targetMuscles?: string[];
 }
 
 export interface ApplyPlanTemplatePayload {
