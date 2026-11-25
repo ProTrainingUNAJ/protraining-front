@@ -187,7 +187,11 @@ export function AthleteRecommendationsSection() {
   const hidden = items.length - VISIBLE_RECOMMENDATIONS;
 
   return (
-    <section className="athlete-recommendations-section" aria-labelledby="athlete-recs-title">
+    <section
+      id="recomendaciones"
+      className="athlete-recommendations-section"
+      aria-labelledby="athlete-recs-title"
+    >
       <header className="athlete-recommendations-header">
         <span className="recommendations-engine-icon" aria-hidden="true">
           <Sparkles size={18} />
