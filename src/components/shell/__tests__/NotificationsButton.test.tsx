@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { NotificationsButton } from '../NotificationsButton';
 import { ALERTS_CHANGED_EVENT, alertsService } from '../../../api/alertsService';
 import { recommendationsService } from '../../../api/recommendations';
@@ -40,7 +41,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
   it('no renderiza la campana ni consulta endpoints si el usuario no está autenticado', () => {
     mockedUseAuth.mockReturnValue({ user: null } as never);
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
 
     expect(screen.queryByTitle('Centro de Avisos')).toBeNull();
     expect(screen.queryByTitle('Notificaciones')).toBeNull();
@@ -61,7 +66,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
       } as never,
     ]);
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
 
     expect(mockedGetPendingAlerts).not.toHaveBeenCalled();
     const bellBtn = await screen.findByRole('button', {
@@ -83,11 +92,59 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     });
   });
 
+  it('para Atleta muestra un adelanto de la recomendación y lleva al Inicio a leerla completa (KAN-660)', async () => {
+    mockedUseAuth.mockReturnValue({ user: { role: 'Atleta' } } as never);
+    const longText = `${'Comé proteínas de calidad en cada comida principal '.repeat(6)}final.\nTomá agua.`;
+    mockedListMyRecommendations.mockResolvedValue([
+      {
+        id: 'rec-h',
+        type: 'Habits',
+        title: 'Recomendación de hábitos',
+        reason: 'Objetivo: Mantener.',
+        recommendationText: longText,
+        legalDisclaimer: 'Consultá a un nutricionista.',
+      } as never,
+    ]);
+
+    function ShowLocation() {
+      const location = useLocation();
+      return <p data-testid="location">{location.pathname + location.hash}</p>;
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/athlete/routine']}>
+        <NotificationsButton />
+        <Routes>
+          <Route path="*" element={<ShowLocation />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: /Notificaciones/i }));
+
+    const preview = await screen.findByText(/^Comé proteínas de calidad/);
+    expect(preview.textContent?.endsWith('…')).toBe(true);
+    expect(preview.textContent!.length).toBeLessThanOrEqual(181);
+    expect(screen.queryByText(/Tomá agua/)).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /Ver recomendación completa: Recomendación de hábitos/ }),
+    );
+    expect(screen.getByTestId('location').textContent).toBe('/athlete#recomendaciones');
+    await waitFor(() => {
+      expect(screen.queryByRole('region', { name: 'Notificaciones' })).toBeNull();
+    });
+  });
+
   it('para Atleta muestra estado amigable cuando no hay notificaciones o falla la carga', async () => {
     mockedUseAuth.mockReturnValue({ user: { role: 'Atleta' } } as never);
     mockedListMyRecommendations.mockRejectedValueOnce(new Error('Network error'));
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByTitle('Notificaciones'));
 
     await waitFor(() => {
@@ -100,7 +157,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     mockedUseAuth.mockReturnValue({ user: { role: 'PreparadorFisico' } } as never);
     mockedGetPendingAlerts.mockRejectedValue(new Error('Request failed with status code 500'));
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
     await waitFor(() => {
@@ -127,7 +188,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
       },
     ]);
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
     await waitFor(() => {
@@ -157,7 +222,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
       message: 'Ajuste preventivo aplicado exitosamente en Entrenamiento.',
     });
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
     await waitFor(() => {
@@ -200,7 +269,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
       new Error('El atleta no tiene una sesión de entrenamiento programada para el día de hoy.'),
     );
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
     await waitFor(() => {
@@ -242,7 +315,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
       },
     ]);
 
-    render(<NotificationsButton />);
+    render(
+      <MemoryRouter>
+        <NotificationsButton />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
     await waitFor(() => {
@@ -281,7 +358,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     window.addEventListener(ALERTS_CHANGED_EVENT, onAlertsChanged);
 
     try {
-      render(<NotificationsButton />);
+      render(
+        <MemoryRouter>
+          <NotificationsButton />
+        </MemoryRouter>,
+      );
       fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
       await waitFor(() => {
@@ -344,7 +425,11 @@ describe('NotificationsButton (Centro de Avisos)', () => {
     window.addEventListener(ALERTS_CHANGED_EVENT, onAlertsChanged);
 
     try {
-      render(<NotificationsButton />);
+      render(
+        <MemoryRouter>
+          <NotificationsButton />
+        </MemoryRouter>,
+      );
       fireEvent.click(screen.getByTitle('Centro de Avisos'));
 
       await waitFor(() => {

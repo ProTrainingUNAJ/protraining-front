@@ -2162,6 +2162,28 @@
   border: 1px solid var(--info-border);
 }
 
+/* Link de la campanita del atleta al texto completo en su Inicio (KAN-660) */
+.notice-card-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.3rem;
+  min-height: 32px;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notice-card-link:hover,
+.notice-card-link:focus-visible {
+  background: var(--primary-light);
+}
+
 .notice-card-body {
   display: flex;
   flex-direction: column;

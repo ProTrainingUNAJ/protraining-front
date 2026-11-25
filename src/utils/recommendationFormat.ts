@@ -127,3 +127,21 @@ export function splitHabitsSections(
   }
   return sections;
 }
+
+/**
+ * Vista previa corta de una recomendación (campanita del atleta, KAN-660): el primer párrafo,
+ * cortado en una palabra con "…" si pasa del máximo. El texto completo queda en el Inicio.
+ */
+export function previewRecommendationText(text: string, maxChars = 180): string {
+  const firstLine =
+    text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line) => line.length > 0) ?? '';
+  const plain = firstLine.replace(/\*{1,2}([^*\n]+?)\*{1,2}/g, '$1');
+  const hasMore = plain.length > maxChars || text.trim().length > firstLine.length;
+  if (plain.length <= maxChars) return hasMore ? `${plain.replace(/[.,;:]?$/, '')}…` : plain;
+  const cut = plain.slice(0, maxChars);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > maxChars * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[.,;:]$/, '')}…`;
+}

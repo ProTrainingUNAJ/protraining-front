@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, Zap, CheckCircle2, AlertTriangle, Loader2, Info, ArrowRight } from 'lucide-react';
 import { ALERTS_CHANGED_EVENT, alertsService } from '../../api/alertsService';
 import { recommendationsService, type MyRecommendation } from '../../api/recommendations';
 import { NoticeItem } from '../../types/alerts';
 import { useAuth } from '../../context/AuthContext';
 import { formatAlertReason } from '../../utils/painZoneReasonFormatter';
-import { capitalizeFirst } from '../../utils/recommendationFormat';
+import { capitalizeFirst, previewRecommendationText } from '../../utils/recommendationFormat';
 import { DayAdjustmentModal } from '../monitoring/DayAdjustmentModal';
 
 export const NotificationsButton: React.FC = () => {
@@ -14,6 +15,24 @@ export const NotificationsButton: React.FC = () => {
   const isAthlete = user?.role === 'Atleta';
 
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // La campanita muestra solo un adelanto: el texto completo está en el Inicio del atleta.
+  // Si ya estaba en el Inicio no hay cambio de página, así que se espera a que la sección exista.
+  const openFullRecommendations = () => {
+    setOpen(false);
+    navigate('/athlete#recomendaciones');
+    let tries = 0;
+    const scrollWhenReady = () => {
+      const section = document.getElementById('recomendaciones');
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (tries++ < 20) {
+        window.setTimeout(scrollWhenReady, 100);
+      }
+    };
+    window.setTimeout(scrollWhenReady, 0);
+  };
   const [alerts, setAlerts] = useState<NoticeItem[]>([]);
   const [athleteRecommendations, setAthleteRecommendations] = useState<MyRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -252,13 +271,22 @@ export const NotificationsButton: React.FC = () => {
                     )}
                     <div>
                       <span className="notice-card-label">Recomendación de tu PF</span>
-                      <span>{rec.recommendationText}</span>
+                      <span>{previewRecommendationText(rec.recommendationText)}</span>
                     </div>
                     {rec.legalDisclaimer && (
                       <div role="note">
                         <Info size={13} aria-hidden="true" /> <span>{rec.legalDisclaimer}</span>
                       </div>
                     )}
+                    <button
+                      type="button"
+                      className="notice-card-link"
+                      onClick={openFullRecommendations}
+                      aria-label={`Ver recomendación completa: ${rec.title}`}
+                    >
+                      Ver recomendación completa
+                      <ArrowRight size={13} aria-hidden="true" />
+                    </button>
                   </div>
                 </article>
               ))
