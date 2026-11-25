@@ -3,8 +3,9 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { AthleteRecommendationsSection } from '../AthleteRecommendationsSection';
 import { splitRecommendationText } from '../../../utils/recommendationFormat';
 
-const { listMyRecommendationsMock } = vi.hoisted(() => ({
+const { listMyRecommendationsMock, getMeMock } = vi.hoisted(() => ({
   listMyRecommendationsMock: vi.fn(),
+  getMeMock: vi.fn(),
 }));
 
 vi.mock('../../../api/recommendations', () => ({
@@ -13,9 +14,16 @@ vi.mock('../../../api/recommendations', () => ({
   },
 }));
 
+vi.mock('../../../api/structureService', () => ({
+  structureService: {
+    getMe: getMeMock,
+  },
+}));
+
 describe('AthleteRecommendationsSection (KAN-492)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getMeMock.mockResolvedValue(null);
   });
 
   it('muestra en el inicio del atleta las recomendaciones aprobadas por el PF', async () => {
@@ -229,5 +237,42 @@ describe('AthleteRecommendationsSection (KAN-492)', () => {
     expect(await screen.findByText('Fuerza en piernas')).toBeDefined();
     expect(screen.getAllByText('Entrenamiento')).toHaveLength(1);
     expect(screen.queryByText('Hábitos')).toBeNull();
+  });
+
+  it('renderiza la tarjeta de nutrición con calorías y macronutrientes cuando el PF aprobó recomendaciones (KAN-664)', async () => {
+    getMeMock.mockResolvedValue({
+      athleteId: 'ath-1',
+      firstName: 'Lucas',
+      lastName: 'Gómez',
+      fullName: 'Lucas Gómez',
+      weightKg: 78,
+      heightCm: 178,
+      birthDate: '2000-05-15',
+      gender: 'Masculino',
+      athleticGoal: 'Rendimiento deportivo',
+    });
+
+    listMyRecommendationsMock.mockResolvedValue([
+      {
+        id: 'rec-habits-approved',
+        categoryId: 'cat-1',
+        categoryName: 'Primera División',
+        type: 'Habits',
+        title: 'Plan de hidratación y proteínas',
+        reason: 'optimizar recuperación post-entrenamiento',
+        recommendationText: 'Consumí 2 litros de agua diarios y alcanzá tu meta proteica.',
+        reviewedAtUtc: '2026-11-20T17:15:00Z',
+        createdAt: '2026-11-20T16:00:00Z',
+      },
+    ]);
+
+    render(<AthleteRecommendationsSection />);
+
+    expect(await screen.findByText('Plan Nutricional Recomendado')).toBeDefined();
+    expect(screen.getByText(/Rendimiento deportivo/i)).toBeDefined();
+    expect(screen.getByTestId('macro-pill-protein')).toBeDefined();
+    expect(screen.getByTestId('macro-pill-carbs')).toBeDefined();
+    expect(screen.getByTestId('macro-pill-fat')).toBeDefined();
+    expect(screen.getByText('Plan de hidratación y proteínas')).toBeDefined();
   });
 });

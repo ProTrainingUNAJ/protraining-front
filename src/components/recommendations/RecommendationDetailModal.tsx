@@ -9,6 +9,7 @@ import {
 import { RecommendationCard } from './RecommendationCard';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 import { AthleteBmiGauge } from './AthleteBmiGauge';
+import { AthleteNutritionSummaryCard } from './AthleteNutritionSummaryCard';
 
 export interface RecommendationDetailModalProps {
   athleteId: string;
@@ -19,6 +20,9 @@ export interface RecommendationDetailModalProps {
   statusTab: RecommendationStatusFilter;
   athleteWeightKg?: number | null;
   athleteHeightCm?: number | null;
+  athleteBirthDate?: string | null;
+  athleteGender?: string | null;
+  athleteGoal?: string | null;
   onClose: () => void;
   onUpdate: (id: string, title: string, recommendationText: string) => Promise<void>;
   onApprove: (id: string, edits?: { title: string; recommendationText: string }) => Promise<void>;
@@ -34,6 +38,9 @@ export function RecommendationDetailModal({
   statusTab,
   athleteWeightKg,
   athleteHeightCm,
+  athleteBirthDate,
+  athleteGender,
+  athleteGoal,
   onClose,
   onUpdate,
   onApprove,
@@ -103,9 +110,17 @@ export function RecommendationDetailModal({
 
         {/* Contenido detallado: todas las tarjetas de recomendaciones del atleta */}
         <div className="recommendation-modal-body">
-          {/* Bloque y escala gráfica del IMC para recomendaciones de Hábitos y Alimentación (KAN-664) */}
+          {/* Bloque nutricional con Calorías Recomendadas, Macros e IMC para Hábitos y Alimentación (KAN-664) */}
           {recommendations.some((rec) => rec.type === 'Habits') && (
             <div className="recommendation-modal-bmi-section">
+              <AthleteNutritionSummaryCard
+                weightKg={athleteWeightKg}
+                heightCm={athleteHeightCm}
+                birthDate={athleteBirthDate}
+                gender={athleteGender}
+                athleticGoal={athleteGoal}
+                athleteName={athleteName}
+              />
               <AthleteBmiGauge
                 weightKg={athleteWeightKg}
                 heightCm={athleteHeightCm}
