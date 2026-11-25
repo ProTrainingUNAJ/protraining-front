@@ -85,6 +85,9 @@ interface RawAthlete {
   photoUpdatedAt?: string | null;
   weightKg?: number | null;
   pesoKg?: number | null;
+  heightCm?: number | null;
+  alturaCm?: number | null;
+  estaturaCm?: number | null;
   athleticGoal?: string | null;
   objetivoAtletico?: string | null;
   birthDate?: string | null;
@@ -158,6 +161,14 @@ function mapAthlete(raw: RawAthlete): Athlete {
         : raw.pesoKg !== undefined && raw.pesoKg !== null
           ? Number(raw.pesoKg)
           : null,
+    heightCm:
+      raw.heightCm !== undefined && raw.heightCm !== null
+        ? Number(raw.heightCm)
+        : raw.estaturaCm !== undefined && raw.estaturaCm !== null
+          ? Number(raw.estaturaCm)
+          : raw.alturaCm !== undefined && raw.alturaCm !== null
+            ? Number(raw.alturaCm)
+            : null,
     athleticGoal: raw.athleticGoal ?? raw.objetivoAtletico ?? null,
     birthDate: raw.birthDate ?? raw.fechaNacimiento ?? null,
     gender: raw.gender ?? raw.genero ?? null,
@@ -539,6 +550,8 @@ export const structureService = {
         {
           weightKg:
             req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
+          heightCm:
+            req.heightCm !== undefined && req.heightCm !== null ? Number(req.heightCm) : null,
           athleticGoal: req.athleticGoal?.trim() || null,
           birthDate:
             req.birthDate !== undefined ? (req.birthDate ? req.birthDate.trim() : null) : undefined,
@@ -556,6 +569,7 @@ export const structureService = {
    */
   async updateMyPhysicalProfile(req: UpdatePhysicalProfileRequest): Promise<{
     weightKg?: number | null;
+    heightCm?: number | null;
     athleticGoal?: string | null;
     birthDate?: string | null;
     gender?: string | null;
@@ -566,6 +580,9 @@ export const structureService = {
         weightKg: req.weightKg !== undefined && req.weightKg !== null ? Number(req.weightKg) : null,
         athleticGoal: req.athleticGoal?.trim() || null,
       };
+      if (req.heightCm !== undefined) {
+        payload.heightCm = req.heightCm !== null ? Number(req.heightCm) : null;
+      }
       if (req.birthDate !== undefined) {
         payload.birthDate = req.birthDate ? req.birthDate.trim() : null;
       }
@@ -575,6 +592,7 @@ export const structureService = {
 
       const response = await httpClient.patch<{
         weightKg?: number | null;
+        heightCm?: number | null;
         athleticGoal?: string;
         birthDate?: string | null;
         gender?: string | null;

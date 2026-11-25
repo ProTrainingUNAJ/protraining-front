@@ -8,6 +8,7 @@ import {
 } from '../../utils/recommendationFormat';
 import { RecommendationCard } from './RecommendationCard';
 import { ProfileAvatar } from '../common/ProfileAvatar';
+import { AthleteBmiGauge } from './AthleteBmiGauge';
 
 export interface RecommendationDetailModalProps {
   athleteId: string;
@@ -16,6 +17,8 @@ export interface RecommendationDetailModalProps {
   subtitle?: string | null;
   recommendations: AthleteRecommendation[];
   statusTab: RecommendationStatusFilter;
+  athleteWeightKg?: number | null;
+  athleteHeightCm?: number | null;
   onClose: () => void;
   onUpdate: (id: string, title: string, recommendationText: string) => Promise<void>;
   onApprove: (id: string, edits?: { title: string; recommendationText: string }) => Promise<void>;
@@ -29,6 +32,8 @@ export function RecommendationDetailModal({
   subtitle,
   recommendations,
   statusTab,
+  athleteWeightKg,
+  athleteHeightCm,
   onClose,
   onUpdate,
   onApprove,
@@ -98,6 +103,17 @@ export function RecommendationDetailModal({
 
         {/* Contenido detallado: todas las tarjetas de recomendaciones del atleta */}
         <div className="recommendation-modal-body">
+          {/* Bloque y escala gráfica del IMC para recomendaciones de Hábitos y Alimentación (KAN-664) */}
+          {recommendations.some((rec) => rec.type === 'Habits') && (
+            <div className="recommendation-modal-bmi-section">
+              <AthleteBmiGauge
+                weightKg={athleteWeightKg}
+                heightCm={athleteHeightCm}
+                athleteName={athleteName}
+              />
+            </div>
+          )}
+
           {recommendations.map((rec) => (
             <RecommendationCard
               key={rec.id}

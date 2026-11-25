@@ -94,6 +94,7 @@ function renderPage(initialPath = '/pf/recommendations') {
 describe('RecommendationsPage (KAN-492)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    withCategoriesMock.mockImplementation((athletes: Athlete[]) => Promise.resolve(athletes));
     getOrganizationsMock.mockResolvedValue([{ id: 'org-1', name: 'Club Quilmes' }]);
     getCategoriesMock.mockResolvedValue([
       { id: 'cat-1', organizationId: 'org-1', name: 'Primera División', athletesCount: 10 },
@@ -656,5 +657,48 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(overlay).not.toBeNull();
     fireEvent.click(overlay as Element);
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('al abrir en ventana modal una recomendación de tipo Habits, renderiza el gráfico de IMC y por debajo la recomendación (KAN-664)', async () => {
+    getAthletesMock.mockResolvedValue([
+      {
+        id: 'ath-1',
+        firstName: 'Lucas',
+        lastName: 'Gómez',
+        fullName: 'Lucas Gómez',
+        active: true,
+        categories: [],
+        weightKg: 78,
+        heightCm: 178,
+      },
+    ]);
+    const habitsRec: AthleteRecommendation = {
+      ...pendingRec,
+      id: 'rec-habits-1',
+      type: 'Habits',
+      title: 'Pautas de hidratación y descanso',
+      reason: 'recuperación muscular',
+      recommendationText:
+        'Mantener hidratación constante de 2.5 litros de agua y 8 horas de sueño.',
+    };
+    listRecommendationsMock.mockResolvedValue([habitsRec]);
+
+    renderPage('/pf/recommendations?view=habits');
+
+    const openBtn = await screen.findByRole('button', { name: /Ver recomendación/i });
+    fireEvent.click(openBtn);
+
+    const modal = screen.getByRole('dialog');
+    expect(within(modal).getByTestId('athlete-bmi-gauge')).toBeDefined();
+    expect(within(modal).getByText('24.6 kg/m²')).toBeDefined();
+    expect(within(modal).getAllByText('Peso saludable').length).toBeGreaterThanOrEqual(1);
+
+    // Y por debajo la recomendación
+    expect(within(modal).getByText('Pautas de hidratación y descanso')).toBeDefined();
+    expect(
+      within(modal).getByText(
+        'Mantener hidratación constante de 2.5 litros de agua y 8 horas de sueño.',
+      ),
+    ).toBeDefined();
   });
 });

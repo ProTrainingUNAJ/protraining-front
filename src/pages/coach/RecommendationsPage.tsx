@@ -762,6 +762,8 @@ export function RecommendationsPage() {
           subtitle={selectedGroup.subtitle}
           recommendations={selectedGroup.items}
           statusTab={statusTab}
+          athleteWeightKg={athleteMap.get(selectedGroup.athleteId)?.weightKg}
+          athleteHeightCm={athleteMap.get(selectedGroup.athleteId)?.heightCm}
           onClose={handleCloseDetailModal}
           onUpdate={handleUpdate}
           onApprove={handleApprove}
