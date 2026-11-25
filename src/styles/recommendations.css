@@ -1575,6 +1575,20 @@
   color: var(--primary-text);
 }
 
+/* Hábitos por secciones con título (KAN-660) */
+.athlete-recommendation-section + .athlete-recommendation-section {
+  margin-top: 0.85rem;
+}
+
+.athlete-recommendation-section-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-text);
+}
+
 /* Texto en párrafos cortos y con largo de línea legible aunque la tarjeta sea ancha */
 .athlete-recommendation-body {
   display: flex;

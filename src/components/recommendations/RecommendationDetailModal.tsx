@@ -151,6 +151,7 @@ export function RecommendationDetailModal({
                 gender={effectiveGender}
                 athleticGoal={effectiveGoal}
                 athleteName={athleteName}
+                isMinor={fetchedAthlete?.isMinor}
               />
             </div>
           )}

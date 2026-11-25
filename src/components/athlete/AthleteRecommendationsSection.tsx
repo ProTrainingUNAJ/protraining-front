@@ -6,9 +6,11 @@ import type { AthleteMe } from '../../types/structure';
 import { AthleteNutritionSummaryCard } from '../recommendations/AthleteNutritionSummaryCard';
 import {
   capitalizeFirst,
+  splitHabitsSections,
   splitRecommendationText,
   type TextBlock,
 } from '../../utils/recommendationFormat';
+import { isMinorAthlete } from '../../utils/nutritionCalculator';
 
 /**
  * Recomendaciones aprobadas por el PF en el Inicio del atleta (KAN-492, rediseño KAN-481/660).
@@ -65,11 +67,16 @@ function RecommendationBody({ blocks }: { blocks: TextBlock[] }) {
 function RecommendationCard({ rec }: { rec: MyRecommendation }) {
   const [expanded, setExpanded] = useState(false);
   const isHabits = rec.type === 'Habits';
-  const blocks = splitRecommendationText(rec.recommendationText);
-  // Los textos de hábitos son largos: de entrada se ve el primer bloque y "Leer completa"
-  const canCollapse = blocks.length > 1;
-  const visibleBlocks = canCollapse && !expanded ? blocks.slice(0, 1) : blocks;
   const disclaimer = rec.legalDisclaimer ?? (isHabits ? FALLBACK_HABITS_DISCLAIMER : null);
+  // Hábitos por secciones con título (Comidas, Hidratación y descanso…) si el texto lo permite
+  const sections = isHabits ? splitHabitsSections(rec.recommendationText, disclaimer) : null;
+  const blocks = sections ? [] : splitRecommendationText(rec.recommendationText);
+  // Los textos de hábitos son largos: de entrada se ve la primera parte y "Leer completa"
+  const partCount = sections ? sections.length : blocks.length;
+  const canCollapse = partCount > 1;
+  const visibleBlocks = canCollapse && !expanded ? blocks.slice(0, 1) : blocks;
+  const visibleSections =
+    sections && canCollapse && !expanded ? sections.slice(0, 1) : (sections ?? []);
   const dateIso = approvedAt(rec);
   const bodyId = `athlete-rec-body-${rec.id}`;
   const TypeIcon = isHabits ? Salad : Dumbbell;
@@ -100,7 +107,16 @@ function RecommendationCard({ rec }: { rec: MyRecommendation }) {
       <p className="athlete-recommendation-reason">{capitalizeFirst(rec.reason)}</p>
 
       <div id={bodyId}>
-        <RecommendationBody blocks={visibleBlocks} />
+        {sections ? (
+          visibleSections.map((section) => (
+            <section key={section.title} className="athlete-recommendation-section">
+              <h5 className="athlete-recommendation-section-title">{section.title}</h5>
+              <RecommendationBody blocks={section.blocks} />
+            </section>
+          ))
+        ) : (
+          <RecommendationBody blocks={visibleBlocks} />
+        )}
       </div>
 
       {canCollapse && (
@@ -200,16 +216,20 @@ export function AthleteRecommendationsSection() {
         </p>
       ) : (
         <>
-          {athleteProfile && (
-            <AthleteNutritionSummaryCard
-              weightKg={athleteProfile.weightKg}
-              heightCm={athleteProfile.heightCm}
-              birthDate={athleteProfile.birthDate}
-              gender={athleteProfile.gender}
-              athleticGoal={athleteProfile.athleticGoal}
-              athleteName={athleteProfile.fullName || athleteProfile.firstName}
-            />
-          )}
+          {/* Calorías y macros solo con hábitos aprobados por el PF y nunca a menores (KAN-664):
+              la IA propone y el PF decide, y a los menores el Asistente no les da gramos */}
+          {athleteProfile &&
+            items.some((rec) => rec.type === 'Habits') &&
+            !isMinorAthlete(athleteProfile.isMinor, athleteProfile.birthDate) && (
+              <AthleteNutritionSummaryCard
+                weightKg={athleteProfile.weightKg}
+                heightCm={athleteProfile.heightCm}
+                birthDate={athleteProfile.birthDate}
+                gender={athleteProfile.gender}
+                athleticGoal={athleteProfile.athleticGoal}
+                athleteName={athleteProfile.fullName || athleteProfile.firstName}
+              />
+            )}
           <div className="athlete-recommendations-grid">
             {visible.map((rec) => (
               <RecommendationCard key={rec.id} rec={rec} />

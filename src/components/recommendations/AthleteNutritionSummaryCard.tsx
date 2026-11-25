@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Activity, Flame, Info, TrendingUp, Zap } from 'lucide-react';
 import {
   calculateAthleteNutrition,
+  isMinorAthlete,
   type AthleteNutritionInput,
 } from '../../utils/nutritionCalculator';
 import './AthleteNutritionSummaryCard.css';
@@ -13,6 +14,8 @@ export interface AthleteNutritionSummaryCardProps {
   gender?: string | null;
   athleticGoal?: string | null;
   athleteName?: string;
+  /** Dato del back; si no viene, se deduce de la fecha de nacimiento. */
+  isMinor?: boolean | null;
   className?: string;
 }
 
@@ -23,6 +26,7 @@ export const AthleteNutritionSummaryCard: React.FC<AthleteNutritionSummaryCardPr
   gender,
   athleticGoal,
   athleteName,
+  isMinor,
   className = '',
 }) => {
   const nutritionInput: AthleteNutritionInput = useMemo(
@@ -37,6 +41,28 @@ export const AthleteNutritionSummaryCard: React.FC<AthleteNutritionSummaryCardPr
   );
 
   const nutrition = useMemo(() => calculateAthleteNutrition(nutritionInput), [nutritionInput]);
+
+  // A los menores no se les calculan calorías ni gramos (KAN-664), como en el Asistente
+  if (isMinorAthlete(isMinor, birthDate)) {
+    return (
+      <div
+        className={`athlete-nutrition-empty-card ${className}`}
+        data-testid="athlete-nutrition-minor"
+      >
+        <div className="athlete-nutrition-empty-icon" aria-hidden="true">
+          <Info size={18} />
+        </div>
+        <div className="athlete-nutrition-empty-text">
+          <h4>Sin calorías ni macronutrientes para menores</h4>
+          <p>
+            {athleteName ? `${athleteName} es menor de 18 años` : 'Es menor de 18 años'}: no se
+            calculan calorías ni gramos. La guía de hábitos es general y, para algo a medida, hay
+            que consultar a un profesional de la salud.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!nutrition) {
     return (

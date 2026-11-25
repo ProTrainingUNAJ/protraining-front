@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isMinorAthlete,
   calculateAge,
   calculateAthleteNutrition,
   calculateMifflinStJeor,
@@ -145,5 +146,17 @@ describe('nutritionCalculator', () => {
       expect(result.macros.protein.gramsPerKg).toBe(1.6);
       expect(result.macros.protein.grams).toBe(112); // 70 * 1.6
     });
+  });
+});
+
+describe('isMinorAthlete (KAN-664)', () => {
+  it('usa el dato del back y, si no viene, la fecha de nacimiento', () => {
+    expect(isMinorAthlete(true, null)).toBe(true);
+    const sixteen = new Date();
+    sixteen.setFullYear(sixteen.getFullYear() - 16);
+    expect(isMinorAthlete(undefined, sixteen.toISOString().slice(0, 10))).toBe(true);
+    expect(isMinorAthlete(false, '2000-05-15')).toBe(false);
+    // Sin fecha válida la edad es estimada: no se trata como menor
+    expect(isMinorAthlete(undefined, null)).toBe(false);
   });
 });
