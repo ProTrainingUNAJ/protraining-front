@@ -1656,10 +1656,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                           >
                             Idioma de la Interfaz
                           </label>
+                          {/* Solo español por ahora: el inglés se ve como "Próximamente" para que
+                              no parezca roto (KAN-660) */}
                           <select
                             id="set-lang"
                             value="es"
-                            disabled
+                            onChange={() => undefined}
+                            aria-describedby="set-lang-hint"
                             style={{
                               width: '100%',
                               padding: '0.5rem 0.85rem',
@@ -1668,12 +1671,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               background: 'var(--bg-subtle)',
                               color: 'var(--text-main)',
                               fontWeight: 600,
-                              cursor: 'not-allowed',
                             }}
-                            title="ProTraining está disponible únicamente en Español"
                           >
                             <option value="es">Español (Latinoamérica)</option>
+                            <option value="en" disabled>
+                              English — Próximamente
+                            </option>
                           </select>
+                          <p
+                            id="set-lang-hint"
+                            style={{
+                              margin: '0.35rem 0 0',
+                              fontSize: '0.78rem',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            Por ahora ProTraining está en español. El inglés llega próximamente.
+                          </p>
                         </div>
                       </div>
                     </div>

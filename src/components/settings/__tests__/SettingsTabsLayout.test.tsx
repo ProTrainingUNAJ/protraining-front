@@ -124,4 +124,22 @@ describe('Estabilidad de Layout y Pestañas en Configuración (KAN-598)', () => 
     expect(container.querySelector('.settings-tab-list')).not.toBeNull();
     expect(screen.getByRole('button', { name: /Guardar Cambios/i })).toBeDefined();
   });
+
+  it('en Apariencia el inglés aparece como "Próximamente" y deshabilitado (KAN-660)', () => {
+    render(
+      <MemoryRouter>
+        <SettingsView role="pf" />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: /Apariencia/i }));
+
+    const english = screen.getByRole('option', {
+      name: /English — Próximamente/,
+    }) as HTMLOptionElement;
+    expect(english.disabled).toBe(true);
+    const select = screen.getByLabelText('Idioma de la Interfaz') as HTMLSelectElement;
+    expect(select.value).toBe('es');
+    expect(screen.getByText(/El inglés llega próximamente/)).toBeDefined();
+  });
 });
