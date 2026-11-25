@@ -13,6 +13,7 @@ import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/shell/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { AthleteRecommendationGroupCard } from '../../components/recommendations/AthleteRecommendationGroupCard';
+import { RecommendationDetailModal } from '../../components/recommendations/RecommendationDetailModal';
 import {
   HabitsRecommendationBar,
   type HabitsAthleteOption,
@@ -67,6 +68,11 @@ export function RecommendationsPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+
+  const handleCloseDetailModal = useCallback(() => {
+    setSelectedAthleteId(null);
+  }, []);
 
   const handleRefresh = useCallback(() => {
     setLoading(true);
@@ -294,6 +300,14 @@ export function RecommendationsPage() {
     selectedOrganizationId,
   ]);
 
+  const selectedGroup = useMemo(
+    () =>
+      selectedAthleteId
+        ? (groupedByAthlete.find((group) => group.athleteId === selectedAthleteId) ?? null)
+        : null,
+    [groupedByAthlete, selectedAthleteId],
+  );
+
   const targetCategoryForAnalysis = analysisCategoryId || selectedCategoryFilter;
   const selectedCategoryForAnalysis = categories.find((c) => c.id === targetCategoryForAnalysis);
   const analysisBtnText = analyzing
@@ -417,6 +431,9 @@ export function RecommendationsPage() {
   ) => {
     const updated = await recommendationsService.approveRecommendation(id, edits);
     replaceRecommendationInState(updated);
+    if (selectedGroup && selectedGroup.items.length === 1 && selectedGroup.items[0].id === id) {
+      setSelectedAthleteId(null);
+    }
     setFeedback({
       tone: 'success',
       message: 'Recomendación aprobada y enviada al atleta. Ya está visible en su app.',
@@ -426,6 +443,9 @@ export function RecommendationsPage() {
   const handleDiscard = async (id: string) => {
     const updated = await recommendationsService.discardRecommendation(id);
     replaceRecommendationInState(updated);
+    if (selectedGroup && selectedGroup.items.length === 1 && selectedGroup.items[0].id === id) {
+      setSelectedAthleteId(null);
+    }
     setFeedback({
       tone: 'info',
       message: 'Recomendación descartada. No se envió al atleta.',
@@ -448,7 +468,10 @@ export function RecommendationsPage() {
               role="tab"
               aria-selected={activeTab === 'analysis'}
               className={`btn recommendations-tab-btn ${activeTab === 'analysis' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setActiveTab('analysis')}
+              onClick={() => {
+                setSelectedAthleteId(null);
+                setActiveTab('analysis');
+              }}
             >
               <Sparkles size={15} aria-hidden="true" />
               <span>Analizar plantel</span>
@@ -467,7 +490,10 @@ export function RecommendationsPage() {
               role="tab"
               aria-selected={activeTab === 'habits'}
               className={`btn recommendations-tab-btn ${activeTab === 'habits' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setActiveTab('habits')}
+              onClick={() => {
+                setSelectedAthleteId(null);
+                setActiveTab('habits');
+              }}
             >
               <Salad size={15} aria-hidden="true" />
               <span>Hábitos y alimentación</span>
@@ -645,7 +671,10 @@ export function RecommendationsPage() {
           <SegmentedFilterTabs<RecommendationStatusFilter>
             ariaLabel="Estado de recomendaciones"
             value={statusTab}
-            onChange={setStatusTab}
+            onChange={(nextStatus) => {
+              setSelectedAthleteId(null);
+              setStatusTab(nextStatus);
+            }}
             options={STATUS_TABS.map((tab) => ({
               value: tab.value,
               label: tab.label,
@@ -717,14 +746,28 @@ export function RecommendationsPage() {
                 subtitle={group.subtitle}
                 recommendations={group.items}
                 statusTab={statusTab}
-                onUpdate={handleUpdate}
-                onApprove={handleApprove}
-                onDiscard={handleDiscard}
+                isOpen={selectedGroup?.athleteId === group.athleteId}
+                onOpen={() => setSelectedAthleteId(group.athleteId)}
               />
             ))}
           </section>
         )}
       </div>
+
+      {selectedGroup && (
+        <RecommendationDetailModal
+          athleteId={selectedGroup.athleteId}
+          athleteName={selectedGroup.athleteName}
+          athletePhotoUrl={selectedGroup.athletePhotoUrl}
+          subtitle={selectedGroup.subtitle}
+          recommendations={selectedGroup.items}
+          statusTab={statusTab}
+          onClose={handleCloseDetailModal}
+          onUpdate={handleUpdate}
+          onApprove={handleApprove}
+          onDiscard={handleDiscard}
+        />
+      )}
     </div>
   );
 }

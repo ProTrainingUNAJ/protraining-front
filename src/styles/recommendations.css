@@ -640,7 +640,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 1000;
+  z-index: 1100;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -923,6 +923,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 1.25rem;
+  box-sizing: border-box;
 }
 
 .recommendation-modal-dialog {
@@ -1808,5 +1809,31 @@
   .recommendation-btn-approve-full {
     width: 100%;
     flex: 1;
+  }
+
+  .recommendation-modal-overlay {
+    padding: 0.75rem;
+  }
+
+  .recommendation-modal-dialog {
+    max-height: 92vh;
+    border-radius: 16px;
+  }
+
+  .recommendation-modal-header {
+    padding: 1rem;
+  }
+
+  .recommendation-modal-title {
+    font-size: 1.08rem;
+  }
+
+  .recommendation-modal-body {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .recommendation-modal-footer {
+    padding: 0.85rem 1rem;
   }
 }
