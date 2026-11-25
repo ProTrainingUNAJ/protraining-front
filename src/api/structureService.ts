@@ -279,6 +279,15 @@ export const structureService = {
     }
   },
 
+  async getAthleteById(athleteId: string): Promise<Athlete> {
+    try {
+      const response = await httpClient.get<RawAthlete>(`/estructura/api/v1/athletes/${athleteId}`);
+      return mapAthlete(response.data);
+    } catch (err: unknown) {
+      throw new Error(extractErrorMessage(err), { cause: err });
+    }
+  },
+
   async createAthlete(req: CreateAthleteRequest): Promise<Athlete> {
     try {
       const response = await httpClient.post<RawAthlete>('/estructura/api/v1/athletes', {
