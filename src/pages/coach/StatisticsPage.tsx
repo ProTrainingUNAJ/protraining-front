@@ -65,9 +65,9 @@ export const StatisticsPage: React.FC = () => {
   const [structureError, setStructureError] = useState<string | null>(null);
 
   const [summary, setSummary] = useState<CategoryDashboardSummary | null>(null);
-  const [loadingSummary, setLoadingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [resolvedRequestKey, setResolvedRequestKey] = useState<string | null>(null);
 
   // Helper para actualizar searchParams en la URL sin recargar
   const updateSearchParam = (key: string, value: string) => {
@@ -159,11 +159,22 @@ export const StatisticsPage: React.FC = () => {
     return availableCategories[0]?.id || '';
   }, [selectedCategoryId, availableCategories]);
 
+  // El loading se deriva de la clave del último pedido respondido: se enciende en
+  // cuanto cambian los filtros y se apaga con su respuesta. Así nunca queda un
+  // spinner prendido si la selección no modifica la categoría efectiva.
+  const summaryRequestKey = effectiveCategoryId
+    ? `${effectiveCategoryId}|${period}|${reloadKey}`
+    : '';
+  const loadingSummary = Boolean(effectiveCategoryId) && resolvedRequestKey !== summaryRequestKey;
+  const visibleSummary = effectiveCategoryId ? summary : null;
+  const visibleSummaryError = effectiveCategoryId ? summaryError : null;
+
   // 3. Cargar Resumen de Categoría (para Estadísticas del Plantel e Informes)
   useEffect(() => {
     if (!effectiveCategoryId) return;
 
     let mounted = true;
+    const requestKey = `${effectiveCategoryId}|${period}|${reloadKey}`;
 
     // KAN-651: SilentNotFound para resiliencia ante categorías sin métricas o 404
     categoryDashboardService
@@ -181,7 +192,7 @@ export const StatisticsPage: React.FC = () => {
         setSummaryError(errorMessage(err, 'No se pudo cargar el resumen de la categoría.'));
       })
       .finally(() => {
-        if (mounted) setLoadingSummary(false);
+        if (mounted) setResolvedRequestKey(requestKey);
       });
 
     return () => {
@@ -211,7 +222,6 @@ export const StatisticsPage: React.FC = () => {
         setSummary(null);
       }
     }
-    setLoadingSummary(true);
   };
 
   // Manejo de cambio de categoría
@@ -219,14 +229,12 @@ export const StatisticsPage: React.FC = () => {
     selectedCategoryIdRef.current = catId;
     setSelectedCategoryId(catId);
     updateSearchParam('catId', catId);
-    setLoadingSummary(true);
   };
 
   // Manejo de cambio de período
   const handlePeriodChange = (nextPeriod: CategoryDashboardPeriod) => {
     setPeriod(nextPeriod);
     updateSearchParam('period', nextPeriod);
-    setLoadingSummary(true);
   };
 
   // Manejo de cambio de ejercicio
@@ -237,7 +245,6 @@ export const StatisticsPage: React.FC = () => {
 
   // Botón Actualizar
   const handleRefresh = () => {
-    setLoadingSummary(true);
     setReloadKey((k) => k + 1);
   };
 
@@ -452,9 +459,9 @@ export const StatisticsPage: React.FC = () => {
                     </span>
                   </div>
                   <CategoryMetricsPanel
-                    summary={summary}
+                    summary={visibleSummary}
                     loading={loadingSummary}
-                    error={summaryError}
+                    error={visibleSummaryError}
                     onRetry={handleRefresh}
                   />
                 </section>
@@ -511,7 +518,7 @@ export const StatisticsPage: React.FC = () => {
               <ReportsExportPanel
                 organizationName={selectedOrgName}
                 categoryName={selectedCatName}
-                summary={summary}
+                summary={visibleSummary}
                 periodLabel={periodLabel}
               />
             )}
