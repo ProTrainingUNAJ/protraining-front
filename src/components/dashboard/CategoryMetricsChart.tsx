@@ -69,7 +69,8 @@ export const CategoryMetricsChart: React.FC<CategoryMetricsChartProps> = ({ week
             tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
             width={54}
           />
-          <Tooltip content={<CategoryLoadTooltip />} />
+          {/* El cursor por defecto de Recharts tapa la barra con un rectángulo gris claro. */}
+          <Tooltip content={<CategoryLoadTooltip />} cursor={false} />
           <Bar
             dataKey="totalLoad"
             name="Carga semanal (UA)"
