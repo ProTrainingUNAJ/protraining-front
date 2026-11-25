@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { todayInArgentina } from '../utils/argentinaDate';
 
 export interface RoutineTimerState {
   seconds: number;
@@ -15,6 +16,8 @@ interface StoredTimer {
   accumulatedSeconds: number;
   isRunning: boolean;
   lastStartedAt: number | null;
+  /** Día (AAAA-MM-DD, Argentina) al que pertenece el tiempo; la copia global lo necesita. */
+  date?: string;
 }
 
 export function formatTimerSeconds(totalSeconds: number): string {
@@ -40,13 +43,18 @@ function getInitialTimerState(storageKey: string | null): {
   accumulatedSeconds: number;
   lastStartedAt: number | null;
 } {
-  const keyToUse = storageKey || GLOBAL_TIMER_KEY;
   try {
-    const raw =
-      localStorage.getItem(keyToUse) ||
-      (storageKey ? localStorage.getItem(GLOBAL_TIMER_KEY) : null);
+    // Con la rutina cargada se lee solo el tiempo de ese día y ese atleta. Antes, si hoy todavía
+    // no había tiempo guardado, caía a la copia global y mostraba el acumulado de ayer (KAN-481).
+    // La copia global solo se usa mientras carga la rutina y si es del día de hoy.
+    const raw = storageKey
+      ? localStorage.getItem(storageKey)
+      : localStorage.getItem(GLOBAL_TIMER_KEY);
     if (raw) {
       const parsed: StoredTimer = JSON.parse(raw);
+      if (!storageKey && parsed.date !== todayInArgentina()) {
+        return { seconds: 0, isRunning: false, accumulatedSeconds: 0, lastStartedAt: null };
+      }
       const base = parsed.accumulatedSeconds || 0;
       if (parsed.isRunning && parsed.lastStartedAt) {
         const delta = Math.floor((Date.now() - parsed.lastStartedAt) / 1000);
@@ -101,6 +109,7 @@ export function useRoutineTimer(athleteId?: string, date?: string): RoutineTimer
           accumulatedSeconds: accumulated,
           isRunning: running,
           lastStartedAt: lastStarted,
+          date: date ?? todayInArgentina(),
         };
         const serialized = JSON.stringify(state);
         if (storageKey) {
@@ -111,7 +120,7 @@ export function useRoutineTimer(athleteId?: string, date?: string): RoutineTimer
         // Ignorar excepciones de cuota o modo incógnito
       }
     },
-    [storageKey],
+    [storageKey, date],
   );
 
   // Intervalo de conteo activo con cálculo de delta temporal exacto (no se pierde al cambiar de pestaña)

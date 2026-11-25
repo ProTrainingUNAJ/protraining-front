@@ -113,4 +113,40 @@ describe('useRoutineTimer (KAN-623)', () => {
     expect(result.current.seconds).toBe(0);
     expect(result.current.isRunning).toBe(false);
   });
+
+  it('arranca en 00:00 un día nuevo aunque ayer haya quedado tiempo acumulado (KAN-481)', () => {
+    // Ayer terminó con 14:20 y quedó también en la copia global
+    const yesterday = {
+      accumulatedSeconds: 860,
+      isRunning: false,
+      lastStartedAt: null,
+      date: '2026-11-23',
+    };
+    localStorage.setItem('protraining_routine_timer_2026-11-23_ath-1', JSON.stringify(yesterday));
+    localStorage.setItem('protraining_active_routine_timer', JSON.stringify(yesterday));
+
+    const { result } = renderHook(() => useRoutineTimer('ath-1', '2026-11-24'));
+    act(() => {
+      vi.runOnlyPendingTimers();
+    });
+
+    expect(result.current.seconds).toBe(0);
+    expect(result.current.formattedTime).toBe('00:00');
+  });
+
+  it('mientras carga la rutina ignora una copia global de otro día', () => {
+    localStorage.setItem(
+      'protraining_active_routine_timer',
+      JSON.stringify({
+        accumulatedSeconds: 860,
+        isRunning: false,
+        lastStartedAt: null,
+        date: '2000-01-01',
+      }),
+    );
+
+    const { result } = renderHook(() => useRoutineTimer(undefined, undefined));
+
+    expect(result.current.seconds).toBe(0);
+  });
 });
