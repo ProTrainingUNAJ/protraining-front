@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, ChevronDown, Dumbbell, Info, RefreshCw, Salad, Sparkles } from 'lucide-react';
 import { recommendationsService, type MyRecommendation } from '../../api/recommendations';
+import { structureService } from '../../api/structureService';
+import type { AthleteMe } from '../../types/structure';
+import { AthleteNutritionSummaryCard } from '../recommendations/AthleteNutritionSummaryCard';
 import {
   capitalizeFirst,
   splitRecommendationText,
@@ -130,16 +133,20 @@ function RecommendationCard({ rec }: { rec: MyRecommendation }) {
 
 export function AthleteRecommendationsSection() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [athleteProfile, setAthleteProfile] = useState<AthleteMe | null>(null);
   const [showAll, setShowAll] = useState(false);
 
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
-    recommendationsService
-      .listMyRecommendations()
-      .then((items) => {
+    Promise.all([
+      recommendationsService.listMyRecommendations(),
+      Promise.resolve(structureService.getMe()).catch(() => null),
+    ])
+      .then(([items, me]) => {
         if (!active) return;
+        if (me) setAthleteProfile(me);
         const sorted = [...items].sort((a, b) => approvedAt(b).localeCompare(approvedAt(a)));
         setState({ status: 'ready', items: sorted });
       })
@@ -193,6 +200,16 @@ export function AthleteRecommendationsSection() {
         </p>
       ) : (
         <>
+          {athleteProfile && (
+            <AthleteNutritionSummaryCard
+              weightKg={athleteProfile.weightKg}
+              heightCm={athleteProfile.heightCm}
+              birthDate={athleteProfile.birthDate}
+              gender={athleteProfile.gender}
+              athleticGoal={athleteProfile.athleticGoal}
+              athleteName={athleteProfile.fullName || athleteProfile.firstName}
+            />
+          )}
           <div className="athlete-recommendations-grid">
             {visible.map((rec) => (
               <RecommendationCard key={rec.id} rec={rec} />

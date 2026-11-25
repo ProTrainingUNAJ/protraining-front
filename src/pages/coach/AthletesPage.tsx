@@ -778,10 +778,12 @@ export const AthletesPage: React.FC = () => {
                         className="btn btn-secondary athletes-action-btn athlete-action--secondary"
                         onClick={() => setSettingsAthlete(athlete)}
                         title="Foto de perfil, cambiar clave, cambiar mail y deshabilitar usuario"
+                        aria-label="Configuración"
                         data-testid={`settings-btn-${athlete.id}`}
                       >
                         <Settings size={15} aria-hidden="true" />
-                        <span>Configuración</span>
+                        <span className="athlete-action-label-full">Configuración</span>
+                        <span className="athlete-action-label-short">Config</span>
                       </button>
                     </div>
                   );

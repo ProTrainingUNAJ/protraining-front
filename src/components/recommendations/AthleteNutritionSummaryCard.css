@@ -1,0 +1,334 @@
+.athlete-nutrition-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 14px);
+  padding: var(--spacing-lg, 1.25rem) var(--spacing-xl, 1.5rem);
+  margin-bottom: var(--spacing-lg, 1.25rem);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.athlete-nutrition-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.athlete-nutrition-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md, 1rem);
+  margin-bottom: var(--spacing-lg, 1.25rem);
+  flex-wrap: wrap;
+}
+
+.athlete-nutrition-title-block {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.65rem);
+}
+
+.athlete-nutrition-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--info-bg);
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+.athlete-nutrition-title {
+  font-size: var(--font-size-base, 1rem);
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.athlete-nutrition-subtitle {
+  font-size: var(--font-size-xs, 0.8rem);
+  color: var(--text-muted);
+  margin: var(--spacing-3xs, 0.15rem) 0 0 0;
+}
+
+.athlete-nutrition-target-box {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.athlete-nutrition-calories-large {
+  font-size: var(--font-size-2xl, 1.5rem);
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.athlete-nutrition-calories-unit {
+  font-size: var(--font-size-xs, 0.85rem);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: var(--spacing-3xs, 0.25rem);
+}
+
+.athlete-nutrition-goal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3xs, 0.35rem);
+  margin-top: var(--spacing-3xs, 0.35rem);
+  padding: var(--spacing-3xs, 0.2rem) var(--spacing-sm, 0.6rem);
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 700;
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.athlete-nutrition-goal-badge.goal-muscle_gain {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  border-color: var(--warning-border);
+}
+
+.athlete-nutrition-goal-badge.goal-performance {
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-color: var(--info-border);
+}
+
+.athlete-nutrition-goal-badge.goal-maintain {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border-color: var(--success-border);
+}
+
+/* Barra Segmentada de Macros */
+.athlete-nutrition-macro-bar-container {
+  margin-bottom: var(--spacing-lg, 1.25rem);
+}
+
+.athlete-nutrition-macro-bar {
+  display: flex;
+  height: 12px;
+  width: 100%;
+  border-radius: var(--radius-full, 9999px);
+  overflow: hidden;
+  background: var(--bg-subtle);
+}
+
+.macro-bar-segment {
+  height: 100%;
+  transition: width 0.4s ease-in-out;
+}
+
+.macro-bar-segment.protein {
+  background: var(--brand-blue);
+}
+
+.macro-bar-segment.carbs {
+  background: var(--stat-amber);
+}
+
+.macro-bar-segment.fat {
+  background: var(--stat-green);
+}
+
+/* Grid de Métricas de Macros */
+.athlete-nutrition-macros-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md, 0.85rem);
+  margin-bottom: var(--spacing-lg, 1.25rem);
+}
+
+.athlete-nutrition-macro-pill {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 10px);
+  padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 0.85rem);
+  background: var(--bg-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs, 0.25rem);
+  transition: background 0.15s ease;
+}
+
+.athlete-nutrition-macro-pill:hover {
+  background: var(--bg-card);
+}
+
+.macro-pill-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.macro-pill-label-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs, 0.4rem);
+}
+
+.macro-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full, 50%);
+}
+
+.macro-pill-dot.protein {
+  background: var(--brand-blue);
+}
+
+.macro-pill-dot.carbs {
+  background: var(--stat-amber);
+}
+
+.macro-pill-dot.fat {
+  background: var(--stat-green);
+}
+
+.macro-pill-name {
+  font-size: var(--font-size-xs, 0.82rem);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.macro-pill-pct {
+  font-size: var(--font-size-xs, 0.82rem);
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.macro-pill-grams {
+  font-size: var(--font-size-lg, 1.25rem);
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.macro-pill-unit {
+  font-size: var(--font-size-2xs, 0.75rem);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: var(--spacing-3xs, 0.15rem);
+}
+
+.macro-pill-submetrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-2xs, 0.75rem);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--spacing-3xs, 0.35rem);
+  margin-top: var(--spacing-3xs, 0.25rem);
+}
+
+/* Pie Informativo con IMC y TMB/TDEE */
+.athlete-nutrition-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md, 1rem);
+  padding-top: var(--spacing-sm, 0.85rem);
+  border-top: 1px solid var(--border);
+  font-size: var(--font-size-xs, 0.8rem);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.athlete-nutrition-footer-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.6rem);
+  flex-wrap: wrap;
+}
+
+.athlete-nutrition-chip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3xs, 0.3rem);
+  padding: var(--spacing-3xs, 0.2rem) var(--spacing-xs, 0.55rem);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: var(--font-size-2xs, 0.75rem);
+}
+
+.athlete-nutrition-chip-badge strong {
+  color: var(--text-main);
+}
+
+.athlete-nutrition-footer-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs, 0.5rem);
+  font-size: var(--font-size-2xs, 0.75rem);
+}
+
+/* Estado Vacío cuando faltan datos */
+.athlete-nutrition-empty-card {
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md, 12px);
+  padding: var(--spacing-md, 1.25rem);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md, 1rem);
+  margin-bottom: var(--spacing-lg, 1.25rem);
+}
+
+.athlete-nutrition-empty-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--border-subtle);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.athlete-nutrition-empty-text h4 {
+  margin: 0;
+  font-size: var(--font-size-sm, 0.92rem);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.athlete-nutrition-empty-text p {
+  margin: var(--spacing-3xs, 0.2rem) 0 0 0;
+  font-size: var(--font-size-xs, 0.82rem);
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .athlete-nutrition-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .athlete-nutrition-target-box {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .athlete-nutrition-macros-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm, 0.65rem);
+  }
+
+  .athlete-nutrition-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
