@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import type { AthleteRecommendation, RecommendationStatusFilter } from '../../api/recommendations';
-import { capitalizeFirst } from '../../utils/recommendationFormat';
-import { RecommendationCard } from './RecommendationCard';
+import {
+  capitalizeFirst,
+  getRecommendationCountLabel,
+  getRecommendationDisplaySubtitle,
+} from '../../utils/recommendationFormat';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 
 export interface AthleteRecommendationGroupCardProps {
@@ -12,20 +14,8 @@ export interface AthleteRecommendationGroupCardProps {
   subtitle?: string | null;
   recommendations: AthleteRecommendation[];
   statusTab: RecommendationStatusFilter;
-  onUpdate: (id: string, title: string, recommendationText: string) => Promise<void>;
-  onApprove: (id: string, edits?: { title: string; recommendationText: string }) => Promise<void>;
-  onDiscard: (id: string) => Promise<void>;
-}
-
-function getCountLabel(count: number, statusTab: RecommendationStatusFilter): string {
-  switch (statusTab) {
-    case 'Pending':
-      return count === 1 ? '1 pendiente' : `${count} pendientes`;
-    case 'Approved':
-      return count === 1 ? '1 aprobada' : `${count} aprobadas`;
-    case 'Discarded':
-      return count === 1 ? '1 descartada' : `${count} descartadas`;
-  }
+  isOpen: boolean;
+  onOpen: () => void;
 }
 
 function getStatusLabel(statusTab: RecommendationStatusFilter): string {
@@ -46,32 +36,10 @@ export function AthleteRecommendationGroupCard({
   subtitle,
   recommendations,
   statusTab,
-  onUpdate,
-  onApprove,
-  onDiscard,
+  isOpen,
+  onOpen,
 }: AthleteRecommendationGroupCardProps) {
-  const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    if (!expanded) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setExpanded(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [expanded]);
-
-  const uniqueCategories = Array.from(
-    new Set(
-      recommendations
-        .map((rec) => rec.categoryName?.trim())
-        .filter((name): name is string => Boolean(name)),
-    ),
-  );
-
-  const displaySubtitle = subtitle?.trim() || uniqueCategories.join(', ') || 'Plantel deportivo';
+  const displaySubtitle = getRecommendationDisplaySubtitle(subtitle, recommendations);
 
   const uniqueReasons = Array.from(
     new Set(recommendations.map((rec) => capitalizeFirst(rec.reason)).filter(Boolean)),
@@ -85,7 +53,7 @@ export function AthleteRecommendationGroupCard({
     );
   });
 
-  const countLabel = getCountLabel(recommendations.length, statusTab);
+  const countLabel = getRecommendationCountLabel(recommendations.length, statusTab);
   const statusLabel = getStatusLabel(statusTab);
 
   // Recolectar números de métricas clave para el modelo minimalista de la burbuja (KAN-665)
@@ -111,8 +79,8 @@ export function AthleteRecommendationGroupCard({
       <button
         type="button"
         className="recommendation-athlete-group-header"
-        onClick={() => setExpanded(true)}
-        aria-expanded={expanded}
+        onClick={onOpen}
+        aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
         {/* Fila superior: Avatar, Nombre, Subtítulo y Estado */}
@@ -188,81 +156,6 @@ export function AthleteRecommendationGroupCard({
           </span>
         </div>
       </button>
-
-      {/* Ventana Modal con todo detallado (KAN-665) */}
-      {expanded && (
-        <div
-          className="modal-overlay recommendation-modal-overlay"
-          role="presentation"
-          onClick={() => setExpanded(false)}
-        >
-          <div
-            className="recommendation-modal-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`modal-heading-${athleteId}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Cabecera de la ventana */}
-            <header className="recommendation-modal-header">
-              <div className="recommendation-modal-header-info">
-                <ProfileAvatar
-                  src={athletePhotoUrl}
-                  name={athleteName}
-                  size={48}
-                  className="recommendation-modal-avatar"
-                />
-                <div className="recommendation-modal-header-text">
-                  <h2 id={`modal-heading-${athleteId}`} className="recommendation-modal-title">
-                    {athleteName}
-                  </h2>
-                  <div className="recommendation-modal-subtitle">{displaySubtitle}</div>
-                </div>
-              </div>
-
-              <div className="recommendation-modal-header-actions">
-                <span className={`recommendation-badge status-${statusTab.toLowerCase()}`}>
-                  {countLabel}
-                </span>
-                <button
-                  type="button"
-                  className="recommendation-modal-close"
-                  onClick={() => setExpanded(false)}
-                  aria-label="Cerrar ventana"
-                >
-                  <X size={20} aria-hidden="true" />
-                </button>
-              </div>
-            </header>
-
-            {/* Contenido detallado: todas las tarjetas de recomendaciones del atleta */}
-            <div className="recommendation-modal-body">
-              {recommendations.map((rec) => (
-                <RecommendationCard
-                  key={rec.id}
-                  recommendation={rec}
-                  athleteName={athleteName}
-                  hideAthleteName
-                  onUpdate={onUpdate}
-                  onApprove={onApprove}
-                  onDiscard={onDiscard}
-                />
-              ))}
-            </div>
-
-            {/* Pie de la ventana */}
-            <footer className="recommendation-modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setExpanded(false)}
-              >
-                Cerrar ventana
-              </button>
-            </footer>
-          </div>
-        </div>
-      )}
     </article>
   );
 }

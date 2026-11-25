@@ -603,7 +603,7 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(screen.getByText(/Salto Vertical CMJ/i)).toBeDefined();
   });
 
-  it('abre la tarjeta en modo ventana (modal emergente) con todo el detalle y permite cerrarla (KAN-665)', async () => {
+  it('abre la tarjeta en un único modal montado en document.body fuera de la tarjeta y permite cerrarlo (KAN-665)', async () => {
     listRecommendationsMock.mockResolvedValue([pendingRec]);
 
     renderPage();
@@ -618,13 +618,20 @@ describe('RecommendationsPage (KAN-492)', () => {
     // Clic en Ver recomendación para abrir la tarjeta en modo ventana
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
 
-    // Diálogo modal abierto con todo el detalle
-    const modal = screen.getByRole('dialog');
-    expect(modal).toBeDefined();
+    // Debe haber exactamente 1 diálogo modal y estar montado fuera de la tarjeta (vía portal en document.body)
+    const dialogs = screen.getAllByRole('dialog');
+    expect(dialogs).toHaveLength(1);
+    const modal = dialogs[0];
+    expect(modal.closest('.recommendation-athlete-group')).toBeNull();
+    expect(modal.parentElement?.parentElement).toBe(document.body);
+    expect(document.body.style.overflow).toBe('hidden');
+
+    // Contenido completo y botones de acción dentro del modal
     expect(within(modal).getByText('Ajuste de potencia de salto')).toBeDefined();
     expect(
       within(modal).getByText('Sumar dos bloques de saltos pliométricos controlados por semana.'),
     ).toBeDefined();
+    expect(within(modal).getByRole('button', { name: /Editar/i })).toBeDefined();
     expect(within(modal).getByRole('button', { name: /Aprobar y enviar/i })).toBeDefined();
     expect(within(modal).getByRole('button', { name: /Descartar/i })).toBeDefined();
 
@@ -633,13 +640,21 @@ describe('RecommendationsPage (KAN-492)', () => {
     expect(closeBtns.length).toBeGreaterThanOrEqual(1);
     fireEvent.click(closeBtns[0]);
 
-    // El diálogo modal se cerró
+    // El diálogo modal se cerró y se restauró el scroll del body
     expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.body.style.overflow).toBe('');
 
     // Reabrir y verificar cierre con tecla Escape
     fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
     expect(screen.getByRole('dialog')).toBeDefined();
     fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    // Reabrir y verificar cierre al hacer clic en el backdrop
+    fireEvent.click(screen.getByRole('button', { name: /Ver recomendación/i }));
+    const overlay = document.querySelector('.recommendation-modal-overlay');
+    expect(overlay).not.toBeNull();
+    fireEvent.click(overlay as Element);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

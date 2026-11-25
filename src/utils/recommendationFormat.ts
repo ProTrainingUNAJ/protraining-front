@@ -1,3 +1,5 @@
+import type { AthleteRecommendation, RecommendationStatusFilter } from '../api/recommendations';
+
 /**
  * Capitaliza únicamente la primera letra para mostrar motivos del motor en UI
  * sin alterar los textos literales almacenados en el backend.
@@ -6,6 +8,37 @@ export function capitalizeFirst(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+export function getRecommendationCountLabel(
+  count: number,
+  statusTab: RecommendationStatusFilter,
+): string {
+  switch (statusTab) {
+    case 'Pending':
+      return count === 1 ? '1 pendiente' : `${count} pendientes`;
+    case 'Approved':
+      return count === 1 ? '1 aprobada' : `${count} aprobadas`;
+    case 'Discarded':
+      return count === 1 ? '1 descartada' : `${count} descartadas`;
+  }
+}
+
+export function getRecommendationDisplaySubtitle(
+  subtitle: string | null | undefined,
+  recommendations: AthleteRecommendation[],
+): string {
+  if (subtitle?.trim()) return subtitle.trim();
+
+  const uniqueCategories = Array.from(
+    new Set(
+      recommendations
+        .map((rec) => rec.categoryName?.trim())
+        .filter((name): name is string => Boolean(name)),
+    ),
+  );
+
+  return uniqueCategories.join(', ') || 'Plantel deportivo';
 }
 
 export type TextBlock = { kind: 'paragraph'; text: string } | { kind: 'list'; items: string[] };
