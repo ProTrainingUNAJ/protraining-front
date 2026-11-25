@@ -145,7 +145,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
             setInitialHadPersonalInfo(true);
           }
         })
-        .catch(() => { });
+        .catch(() => {});
     }
   }, [role]);
 
@@ -285,11 +285,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
           : initialHadPersonalInfo
             ? { birthDate: null }
             : {}),
-        ...(cleanGender
-          ? { gender: cleanGender }
-          : initialHadPersonalInfo
-            ? { gender: '' }
-            : {}),
+        ...(cleanGender ? { gender: cleanGender } : initialHadPersonalInfo ? { gender: '' } : {}),
       };
       const updated = await structureService.updateMyPhysicalProfile(payload);
       if (cleanHeight !== null && (updated.heightCm === undefined || updated.heightCm === null)) {
@@ -1460,10 +1456,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               style={{
                                 padding: '0.9rem',
                                 borderRadius: '10px',
-                                border: `2px solid ${themePreference === 'system'
-                                  ? 'var(--secondary)'
-                                  : 'var(--border)'
-                                  }`,
+                                border: `2px solid ${
+                                  themePreference === 'system'
+                                    ? 'var(--secondary)'
+                                    : 'var(--border)'
+                                }`,
                                 background:
                                   themePreference === 'system'
                                     ? 'var(--avatar-cyan-bg)'
@@ -1537,8 +1534,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               style={{
                                 padding: '0.9rem',
                                 borderRadius: '10px',
-                                border: `2px solid ${themePreference === 'light' ? 'var(--secondary)' : 'var(--border)'
-                                  }`,
+                                border: `2px solid ${
+                                  themePreference === 'light' ? 'var(--secondary)' : 'var(--border)'
+                                }`,
                                 background:
                                   themePreference === 'light'
                                     ? 'var(--avatar-cyan-bg)'
@@ -1612,8 +1610,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                               style={{
                                 padding: '0.9rem',
                                 borderRadius: '10px',
-                                border: `2px solid ${themePreference === 'dark' ? 'var(--secondary)' : 'var(--border)'
-                                  }`,
+                                border: `2px solid ${
+                                  themePreference === 'dark' ? 'var(--secondary)' : 'var(--border)'
+                                }`,
                                 background:
                                   themePreference === 'dark'
                                     ? 'var(--avatar-cyan-bg)'
@@ -1916,8 +1915,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ role }) => {
                                 pushFeedback.type === 'success'
                                   ? 'var(--success-text)'
                                   : 'var(--danger-text)',
-                              border: `1px solid ${pushFeedback.type === 'success' ? 'var(--success)' : 'var(--danger)'
-                                }`,
+                              border: `1px solid ${
+                                pushFeedback.type === 'success' ? 'var(--success)' : 'var(--danger)'
+                              }`,
                             }}
                           >
                             {pushFeedback.type === 'success' ? (
