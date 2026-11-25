@@ -517,6 +517,7 @@
 }
 
 @media (max-width: 1100px) {
+
   .bento-card-col-1,
   .bento-card-col-2 {
     grid-column: span 2;
@@ -524,6 +525,7 @@
 }
 
 @media (max-width: 680px) {
+
   .bento-card-col-1,
   .bento-card-col-2 {
     grid-column: span 1;
@@ -610,7 +612,7 @@
 /* ── Wireframe Bento Layout (Inicio PF) ── */
 .wireframe-dashboard-container {
   width: 100%;
-  max-width: none;
+  max-width: 1600px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -749,7 +751,7 @@
     border-color 0.2s ease,
     background-color 0.2s ease,
     opacity 0.2s ease;
-  cursor: default;
+  cursor: grab;
   user-select: none;
 }
 
@@ -773,6 +775,7 @@
 }
 
 @media (max-width: 1100px) {
+
   .wireframe-col-1,
   .wireframe-col-2 {
     grid-column: span 1;
@@ -820,37 +823,21 @@
   }
 }
 
-/* Controles de tarjeta (Hover y Drag Handle).
-   KAN-594: la barra flota sobre el borde superior de la tarjeta, fuera del área de contenido,
-   para no tapar el estado ni la flecha del encabezado de ningún widget. El hueco entre filas
-   (1.25rem) alcanza para la mitad de la píldora que queda por encima del borde. */
+/* Controles de tarjeta (Hover y Drag Handle) */
 .wireframe-card-toolbar {
   position: absolute;
-  top: 0;
-  right: 1.5rem;
-  transform: translateY(-50%);
+  top: 1rem;
+  right: 1.2rem;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: var(--shadow-sm);
+  gap: 0.35rem;
   opacity: 0;
-  pointer-events: none;
   transition: opacity 0.15s ease;
   z-index: 10;
 }
 
-.wireframe-card:hover .wireframe-card-toolbar,
-.wireframe-card:focus-within .wireframe-card-toolbar {
+.wireframe-card:hover .wireframe-card-toolbar {
   opacity: 1;
-  pointer-events: auto;
-}
-
-.wireframe-card-toolbar .wireframe-control-btn {
-  border-radius: 999px;
 }
 
 .wireframe-control-btn {
@@ -907,18 +894,6 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-}
-
-/* La tarjeta Suite recorta su contenido (overflow: hidden) y no tiene encabezado con estado:
-   la barra queda adentro, como antes, sin la píldora. */
-.wireframe-suite-card .wireframe-card-toolbar {
-  top: 1rem;
-  right: 1.2rem;
-  transform: none;
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
 }
 
 .wireframe-suite-card .wireframe-drag-handle {
@@ -1423,13 +1398,10 @@
   font-weight: 600;
 }
 
-/* Grilla de Ejercicios (máximo 4 columnas para cerrar filas con PAGE_SIZE = 24) */
+/* Grilla de Ejercicios */
 .training-exercises-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(max(280px, calc((100% - 3.75rem - 1px) / 4)), 1fr)
-  );
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.25rem;
 }
 
@@ -1492,45 +1464,7 @@
   text-overflow: ellipsis;
 }
 
-.training-results-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0 0.25rem;
-  margin-bottom: -0.25rem;
-}
-
-.training-results-count {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.training-pagination {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.training-pagination .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 36px;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
-}
-
-.training-pagination-info {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-/* En Mobile: Adaptación de filtros y grilla de 2 columnas */
+/* En Mobile: Adaptación de filtros y grilla de 2 columnas (KAN-640) */
 @media (max-width: 768px) {
   .training-filters-card {
     padding: 0.65rem 0.75rem;
@@ -2026,6 +1960,28 @@
   flex-direction: column;
 }
 
+@media (max-width: 680px) {
+  .shell-popover.notice-center-popover {
+    position: fixed;
+    top: calc(56px + 0.5rem);
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: calc(100vw - 1.5rem);
+    max-height: min(540px, calc(100dvh - 56px - 1.5rem));
+    margin: 0 auto;
+    z-index: 1100;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell-popover.notice-center-popover {
+    left: 0.5rem;
+    right: 0.5rem;
+    max-width: calc(100vw - 1rem);
+  }
+}
+
 .notice-center-header {
   display: flex;
   align-items: center;
@@ -2266,42 +2222,4 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Inicio del PF (KAN-594, prototipo F): la primera tarjeta de la fila 1 ("Requieren atención
-   hoy" por defecto) es la principal y lleva más ancho, pero solo si sobra lugar: se mide el ancho
-   del Inicio (container query) y no el de la ventana, porque depende de si el menú está
-   desplegado. Con menos de 1200 px las otras dos se apretarían (el Semáforo no entra en una
-   línea). Va por posición y no por widget para que siga funcionando si el PF reordena. El Inicio
-   del atleta usa las mismas filas y no cambia. */
-.wireframe-dashboard-container--coach {
-  container-type: inline-size;
-}
-
-/* Las 3 tarjetas de la fila 2 siempre del mismo ancho: con 1fr, un título largo ("Próximo
-   entrenamiento" + "Mañana") ensanchaba su columna y apretaba a "Mayor carga". */
-@media (min-width: 1101px) {
-  .wireframe-dashboard-container--coach .wireframe-row-2 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@container (min-width: 1200px) {
-  .wireframe-dashboard-container--coach .wireframe-row-1 {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-
-/* Con 2 columnas, 3 tarjetas dejan un hueco: la primera de cada fila ocupa el ancho entero y las
-   otras dos quedan lado a lado. */
-@media (max-width: 1100px) and (min-width: 769px) {
-  .wireframe-dashboard-container--coach .wireframe-row-1 > .wireframe-card:first-child,
-  .wireframe-dashboard-container--coach .wireframe-row-2 > .wireframe-card:first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Fila de una sola tarjeta a todo el ancho (la tira "Mis marcas" del atleta, KAN-594) */
-.wireframe-row.wireframe-row-strip {
-  grid-template-columns: minmax(0, 1fr);
 }

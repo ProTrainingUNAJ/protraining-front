@@ -341,5 +341,35 @@ describe('AthletesPage · Modernización de Atletas (KAN-609)', () => {
       expect(screen.getByText('Joaquín Díaz')).toBeDefined();
       expect(screen.getByTestId('athletes-count').textContent).toBe('2 de 3 atletas');
     });
+
+    it('renderiza las 4 acciones del atleta con etiquetas responsivas para una sola fila (KAN-660)', async () => {
+      render(
+        <MemoryRouter>
+          <AthletesPage />
+        </MemoryRouter>,
+      );
+
+      await screen.findByText('Joaquín Díaz');
+      const card = screen.getByTestId('athlete-card-ath-1');
+      const actionsContainer = card.querySelector('.athletes-card-actions');
+      expect(actionsContainer).not.toBeNull();
+
+      const buttons = actionsContainer?.querySelectorAll('button');
+      expect(buttons?.length).toBe(4);
+
+      // Botón 1: Categorías
+      expect(buttons?.[0].textContent).toContain('Categorías');
+      // Botón 2: Métricas
+      expect(buttons?.[1].textContent).toContain('Métricas');
+      // Botón 3: Salud
+      expect(buttons?.[2].textContent).toContain('Salud');
+      // Botón 4: Configuración con versión compacta "Config" para mobile
+      expect(buttons?.[3].textContent).toContain('Configuración');
+      expect(buttons?.[3].textContent).toContain('Config');
+      expect(buttons?.[3].querySelector('.athlete-action-label-full')?.textContent).toBe(
+        'Configuración',
+      );
+      expect(buttons?.[3].querySelector('.athlete-action-label-short')?.textContent).toBe('Config');
+    });
   });
 });
