@@ -1,14 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { AthleteRecommendation, RecommendationStatusFilter } from '../../api/recommendations';
+import { structureService } from '../../api/structureService';
+import type { Athlete } from '../../types/structure';
 import {
   getRecommendationCountLabel,
   getRecommendationDisplaySubtitle,
 } from '../../utils/recommendationFormat';
 import { RecommendationCard } from './RecommendationCard';
 import { ProfileAvatar } from '../common/ProfileAvatar';
-import { AthleteBmiGauge } from './AthleteBmiGauge';
 import { AthleteNutritionSummaryCard } from './AthleteNutritionSummaryCard';
 
 export interface RecommendationDetailModalProps {
@@ -46,6 +47,36 @@ export function RecommendationDetailModal({
   onApprove,
   onDiscard,
 }: RecommendationDetailModalProps) {
+  const [fetchedAthlete, setFetchedAthlete] = useState<Athlete | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (
+      athleteId &&
+      typeof structureService?.getAthleteById === 'function' &&
+      (athleteWeightKg == null || athleteHeightCm == null)
+    ) {
+      Promise.resolve(structureService.getAthleteById(athleteId))
+        .then((data) => {
+          if (active && data) {
+            setFetchedAthlete(data);
+          }
+        })
+        .catch(() => {
+          // Fallback silencioso si no se pudo cargar
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [athleteId, athleteWeightKg, athleteHeightCm]);
+
+  const effectiveWeight = athleteWeightKg ?? fetchedAthlete?.weightKg;
+  const effectiveHeight = athleteHeightCm ?? fetchedAthlete?.heightCm;
+  const effectiveBirthDate = athleteBirthDate ?? fetchedAthlete?.birthDate;
+  const effectiveGender = athleteGender ?? fetchedAthlete?.gender;
+  const effectiveGoal = athleteGoal ?? fetchedAthlete?.athleticGoal;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -114,16 +145,11 @@ export function RecommendationDetailModal({
           {recommendations.some((rec) => rec.type === 'Habits') && (
             <div className="recommendation-modal-bmi-section">
               <AthleteNutritionSummaryCard
-                weightKg={athleteWeightKg}
-                heightCm={athleteHeightCm}
-                birthDate={athleteBirthDate}
-                gender={athleteGender}
-                athleticGoal={athleteGoal}
-                athleteName={athleteName}
-              />
-              <AthleteBmiGauge
-                weightKg={athleteWeightKg}
-                heightCm={athleteHeightCm}
+                weightKg={effectiveWeight}
+                heightCm={effectiveHeight}
+                birthDate={effectiveBirthDate}
+                gender={effectiveGender}
+                athleticGoal={effectiveGoal}
                 athleteName={athleteName}
               />
             </div>

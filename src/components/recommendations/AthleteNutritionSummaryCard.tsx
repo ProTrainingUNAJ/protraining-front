@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Flame, Info, TrendingUp, Zap } from 'lucide-react';
+import { Activity, Flame, Info, TrendingUp, Zap } from 'lucide-react';
 import {
   calculateAthleteNutrition,
   type AthleteNutritionInput,
@@ -48,11 +48,12 @@ export const AthleteNutritionSummaryCard: React.FC<AthleteNutritionSummaryCardPr
           <Info size={18} />
         </div>
         <div className="athlete-nutrition-empty-text">
-          <h4>Calorías y Macronutrientes Personalizados</h4>
+          <h4>Calorías, Macronutrientes e IMC Personalizados</h4>
           <p>
             {athleteName ? `${athleteName} no tiene ` : 'No se encuentra '}
-            registrado peso y estatura completos. Completá ambos datos en el perfil para calcular el
-            metabolismo basal (Mifflin-St Jeor), gasto energético y macronutrientes recomendados.
+            registrado peso o estatura completos en su configuración. Completá ambos datos en el
+            perfil para calcular el metabolismo basal (Mifflin-St Jeor), gasto energético,
+            macronutrientes recomendados y el diagnóstico de IMC.
           </p>
         </div>
       </div>
@@ -197,12 +198,101 @@ export const AthleteNutritionSummaryCard: React.FC<AthleteNutritionSummaryCardPr
         </div>
       </div>
 
-      {/* Pie informativo: IMC y TMB/TDEE */}
+      {/* Sección IMC: Diagnóstico y Escala Gráfica Visual (KAN-664) */}
+      <div className="athlete-nutrition-bmi-section" data-testid="athlete-nutrition-bmi-section">
+        <div className="athlete-nutrition-bmi-header">
+          <div className="athlete-nutrition-bmi-header-left">
+            <div className="athlete-nutrition-bmi-icon-badge" aria-hidden="true">
+              <Activity size={16} />
+            </div>
+            <div>
+              <h5 className="athlete-nutrition-bmi-title">Índice de Masa Corporal (IMC)</h5>
+              <div className="athlete-nutrition-bmi-chips">
+                <span className="athlete-nutrition-chip">
+                  <strong>Peso:</strong> {bmiResult.weightKg} kg
+                </span>
+                <span className="athlete-nutrition-chip">
+                  <strong>Estatura:</strong> {bmiResult.heightCm} cm ({bmiResult.heightM} m)
+                </span>
+                <span className="athlete-nutrition-chip athlete-nutrition-chip-highlight">
+                  <strong>IMC:</strong> {bmiResult.bmi.toFixed(1)} kg/m²
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="athlete-nutrition-bmi-header-right">
+            <span
+              className={`athlete-bmi-category-badge category-${bmiResult.category.key}`}
+              style={{
+                backgroundColor: bmiResult.category.bgColor,
+                borderColor: bmiResult.category.borderColor,
+                color: bmiResult.category.color,
+              }}
+            >
+              <span
+                className="athlete-bmi-category-dot"
+                style={{ backgroundColor: bmiResult.category.color }}
+                aria-hidden="true"
+              />
+              {bmiResult.category.label}
+            </span>
+          </div>
+        </div>
+
+        {/* Escala Gráfica Visual y Marcador Flotante */}
+        <div
+          className="athlete-bmi-gauge-wrapper"
+          aria-label={`Gráfico de IMC: ${bmiResult.bmi} (${bmiResult.category.label})`}
+          data-testid="athlete-bmi-gauge"
+        >
+          {/* Puntero / Aguja flotante con valor */}
+          <div
+            className="athlete-bmi-marker-pin"
+            style={{ left: `${bmiResult.gaugePercentage}%` }}
+            data-testid="athlete-bmi-pin"
+          >
+            <div
+              className="athlete-bmi-marker-bubble"
+              style={{ borderColor: bmiResult.category.color }}
+            >
+              <span className="athlete-bmi-marker-val">{bmiResult.bmi.toFixed(1)}</span>
+            </div>
+            <div
+              className="athlete-bmi-marker-arrow"
+              style={{ borderTopColor: bmiResult.category.color }}
+            />
+            <div
+              className="athlete-bmi-marker-line"
+              style={{ backgroundColor: bmiResult.category.color }}
+            />
+          </div>
+
+          {/* Barra segmentada con las 4 categorías OMS */}
+          <div className="athlete-bmi-track">
+            <div className="athlete-bmi-segment segment-underweight">
+              <span className="athlete-bmi-segment-label">Bajo peso</span>
+              <span className="athlete-bmi-segment-range">&lt; 18.5</span>
+            </div>
+            <div className="athlete-bmi-segment segment-normal">
+              <span className="athlete-bmi-segment-label">Peso saludable</span>
+              <span className="athlete-bmi-segment-range">18.5 - 24.9</span>
+            </div>
+            <div className="athlete-bmi-segment segment-overweight">
+              <span className="athlete-bmi-segment-label">Sobrepeso</span>
+              <span className="athlete-bmi-segment-range">25.0 - 29.9</span>
+            </div>
+            <div className="athlete-bmi-segment segment-obese">
+              <span className="athlete-bmi-segment-label">Obesidad</span>
+              <span className="athlete-bmi-segment-range">&ge; 30.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pie informativo: Metas y Gasto Energético */}
       <footer className="athlete-nutrition-footer">
         <div className="athlete-nutrition-footer-left">
-          <span className="athlete-nutrition-chip-badge">
-            <strong>IMC:</strong> {bmiResult.bmi.toFixed(1)} ({bmiResult.category.label})
-          </span>
           <span className="athlete-nutrition-chip-badge">
             <strong>TMB Basal:</strong> {bmr} kcal
           </span>
@@ -213,7 +303,7 @@ export const AthleteNutritionSummaryCard: React.FC<AthleteNutritionSummaryCardPr
 
         <div className="athlete-nutrition-footer-right">
           <Zap size={14} aria-hidden="true" />
-          <span>Fórmula Mifflin-St Jeor · Actividad ×1.6</span>
+          <span>Fórmula Mifflin-St Jeor · Factor Actividad ×1.6</span>
         </div>
       </footer>
     </article>

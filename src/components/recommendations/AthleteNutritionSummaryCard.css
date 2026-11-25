@@ -231,6 +231,82 @@
   margin-top: var(--spacing-3xs, 0.25rem);
 }
 
+/* Sección IMC Integrada (KAN-664) */
+.athlete-nutrition-bmi-section {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md, 10px);
+  padding: var(--spacing-sm, 0.85rem) var(--spacing-md, 1.15rem);
+  margin-top: var(--spacing-md, 1rem);
+  margin-bottom: var(--spacing-sm, 0.85rem);
+}
+
+.athlete-nutrition-bmi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm, 0.75rem);
+  margin-bottom: var(--spacing-xs, 0.5rem);
+  flex-wrap: wrap;
+}
+
+.athlete-nutrition-bmi-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.65rem);
+}
+
+.athlete-nutrition-bmi-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--info-bg);
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+.athlete-nutrition-bmi-title {
+  font-size: var(--font-size-xs, 0.85rem);
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 var(--spacing-3xs, 0.2rem) 0;
+  line-height: 1.2;
+}
+
+.athlete-nutrition-bmi-chips {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.4rem);
+  flex-wrap: wrap;
+}
+
+.athlete-nutrition-chip {
+  font-size: var(--font-size-2xs, 0.75rem);
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: var(--spacing-3xs, 0.15rem) var(--spacing-xs, 0.45rem);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.athlete-nutrition-chip strong {
+  color: var(--text-main);
+}
+
+.athlete-nutrition-chip-highlight {
+  background: var(--info-bg);
+  border-color: var(--border-hover);
+  color: var(--text-main);
+}
+
+.athlete-nutrition-bmi-header-right {
+  display: flex;
+  align-items: center;
+}
+
 /* Pie Informativo con IMC y TMB/TDEE */
 .athlete-nutrition-footer {
   display: flex;
@@ -325,6 +401,11 @@
   .athlete-nutrition-macros-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-sm, 0.65rem);
+  }
+
+  .athlete-nutrition-bmi-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .athlete-nutrition-footer {

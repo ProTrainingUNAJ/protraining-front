@@ -45,6 +45,7 @@ vi.mock('../../../api/structureService', () => ({
     getOrganizations: getOrganizationsMock,
     getCategories: getCategoriesMock,
     getAthletes: getAthletesMock,
+    getAthleteById: vi.fn(),
     withCategories: withCategoriesMock,
     getAthletePhotoUrl: vi.fn(
       (id: string, v?: string | null) =>
