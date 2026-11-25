@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usersService } from '../../api/users';
-import { structureService } from '../../api/structureService';
 import { ProfileAvatar } from '../common/ProfileAvatar';
 
 export const UserSidebarProfile: React.FC = () => {
@@ -14,20 +13,6 @@ export const UserSidebarProfile: React.FC = () => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isAthlete = location.pathname.startsWith('/athlete');
-  const [athleteId, setAthleteId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isAthlete) {
-      structureService
-        .getMe()
-        .then((me) => {
-          if (me?.athleteId) {
-            setAthleteId(me.athleteId);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [isAthlete]);
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -47,12 +32,7 @@ export const UserSidebarProfile: React.FC = () => {
   const fullName = user?.fullName ?? '';
   const roleName = isAthlete ? 'Atleta' : 'Preparador físico';
   const email = user?.email ?? '';
-  const photoUrl =
-    isAthlete && athleteId
-      ? structureService.getAthletePhotoUrl(athleteId)
-      : user?.id
-        ? usersService.getMyPhotoUrl(user.id)
-        : null;
+  const photoUrl = user?.id ? usersService.getMyPhotoUrl(user.id) : null;
 
   const handleLogout = () => {
     logout();
