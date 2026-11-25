@@ -119,6 +119,38 @@ function mapCategory(raw: RawCategory): Category {
   };
 }
 
+interface RawPhysicalFields {
+  weightKg?: number | null;
+  pesoKg?: number | null;
+  heightCm?: number | null;
+  alturaCm?: number | null;
+  estaturaCm?: number | null;
+  athleticGoal?: string | null;
+  objetivoAtletico?: string | null;
+  birthDate?: string | null;
+  fechaNacimiento?: string | null;
+  gender?: string | null;
+  genero?: string | null;
+  physicalProfileUpdatedAt?: string | null;
+}
+
+function parseOptionalNumber(val?: number | null): number | null {
+  if (val === undefined || val === null) return null;
+  const parsed = Number(val);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizePhysicalProfileFields(raw: RawPhysicalFields) {
+  return {
+    weightKg: parseOptionalNumber(raw.weightKg ?? raw.pesoKg),
+    heightCm: parseOptionalNumber(raw.heightCm ?? raw.estaturaCm ?? raw.alturaCm),
+    athleticGoal: raw.athleticGoal ?? raw.objetivoAtletico ?? null,
+    birthDate: raw.birthDate ?? raw.fechaNacimiento ?? null,
+    gender: raw.gender ?? raw.genero ?? null,
+    physicalProfileUpdatedAt: raw.physicalProfileUpdatedAt ?? null,
+  };
+}
+
 function mapAthlete(raw: RawAthlete): Athlete {
   const firstName = raw.nombre ?? raw.firstName ?? '';
   const lastName = raw.apellido ?? raw.lastName ?? '';
@@ -136,6 +168,7 @@ function mapAthlete(raw: RawAthlete): Athlete {
   });
 
   const categoryNames = raw.categoryNames ?? categories.map((c) => c.name).filter(Boolean);
+  const physical = normalizePhysicalProfileFields(raw);
 
   return {
     id: raw.id,
@@ -155,24 +188,7 @@ function mapAthlete(raw: RawAthlete): Athlete {
     activeInjuriesCount: raw.activeInjuriesCount ?? 0,
     hasPhoto: raw.hasPhoto ?? false,
     photoUpdatedAt: raw.photoUpdatedAt ?? null,
-    weightKg:
-      raw.weightKg !== undefined && raw.weightKg !== null
-        ? Number(raw.weightKg)
-        : raw.pesoKg !== undefined && raw.pesoKg !== null
-          ? Number(raw.pesoKg)
-          : null,
-    heightCm:
-      raw.heightCm !== undefined && raw.heightCm !== null
-        ? Number(raw.heightCm)
-        : raw.estaturaCm !== undefined && raw.estaturaCm !== null
-          ? Number(raw.estaturaCm)
-          : raw.alturaCm !== undefined && raw.alturaCm !== null
-            ? Number(raw.alturaCm)
-            : null,
-    athleticGoal: raw.athleticGoal ?? raw.objetivoAtletico ?? null,
-    birthDate: raw.birthDate ?? raw.fechaNacimiento ?? null,
-    gender: raw.gender ?? raw.genero ?? null,
-    physicalProfileUpdatedAt: raw.physicalProfileUpdatedAt ?? null,
+    ...physical,
   };
 }
 
@@ -539,8 +555,23 @@ export const structureService = {
    */
   async getMe(): Promise<AthleteMe> {
     try {
-      const response = await httpClient.get<AthleteMe>('/estructura/api/v1/me');
-      return response.data;
+      const response = await httpClient.get<AthleteMe & RawPhysicalFields>('/estructura/api/v1/me');
+      const data = response.data;
+      if (!data) return data;
+      const heightValue = data.heightCm ?? data.estaturaCm ?? data.alturaCm;
+      const weightValue = data.weightKg ?? data.pesoKg;
+      return {
+        ...data,
+        ...(weightValue !== undefined ? { weightKg: parseOptionalNumber(weightValue) } : {}),
+        ...(heightValue !== undefined ? { heightCm: parseOptionalNumber(heightValue) } : {}),
+        ...(data.athleticGoal === undefined && data.objetivoAtletico !== undefined
+          ? { athleticGoal: data.objetivoAtletico }
+          : {}),
+        ...(data.birthDate === undefined && data.fechaNacimiento !== undefined
+          ? { birthDate: data.fechaNacimiento }
+          : {}),
+        ...(data.gender === undefined && data.genero !== undefined ? { gender: data.genero } : {}),
+      };
     } catch (err: unknown) {
       throw new Error(extractErrorMessage(err), { cause: err });
     }

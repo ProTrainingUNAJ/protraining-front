@@ -60,7 +60,13 @@ export function calculateAge(
     return { age: fallbackAge, isEstimated: true };
   }
 
-  const birth = new Date(birthDate);
+  // Parseo en calendario local cuando viene ISO YYYY-MM-DD (evita desfase UTC-3 en Argentina)
+  const datePart = birthDate.split('T')[0];
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+  const birth = isoMatch
+    ? new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]))
+    : new Date(birthDate);
+
   if (isNaN(birth.getTime())) {
     return { age: fallbackAge, isEstimated: true };
   }
